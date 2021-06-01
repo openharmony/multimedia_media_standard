@@ -1,0 +1,56 @@
+{
+    "subsystem": "multimedia",
+    "parts": {
+        "multimedia_media_standard": {
+            "variants": [
+                "phone"
+            ],
+            "module_list": [
+                "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/player:hst_interfaces_packages",
+                "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/common:media_common_packages",
+                "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/common:media_common",
+                "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/recorder:recorder",
+                "//foundation/multimedia/media_standard/interfaces/kits/js/media:media",
+                "//foundation/multimedia/media_standard/interfaces/kits/js/media:media_js",
+                "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager"
+            ],
+            "inner_kits": [
+                {
+                    "type": "none",
+                    "name": "//foundation/multimedia/media_standard/interfaces/kits/js/media:media",
+                    "header": {
+                        "header_files": [
+                            "native_module_ohos_media.h",
+                            "audio_player_napi.h",
+                            "audio_recorder_napi.h"
+                        ],
+                        "header_base": "//foundation/multimedia/media_standard/interfaces/kits/js/media/include"
+                    }
+                },
+                {
+                    "type": "none",
+                    "name": "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/recorder:recorder",
+                    "header": {
+                        "header_files": [
+                            "recorder.h"
+                        ],
+                        "header_base": "//foundation/multimedia/media_standard/interfaces/innerkits/native/include"
+                    }
+                },
+                {
+                    "type": "none",
+                    "name": "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/common:media_common",
+                    "header": {
+                        "header_files": [
+                            "format.h"
+                        ],
+                        "header_base": "//foundation/multimedia/media_standard/interfaces/innerkits/native/include"
+                    }
+                }
+            ],
+            "test_list": [
+                "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/test:playermoduletest"
+            ]
+        }
+    }
+}
