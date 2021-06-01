@@ -1,0 +1,65 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//build/ohos/ace/ace.gni")
+
+js_declaration("media_js") {
+  part_name = "multimedia_media_standard"
+  sources = [ "./@ohos.multimedia.media.d.ts" ]
+}
+
+ohos_copy("media_declaration") {
+  sources = [ "./@ohos.multimedia.media.d.ts" ]
+  outputs = [ target_out_dir + "/$target_name/" ]
+  module_source_dir = target_out_dir + "/$target_name"
+  module_install_name = ""
+}
+
+ohos_shared_library("media") {
+  include_dirs = [
+    "//foundation/multimedia/media_standard/interfaces/kits/js/media/include",
+    "//third_party/node/src",
+    "//foundation/ace/napi/interfaces/kits",
+    "//foundation/multimedia/media_standard/interfaces/kits/native/include",
+    "//utils/native/base/include",
+    "//third_party/gstreamer/gstreamer",
+    "//third_party/glib/glib",
+    "//third_party/glib",
+    "//foundation/graphic/standard/interfaces/kits/surface",
+  ]
+
+  sources = [
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/media/src/audio_player_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/media/src/audio_recorder_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/media/src/native_module_ohos_media.cpp",
+  ]
+
+  deps = [
+    "//foundation/ace/napi:ace_napi",
+    "//foundation/graphic/standard/frameworks/surface:surface",
+    "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/player:hstmedia",
+    "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/recorder:recorder",
+    "//utils/native/base:utilsecurec",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "multimedia_camera_standard:camera",
+  ]
+
+  relative_install_dir = "module/multimedia"
+  subsystem_name = "multimedia"
+  part_name = "multimedia_media_standard"
+}
