@@ -328,7 +328,7 @@ static void *PlayerLoop(void *param)
     auto videoRenderer = player_video_renderer_new(self);
     self->mPlayer = gst_player_new(videoRenderer,
                                    gst_player_g_main_context_signal_dispatcher_new(self->mContext));
-    g_object_set(self->mPlayer, "uri", self->mLocation.c_str(), NULL);
+    g_object_set(self->mPlayer, "uri", self->mLocation.c_str(), nullptr);
 
     if (SetCallbacks(*self) == PLAYER_PREPARE_ERR) {
         HiLog::Error(LABEL, "Set callbacks failed");
@@ -655,14 +655,14 @@ GstElement *PlayerPrivate::CreateVideoSink(GstPlayerVideoRenderer *renderer, Gst
         self->mAudioCaps = gst_caps_new_simple("audio/x-raw",
                                                "format", G_TYPE_STRING, "S16LE",
                                                "rate", G_TYPE_INT, rate,
-                                               "channels", G_TYPE_INT, channels, NULL);
+                                               "channels", G_TYPE_INT, channels, nullptr);
         self->mAudioSink = CreateSink(self->mAudioCaps, AudioDataAvailableCb, self);
         g_object_set(playbin, "audio-sink", self->mAudioSink, nullptr);
     }
 
     if (self->mVideoCaps) {
         self->mVideoCaps = gst_caps_new_simple("video/x-raw",
-                                               "format", G_TYPE_STRING, "RGBA", NULL);
+                                               "format", G_TYPE_STRING, "RGBA", nullptr);
         self->mVideoSink = CreateSink(self->mVideoCaps, VideoDataAvailableCb, self);
         return self->mVideoSink;
     }
@@ -754,7 +754,7 @@ GstPadProbeReturn PlayerPrivate::SinkPadProbeCb(GstPad *pad, GstPadProbeInfo *in
         auto mediaType = gst_structure_get_name(s);
         bool isVideo = g_str_has_prefix(mediaType, "video/");
         if (isVideo) {
-            gst_query_add_allocation_meta(query, GST_VIDEO_META_API_TYPE, NULL);
+            gst_query_add_allocation_meta(query, GST_VIDEO_META_API_TYPE, nullptr);
         }
     }
     return GST_PAD_PROBE_OK;
