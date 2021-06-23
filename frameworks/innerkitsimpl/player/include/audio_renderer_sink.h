@@ -21,6 +21,7 @@
 #include <gst/audio/audio.h>
 #include <gst/audio/gstaudiosink.h>
 #include <gst/gst.h>
+#include <stdio.h>
 
 namespace OHOS {
 namespace Media {
