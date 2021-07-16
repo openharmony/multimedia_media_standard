@@ -1,56 +1,55 @@
+
 {
-    "subsystem": "multimedia",
-    "parts": {
-        "multimedia_media_standard": {
-            "variants": [
-                "phone"
+  "subsystem": "multimedia",
+  "parts": {
+    "multimedia_media_standard": {
+      "variants": [
+        "phone"
+      ],
+      "module_list": [
+        "//foundation/multimedia/media_standard/services:media_service",
+        "//foundation/multimedia/media_standard/services:media_service.rc",
+        "//foundation/multimedia/media_standard/sa_profile:media_service_sa_profile",
+        "//foundation/multimedia/media_standard/interfaces/kits/js/media:media",
+        "//foundation/multimedia/media_standard/interfaces/kits/js/media:media_js",
+        "//foundation/multimedia/media_standard/services/player/engine:media_player_engine",
+        "//foundation/multimedia/media_standard/services/recorder/engine:media_recorder_engine",
+        "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager"
+      ],
+      "inner_kits": [
+        {
+          "type": "none",
+          "name": "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_local",
+          "header": {
+            "header_files": [
+                "player.h",
+                "recorder.h"
             ],
-            "module_list": [
-                "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/player:hst_interfaces_packages",
-                "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/common:media_common_packages",
-                "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/common:media_common",
-                "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/recorder:recorder",
-                "//foundation/multimedia/media_standard/interfaces/kits/js/media:media",
-                "//foundation/multimedia/media_standard/interfaces/kits/js/media:media_js",
-                "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager"
+            "header_base": "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include"
+          }
+        },
+        {
+          "type": "none",
+          "name": "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_client",
+          "header": {
+            "header_files": [
+                "player.h",
+                "recorder.h"
             ],
-            "inner_kits": [
-                {
-                    "type": "none",
-                    "name": "//foundation/multimedia/media_standard/interfaces/kits/js/media:media",
-                    "header": {
-                        "header_files": [
-                            "native_module_ohos_media.h",
-                            "audio_player_napi.h",
-                            "audio_recorder_napi.h"
-                        ],
-                        "header_base": "//foundation/multimedia/media_standard/interfaces/kits/js/media/include"
-                    }
-                },
-                {
-                    "type": "none",
-                    "name": "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/recorder:recorder",
-                    "header": {
-                        "header_files": [
-                            "recorder.h"
-                        ],
-                        "header_base": "//foundation/multimedia/media_standard/interfaces/innerkits/native/include"
-                    }
-                },
-                {
-                    "type": "none",
-                    "name": "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/common:media_common",
-                    "header": {
-                        "header_files": [
-                            "format.h"
-                        ],
-                        "header_base": "//foundation/multimedia/media_standard/interfaces/innerkits/native/include"
-                    }
-                }
+            "header_base": "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include"
+          }
+        },
+        {
+          "type": "none",
+          "name": "//foundation/multimedia/media_standard/interfaces/kits/js/media:media",
+          "header": {
+            "header_files": [
+                 "native_module_ohos_media.h"
             ],
-            "test_list": [
-                "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/test:playermoduletest"
-            ]
+            "header_base": "//foundation/multimedia/media_standard/interfaces/kits/js/media/include"
+          }
         }
+      ]
     }
+  }
 }

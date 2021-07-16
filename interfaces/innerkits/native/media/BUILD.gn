@@ -1,0 +1,141 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+config("media_client_local_config") {
+  include_dirs = [
+    "//foundation/multimedia/media_standard/services/sa_media/client/include",
+    "//foundation/multimedia/media_standard/services/player/server/include",
+    "//foundation/multimedia/media_standard/services/player/engine/include",
+    "//foundation/multimedia/media_standard/services/recorder/server/include",
+    "//foundation/multimedia/media_standard/services/recorder/engine/include",
+  ]
+}
+
+config("media_client_ipc_config") {
+  include_dirs = [
+    "//foundation/multimedia/media_standard/services/sa_media/client/include",
+    "//foundation/multimedia/media_standard/services/sa_media/ipc/include",
+    "//foundation/multimedia/media_standard/services/player/client/include",
+    "//foundation/multimedia/media_standard/services/player/ipc/include",
+    "//foundation/multimedia/media_standard/services/recorder/client/include",
+    "//foundation/multimedia/media_standard/services/recorder/ipc/include",
+  ]
+}
+
+config("media_client_public_config") {
+  include_dirs = [
+    "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/native/player/include",
+    "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/native/recorder/include",
+    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/media_standard/services/include",
+    "//foundation/multimedia/media_standard/services/utils/include",
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
+    "//utils/system/safwk/native/include",
+    "//utils/native/base/include"
+  ]
+
+  cflags = [
+    "-std=c++17",
+    "-fno-rtti",
+    "-fno-exceptions",
+    "-Wall",
+    "-fno-common",
+    "-fstack-protector-strong",
+    "-Wshadow",
+    "-FPIC",
+    "-FS",
+    "-O2",
+    "-D_FORTIFY_SOURCE=2",
+    "-fvisibility=hidden",
+    "-Wformat=2",
+    "-Wdate-time",
+  ]
+
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+}
+
+ohos_shared_library("media_client") {
+    install_enable = true
+    sources = [
+        "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/native/player/src/player_impl.cpp",
+        "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/native/recorder/src/recorder_impl.cpp",
+        "//foundation/multimedia/media_standard/services/sa_media/client/src/media_client.cpp",
+        "//foundation/multimedia/media_standard/services/sa_media/ipc/src/media_service_proxy.cpp",
+        "//foundation/multimedia/media_standard/services/player/client/src/player_client.cpp",
+        "//foundation/multimedia/media_standard/services/player/ipc/src/player_service_proxy.cpp",
+        "//foundation/multimedia/media_standard/services/player/ipc/src/player_listener_stub.cpp",
+        "//foundation/multimedia/media_standard/services/recorder/client/src/recorder_client.cpp",
+        "//foundation/multimedia/media_standard/services/recorder/ipc/src/recorder_service_proxy.cpp",
+        "//foundation/multimedia/media_standard/services/recorder/ipc/src/recorder_listener_stub.cpp",
+    ]
+
+    public_configs = [
+        ":media_client_ipc_config",
+        ":media_client_public_config",
+        "//foundation/graphic/standard/frameworks/surface:surface_public_config"
+    ]
+
+    deps = [
+        "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+        "//utils/native/base:utils",
+        "//utils/native/base:utilsecurec",
+        "//foundation/graphic/standard/frameworks/surface:surface",
+    ]
+
+    external_deps = [
+        "ipc:ipc_core",
+        "samgr_L2:samgr_proxy",
+        "hiviewdfx_hilog_native:libhilog",
+    ]
+    subsystem_name = "multimedia"
+    part_name = "multimedia_media_standard"
+}
+
+ohos_shared_library("media_local") {
+    install_enable = true
+    sources = [
+        "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/native/player/src/player_impl.cpp",
+        "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/native/recorder/src/recorder_impl.cpp",
+        "//foundation/multimedia/media_standard/services/sa_media/client/src/media_local.cpp",
+        "//foundation/multimedia/media_standard/services/player/server/src/player_server.cpp",
+        "//foundation/multimedia/media_standard/services/player/server/src/player_engine_dl.cpp",
+        "//foundation/multimedia/media_standard/services/recorder/server/src/recorder_server.cpp",
+        "//foundation/multimedia/media_standard/services/recorder/server/src/recorder_engine_dl.cpp",
+    ]
+
+    public_configs = [
+        ":media_client_local_config",
+        ":media_client_public_config",
+        "//foundation/graphic/standard/frameworks/surface:surface_public_config"
+    ]
+
+    deps = [
+        "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+        "//utils/native/base:utils",
+        "//utils/native/base:utilsecurec",
+        "//foundation/graphic/standard/frameworks/surface:surface",
+        "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    ]
+
+    external_deps = [
+        "hiviewdfx_hilog_native:libhilog",
+        "bytrace_standard:bytrace_core",
+        "ipc:ipc_core",
+    ]
+    subsystem_name = "multimedia"
+    part_name = "multimedia_media_standard"
+}
