@@ -16,50 +16,68 @@ import("//build/ohos/ace/ace.gni")
 
 js_declaration("media_js") {
   part_name = "multimedia_media_standard"
-  sources = [ "./@ohos.multimedia.media.d.ts" ]
+  sources = [
+    "./@ohos.multimedia.media.d.ts",
+  ]
 }
 
 ohos_copy("media_declaration") {
-  sources = [ "./@ohos.multimedia.media.d.ts" ]
+  sources = [
+    "./@ohos.multimedia.media.d.ts",
+  ]
   outputs = [ target_out_dir + "/$target_name/" ]
   module_source_dir = target_out_dir + "/$target_name"
   module_install_name = ""
 }
 
 ohos_shared_library("media") {
-  include_dirs = [
-    "//foundation/multimedia/media_standard/interfaces/kits/js/media/include",
-    "//third_party/node/src",
-    "//foundation/ace/napi/interfaces/kits",
-    "//foundation/multimedia/media_standard/interfaces/kits/native/include",
-    "//utils/native/base/include",
-    "//third_party/gstreamer/gstreamer",
-    "//third_party/glib/glib",
-    "//third_party/glib",
-    "//foundation/graphic/standard/interfaces/kits/surface",
-  ]
+    include_dirs = [
+        "//foundation/multimedia/media_standard/interfaces/kits/js/media/include",
+    ]
 
-  sources = [
-    "//foundation/multimedia/media_standard/frameworks/kitsimpl/media/src/audio_player_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/kitsimpl/media/src/audio_recorder_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/kitsimpl/media/src/native_module_ohos_media.cpp",
-  ]
+    sources = [
+        "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/player/src/native_module_ohos_media.cpp",
+        "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/player/src/audio_player_napi.cpp",
+        "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/recorder/src/audio_recorder_napi.cpp",
+        "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/recorder/src/recorder_callback_napi.cpp",
+        "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/player/src/player_callback_napi.cpp",
+    ]
 
-  deps = [
-    "//foundation/ace/napi:ace_napi",
-    "//foundation/graphic/standard/frameworks/surface:surface",
-    "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/player:hstmedia",
-    "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/recorder:recorder",
-    "//utils/native/base:utilsecurec",
-  ]
+    cflags = [
+      "-std=c++17",
+      "-fno-rtti",
+      "-fno-exceptions",
+      "-Wall",
+      "-fno-common",
+      "-fstack-protector-strong",
+      "-Wshadow",
+      "-FPIC",
+      "-FS",
+      "-O2",
+      "-D_FORTIFY_SOURCE=2",
+      "-fvisibility=hidden",
+      "-Werror",
+      "-Wextra",
+      "-Wformat=2",
+      "-Wfloat-equal",
+      "-Wdate-time",
+    ]
 
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
-    "multimedia_camera_standard:camera",
-  ]
+    deps = [
+        "//foundation/ace/napi:ace_napi",
+        "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_client",
+        "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+        "//utils/native/base:utils",
+        "//utils/native/base:utilsecurec",
+        "//foundation/graphic/standard/frameworks/surface:surface",
+    ]
 
-  relative_install_dir = "module/multimedia"
-  subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+    external_deps = [
+        "hiviewdfx_hilog_native:libhilog",
+        "ipc:ipc_core",
+    ]
+
+    relative_install_dir = "module/multimedia"
+    part_name = "multimedia_media_standard"
+    subsystem_name = "multimedia"
 }

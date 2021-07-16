@@ -17,6 +17,9 @@ config("videodisplaymanager_public_config") {
   include_dirs = [
     "//foundation/multimedia/media_standard/frameworks/videodisplaymanager/include",
     "//drivers/peripheral/display/interfaces/include",
+    "//drivers/peripheral/display/interfaces/hdi_cpp/client",
+    "//drivers/adapter/uhdf2/hdi",
+    "//drivers/adapter/uhdf2/include/hdi"
   ]
 }
 
@@ -32,7 +35,10 @@ ohos_shared_library("videodisplaymanager") {
 
   deps = [ "//drivers/peripheral/display/hal:hdi_display_layer" ]
 
-  public_deps = [ "//foundation/graphic/standard/frameworks/surface:surface" ]
+  public_deps = [
+    "//foundation/graphic/standard/frameworks/surface:surface",
+    "//drivers/peripheral/display/interfaces/hdi_cpp/client:display_client"
+  ]
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
