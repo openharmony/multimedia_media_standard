@@ -50,6 +50,7 @@ public:
 
 private:
     bool IsValidSeekMode(PlayerSeekMode mode);
+    int32_t OnReset();
 
     // IPlayerEngineObs override
     void OnError(int32_t errorType, int32_t errorCode) override;
@@ -65,6 +66,7 @@ private:
     sptr<Surface> surface_ = nullptr;
     PlayerStates status_ = PLAYER_IDLE;
     std::mutex mutex_;
+    std::mutex mutexCb_;
     bool looping_ = false;
     TimeMonitor startTimeMonitor_;
     TimeMonitor stopTimeMonitor_;

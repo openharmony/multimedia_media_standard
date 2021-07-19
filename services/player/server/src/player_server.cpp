@@ -56,7 +56,6 @@ int32_t PlayerServer::SetSource(const std::string &uri)
     }
 
     startTimeMonitor_.StartTime();
-    StartTrace(BYTRACE_TAG_ZMEDIA, START_TAG);
 
     MEDIA_LOGD("current uri is : %{public}s", uri.c_str());
     playerEngine_ = PlayerEngineDl::Instance().CreateEngine(uri);
@@ -114,7 +113,6 @@ int32_t PlayerServer::Play()
     CHECK_AND_RETURN_RET_LOG(ret == ERR_OK, ERR_INVALID_OPERATION, "Engine Play Failed!");
 
     startTimeMonitor_.FinishTime();
-    FinishTrace(BYTRACE_TAG_ZMEDIA, START_TAG);
     status_ = PLAYER_STARTED;
     return ERR_OK;
 }
@@ -192,7 +190,6 @@ int32_t PlayerServer::Stop()
     }
 
     stopTimeMonitor_.StartTime();
-    StartTrace(BYTRACE_TAG_ZMEDIA, STOP_TAG);
 
     int32_t ret = playerEngine_->Stop();
     CHECK_AND_RETURN_RET_LOG(ret == ERR_OK, ERR_INVALID_OPERATION, "Engine Stop Failed!");
@@ -203,11 +200,15 @@ int32_t PlayerServer::Stop()
 int32_t PlayerServer::Reset()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    return OnReset();
+}
+
+int32_t PlayerServer::OnReset()
+{
     if (status_ == PLAYER_IDLE) {
         MEDIA_LOGI("currentState is %{public}d", status_);
         return ERR_OK;
     }
-
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, ERR_INVALID_OPERATION, "playerEngine_ is nullptr");
     int32_t ret = playerEngine_->Reset();
     CHECK_AND_RETURN_RET_LOG(ret == ERR_OK, ERR_INVALID_OPERATION, "Engine Reset Failed!");
@@ -221,7 +222,11 @@ int32_t PlayerServer::Reset()
 int32_t PlayerServer::Release()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    playerEngine_ = nullptr;
+    {
+        std::lock_guard<std::mutex> lockCb(mutexCb_);
+        playerCb_ = nullptr;
+    }
+    (void)OnReset();
     return ERR_OK;
 }
 
@@ -416,12 +421,16 @@ int32_t PlayerServer::SetPlayerCallback(const std::shared_ptr<PlayerCallback> &c
         return ERR_INVALID_OPERATION;
     }
 
-    playerCb_ = callback;
+    {
+        std::lock_guard<std::mutex> lockCb(mutexCb_);
+        playerCb_ = callback;
+    }
     return ERR_OK;
 }
 
 void PlayerServer::OnError(int32_t errorType, int32_t errorCode)
 {
+    std::lock_guard<std::mutex> lockCb(mutexCb_);
     if (playerCb_ != nullptr) {
         playerCb_->OnError(static_cast<int32_t>(errorType), errorCode);
     }
@@ -429,6 +438,7 @@ void PlayerServer::OnError(int32_t errorType, int32_t errorCode)
 
 void PlayerServer::OnSeekDone(uint64_t currentPositon)
 {
+    std::lock_guard<std::mutex> lockCb(mutexCb_);
     if (playerCb_ != nullptr) {
         playerCb_->OnSeekDone(currentPositon);
     }
@@ -436,6 +446,7 @@ void PlayerServer::OnSeekDone(uint64_t currentPositon)
 
 void PlayerServer::OnEndOfStream(bool isLooping)
 {
+    std::lock_guard<std::mutex> lockCb(mutexCb_);
     if (playerCb_ != nullptr) {
         playerCb_->OnEndOfStream(isLooping);
     }
@@ -445,6 +456,7 @@ void PlayerServer::OnStateChanged(PlayerStates state)
 {
     status_ = state;
     MEDIA_LOGD("OnStateChanged Callback, currentState is %{public}d", status_);
+    std::lock_guard<std::mutex> lockCb(mutexCb_);
     if (playerCb_ != nullptr) {
         playerCb_->OnStateChanged(status_);
     }
@@ -452,6 +464,7 @@ void PlayerServer::OnStateChanged(PlayerStates state)
 
 void PlayerServer::OnPositionUpdated(uint64_t position)
 {
+    std::lock_guard<std::mutex> lockCb(mutexCb_);
     if (playerCb_ != nullptr) {
         playerCb_->OnPositionUpdated(position);
     }
@@ -459,6 +472,7 @@ void PlayerServer::OnPositionUpdated(uint64_t position)
 
 void PlayerServer::OnMessage(int32_t type, int32_t extra)
 {
+    std::lock_guard<std::mutex> lockCb(mutexCb_);
     if (playerCb_ != nullptr) {
         playerCb_->OnMessage(type, extra);
     }

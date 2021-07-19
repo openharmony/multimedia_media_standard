@@ -19,6 +19,7 @@
 #include <map>
 #include "i_standard_player_service.h"
 #include "i_standard_player_listener.h"
+#include "media_death_recipient.h"
 #include "player_server.h"
 
 namespace OHOS {
@@ -82,6 +83,7 @@ private:
 private:
     std::shared_ptr<PlayerCallback> playerCallback_ = nullptr;
     std::shared_ptr<IPlayerService> playerServer_ = nullptr;
+    sptr<MediaDeathRecipient> deathRecipient_ = nullptr;
     std::map<uint32_t, PlayerStubFunc> playerFuncs_;
     std::mutex mutex_;
 };
