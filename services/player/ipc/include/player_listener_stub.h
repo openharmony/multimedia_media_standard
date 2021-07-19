@@ -35,10 +35,10 @@ public:
     void OnPositionUpdated(uint64_t postion) override;
 
     // PlayerListenerStub
-    void SetPlayerCallback(const std::shared_ptr<PlayerCallback> &callback);
+    void SetPlayerCallback(const std::weak_ptr<PlayerCallback> &callback);
 
 private:
-    std::shared_ptr<PlayerCallback> callback_ = nullptr;
+    std::weak_ptr<PlayerCallback> callback_;
 };
 }
 } // namespace OHOS

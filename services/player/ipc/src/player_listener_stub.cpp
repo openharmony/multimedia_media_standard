@@ -78,48 +78,54 @@ int PlayerListenerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mess
 
 void PlayerListenerStub::OnError(int32_t errorType, int32_t errorCode)
 {
-    if (callback_ != nullptr) {
-        callback_->OnError(errorType, errorCode);
+    std::shared_ptr<PlayerCallback> cb = callback_.lock();
+    if (cb != nullptr) {
+        cb->OnError(errorType, errorCode);
     }
 }
 
 void PlayerListenerStub::OnSeekDone(uint64_t currentPositon)
 {
-    if (callback_ != nullptr) {
-        callback_->OnSeekDone(currentPositon);
+    std::shared_ptr<PlayerCallback> cb = callback_.lock();
+    if (cb != nullptr) {
+        cb->OnSeekDone(currentPositon);
     }
 }
 
 void PlayerListenerStub::OnEndOfStream(bool isLooping)
 {
-    if (callback_ != nullptr) {
-        callback_->OnEndOfStream(isLooping);
+    std::shared_ptr<PlayerCallback> cb = callback_.lock();
+    if (cb != nullptr) {
+        cb->OnEndOfStream(isLooping);
     }
 }
 
 void PlayerListenerStub::OnStateChanged(PlayerStates state)
 {
-    if (callback_ != nullptr) {
+    std::shared_ptr<PlayerCallback> cb = callback_.lock();
+    if (cb != nullptr) {
         MEDIA_LOGD("on state changed, state: %{public}d", state);
-        callback_->OnStateChanged(state);
+        cb->OnStateChanged(state);
     }
 }
 
 void PlayerListenerStub::OnPositionUpdated(uint64_t position)
 {
-    if (callback_ != nullptr) {
-        callback_->OnPositionUpdated(position);
+    std::shared_ptr<PlayerCallback> cb = callback_.lock();
+    if (cb != nullptr) {
+        cb->OnPositionUpdated(position);
     }
 }
 
 void PlayerListenerStub::OnMessage(int32_t type, int32_t extra)
 {
-    if (callback_ != nullptr) {
-        callback_->OnMessage(type, extra);
+    std::shared_ptr<PlayerCallback> cb = callback_.lock();
+    if (cb != nullptr) {
+        cb->OnMessage(type, extra);
     }
 }
 
-void PlayerListenerStub::SetPlayerCallback(const std::shared_ptr<PlayerCallback> &callback)
+void PlayerListenerStub::SetPlayerCallback(const std::weak_ptr<PlayerCallback> &callback)
 {
     callback_ = callback;
 }

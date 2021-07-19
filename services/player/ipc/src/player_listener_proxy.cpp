@@ -38,7 +38,7 @@ void PlayerListenerProxy::OnError(int32_t errorType, int32_t errorCode)
 {
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option;
+    MessageOption option(MessageOption::TF_ASYNC);
     data.WriteInt32(errorType);
     data.WriteInt32(errorCode);
     int error = Remote()->SendRequest(PlayerListenerMsg::ON_ERROR, data, reply, option);
@@ -51,7 +51,7 @@ void PlayerListenerProxy::OnSeekDone(uint64_t currentPositon)
 {
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option;
+    MessageOption option(MessageOption::TF_ASYNC);
     data.WriteUint64(currentPositon);
     int error = Remote()->SendRequest(PlayerListenerMsg::ON_SEEK_DONE, data, reply, option);
     if (error != ERR_OK) {
@@ -63,7 +63,7 @@ void PlayerListenerProxy::OnEndOfStream(bool isLooping)
 {
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option;
+    MessageOption option(MessageOption::TF_ASYNC);
     data.WriteBool(isLooping);
     int error = Remote()->SendRequest(PlayerListenerMsg::ON_END_OF_STREAM, data, reply, option);
     if (error != ERR_OK) {
@@ -75,7 +75,7 @@ void PlayerListenerProxy::OnStateChanged(PlayerStates state)
 {
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option;
+    MessageOption option(MessageOption::TF_ASYNC);
     data.WriteInt32(static_cast<int32_t>(state));
     int error = Remote()->SendRequest(PlayerListenerMsg::ON_STATE_CHANGED, data, reply, option);
     if (error != ERR_OK) {
@@ -87,7 +87,7 @@ void PlayerListenerProxy::OnPositionUpdated(uint64_t postion)
 {
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option;
+    MessageOption option(MessageOption::TF_ASYNC);
     data.WriteUint64(postion);
     int error = Remote()->SendRequest(PlayerListenerMsg::ON_POSITION_UPDATED, data, reply, option);
     if (error != ERR_OK) {
@@ -99,7 +99,7 @@ void PlayerListenerProxy::OnMessage(int32_t type, int32_t extra)
 {
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option;
+    MessageOption option(MessageOption::TF_ASYNC);
     data.WriteInt32(type);
     data.WriteInt32(extra);
     int error = Remote()->SendRequest(PlayerListenerMsg::ON_MESSAGE, data, reply, option);
