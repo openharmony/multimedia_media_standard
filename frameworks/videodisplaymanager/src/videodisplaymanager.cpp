@@ -13,12 +13,15 @@
  * limitations under the License.
  */
 
-#include "videodisplaymanager.h"
 #include "buffer_log.h"
-#include "display_layer.h"
 #include "surface_buffer_impl.h"
+#include "videodisplaymanager.h"
 
-static LayerFuncs *g_layerFuncs = nullptr;
+#include <iremote_proxy.h>
+
+using namespace OHOS::HDI::Display::V1_0;
+static OHOS::sptr<IDisplayLayer> g_layerService = nullptr;
+constexpr const char *DISPLAY_LAYER_SERVICE_NAME = "hdi_display_layer_service";
 
 #ifndef VIDEO_DISPLAY_DEBUG
 #define VIDEO_DISPLAY_ENTER() ((void)0)
@@ -56,6 +59,7 @@ namespace {
         int32_t fence;
         SurfaceError ret;
 
+        VIDEO_DISPLAY_ENTER();
         if (surface_ == nullptr) {
             BLOGFE("surface is null");
             return;
@@ -66,8 +70,9 @@ namespace {
             return;
         }
         bufferImpl = SurfaceBufferImpl::FromBase(buffer);
-        if (g_layerFuncs != nullptr && g_layerFuncs->SetLayerBuffer != nullptr) {
-            g_layerFuncs->SetLayerBuffer(0, layerId_, bufferImpl->GetBufferHandle(), fence);
+        if (g_layerService != nullptr) {
+            auto bufferHandle = bufferImpl->GetBufferHandle();
+            g_layerService->SetLayerBuffer(0, layerId_, *bufferHandle, fence);
         }
         if (preBuffer != nullptr) {
             ret = surface_->ReleaseBuffer(preBuffer, -1);
@@ -76,11 +81,18 @@ namespace {
             }
         }
         preBuffer = buffer;
+        VIDEO_DISPLAY_EXIT();
     }
 
     VideoDisplayManager::VideoDisplayManager() : surface_(nullptr), listener(nullptr)
     {
         VIDEO_DISPLAY_ENTER();
+        if (g_layerService == nullptr) {
+            g_layerService = IDisplayLayer::Get(DISPLAY_LAYER_SERVICE_NAME);
+            if (g_layerService == nullptr) {
+                BLOGFE("VideoDisplayManager : get layer service failed");
+            }
+        }
         VIDEO_DISPLAY_EXIT();
     }
 
@@ -94,56 +106,49 @@ namespace {
     {
         VIDEO_DISPLAY_ENTER();
         int32_t ret;
-        DisplayInfo dspInfo = {};
+        std::shared_ptr<DisplayInfo> dspInfo;
         LayerInfo info = layerInfo;
 
-        if (g_layerFuncs == nullptr) {
-            ret = LayerInitialize(&g_layerFuncs);
-            if (ret != DISPLAY_SUCCESS || g_layerFuncs == nullptr) {
-                BLOGFE("layer init fail, ret=%{public}d",  ret);
+        if (g_layerService == nullptr) {
+            g_layerService = IDisplayLayer::Get(DISPLAY_LAYER_SERVICE_NAME);
+            if (g_layerService == nullptr) {
+                BLOGFE("VideoDisplayManager : get layer service failed");
                 return DISPLAY_FAILURE;
             }
         }
 
-        if (g_layerFuncs->InitDisplay == nullptr || g_layerFuncs->CreateLayer == nullptr ||
-            g_layerFuncs->GetDisplayInfo == nullptr) {
-            BLOGFE("layer func is invalid");
-            return DISPLAY_FAILURE;
-        }
-
-        ret = g_layerFuncs->InitDisplay(0);
+        ret = g_layerService->InitDisplay(0);
         if (ret != DISPLAY_SUCCESS) {
             BLOGFE("init display fail, ret=%{public}d",  ret);
             return DISPLAY_FAILURE;
         }
 
-        ret = g_layerFuncs->GetDisplayInfo(0, &dspInfo);
+        ret = g_layerService->GetDisplayInfo(0, dspInfo);
         if (ret != DISPLAY_SUCCESS) {
             BLOGFE("get display info fail, ret=%{public}d",  ret);
-            (void)g_layerFuncs->DeinitDisplay(0);
+            (void)g_layerService->DeinitDisplay(0);
             return DISPLAY_FAILURE;
         }
 
         if (info.height == 0 && info.width == 0) {
-            info.width = dspInfo.width;
-            info.height = dspInfo.height;
+            info.width = dspInfo->width;
+            info.height = dspInfo->height;
         }
 
         BLOGFI("create layer width=%{public}d height=%{public}d type=%{public}d bpp=%{public}d pixFormat=%{public}d",
             info.width, info.height, info.type, info.bpp, info.pixFormat);
 
-        ret = g_layerFuncs->CreateLayer(0, &info, &layerId);
+        ret = g_layerService->CreateLayer(0, info, layerId);
         if (ret != DISPLAY_SUCCESS) {
             BLOGFE("create layer fail, ret=%{public}d",  ret);
-            (void)g_layerFuncs->DeinitDisplay(0);
+            (void)g_layerService->DeinitDisplay(0);
             return DISPLAY_FAILURE;
         }
 
         surface = Surface::CreateSurfaceAsConsumer();
         if (surface == nullptr) {
             BLOGFE("create surface fail");
-            (void)g_layerFuncs->CloseLayer(0, layerId);
-            (void)g_layerFuncs->DeinitDisplay(0);
+            (void)g_layerService->CloseLayer(0, layerId);
             return DISPLAY_FAILURE;
         }
 
@@ -154,13 +159,8 @@ namespace {
     void VideoDisplayManager::DestroyLayer(uint32_t layerId)
     {
         VIDEO_DISPLAY_ENTER();
-        if (g_layerFuncs != nullptr) {
-            if (g_layerFuncs->CloseLayer != nullptr) {
-                (void)g_layerFuncs->CloseLayer(0, layerId);
-            }
-            if (g_layerFuncs->DeinitDisplay != nullptr) {
-                (void)g_layerFuncs->DeinitDisplay(0);
-            }
+        if (g_layerService != nullptr) {
+            (void)g_layerService->CloseLayer(0, layerId);
         } else {
             BLOGFE("layer is not create");
         }
@@ -189,12 +189,12 @@ namespace {
     int32_t VideoDisplayManager::SetRect(uint32_t layerId, IRect rect)
     {
         VIDEO_DISPLAY_ENTER();
-        if (g_layerFuncs == nullptr || g_layerFuncs->SetLayerSize == nullptr) {
+        if (g_layerService == nullptr) {
             BLOGFE("layer is not create or invalid");
             return DISPLAY_FAILURE;
         }
 
-        int32_t ret = g_layerFuncs->SetLayerSize(0, layerId, &rect);
+        int32_t ret = g_layerService->SetLayerRect(0, layerId, rect);
         VIDEO_DISPLAY_EXIT();
         return ret;
     }
@@ -202,12 +202,15 @@ namespace {
     int32_t VideoDisplayManager::GetRect(uint32_t layerId, IRect &rect)
     {
         VIDEO_DISPLAY_ENTER();
-        if (g_layerFuncs == nullptr || g_layerFuncs->GetLayerSize == nullptr) {
+        if (g_layerService == nullptr) {
             BLOGFE("layer is not create or invalid");
             return DISPLAY_FAILURE;
         }
 
-        int32_t ret = g_layerFuncs->GetLayerSize(0, layerId, &rect);
+        std::shared_ptr<IRect> pRect = std::make_shared<IRect>();
+        int32_t ret = g_layerService->GetLayerRect(0, layerId, pRect);
+        auto temp = pRect.get();
+        rect = *temp;
         VIDEO_DISPLAY_EXIT();
         return ret;
     }
@@ -215,12 +218,12 @@ namespace {
     int32_t VideoDisplayManager::SetZorder(uint32_t layerId, uint32_t zorder)
     {
         VIDEO_DISPLAY_ENTER();
-        if (g_layerFuncs == nullptr || g_layerFuncs->SetLayerZorder == nullptr) {
+        if (g_layerService == nullptr) {
             BLOGFE("layer is not create or invalid");
             return DISPLAY_FAILURE;
         }
 
-        int32_t ret = g_layerFuncs->SetLayerZorder(0, layerId, zorder);
+        int32_t ret = g_layerService->SetLayerZorder(0, layerId, zorder);
         VIDEO_DISPLAY_EXIT();
         return ret;
     }
@@ -228,12 +231,12 @@ namespace {
     int32_t VideoDisplayManager::GetZorder(uint32_t layerId, uint32_t &zorder)
     {
         VIDEO_DISPLAY_ENTER();
-        if (g_layerFuncs == nullptr || g_layerFuncs->GetLayerZorder == nullptr) {
+        if (g_layerService == nullptr) {
             BLOGFE("layer is not create or invalid");
             return DISPLAY_FAILURE;
         }
 
-        int32_t ret = g_layerFuncs->GetLayerZorder(0, layerId, &zorder);
+        int32_t ret = g_layerService->GetLayerZorder(0, layerId, zorder);
         VIDEO_DISPLAY_EXIT();
         return ret;
     }
@@ -241,12 +244,12 @@ namespace {
     int32_t VideoDisplayManager::SetTransformMode(uint32_t layerId, TransformType type)
     {
         VIDEO_DISPLAY_ENTER();
-        if (g_layerFuncs == nullptr || g_layerFuncs->SetTransformMode == nullptr) {
+        if (g_layerService == nullptr) {
             BLOGFE("layer is not create or invalid");
             return DISPLAY_FAILURE;
         }
 
-        int32_t ret = g_layerFuncs->SetTransformMode(0, layerId, type);
+        int32_t ret = g_layerService->SetTransformMode(0, layerId, type);
         VIDEO_DISPLAY_EXIT();
         return ret;
     }
@@ -254,12 +257,12 @@ namespace {
     int32_t VideoDisplayManager::SetVisable(uint32_t layerId, bool visible)
     {
         VIDEO_DISPLAY_ENTER();
-        if (g_layerFuncs == nullptr || g_layerFuncs->SetLayerVisible == nullptr) {
+        if (g_layerService == nullptr) {
             BLOGFE("layer is not create or invalid");
             return DISPLAY_FAILURE;
         }
 
-        int32_t ret = g_layerFuncs->SetLayerVisible(0, layerId, visible);
+        int32_t ret = g_layerService->SetLayerVisible(0, layerId, visible);
         VIDEO_DISPLAY_EXIT();
         return ret;
     }
@@ -267,12 +270,12 @@ namespace {
     int32_t VideoDisplayManager::IsVisable(uint32_t layerId, bool &visible)
     {
         VIDEO_DISPLAY_ENTER();
-        if (g_layerFuncs == nullptr || g_layerFuncs->GetLayerVisibleState == nullptr) {
+        if (g_layerService == nullptr) {
             BLOGFE("layer is not create or invalid");
             return DISPLAY_FAILURE;
         }
 
-        int32_t ret = g_layerFuncs->GetLayerVisibleState(0, layerId, &visible);
+        int32_t ret = g_layerService->GetLayerVisibleState(0, layerId, visible);
         VIDEO_DISPLAY_EXIT();
         return ret;
     }

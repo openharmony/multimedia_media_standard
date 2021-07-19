@@ -16,106 +16,70 @@
 #ifndef AUDIO_RECORDER_NAPI_H_
 #define AUDIO_RECORDER_NAPI_H_
 
-#include "napi/native_api.h"
-#include "securec.h"
 #include "recorder.h"
-#include "camera_kit.h"
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 
-/* Default Audio Source for Recorder */
-static const AudioSourceType DEFAULT_AUDIO_SRC = AUDIO_MIC;
+namespace OHOS {
+namespace Media {
+enum JSAudioSourceType : int32_t {
+    JS_MIC = 1,
+};
 
-/* Default stop mode for AudioRecorder Stop function */
-static const int32_t STOP_MODE = false;
+enum JSAudioEncoder : int32_t {
+    JS_AAC_LC = 1,
+};
 
-/* Length for event type name */
-static const int TYPE_LENGTH = 64;
-/* Length for output file path for recorder */
-static const int PATH_LENGTH = 128;
+enum JSFileFormat : int32_t {
+    JS_MP4 = 1,
+    JS_M4A = 2,
+};
 
-/* EventListener for callback methods */
-typedef struct _EventListener {
-    char type[TYPE_LENGTH];
-    napi_ref handlerRef;
-    struct _EventListener* back;
-    struct _EventListener* next;
-} EventListener;
-
-/* Config for storing the Audio Recorder properties */
-typedef struct AudioRecorderConfig_ {
-    int32_t sampleRate = -1;
-    int32_t numberOfChannels = -1;
-    int32_t encodeBitRate = -1;
-    AudioCodecFormat encoder;
-    OHOS::Media::OutputFormatType fileFormat;
-    std::string filePath;
-} AudioRecorderConfig;
-
-/* Wrapper for Audio Recorder */
+class RecorderCallbackNapi;
 class AudioRecorderNapi {
 public:
-    /* Method for exporting audio recorder properties */
+    explicit AudioRecorderNapi();
+    ~AudioRecorderNapi();
+
     static napi_value Init(napi_env env, napi_value exports);
 
-    /* Release resources after recording is complete */
-    static void Destructor(napi_env env, void* nativeObject, void* finalize_hint);
-
-    /* Send the error callback to the js */
-    napi_value SendErrorCallback(napi_env env, int32_t errCode, std::string event, std::string subEvent);
+    napi_ref errorCallback_ = nullptr;
 
 private:
-    explicit AudioRecorderNapi(napi_env env, napi_value thisVar);
-    virtual ~AudioRecorderNapi();
-
-    /* Create an instance for CreateAudioWrapper */
-    static napi_value CreateAudioRecorderWrapper(napi_env env);
-
-    /* Create Audio Recorder and returning the object to JS */
+    static napi_value Constructor(napi_env env, napi_callback_info info);
+    static void Destructor(napi_env env, void *nativeObject, void *finalize);
     static napi_value CreateAudioRecorder(napi_env env, napi_callback_info info);
+    static napi_value Prepare(napi_env env, napi_callback_info info);
+    static napi_value Start(napi_env env, napi_callback_info info);
+    static napi_value Pause(napi_env env, napi_callback_info info);
+    static napi_value Resume(napi_env env, napi_callback_info info);
+    static napi_value Stop(napi_env env, napi_callback_info info);
+    static napi_value Reset(napi_env env, napi_callback_info info);
+    static napi_value Release(napi_env env, napi_callback_info info);
+    static napi_value On(napi_env env, napi_callback_info info);
+    void SendCallback(napi_env env, napi_callback_info info, napi_ref callbackRef) const;
+    void SendErrorCallback(napi_env env, napi_callback_info info, napi_ref callbackRef,
+        const std::string &errCode, const std::string &errType) const;
+    int32_t SetFormat(napi_env env, napi_value args, int32_t &sourceId) const;
+    int32_t SetAudioProperties(napi_env env, napi_value args, int32_t sourceId) const;
+    int32_t SetFilePath(napi_env env, napi_value args) const;
+    void GetAudioConfig(napi_env env, napi_value configObj, const std::string &type, int32_t *configItem) const;
+    void SaveCallbackReference(napi_env env, AudioRecorderNapi &recorderNapi,
+        const std::string &callbackName, napi_value callback) const;
 
-    /* NAPI methods and properties */
-    static napi_value JS_Constructor(napi_env env, napi_callback_info cbInfo);
-    static napi_value JS_Start(napi_env env, napi_callback_info cbInfo);
-    static napi_value JS_Pause(napi_env env, napi_callback_info cbInfo);
-    static napi_value JS_Resume(napi_env env, napi_callback_info cbInfo);
-    static napi_value JS_Stop(napi_env env, napi_callback_info cbInfo);
-    static napi_value JS_Release(napi_env env, napi_callback_info cbInfo);
-    static napi_value JS_On(napi_env env, napi_callback_info cbInfo);
-
-    /* Method to register the callbacks */
-    virtual void On(std::string type, napi_value handler);
-
-    /* Send the callback information to the js */
-    void SendCallback(std::string type, napi_value extras);
-
-    /* Set Audio Recorder Config properties and output file properties */
-    napi_value SetFileProps(napi_env env, napi_value confObj, AudioRecorderConfig* config);
-    napi_value SetAudioProps(napi_env env, napi_value confObj, AudioRecorderConfig* config, int32_t id);
-    void GetAudioConfig(napi_env env, napi_value confObj, std::string type, int32_t* configItem);
-
-    napi_env env_;
-    napi_ref wrapper_;
-    napi_ref thisVar_;
-    EventListener* first_;
-    EventListener* last_;
-    AudioRecorderConfig* audioConfig_;
-    static OHOS::Media::CameraKit *camKit_;
-    static napi_ref sConstructor_;
-    void *callbackObj_;
-    /* Reference to the native Audio recorder instance */
-    OHOS::Media::Recorder *recorderObj_;
+    static napi_ref constructor_;
+    napi_ref prepareCallback_ = nullptr;
+    napi_ref startCallback_ = nullptr;
+    napi_ref pauseCallback_ = nullptr;
+    napi_ref resumeCallback_ = nullptr;
+    napi_ref stopCallback_ = nullptr;
+    napi_ref resetCallback_ = nullptr;
+    napi_ref releaseCallback_ = nullptr;
+    napi_env env_ = nullptr;
+    napi_ref wrapper_ = nullptr;
+    std::shared_ptr<Recorder> nativeRecorder_ = nullptr;
+    std::shared_ptr<RecorderCallbackNapi> callbackNapi_ = nullptr;
 };
-
-class RecorderCallback : public OHOS::Media::RecorderCallback {
-public:
-    RecorderCallback(napi_env env = nullptr, AudioRecorderNapi *recorderWrapper = nullptr);
-    virtual ~RecorderCallback() {}
-
-    virtual void OnError(int32_t errorType, int32_t errCode);
-    void OnInfo(int32_t type, int32_t extra) {}
-
-private:
-    napi_env env_;
-    AudioRecorderNapi *recorderWrapper_;
-};
-
-#endif /* AUDIO_RECORDER_NAPI_H_ */
+}  // namespace Media
+}  // namespace OHOS
+#endif // AUDIO_RECORDER_NAPI_H_
