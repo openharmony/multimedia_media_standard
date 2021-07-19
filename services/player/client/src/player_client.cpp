@@ -42,6 +42,8 @@ PlayerClient::PlayerClient(const sptr<IStandardPlayerService> &ipcProxy)
 PlayerClient::~PlayerClient()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    callback_ = nullptr;
+    listenerStub_ = nullptr;
     if (playerProxy_ != nullptr) {
         (void)playerProxy_->DestroyStub();
     }
@@ -124,6 +126,8 @@ int32_t PlayerClient::Reset()
 int32_t PlayerClient::Release()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    callback_ = nullptr;
+    listenerStub_ = nullptr;
     CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
     return playerProxy_->Release();
 }

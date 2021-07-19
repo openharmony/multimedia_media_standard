@@ -19,6 +19,7 @@
 #include "i_player_service.h"
 #include "i_player_engine.h"
 #include "time_monitor.h"
+#include "task_queue.h"
 
 namespace OHOS {
 namespace Media {
@@ -49,6 +50,7 @@ public:
     int32_t SetPlayerCallback(const std::shared_ptr<PlayerCallback> &callback) override;
 
 private:
+    int32_t Init();
     bool IsValidSeekMode(PlayerSeekMode mode);
     int32_t OnReset();
 
@@ -70,6 +72,7 @@ private:
     bool looping_ = false;
     TimeMonitor startTimeMonitor_;
     TimeMonitor stopTimeMonitor_;
+    TaskQueue cbLoop_;
 };
 } // namespace Media
 } // namespace OHOS
