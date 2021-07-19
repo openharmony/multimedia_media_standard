@@ -15,7 +15,6 @@
 
 #include "player_service_stub.h"
 #include "player_listener_proxy.h"
-#include "media_death_recipient.h"
 #include "media_server_manager.h"
 #include "media_log.h"
 #include "errors.h"
@@ -79,6 +78,14 @@ int32_t PlayerServiceStub::Init()
 
 int32_t PlayerServiceStub::DestroyStub()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (deathRecipient_ != nullptr) {
+        deathRecipient_->SetNotifyCb(nullptr);
+    }
+    deathRecipient_ = nullptr;
+    playerCallback_ = nullptr;
+    playerServer_ = nullptr;
+
     MediaServerManager::GetInstance().DestroyStubObject(MediaServerManager::PLAYER, AsObject());
     return ERR_OK;
 }
@@ -117,12 +124,12 @@ int32_t PlayerServiceStub::SetListenerObject(const sptr<IRemoteObject> &object)
     sptr<IStandardPlayerListener> listener = iface_cast<IStandardPlayerListener>(object);
     CHECK_AND_RETURN_RET_LOG(listener != nullptr, ERR_INVALID_VALUE, "failed to convert IStandardPlayerListener");
 
-    sptr<MediaDeathRecipient> deathRecipient = new(std::nothrow) MediaDeathRecipient();
-    CHECK_AND_RETURN_RET_LOG(deathRecipient != nullptr, ERR_NO_MEMORY, "failed to new MediaDeathRecipient");
+    deathRecipient_ = new(std::nothrow) MediaDeathRecipient();
+    CHECK_AND_RETURN_RET_LOG(deathRecipient_ != nullptr, ERR_NO_MEMORY, "failed to new MediaDeathRecipient");
 
-    deathRecipient->SetNotifyCb(std::bind(&PlayerServiceStub::ClientDied, this));
+    deathRecipient_->SetNotifyCb(std::bind(&PlayerServiceStub::ClientDied, this));
 
-    std::shared_ptr<PlayerCallback> callback = std::make_shared<PlayerListenerCallback>(listener, deathRecipient);
+    std::shared_ptr<PlayerCallback> callback = std::make_shared<PlayerListenerCallback>(listener, deathRecipient_);
     CHECK_AND_RETURN_RET_LOG(callback != nullptr, ERR_NO_MEMORY, "failed to new PlayerListenerCallback");
 
     playerCallback_ = callback;
