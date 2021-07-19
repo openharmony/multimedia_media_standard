@@ -225,7 +225,6 @@ int32_t PlayerServer::OnReset()
     playerEngine_ = nullptr;
     OnStateChanged(PLAYER_IDLE);
     stopTimeMonitor_.FinishTime();
-    FinishTrace(BYTRACE_TAG_ZMEDIA, STOP_TAG);
     return ret;
 }
 
