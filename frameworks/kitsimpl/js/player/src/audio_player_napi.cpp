@@ -506,7 +506,7 @@ napi_value AudioPlayerNapi::SetSrc(napi_env env, napi_callback_info info)
 
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_string) {
-        player->uri_ = nullptr;
+        player->uri_.clear();
         MEDIA_LOGE("invalid arguments type");
         return undefinedResult;
     }
