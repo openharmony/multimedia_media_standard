@@ -43,6 +43,9 @@ config("media_player_engine_config") {
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/multimedia/media_standard/services/player/engine/player_register",
     "//foundation/multimedia/media_standard/services/player/engine/gstplayer_engine",
+    "//foundation/multimedia/audio_standard/frameworks/innerkitsimpl/common/include",
+    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiocommon/include",
+    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiomanager/include",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/gstreamer/gstplugins_base",
@@ -77,6 +80,7 @@ ohos_shared_library("media_player_engine") {
   deps = [
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//foundation/graphic/standard:libsurface",
+    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiomanager:audio_client",
     "//third_party/gstreamer/gstreamer:gstreamer",
     "//third_party/gstreamer/gstreamer:gstbase",
     "//third_party/gstreamer/gstplugins_base:gstvideo",
