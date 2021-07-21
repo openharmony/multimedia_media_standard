@@ -17,7 +17,7 @@ group("media_plugins") {
     deps = [
         # "gstreamer/codec:codec_plugins",
         "gstreamer/source/videocapture:gst_surface_video_src",
-        # "gstreamer/source/audiocapture:gst_audio_capture_src",
-        # "gstreamer/sink/audiosink:gst_audio_server_sink",
+        "gstreamer/source/audiocapture:gst_audio_capture_src",
+        "gstreamer/sink/audiosink:gst_audio_server_sink",
     ]
 }
