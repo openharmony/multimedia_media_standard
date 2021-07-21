@@ -15,7 +15,7 @@
 
 #include "gst_player_ctrl.h"
 #include "media_log.h"
-// #include "audio_system_manager.h"
+#include "audio_system_manager.h"
 #include "media_errors.h"
 
 namespace {
@@ -137,11 +137,11 @@ void GstPlayerCtrl::SetLoop(bool loop)
 
 void GstPlayerCtrl::SetVolume(float leftVolume, float rightVolume)
 {
-    // std::unique_lock<std::mutex> lock(mutex_);
-    // AudioStandard::AudioSystemManager *audioManager = AudioStandard::AudioSystemManager::GetInstance();
-    // CHECK_AND_RETURN_LOG(audioManager != nullptr, "audioManager is nullptr");
-    // int32_t ret = audioManager->SetVolume(AudioStandard::AudioSystemManager::AudioVolumeType::STREAM_MUSIC, leftVolume);
-    // CHECK_AND_RETURN_LOG(ret == AudioStandard::SUCCESS, "set volume fail");
+    std::unique_lock<std::mutex> lock(mutex_);
+    AudioStandard::AudioSystemManager *audioManager = AudioStandard::AudioSystemManager::GetInstance();
+    CHECK_AND_RETURN_LOG(audioManager != nullptr, "audioManager is nullptr");
+    int32_t ret = audioManager->SetVolume(AudioStandard::AudioSystemManager::AudioVolumeType::STREAM_MUSIC, leftVolume);
+    CHECK_AND_RETURN_LOG(ret == AudioStandard::SUCCESS, "set volume fail");
 }
 
 uint64_t GstPlayerCtrl::GetPosition()
