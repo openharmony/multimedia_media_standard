@@ -17,6 +17,7 @@
 #include "media_log.h"
 #include "audio_system_manager.h"
 #include "media_errors.h"
+#include "audio_errors.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "GstPlayerCtrl"};
