@@ -441,8 +441,8 @@ void PlayerServer::OnError(int32_t errorType, int32_t errorCode)
 {
     std::lock_guard<std::mutex> lockCb(mutexCb_);
     if (playerCb_ != nullptr) {
-        auto cbTask = std::make_shared<TaskHandler>([this, errorType, errorCode] {
-            playerCb_->OnError(errorType, errorCode);
+        auto cbTask = std::make_shared<TaskHandler>([cb = playerCb_, errorType, errorCode] {
+            cb->OnError(errorType, errorCode);
             return ERR_OK;
         });
         (void)cbLoop_.EnqueueTask(cbTask);
@@ -453,8 +453,8 @@ void PlayerServer::OnSeekDone(uint64_t currentPositon)
 {
     std::lock_guard<std::mutex> lockCb(mutexCb_);
     if (playerCb_ != nullptr) {
-        auto cbTask = std::make_shared<TaskHandler>([this, currentPositon] {
-            playerCb_->OnSeekDone(currentPositon);
+        auto cbTask = std::make_shared<TaskHandler>([cb = playerCb_, currentPositon] {
+            cb->OnSeekDone(currentPositon);
             return ERR_OK;
         });
         (void)cbLoop_.EnqueueTask(cbTask);
@@ -465,8 +465,8 @@ void PlayerServer::OnEndOfStream(bool isLooping)
 {
     std::lock_guard<std::mutex> lockCb(mutexCb_);
     if (playerCb_ != nullptr) {
-        auto cbTask = std::make_shared<TaskHandler>([this, isLooping] {
-            playerCb_->OnEndOfStream(isLooping);
+        auto cbTask = std::make_shared<TaskHandler>([cb = playerCb_, isLooping] {
+            cb->OnEndOfStream(isLooping);
             return ERR_OK;
         });
         (void)cbLoop_.EnqueueTask(cbTask);
@@ -479,8 +479,8 @@ void PlayerServer::OnStateChanged(PlayerStates state)
     MEDIA_LOGD("OnStateChanged Callback, currentState is %{public}d", status_);
     std::lock_guard<std::mutex> lockCb(mutexCb_);
     if (playerCb_ != nullptr) {
-        auto cbTask = std::make_shared<TaskHandler>([this, state] {
-            playerCb_->OnStateChanged(state);
+        auto cbTask = std::make_shared<TaskHandler>([cb = playerCb_, state] {
+            cb->OnStateChanged(state);
             return ERR_OK;
         });
         (void)cbLoop_.EnqueueTask(cbTask);
@@ -491,8 +491,8 @@ void PlayerServer::OnPositionUpdated(uint64_t position)
 {
     std::lock_guard<std::mutex> lockCb(mutexCb_);
     if (playerCb_ != nullptr) {
-        auto cbTask = std::make_shared<TaskHandler>([this, position] {
-            playerCb_->OnPositionUpdated(position);
+        auto cbTask = std::make_shared<TaskHandler>([cb = playerCb_, position] {
+            cb->OnPositionUpdated(position);
             return ERR_OK;
         });
         (void)cbLoop_.EnqueueTask(cbTask);
@@ -503,8 +503,8 @@ void PlayerServer::OnMessage(int32_t type, int32_t extra)
 {
     std::lock_guard<std::mutex> lockCb(mutexCb_);
     if (playerCb_ != nullptr) {
-        auto cbTask = std::make_shared<TaskHandler>([this, type, extra] {
-            playerCb_->OnMessage(type, extra);
+        auto cbTask = std::make_shared<TaskHandler>([cb = playerCb_, type, extra] {
+            cb->OnMessage(type, extra);
             return ERR_OK;
         });
         (void)cbLoop_.EnqueueTask(cbTask);
