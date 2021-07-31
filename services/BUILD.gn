@@ -32,7 +32,11 @@ group("libservice_utils") {
 }
 
 ohos_prebuilt_etc("media_service.rc") {
-   source = "etc/media_service.rc"
+   if (use_musl) {
+     source = "etc/media_service.cfg"
+   } else {
+     source = "etc/media_service.rc"
+   }
    relative_install_dir = "init"
    part_name = "multimedia_media_standard"
    subsystem_name = "multimedia"
