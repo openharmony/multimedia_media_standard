@@ -38,7 +38,7 @@ public:
     void OnBufferAvailable() override;
 
 private:
-    sptr<Surface> surface_;
+    wptr<Surface> surface_;
     uint32_t layerId_;
     int64_t timestamp;
     Rect damage;
