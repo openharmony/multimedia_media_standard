@@ -60,11 +60,12 @@ namespace {
         SurfaceError ret;
 
         VIDEO_DISPLAY_ENTER();
-        if (surface_ == nullptr) {
+        auto surfacTemp = surface_.promote();
+        if (surfacTemp == nullptr) {
             BLOGFE("surface is null");
             return;
         }
-        ret = surface_->AcquireBuffer(buffer, fence, timestamp, damage);
+        ret = surfacTemp->AcquireBuffer(buffer, fence, timestamp, damage);
         if (ret != SURFACE_ERROR_OK) {
             BLOGFE("acquire buffer fail, ret=%{public}d", ret);
             return;
@@ -75,7 +76,7 @@ namespace {
             g_layerService->SetLayerBuffer(0, layerId_, *bufferHandle, fence);
         }
         if (preBuffer != nullptr) {
-            ret = surface_->ReleaseBuffer(preBuffer, -1);
+            ret = surfacTemp->ReleaseBuffer(preBuffer, -1);
             if (ret != SURFACE_ERROR_OK) {
                 BLOGFE("release buffer fail, ret=%{public}d", ret);
             }
