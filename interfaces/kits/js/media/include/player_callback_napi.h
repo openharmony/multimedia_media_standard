@@ -23,9 +23,28 @@
 
 namespace OHOS {
 namespace Media {
+const std::string PLAY_CALLBACK_NAME = "play";
+const std::string PAUSE_CALLBACK_NAME = "pause";
+const std::string STOP_CALLBACK_NAME = "stop";
+const std::string RESET_CALLBACK_NAME = "reset";
+const std::string DATA_LOAD_CALLBACK_NAME = "dataLoad";
+const std::string FINISH_CALLBACK_NAME = "finish";
+const std::string TIME_UPDATE_CALLBACK_NAME = "timeUpdate";
+const std::string ERROR_CALLBACK_NAME = "error";
+const std::string VOL_CHANGE_CALLBACK_NAME = "volumeChange";
+
+struct PlayerJsCallback {
+    napi_env env = nullptr;
+    napi_ref &callback;
+    std::string callbackName = "unknown";
+    std::string errorType = "unknown";
+    std::string errorCode = "unknown";
+    int32_t position = -1;
+};
+
 class PlayerCallbackNapi : public PlayerCallback {
 public:
-    explicit PlayerCallbackNapi(napi_env env, AudioPlayerNapi &player);
+    PlayerCallbackNapi(napi_env env, AudioPlayerNapi &player);
     virtual ~PlayerCallbackNapi();
 
 protected:
@@ -37,7 +56,12 @@ protected:
     void OnPositionUpdated(uint64_t postion) override;
 
 private:
-    napi_env env_;
+    void OnJsCallBack(PlayerJsCallback *jsCb);
+    void OnJsCallBackError(PlayerJsCallback *jsCb);
+    void OnJsCallBackPosition(PlayerJsCallback *jsCb);
+
+private:
+    napi_env env_ = nullptr;
     AudioPlayerNapi &playerNapi_;
 };
 }  // namespace Media
