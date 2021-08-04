@@ -33,6 +33,7 @@ ohos_copy("media_declaration") {
 ohos_shared_library("media") {
     include_dirs = [
         "//foundation/multimedia/media_standard/interfaces/kits/js/media/include",
+        "//third_party/libuv/include",
     ]
 
     sources = [
