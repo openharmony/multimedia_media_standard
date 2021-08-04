@@ -60,11 +60,19 @@ namespace OHOS {
         }                                              \
     } while (0);
 
-#define CHECK_AND_RETURN_LOG(cond, fmt, ...)  \
+#define CHECK_AND_RETURN_LOG(cond, fmt, ...)           \
     do {                                               \
         if (!(cond)) {                                 \
             MEDIA_LOGE(fmt, ##__VA_ARGS__);            \
-            return;                                \
+            return;                                    \
+        }                                              \
+    } while (0);
+
+#define CHECK_AND_BREAK_LOG(cond, fmt, ...)            \
+    do {                                               \
+        if (!(cond)) {                                 \
+            MEDIA_LOGE(fmt, ##__VA_ARGS__);            \
+            break;                                     \
         }                                              \
     } while (0);
 

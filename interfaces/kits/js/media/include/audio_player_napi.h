@@ -39,7 +39,6 @@ public:
     napi_ref finishCallback_ = nullptr;    // endofstream
     napi_ref timeUpdateCallback_ = nullptr;  // seekdone
     napi_ref volumeChangeCallback_ = nullptr;
-
     void SetCurrentState(int32_t state);
 
 private:
