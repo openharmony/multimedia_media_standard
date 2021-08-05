@@ -35,7 +35,7 @@ const std::string VOL_CHANGE_CALLBACK_NAME = "volumeChange";
 
 struct PlayerJsCallback {
     napi_env env = nullptr;
-    napi_ref &callback;
+    napi_ref callback = nullptr;
     std::string callbackName = "unknown";
     std::string errorType = "unknown";
     std::string errorCode = "unknown";
