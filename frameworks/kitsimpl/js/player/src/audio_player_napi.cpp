@@ -732,6 +732,11 @@ void AudioPlayerNapi::SaveCallbackReference(napi_env env, AudioPlayerNapi &playe
         return;
     }
 
+    if (*ref != nullptr) {
+        napi_delete_reference(env, *ref);
+        *ref = nullptr; // clear the callback before each on.
+    }
+
     int32_t refCount = 1;
     napi_status status = napi_create_reference(env, callback, refCount, ref);
     CHECK_AND_RETURN_LOG(status == napi_ok, "creating reference for callback fail")
