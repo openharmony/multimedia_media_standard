@@ -160,11 +160,6 @@ void PlayerCallbackNapi::OnJsCallBack(PlayerJsCallback *jsCb)
             napi_value result = nullptr;
             status = napi_call_function(event->env, nullptr, jsCallback, 0, nullptr, &result);
             CHECK_AND_BREAK_LOG(status == napi_ok, "%{public}s fail to napi call function", request.c_str());
-
-            if (event->callback != nullptr) {
-                napi_delete_reference(event->env, event->callback);
-                event->callback = nullptr; // JS clears the callback after each use.
-            }
         } while (0);
         delete event;
         delete work;
@@ -212,11 +207,6 @@ void PlayerCallbackNapi::OnJsCallBackError(PlayerJsCallback *jsCb)
             napi_value result = nullptr;
             status = napi_call_function(event->env, nullptr, jsCallback, argCount, args, &result);
             CHECK_AND_BREAK_LOG(status == napi_ok, "%{public}s fail to napi call function", request.c_str());
-
-            if (event->callback != nullptr) {
-                napi_delete_reference(event->env, event->callback);
-                event->callback = nullptr; // JS clears the callback after each use.
-            }
         } while (0);
         delete event;
         delete work;
@@ -256,11 +246,6 @@ void PlayerCallbackNapi::OnJsCallBackPosition(PlayerJsCallback *jsCb)
             napi_value result = nullptr;
             status = napi_call_function(event->env, nullptr, jsCallback, argCount, args, &result);
             CHECK_AND_BREAK_LOG(status == napi_ok, "%{public}s fail to call seekDone callback", request.c_str());
-
-            if (event->callback != nullptr) {
-                napi_delete_reference(event->env, event->callback);
-                event->callback = nullptr; // JS clears the callback after each use.
-            }
         } while (0);
         delete event;
         delete work;
