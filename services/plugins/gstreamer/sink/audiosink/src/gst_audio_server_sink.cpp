@@ -29,7 +29,7 @@ static GstStaticPadTemplate sinktemplate = GST_STATIC_PAD_TEMPLATE("sink",
         "rate = (int) [ 1, MAX ], "
         "channels = (int) [ 1, MAX ]"));
 
-constexpr float DEFAULT_VOLUME = 0.5f;
+constexpr float DEFAULT_VOLUME = 15;
 constexpr uint32_t DEFAULT_BITS_PER_SAMPLE = 16;
 
 using namespace OHOS::Media;
