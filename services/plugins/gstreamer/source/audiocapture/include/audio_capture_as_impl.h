@@ -17,7 +17,7 @@
 #define AUDIO_CAPTURE_AS_IMPL_H
 
 #include "audio_capture.h"
-#include "audio_recorder.h"
+#include "audio_capturer.h"
 
 namespace OHOS {
 namespace Media {
@@ -34,7 +34,7 @@ public:
     std::shared_ptr<AudioBuffer> GetBuffer() override;
 
 private:
-    std::unique_ptr<OHOS::AudioStandard::AudioRecorder> audioRecorder_ = nullptr;
+    std::unique_ptr<OHOS::AudioStandard::AudioCapturer> audioCapturer_ = nullptr;
     size_t bufferSize_ = 0;
     uint32_t sequence_ = 0;
     uint32_t duration_ = 0;
