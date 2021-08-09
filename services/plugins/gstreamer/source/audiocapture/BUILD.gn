@@ -62,8 +62,8 @@ ohos_shared_library("gst_audio_capture_src") {
 
   sources = [
     "src/audio_capture_as_impl.cpp",
+    "src/audio_capture_factory.cpp",
     "src/gst_audio_capture_src.cpp",
-    "src/audio_capture_factory.cpp",    
   ]
 
   configs = [ ":gst_audio_capture_src_config" ]
@@ -75,7 +75,7 @@ ohos_shared_library("gst_audio_capture_src") {
     "//third_party/glib:gobject",
     "//third_party/gstreamer/gstplugins_base:gstaudio",
     "//third_party/gstreamer/gstreamer:gstbase",
-    "//third_party/gstreamer/gstreamer:gstreamer",  
+    "//third_party/gstreamer/gstreamer:gstreamer",
     "//utils/native/base:utils",
   ]
 
