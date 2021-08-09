@@ -44,7 +44,7 @@ config("gst_audio_capture_src_config") {
     "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiopolicy/include",
     "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiosession/include",
     "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiostream/include",
-    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiorecorder/include",
+    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiocapturer/include",
     "//foundation/multimedia/audio_standard/services/include",
     "//foundation/multimedia/audio_standard/services/include/client",
     "//third_party/gstreamer/gstreamer",
@@ -61,29 +61,25 @@ ohos_shared_library("gst_audio_capture_src") {
   install_enable = true
 
   sources = [
-    "src/gst_audio_capture_src.cpp",
-    "src/audio_capture_factory.cpp",
     "src/audio_capture_as_impl.cpp",
+    "src/audio_capture_factory.cpp",
+    "src/gst_audio_capture_src.cpp",
   ]
 
-  configs = [
-    ":gst_audio_capture_src_config",
-  ]
+  configs = [ ":gst_audio_capture_src_config" ]
 
   deps = [
-    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiorecorder:audio_recorder",
-    "//third_party/gstreamer/gstreamer:gstreamer",
-    "//third_party/gstreamer/gstreamer:gstbase",
-    "//third_party/gstreamer/gstplugins_base:gstaudio",
+    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiocapturer:audio_capturer",
     "//third_party/glib:glib",
-    "//third_party/glib:gobject",
     "//third_party/glib:gmodule",
+    "//third_party/glib:gobject",
+    "//third_party/gstreamer/gstplugins_base:gstaudio",
+    "//third_party/gstreamer/gstreamer:gstbase",
+    "//third_party/gstreamer/gstreamer:gstreamer",
     "//utils/native/base:utils",
   ]
 
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-  ]
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
   subsystem_name = "multimedia"
   part_name = "multimedia_media_standard"
