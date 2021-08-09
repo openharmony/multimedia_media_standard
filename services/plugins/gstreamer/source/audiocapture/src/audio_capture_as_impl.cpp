@@ -30,9 +30,9 @@ AudioCaptureAsImpl::AudioCaptureAsImpl()
 
 AudioCaptureAsImpl::~AudioCaptureAsImpl()
 {
-    if (audioRecorder_ != nullptr) {
-        audioRecorder_->Release();
-        audioRecorder_ = nullptr;
+    if (audioCapturer_ != nullptr) {
+        audioCapturer_->Release();
+        audioCapturer_ = nullptr;
     }
 }
 
@@ -40,9 +40,9 @@ int32_t AudioCaptureAsImpl::SetCaptureParameter(uint32_t bitrate, uint32_t chann
 {
     (void)bitrate;
     MEDIA_LOGD("SetCaptureParameter, channels:%{public}d, sampleRate:%{public}d", channels, sampleRate);
-    audioRecorder_ = AudioStandard::AudioRecorder::Create(AudioStandard::AudioStreamType::STREAM_MUSIC);
-    CHECK_AND_RETURN_RET(audioRecorder_ != nullptr, MSERR_NO_MEMORY);
-    AudioStandard::AudioRecorderParams params;
+    audioCapturer_ = AudioStandard::AudioCapturer::Create(AudioStandard::AudioStreamType::STREAM_MUSIC);
+    CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, MSERR_NO_MEMORY);
+    AudioStandard::AudioCapturerParams params;
     if (sampleRate <= AudioStandard::SAMPLE_RATE_8000) {
         params.samplingRate = AudioStandard::SAMPLE_RATE_8000;
     } else if (sampleRate <= AudioStandard::SAMPLE_RATE_11025) {
@@ -71,8 +71,8 @@ int32_t AudioCaptureAsImpl::SetCaptureParameter(uint32_t bitrate, uint32_t chann
     }
     params.audioSampleFormat = AudioStandard::SAMPLE_S16LE;
     params.audioEncoding = AudioStandard::ENCODING_PCM;
-    CHECK_AND_RETURN_RET(audioRecorder_->SetParams(params) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
-    CHECK_AND_RETURN_RET(audioRecorder_->GetBufferSize(bufferSize_) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(audioCapturer_->SetParams(params) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(audioCapturer_->GetBufferSize(bufferSize_) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
     MEDIA_LOGD("audio buffer size is: %{public}zu", bufferSize_);
     return MSERR_OK;
 }
@@ -81,9 +81,9 @@ int32_t AudioCaptureAsImpl::GetCaptureParameter(uint32_t &bitrate, uint32_t &cha
 {
     (void)bitrate;
     MEDIA_LOGD("GetCaptureParameter");
-    CHECK_AND_RETURN_RET(audioRecorder_ != nullptr, MSERR_INVALID_OPERATION);
-    AudioStandard::AudioRecorderParams params;
-    CHECK_AND_RETURN_RET(audioRecorder_->GetParams(params) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, MSERR_INVALID_OPERATION);
+    AudioStandard::AudioCapturerParams params;
+    CHECK_AND_RETURN_RET(audioCapturer_->GetParams(params) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
     channels = params.audioChannel;
     sampleRate = params.samplingRate;
     MEDIA_LOGD("get channels:%{public}u, sampleRate:%{public}u from audio server", channels, sampleRate);
@@ -100,10 +100,10 @@ int32_t AudioCaptureAsImpl::GetCaptureParameter(uint32_t &bitrate, uint32_t &cha
 
 int32_t AudioCaptureAsImpl::GetSegmentInfo(uint64_t &start)
 {
-    CHECK_AND_RETURN_RET(audioRecorder_ != nullptr, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, MSERR_INVALID_OPERATION);
     AudioStandard::Timestamp timeStamp;
     CHECK_AND_RETURN_RET(
-        audioRecorder_->GetAudioTime(timeStamp, AudioStandard::Timestamp::Timestampbase::MONOTONIC) == true,
+        audioCapturer_->GetAudioTime(timeStamp, AudioStandard::Timestamp::Timestampbase::MONOTONIC) == true,
         MSERR_UNKNOWN);
     CHECK_AND_RETURN_RET(timeStamp.time.tv_nsec >= 0 && timeStamp.time.tv_sec >= 0, MSERR_UNKNOWN);
     const uint64_t secToNanosecond = 1000000000;
@@ -117,14 +117,14 @@ int32_t AudioCaptureAsImpl::GetSegmentInfo(uint64_t &start)
 int32_t AudioCaptureAsImpl::StartAudioCapture()
 {
     MEDIA_LOGD("StartAudioCapture");
-    CHECK_AND_RETURN_RET(audioRecorder_ != nullptr, MSERR_INVALID_OPERATION);
-    CHECK_AND_RETURN_RET(audioRecorder_->Start(), MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(audioCapturer_->Start(), MSERR_UNKNOWN);
     return MSERR_OK;
 }
 
 std::shared_ptr<AudioBuffer> AudioCaptureAsImpl::GetBuffer()
 {
-    CHECK_AND_RETURN_RET(audioRecorder_ != nullptr, nullptr);
+    CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, nullptr);
     std::shared_ptr<AudioBuffer> buffer = std::make_shared<AudioBuffer>();
     CHECK_AND_RETURN_RET(buffer != nullptr, nullptr);
     buffer->gstBuffer = gst_buffer_new_allocate(nullptr, bufferSize_, nullptr);
@@ -137,7 +137,7 @@ std::shared_ptr<AudioBuffer> AudioCaptureAsImpl::GetBuffer()
         return nullptr;
     }
     bool isBlocking = true;
-    int32_t bytesRead = audioRecorder_->Read(*(map.data), map.size, isBlocking);
+    int32_t bytesRead = audioCapturer_->Read(*(map.data), map.size, isBlocking);
     gst_buffer_unmap(buffer->gstBuffer, &map);
     if (bytesRead <= 0) {
         g_free(buffer->gstBuffer);
@@ -157,11 +157,11 @@ std::shared_ptr<AudioBuffer> AudioCaptureAsImpl::GetBuffer()
 int32_t AudioCaptureAsImpl::StopAudioCapture()
 {
     MEDIA_LOGD("StopAudioCapture");
-    CHECK_AND_RETURN_RET(audioRecorder_ != nullptr, MSERR_INVALID_OPERATION);
-    CHECK_AND_RETURN_RET(audioRecorder_->Flush(), MSERR_UNKNOWN);
-    CHECK_AND_RETURN_RET(audioRecorder_->Stop(), MSERR_UNKNOWN);
-    CHECK_AND_RETURN_RET(audioRecorder_->Release(), MSERR_UNKNOWN);
-    audioRecorder_ = nullptr;
+    CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(audioCapturer_->Flush(), MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(audioCapturer_->Stop(), MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(audioCapturer_->Release(), MSERR_UNKNOWN);
+    audioCapturer_ = nullptr;
     return MSERR_OK;
 }
 }  // namespace Media
