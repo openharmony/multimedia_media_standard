@@ -19,12 +19,12 @@
 #include <string>
 #include <mutex>
 #include <map>
+#include <sys/time.h>
 
 namespace OHOS {
 namespace Media {
 class __attribute__((visibility("default"))) TimeMonitor {
 public:
-#ifndef __MUSL__
     explicit TimeMonitor(const std::string &objectName);
     ~TimeMonitor();
     void StartTime();
@@ -41,15 +41,6 @@ private:
     struct timeval startTime_ = {};
     struct timeval finishTime_ = {};
     bool isStart_ = false;
-#else
-    explicit TimeMonitor(const std::string &objectName)
-    {
-        (void)objectName;
-    }
-    ~TimeMonitor() = default;
-    void StartTime() {}
-    void FinishTime() {}
-#endif // __MUSL__
 };
 } // namespace Media
 } // namespace OHOS

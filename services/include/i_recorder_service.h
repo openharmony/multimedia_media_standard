@@ -45,8 +45,8 @@ public:
     /**
      * @brief Sets a video encoder for recording.
      *
-     * If this function is not called, the output file does not contain the video track. 
-     * This function must be called after {@link SetVideoSource} but before {@link Prepare}. 
+     * If this function is not called, the output file does not contain the video track.
+     * This function must be called after {@link SetVideoSource} but before {@link Prepare}.
      *
      * @param sourceId Indicates the video source ID, which can be obtained from {@link SetVideoSource}.
      * @param encoder Indicates the video encoder to set.
@@ -142,8 +142,8 @@ public:
     /**
      * @brief Sets an audio encoder for recording.
      *
-     * If this function is not called, the output file does not contain the audio track. 
-     * This function must be called after {@link SetAudioSource} but before {@link Prepare}. 
+     * If this function is not called, the output file does not contain the audio track.
+     * This function must be called after {@link SetAudioSource} but before {@link Prepare}.
      *
      * @param sourceId Indicates the audio source ID, which can be obtained from {@link SetAudioSource}.
      * @param encoder Indicates the audio encoder to set.
@@ -215,9 +215,9 @@ public:
      *
      * This method must be called before {@link Prepare}. If the setting is valid,
      * {@link RECORDER_INFO_MAX_DURATION_APPROACHING} is reported through {@link OnInfo} in the {@link RecorderCallback}
-     * class when only one second or 10% is left to reach the allowed duration. 
+     * class when only one second or 10% is left to reach the allowed duration.
      * If the recording output file is set by calling {@link SetOutputFile}, call {@link SetNextOutputFile} to set the
-     * next output file. Otherwise, the current file will be overwritten when the allowed duration is reached. 
+     * next output file. Otherwise, the current file will be overwritten when the allowed duration is reached.
      *
      * @param duration Indicates the maximum recording duration to set. If the value is <b>0</b> or a negative number,
      * a failure message is returned. The default duration is 60s.
@@ -286,7 +286,7 @@ public:
      *
      * This function must be called before {@link Prepare}. If the setting is valid,
      * {@link RECORDER_INFO_MAX_DURATION_APPROACHING} is reported through {@link OnInfo} in the {@link RecorderCallback}
-     * class when only 100 KB or 10% is left to reach the allowed size. 
+     * class when only 100 KB or 10% is left to reach the allowed size.
      * If the recording output file is set by calling {@link SetOutputFile}, call {@link SetNextOutputFile} to set the
      * next output file. Otherwise, when the allowed size is reached, the current file will be overwritten. If
      * <b>MaxDuration</b> is also set by calling {@link SetMaxDuration}, <b>MaxDuration</b> or <b>MaxFileSize</b>

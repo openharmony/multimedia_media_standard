@@ -35,10 +35,9 @@ enum JSFileFormat : int32_t {
     JS_M4A = 2,
 };
 
-class RecorderCallbackNapi;
 class AudioRecorderNapi {
 public:
-    explicit AudioRecorderNapi();
+    AudioRecorderNapi();
     ~AudioRecorderNapi();
 
     static napi_value Init(napi_env env, napi_value exports);
@@ -62,10 +61,11 @@ private:
         const std::string &errCode, const std::string &errType) const;
     int32_t SetFormat(napi_env env, napi_value args, int32_t &sourceId) const;
     int32_t SetAudioProperties(napi_env env, napi_value args, int32_t sourceId) const;
-    int32_t SetFilePath(napi_env env, napi_value args) const;
-    void GetAudioConfig(napi_env env, napi_value configObj, const std::string &type, int32_t *configItem) const;
+    int32_t SetUri(napi_env env, napi_value args);
+    void GetAudioConfig(napi_env env, napi_value configObj, const std::string &type, int32_t &result) const;
     void SaveCallbackReference(napi_env env, AudioRecorderNapi &recorderNapi,
         const std::string &callbackName, napi_value callback) const;
+    int32_t CheckValidPath(std::string path);
 
     static napi_ref constructor_;
     napi_ref prepareCallback_ = nullptr;
@@ -78,7 +78,8 @@ private:
     napi_env env_ = nullptr;
     napi_ref wrapper_ = nullptr;
     std::shared_ptr<Recorder> nativeRecorder_ = nullptr;
-    std::shared_ptr<RecorderCallbackNapi> callbackNapi_ = nullptr;
+    std::shared_ptr<RecorderCallback> callbackNapi_ = nullptr;
+    std::string filePath_ = "";
 };
 }  // namespace Media
 }  // namespace OHOS

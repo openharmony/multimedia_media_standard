@@ -1,0 +1,89 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+config("media_engine_gst_recorder_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-std=c++17",
+    "-fno-rtti",
+    "-fno-exceptions",
+    "-Wall",
+    "-fno-common",
+    "-fstack-protector-strong",
+    "-Wshadow",
+    "-FPIC",
+    "-FS",
+    "-O2",
+    "-D_FORTIFY_SOURCE=2",
+    "-fvisibility=hidden",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wdate-time",
+  ]
+
+  include_dirs = [
+    "element_wrapper",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/recorder",
+    "//foundation/multimedia/media_standard/services/utils/include",
+    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/media_standard/services/engine/include",
+    "//utils/native/base/include",
+    "//third_party/gstreamer/gstreamer",
+    "//third_party/gstreamer/gstreamer/libs",
+    "//third_party/glib/glib",
+    "//third_party/glib",
+    "//third_party/glib/gmodule",
+  ]
+}
+
+ohos_static_library("media_engine_gst_recorder") {
+  sources = [
+    "recorder_engine_gst_impl.cpp",
+    "recorder_pipeline.cpp",
+    "recorder_pipeline_ctrler.cpp",
+    "recorder_pipeline_builder.cpp",
+    "recorder_pipeline_link_helper.cpp",
+    "recorder_message_processor.cpp",
+    "recorder_element.cpp",
+    "element_wrapper/video_source.cpp",
+    "element_wrapper/mux_sink_bin.cpp",
+    "element_wrapper/audio_source.cpp",
+    "element_wrapper/audio_encoder.cpp",
+    "element_wrapper/audio_converter.cpp",
+  ]
+
+  configs = [
+    ":media_engine_gst_recorder_config",
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils_public_config",
+    "//foundation/graphic/standard/frameworks/surface:surface_public_config"
+  ]
+
+  deps = [
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//third_party/gstreamer/gstreamer:gstreamer",
+    "//third_party/glib:glib",
+    "//third_party/glib:gobject",
+    "//foundation/graphic/standard/frameworks/surface:surface",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
+
+  subsystem_name = "multimedia"
+  part_name = "multimedia_media_standard"
+}

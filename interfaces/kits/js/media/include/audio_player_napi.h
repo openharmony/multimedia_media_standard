@@ -22,7 +22,6 @@
 
 namespace OHOS {
 namespace Media {
-class PlayerCallbackNapi;
 class AudioPlayerNapi {
 public:
     AudioPlayerNapi();
@@ -40,7 +39,7 @@ public:
     napi_ref timeUpdateCallback_ = nullptr;  // seekdone
     napi_ref volumeChangeCallback_ = nullptr;
 
-    void SetCurrentState(int32_t state);
+    void SetCurrentState(PlayerStates state);
 
 private:
     static napi_value Constructor(napi_env env, napi_callback_info info);
@@ -62,6 +61,8 @@ private:
     static napi_value GetCurrentTime(napi_env env, napi_callback_info info);
     static napi_value GetDuration(napi_env env, napi_callback_info info);
     static napi_value GetState(napi_env env, napi_callback_info info);
+    static void SendErrorCallback(napi_env env, napi_ref &callbackRef,
+                                  const std::string &errCode, const std::string &errType);
 
     void SaveCallbackReference(napi_env env, AudioPlayerNapi &audioPlayer,
                                const std::string &callbackName, napi_value callback) const;
@@ -70,9 +71,10 @@ private:
     napi_env env_ = nullptr;
     napi_ref wrapper_ = nullptr;
     std::shared_ptr<Player> nativePlayer_ = nullptr;
-    std::shared_ptr<PlayerCallbackNapi> callbackNapi_ = nullptr;
+    std::shared_ptr<PlayerCallback> callbackNapi_ = nullptr;
     std::string uri_ = "";
-    int32_t currentState_ = PLAYER_IDLE;
+    PlayerStates currentState_ = PLAYER_IDLE;
+    bool isRelease = false;
 };
 } // namespace Media
 } // namespace OHOS
