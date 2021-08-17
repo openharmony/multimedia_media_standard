@@ -1,0 +1,86 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+config("gst_audio_server_sink_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-fno-rtti",
+    "-fno-exceptions",
+    "-Wall",
+    "-fno-common",
+    "-fstack-protector-strong",
+    "-FPIC",
+    "-FS",
+    "-O2",
+    "-D_FORTIFY_SOURCE=2",
+    "-fvisibility=hidden",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wdate-time",
+  ]
+
+  include_dirs = [
+    "include",
+    "//utils/native/base/include",
+    "//foundation/multimedia/media_standard/services/utils/include",
+    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
+    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiocommon/include",
+    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiomanager/include",
+    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiorenderer/include",
+    "//foundation/multimedia/audio_standard/services/include",
+    "//foundation/multimedia/audio_standard/services/include/client",
+    "//third_party/gstreamer/gstreamer",
+    "//third_party/gstreamer/gstreamer/libs",
+    "//third_party/gstreamer/gstplugins_base",
+    "//third_party/gstreamer/gstplugins_base/gst-libs",
+    "//third_party/glib/glib",
+    "//third_party/glib",
+    "//third_party/glib/gmodule",
+  ]
+}
+
+ohos_shared_library("gst_audio_server_sink") {
+  install_enable = true
+
+  sources = [
+    "src/gst_audio_server_sink.cpp",
+    "src/audio_sink_factory.cpp",
+    "src/audio_sink_sv_impl.cpp",
+  ]
+
+  configs = [
+    ":gst_audio_server_sink_config",
+  ]
+
+  deps = [
+    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiomanager:audio_client",
+    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiorenderer:audio_renderer",
+    "//third_party/gstreamer/gstreamer:gstreamer",
+    "//third_party/gstreamer/gstreamer:gstbase",
+    "//third_party/glib:glib",
+    "//third_party/glib:gobject",
+    "//third_party/glib:gmodule",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+  ]
+
+  relative_install_dir = "media/plugins"
+  subsystem_name = "multimedia"
+  part_name = "multimedia_media_standard"
+}

@@ -76,7 +76,7 @@ private:
 
 class __attribute__((visibility("default"))) TaskQueue {
 public:
-    TaskQueue(std::string name) : name_(name) {}
+    explicit TaskQueue(const std::string &name) : name_(name) {}
     ~TaskQueue();
 
     int32_t Start();
@@ -98,5 +98,4 @@ private:
 };
 }
 }
-
 #endif

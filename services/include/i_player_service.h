@@ -147,7 +147,7 @@ public:
      * @since 1.0
      * @version 1.0
     */
-    virtual int32_t Seek(uint64_t mSeconds, int32_t mode) = 0;
+    virtual int32_t Seek(int32_t mSeconds, PlayerSeekMode mode) = 0;
 
     /**
      * @brief Obtains the playback position, accurate to millisecond.
@@ -158,7 +158,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    virtual int32_t GetCurrentTime(uint64_t &currentTime) = 0;
+    virtual int32_t GetCurrentTime(int32_t &currentTime) = 0;
 
     /**
      * @brief Obtains the total duration of media files, accurate to millseconds.
@@ -169,7 +169,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    virtual int32_t GetDuration(uint64_t &duration) = 0;
+    virtual int32_t GetDuration(int32_t &duration) = 0;
 
     /**
      * @brief set the player playback rate
@@ -180,7 +180,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    virtual int32_t SetPlaybackSpeed(int32_t mode) = 0;
+    virtual int32_t SetPlaybackSpeed(PlaybackRateMode mode) = 0;
 
     /**
      * @brief get the current player playback rate
@@ -191,7 +191,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    virtual int32_t GetPlaybackSpeed(int32_t &mode) = 0;
+    virtual int32_t GetPlaybackSpeed(PlaybackRateMode &mode) = 0;
 
     /**
      * @brief Method to set the surface.
