@@ -42,33 +42,30 @@ int32_t TaskQueue::Start()
 
 int32_t TaskQueue::Stop()
 {
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        if (isExit_) {
-            MEDIA_LOGI("Stopped already, ignore ! [%{public}s]", name_.c_str());
-            return ERR_OK;
-        }
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (isExit_) {
+        MEDIA_LOGI("Stopped already, ignore ! [%{public}s]", name_.c_str());
+        return ERR_OK;
     }
 
     std::unique_ptr<std::thread> t;
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        isExit_ = true;
-        cond_.notify_all();
-        std::swap(thread_, t);
-    }
+    isExit_ = true;
+    cond_.notify_all();
+    std::swap(thread_, t);
+    lock.unlock();
+
     if (t != nullptr && t->joinable()) {
         t->join();
     }
 
-    std::unique_lock<std::mutex> lock(mutex_);
+    lock.lock();
     CancelNotExecutedTaskLocked();
     return ERR_OK;
 }
 
 int32_t TaskQueue::EnqueueTask(std::shared_ptr<TaskHandler> task, bool cancelNotExecuted)
 {
-    if  (task == nullptr) {
+    if (task == nullptr) {
         return -1;
     }
 
@@ -78,7 +75,7 @@ int32_t TaskQueue::EnqueueTask(std::shared_ptr<TaskHandler> task, bool cancelNot
         return ERR_INVALID_OPERATION;
     }
 
-    if  (cancelNotExecuted) {
+    if (cancelNotExecuted) {
         CancelNotExecutedTaskLocked();
     }
 
@@ -92,7 +89,7 @@ void TaskQueue::CancelNotExecutedTaskLocked()
 {
     MEDIA_LOGI("All task not executed are being cancelled..........[%{public}s]", name_.c_str());
     while (!taskQ_.empty()) {
-        std::shared_ptr<TaskHandler> task  = taskQ_.front();
+        std::shared_ptr<TaskHandler> task = taskQ_.front();
         taskQ_.pop();
         if (task != nullptr) {
             task->Cancel();
@@ -103,18 +100,17 @@ void TaskQueue::CancelNotExecutedTaskLocked()
 void TaskQueue::TaskProcessor()
 {
     MEDIA_LOGI("Enter TaskProcessor [%{public}s]", name_.c_str());
-    std::shared_ptr<TaskHandler> task;
     while (true) {
-        {
-            std::unique_lock<std::mutex> lock(mutex_);
-            cond_.wait(lock, [this]  { return isExit_ || !taskQ_.empty(); });
-            if (isExit_) {
-                MEDIA_LOGI("Exit TaskProcessor [%{public}s]", name_.c_str());
-                return;
-            }
-            task = taskQ_.front();
-            taskQ_.pop();
+        std::unique_lock<std::mutex> lock(mutex_);
+        cond_.wait(lock, [this] { return isExit_ || !taskQ_.empty(); });
+        if (isExit_) {
+            MEDIA_LOGI("Exit TaskProcessor [%{public}s]", name_.c_str());
+            return;
         }
+        std::shared_ptr<TaskHandler> task = taskQ_.front();
+        taskQ_.pop();
+        lock.unlock();
+
         if (task != nullptr) {
             task->Execute();
         }

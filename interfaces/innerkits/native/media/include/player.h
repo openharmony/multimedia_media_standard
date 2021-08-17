@@ -18,58 +18,105 @@
 
 #include <cstdint>
 #include "surface.h"
+#include "format.h"
 
 namespace OHOS {
 namespace Media {
 enum PlayerErrorType : int32_t {
-    PLAYER_ERROR = 1,
-    PLAYER_IO_ERROR,
-    PLAYER_STREAM_ERROR,
+    /* Valid error, error code reference defined in media_errors.h */
+    PLAYER_ERROR,
+    /* Unknown error */
+    PLAYER_ERROR_UNKNOWN,
     /* the service process is dead. */
     PLAYER_ERROR_SERVICE_DIED,
-    /** Unknown error */
-    PLAYER_ERROR_UNKNOWN
-};
 
-enum PlayerErrorCode : int32_t {
-    PLAYER_INTERNAL_ERROR = 1,
-    PLAYER_ERROR_SEEK,
-    PLAYER_ERROR_STATE_CHANGE,
-    PLAYER_FORMAT_NOT_SUPPORTED_ERROR
+     /** extend error type start,The extension error type agreed upon by the plug-in and
+         the application will be transparently transmitted by the service. */
+    PLAYER_ERROR_EXTEND_START = 0X10000,
 };
 
 enum PlayerMessageType : int32_t {
-    PLAYER_INFO_UNKNOWN = 1,
+    /* unknown info */
+    PLAYER_INFO_UNKNOWN = 0,
+    /* first video frame start to render. */
     PLAYER_INFO_VIDEO_RENDERING_START,
+    /* start buffering. */
     PLAYER_INFO_BUFFERING_START,
-    PLAYER_INFO_BUFFERING_END
+    /* end buffering. */
+    PLAYER_INFO_BUFFERING_END,
+    /* network bandwidth, uint is KB and passed by "extra"(arg 2). */
+    PLAYER_INFO_NETWORK_BANDWIDTH,
+    /* video size changed after prepared.format key:play-vid-width;play-vid-height */
+    PLAYER_INFO_VIDEO_SIZE_CHANGED,
+    /* buffering percent update. passed by "extra"(arg 2), [0~100]. */
+    PLAYER_INFO_BUFFER_PERCENT,
+    /* not fatal errors accured, errorcode see "media_errors.h" and passed by "extra"(arg 2). */
+    PLAYER_INFO_WARNING,
+    /* system new info type should be added here.
+       extend start. App and plugins or PlayerEngine extended info type start. */
+    PLAYER_INFO_EXTEND_START = 0X1000,
+};
+
+enum PlayerOnInfoType : int32_t {
+    /* return the message when seeking done. */
+    INFO_TYPE_SEEKDONE = 1,
+    /*return the message when playback is end of steam. */
+    INFO_TYPE_EOS,
+    /* return the message when PlayerStates changed. */
+    INFO_TYPE_STATE_CHANGE,
+    /* return the current posion of playback automaticly. */
+    INFO_TYPE_POSITION_UPDATE,
+    /* return the playback message. */
+    INFO_TYPE_MESSAGE,
+    /* return the message when volume changed. */
+    INFO_TYPE_VOLUME_CHANGE,
+    /* return the message with extra infomation in format. */
+    INFO_TYPE_EXTRA_FORMAT
 };
 
 enum PlayerStates : int32_t {
+    /* error states */
     PLAYER_STATE_ERROR = 0,
+    /* idle states */
     PLAYER_IDLE = 1,
+    /* initialized states(Internal states) */
     PLAYER_INITIALIZED = 2,
+    /* preparing states(Internal states) */
     PLAYER_PREPARING = 3,
+    /* prepared states */
     PLAYER_PREPARED = 4,
+    /* started states */
     PLAYER_STARTED = 5,
+    /* paused states */
     PLAYER_PAUSED = 6,
-    PLAYER_STOPPED = 7,                  // equivalent to PAUSED
-    PLAYER_PLAYBACK_COMPLETE = 8
+    /* stopped states */
+    PLAYER_STOPPED = 7,
+    /* Play to the end states */
+    PLAYER_PLAYBACK_COMPLETE = 8,
 };
 
 enum PlayerSeekMode : int32_t {
+    /* sync to keyframes before the time point. */
     SEEK_PREVIOUS_SYNC = 0,
+    /* sync to keyframes after the time point. */
     SEEK_NEXT_SYNC,
+    /* sync to closest keyframes. */
     SEEK_CLOSEST_SYNC,
-    SEEK_CLOSEST
+    /* seek to frames closest the time point. */
+    SEEK_CLOSEST,
 };
 
 enum PlaybackRateMode : int32_t {
-    SPEED_FORWARD_0_75_X = 0,           // Video playback at 0.75x normal speed
-    SPEED_FORWARD_1_00_X,               // Video playback at normal speed
-    SPEED_FORWARD_1_25_X,               // Video playback at 1.25x normal speed
-    SPEED_FORWARD_1_75_X,               // Video playback at 1.75x normal speed
-    SPEED_FORWARD_2_00_X,               // Video playback at 2.0x normal speed
+    /* Video playback at 0.75x normal speed */
+    SPEED_FORWARD_0_75_X,
+    /* Video playback at normal speed */
+    SPEED_FORWARD_1_00_X,
+    /* Video playback at 1.25x normal speed */
+    SPEED_FORWARD_1_25_X,
+    /* Video playback at 1.75x normal speed */
+    SPEED_FORWARD_1_75_X,
+    /* Video playback at 2.0x normal speed */
+    SPEED_FORWARD_2_00_X,
 };
 
 class PlayerCallback {
@@ -81,49 +128,16 @@ public:
      * @param errorType Error type. For details, see {@link PlayerErrorType}.
      * @param errorCode Error code.
      */
-    virtual void OnError(int32_t errorType, int32_t errorCode) = 0;
-
-    /**
-     * Called when seek completed. accurate to millseconds.
-     *
-     * Seek operation is asynchronous, this virtual method will be called
-     * when playback resumed at the new position.
-     *
-     * @param currentPositon the time when seek compelte.
-     */
-    virtual void OnSeekDone(uint64_t currentPositon) = 0;
-
-    /**
-     * Called when no more output buffers will be produced.
-     *
-     * @param isLooping A boolean to show whether the player will looping.
-     */
-    virtual void OnEndOfStream(bool isLooping) = 0;
-
-    /**
-     * Called when state changes.
-     *
-     * @param state The new State.
-     */
-    virtual void OnStateChanged(PlayerStates state) = 0;
-
-    /**
-     * Called when the media position changed. accurate to millseconds.
-     *
-     * This is called regularly and can be used to update the playback
-     * progress in the UI.
-     *
-     * @param position The new position in nanoseconds
-     */
-    virtual void OnPositionUpdated(uint64_t postion) = 0;
+    virtual void OnError(PlayerErrorType errorType, int32_t errorCode) = 0;
 
     /**
      * Called when a player message or alarm is received.
      *
-     * @param type Indicates the information type. For details, see {@link PlayerMessageType}.
+     * @param type Indicates the information type. For details, see {@link PlayerOnInfoType}.
      * @param extra Indicates other information, for example, the start time position of a playing file.
+     * @param InfoBody According to the info type, the information carrier passed.Is an optional parameter.
      */
-    virtual void OnMessage(int32_t type, int32_t extra) = 0;
+    virtual void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody = {}) = 0;
 };
 
 class Player {
@@ -252,7 +266,7 @@ public:
      * @since 1.0
      * @version 1.0
     */
-    virtual int32_t Seek(uint64_t mSeconds, int32_t mode) = 0;
+    virtual int32_t Seek(int32_t mSeconds, PlayerSeekMode mode) = 0;
 
     /**
      * @brief Obtains the playback position, accurate to millisecond.
@@ -263,7 +277,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    virtual int32_t GetCurrentTime(uint64_t &currentTime) = 0;
+    virtual int32_t GetCurrentTime(int32_t &currentTime) = 0;
 
     /**
      * @brief Obtains the total duration of media files, accurate to milliseconds.
@@ -274,7 +288,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    virtual int32_t GetDuration(uint64_t &duration) = 0;
+    virtual int32_t GetDuration(int32_t &duration) = 0;
 
     /**
      * @brief set the player playback rate
@@ -285,7 +299,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    virtual int32_t SetPlaybackSpeed(int32_t mode) = 0;
+    virtual int32_t SetPlaybackSpeed(PlaybackRateMode mode) = 0;
 
     /**
      * @brief get the current player playback rate
@@ -296,7 +310,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    virtual int32_t GetPlaybackSpeed(int32_t &mode) = 0;
+    virtual int32_t GetPlaybackSpeed(PlaybackRateMode &mode) = 0;
 
     /**
      * @brief Method to set the surface.
@@ -357,6 +371,7 @@ private:
     PlayerFactory() = default;
     ~PlayerFactory() = default;
 };
+__attribute__((visibility("default"))) std::string PlayerErrorTypeToString(PlayerErrorType type);
 } // Media
 } // OHOS
 #endif
