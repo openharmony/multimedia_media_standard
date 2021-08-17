@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#ifndef __MUSL__
-
 #include "time_monitor.h"
 #include "media_log.h"
 
@@ -71,4 +69,3 @@ int64_t TimeMonitor::Timeval2Sec(const timeval &tv, TimeValType valType)
 }
 }
 }
-#endif // __MUSL__

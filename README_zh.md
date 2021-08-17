@@ -25,15 +25,32 @@
 ```
 /foundation/multimedia/media_standard    # 媒体组件业务代码
 ├── frameworks                           # 框架代码
-│   ├── include                          # 框架包含头文件
-│   └── src                              # 框架实现
+│   ├── innerkitsimpl                    # native框架实现
+│   ├── kitsimpl                         # js框架实现
+│   ├── videodisplaymanager              # 显示实现
 ├── interfaces                           # 外部接口层
-│   └── kits                             # 外部接口文件
+│   ├── innerkits                        # native外部接口文件
+│   └── kits                             # js外部接口文件
+├── services                             # 服务实现
+│   ├── include                          # 服务对外头文件
+│   ├── play                             # 播放C/S实现
+│   │   ├── client                       # 播放C实现
+│   │   ├── ipc                          # 播放C/S框架
+│   │   ├── server                       # 播放S实现
+│   │   ├── engine                       # 播放引擎框架
+│   ├── recorder                         # 录制C/S实现
+│   │   ├── client                       # 录制C实现
+│   │   ├── ipc                          # 录制C/S框架
+│   │   ├── server                       # 录制S实现
+│   │   ├── engine                       # 录制引擎框架
+│   ├── plugins                          # 自定义插件
+│   ├── sa_media                         # 媒体服务主进程
+│   ├── utils                            # 子系统基础资源
 ├── LICENSE                              # 证书文件
 └── ohos.build                           # 编译文件
 ```
 
 ## 相关仓<a name="section1533973044317"></a>
 
-媒体组件仓：multimedia\_media\_standard
+媒体组件仓：multimedia\media_standard
 

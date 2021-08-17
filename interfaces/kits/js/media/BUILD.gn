@@ -33,15 +33,17 @@ ohos_copy("media_declaration") {
 ohos_shared_library("media") {
     include_dirs = [
         "//foundation/multimedia/media_standard/interfaces/kits/js/media/include",
+        "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/player",
+        "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/recorder",
         "//third_party/libuv/include",
     ]
 
     sources = [
-        "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/player/src/native_module_ohos_media.cpp",
-        "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/player/src/audio_player_napi.cpp",
-        "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/recorder/src/audio_recorder_napi.cpp",
-        "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/recorder/src/recorder_callback_napi.cpp",
-        "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/player/src/player_callback_napi.cpp",
+        "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/player/native_module_ohos_media.cpp",
+        "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/player/audio_player_napi.cpp",
+        "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/recorder/audio_recorder_napi.cpp",
+        "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/recorder/recorder_callback_napi.cpp",
+        "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/player/player_callback_napi.cpp",
     ]
 
     cflags = [

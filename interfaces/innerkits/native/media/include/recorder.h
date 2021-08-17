@@ -17,6 +17,7 @@
 #define RECORDER_H
 
 #include <cstdint>
+#include <string>
 #include "format.h"
 #include "surface.h"
 
@@ -208,7 +209,7 @@ enum RecorderInfoType : int32_t {
     RECORDER_INFO_NEXT_FILE_FD_NOT_SET,
 
     /** warnings, and the err code passed by the 'extra' argument, the code see "MediaServiceErrCode". */
-    RECORDER_INFO_WARNING,
+    RECORDER_INFO_INTERNEL_WARNING,
 
      /** extend info start,The extension information code agreed upon by the plug-in and
          the application will be transparently transmitted by the service. */
@@ -228,11 +229,12 @@ enum RecorderErrorType : int32_t {
     /* write file failed */
     RECORDER_ERROR_WRITE_FILE_FAIL,
 
-    /* the service process is dead. */
-    RECORDER_ERROR_SERVICE_DIED,
-
     /* internal errors, error code passed by the errorCode, and definition see "MediaServiceErrCode" */
     RECORDER_ERROR_INTERNAL,
+
+    /* the service process is dead. if need extend other type that reporting by recorder engine,
+       should before RECORDER_ERROR_SERVICE_DIED not after. */
+    RECORDER_ERROR_SERVICE_DIED,
 
      /** extend error start,The extension error code agreed upon by the plug-in and
          the application will be transparently transmitted by the service. */
@@ -680,6 +682,8 @@ private:
     RecorderFactory() = default;
     ~RecorderFactory() = default;
 };
+
+__attribute__((visibility("default"))) std::string RecorderErrorTypeToString(RecorderErrorType type);
 } // Media
 } // OHOS
 #endif // RECORDER_H
