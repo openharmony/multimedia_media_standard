@@ -15,7 +15,7 @@
 
 #include "config.h"
 #include "gst_audio_server_sink.h"
-#include <inttypes.h>
+#include <cinttypes>
 #include <gst/gst.h>
 #include "gst/audio/audio.h"
 #include "media_errors.h"
