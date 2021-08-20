@@ -304,7 +304,7 @@ uint64_t GstPlayerCtrl::GetPosition()
     GstClockTime position = gst_player_get_position(gstPlayer_);
     uint64_t curTime = static_cast<uint64_t>(position) / MICRO;
     curTime = std::min(curTime, sourceDuration_);
-    MEDIA_LOGD("GetPosition curTime(%{public}llu) duration(%{public}llu)", curTime, sourceDuration_);
+    MEDIA_LOGD("GetPosition curTime(%{public}" PRIu64 ") duration(%{public}" PRIu64 ")", curTime, sourceDuration_);
     return curTime;
 }
 
@@ -551,7 +551,7 @@ void GstPlayerCtrl::ProcessSeekDone(const GstPlayer *cbPlayer, uint64_t position
     position = std::min(position, sourceDuration_);
     seekDoneNeedCb_ = true;
     seekDonePosition_ = position;
-    MEDIA_LOGI("gstplay seek Done: %{public}llu", seekDonePosition_);
+    MEDIA_LOGI("gstplay seek Done: (%{public}" PRIu64 ")", seekDonePosition_);
 }
 
 void GstPlayerCtrl::OnPositionUpdatedCb(const GstPlayer *player, guint64 position, const GstPlayerCtrl *self)
@@ -574,7 +574,8 @@ void GstPlayerCtrl::ProcessPositionUpdated(const GstPlayer *cbPlayer, uint64_t p
     Format format;
     std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
     if (tempObs != nullptr) {
-        MEDIA_LOGD("ProcessPositionUpdated %{public}llu, 0x%{public}06" PRIXPTR "", position, FAKE_POINTER(this));
+        MEDIA_LOGD("ProcessPositionUpdated(%{public}" PRIu64 "), 0x%{public}06" PRIXPTR "",
+            position, FAKE_POINTER(this));
         tempObs->OnInfo(INFO_TYPE_POSITION_UPDATE, static_cast<int32_t>(position), format);
     }
 }
@@ -616,7 +617,7 @@ void GstPlayerCtrl::OnNotify(PlayerStates state)
         case PLAYER_PAUSED:
             condVarPauseSync_.notify_all();
             break;
-        case PLAYER_STOPPED: 
+        case PLAYER_STOPPED:
             condVarStopSync_.notify_all();
             break;
         default:
@@ -627,7 +628,7 @@ void GstPlayerCtrl::OnNotify(PlayerStates state)
 void GstPlayerCtrl::OnSeekDone()
 {
     if (seekDoneNeedCb_) {
-        MEDIA_LOGI("On Seek Done: %{public}llu", seekDonePosition_);
+        MEDIA_LOGI("On Seek Done: (%{public}" PRIu64 ")", seekDonePosition_);
         std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
         Format format;
         if (tempObs != nullptr) {
@@ -698,7 +699,7 @@ void GstPlayerCtrl::InitDuration()
     CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
     GstClockTime time = gst_player_get_duration(gstPlayer_);
     sourceDuration_ = static_cast<uint64_t>(time) / MICRO;
-    MEDIA_LOGD("InitDuration duration(%{public}llu)", sourceDuration_);
+    MEDIA_LOGD("InitDuration duration(%{public}" PRIu64 ")", sourceDuration_);
 }
 } // Media
 } // OHOS

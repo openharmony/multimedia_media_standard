@@ -170,7 +170,7 @@ static void SplitString(const std::string &input, const std::string &delimiter, 
 static void SetGstLogLevelFromSysPara()
 {
     std::string levelPara;
-    int res = OHOS::system::GetStringParameter("sys.media.log.level", levelPara, "");
+    int32_t res = OHOS::system::GetStringParameter("sys.media.log.level", levelPara, "");
     if (res != 0 || levelPara.empty()) {
         gst_debug_set_default_threshold (GST_LEVEL_WARNING);
         MEDIA_LOGD("sys.media.log.level not find");
