@@ -19,7 +19,7 @@ config("videodisplaymanager_public_config") {
     "//drivers/peripheral/display/interfaces/include",
     "//drivers/peripheral/display/interfaces/hdi_cpp/client",
     "//drivers/adapter/uhdf2/hdi",
-    "//drivers/adapter/uhdf2/include/hdi"
+    "//drivers/adapter/uhdf2/include/hdi",
   ]
 }
 
@@ -33,11 +33,9 @@ ohos_shared_library("videodisplaymanager") {
     "//utils/native/base:utils_config",
   ]
 
-  deps = [ "//drivers/peripheral/display/hal:hdi_display_layer" ]
-
   public_deps = [
+    "//drivers/peripheral/display/interfaces/hdi_cpp/client:display_client",
     "//foundation/graphic/standard/frameworks/surface:surface",
-    "//drivers/peripheral/display/interfaces/hdi_cpp/client:display_client"
   ]
 
   external_deps = [
