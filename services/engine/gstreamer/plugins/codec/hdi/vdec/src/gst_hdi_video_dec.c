@@ -14,6 +14,7 @@
  */
 
 #include "gst_hdi_video_dec.h"
+#include <inttypes.h>
 #include "gst_dec_surface.h"
 #include "securec.h"
 
@@ -699,7 +700,7 @@ static gboolean gst_hdi_video_dec_fill_surface_buffer(const GstHDIVideoDec *self
     g_return_val_if_fail(self->hdi_video_out_format.vir_addr != NULL, FALSE);
     HI_MPI_SYS_Munmap(self->hdi_video_out_format.vir_addr, size);
 #endif
-    GST_DEBUG_OBJECT(self, "memcpy_s s %u %lld ", gst_buffer_get_size(outbuf), end - start);
+    GST_DEBUG_OBJECT(self, "memcpy_s s %u %" PRId64 " ", gst_buffer_get_size(outbuf), end - start);
     GST_BUFFER_PTS (frame->output_buffer) = GST_BUFFER_PTS (outbuf);
     return TRUE;
 }
@@ -718,7 +719,7 @@ static gboolean gst_hdi_video_dec_fill_gst_buffer(const GstHDIVideoDec *self, co
     g_return_val_if_fail(self->hdi_video_out_format.vir_addr != NULL, FALSE);
     HI_MPI_SYS_Munmap(self->hdi_video_out_format.vir_addr, self->hdi_video_out_format.buffer_size);
 #endif
-    GST_DEBUG_OBJECT(self, "memcpy_s s %u %lld ", gst_buffer_get_size(outbuf), end - start);
+    GST_DEBUG_OBJECT(self, "memcpy_s s %u %" PRId64 " ", gst_buffer_get_size(outbuf), end - start);
     GST_BUFFER_PTS (frame->output_buffer) = GST_BUFFER_PTS (outbuf);
     return TRUE;
 }

@@ -15,6 +15,7 @@
 
 #include "config.h"
 #include "gst_audio_server_sink.h"
+#include <inttypes.h>
 #include <gst/gst.h>
 #include "gst/audio/audio.h"
 #include "media_errors.h"
@@ -399,7 +400,7 @@ static GstFlowReturn gst_audio_server_sink_render(GstBaseSink *basesink, GstBuff
         if (sink->audio_sink->GetLatency(latency) != MSERR_OK) {
             GST_INFO_OBJECT(basesink, "fail to get latency");
         } else {
-            GST_INFO_OBJECT(basesink, "frame render latency is %llu", latency);
+            GST_INFO_OBJECT(basesink, "frame render latency is (%" PRIu64 ")", latency);
         }
     }
     g_mutex_unlock(&sink->render_lock);

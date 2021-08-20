@@ -47,7 +47,7 @@ sptr<IRemoteObject> MediaServerManager::CreateStubObject(StubType type)
     switch (type) {
         case RECORDER: {
             if (recorderStubList_.size() >= SERVER_MAX_NUMBER) {
-                MEDIA_LOGE("The number of recorder services(%{public}d) has reached the upper limit."
+                MEDIA_LOGE("The number of recorder services(%{public}zu) has reached the upper limit."
                            "Please release the applied resources.", recorderStubList_.size());
                 return nullptr;
             }
@@ -59,13 +59,13 @@ sptr<IRemoteObject> MediaServerManager::CreateStubObject(StubType type)
             sptr<IRemoteObject> object = recorderStub->AsObject();
             if (object != nullptr) {
                 recorderStubList_.push_back(object);
-                MEDIA_LOGD("The number of recorder services(%{public}d).", recorderStubList_.size());
+                MEDIA_LOGD("The number of recorder services(%{public}zu).", recorderStubList_.size());
             }
             return object;
         }
         case PLAYER: {
             if (playerStubList_.size() >= SERVER_MAX_NUMBER) {
-                MEDIA_LOGE("The number of player services(%{public}d) has reached the upper limit."
+                MEDIA_LOGE("The number of player services(%{public}zu) has reached the upper limit."
                            "Please release the applied resources.", playerStubList_.size());
                 return nullptr;
             }
@@ -77,7 +77,7 @@ sptr<IRemoteObject> MediaServerManager::CreateStubObject(StubType type)
             sptr<IRemoteObject> object = playerStub->AsObject();
             if (object != nullptr) {
                 playerStubList_.push_back(object);
-                MEDIA_LOGD("The number of player services(%{public}d).", playerStubList_.size());
+                MEDIA_LOGD("The number of player services(%{public}zu).", playerStubList_.size());
             }
             return object;
         }
