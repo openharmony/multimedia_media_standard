@@ -574,7 +574,8 @@ void GstPlayerCtrl::ProcessPositionUpdated(const GstPlayer *cbPlayer, uint64_t p
     Format format;
     std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
     if (tempObs != nullptr) {
-        MEDIA_LOGD("ProcessPositionUpdated(%{public}" PRIu64 "), 0x%{public}06" PRIXPTR "", position, FAKE_POINTER(this));
+        MEDIA_LOGD("ProcessPositionUpdated(%{public}" PRIu64 "), 0x%{public}06" PRIXPTR "",
+            position, FAKE_POINTER(this));
         tempObs->OnInfo(INFO_TYPE_POSITION_UPDATE, static_cast<int32_t>(position), format);
     }
 }
