@@ -277,7 +277,7 @@ int32_t GstPlayerVideoRendererCtrl::PullVideoBuffer()
 void GstPlayerVideoRendererCtrl::SetSurfaceTimeFromSysPara()
 {
     std::string timeEnable;
-    int res = OHOS::system::GetStringParameter("sys.media.time.surface", timeEnable, "");
+    int32_t res = OHOS::system::GetStringParameter("sys.media.time.surface", timeEnable, "");
     if (res != 0 || timeEnable.empty()) {
         surfaceTimeEnable = false;
         MEDIA_LOGD("sys.media.time.surface=false");
@@ -304,7 +304,7 @@ int32_t GstPlayerVideoRendererCtrl::UpdateSurfaceBuffer(const GstBuffer &buffer)
     CHECK_AND_RETURN_RET_LOG(videoMeta != nullptr, ERR_INVALID_VALUE, "gst_buffer_get_video_meta failed..");
 
     gsize size = gst_buffer_get_size(buf);
-    CHECK_AND_RETURN_RET_LOG(size > 0, ERR_INVALID_VALUE, "gst_buffer_get_size failed(%{public}d)..", size);
+    CHECK_AND_RETURN_RET_LOG(size > 0, ERR_INVALID_VALUE, "gst_buffer_get_size failed..");
 
     BufferRequestConfig requestConfig;
     requestConfig.width = videoMeta->width;

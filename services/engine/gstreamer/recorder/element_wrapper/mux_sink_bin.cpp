@@ -181,10 +181,10 @@ int32_t MuxSinkBin::ConfigureMaxFileSize(const RecorderParam &recParam)
 {
     const MaxFileSize &param = static_cast<const MaxFileSize &>(recParam);
     if (param.size <= 0) {
-        MEDIA_LOGE("Invalid max record file size: %{public}lld", param.size);
+        MEDIA_LOGE("Invalid max record file size: (%{public}" PRId64 ")", param.size);
         return ERR_INVALID_VALUE;
     }
-    MEDIA_LOGI("Set max filesize success: %{public}lld", param.size);
+    MEDIA_LOGI("Set max filesize success: (%{public}" PRId64 ")", param.size);
 
     MarkParameter(recParam.type);
     maxSize_ = param.size;
@@ -336,7 +336,7 @@ GstPadProbeReturn MuxSinkBin::MuxerSinkPadProbe(const GstPad &pad, GstPadProbeIn
 void MuxSinkBin::Dump()
 {
     MEDIA_LOGI("file format = %{public}d, max duration = %{public}d, "
-               "max size = %{public}lld, fd = %{public}d, path = %{public}s",
+               "max size = %{public}" PRId64 ", fd = %{public}d, path = %{public}s",
                format_, maxDuration_,  maxSize_, outFd_, outPath_.c_str());
 }
 
