@@ -194,10 +194,10 @@ int32_t AudioSinkSvImpl::GetMinimumBufferSize(uint32_t &bufferSize)
 {
     MEDIA_LOGD("GetMinimumBufferSize");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
-    uint32_t size = 0;
+    size_t size = 0;
     CHECK_AND_RETURN_RET(audioRenderer_->GetBufferSize(size) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
     CHECK_AND_RETURN_RET(size > 0, MSERR_UNKNOWN);
-    bufferSize = size;
+    bufferSize = static_cast<uint32_t>(size);
     return MSERR_OK;
 }
 
