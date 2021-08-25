@@ -287,7 +287,8 @@ void GstPlayerCtrl::SetVolume(float leftVolume, float rightVolume)
     std::unique_lock<std::mutex> lock(mutex_);
     AudioStandard::AudioSystemManager *audioManager = AudioStandard::AudioSystemManager::GetInstance();
     CHECK_AND_RETURN_LOG(audioManager != nullptr, "audioManager is nullptr");
-    int32_t ret = audioManager->SetVolume(AudioStandard::AudioSystemManager::AudioVolumeType::STREAM_MUSIC, leftVolume);
+    int32_t volume = static_cast<int32_t>(VOLUME_TO_SYSTEM_VOLUME * leftVolume);
+    int32_t ret = audioManager->SetVolume(AudioStandard::AudioSystemManager::AudioVolumeType::STREAM_MUSIC, volume);
     CHECK_AND_RETURN_LOG(ret == AudioStandard::SUCCESS, "set volume fail");
     OnVolumeChange();
 }
