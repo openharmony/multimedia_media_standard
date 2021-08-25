@@ -27,6 +27,7 @@ namespace {
 namespace OHOS {
 namespace Media {
 constexpr int MILLI = 1000;
+constexpr int VOLUME_TO_SYSTEM_VOLUME = 15;
 constexpr int MICRO = MILLI * 1000;
 using StreamToServiceErrFunc = void (*)(const gchar *name, int32_t &errorCode);
 static const std::unordered_map<int32_t, StreamToServiceErrFunc> STREAM_TO_SERVICE_ERR_FUNC_TABLE = {
