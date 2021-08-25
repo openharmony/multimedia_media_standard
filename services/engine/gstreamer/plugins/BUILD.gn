@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 
 group("media_engine_gst_plugins") {
   deps = [
+    "source/videocapture:gst_surface_video_src",
     "source/audiocapture:gst_audio_capture_src",
     "sink/audiosink:gst_audio_server_sink",
   ]
