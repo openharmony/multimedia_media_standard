@@ -39,7 +39,7 @@ private:
     char *codecData_ = nullptr;
     int32_t codecDataSize_ = 0;
     uint32_t nalSize_ = 0;
-    bool transStreamFormat = false;
+    bool transStreamFormat = true;
 };
 }  // namespace Media
 }  // namespace OHOS
