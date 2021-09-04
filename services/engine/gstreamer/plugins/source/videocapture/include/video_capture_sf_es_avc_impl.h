@@ -30,16 +30,17 @@ protected:
     std::shared_ptr<VideoFrameBuffer> DoGetFrameBuffer() override;
 
 private:
-    std::shared_ptr<VideoFrameBuffer> GetFirstBuffer();
+    std::shared_ptr<VideoFrameBuffer> GetIDRFrame();
     const uint8_t *FindNextNal(const uint8_t *start, const uint8_t *end, uint32_t &nalLen);
     void GetCodecData(const uint8_t *data, int32_t len, std::vector<uint8_t> &sps, std::vector<uint8_t> &pps,
-                      uint32_t &nalSize);
+            std::vector<uint8_t> &sei);
+    GstBuffer* AVCDecoderConfiguration(std::vector<uint8_t> &sps,
+            std::vector<uint8_t> &pps);
 
     int32_t frameSequence_ = 0;
     char *codecData_ = nullptr;
     int32_t codecDataSize_ = 0;
     uint32_t nalSize_ = 0;
-    bool transStreamFormat = true;
 };
 }  // namespace Media
 }  // namespace OHOS
