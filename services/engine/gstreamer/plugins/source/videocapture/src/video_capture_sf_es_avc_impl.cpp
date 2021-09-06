@@ -34,7 +34,7 @@ VideoCaptureSfEsAvcImpl::~VideoCaptureSfEsAvcImpl()
 {
 }
 
-GstBuffer* VideoCaptureSfEsAvcImpl::AVCDecoderConfiguration(std::vector<uint8_t> &sps,
+GstBuffer *VideoCaptureSfEsAvcImpl::AVCDecoderConfiguration(std::vector<uint8_t> &sps,
     std::vector<uint8_t> &pps)
 {
     uint32_t codecBufferSize = sps.size() + pps.size() + 11;
@@ -130,7 +130,7 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfEsAvcImpl::DoGetFrameBuffer()
     CHECK_AND_RETURN_RET_LOG(buffer != nullptr, nullptr, "surface buffer address is invalid");
 
     if (isCodecFrame_ == 1) {
-        buffer = (char* )buffer + codecDataSize_;
+        buffer = (char *)buffer + codecDataSize_;
     }
 
     uint32_t frameSize = bufferSize - nalSize_;
@@ -147,7 +147,6 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfEsAvcImpl::DoGetFrameBuffer()
         ((char *)buffer)[1] = (char)((frameSize >> 8) & 0xff);
         ((char *)buffer)[2] = (char)(frameSize & 0xff);
     }
-
 
     GstBuffer *gstBuffer = gst_buffer_new_allocate(nullptr, bufferSize, nullptr);
     CHECK_AND_RETURN_RET_LOG(gstBuffer != nullptr, nullptr, "no memory");
@@ -169,7 +168,9 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfEsAvcImpl::DoGetFrameBuffer()
 
 std::shared_ptr<VideoFrameBuffer> VideoCaptureSfEsAvcImpl::GetIDRFrame()
 {
-    ON_SCOPE_EXIT(0) { (void)dataConSurface_->ReleaseBuffer(surfaceBuffer_, fence_); };
+    ON_SCOPE_EXIT(0) { 
+        (void)dataConSurface_->ReleaseBuffer(surfaceBuffer_, fence_); 
+    };
 
     uint32_t bufferSize = static_cast<uint32_t>(dataSize_) - codecDataSize_;
     GstBuffer *gstBuffer = gst_buffer_new_allocate(nullptr, bufferSize, nullptr);
@@ -191,7 +192,6 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfEsAvcImpl::GetIDRFrame()
         codecData_[codecDataSize_ + 1] = (char)((frameSize >> 8) & 0xff);
         codecData_[codecDataSize_ + 2] = (char)(frameSize & 0xff);
     }
-
 
     gsize size = gst_buffer_fill(gstBuffer, 0, codecData_ + codecDataSize_, bufferSize);
     CHECK_AND_RETURN_RET_LOG(size == static_cast<gsize>(bufferSize), nullptr, "unkonwn error during gst_buffer_fill");
