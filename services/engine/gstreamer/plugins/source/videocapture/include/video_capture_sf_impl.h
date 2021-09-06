@@ -52,6 +52,7 @@ protected:
         VideoCaptureSfImpl &owner_;
     };
     void OnBufferAvailable();
+    void GetSufferExtraData();
 
     uint32_t surfaceWidth_;
     uint32_t surfaceHeight_;
@@ -71,7 +72,7 @@ protected:
     sptr<Surface> producerSurface_;
     int32_t dataSize_ = 0;
     int64_t pts_ = 0;
-    int64_t duration_ = 0;
+    int32_t isCodecFrame_ = 0;
 
 private:
     void SetSurfaceUserData();

@@ -51,6 +51,7 @@ using namespace OHOS::Media;
 #define gst_surface_video_src_parent_class parent_class
 G_DEFINE_TYPE(GstSurfaceVideoSrc, gst_surface_video_src, GST_TYPE_PUSH_SRC);
 
+static void gst_surface_video_src_finalize(GObject *object);
 static void gst_surface_video_src_set_property(GObject *object, guint prop_id,
     const GValue *value, GParamSpec *pspec);
 static void gst_surface_video_src_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec);
@@ -83,6 +84,7 @@ static void gst_surface_video_src_class_init(GstSurfaceVideoSrcClass *klass)
     GstBaseSrcClass *gstbasesrc_class = reinterpret_cast<GstBaseSrcClass *>(klass);
     GstPushSrcClass *gstpushsrc_class = reinterpret_cast<GstPushSrcClass *>(klass);
 
+    gobject_class->finalize = gst_surface_video_src_finalize;
     gobject_class->set_property = gst_surface_video_src_set_property;
     gobject_class->get_property = gst_surface_video_src_get_property;
 
@@ -132,9 +134,19 @@ static void gst_surface_video_src_init(GstSurfaceVideoSrc *src)
     src->need_codec_data = TRUE;
 }
 
+static void gst_surface_video_src_finalize(GObject *object)
+{
+    GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(object);
+    if (src->src_caps != nullptr) {
+        gst_caps_unref(src->src_caps);
+        src->src_caps = nullptr;
+    }
+}
+
 static void gst_surface_video_src_set_property(GObject *object, guint prop_id,
     const GValue *value, GParamSpec *pspec)
 {
+    (void)pspec;
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(object);
     switch (prop_id) {
         case PROP_STREAM_TYPE:
@@ -153,6 +165,7 @@ static void gst_surface_video_src_set_property(GObject *object, guint prop_id,
 
 static void gst_surface_video_src_set_stream_type(GstSurfaceVideoSrc *src, gint stream_type)
 {
+    (void)stream_type;
     src->stream_type = VIDEO_STREAM_TYPE_ES_AVC;
     src->need_codec_data = TRUE;
 }
@@ -297,7 +310,6 @@ static GstFlowReturn gst_surface_video_src_create(GstPushSrc *psrc, GstBuffer **
 
     *outbuf = frame_buffer->gstBuffer;
     GST_BUFFER_PTS(*outbuf) = frame_buffer->timeStamp;
-    GST_BUFFER_DURATION(*outbuf) = frame_buffer->duration;
     return GST_FLOW_OK;
 }
 
