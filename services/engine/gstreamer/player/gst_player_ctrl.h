@@ -27,8 +27,6 @@
 
 namespace OHOS {
 namespace Media {
-    constexpr float INVALID_VOLUME = -1.0;
-
 class GstPlayerCtrl {
 public:
     explicit GstPlayerCtrl(GstPlayer *gstPlayer);
@@ -115,7 +113,7 @@ private:
     std::vector<gulong> signalIds_;
     gulong signalIdVolume_ = 0;
     GstElement *audioSink_ = nullptr;
-    float volume_ = INVALID_VOLUME;
+    float volume_; // inited at the constructor
     std::shared_ptr<GstAppsrcWarp> appsrcWarp_ = nullptr;
 };
 } // Media

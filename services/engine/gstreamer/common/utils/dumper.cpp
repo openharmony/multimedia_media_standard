@@ -30,11 +30,6 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-constexpr int32_t SEC_PER_HOUR = 60 * 60;
-constexpr int32_t MINUTE_PER_HOUR = 60;
-constexpr int32_t SEC_PER_MINUTE = 60;
-constexpr int32_t USEC_PER_MSEC = 1000;
-
 void Dumper::DumpDotGraph(GstPipeline &pipeline, int32_t oldState, int32_t newState)
 {
     if ((oldState < GST_STATE_VOID_PENDING) || (oldState > GST_STATE_PLAYING) ||
@@ -56,10 +51,15 @@ void Dumper::DumpDotGraph(GstPipeline &pipeline, int32_t oldState, int32_t newSt
     int ret = gettimeofday(&tv, nullptr);
     CHECK_AND_RETURN_LOG(ret >= 0, "get time of day failed");
 
-    uint64_t hour = static_cast<uint64_t>(tv.tv_sec / SEC_PER_HOUR);
-    uint32_t minute = static_cast<uint32_t>((tv.tv_sec / SEC_PER_MINUTE) % MINUTE_PER_HOUR);
-    uint32_t sec = static_cast<uint32_t>(tv.tv_sec % MINUTE_PER_HOUR);
-    uint32_t millsec = static_cast<uint32_t>(tv.tv_usec / USEC_PER_MSEC);
+    constexpr int32_t secPerHour = 60 * 60;
+    constexpr int32_t minutePerHour = 60;
+    constexpr int32_t secPerMinute = 60;
+    constexpr int32_t usecPerMSec = 1000;
+
+    uint64_t hour = static_cast<uint64_t>(tv.tv_sec / secPerHour);
+    uint32_t minute = static_cast<uint32_t>((tv.tv_sec / secPerMinute) % minutePerHour);
+    uint32_t sec = static_cast<uint32_t>(tv.tv_sec % minutePerHour);
+    uint32_t millsec = static_cast<uint32_t>(tv.tv_usec / usecPerMSec);
 
     const gchar *oldName = gst_element_state_get_name(static_cast<GstState>(oldState));
     const gchar *newName = gst_element_state_get_name(static_cast<GstState>(newState));

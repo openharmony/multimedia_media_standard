@@ -68,10 +68,10 @@ struct StreamMetaParseTarget {
 };
 
 static const std::unordered_map<std::string_view, StreamMetaParseTarget> STREAM_TO_META_PARSE_TARGET_MAPPING = {
-    { "video", {{ "width", "height" }, INNER_META_KEY_HAS_VIDEO}},
-    { "audio", {{ "rate" }, INNER_META_KEY_HAS_AUDIO}},
-    { "image", {{ "width", "height" }, INNER_META_KEY_HAS_IMAGE}},
-    { "text", {{ "format" }, INNER_META_KEY_HAS_TEXT}},
+    { "video", { { "width", "height" }, INNER_META_KEY_HAS_VIDEO} },
+    { "audio", { { "rate" }, INNER_META_KEY_HAS_AUDIO} },
+    { "image", { { "width", "height" }, INNER_META_KEY_HAS_IMAGE} },
+    { "text", { { "format" }, INNER_META_KEY_HAS_TEXT} },
 };
 
 static const std::unordered_map<std::string_view, std::string_view> FILE_MIME_TYPE_MAPPING = {

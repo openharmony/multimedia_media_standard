@@ -56,8 +56,9 @@ static int TestAVMetadataHelper(const string &path)
 
 int main(int argc, char *argv[])
 {
+    constexpr int minRequiredArgCount = 2;
     string path;
-    if (argc >= 2 && argv[1] != nullptr) {
+    if (argc >= minRequiredArgCount && argv[1] != nullptr) {
         path = argv[1];
     }
     cout << "Please select a test scenario number(defult player): " << endl;

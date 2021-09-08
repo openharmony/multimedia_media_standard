@@ -46,7 +46,7 @@ private:
     void AnalyzeSize(int32_t size);
     int32_t GetAndPushMem(int32_t size);
     void OnError(int32_t errorCode);
-    void PushData(void *buffer);
+    void PushData(const GstBuffer *buffer);
     void PushEos();
     std::shared_ptr<IMediaDataSource> dataSrc_ = nullptr;
     const int64_t size_;
