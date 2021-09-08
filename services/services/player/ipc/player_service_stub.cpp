@@ -13,95 +13,416 @@
  * limitations under the License.
  */
 
-#include "player_listener_stub.h"
+#include "player_service_stub.h"
+#include "player_listener_proxy.h"
+#include "media_data_source_proxy.h"
+#include "media_server_manager.h"
 #include "media_log.h"
 #include "media_errors.h"
 
 namespace {
-constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayerListenerStub"};
+constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayerServiceStub"};
 }
 
 namespace OHOS {
 namespace Media {
-PlayerListenerStub::PlayerListenerStub()
+sptr<PlayerServiceStub> PlayerServiceStub::Create()
+{
+    sptr<PlayerServiceStub> playerStub = new(std::nothrow) PlayerServiceStub();
+    CHECK_AND_RETURN_RET_LOG(playerStub != nullptr, nullptr, "failed to new PlayerServiceStub");
+
+    int32_t ret = playerStub->Init();
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "failed to player stub init");
+    return playerStub;
+}
+
+PlayerServiceStub::PlayerServiceStub()
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
 }
 
-PlayerListenerStub::~PlayerListenerStub()
+PlayerServiceStub::~PlayerServiceStub()
 {
-    MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
+    MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destory", FAKE_POINTER(this));
 }
 
-int PlayerListenerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
+int32_t PlayerServiceStub::Init()
+{
+    playerServer_ = PlayerServer::Create();
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "failed to create PlayerServer");
+
+    playerFuncs_[SET_LISTENER_OBJ] = &PlayerServiceStub::SetListenerObject;
+    playerFuncs_[SET_SOURCE] = &PlayerServiceStub::SetSource;
+    playerFuncs_[SET_MEDIA_DATA_SRC_OBJ] = &PlayerServiceStub::SetMediaDataSource;
+    playerFuncs_[PLAY] = &PlayerServiceStub::Play;
+    playerFuncs_[PREPARE] = &PlayerServiceStub::Prepare;
+    playerFuncs_[PREPAREASYNC] = &PlayerServiceStub::PrepareAsync;
+    playerFuncs_[PAUSE] = &PlayerServiceStub::Pause;
+    playerFuncs_[STOP] = &PlayerServiceStub::Stop;
+    playerFuncs_[RESET] = &PlayerServiceStub::Reset;
+    playerFuncs_[RELEASE] = &PlayerServiceStub::Release;
+    playerFuncs_[SET_VOLUME] = &PlayerServiceStub::SetVolume;
+    playerFuncs_[SEEK] = &PlayerServiceStub::Seek;
+    playerFuncs_[GET_CURRENT_TIME] = &PlayerServiceStub::GetCurrentTime;
+    playerFuncs_[GET_DURATION] = &PlayerServiceStub::GetDuration;
+    playerFuncs_[SET_PLAYERBACK_SPEED] = &PlayerServiceStub::SetPlaybackSpeed;
+    playerFuncs_[GET_PLAYERBACK_SPEED] = &PlayerServiceStub::GetPlaybackSpeed;
+    playerFuncs_[SET_VIDEO_SURFACE] = &PlayerServiceStub::SetVideoSurface;
+    playerFuncs_[IS_PLAYING] = &PlayerServiceStub::IsPlaying;
+    playerFuncs_[IS_LOOPING] = &PlayerServiceStub::IsLooping;
+    playerFuncs_[SET_LOOPING] = &PlayerServiceStub::SetLooping;
+    playerFuncs_[DESTROY] = &PlayerServiceStub::DestroyStub;
+    playerFuncs_[SET_CALLBACK] = &PlayerServiceStub::SetPlayerCallback;
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::DestroyStub()
+{
+    playerCallback_ = nullptr;
+    playerServer_ = nullptr;
+
+    MediaServerManager::GetInstance().DestroyStubObject(MediaServerManager::PLAYER, AsObject());
+    return MSERR_OK;
+}
+
+int PlayerServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
-    switch (code) {
-        case PlayerListenerMsg::ON_ERROR: {
-            int32_t errorType = data.ReadInt32();
-            int32_t errorCode = data.ReadInt32();
-            OnError(static_cast<PlayerErrorType>(errorType), errorCode);
+    MEDIA_LOGI("Stub: OnRemoteRequest of code: %{public}d is received", code);
+
+    auto itFunc = playerFuncs_.find(code);
+    if (itFunc != playerFuncs_.end()) {
+        auto memberFunc = itFunc->second;
+        if (memberFunc != nullptr) {
+            int32_t ret = (this->*memberFunc)(data, reply);
+            if (ret != MSERR_OK) {
+                MEDIA_LOGE("calling memberFunc is failed.");
+            }
             return MSERR_OK;
         }
-        case PlayerListenerMsg::ON_INFO: {
-            int32_t type = data.ReadInt32();
-            int32_t extra = data.ReadInt32();
-            Format format;
-            MEDIA_LOGD("0x%{public}06" PRIXPTR " listen stub on info type: %{public}d extra %{public}d",
-                       FAKE_POINTER(this), type, extra);
-            OnInfo(static_cast<PlayerOnInfoType>(type), extra, format);
-            return MSERR_OK;
-        }
-        default: {
-            MEDIA_LOGE("default case, need check PlayerListenerStub");
-            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
-        }
     }
+    MEDIA_LOGW("PlayerServiceStub: no member func supporting, applying default process");
+
+    return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-void PlayerListenerStub::OnError(PlayerErrorType errorType, int32_t errorCode)
+int32_t PlayerServiceStub::SetListenerObject(const sptr<IRemoteObject> &object)
 {
-    std::shared_ptr<PlayerCallback> cb = callback_.lock();
-    if (cb != nullptr) {
-        cb->OnError(errorType, errorCode);
-    }
+    CHECK_AND_RETURN_RET_LOG(object != nullptr, MSERR_NO_MEMORY, "set listener object is nullptr");
+
+    sptr<IStandardPlayerListener> listener = iface_cast<IStandardPlayerListener>(object);
+    CHECK_AND_RETURN_RET_LOG(listener != nullptr, MSERR_NO_MEMORY, "failed to convert IStandardPlayerListener");
+
+    std::shared_ptr<PlayerCallback> callback = std::make_shared<PlayerListenerCallback>(listener);
+    CHECK_AND_RETURN_RET_LOG(callback != nullptr, MSERR_NO_MEMORY, "failed to new PlayerListenerCallback");
+
+    playerCallback_ = callback;
+    return MSERR_OK;
 }
 
-void PlayerListenerStub::OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
+int32_t PlayerServiceStub::SetSource(const std::string &uri)
 {
-    std::shared_ptr<PlayerCallback> cb = callback_.lock();
-    CHECK_AND_RETURN(cb != nullptr);
-    switch (type) {
-        case INFO_TYPE_SEEKDONE:
-            cb->OnInfo(INFO_TYPE_SEEKDONE, extra, infoBody);
-            break;
-        case INFO_TYPE_EOS:
-            cb->OnInfo(INFO_TYPE_EOS, extra, infoBody);
-            break;
-        case INFO_TYPE_STATE_CHANGE:
-            cb->OnInfo(INFO_TYPE_STATE_CHANGE, extra, infoBody);
-            break;
-        case INFO_TYPE_POSITION_UPDATE:
-            cb->OnInfo(INFO_TYPE_POSITION_UPDATE, extra, infoBody);
-            break;
-        case INFO_TYPE_MESSAGE:
-            cb->OnInfo(INFO_TYPE_MESSAGE, extra, infoBody);
-            break;
-        case INFO_TYPE_VOLUME_CHANGE:
-            cb->OnInfo(INFO_TYPE_VOLUME_CHANGE, extra, infoBody);
-            break;
-        case INFO_TYPE_EXTRA_FORMAT:
-            cb->OnInfo(INFO_TYPE_EXTRA_FORMAT, extra, infoBody);
-            break;
-        default:
-            MEDIA_LOGE("default case, need check PlayerListenerStub");
-            break;
-    }
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->SetSource(uri);
 }
 
-void PlayerListenerStub::SetPlayerCallback(const std::weak_ptr<PlayerCallback> &callback)
+int32_t PlayerServiceStub::SetSource(const sptr<IRemoteObject> &object)
 {
-    callback_ = callback;
+    CHECK_AND_RETURN_RET_LOG(object != nullptr, MSERR_NO_MEMORY, "set mediadatasrc object is nullptr");
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+
+    sptr<IStandardMediaDataSource> proxy = iface_cast<IStandardMediaDataSource>(object);
+    CHECK_AND_RETURN_RET_LOG(proxy != nullptr, MSERR_NO_MEMORY, "failed to convert MeidaDataSourceProxy");
+
+    std::shared_ptr<IMediaDataSource> mediaDataSrc = std::make_shared<MediaDataCallback>(proxy);
+    CHECK_AND_RETURN_RET_LOG(mediaDataSrc != nullptr, MSERR_NO_MEMORY, "failed to new PlayerListenerCallback");
+
+    return playerServer_->SetSource(mediaDataSrc);
+}
+
+int32_t PlayerServiceStub::Play()
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->Play();
+}
+
+int32_t PlayerServiceStub::Prepare()
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->Prepare();
+}
+
+int32_t PlayerServiceStub::PrepareAsync()
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->PrepareAsync();
+}
+
+int32_t PlayerServiceStub::Pause()
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->Pause();
+}
+
+int32_t PlayerServiceStub::Stop()
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->Stop();
+}
+
+int32_t PlayerServiceStub::Reset()
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->Reset();
+}
+
+int32_t PlayerServiceStub::Release()
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->Release();
+}
+
+int32_t PlayerServiceStub::SetVolume(float leftVolume, float rightVolume)
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->SetVolume(leftVolume, rightVolume);
+}
+
+int32_t PlayerServiceStub::Seek(int32_t mSeconds, PlayerSeekMode mode)
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->Seek(mSeconds, mode);
+}
+
+int32_t PlayerServiceStub::GetCurrentTime(int32_t &currentTime)
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->GetCurrentTime(currentTime);
+}
+
+int32_t PlayerServiceStub::GetDuration(int32_t &duration)
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->GetDuration(duration);
+}
+
+int32_t PlayerServiceStub::SetPlaybackSpeed(PlaybackRateMode mode)
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->SetPlaybackSpeed(mode);
+}
+
+int32_t PlayerServiceStub::GetPlaybackSpeed(PlaybackRateMode &mode)
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->GetPlaybackSpeed(mode);
+}
+
+int32_t PlayerServiceStub::SetVideoSurface(sptr<Surface> surface)
+{
+    MEDIA_LOGD("SetVideoSurface");
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->SetVideoSurface(surface);
+}
+
+bool PlayerServiceStub::IsPlaying()
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, false, "player server is nullptr");
+    return playerServer_->IsPlaying();
+}
+
+bool PlayerServiceStub::IsLooping()
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, false, "player server is nullptr");
+    return playerServer_->IsLooping();
+}
+
+int32_t PlayerServiceStub::SetLooping(bool loop)
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->SetLooping(loop);
+}
+
+int32_t PlayerServiceStub::SetPlayerCallback()
+{
+    MEDIA_LOGD("SetPlayerCallback");
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->SetPlayerCallback(playerCallback_);
+}
+
+int32_t PlayerServiceStub::SetListenerObject(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> object = data.ReadRemoteObject();
+    reply.WriteInt32(SetListenerObject(object));
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::SetSource(MessageParcel &data, MessageParcel &reply)
+{
+    std::string uri = data.ReadString();
+    reply.WriteInt32(SetSource(uri));
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::SetMediaDataSource(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> object = data.ReadRemoteObject();
+    reply.WriteInt32(SetSource(object));
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::Play(MessageParcel &data, MessageParcel &reply)
+{
+    reply.WriteInt32(Play());
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::Prepare(MessageParcel &data, MessageParcel &reply)
+{
+    reply.WriteInt32(Prepare());
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::PrepareAsync(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data;
+    reply.WriteInt32(PrepareAsync());
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::Pause(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data;
+    reply.WriteInt32(Pause());
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::Stop(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data;
+    reply.WriteInt32(Stop());
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::Reset(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data;
+    reply.WriteInt32(Reset());
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::Release(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data;
+    reply.WriteInt32(Release());
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::SetVolume(MessageParcel &data, MessageParcel &reply)
+{
+    float leftVolume = data.ReadFloat();
+    float rightVolume = data.ReadFloat();
+    reply.WriteInt32(SetVolume(leftVolume, rightVolume));
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::Seek(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t mSeconds = data.ReadInt32();
+    int32_t mode = data.ReadInt32();
+    reply.WriteInt32(Seek(mSeconds, static_cast<PlayerSeekMode>(mode)));
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::GetCurrentTime(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data;
+    int32_t currentTime = 0;
+    int32_t ret = GetCurrentTime(currentTime);
+    reply.WriteInt32(currentTime);
+    reply.WriteInt32(ret);
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::GetDuration(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data;
+    int32_t duration = 0;
+    int32_t ret = GetDuration(duration);
+    reply.WriteInt32(duration);
+    reply.WriteInt32(ret);
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::SetPlaybackSpeed(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t mode = data.ReadInt32();
+    reply.WriteInt32(SetPlaybackSpeed(static_cast<PlaybackRateMode>(mode)));
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::GetPlaybackSpeed(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data;
+    PlaybackRateMode mode = SPEED_FORWARD_1_00_X;
+    int32_t ret = GetPlaybackSpeed(mode);
+    reply.WriteInt32(mode);
+    reply.WriteInt32(ret);
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::SetVideoSurface(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> object = data.ReadRemoteObject();
+    CHECK_AND_RETURN_RET_LOG(object != nullptr, MSERR_NO_MEMORY, "object is nullptr");
+
+    sptr<IBufferProducer> producer = iface_cast<IBufferProducer>(object);
+    CHECK_AND_RETURN_RET_LOG(producer != nullptr, MSERR_NO_MEMORY, "failed to convert object to producer");
+
+    sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
+    CHECK_AND_RETURN_RET_LOG(surface != nullptr, MSERR_NO_MEMORY, "failed to create surface");
+
+    std::string format = data.ReadString();
+    MEDIA_LOGI("surfaceFormat is %{public}s!", format.c_str());
+    const std::string surfaceFormat = "SURFACE_FORMAT";
+    (void)surface->SetUserData(surfaceFormat, format);
+    reply.WriteInt32(SetVideoSurface(surface));
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::IsPlaying(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data;
+    reply.WriteBool(IsPlaying());
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::IsLooping(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data;
+    reply.WriteBool(IsLooping());
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::SetLooping(MessageParcel &data, MessageParcel &reply)
+{
+    bool loop = data.ReadBool();
+    reply.WriteInt32(SetLooping(loop));
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::DestroyStub(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data;
+    reply.WriteInt32(DestroyStub());
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::SetPlayerCallback(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data;
+    reply.WriteInt32(SetPlayerCallback());
+    return MSERR_OK;
 }
 } // namespace Media
 } // namespace OHOS
