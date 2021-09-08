@@ -157,7 +157,7 @@ static void gst_hdi_set_format(const Param *param, GstHDIFormat *format)
 }
 
 static void gst_hdi_change_params_to_format(const Param *param,
-        GstHDIFormat *format, const gint max_num)
+    GstHDIFormat *format, const gint max_num)
 {
     g_return_if_fail(param != NULL);
     g_return_if_fail(format != NULL);
@@ -618,7 +618,6 @@ void gst_hdi_class_data_init(GstHDIClassData *class_data)
         class_data->support_video_format =
             g_list_append(class_data->support_video_format, &format_array->element[index]);
     }
-
 }
 
 void gst_hdi_class_pad_caps_init(const GstHDIClassData *class_data, GstElementClass *element_class)

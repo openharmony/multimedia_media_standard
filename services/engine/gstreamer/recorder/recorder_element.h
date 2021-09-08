@@ -283,7 +283,7 @@ class RecorderElementRegister {
 public:
     RecorderElementRegister(const std::string &key)
     {
-        (void) RecorderElementFactory::GetInstance().RegisterElement(
+        (void)RecorderElementFactory::GetInstance().RegisterElement(
             key, [](const RecorderElement::CreateParam &param) {
                 return std::make_shared<std::decay_t<T>>(param);
             }

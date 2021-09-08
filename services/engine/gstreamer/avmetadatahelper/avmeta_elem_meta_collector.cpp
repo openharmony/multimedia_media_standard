@@ -163,7 +163,7 @@ GstPadProbeReturn AVMetaElemMetaCollector::ProbeCallback(GstPad *pad, GstPadProb
 
     auto collector = reinterpret_cast<AVMetaElemMetaCollector *>(usrdata);
     if (static_cast<unsigned int>(info->type) & GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM) {
-        GstEvent *event = gst_pad_probe_info_get_event (info);
+        GstEvent *event = gst_pad_probe_info_get_event(info);
         CHECK_AND_RETURN_RET_LOG(event != nullptr, GST_PAD_PROBE_OK, "event is null");
         collector->OnEventProbe(*pad, *event);
     }

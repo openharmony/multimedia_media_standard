@@ -227,7 +227,7 @@ void GstAppsrcWarp::OnError(int32_t errorCode)
     }
 }
 
-void GstAppsrcWarp::PushData(void *buffer)
+void GstAppsrcWarp::PushData(const GstBuffer *buffer)
 {
     int32_t ret = GST_FLOW_OK;
     if (appSrc_ != nullptr) {

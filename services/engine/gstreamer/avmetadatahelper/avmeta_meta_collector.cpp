@@ -39,10 +39,10 @@ struct GstElemMetaMatchDesc {
 };
 
 static const std::unordered_map<GstElemType, GstElemMetaMatchDesc> GST_ELEM_META_MATCH_DESC = {
-    { GstElemType::TYPEFIND, { GST_ELEMENT_METADATA_LONGNAME, { "TypeFind" }}},
-    { GstElemType::DEMUXER, { GST_ELEMENT_METADATA_KLASS, { "Codec", "Demuxer" }}},
-    { GstElemType::PARSER, { GST_ELEMENT_METADATA_KLASS, { "Codec", "Parser" }}},
-    { GstElemType::DECODER, { GST_ELEMENT_METADATA_KLASS, { "Codec", "Decoder" }}},
+    { GstElemType::TYPEFIND, { GST_ELEMENT_METADATA_LONGNAME, { "TypeFind" } } },
+    { GstElemType::DEMUXER, { GST_ELEMENT_METADATA_KLASS, { "Codec", "Demuxer" } } },
+    { GstElemType::PARSER, { GST_ELEMENT_METADATA_KLASS, { "Codec", "Parser" } } },
+    { GstElemType::DECODER, { GST_ELEMENT_METADATA_KLASS, { "Codec", "Decoder" } } },
 };
 
 AVMetaMetaCollector::AVMetaMetaCollector()
@@ -268,7 +268,7 @@ void AVMetaMetaCollector::AddElemBlocker(GstElement &source, uint8_t type)
             auto ret = blockers_.emplace(type, BufferBlockerVec {});          \
             typeBlockersIter = ret.first;                                     \
         }                                                                     \
-        blocker->Init();                                                      \
+        (blocker)->Init();                                                      \
         (void)typeBlockersIter->second.emplace_back(std::move(blocker));      \
     } while (0)
 

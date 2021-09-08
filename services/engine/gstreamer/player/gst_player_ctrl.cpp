@@ -20,11 +20,10 @@
 #include "audio_errors.h"
 
 namespace {
+    constexpr float INVALID_VOLUME = -1.0;
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "GstPlayerCtrl"};
     constexpr int MILLI = 1000;
     constexpr int MICRO = MILLI * 1000;
-    constexpr float MAX_VOLUME = 1.0;
-    constexpr float MIN_VOLUME = 0;
     using namespace OHOS::Media;
     using StreamToServiceErrFunc = void (*)(const gchar *name, int32_t &errorCode);
     static const std::unordered_map<int32_t, StreamToServiceErrFunc> STREAM_TO_SERVICE_ERR_FUNC_TABLE = {
@@ -52,7 +51,8 @@ namespace OHOS {
 namespace Media {
 GstPlayerCtrl::GstPlayerCtrl(GstPlayer *gstPlayer)
     : gstPlayer_(gstPlayer),
-      taskQue_("GstCtrlTask")
+      taskQue_("GstCtrlTask"),
+      volume_(INVALID_VOLUME)
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
     (void)taskQue_.Start();
@@ -314,6 +314,7 @@ void GstPlayerCtrl::SetLoop(bool loop)
 
 void GstPlayerCtrl::SetVolume(const float &leftVolume, const float &rightVolume)
 {
+    (void)rightVolume;
     std::unique_lock<std::mutex> lock(mutex_);
     volume_ = leftVolume;
     if (audioSink_ != nullptr) {
@@ -404,7 +405,9 @@ void GstPlayerCtrl::GetAudioSink()
 
     signalIdVolume_ = g_signal_connect(audioSink_, "notify::volume", G_CALLBACK(OnVolumeChangeCb), this);
 
-    if (volume_ >= MIN_VOLUME && volume_ <= MAX_VOLUME) {
+    constexpr float maxVolume = 1.0;
+    constexpr float minVolume = 0;
+    if (volume_ >= minVolume && volume_ <= maxVolume) {
         MEDIA_LOGI("SetVolume(%{public}f) to audio sink", volume_);
         g_object_set(audioSink_, "volume", volume_, nullptr);
         volume_ = INVALID_VOLUME;
@@ -555,7 +558,7 @@ void GstPlayerCtrl::MessageErrorProcess(const char *name, const GError *err,
         errorType = PLAYER_ERROR_UNKNOWN;
         errorCode = MSERR_UNKNOWN;
     }
-    g_free (errMsg);
+    g_free(errMsg);
 }
 
 void GstPlayerCtrl::ErrorProcess(const GstMessage *msg, PlayerErrorType &errorType, int32_t &errorCode)
@@ -567,7 +570,7 @@ void GstPlayerCtrl::ErrorProcess(const GstMessage *msg, PlayerErrorType &errorTy
     CHECK_AND_RETURN_LOG(message != nullptr, "msg copy failed");
     gst_message_parse_error(message, &err, &debug);
     CHECK_AND_RETURN_LOG(msg->src != nullptr, "msg copy failed");
-    gchar *name = gst_object_get_path_string (msg->src);
+    gchar *name = gst_object_get_path_string(msg->src);
     MessageErrorProcess(name, err, errorType, errorCode);
     g_clear_error(&err);
     g_free(debug);

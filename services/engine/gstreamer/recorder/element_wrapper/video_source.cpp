@@ -174,7 +174,7 @@ int32_t VideoSource::ConfigureCaptureRate(const RecorderParam &recParam)
 
 int32_t VideoSource::CheckConfigReady()
 {
-    std::set<int32_t> expectedParam = { RecorderPublicParamType::VID_ENC_FMT, RecorderPublicParamType::VID_RECTANGLE};
+    std::set<int32_t> expectedParam = { RecorderPublicParamType::VID_ENC_FMT, RecorderPublicParamType::VID_RECTANGLE };
 
     if (!CheckAllParamsConfiged(expectedParam)) {
         MEDIA_LOGE("videosource required parameter not configured completely, failed !");

@@ -168,7 +168,7 @@ static void SetGstLogLevelFromSysPara()
     }
     MEDIA_LOGD("sys.media.log.level=%{public}s", levelPara.c_str());
 
-    static std::map<std::string, char> logTagLevelMap = {{g_gstDftTag, 'I'}, };
+    static std::map<std::string, char> logTagLevelMap = { { g_gstDftTag, 'I' } };
     std::vector<std::string> tagLevelVec;
     SplitStr(levelPara, ",", tagLevelVec, false, true);
     for (auto &tagLevel : tagLevelVec) {
@@ -205,7 +205,7 @@ static void SetGstLogLevelFromSysPara()
     }
 }
 
-static gchar*** CreateGstInitArgv()
+static gchar ***CreateGstInitArgv()
 {
     gchar ***argv = nullptr;
     argv = static_cast<gchar ***>(new (std::nothrow) (gchar **));

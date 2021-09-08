@@ -219,7 +219,7 @@ void PlayerEngineGstImpl::GstPlayerDeInit()
     }
 
     if (playerThread_ != nullptr && playerThread_->joinable()) {
-       playerThread_->join();
+        playerThread_->join();
     }
 
     playerCtrl_ = nullptr;
