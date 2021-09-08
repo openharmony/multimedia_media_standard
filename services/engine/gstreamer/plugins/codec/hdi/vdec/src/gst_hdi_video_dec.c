@@ -690,7 +690,7 @@ static gboolean gst_hdi_video_dec_fill_surface_buffer(const GstHDIVideoDec *self
     guint8 *src = info.data;
     if (dts == NULL || src == NULL || memcpy_s(dts, GetSurfaceBufferSize(frame->output_buffer), src, size) != EOK) {
         gst_buffer_unmap(outbuf, &info);
-        GST_ERROR_OBJECT(self, "memcpy failed");
+        GST_ERROR_OBJECT(self, "memcpy_s failed");
         return FALSE;
     }
     gst_buffer_unmap(outbuf, &info);

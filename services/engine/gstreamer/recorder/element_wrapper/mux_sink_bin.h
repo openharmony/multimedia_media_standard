@@ -44,7 +44,7 @@ private:
     int32_t SetOutFilePath();
     int32_t CreateMuxerElement(const std::string &name);
     static GstPadProbeReturn MuxerSinkPadProbeWrapper(GstPad *pad, GstPadProbeInfo *info, MuxSinkBin *muxSinkBin);
-    GstPadProbeReturn MuxerSinkPadProbe(const GstPad &pad, GstPadProbeInfo &info);
+    GstPadProbeReturn MuxerSinkPadProbe(GstPad &pad, GstPadProbeInfo &info) const;
 
     GstElement *gstMuxer_ = nullptr;
     GstElement *gstSink_ = nullptr;

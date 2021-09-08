@@ -132,7 +132,7 @@ void EngineFactoryRepo::LoadLib(const std::string &libPath)
 std::shared_ptr<IEngineFactory> EngineFactoryRepo::GetEngineFactory(
     IEngineFactory::Scene scene, const std::string &uri)
 {
-    CHECK_AND_RETURN_RET_LOG(Init() == MSERR_OK, nullptr, "Init EngineFactoryRepo failed !");
+    (void)Init();
 
     int32_t maxScore = std::numeric_limits<int32_t>::min();
     std::shared_ptr<IEngineFactory> target = nullptr;

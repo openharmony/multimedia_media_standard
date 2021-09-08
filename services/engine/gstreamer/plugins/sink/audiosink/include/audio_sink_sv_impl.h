@@ -49,7 +49,6 @@ public:
 
 private:
     std::unique_ptr<OHOS::AudioStandard::AudioRenderer> audioRenderer_;
-    OHOS::AudioStandard::AudioSystemManager *audioManager_;
 };
 }  // namespace Media
 }  // namespace OHOS

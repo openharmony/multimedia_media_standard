@@ -15,7 +15,7 @@
 
 #include "player_listener_proxy.h"
 #include "media_log.h"
-#include "errors.h"
+#include "media_errors.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayerListenerProxy"};
@@ -42,7 +42,7 @@ void PlayerListenerProxy::OnError(PlayerErrorType errorType, int32_t errorCode)
     data.WriteInt32(errorType);
     data.WriteInt32(errorCode);
     int error = Remote()->SendRequest(PlayerListenerMsg::ON_ERROR, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("on error failed, error: %{public}d", error);
     }
 }
@@ -55,28 +55,18 @@ void PlayerListenerProxy::OnInfo(PlayerOnInfoType type, int32_t extra, const For
     data.WriteInt32(type);
     data.WriteInt32(extra);
     int error = Remote()->SendRequest(PlayerListenerMsg::ON_INFO, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("on info failed, error: %{public}d", error);
     }
 }
 
-PlayerListenerCallback::PlayerListenerCallback(const sptr<IStandardPlayerListener> &listener,
-                                               const sptr<MediaDeathRecipient> &deathRecipient)
-    : listener_(listener), deathRecipient_(deathRecipient)
+PlayerListenerCallback::PlayerListenerCallback(const sptr<IStandardPlayerListener> &listener) : listener_(listener)
 {
-    if (listener_ != nullptr && listener_->AsObject() != nullptr && deathRecipient_ != nullptr) {
-        (void)listener_->AsObject()->AddDeathRecipient(deathRecipient_);
-    }
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
 }
 
 PlayerListenerCallback::~PlayerListenerCallback()
 {
-    if (listener_ != nullptr && listener_->AsObject() != nullptr && deathRecipient_ != nullptr) {
-        (void)listener_->AsObject()->RemoveDeathRecipient(deathRecipient_);
-        deathRecipient_ = nullptr;
-        listener_ = nullptr;
-    }
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destory", FAKE_POINTER(this));
 }
 

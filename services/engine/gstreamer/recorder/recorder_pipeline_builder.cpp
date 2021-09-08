@@ -14,7 +14,7 @@
  */
 
 #include "recorder_pipeline_builder.h"
-#include "errors.h"
+#include "media_errors.h"
 #include "media_log.h"
 #include "recorder_private_param.h"
 
@@ -61,7 +61,7 @@ std::shared_ptr<RecorderElement> RecorderPipelineBuilder::CreateElement(
 
     pipelineDesc_->allElems.push_back(element);
     if (isSource) {
-        pipelineDesc_->srcElems.emplace(desc.handle_, element);
+        (void)pipelineDesc_->srcElems.emplace(desc.handle_, element);
     }
 
     return element;
@@ -70,24 +70,24 @@ std::shared_ptr<RecorderElement> RecorderPipelineBuilder::CreateElement(
 int32_t RecorderPipelineBuilder::CreateMuxSink()
 {
     if (muxSink_ != nullptr) {
-        return ERR_OK;
+        return MSERR_OK;
     }
 
     RecorderSourceDesc desc {}; // default initialization, meaninglessly
     muxSink_ = CreateElement("MuxSinkBin", desc, false);
     if (muxSink_ == nullptr) {
         MEDIA_LOGE("Unable to create element for MuxSinkBin !");
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
     pipelineDesc_->muxerSinkBin = muxSink_;
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderPipelineBuilder::SetVideoSource(const RecorderSourceDesc &desc)
 {
     int32_t ret = CreateMuxSink();
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
     std::shared_ptr<RecorderElement> element;
     // currently only the ES Source is supported.
@@ -97,18 +97,18 @@ int32_t RecorderPipelineBuilder::SetVideoSource(const RecorderSourceDesc &desc)
         MEDIA_LOGE("Video source type %{public}d currently unsupported", desc.type_);
     }
 
-    CHECK_AND_RETURN_RET(element != nullptr, ERR_INVALID_VALUE);
+    CHECK_AND_RETURN_RET(element != nullptr, MSERR_INVALID_VAL);
 
     // for the second video source, the sinkpad name should be video_aux_%u
     ADD_LINK_DESC(element, muxSink_, "src", "video", true, false);
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderPipelineBuilder::SetAudioSource(const RecorderSourceDesc &desc)
 {
     int32_t ret = CreateMuxSink();
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
     std::shared_ptr<RecorderElement> audioSrcElem;
     // currently only the mic is supported.
@@ -118,19 +118,19 @@ int32_t RecorderPipelineBuilder::SetAudioSource(const RecorderSourceDesc &desc)
         MEDIA_LOGE("Audio source type %{public}d currently unsupported", desc.type_);
     }
 
-    CHECK_AND_RETURN_RET(audioSrcElem != nullptr, ERR_INVALID_VALUE);
+    CHECK_AND_RETURN_RET(audioSrcElem != nullptr, MSERR_INVALID_VAL);
 
     std::shared_ptr<RecorderElement> audioConvert = CreateElement("AudioConverter", desc, false);
-    CHECK_AND_RETURN_RET(audioConvert != nullptr, ERR_INVALID_VALUE);
+    CHECK_AND_RETURN_RET(audioConvert != nullptr, MSERR_INVALID_VAL);
 
     std::shared_ptr<RecorderElement> audioEncElem = CreateElement("AudioEncoder", desc, false);
-    CHECK_AND_RETURN_RET(audioEncElem != nullptr, ERR_INVALID_VALUE);
+    CHECK_AND_RETURN_RET(audioEncElem != nullptr, MSERR_INVALID_VAL);
 
     ADD_LINK_DESC(audioSrcElem, audioConvert, "src", "sink", true, true);
     ADD_LINK_DESC(audioConvert, audioEncElem, "src", "sink", true, true);
     ADD_LINK_DESC(audioEncElem, muxSink_, "src", "audio_%u", true, false);
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderPipelineBuilder::SetSource(const RecorderSourceDesc &desc)
@@ -143,39 +143,40 @@ int32_t RecorderPipelineBuilder::SetSource(const RecorderSourceDesc &desc)
 
     // should never go to here.
     MEDIA_LOGE("Invalid source description !");
-    return ERR_INVALID_VALUE;
+    return MSERR_INVALID_VAL;
 }
 
 int32_t RecorderPipelineBuilder::SetOutputFormat(OutputFormatType formatType)
 {
     if (muxSink_ == nullptr) {
         MEDIA_LOGE("No source set, set the output format invalid !");
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
-    muxSink_->Configure(OutputFormat(formatType));
+    int32_t ret = muxSink_->Configure(OutputFormat(formatType));
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
     outputFormatConfiged_ = true;
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderPipelineBuilder::Configure(int32_t sourceId, const RecorderParam &param)
 {
     if (!outputFormatConfiged_) {
         MEDIA_LOGE("Output format not set, configure the pipeline is invalid !");
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
     // distribute parameters to elements
-    int ret = ERR_OK;
+    int32_t ret = MSERR_OK;
     for (auto &elem : pipelineDesc_->allElems) {
         if (elem->GetSourceId() == sourceId) {
             ret = elem->Configure(param);
-            CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+            CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
         }
     }
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 std::shared_ptr<RecorderPipeline> RecorderPipelineBuilder::Build()
@@ -205,14 +206,14 @@ std::shared_ptr<RecorderPipeline> RecorderPipelineBuilder::Build()
      *    audio converter element into audio stream.
      */
 
-    int ret;
+    int32_t ret;
     for (auto &elem : pipelineDesc_->allElems) {
         ret = elem->CheckConfigReady();  // Check whether the parameter fully configured
-        CHECK_AND_RETURN_RET(ret == ERR_OK, nullptr);
+        CHECK_AND_RETURN_RET(ret == MSERR_OK, nullptr);
     }
 
     ret = ExecuteLink();
-    CHECK_AND_RETURN_RET(ret == ERR_OK, nullptr);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, nullptr);
 
     return pipeline_;
 }
@@ -221,15 +222,15 @@ int32_t RecorderPipelineBuilder::ExecuteLink()
 {
     auto pipeline = std::make_shared<RecorderPipeline>(pipelineDesc_);
     int32_t ret = pipeline->Init();
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
     auto linkHelper = std::make_unique<RecorderPipelineLinkHelper>(pipeline, pipelineDesc_);
     ret = linkHelper->ExecuteLink();
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
     pipeline_ = pipeline;
     linkHelper_ = std::move(linkHelper);
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 void RecorderPipelineBuilder::Reset()
@@ -237,7 +238,7 @@ void RecorderPipelineBuilder::Reset()
     linkHelper_ = nullptr;
     muxSink_ = nullptr;
     if (pipeline_ != nullptr) {
-        pipeline_->Reset();
+        (void)pipeline_->Reset();
     }
     pipeline_ = nullptr;
     pipelineDesc_ = nullptr;

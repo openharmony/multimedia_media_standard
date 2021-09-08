@@ -63,7 +63,6 @@ public:
 private:
     int32_t CreateListenerObject();
 
-private:
     sptr<IStandardRecorderService> recorderProxy_ = nullptr;
     sptr<RecorderListenerStub> listenerStub_ = nullptr;
     std::shared_ptr<RecorderCallback> callback_ = nullptr;

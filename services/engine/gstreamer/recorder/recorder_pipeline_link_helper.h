@@ -25,8 +25,8 @@ namespace OHOS {
 namespace Media {
 class RecorderPipelineLinkHelper {
 public:
-    RecorderPipelineLinkHelper(const std::shared_ptr<RecorderPipeline>& pipeline,
-                               const std::shared_ptr<RecorderPipelineDesc>& desc);
+    RecorderPipelineLinkHelper(const std::shared_ptr<RecorderPipeline> &pipeline,
+                               const std::shared_ptr<RecorderPipelineDesc> &desc);
     ~RecorderPipelineLinkHelper();
 
     int32_t ExecuteLink();

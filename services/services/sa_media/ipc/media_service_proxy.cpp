@@ -15,6 +15,7 @@
 
 #include "media_service_proxy.h"
 #include "media_log.h"
+#include "media_errors.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaServiceProxy"};
@@ -40,12 +41,27 @@ sptr<IRemoteObject> MediaServiceProxy::GetSubSystemAbility(IStandardMediaService
     MessageOption option;
     data.WriteInt32(static_cast<int32_t>(subSystemId));
     int error = Remote()->SendRequest(MediaServiceMsg::GET_SUBSYSTEM, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Create player proxy failed, error: %{public}d", error);
         return nullptr;
     }
 
     return reply.ReadRemoteObject();
+}
+
+int32_t MediaServiceProxy::SetListenerObject(const sptr<IRemoteObject> &object)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    (void)data.WriteRemoteObject(object);
+    int error = Remote()->SendRequest(SET_LISTENER_OBJ, data, reply, option);
+    if (error != MSERR_OK) {
+        MEDIA_LOGE("Set listener obj failed, error: %{public}d", error);
+        return error;
+    }
+
+    return reply.ReadInt32();
 }
 } // namespace Media
 } // namespace OHOS

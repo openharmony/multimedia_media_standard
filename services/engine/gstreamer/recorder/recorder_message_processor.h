@@ -39,7 +39,7 @@ public:
 private:
     static gboolean BusCallback(GstBus *bus, GstMessage *msg, gpointer data);
     void ProcessMessage(GstMessage &msg);
-    RecorderMsgProcResult ProcessExtendMessage(GstMessage &msg, RecorderMessage &prettyMsg);
+    RecorderMsgProcResult ProcessExtendMessage(GstMessage &msg, RecorderMessage &prettyMsg) const;
     RecorderMsgProcResult ProcessMessageFinal(GstMessage &msg, RecorderMessage &prettyMsg);
     void NotifyInternalError(RecorderMessage &msg);
     void ReportMsgProcResult(const RecorderMessage &msg);
@@ -50,7 +50,7 @@ private:
     GstBus *gstBus_ = nullptr;
     GMainLoop *mainLoop_ = nullptr;
     TaskQueue mainLoopGuard_;
-    int32_t busWatchId_ = 0;
+    guint busWatchId_ = 0;
 
     MessageResCb msgResultCb_;
     std::vector<std::shared_ptr<RecorderMsgHandler>> msgHandlers_;

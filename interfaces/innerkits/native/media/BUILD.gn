@@ -13,34 +13,42 @@
 
 import("//build/ohos.gni")
 
+MEIDA_ROOT_DIR = "//foundation/multimedia/media_standard"
+
 config("media_client_local_config") {
   include_dirs = [
-    "//foundation/multimedia/media_standard/services/services/sa_media/client",
-    "//foundation/multimedia/media_standard/services/services/player/server",
-    "//foundation/multimedia/media_standard/services/services/recorder/server",
-    "//foundation/multimedia/media_standard/services/services/factory",
-    "//foundation/multimedia/media_standard/services/engine/include",
+    "$MEIDA_ROOT_DIR/services/services/sa_media/client",
+    "$MEIDA_ROOT_DIR/services/services/player/server",
+    "$MEIDA_ROOT_DIR/services/services/recorder/server",
+    "$MEIDA_ROOT_DIR/services/services/avmetadatahelper/server",
+    "$MEIDA_ROOT_DIR/services/services/factory",
+    "$MEIDA_ROOT_DIR/services/services/engine_intf",
   ]
 }
 
 config("media_client_ipc_config") {
   include_dirs = [
-    "//foundation/multimedia/media_standard/services/services/sa_media/client",
-    "//foundation/multimedia/media_standard/services/services/sa_media/ipc",
-    "//foundation/multimedia/media_standard/services/services/player/client",
-    "//foundation/multimedia/media_standard/services/services/player/ipc",
-    "//foundation/multimedia/media_standard/services/services/recorder/client",
-    "//foundation/multimedia/media_standard/services/services/recorder/ipc",
+    "$MEIDA_ROOT_DIR/services/services/sa_media/client",
+    "$MEIDA_ROOT_DIR/services/services/sa_media/ipc",
+    "$MEIDA_ROOT_DIR/services/services/player/client",
+    "$MEIDA_ROOT_DIR/services/services/player/ipc",
+    "$MEIDA_ROOT_DIR/services/services/media_data_source/ipc",
+    "$MEIDA_ROOT_DIR/services/services/recorder/client",
+    "$MEIDA_ROOT_DIR/services/services/recorder/ipc",
+    "$MEIDA_ROOT_DIR/services/services/avmetadatahelper/client",
+    "$MEIDA_ROOT_DIR/services/services/avmetadatahelper/ipc",
+    "$MEIDA_ROOT_DIR/services/services/common",
   ]
 }
 
 config("media_client_public_config") {
   include_dirs = [
-    "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/native/player",
-    "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/native/recorder",
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
-    "//foundation/multimedia/media_standard/services/include",
-    "//foundation/multimedia/media_standard/services/utils/include",
+    "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/player",
+    "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/recorder",
+    "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/avmetadatahelper",
+    "$MEIDA_ROOT_DIR/interfaces/innerkits/native/media/include",
+    "$MEIDA_ROOT_DIR/services/include",
+    "$MEIDA_ROOT_DIR/services/utils/include",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
     "//utils/system/safwk/native/include",
     "//utils/native/base/include"
@@ -71,19 +79,24 @@ config("media_client_public_config") {
 ohos_shared_library("media_client") {
     install_enable = true
     sources = [
-        "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/native/player/player_impl.cpp",
-        "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/native/recorder/recorder_impl.cpp",
-        "//foundation/multimedia/media_standard/services/services/sa_media/client/media_client.cpp",
-        "//foundation/multimedia/media_standard/services/services/sa_media/ipc/media_service_proxy.cpp",
-        "//foundation/multimedia/media_standard/services/services/player/client/player_client.cpp",
-        "//foundation/multimedia/media_standard/services/services/player/ipc/player_service_proxy.cpp",
-        "//foundation/multimedia/media_standard/services/services/player/ipc/player_listener_stub.cpp",
-        "//foundation/multimedia/media_standard/services/services/recorder/client/recorder_client.cpp",
-        "//foundation/multimedia/media_standard/services/services/recorder/ipc/recorder_service_proxy.cpp",
-        "//foundation/multimedia/media_standard/services/services/recorder/ipc/recorder_listener_stub.cpp",
-        "//foundation/multimedia/media_standard/services/services/common/avsharedmemory_ipc.cpp",
-        "//foundation/multimedia/media_standard/services/utils/avsharedmemorybase.cpp",
-        "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/native/common/media_errors.cpp",
+        "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/player/player_impl.cpp",
+        "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/recorder/recorder_impl.cpp",
+        "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/avmetadatahelper/avmetadatahelper_impl.cpp",
+        "$MEIDA_ROOT_DIR/services/services/sa_media/client/media_client.cpp",
+        "$MEIDA_ROOT_DIR/services/services/sa_media/ipc/media_service_proxy.cpp",
+        "$MEIDA_ROOT_DIR/services/services/sa_media/ipc/media_listener_stub.cpp",
+        "$MEIDA_ROOT_DIR/services/services/player/client/player_client.cpp",
+        "$MEIDA_ROOT_DIR/services/services/player/ipc/player_service_proxy.cpp",
+        "$MEIDA_ROOT_DIR/services/services/player/ipc/player_listener_stub.cpp",
+        "$MEIDA_ROOT_DIR/services/services/media_data_source/ipc/media_data_source_stub.cpp",
+        "$MEIDA_ROOT_DIR/services/services/recorder/client/recorder_client.cpp",
+        "$MEIDA_ROOT_DIR/services/services/recorder/ipc/recorder_service_proxy.cpp",
+        "$MEIDA_ROOT_DIR/services/services/recorder/ipc/recorder_listener_stub.cpp",
+        "$MEIDA_ROOT_DIR/services/services/avmetadatahelper/client/avmetadatahelper_client.cpp",
+        "$MEIDA_ROOT_DIR/services/services/avmetadatahelper/ipc/avmetadatahelper_service_proxy.cpp",
+        "$MEIDA_ROOT_DIR/services/services/common/avsharedmemory_ipc.cpp",
+        "$MEIDA_ROOT_DIR/services/utils/avsharedmemorybase.cpp",
+        "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/common/media_errors.cpp",
     ]
 
     public_configs = [
@@ -111,13 +124,15 @@ ohos_shared_library("media_client") {
 ohos_shared_library("media_local") {
     install_enable = true
     sources = [
-        "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/native/player/player_impl.cpp",
-        "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/native/recorder/recorder_impl.cpp",
-        "//foundation/multimedia/media_standard/services/services/sa_media/client/media_local.cpp",
-        "//foundation/multimedia/media_standard/services/services/player/server/player_server.cpp",
-        "//foundation/multimedia/media_standard/services/services/recorder/server/recorder_server.cpp",
-        "//foundation/multimedia/media_standard/services/services/factory/engine_factory_repo.cpp",
-        "//foundation/multimedia/media_standard/frameworks/innerkitsimpl/native/common/media_errors.cpp",
+        "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/player/player_impl.cpp",
+        "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/recorder/recorder_impl.cpp",
+        "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/avmetadatahelper/avmetadatahelper_impl.cpp",
+        "$MEIDA_ROOT_DIR/services/services/sa_media/client/media_local.cpp",
+        "$MEIDA_ROOT_DIR/services/services/player/server/player_server.cpp",
+        "$MEIDA_ROOT_DIR/services/services/recorder/server/recorder_server.cpp",
+        "$MEIDA_ROOT_DIR/services/services/avmetadatahelper/server/avmetadatahelper_server.cpp",
+        "$MEIDA_ROOT_DIR/services/services/factory/engine_factory_repo.cpp",
+        "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/common/media_errors.cpp",
     ]
 
     public_configs = [
@@ -131,7 +146,7 @@ ohos_shared_library("media_local") {
         "//utils/native/base:utils",
         "//utils/native/base:utilsecurec",
         "//foundation/graphic/standard/frameworks/surface:surface",
-        "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+        "$MEIDA_ROOT_DIR/services/utils:media_service_utils",
     ]
 
     external_deps = [

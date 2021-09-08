@@ -47,7 +47,6 @@ config("gst_audio_capture_src_config") {
     "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiocapturer/include",
     "//foundation/multimedia/audio_standard/services/include",
     "//foundation/multimedia/audio_standard/services/include/client",
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara/include",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/gstreamer/gstplugins_base",
@@ -71,7 +70,6 @@ ohos_shared_library("gst_audio_capture_src") {
 
   deps = [
     "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiocapturer:audio_capturer",
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",
