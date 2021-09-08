@@ -47,6 +47,7 @@ namespace {
 #define gst_audio_capture_src_parent_class parent_class
 G_DEFINE_TYPE(GstAudioCaptureSrc, gst_audio_capture_src, GST_TYPE_PUSH_SRC);
 
+static void gst_audio_capture_src_finalize(GObject *object);
 static void gst_audio_capture_src_set_property(GObject *object, guint prop_id,
     const GValue *value, GParamSpec *pspec);
 static void gst_audio_capture_src_get_property(GObject *object, guint prop_id,
@@ -76,6 +77,7 @@ static void gst_audio_capture_src_class_init(GstAudioCaptureSrcClass *klass)
     GstBaseSrcClass *gstbasesrc_class = reinterpret_cast<GstBaseSrcClass *>(klass);
     GstPushSrcClass *gstpushsrc_class = reinterpret_cast<GstPushSrcClass *>(klass);
 
+    gobject_class->finalize = gst_audio_capture_src_finalize;
     gobject_class->set_property = gst_audio_capture_src_set_property;
     gobject_class->get_property = gst_audio_capture_src_get_property;
 
@@ -123,7 +125,16 @@ static void gst_audio_capture_src_init(GstAudioCaptureSrc *src)
     src->sample_rate = 0;
     src->is_start = FALSE;
     src->need_caps_info = TRUE;
-    gst_base_src_set_blocksize(GST_BASE_SRC(src), -1);
+    gst_base_src_set_blocksize(GST_BASE_SRC(src), 0);
+}
+
+static void gst_audio_capture_src_finalize(GObject *object)
+{
+    GstAudioCaptureSrc *src = GST_AUDIO_CAPTURE_SRC(object);
+    if (src->src_caps != nullptr) {
+        gst_caps_unref(src->src_caps);
+        src->src_caps = nullptr;
+    }
 }
 
 static void gst_audio_capture_src_set_property(GObject *object, guint prop_id,
@@ -206,6 +217,9 @@ static gboolean process_caps_info(GstAudioCaptureSrc *src)
         }
     }
     g_return_val_if_fail(is_valid_params == TRUE, FALSE);
+    if (src->src_caps != nullptr) {
+        gst_caps_unref(src->src_caps);
+    }
     src->src_caps = gst_caps_new_simple("audio/x-raw",
                                         "rate", G_TYPE_INT, sample_rate,
                                         "channels", G_TYPE_INT, channels,

@@ -21,6 +21,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AudioCaptureAsImpl"};
+    constexpr uint32_t MAXIMUM_BUFFER_SIZE = 100000;
 }
 
 namespace OHOS {
@@ -49,7 +50,7 @@ int32_t AudioCaptureAsImpl::SetCaptureParameter(uint32_t bitrate, uint32_t chann
                                                                         AudioCapturer::GetSupportedSamplingRates();
     CHECK_AND_RETURN_RET(supportedSampleList.size() > 0, MSERR_UNKNOWN);
     bool isValidSampleRate = false;
-    for (auto iter = supportedSampleList.cbegin(); iter != supportedSampleList.end(); iter++) {
+    for (auto iter = supportedSampleList.cbegin(); iter != supportedSampleList.cend(); ++iter) {
         CHECK_AND_RETURN_RET(static_cast<int32_t>(*iter) > 0, MSERR_UNKNOWN);
         uint32_t supportedSampleRate = static_cast<uint32_t>(*iter);
         if (sampleRate <= supportedSampleRate) {
@@ -64,7 +65,7 @@ int32_t AudioCaptureAsImpl::SetCaptureParameter(uint32_t bitrate, uint32_t chann
                                                                      AudioCapturer::GetSupportedChannels();
     CHECK_AND_RETURN_RET(supportedChannelsList.size() > 0, MSERR_UNKNOWN);
     bool isValidChannels = false;
-    for (auto iter = supportedChannelsList.cbegin(); iter != supportedChannelsList.end(); iter++) {
+    for (auto iter = supportedChannelsList.cbegin(); iter != supportedChannelsList.cend(); ++iter) {
         CHECK_AND_RETURN_RET(static_cast<int32_t>(*iter) > 0, MSERR_UNKNOWN);
         uint32_t supportedChannels = static_cast<uint32_t>(*iter);
         if (channels == supportedChannels) {
@@ -82,6 +83,7 @@ int32_t AudioCaptureAsImpl::SetCaptureParameter(uint32_t bitrate, uint32_t chann
     CHECK_AND_RETURN_RET(audioCapturer_->SetParams(params) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
     CHECK_AND_RETURN_RET(audioCapturer_->GetBufferSize(bufferSize_) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
     MEDIA_LOGD("audio buffer size is: %{public}zu", bufferSize_);
+    CHECK_AND_RETURN_RET_LOG(bufferSize_ < MAXIMUM_BUFFER_SIZE, MSERR_UNKNOWN, "audio buffer size too long");
     return MSERR_OK;
 }
 
@@ -136,6 +138,7 @@ std::shared_ptr<AudioBuffer> AudioCaptureAsImpl::GetBuffer()
     CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, nullptr);
     std::shared_ptr<AudioBuffer> buffer = std::make_shared<AudioBuffer>();
     CHECK_AND_RETURN_RET(buffer != nullptr, nullptr);
+    CHECK_AND_RETURN_RET(bufferSize_ > 0, nullptr);
     buffer->gstBuffer = gst_buffer_new_allocate(nullptr, bufferSize_, nullptr);
     if (buffer->gstBuffer == nullptr) {
         return nullptr;

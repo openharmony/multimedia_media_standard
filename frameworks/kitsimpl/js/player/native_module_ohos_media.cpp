@@ -29,6 +29,7 @@ static napi_value Export(napi_env env, napi_value exports)
     MEDIA_LOGD("Export() is called");
     OHOS::Media::AudioRecorderNapi::Init(env, exports);
     OHOS::Media::AudioPlayerNapi::Init(env, exports);
+    OHOS::Media::MediaDataSourceNapi::Init(env, exports);
     return exports;
 }
 

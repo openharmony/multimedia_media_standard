@@ -26,6 +26,7 @@ public:
     virtual ~PlayerServiceProxy();
     int32_t SetListenerObject(const sptr<IRemoteObject> &object) override;
     int32_t SetSource(const std::string &uri) override;
+    int32_t SetSource(const sptr<IRemoteObject> &object) override;
     int32_t Play() override;
     int32_t Prepare() override;
     int32_t PrepareAsync() override;

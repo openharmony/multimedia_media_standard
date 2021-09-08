@@ -16,7 +16,10 @@
 #ifndef MEDIA_SERVICE_STUB_H
 #define MEDIA_SERVICE_STUB_H
 
+#include <map>
 #include "i_standard_media_service.h"
+#include "i_standard_media_listener.h"
+#include "media_death_recipient.h"
 
 namespace OHOS {
 namespace Media {
@@ -24,7 +27,24 @@ class MediaServiceStub : public IRemoteStub<IStandardMediaService> {
 public:
     MediaServiceStub();
     virtual ~MediaServiceStub();
+    using MediaStubFunc =
+        int32_t(MediaServiceStub::*)(MessageParcel &data, MessageParcel &reply);
+
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
+    int32_t SetListenerObject(const sptr<IRemoteObject> &object) override;
+
+private:
+    void Init();
+    void ClientDied(pid_t pid);
+    sptr<IRemoteObject> GetSystemAbility(MediaSystemAbility id);
+    int32_t GetSystemAbility(MessageParcel &data, MessageParcel &reply);
+    int32_t SetListenerObject(MessageParcel &data, MessageParcel &reply);
+    int32_t DestroyStubForPid(pid_t pid);
+
+    std::map<pid_t, sptr<MediaDeathRecipient>> deathRecipientMap_;
+    std::map<pid_t, sptr<IStandardMediaListener>> mediaListenerMap_;
+    std::map<uint32_t, MediaStubFunc> mediaFuncs_;
+    std::mutex mutex_;
 };
 } // namespace Media
 } // namespace OHOS

@@ -101,14 +101,22 @@ public:                                                                 \
     {                                                                   \
         FreeErrAndDbg();                                                \
     }                                                                   \
+    const GError *GetErr() const                                        \
+    {                                                                   \
+        return error_;                                                  \
+    }                                                                   \
+    const gchar *GetDbg() const                                         \
+    {                                                                   \
+        return debug_;                                                  \
+    }                                                                   \
                                                                         \
     DISALLOW_COPY_AND_MOVE(Gst##Type##MsgParser);                       \
                                                                         \
+private:                                                                \
     GError *error_ = nullptr;                                           \
     gchar *debug_ = nullptr;                                            \
     GstMessage &msg_;                                                   \
                                                                         \
-private:                                                                \
     void FreeErrAndDbg()                                                \
     {                                                                   \
         if (error_ != nullptr) {                                        \

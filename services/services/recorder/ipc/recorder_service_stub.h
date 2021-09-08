@@ -64,7 +64,6 @@ public:
 private:
     RecorderServiceStub();
     int32_t Init();
-    void ClientDied();
     int32_t SetListenerObject(MessageParcel &data, MessageParcel &reply);
     int32_t SetVideoSource(MessageParcel &data, MessageParcel &reply);
     int32_t SetVideoEncoder(MessageParcel &data, MessageParcel &reply);
@@ -95,9 +94,7 @@ private:
     int32_t SetFileSplitDuration(MessageParcel &data, MessageParcel &reply);
     int32_t DestroyStub(MessageParcel &data, MessageParcel &reply);
 
-private:
     std::shared_ptr<IRecorderService> recorderServer_ = nullptr;
-    sptr<MediaDeathRecipient> deathRecipient_ = nullptr;
     std::map<uint32_t, RecorderStubFunc> recFuncs_;
     std::mutex mutex_;
 };

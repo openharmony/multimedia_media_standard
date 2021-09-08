@@ -63,69 +63,69 @@ public:
 
     /**
      * @brief Initialize the element after it created.
-     * @return ERR_OK if success, or failed.
+     * @return MSERR_OK if success, or failed.
      */
     virtual int32_t Init() = 0;
 
     /**
      * @brief Configure the element. This will be called before CheckConfigReady.
      * @param recParam: RecorderParam, this is the base type of specific type's recorder parameter.
-     * @return ERR_OK if success, or failed.
+     * @return MSERR_OK if success, or failed.
      */
     virtual int32_t Configure(const RecorderParam &recParam)
     {
         (void)recParam;
-        return ERR_OK;
+        return MSERR_OK;
     }
 
     /**
      * @brief This interface will be called before Prepare to ensure that all static recorder parameters required
      * by this element are configured completely.
-     * @return ERR_OK if success, or failed.
+     * @return MSERR_OK if success, or failed.
      */
     virtual int32_t CheckConfigReady()
     {
-        return ERR_OK;
+        return MSERR_OK;
     }
 
     /**
      * @brief This interface is invoked before the corresponding gstreamer element's state changed from NULL to
      * PAUSED, and during the process when the RecorderPipeline's Prepare invoked.
-     * @return ERR_OK if success, or failed.
+     * @return MSERR_OK if success, or failed.
      */
     virtual int32_t Prepare()
     {
-        return ERR_OK;
+        return MSERR_OK;
     }
 
     /**
      * @brief This interface is invoked before the corresponding gstreamer element's state changed from PAUSED to
      * PLAYING. and during the process when the RecorderPipeline's Start invoked.
-     * @return ERR_OK if success, or failed.
+     * @return MSERR_OK if success, or failed.
      */
     virtual int32_t Start()
     {
-        return ERR_OK;
+        return MSERR_OK;
     }
 
     /**
      * @brief This interface is invoked before the corresponding gstreamer element's state changed from PLAYING to
      * PAUSED. and during the process when the RecorderPipeline's Pause invoked.
-     * @return ERR_OK if success, or failed.
+     * @return MSERR_OK if success, or failed.
      */
     virtual int32_t Pause()
     {
-        return ERR_OK;
+        return MSERR_OK;
     }
 
     /**
      * @brief This interface is invoked before the corresponding gstreamer element's state changed from PAUSED to
      * PLAYING. and during the process when the RecorderPipeline's Resume invoked.
-     * @return ERR_OK if success, or failed.
+     * @return MSERR_OK if success, or failed.
      */
     virtual int32_t Resume()
     {
-        return ERR_OK;
+        return MSERR_OK;
     }
 
     /**
@@ -139,48 +139,48 @@ public:
      */
     virtual bool DrainAll()
     {
-        return ERR_OK;
+        return true;
     }
 
     /**
      * @brief This interface is invoked before the corresponding gstreamer element's state changed from PLAYING or
      * PAUSED to NULL. and during the process when the RecorderPipeline's Stop invoked.
-     * @return ERR_OK if success, or failed.
+     * @return MSERR_OK if success, or failed.
      */
     virtual int32_t Stop()
     {
-        return ERR_OK;
+        return MSERR_OK;
     }
 
     /**
      * @brief This interface is invoked during the process when the RecorderPipeline's Reset invoked.
-     * @return ERR_OK if success, or failed.
+     * @return MSERR_OK if success, or failed.
      */
     virtual int32_t Reset()
     {
-        return ERR_OK;
+        return MSERR_OK;
     }
 
     /**
      * @brief Set dynamic parameter to this element, this will be called after Prepare and before Stop
      * @param recParam: RecorderParam, this is the base type of specific type's recorder parameter.
-     * @return ERR_OK if success, or failed.
+     * @return MSERR_OK if success, or failed.
      */
     virtual int32_t SetParameter(const RecorderParam &recParam)
     {
         (void)recParam;
-        return ERR_OK;
+        return MSERR_OK;
     }
 
     /**
      * @brief Get Parameter of this elements
      * @param recParam: RecorderParam, this is the base type of specific type's recorder parameter.
-     * @return ERR_OK if success, or failed.
+     * @return MSERR_OK if success, or failed.
      */
     virtual int32_t GetParameter(RecorderParam &recParam)
     {
         (void)recParam;
-        return ERR_OK;
+        return MSERR_OK;
     }
 
     /**
@@ -204,7 +204,7 @@ protected:
      */
     void MarkParameter(int32_t paramType)
     {
-        configedParams_.insert(paramType);
+        (void)configedParams_.insert(paramType);
     }
 
     /**
@@ -212,7 +212,7 @@ protected:
      * @param paramType: the enum value of RecorderParamType
      * @return true if configured, false if not configured.
      */
-    bool CheckParameter(int32_t paramType)
+    bool CheckParameter(int32_t paramType) const
     {
         return configedParams_.find(paramType) != configedParams_.end();
     }
@@ -222,14 +222,14 @@ protected:
      * @param expectedParams: the enum value set of RecorderParamType
      * @return true if all specified type's parameters configured, false if not all.
      */
-    bool CheckAllParamsConfiged(const std::set<int32_t> &expectedParams);
+    bool CheckAllParamsConfiged(const std::set<int32_t> &expectedParams) const;
 
     /**
      * @brief Check whether the any one specified type's parameters is configured.
      * @param expectedParams: the enum value set of RecorderParamType
      * @return true if any one specified type's parameters configured, false if no one.
      */
-    bool CheckAnyParamConfiged(const std::set<int32_t> &expectedParams);
+    bool CheckAnyParamConfiged(const std::set<int32_t> &expectedParams) const;
 
     /**
      * @brief Subclass implement to process the raw message from gstreamer's element
@@ -267,7 +267,7 @@ public:
     using ElementCreator = std::function<std::shared_ptr<RecorderElement>(const RecorderElement::CreateParam&)>;
 
     int32_t RegisterElement(std::string key, ElementCreator creator);
-    std::shared_ptr<RecorderElement> CreateElement(std::string key, const RecorderElement::CreateParam &param);
+    std::shared_ptr<RecorderElement> CreateElement(const std::string key, const RecorderElement::CreateParam &param);
 
 private:
     RecorderElementFactory() = default;

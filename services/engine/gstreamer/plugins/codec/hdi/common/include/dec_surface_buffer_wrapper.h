@@ -60,8 +60,8 @@ public:
     }
 private:
     sptr<Surface> surface_;
-    uint32_t size_;
     sptr<SurfaceBuffer> surfaceBuffer_;
+    uint32_t size_ = 0;
     bool bufferIsFlush_ = false;
 };
 }
