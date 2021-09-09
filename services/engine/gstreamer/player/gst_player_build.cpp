@@ -14,7 +14,6 @@
  */
 
 #include "gst_player_build.h"
-#include <gst/player/player.h>
 #include "media_log.h"
 
 namespace {
@@ -123,7 +122,7 @@ void GstPlayerBuild::CreateLoop()
     loop_ = nullptr;
 }
 
-void GstPlayerBuild::DestroyLoop()
+void GstPlayerBuild::DestroyLoop() const
 {
     if (loop_ != nullptr && g_main_loop_is_running(loop_)) {
         MEDIA_LOGI("Main loop still running, quit");

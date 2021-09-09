@@ -20,51 +20,50 @@
 #include "player.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "common_napi.h"
 
 namespace OHOS {
 namespace Media {
-const std::string PLAY_CALLBACK_NAME = "play";
-const std::string PAUSE_CALLBACK_NAME = "pause";
-const std::string STOP_CALLBACK_NAME = "stop";
-const std::string RESET_CALLBACK_NAME = "reset";
-const std::string DATA_LOAD_CALLBACK_NAME = "dataLoad";
-const std::string FINISH_CALLBACK_NAME = "finish";
-const std::string TIME_UPDATE_CALLBACK_NAME = "timeUpdate";
-const std::string ERROR_CALLBACK_NAME = "error";
-const std::string VOL_CHANGE_CALLBACK_NAME = "volumeChange";
-
-struct PlayerJsCallback {
-    napi_env env = nullptr;
-    napi_ref callback = nullptr;
-    std::string callbackName = "unknown";
-    std::string errorType = "unknown";
-    std::string errorCode = "unknown";
-    int32_t position = -1;
-};
-
 class PlayerCallbackNapi : public PlayerCallback {
 public:
-    PlayerCallbackNapi(napi_env env, AudioPlayerNapi &player);
+    explicit PlayerCallbackNapi(napi_env env);
     virtual ~PlayerCallbackNapi();
-
-protected:
-    void OnError(PlayerErrorType errorType, int32_t errorCode) override;
-    void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody = {}) override;
+    void SaveCallbackReference(const std::string &callbackName, napi_value callback);
+    void SendErrorCallback(napi_env env, MediaServiceExtErrCode errCode, const std::string &info = "unknown");
+    PlayerStates GetCurrentState() const;
+    void OnError(PlayerErrorType errName, int32_t errMsg) override;
+    void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody) override;
 
 private:
     void OnSeekDoneCb(int32_t currentPositon);
     void OnEosCb(int32_t isLooping);
     void OnStateChangeCb(PlayerStates state);
-    void OnPositionUpdateCb(int32_t postion);
-    void OnMessageCb(int32_t type);
+    void OnPositionUpdateCb(int32_t postion) const;
+    void OnMessageCb(int32_t type) const;
     void OnVolumeChangeCb();
+    struct PlayerJsCallback {
+        std::shared_ptr<AutoRef> callback = nullptr;
+        std::string callbackName = "unknown";
+        std::string errorMsg = "unknown";
+        MediaServiceExtErrCode errorCode = MSERR_EXT_UNKNOWN;
+        int32_t position = -1;
+    };
     void OnJsCallBack(PlayerJsCallback *jsCb);
     void OnJsCallBackError(PlayerJsCallback *jsCb);
     void OnJsCallBackPosition(PlayerJsCallback *jsCb);
 
-private:
+    std::mutex mutex_;
     napi_env env_ = nullptr;
-    AudioPlayerNapi &playerNapi_;
+    PlayerStates currentState_ = PLAYER_IDLE;
+    std::shared_ptr<AutoRef> errorCallback_ = nullptr; // error
+    std::shared_ptr<AutoRef> playCallback_ = nullptr; // started
+    std::shared_ptr<AutoRef> pauseCallback_ = nullptr; // paused
+    std::shared_ptr<AutoRef> stopCallback_ = nullptr; // stopped
+    std::shared_ptr<AutoRef> resetCallback_ = nullptr; // idle
+    std::shared_ptr<AutoRef> dataLoadCallback_ = nullptr; // prepared
+    std::shared_ptr<AutoRef> finishCallback_ = nullptr; // endofstream
+    std::shared_ptr<AutoRef> timeUpdateCallback_ = nullptr; // seekdone
+    std::shared_ptr<AutoRef> volumeChangeCallback_ = nullptr; // volumedone
 };
 }  // namespace Media
 }  // namespace OHOS

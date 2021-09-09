@@ -25,9 +25,9 @@ namespace OHOS {
 
 #define __FILENAME__ (__builtin_strrchr(__FILE__, '/') ? __builtin_strrchr(__FILE__, '/') + 1 : __FILE__)
 
-#define __MEDIA_LOG(func, fmt, args...)                                                  \
-    do {                                                                                 \
-        func(LABEL, "{%{public}s():%{public}d} " fmt, __FUNCTION__, __LINE__, ##args);  \
+#define __MEDIA_LOG(func, fmt, args...)                                                       \
+    do {                                                                                      \
+        (void)func(LABEL, "{%{public}s():%{public}d} " fmt, __FUNCTION__, __LINE__, ##args);  \
     } while (0)
 
 #define MEDIA_LOGD(fmt, ...) __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Debug, fmt, ##__VA_ARGS__)

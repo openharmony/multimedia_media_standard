@@ -69,13 +69,13 @@ int32_t RecorderPipelineCtrler::Init()
 {
     cmdQ_ = std::make_unique<TaskQueue>("rec-pipe-ctrler-cmd");
     int32_t ret = cmdQ_->Start();
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
     msgQ_ = std::make_unique<TaskQueue>("rec-pipe-ctrler-msg");
     ret = msgQ_->Start();
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderPipelineCtrler::Prepare()
@@ -84,17 +84,17 @@ int32_t RecorderPipelineCtrler::Prepare()
 
     if (pipeline_ == nullptr) {
         MEDIA_LOGE("Null pipeline !");
-        return ERR_NO_INIT;
+        return MSERR_INVALID_OPERATION;
     }
 
-    auto prepareTask = std::make_shared<TaskHandler>([this] { return pipeline_->Prepare(); }, ERR_OK);
+    auto prepareTask = std::make_shared<TaskHandler<int32_t>>([this] { return pipeline_->Prepare(); });
     int ret = cmdQ_->EnqueueTask(prepareTask);
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
-    ret = prepareTask->GetResult();
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    auto result = prepareTask->GetResult();
+    CHECK_AND_RETURN_RET(!result.HasResult() || (result.Value() == MSERR_OK), result.Value());
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderPipelineCtrler::Start()
@@ -103,17 +103,17 @@ int32_t RecorderPipelineCtrler::Start()
 
     if (pipeline_ == nullptr) {
         MEDIA_LOGE("Null pipeline !");
-        return ERR_NO_INIT;
+        return MSERR_INVALID_OPERATION;
     }
 
-    auto startTask = std::make_shared<TaskHandler>([this] { return pipeline_->Start(); }, ERR_OK);
+    auto startTask = std::make_shared<TaskHandler<int32_t>>([this] { return pipeline_->Start(); });
     int ret = cmdQ_->EnqueueTask(startTask);
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
-    ret = startTask->GetResult();
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    auto result = startTask->GetResult();
+    CHECK_AND_RETURN_RET(!result.HasResult() || (result.Value() == MSERR_OK), result.Value());
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderPipelineCtrler::Pause()
@@ -122,17 +122,17 @@ int32_t RecorderPipelineCtrler::Pause()
 
     if (pipeline_ == nullptr) {
         MEDIA_LOGE("Null pipeline !");
-        return ERR_NO_INIT;
+        return MSERR_INVALID_OPERATION;
     }
 
-    auto pauseTask = std::make_shared<TaskHandler>([this] { return pipeline_->Pause(); }, ERR_OK);
+    auto pauseTask = std::make_shared<TaskHandler<int32_t>>([this] { return pipeline_->Pause(); });
     int ret = cmdQ_->EnqueueTask(pauseTask);
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
-    ret = pauseTask->GetResult();
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    auto result = pauseTask->GetResult();
+    CHECK_AND_RETURN_RET(!result.HasResult() || (result.Value() == MSERR_OK), result.Value());
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderPipelineCtrler::Resume()
@@ -141,51 +141,52 @@ int32_t RecorderPipelineCtrler::Resume()
 
     if (pipeline_ == nullptr) {
         MEDIA_LOGE("Null pipeline !");
-        return ERR_NO_INIT;
+        return MSERR_INVALID_OPERATION;
     }
 
-    auto resumeTask = std::make_shared<TaskHandler>([this] { return pipeline_->Resume(); }, ERR_OK);
+    auto resumeTask = std::make_shared<TaskHandler<int32_t>>([this] { return pipeline_->Resume(); });
     int ret = cmdQ_->EnqueueTask(resumeTask);
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
-    ret = resumeTask->GetResult();
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    auto result = resumeTask->GetResult();
+    CHECK_AND_RETURN_RET(!result.HasResult() || (result.Value() == MSERR_OK), result.Value());
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderPipelineCtrler::Stop(bool isDrainAll)
 {
     if (pipeline_ == nullptr) {
-        return ERR_OK;
+        return MSERR_OK;
     }
 
     MEDIA_LOGD("enter");
 
-    auto stopTask = std::make_shared<TaskHandler>(
-        [this, isDrainAll] { return pipeline_->Stop(isDrainAll); }, ERR_OK
+    auto stopTask = std::make_shared<TaskHandler<int32_t>>(
+        [this, isDrainAll] { return pipeline_->Stop(isDrainAll); }
     );
     int ret = cmdQ_->EnqueueTask(stopTask, true);
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
-    ret = stopTask->GetResult();
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    auto result = stopTask->GetResult();
+    CHECK_AND_RETURN_RET(result.HasResult(), MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(result.Value() == MSERR_OK, result.Value());
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderPipelineCtrler::Reset()
 {
     MEDIA_LOGD("enter");
     pipeline_ = nullptr;
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 void RecorderPipelineCtrler::Notify(const RecorderMessage &msg)
 {
-    auto notifyTask = std::make_shared<TaskHandler>([this, msg] {
+    auto notifyTask = std::make_shared<TaskHandler<void>>([this, msg] {
         std::shared_ptr<IRecorderEngineObs> obs = obs_.lock();
-        CHECK_AND_RETURN_RET_LOG(obs != nullptr, MSERR_OK, "obs is nullptr");
+        CHECK_AND_RETURN_LOG(obs != nullptr, "obs is nullptr");
         MEDIA_LOGI("Receive message, type: %{public}d, code: %{public}d, detail: %{public}d",
                    msg.type, msg.code, msg.detail);
         if (msg.type == RecorderMessageType::REC_MSG_INFO) {
@@ -193,11 +194,10 @@ void RecorderPipelineCtrler::Notify(const RecorderMessage &msg)
         } else if (msg.type == RecorderMessageType::REC_MSG_ERROR) {
             obs->OnError(static_cast<IRecorderEngineObs::ErrorType>(msg.code), msg.detail);
         }
-        return MSERR_OK;
     });
 
     int ret = msgQ_->EnqueueTask(notifyTask);
-    CHECK_AND_RETURN_LOG(ret == ERR_OK, "Enqueue message failed !");
+    CHECK_AND_RETURN_LOG(ret == MSERR_OK, "Enqueue message failed !");
 }
 }
 }
