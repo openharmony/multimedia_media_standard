@@ -15,7 +15,7 @@
 
 #include "player_listener_stub.h"
 #include "media_log.h"
-#include "errors.h"
+#include "media_errors.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayerListenerStub"};
@@ -41,16 +41,16 @@ int PlayerListenerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mess
             int32_t errorType = data.ReadInt32();
             int32_t errorCode = data.ReadInt32();
             OnError(static_cast<PlayerErrorType>(errorType), errorCode);
-            return ERR_OK;
+            return MSERR_OK;
         }
         case PlayerListenerMsg::ON_INFO: {
             int32_t type = data.ReadInt32();
             int32_t extra = data.ReadInt32();
-            Format format; // TODO: get the format from IPC
-            MEDIA_LOGD("0x%{public}06" PRIXPTR " listen stub on info type: %{public}d  extra %{public}d", 
+            Format format;
+            MEDIA_LOGD("0x%{public}06" PRIXPTR " listen stub on info type: %{public}d extra %{public}d",
                        FAKE_POINTER(this), type, extra);
             OnInfo(static_cast<PlayerOnInfoType>(type), extra, format);
-            return ERR_OK;
+            return MSERR_OK;
         }
         default: {
             MEDIA_LOGE("default case, need check PlayerListenerStub");

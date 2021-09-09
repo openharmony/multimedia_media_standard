@@ -37,7 +37,7 @@ config("media_engine_gst_player_config") {
     "//utils/native/base/include",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
-    "//foundation/multimedia/media_standard/services/engine/include",
+    "//foundation/multimedia/media_standard/services/services/engine_intf",
     "//drivers/peripheral/audio/interfaces/include",
     "//drivers/framework/include/utils/",
     "//drivers/peripheral/display/interfaces/include",
@@ -59,6 +59,7 @@ config("media_engine_gst_player_config") {
 
 ohos_static_library("media_engine_gst_player") {
   sources = [
+    "gst_appsrc_warp.cpp",
     "player_engine_gst_impl.cpp",
     "gst_player_build.cpp",
     "gst_player_ctrl.cpp",

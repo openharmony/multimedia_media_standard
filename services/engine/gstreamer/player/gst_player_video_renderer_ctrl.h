@@ -27,7 +27,7 @@ namespace OHOS {
 namespace Media {
 class GstPlayerVideoRendererCtrl {
 public:
-    explicit GstPlayerVideoRendererCtrl(sptr<Surface> surface);
+    explicit GstPlayerVideoRendererCtrl(const sptr<Surface> &surface);
     ~GstPlayerVideoRendererCtrl();
     int32_t InitVideoSink(const GstElement *playbin);
     int32_t InitAudioSink(const GstElement *playbin);
@@ -36,10 +36,10 @@ public:
     int32_t UpdateSurfaceBuffer(const GstBuffer &buffer);
 
 private:
+    void UpdateResquestConfig(BufferRequestConfig &requestConfig, const GstVideoMeta *videoMeta) const;
     std::string GetVideoSinkFormat() const;
     void SetSurfaceTimeFromSysPara();
 
-private:
     sptr<Surface> producerSurface_ = nullptr;
     GstElement *videoSink_ = nullptr;
     GstElement *audioSink_ = nullptr;
@@ -47,13 +47,14 @@ private:
     GstCaps *audioCaps_ = nullptr;
     bool surfaceTimeEnable = false;
     TimeMonitor surfaceTimeMonitor_;
+    gulong signalId_ = 0;
 };
 
 class GstPlayerVideoRendererFactory {
 public:
     GstPlayerVideoRendererFactory() = delete;
     ~GstPlayerVideoRendererFactory() = delete;
-    static GstPlayerVideoRenderer *Create(std::shared_ptr<GstPlayerVideoRendererCtrl> rendererCtrl);
+    static GstPlayerVideoRenderer *Create(const std::shared_ptr<GstPlayerVideoRendererCtrl> &rendererCtrl);
     static void Destroy(GstPlayerVideoRenderer *renderer);
 };
 } // Media

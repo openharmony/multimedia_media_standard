@@ -28,6 +28,7 @@
 #include "i_player_engine.h"
 #include "gst_player_build.h"
 #include "gst_player_ctrl.h"
+#include "gst_appsrc_warp.h"
 
 namespace OHOS {
 namespace Media {
@@ -37,6 +38,7 @@ public:
     ~PlayerEngineGstImpl();
 
     int32_t SetSource(const std::string &uri) override;
+    int32_t SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc) override;
     int32_t SetObs(const std::weak_ptr<IPlayerEngineObs> &obs) override;
     int32_t SetVideoSurface(sptr<Surface> surface) override;
     int32_t Prepare() override;
@@ -57,21 +59,22 @@ private:
     double ChangeModeToSpeed(const PlaybackRateMode &mode) const;
     PlaybackRateMode ChangeSpeedToMode(double rate) const;
     int32_t GstPlayerInit();
-    int32_t GstPlayerPrepare();
+    int32_t GstPlayerPrepare() const;
     void PlayerLoop();
     void GstPlayerDeInit();
-
-private:
+    int32_t GetRealPath(const std::string &uri, std::string &realUriPath) const;
+    bool IsFileUri(const std::string &uri) const;
     std::mutex mutex_;
     std::mutex mutexSync_;
     std::unique_ptr<GstPlayerBuild> playerBuild_ = nullptr;
     std::shared_ptr<GstPlayerCtrl> playerCtrl_ = nullptr;
     std::weak_ptr<IPlayerEngineObs> obs_;
     sptr<Surface> producerSurface_ = nullptr;
-    std::string fileUri_ = "";
+    std::string uri_ = "";
     std::condition_variable condVarSync_;
     bool gstPlayerInit_ = false;
     std::unique_ptr<std::thread> playerThread_;
+    std::shared_ptr<GstAppsrcWarp> appsrcWarp_ = nullptr;
 };
 } // Media
 } // OHOS

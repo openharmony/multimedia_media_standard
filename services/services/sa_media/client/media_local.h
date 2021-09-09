@@ -28,8 +28,10 @@ public:
     DISALLOW_COPY_AND_MOVE(MediaLocal);
     std::shared_ptr<IRecorderService> CreateRecorderService() override;
     std::shared_ptr<IPlayerService> CreatePlayerService() override;
+    std::shared_ptr<IAVMetadataHelperService> CreateAVMetadataHelperService() override;
     int32_t DestroyRecorderService(std::shared_ptr<IRecorderService> recorder) override;
     int32_t DestroyPlayerService(std::shared_ptr<IPlayerService> player) override;
+    int32_t DestroyAVMetadataHelperService(std::shared_ptr<IAVMetadataHelperService> avMetadataHelper) override;
 };
 } // namespace Media
 } // namespace OHOS

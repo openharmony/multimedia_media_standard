@@ -34,7 +34,7 @@ RecorderEngineGstImpl::RecorderEngineGstImpl()
 RecorderEngineGstImpl::~RecorderEngineGstImpl()
 {
     MEDIA_LOGD("enter, dtor");
-    Reset();
+    (void)Reset();
     MEDIA_LOGD("exit, dtor");
 }
 
@@ -42,12 +42,12 @@ int32_t RecorderEngineGstImpl::Init()
 {
     auto ctrler = std::make_shared<RecorderPipelineCtrler>();
     int32_t ret = ctrler->Init();
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, MSERR_INVALID_OPERATION);
 
     ctrler_ = ctrler;
     builder_ = std::make_unique<RecorderPipelineBuilder>();
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderEngineGstImpl::SetVideoSource(VideoSourceType source, int32_t &sourceId)
@@ -56,28 +56,28 @@ int32_t RecorderEngineGstImpl::SetVideoSource(VideoSourceType source, int32_t &s
 
     if (source < VIDEO_SOURCE_SURFACE_YUV || source >= VIDEO_SOURCE_BUTT) {
         MEDIA_LOGE("Invalid video source type: %{public}d", source);
-        return ERR_INVALID_VALUE;
+        return MSERR_INVALID_VAL;
     }
 
     std::unique_lock<std::mutex> lock(mutex_);
 
     if (sourceCount_[RECORDER_SOURCE_KIND_VIDEO] >= VIDEO_SOURCE_MAX_COUNT)  {
         MEDIA_LOGE("No free video channel !");
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
     RecorderSourceDesc desc;
     desc.SetVideoSource(source, sourceCount_[RECORDER_SOURCE_KIND_VIDEO]);
     int32_t success = builder_->SetSource(desc);
-    CHECK_AND_RETURN_RET(success == ERR_OK, ERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(success == MSERR_OK, MSERR_INVALID_OPERATION);
 
     MEDIA_LOGI("add video source success, type: %{public}d", source);
 
-    allSources_.emplace(desc.handle_, desc);
+    (void)allSources_.emplace(desc.handle_, desc);
     sourceCount_[RECORDER_SOURCE_KIND_VIDEO] += 1;
 
     sourceId = desc.handle_;
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderEngineGstImpl::SetAudioSource(AudioSourceType source, int32_t &sourceId)
@@ -86,7 +86,7 @@ int32_t RecorderEngineGstImpl::SetAudioSource(AudioSourceType source, int32_t &s
 
     if (source <= AUDIO_SOURCE_INVALID || source > AUDIO_VOICE_PERFORMANCE) {
         MEDIA_LOGE("Input AudioSourceType : %{public}d is invalid", source);
-        return false;
+        return MSERR_INVALID_OPERATION;
     }
 
     if (source == AudioSourceType::AUDIO_SOURCE_DEFAULT) {
@@ -97,28 +97,28 @@ int32_t RecorderEngineGstImpl::SetAudioSource(AudioSourceType source, int32_t &s
 
     if (sourceCount_[RECORDER_SOURCE_KIND_AUDIO] >= AUDIO_SOURCE_MAX_COUNT)  {
         MEDIA_LOGE("No free audio channel !");
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
     RecorderSourceDesc desc;
-    desc.SetAudioSource(source, sourceCount_[RECORDER_SOURCE_KIND_AUDIO]);
+    desc.SetAudioSource(source, static_cast<int32_t>(sourceCount_[RECORDER_SOURCE_KIND_AUDIO]));
     int32_t success = builder_->SetSource(desc);
-    CHECK_AND_RETURN_RET(success == ERR_OK, ERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(success == MSERR_OK, MSERR_INVALID_OPERATION);
 
     MEDIA_LOGI("add audios source success, type: %{public}d", source);
 
-    allSources_.emplace(desc.handle_, desc);
+    (void)allSources_.emplace(desc.handle_, desc);
     sourceCount_[RECORDER_SOURCE_KIND_AUDIO] += 1;
 
     sourceId = desc.handle_;
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderEngineGstImpl::SetOutputFormat(OutputFormatType format)
 {
     if (format < FORMAT_DEFAULT || format >= FORMAT_BUTT) {
         MEDIA_LOGE("invalid output format: %{public}d", format);
-        return ERR_INVALID_VALUE;
+        return MSERR_INVALID_VAL;
     }
 
     if (format == FORMAT_DEFAULT) {
@@ -129,30 +129,30 @@ int32_t RecorderEngineGstImpl::SetOutputFormat(OutputFormatType format)
 
     if (allSources_.empty()) {
         MEDIA_LOGE("No source is set before set the output format!");
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
     int32_t ret = builder_->SetOutputFormat(format);
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, MSERR_INVALID_OPERATION);
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderEngineGstImpl::BuildPipeline()
 {
     pipeline_ = builder_->Build();
-    CHECK_AND_RETURN_RET(pipeline_ != nullptr, ERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(pipeline_ != nullptr, MSERR_INVALID_OPERATION);
 
     ctrler_->SetPipeline(pipeline_);
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderEngineGstImpl::SetObs(const std::weak_ptr<IRecorderEngineObs> &obs)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     ctrler_->SetObs(obs);
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderEngineGstImpl::Configure(int32_t sourceId, const RecorderParam &recParam)
@@ -161,10 +161,10 @@ int32_t RecorderEngineGstImpl::Configure(int32_t sourceId, const RecorderParam &
 
     if ((allSources_.find(sourceId) == allSources_.end()) && (sourceId != DUMMY_SOURCE_ID)) {
         MEDIA_LOGE("invalid sourceId: 0x%{public}x", sourceId);
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
-    CHECK_AND_RETURN_RET(CheckParamType(sourceId, recParam), ERR_INVALID_VALUE);
+    CHECK_AND_RETURN_RET(CheckParamType(sourceId, recParam), MSERR_INVALID_VAL);
 
     return builder_->Configure(sourceId, recParam);
 }
@@ -190,7 +190,7 @@ sptr<Surface> RecorderEngineGstImpl::GetSurface(int32_t sourceId)
 
     SurfaceParam param;
     int32_t ret = pipeline_->GetParameter(sourceId, param);
-    CHECK_AND_RETURN_RET(ret == ERR_OK, nullptr);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, nullptr);
 
     return param.surface_;
 }
@@ -199,7 +199,7 @@ int32_t RecorderEngineGstImpl::Prepare()
 {
     std::unique_lock<std::mutex> lock(mutex_);
     int32_t ret = BuildPipeline();
-    if (ret != ERR_OK) {
+    if (ret != MSERR_OK) {
         MEDIA_LOGE("Prepare failed due to pipeline build failed !");
         return ret;
     }
@@ -233,14 +233,14 @@ int32_t RecorderEngineGstImpl::Stop(bool isDrainAll)
     std::unique_lock<std::mutex> lock(mutex_);
 
     if (allSources_.empty())  {
-        return ERR_OK;
+        return MSERR_OK;
     }
 
     int ret = ctrler_->Stop(isDrainAll);
 
     (void)ctrler_->Reset();
     pipeline_ = nullptr;
-    (void)builder_->Reset();
+    builder_->Reset();
     for (size_t i = 0; i < sourceCount_.size(); i++) {
         sourceCount_[i] = 0;
     }
@@ -260,15 +260,15 @@ int32_t RecorderEngineGstImpl::SetParameter(int32_t sourceId, const RecorderPara
 
     if ((allSources_.find(sourceId) == allSources_.end()) && (sourceId != DUMMY_SOURCE_ID)) {
         MEDIA_LOGE("invalid sourceId: 0x%{public}x", sourceId);
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
     if (pipeline_ == nullptr)  {
         MEDIA_LOGE("Pipeline is nullptr");
-        return ERR_NO_INIT;
+        return MSERR_INVALID_STATE;
     }
 
-    CHECK_AND_RETURN_RET(CheckParamType(sourceId, recParam), ERR_INVALID_VALUE);
+    CHECK_AND_RETURN_RET(CheckParamType(sourceId, recParam), MSERR_INVALID_VAL);
 
     return pipeline_->SetParameter(sourceId, recParam);
 }

@@ -59,7 +59,7 @@ public:
      * @param name the optional argument used to facilitate debug info displaying.
      * @return The AVSharedMemory instance containing a chunk of shared memory
      */
-    static std::shared_ptr<AVSharedMemory> Create(int32_t size, uint32_t flags, const std::string &name = "");
+    static std::shared_ptr<AVSharedMemory> Create(int32_t size, uint32_t flags, const std::string &name);
 
     virtual uint8_t *GetBase() = 0;
     virtual int32_t GetSize() = 0;
