@@ -52,7 +52,7 @@ protected:
         VideoCaptureSfImpl &owner_;
     };
     void OnBufferAvailable();
-    void GetSufferExtraData();
+    int32_t GetSufferExtraData();
 
     uint32_t surfaceWidth_;
     uint32_t surfaceHeight_;
