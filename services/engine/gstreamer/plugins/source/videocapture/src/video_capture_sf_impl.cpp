@@ -186,7 +186,7 @@ void VideoCaptureSfImpl::SetSurfaceUserData()
 
 int32_t VideoCaptureSfImpl::GetSufferExtraData()
 {
-    CHECK_AND_RETURN_RET_LOG(surfaceBuffer_ != nullptr, MSERR_INVALID_OPERATION,"surfacebuffer is null");
+    CHECK_AND_RETURN_RET_LOG(surfaceBuffer_ != nullptr, MSERR_INVALID_OPERATION, "surfacebuffer is null");
 
     SurfaceError surfaceRet;
 
