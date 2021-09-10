@@ -191,11 +191,11 @@ int32_t VideoCaptureSfImpl::GetSufferExtraData()
     SurfaceError surfaceRet;
 
     surfaceRet = surfaceBuffer_->ExtraGet("dataSize", dataSize_);
-    CHECK_AND_RETURN_RET_LOG(surfaceRet == GSERROR_OK, MSERR_INVALID_OPERATION, "get dataSize fail");
+    CHECK_AND_RETURN_RET_LOG(surfaceRet == SURFACE_ERROR_OK, MSERR_INVALID_OPERATION, "get dataSize fail");
     surfaceRet = surfaceBuffer_->ExtraGet("timeStamp", pts_);
-    CHECK_AND_RETURN_RET_LOG(surfaceRet == GSERROR_OK, MSERR_INVALID_OPERATION, "get timeStamp fail");
+    CHECK_AND_RETURN_RET_LOG(surfaceRet == SURFACE_ERROR_OK, MSERR_INVALID_OPERATION, "get timeStamp fail");
     surfaceRet = surfaceBuffer_->ExtraGet("isKeyFrame", isCodecFrame_);
-    CHECK_AND_RETURN_RET_LOG(surfaceRet == GSERROR_OK, MSERR_INVALID_OPERATION, "get isKeyFrame fail");
+    CHECK_AND_RETURN_RET_LOG(surfaceRet == SURFACE_ERROR_OK, MSERR_INVALID_OPERATION, "get isKeyFrame fail");
 
     MEDIA_LOGI("surfaceBuffer extraData dataSize_: %{public}d, pts: (%{public}" PRId64 ")", dataSize_, pts_);
     MEDIA_LOGI("is this surfaceBuffer keyFrame ? : %{public}d", isCodecFrame_);
