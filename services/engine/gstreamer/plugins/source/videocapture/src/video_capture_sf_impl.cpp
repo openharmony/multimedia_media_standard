@@ -17,6 +17,7 @@
 #include <map>
 #include "media_log.h"
 #include "media_errors.h"
+#include "graphic_common.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "VideoCaptureSfmpl"};
@@ -183,16 +184,22 @@ void VideoCaptureSfImpl::SetSurfaceUserData()
     }
 }
 
-void VideoCaptureSfImpl::GetSufferExtraData()
+int32_t VideoCaptureSfImpl::GetSufferExtraData()
 {
     CHECK_AND_RETURN_LOG(surfaceBuffer_ != nullptr, "surfacebuffer is null");
 
-    surfaceBuffer_->ExtraGet("dataSize", dataSize_);
-    surfaceBuffer_->ExtraGet("timeStamp", pts_);
-    surfaceBuffer_->ExtraGet("isKeyFrame", isCodecFrame_);
+    SurfaceError surfaceRet;
+
+    surfaceRet = surfaceBuffer_->ExtraGet("dataSize", dataSize_);
+    CHECK_AND_RETURN_RET_LOG(surfaceRet == GSERROR_OK, MSERR_INVALID_OPERATION, "get dataSize fail");
+    surfaceRet = surfaceBuffer_->ExtraGet("timeStamp", pts_);
+    CHECK_AND_RETURN_RET_LOG(surfaceRet == GSERROR_OK, MSERR_INVALID_OPERATION, "get timeStamp fail");
+    surfaceRet = surfaceBuffer_->ExtraGet("isKeyFrame", isCodecFrame_);
+    CHECK_AND_RETURN_RET_LOG(surfaceRet == GSERROR_OK, MSERR_INVALID_OPERATION, "get isKeyFrame fail");
 
     MEDIA_LOGI("surfaceBuffer extraData dataSize_: %{public}d, pts: (%{public}" PRId64 ")", dataSize_, pts_);
     MEDIA_LOGI("is this surfaceBuffer keyFrame ? : %{public}d", isCodecFrame_);
+    return MSERR_OK;
 }
 
 int32_t VideoCaptureSfImpl::AcquireSurfaceBuffer()
@@ -209,7 +216,8 @@ int32_t VideoCaptureSfImpl::AcquireSurfaceBuffer()
         return MSERR_UNKNOWN;
     }
 
-    GetSufferExtraData();
+    int32_t ret = GetSufferExtraData();
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "get ExtraData fail");
 
     bufferAvailableCount_--;
     return MSERR_OK;
