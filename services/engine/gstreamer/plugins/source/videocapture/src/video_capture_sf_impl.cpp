@@ -173,15 +173,7 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfImpl::GetFrameBuffer()
 
 void VideoCaptureSfImpl::SetSurfaceUserData()
 {
-    SurfaceError ret = dataConSurface_->SetUserData("surface_width", std::to_string(videoWidth_));
-    if (ret != SURFACE_ERROR_OK) {
-        MEDIA_LOGW("set video width fail");
-    }
-    ret = dataConSurface_->SetUserData("surface_height", std::to_string(videoHeight_));
-    if (ret != SURFACE_ERROR_OK) {
-        MEDIA_LOGW("set video height fail");
-    }
-    ret = dataConSurface_->SetQueueSize(DEFAULT_SURFACE_QUEUE_SIZE);
+    SurfaceError ret = dataConSurface_->SetQueueSize(DEFAULT_SURFACE_QUEUE_SIZE);
     if (ret != SURFACE_ERROR_OK) {
         MEDIA_LOGW("set queue size fail");
     }
