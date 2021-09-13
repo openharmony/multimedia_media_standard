@@ -23,15 +23,20 @@ namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "VideoCaptureSfmpl"};
     constexpr int32_t DEFAULT_SURFACE_QUEUE_SIZE = 6;
     constexpr int32_t DEFAULT_SURFACE_SIZE = 1024 * 1024;
-    constexpr int32_t DEFAULT_SURFACE_WIDTH = 1920;
-    constexpr int32_t DEFAULT_SURFACE_HEIGHT = 1080;
+    constexpr int32_t DEFAULT_VIDEO_WIDTH = 1920;
+    constexpr int32_t DEFAULT_VIDEO_HEIGHT = 1080;
 }
 
 namespace OHOS {
 namespace Media {
+const std::map<uint32_t, uint32_t> VIDEO_RESOLUTION_MAP = {
+    { 1920, 1080 },
+    { 1280, 720 },
+    { 720, 480 },
+};    
 VideoCaptureSfImpl::VideoCaptureSfImpl()
-    : surfaceWidth_(DEFAULT_SURFACE_WIDTH),
-      surfaceHeight_(DEFAULT_SURFACE_HEIGHT),
+    : videoWidth_(DEFAULT_VIDEO_WIDTH),
+      videoHeight_(DEFAULT_VIDEO_HEIGHT),
       fence_(-1),
       bufferAvailableCount_(0),
       timestamp_(0),
@@ -53,7 +58,9 @@ VideoCaptureSfImpl::~VideoCaptureSfImpl()
 
 int32_t VideoCaptureSfImpl::Prepare()
 {
-    printf("surfaceWidth_: %d, surfaceHeight_: %d", surfaceWidth_, surfaceHeight_);
+    auto iter = VIDEO_RESOLUTION_MAP.find(videoWidth_);
+    CHECK_AND_RETURN_RET_LOG(iter != VIDEO_RESOLUTION_MAP.end(), MSERR_INVALID_VAL, "illegal video width");
+    CHECK_AND_RETURN_RET_LOG(videoHeight_ == iter->second, MSERR_INVALID_VAL, "illegal video height");
 
     sptr<Surface> consumerSurface = Surface::CreateSurfaceAsConsumer();
     CHECK_AND_RETURN_RET_LOG(consumerSurface != nullptr, MSERR_NO_MEMORY, "create surface fail");
@@ -113,15 +120,15 @@ int32_t VideoCaptureSfImpl::Stop()
     return MSERR_OK;
 }
 
-int32_t VideoCaptureSfImpl::SetSurfaceWidth(uint32_t width)
+int32_t VideoCaptureSfImpl::SetVideoWidth(uint32_t width)
 {
-    surfaceWidth_ = width;
+    videoWidth_ = width;
     return MSERR_OK;
 }
 
-int32_t VideoCaptureSfImpl::SetSurfaceHeight(uint32_t height)
+int32_t VideoCaptureSfImpl::SetVideoHeight(uint32_t height)
 {
-    surfaceHeight_ = height;
+    videoHeight_ = height;
     return MSERR_OK;
 }
 
@@ -166,13 +173,13 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfImpl::GetFrameBuffer()
 
 void VideoCaptureSfImpl::SetSurfaceUserData()
 {
-    SurfaceError ret = dataConSurface_->SetUserData("surface_width", std::to_string(surfaceWidth_));
+    SurfaceError ret = dataConSurface_->SetUserData("surface_width", std::to_string(videoWidth_));
     if (ret != SURFACE_ERROR_OK) {
-        MEDIA_LOGW("set surface width fail");
+        MEDIA_LOGW("set video width fail");
     }
-    ret = dataConSurface_->SetUserData("surface_height", std::to_string(surfaceHeight_));
+    ret = dataConSurface_->SetUserData("surface_height", std::to_string(videoHeight_));
     if (ret != SURFACE_ERROR_OK) {
-        MEDIA_LOGW("set surface height fail");
+        MEDIA_LOGW("set video height fail");
     }
     ret = dataConSurface_->SetQueueSize(DEFAULT_SURFACE_QUEUE_SIZE);
     if (ret != SURFACE_ERROR_OK) {
