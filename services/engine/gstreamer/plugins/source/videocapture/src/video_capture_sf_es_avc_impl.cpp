@@ -100,8 +100,8 @@ std::shared_ptr<EsAvcCodecBuffer> VideoCaptureSfEsAvcImpl::DoGetCodecBuffer()
 
     std::shared_ptr<EsAvcCodecBuffer> codecBuffer = std::make_shared<EsAvcCodecBuffer>();
     CHECK_AND_RETURN_RET_LOG(codecBuffer != nullptr, nullptr, "no memory");
-    codecBuffer->width = static_cast<uint32_t>(surfaceBuffer_->GetWidth());
-    codecBuffer->height = static_cast<uint32_t>(surfaceBuffer_->GetHeight());
+    codecBuffer->width = videoWidth_;
+    codecBuffer->height = videoHeight_;
     codecBuffer->segmentStart = 0;
     codecBuffer->gstCodecBuffer = configBuffer;
     codecData_ = (char *)buffer;
