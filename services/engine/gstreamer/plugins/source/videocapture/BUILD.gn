@@ -46,6 +46,7 @@ config("gst_surface_video_src_config") {
     "//third_party/glib/glib",
     "//third_party/glib",
     "//third_party/glib/gmodule",
+    "foundation/graphic/standard/interfaces/innerkits/common",
   ]
 }
 

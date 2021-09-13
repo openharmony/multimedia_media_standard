@@ -96,7 +96,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    virtual int32_t SetSurfaceWidth(uint32_t width) = 0;
+    virtual int32_t SetVideoWidth(uint32_t width) = 0;
 
     /**
      * @brief Sets the height of the video frame to capture.
@@ -109,7 +109,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    virtual int32_t SetSurfaceHeight(uint32_t height) = 0;
+    virtual int32_t SetVideoHeight(uint32_t height) = 0;
 
     /**
      * @brief Obtains the surface of the video source.
