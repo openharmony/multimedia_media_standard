@@ -189,6 +189,10 @@ void VideoCaptureSfImpl::SetSurfaceUserData()
     if (ret != SURFACE_ERROR_OK) {
         MEDIA_LOGW("set surface size fail");
     }
+    ret = dataConSurface_->SetDefaultWidthAndHeight(videoWidth_, videoHeight_);
+    if (ret != SURFACE_ERROR_OK) {
+        MEDIA_LOGW("set surface width and height fail");
+    }    
 }
 
 int32_t VideoCaptureSfImpl::GetSufferExtraData()
