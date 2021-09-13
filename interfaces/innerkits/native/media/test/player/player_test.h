@@ -58,8 +58,7 @@ private:
     int32_t SetDataSrc(const std::string &path, bool seekable);
     int32_t SelectSource(const std::string &path);
     void RegisterTable();
-    std::unique_ptr<Window> mwindow_;
-    std::unique_ptr<SubWindow> window_;
+    sptr<Window> mwindow_;
     std::map<std::string, std::function<int32_t()>> playerTable_;
     std::shared_ptr<Player> player_ = nullptr;
 };
