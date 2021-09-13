@@ -246,10 +246,6 @@ static GstStateChangeReturn gst_surface_video_src_change_state(GstElement *eleme
             break;
         case GST_STATE_CHANGE_READY_TO_PAUSED:
             g_return_val_if_fail(src->capture != nullptr, GST_STATE_CHANGE_FAILURE);
-            g_return_val_if_fail(src->capture->SetVideoHeight(src->surface_height) == MSERR_OK,
-                GST_STATE_CHANGE_FAILURE);
-            g_return_val_if_fail(src->capture->SetVideoWidth(src->surface_width) == MSERR_OK,
-                GST_STATE_CHANGE_FAILURE);
             g_return_val_if_fail(src->capture->Prepare() == MSERR_OK, GST_STATE_CHANGE_FAILURE);
             break;
         case GST_STATE_CHANGE_PAUSED_TO_PLAYING:
