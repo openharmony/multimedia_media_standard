@@ -83,14 +83,19 @@ sptr<Surface> PlayerTest::GetVideoSurface()
     if (mode == "0" || mode == "") {
         return nullptr;
     } else if (mode == "1") {
-        WindowConfig config = {0};
-        config.width = WIDTH;
-        config.height = HEIGHT;
-        config.format = static_cast<int32_t>(PIXEL_FMT_RGBA_8888);
-        config.pos_x = 0;
-        config.pos_y = 0;
-        config.type = static_cast<int32_t>(WINDOW_TYPE_NORMAL);
-        mwindow_ = WindowManager::GetInstance()->CreateWindow(&config);
+        sptr<WindowManager> wmi = WindowManager::GetInstance();
+        if (wmi == nullptr) {
+            cout << "WindowManager is null" << endl;
+            return nullptr;
+        }
+        (void)wmi->Init();
+        sptr<WindowOption> option = WindowOption::Get();
+        if (option == nullptr) {
+            cout << "WindowOption is null" << endl;
+            return nullptr;
+        }
+        (void)option->SetWindowType(WINDOW_TYPE_NORMAL);
+        (void)wmi->CreateWindow(mwindow_, option);
         if (mwindow_ == nullptr) {
             cout << "mwindow_ is null" << endl;
             return nullptr;
