@@ -23,6 +23,18 @@ namespace {
 
 namespace OHOS {
 namespace Media {
+struct AvMemNapiWarp {
+    explicit AvMemNapiWarp(const std::shared_ptr<AVSharedMemory> &mem) : mem_(mem)
+    {
+        MEDIA_LOGD("0x%{public}06" PRIXPTR " AvMemNapiWarp Instances create", FAKE_POINTER(this));
+    };
+    ~AvMemNapiWarp()
+    {
+        MEDIA_LOGD("0x%{public}06" PRIXPTR " AvMemNapiWarp Instances destroy", FAKE_POINTER(this));
+    };
+    std::shared_ptr<AVSharedMemory> mem_;
+};
+
 std::shared_ptr<CallbackWarp> CallbackWarp::Create(napi_env env, const size_t argsCount,
     std::shared_ptr<JsCallback> jsCb)
 {
@@ -76,6 +88,29 @@ int32_t CallbackWarp::SetArg(int64_t arg)
     CHECK_AND_RETURN_RET_LOG(CheckArgv() == MSERR_OK, MSERR_NO_MEMORY, "malloc failed");
     napi_status status = napi_create_int64(env_, arg, &argv_[avgsPos_++]);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, MSERR_INVALID_OPERATION, "create napi val failed");
+    return MSERR_OK;
+}
+
+int32_t CallbackWarp::SetArg(const std::shared_ptr<AVSharedMemory> &mem)
+{
+    CHECK_AND_RETURN_RET_LOG(env_ != nullptr, MSERR_INVALID_OPERATION, "env is nullptr");
+    CHECK_AND_RETURN_RET_LOG(argsCount_ > avgsPos_, MSERR_INVALID_OPERATION, "args num error");
+    CHECK_AND_RETURN_RET_LOG(mem != nullptr && mem->GetBase() != nullptr, MSERR_NO_MEMORY, "AVSharedMemory is null");
+    CHECK_AND_RETURN_RET_LOG(CheckArgv() == MSERR_OK, MSERR_NO_MEMORY, "malloc failed");
+    AvMemNapiWarp *memWarp = new(std::nothrow) AvMemNapiWarp(mem);
+    CHECK_AND_RETURN_RET_LOG(memWarp != nullptr, MSERR_NO_MEMORY, "AvMemNapiWarp is null");
+    napi_status status = napi_create_external_arraybuffer(env_, mem->GetBase(),
+        static_cast<size_t>(mem->GetSize()), [] (napi_env env, void* data, void* hint) {
+            (void)env;
+            (void)data;
+            AvMemNapiWarp *memWarp = reinterpret_cast<AvMemNapiWarp *>(hint);
+            delete memWarp;
+        }, reinterpret_cast<void *>(memWarp), &argv_[avgsPos_++]);
+    if (status != napi_ok) {
+        delete memWarp;
+        MEDIA_LOGE("create napi val failed");
+        return MSERR_INVALID_OPERATION;
+    }
     return MSERR_OK;
 }
 

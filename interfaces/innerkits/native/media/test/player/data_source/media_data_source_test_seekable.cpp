@@ -47,9 +47,6 @@ MediaDataSourceTestSeekable::MediaDataSourceTestSeekable(const std::string &uri)
 MediaDataSourceTestSeekable::~MediaDataSourceTestSeekable()
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
-    if (mem_ != nullptr) {
-        mem_ = nullptr;
-    }
     if (fd_ != nullptr) {
         (void)fclose(fd_);
         fd_ = nullptr;
@@ -66,38 +63,30 @@ int32_t MediaDataSourceTestSeekable::Init()
     return MSERR_OK;
 }
 
-std::shared_ptr<AVSharedMemory> MediaDataSourceTestSeekable::GetMem()
+int32_t MediaDataSourceTestSeekable::ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem)
 {
-    CHECK_AND_RETURN_RET_LOG(mem_ != nullptr, nullptr, "dataSrc_ is nullptr");
-    return mem_;
-}
-
-int32_t MediaDataSourceTestSeekable::ReadAt(int64_t pos, uint32_t length)
-{
-    MEDIA_LOGD("pos %{public}" PRId64 " pos_ %{public}" PRId64 "", pos, pos_);
     if (pos != pos_) {
         (void)fseek(fd_, pos, SEEK_SET);
         pos_ = pos;
     }
     size_t readRet = 0;
+    length = std::min(length, static_cast<uint32_t>(mem->GetSize()));
     int32_t realLen = static_cast<int32_t>(length);
-    const std::string name = "mediaDataTest";
     if (pos_ >= size_) {
         return SOURCE_ERROR_EOF;
     }
-    mem_ = AVSharedMemory::Create(static_cast<int32_t>(length), AVSharedMemory::Flags::FLAGS_READ_ONLY, name);
-    readRet = fread(mem_->GetBase(), static_cast<size_t>(length), static_cast<size_t>(1), fd_);
+    readRet = fread(mem->GetBase(), static_cast<size_t>(length), 1, fd_);
     if (readRet == 0) {
         realLen = static_cast<int32_t>(size_ - pos_);
     }
     MEDIA_LOGD("length %{public}u realLen %{public}d", length, realLen);
-    pos_ += realLen;
     return realLen;
 }
 
-int32_t MediaDataSourceTestSeekable::ReadAt(uint32_t length)
+int32_t MediaDataSourceTestSeekable::ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem)
 {
     (void)length;
+    (void)mem;
     return 0;
 }
 
@@ -106,8 +95,9 @@ int32_t MediaDataSourceTestSeekable::GetSize(int64_t &size)
     (void)fseek(fd_, 0, SEEK_END);
     size = static_cast<int64_t>(ftell(fd_));
     (void)fseek(fd_, 0, SEEK_SET);
-    size_ = static_cast<uint32_t>(size);
+    size_ = size;
     return MSERR_OK;
 }
 } // Media
 } // OHOS
+

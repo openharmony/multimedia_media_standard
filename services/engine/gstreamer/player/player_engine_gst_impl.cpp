@@ -340,8 +340,7 @@ int32_t PlayerEngineGstImpl::SetPlaybackSpeed(PlaybackRateMode mode)
     CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
 
     double rate = ChangeModeToSpeed(mode);
-    playerCtrl_->SetRate(rate);
-    return MSERR_OK;
+    return playerCtrl_->SetRate(rate);
 }
 
 int32_t PlayerEngineGstImpl::GetPlaybackSpeed(PlaybackRateMode &mode)
@@ -360,8 +359,7 @@ int32_t PlayerEngineGstImpl::SetLooping(bool loop)
     CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
 
     MEDIA_LOGI("SetLooping in");
-    playerCtrl_->SetLoop(loop);
-    return MSERR_OK;
+    return playerCtrl_->SetLoop(loop);
 }
 
 int32_t PlayerEngineGstImpl::Stop()
