@@ -29,7 +29,7 @@ public:
     explicit PlayerCallbackNapi(napi_env env);
     virtual ~PlayerCallbackNapi();
     void SaveCallbackReference(const std::string &callbackName, napi_value callback);
-    void SendErrorCallback(napi_env env, MediaServiceExtErrCode errCode, const std::string &info = "unknown");
+    void SendErrorCallback(MediaServiceExtErrCode errCode, const std::string &info = "unknown");
     PlayerStates GetCurrentState() const;
     void OnError(PlayerErrorType errName, int32_t errMsg) override;
     void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody) override;

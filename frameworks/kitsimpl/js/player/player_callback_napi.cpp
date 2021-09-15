@@ -78,30 +78,18 @@ void PlayerCallbackNapi::SaveCallbackReference(const std::string &callbackName, 
 
 void PlayerCallbackNapi::SendErrorCallback(napi_env env, MediaServiceExtErrCode errCode, const std::string &info)
 {
-    MEDIA_LOGE("ErrorCallback: %{public}s", info.c_str());
+    MEDIA_LOGE("in ErrorCallback: %{public}s", info.c_str());
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_LOG(env != nullptr, "env is nullptr");
     CHECK_AND_RETURN_LOG(errorCallback_ != nullptr, "no error callback reference");
 
-    napi_value jsCallback = nullptr;
-    napi_status status = napi_get_reference_value(env, errorCallback_->cb_, &jsCallback);
-    CHECK_AND_RETURN_LOG(status == napi_ok && jsCallback != nullptr, "get reference value fail");
+    PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
+    CHECK_AND_RETURN_LOG(cb != nullptr, "cb is nullptr");
 
-    napi_value msgValStr = nullptr;
-    status = napi_create_string_utf8(env, MSExtErrorToString(errCode).c_str(), NAPI_AUTO_LENGTH, &msgValStr);
-    CHECK_AND_RETURN_LOG(status == napi_ok && msgValStr != nullptr, "create error message str fail");
-
-    napi_value args[1] = { nullptr };
-    status = napi_create_error(env, nullptr, msgValStr, &args[0]);
-    CHECK_AND_RETURN_LOG(status == napi_ok && args[0] != nullptr, "create error callback fail");
-
-    status = CommonNapi::FillErrorArgs(env, static_cast<int32_t>(errCode), args[0]);
-    CHECK_AND_RETURN_LOG(status == napi_ok, "create error callback fail");
-
-    const size_t argCount = 1;
-    napi_value result = nullptr;
-    status = napi_call_function(env, nullptr, jsCallback, argCount, args, &result);
-    CHECK_AND_RETURN_LOG(status == napi_ok, "call error callback fail");
+    cb->callback = errorCallback_;
+    cb->callbackName = info.c_str();
+    cb->errorMsg = MSExtErrorToString(errCode);
+    cb->errorCode = errCode;
+    return OnJsCallBackError(cb);
 }
 
 PlayerStates PlayerCallbackNapi::GetCurrentState() const
