@@ -100,7 +100,7 @@ int32_t CallbackWarp::SetArg(const std::shared_ptr<AVSharedMemory> &mem)
     AvMemNapiWarp *memWarp = new(std::nothrow) AvMemNapiWarp(mem);
     CHECK_AND_RETURN_RET_LOG(memWarp != nullptr, MSERR_NO_MEMORY, "AvMemNapiWarp is null");
     napi_status status = napi_create_external_arraybuffer(env_, mem->GetBase(),
-        static_cast<size_t>(mem->GetSize()), [] (napi_env env, void* data, void* hint) {
+        static_cast<size_t>(mem->GetSize()), [] (napi_env env, void *data, void *hint) {
             (void)env;
             (void)data;
             AvMemNapiWarp *memWarp = reinterpret_cast<AvMemNapiWarp *>(hint);

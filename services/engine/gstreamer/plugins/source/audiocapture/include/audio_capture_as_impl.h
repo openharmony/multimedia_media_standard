@@ -36,7 +36,7 @@ public:
 
 private:
     std::unique_ptr<OHOS::AudioStandard::AudioCapturer> audioCapturer_ = nullptr;
-    size_t bufferSize_ = 0; // minimum size of each buffer acquired from AudioServer 
+    size_t bufferSize_ = 0; // minimum size of each buffer acquired from AudioServer
     uint32_t sequence_ = 0;
     uint64_t bufferDurationNs_ = 0; // each buffer
     uint64_t timestamp_ = 0;

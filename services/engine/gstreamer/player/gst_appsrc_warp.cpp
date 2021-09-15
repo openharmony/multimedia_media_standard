@@ -335,7 +335,7 @@ int32_t GstAppsrcWarp::GetAndPushMem()
     }
     bool copyRet = CopyToGstBuffer(info);
     gst_buffer_unmap(buffer, &info);
-    if (copyRet != true) {
+    if (!copyRet) {
         MEDIA_LOGE("copy buffer failed");
         gst_buffer_unref(buffer);
         ret = MSERR_NO_MEMORY;
