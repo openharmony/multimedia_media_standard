@@ -97,7 +97,6 @@ private:
     bool enableLooping_ = false;
     bool bufferingStart_ = false;
     bool nextSeekFlag_ = false;
-    bool seekInProgress_ = false;
     bool userStop_ = false;
     bool userPause_ = false;
     bool stopTimeFlag_ = false;
