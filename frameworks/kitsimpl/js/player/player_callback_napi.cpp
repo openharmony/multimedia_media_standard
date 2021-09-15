@@ -76,7 +76,7 @@ void PlayerCallbackNapi::SaveCallbackReference(const std::string &callbackName, 
     }
 }
 
-void PlayerCallbackNapi::SendErrorCallback(napi_env env, MediaServiceExtErrCode errCode, const std::string &info)
+void PlayerCallbackNapi::SendErrorCallback(MediaServiceExtErrCode errCode, const std::string &info)
 {
     MEDIA_LOGE("in ErrorCallback: %{public}s", info.c_str());
     std::lock_guard<std::mutex> lock(mutex_);
