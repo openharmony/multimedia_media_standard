@@ -231,19 +231,6 @@ int32_t GstPlayerCtrl::Seek(uint64_t position, const PlayerSeekMode mode)
     return MSERR_OK;
 }
 
-void GstPlayerCtrl::MultipleSeek()
-{
-    seekInProgress_ = false;
-    if (nextSeekFlag_) {
-        nextSeekFlag_ = false;
-        seekInProgress_ = true;
-        auto task = std::make_shared<TaskHandler<void>>(
-            [this, position = nextSeekPos_, mode = nextSeekMode_] { SeekSync(position, mode); }
-        );
-        (void)taskQue_.EnqueueTask(task);
-    }
-}
-
 void GstPlayerCtrl::SeekSync(uint64_t position, const PlayerSeekMode mode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
