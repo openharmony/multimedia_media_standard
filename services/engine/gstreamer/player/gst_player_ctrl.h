@@ -40,11 +40,11 @@ public:
     void Play();
     int32_t Seek(uint64_t position, const PlayerSeekMode mode);
     void Stop(bool cancelNotExecuted = false);
-    void SetLoop(bool loop);
+    int32_t SetLoop(bool loop);
     void SetVolume(const float &leftVolume, const float &rightVolume);
     uint64_t GetPosition();
     uint64_t GetDuration();
-    void SetRate(double rate);
+    int32_t SetRate(double rate);
     double GetRate();
     PlayerStates GetState() const;
     void SetRingBufferMaxSize(uint64_t size);

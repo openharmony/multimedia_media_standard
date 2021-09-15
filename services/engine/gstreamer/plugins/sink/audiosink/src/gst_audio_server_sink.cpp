@@ -64,6 +64,7 @@ static void gst_audio_server_sink_class_init(GstAudioServerSinkClass *klass)
     GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
     GstElementClass *gstelement_class = GST_ELEMENT_CLASS(klass);
     GstBaseSinkClass *gstbasesink_class = GST_BASE_SINK_CLASS(klass);
+    g_return_if_fail((gobject_class != nullptr) && (gstelement_class != nullptr) && (gstbasesink_class != nullptr));
 
     gobject_class->finalize = gst_audio_server_sink_finalize;
     gobject_class->set_property = gst_audio_server_sink_set_property;

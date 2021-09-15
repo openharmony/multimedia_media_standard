@@ -266,7 +266,7 @@ public:
 
     using ElementCreator = std::function<std::shared_ptr<RecorderElement>(const RecorderElement::CreateParam&)>;
 
-    int32_t RegisterElement(std::string key, ElementCreator creator);
+    int32_t RegisterElement(const std::string &key, const ElementCreator creator);
     std::shared_ptr<RecorderElement> CreateElement(const std::string key, const RecorderElement::CreateParam &param);
 
 private:

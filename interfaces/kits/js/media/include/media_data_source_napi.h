@@ -27,9 +27,8 @@ public:
     ~MediaDataSourceNapi();
     DISALLOW_COPY_AND_MOVE(MediaDataSourceNapi);
     static napi_value Init(napi_env env, napi_value exports);
-    std::shared_ptr<AVSharedMemory> GetMem();
-    int32_t ReadAt(int64_t pos, uint32_t length);
-    int32_t ReadAt(uint32_t length);
+    int32_t ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem);
+    int32_t ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem);
     int32_t GetSize(int64_t &size) const;
     int32_t CallbackCheckAndSetNoChange();
     void Release();
@@ -48,7 +47,6 @@ private:
     napi_ref wrapper_ = nullptr;
     std::shared_ptr<CallbackWorks> callbackWorks_ = nullptr;
     std::shared_ptr<JsCallback> readAt_ = nullptr;
-    std::shared_ptr<JsCallback> getMem_ = nullptr;
     int64_t size_ = -1;
     bool noChange_ = false;
 };

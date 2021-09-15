@@ -23,7 +23,7 @@ namespace Media {
 class PlayBin2Ctrler : public PlayBinCtrlerBase {
 public:
     using PlayBinCtrlerBase::PlayBinCtrlerBase;
-    ~PlayBin2Ctrler();
+    virtual ~PlayBin2Ctrler();
 
 protected:
     int32_t OnInit() override;

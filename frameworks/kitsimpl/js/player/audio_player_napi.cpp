@@ -73,23 +73,23 @@ napi_value AudioPlayerNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_GETTER("state", GetState)
     };
 
-    napi_property_descriptor static_prop[] = {
+    napi_property_descriptor staticProperty[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createAudioPlayer", CreateAudioPlayer),
     };
 
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
         sizeof(properties) / sizeof(properties[0]), properties, &constructor);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "define class fail");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "Failed to define AudioPlayer class");
 
     status = napi_create_reference(env, constructor, 1, &constructor_);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "create reference fail");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "Failed to create reference of constructor");
 
     status = napi_set_named_property(env, exports, CLASS_NAME.c_str(), constructor);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "set named property fail");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "Failed to set constructor");
 
-    status = napi_define_properties(env, exports, sizeof(static_prop) / sizeof(static_prop[0]), static_prop);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "define properties fail");
+    status = napi_define_properties(env, exports, sizeof(staticProperty) / sizeof(staticProperty[0]), staticProperty);
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "Failed to define static function");
 
     MEDIA_LOGD("Init success");
     return exports;
@@ -103,16 +103,16 @@ napi_value AudioPlayerNapi::Constructor(napi_env env, napi_callback_info info)
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok) {
         napi_get_undefined(env, &result);
-        MEDIA_LOGE("get callback info fail");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return result;
     }
 
     AudioPlayerNapi *playerNapi = new(std::nothrow) AudioPlayerNapi();
-    CHECK_AND_RETURN_RET_LOG(playerNapi != nullptr, nullptr, "no memory");
+    CHECK_AND_RETURN_RET_LOG(playerNapi != nullptr, nullptr, "No memory");
 
     playerNapi->env_ = env;
     playerNapi->nativePlayer_ = PlayerFactory::CreatePlayer();
-    CHECK_AND_RETURN_RET_LOG(playerNapi->nativePlayer_ != nullptr, nullptr, "nativePlayer_ no memory");
+    CHECK_AND_RETURN_RET_LOG(playerNapi->nativePlayer_ != nullptr, nullptr, "No memory");
 
     if (playerNapi->callbackNapi_ == nullptr) {
         playerNapi->callbackNapi_ = std::make_shared<PlayerCallbackNapi>(env);
@@ -124,7 +124,7 @@ napi_value AudioPlayerNapi::Constructor(napi_env env, napi_callback_info info)
     if (status != napi_ok) {
         napi_get_undefined(env, &result);
         delete playerNapi;
-        MEDIA_LOGE("native wrap fail");
+        MEDIA_LOGE("Failed to wrap native instance");
         return result;
     }
 
@@ -148,14 +148,14 @@ napi_value AudioPlayerNapi::CreateAudioPlayer(napi_env env, napi_callback_info i
     napi_value constructor = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status != napi_ok) {
-        MEDIA_LOGE("get reference value fail");
+        MEDIA_LOGE("Failed to get the representation of constructor object");
         napi_get_undefined(env, &result);
         return result;
     }
 
     status = napi_new_instance(env, constructor, 0, nullptr, &result);
     if (status != napi_ok) {
-        MEDIA_LOGE("new instance fail");
+        MEDIA_LOGE("Failed to instantiate JavaScript audio player instance");
         napi_get_undefined(env, &result);
         return result;
     }
@@ -174,13 +174,13 @@ napi_value AudioPlayerNapi::SetSrc(napi_env env, napi_callback_info info)
     size_t argCount = 1;
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr || args[0] == nullptr) {
-        MEDIA_LOGE("SetSrc fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
     AudioPlayerNapi *player = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_string) {
@@ -190,7 +190,7 @@ napi_value AudioPlayerNapi::SetSrc(napi_env env, napi_callback_info info)
     }
 
     player->uri_ = CommonNapi::GetStringArgument(env, args[0]);
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "nativePlayer_ no memory");
+    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->SetSource(player->uri_);
     if (ret != MSERR_OK) {
         player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
@@ -218,7 +218,7 @@ napi_value AudioPlayerNapi::GetSrc(napi_env env, napi_callback_info info)
 
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
-        MEDIA_LOGE("GetSrc fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
@@ -247,12 +247,12 @@ napi_value AudioPlayerNapi::SetMediaDataSrc(napi_env env, napi_callback_info inf
     size_t argCount = 1;
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsThis != nullptr && args[0] != nullptr,
-        undefinedResult, "get player napi error");
+        undefinedResult, "Failed to retrieve details about the callback");
 
     AudioPlayerNapi *player = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "nativePlayer_ no memory");
+    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     if (player->dataSrcCallBack_ != nullptr) {
         player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
         return undefinedResult;
@@ -293,10 +293,11 @@ napi_value AudioPlayerNapi::GetMediaDataSrc(napi_env env, napi_callback_info inf
     size_t argCount = 0;
 
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsThis != nullptr, undefinedResult, "get player napi error");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsThis != nullptr,
+        undefinedResult, "Failed to retrieve details about the callback");
 
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
     if (player->dataSrcCallBack_ == nullptr) {
         player->ErrorCallback(env, MSERR_EXT_NO_MEMORY);
@@ -304,7 +305,7 @@ napi_value AudioPlayerNapi::GetMediaDataSrc(napi_env env, napi_callback_info inf
     }
 
     jsResult = player->dataSrcCallBack_->GetDataSrc();
-    CHECK_AND_RETURN_RET_LOG(jsResult != nullptr, undefinedResult, "get reference value fail");
+    CHECK_AND_RETURN_RET_LOG(jsResult != nullptr, undefinedResult, "Failed to get the representation of src object");
 
     MEDIA_LOGD("GetMediaDataSrc success");
     return jsResult;
@@ -319,7 +320,7 @@ napi_value AudioPlayerNapi::Play(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
-        MEDIA_LOGE("Play fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
@@ -327,7 +328,7 @@ napi_value AudioPlayerNapi::Play(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "nativePlayer_ no memory");
+    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->Play();
     if (ret != MSERR_OK) {
         player->ErrorCallback(env, MSERR_EXT_UNKNOWN);
@@ -346,7 +347,7 @@ napi_value AudioPlayerNapi::Pause(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
-        MEDIA_LOGE("Pause fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
@@ -354,7 +355,7 @@ napi_value AudioPlayerNapi::Pause(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "nativePlayer_ no memory");
+    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->Pause();
     if (ret != MSERR_OK) {
         player->ErrorCallback(env, MSERR_EXT_UNKNOWN);
@@ -373,7 +374,7 @@ napi_value AudioPlayerNapi::Stop(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
-        MEDIA_LOGE("Stop fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
@@ -381,7 +382,7 @@ napi_value AudioPlayerNapi::Stop(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "nativePlayer_ no memory");
+    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->Stop();
     if (ret != MSERR_OK) {
         player->ErrorCallback(env, MSERR_EXT_UNKNOWN);
@@ -401,7 +402,7 @@ napi_value AudioPlayerNapi::Reset(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
-        MEDIA_LOGE("Reset fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
@@ -409,7 +410,7 @@ napi_value AudioPlayerNapi::Reset(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "nativePlayer_ no memory");
+    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     if (player->dataSrcCallBack_ != nullptr) {
         player->dataSrcCallBack_->Release();
     }
@@ -432,7 +433,7 @@ napi_value AudioPlayerNapi::Release(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
-        MEDIA_LOGE("Release fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
@@ -440,7 +441,7 @@ napi_value AudioPlayerNapi::Release(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "nativePlayer_ no memory");
+    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     if (player->dataSrcCallBack_ != nullptr) {
         player->dataSrcCallBack_->Release();
     }
@@ -467,13 +468,13 @@ napi_value AudioPlayerNapi::Seek(napi_env env, napi_callback_info info)
 
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr || args[0] == nullptr) {
-        MEDIA_LOGE("Seek fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
     AudioPlayerNapi *player = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_number) {
@@ -488,7 +489,7 @@ napi_value AudioPlayerNapi::Seek(napi_env env, napi_callback_info info)
         return undefinedResult;
     }
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "nativePlayer_ no memory");
+    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->Seek(position, SEEK_PREVIOUS_SYNC);
     if (ret != MSERR_OK) {
         player->ErrorCallback(env, MSERR_EXT_UNKNOWN);
@@ -510,13 +511,13 @@ napi_value AudioPlayerNapi::SetVolume(napi_env env, napi_callback_info info)
 
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr || args[0] == nullptr) {
-        MEDIA_LOGE("SetVolume fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
     AudioPlayerNapi *player = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_number) {
@@ -531,7 +532,7 @@ napi_value AudioPlayerNapi::SetVolume(napi_env env, napi_callback_info info)
         return undefinedResult;
     }
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "nativePlayer_ no memory");
+    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->SetVolume(static_cast<float>(volumeLevel), static_cast<float>(volumeLevel));
     if (ret != MSERR_OK) {
         player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
@@ -552,13 +553,13 @@ napi_value AudioPlayerNapi::On(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr || args[0] == nullptr || args[1] == nullptr) {
-        MEDIA_LOGE("On fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
     AudioPlayerNapi *player = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
     napi_valuetype valueType0 = napi_undefined;
     napi_valuetype valueType1 = napi_undefined;
@@ -587,13 +588,13 @@ napi_value AudioPlayerNapi::SetLoop(napi_env env, napi_callback_info info)
 
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr || args[0] == nullptr) {
-        MEDIA_LOGE("SetLoop fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
     AudioPlayerNapi *player = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_boolean) {
@@ -605,7 +606,7 @@ napi_value AudioPlayerNapi::SetLoop(napi_env env, napi_callback_info info)
     status = napi_get_value_bool(env, args[0], &loopFlag);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_get_value_bool error");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "nativePlayer_ no memory");
+    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->SetLooping(loopFlag);
     if (ret != MSERR_OK) {
         player->ErrorCallback(env, MSERR_EXT_UNKNOWN);
@@ -627,15 +628,15 @@ napi_value AudioPlayerNapi::GetLoop(napi_env env, napi_callback_info info)
     size_t argCount = 0;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
-        MEDIA_LOGE("GetLoop fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
     AudioPlayerNapi *player = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "nativePlayer_ no memory");
+    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     bool loopFlag = player->nativePlayer_->IsLooping();
 
     status = napi_get_boolean(env, loopFlag, &jsResult);
@@ -654,15 +655,15 @@ napi_value AudioPlayerNapi::GetCurrentTime(napi_env env, napi_callback_info info
     size_t argCount = 0;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
-        MEDIA_LOGE("GetCurrentTime fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
     AudioPlayerNapi *player = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "nativePlayer_ no memory");
+    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t currentTime = -1;
     int32_t ret = player->nativePlayer_->GetCurrentTime(currentTime);
     if (ret != MSERR_OK || currentTime < 0) {
@@ -688,15 +689,15 @@ napi_value AudioPlayerNapi::GetDuration(napi_env env, napi_callback_info info)
     size_t argCount = 0;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
-        MEDIA_LOGE("GetDuration fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
     AudioPlayerNapi *player = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "nativePlayer_ no memory");
+    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t duration = -1;
     int32_t ret = player->nativePlayer_->GetDuration(duration);
     if (ret != MSERR_OK || duration < 0) {
@@ -754,11 +755,11 @@ napi_value AudioPlayerNapi::GetState(napi_env env, napi_callback_info info)
 
     size_t argCount = 0;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_get_cb_info error");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "Failed to retrieve details about the callback");
 
     AudioPlayerNapi *player = nullptr;
     status = napi_unwrap(env, jsThis, (void **)&player);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_unwrap error");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "Failed to retrieve instance");
 
     if (player->callbackNapi_ == nullptr) {
         return undefinedResult;

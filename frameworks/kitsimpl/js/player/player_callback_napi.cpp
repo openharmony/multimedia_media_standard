@@ -72,7 +72,7 @@ void PlayerCallbackNapi::SaveCallbackReference(const std::string &callbackName, 
     } else if (callbackName == VOL_CHANGE_CALLBACK_NAME) {
         volumeChangeCallback_ = cb;
     } else {
-        MEDIA_LOGE("unknown callback: %{public}s", callbackName.c_str());
+        MEDIA_LOGW("Unknown callback type: %{public}s", callbackName.c_str());
     }
 }
 
@@ -101,10 +101,10 @@ void PlayerCallbackNapi::OnError(PlayerErrorType errorType, int32_t errorCode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGD("OnError is called, name: %{public}d, message: %{public}d", errorType, errorCode);
-    CHECK_AND_RETURN_LOG(errorCallback_ != nullptr, "errorCallback_ is nullptr");
+    CHECK_AND_RETURN_LOG(errorCallback_ != nullptr, "Cannot find the reference of error callback");
 
     PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
-    CHECK_AND_RETURN_LOG(cb != nullptr, "cb is nullptr");
+    CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
     cb->callback = errorCallback_;
     cb->callbackName = ERROR_CALLBACK_NAME;
     cb->errorMsg = MSErrorToString(static_cast<MediaServiceErrCode>(errorCode));
@@ -144,10 +144,10 @@ void PlayerCallbackNapi::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
 void PlayerCallbackNapi::OnSeekDoneCb(int32_t currentPositon)
 {
     MEDIA_LOGD("OnSeekDone is called, currentPositon: %{public}d", currentPositon);
-    CHECK_AND_RETURN_LOG(timeUpdateCallback_ != nullptr, "timeUpdateCallback_ is nullptr");
+    CHECK_AND_RETURN_LOG(timeUpdateCallback_ != nullptr, "Cannot find the reference of timeUpdate callback");
 
     PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
-    CHECK_AND_RETURN_LOG(cb != nullptr, "cb is nullptr");
+    CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
     cb->callback = timeUpdateCallback_;
     cb->callbackName = TIME_UPDATE_CALLBACK_NAME;
     cb->position = currentPositon;
@@ -157,10 +157,10 @@ void PlayerCallbackNapi::OnSeekDoneCb(int32_t currentPositon)
 void PlayerCallbackNapi::OnEosCb(int32_t isLooping)
 {
     MEDIA_LOGD("OnEndOfStream is called, isloop: %{public}d", isLooping);
-    CHECK_AND_RETURN_LOG(finishCallback_ != nullptr, "finishCallback_ is nullptr");
+    CHECK_AND_RETURN_LOG(finishCallback_ != nullptr, "Cannot find the reference of finish callback");
 
     PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
-    CHECK_AND_RETURN_LOG(cb != nullptr, "cb is nullptr");
+    CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
     cb->callback = finishCallback_;
     cb->callbackName = FINISH_CALLBACK_NAME;
     return OnJsCallBack(cb);
@@ -199,9 +199,9 @@ void PlayerCallbackNapi::OnStateChangeCb(PlayerStates state)
             callbackName = "unknown";
             break;
     }
-    CHECK_AND_RETURN_LOG(callback != nullptr, "callback is nullptr");
+    CHECK_AND_RETURN_LOG(callback != nullptr, "Cannot find the reference of callback");
     PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
-    CHECK_AND_RETURN_LOG(cb != nullptr, "cb is nullptr");
+    CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
     cb->callback = callback;
     cb->callbackName = callbackName;
     return OnJsCallBack(cb);
@@ -220,10 +220,10 @@ void PlayerCallbackNapi::OnMessageCb(int32_t type) const
 void PlayerCallbackNapi::OnVolumeChangeCb()
 {
     MEDIA_LOGD("OnVolumeChangeCb in");
-    CHECK_AND_RETURN_LOG(volumeChangeCallback_ != nullptr, "volumeChangeCallback_ is nullptr");
+    CHECK_AND_RETURN_LOG(volumeChangeCallback_ != nullptr, "Cannot find the reference of volumeChange callback");
 
     PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
-    CHECK_AND_RETURN_LOG(cb != nullptr, "cb is nullptr");
+    CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
     cb->callback = volumeChangeCallback_;
     cb->callbackName = VOL_CHANGE_CALLBACK_NAME;
     return OnJsCallBack(cb);
@@ -233,10 +233,14 @@ void PlayerCallbackNapi::OnJsCallBack(PlayerJsCallback *jsCb)
 {
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
+    if (loop == nullptr) {
+        delete jsCb;
+        return;
+    }
 
     uv_work_t *work = new(std::nothrow) uv_work_t;
     if (work == nullptr) {
-        MEDIA_LOGE("fail to new uv_work_t");
+        MEDIA_LOGE("No memory");
         delete jsCb;
         return;
     }
@@ -265,7 +269,7 @@ void PlayerCallbackNapi::OnJsCallBack(PlayerJsCallback *jsCb)
         delete work;
     });
     if (ret != 0) {
-        MEDIA_LOGE("fail to uv_queue_work task");
+        MEDIA_LOGE("Failed to execute libuv work queue");
         delete jsCb;
         delete work;
     }
@@ -275,10 +279,14 @@ void PlayerCallbackNapi::OnJsCallBackError(PlayerJsCallback *jsCb)
 {
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
+    if (loop == nullptr) {
+        delete jsCb;
+        return;
+    }
 
     uv_work_t *work = new(std::nothrow) uv_work_t;
     if (work == nullptr) {
-        MEDIA_LOGE("fail to new uv_work_t");
+        MEDIA_LOGE("No memory");
         delete jsCb;
         return;
     }
@@ -319,7 +327,7 @@ void PlayerCallbackNapi::OnJsCallBackError(PlayerJsCallback *jsCb)
         delete work;
     });
     if (ret != 0) {
-        MEDIA_LOGE("fail to uv_queue_work task");
+        MEDIA_LOGE("Failed to execute libuv work queue");
         delete jsCb;
         delete work;
     }
@@ -329,10 +337,14 @@ void PlayerCallbackNapi::OnJsCallBackPosition(PlayerJsCallback *jsCb)
 {
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
+    if (loop == nullptr) {
+        delete jsCb;
+        return;
+    }
 
     uv_work_t *work = new(std::nothrow) uv_work_t;
     if (work == nullptr) {
-        MEDIA_LOGE("fail to new uv_work_t");
+        MEDIA_LOGE("No memory");
         delete jsCb;
         return;
     }
@@ -368,7 +380,7 @@ void PlayerCallbackNapi::OnJsCallBackPosition(PlayerJsCallback *jsCb)
         delete work;
     });
     if (ret != 0) {
-        MEDIA_LOGE("fail to uv_queue_work task");
+        MEDIA_LOGE("Failed to execute libuv work queue");
         delete jsCb;
         delete work;
     }

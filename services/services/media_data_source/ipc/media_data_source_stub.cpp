@@ -20,7 +20,7 @@
 #include "avsharedmemory_ipc.h"
 
 namespace {
-constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaDataSourceStubProxy"};
+constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaDataSourceStub"};
 }
 
 namespace OHOS {
@@ -42,14 +42,16 @@ int MediaDataSourceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mes
     switch (code) {
         case ListenerMsg::READ_AT: {
             uint32_t length = data.ReadUint32();
-            int32_t realLen = ReadAt(length);
+            std::shared_ptr<AVSharedMemory> mem = ReadAVSharedMemoryFromParcel(data);
+            int32_t realLen = ReadAt(length, mem);
             reply.WriteInt32(realLen);
             return MSERR_OK;
         }
         case ListenerMsg::READ_AT_POS: {
             int64_t pos = data.ReadInt64();
             uint32_t length = data.ReadUint32();
-            int32_t realLen = ReadAt(pos, length);
+            std::shared_ptr<AVSharedMemory> mem = ReadAVSharedMemoryFromParcel(data);
+            int32_t realLen = ReadAt(pos, length, mem);
             reply.WriteInt32(realLen);
             return MSERR_OK;
         }
@@ -60,10 +62,6 @@ int MediaDataSourceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mes
             reply.WriteInt32(ret);
             return MSERR_OK;
         }
-        case ListenerMsg::GET_MEM: {
-            std::shared_ptr<AVSharedMemory> mem = GetMem();
-            return WriteAVSharedMemoryToParcel(mem, reply);
-        }
         default: {
             MEDIA_LOGE("default case, need check MediaDataSourceStub");
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
@@ -71,22 +69,16 @@ int MediaDataSourceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mes
     }
 }
 
-std::shared_ptr<AVSharedMemory> MediaDataSourceStub::GetMem()
-{
-    CHECK_AND_RETURN_RET_LOG(dataSrc_ != nullptr, nullptr, "dataSrc_ is nullptr");
-    return dataSrc_->GetMem();
-}
-
-int32_t MediaDataSourceStub::ReadAt(int64_t pos, uint32_t length)
+int32_t MediaDataSourceStub::ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem)
 {
     CHECK_AND_RETURN_RET_LOG(dataSrc_ != nullptr, SOURCE_ERROR_IO, "dataSrc_ is nullptr");
-    return dataSrc_->ReadAt(pos, length);
+    return dataSrc_->ReadAt(pos, length, mem);
 }
 
-int32_t MediaDataSourceStub::ReadAt(uint32_t length)
+int32_t MediaDataSourceStub::ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem)
 {
     CHECK_AND_RETURN_RET_LOG(dataSrc_ != nullptr, SOURCE_ERROR_IO, "dataSrc_ is nullptr");
-    return dataSrc_->ReadAt(length);
+    return dataSrc_->ReadAt(length, mem);
 }
 
 int32_t MediaDataSourceStub::GetSize(int64_t &size)

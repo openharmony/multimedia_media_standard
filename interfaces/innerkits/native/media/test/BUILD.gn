@@ -24,6 +24,7 @@ ohos_executable("media_test") {
     "//foundation/multimedia/media_standard/services/avmetadatahelper/server/include",
     "//graphic/standard/interfaces/innerkits/surface",
     "//foundation/graphic/standard/interfaces/innerkits/wmclient",
+    "//drivers/peripheral/display/interfaces/include"
   ]
 
   cflags = [
@@ -59,6 +60,7 @@ ohos_executable("media_test") {
     "//foundation/graphic/standard:libsurface",
     "//utils/native/base:utils",
     "//foundation/graphic/standard:libwmclient",
+    "//foundation/graphic/standard/frameworks/surface:surface",
   ]
   external_deps = [
     "multimedia_media_standard:media_client",
