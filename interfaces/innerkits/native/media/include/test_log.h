@@ -25,7 +25,7 @@ namespace OHOS {
             (void)printf("%s\n", fmt, ##__VA_ARGS__);             \
             return ret;                                         \
         }                                                       \
-    } while (0);
+    } while (0)
 
 #define TEST_CHECK_AND_RETURN_LOG(cond, fmt, ...)               \
     do {                                                        \
@@ -33,7 +33,7 @@ namespace OHOS {
             (void)printf("%s\n", fmt, ##__VA_ARGS__);             \
             return;                                             \
         }                                                       \
-    } while (0);
+    } while (0)
 
 #define TEST_CHECK_AND_BREAK_LOG(cond, fmt, ...)                \
         if (!(cond)) {                                          \
