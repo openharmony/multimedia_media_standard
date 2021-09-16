@@ -63,85 +63,75 @@ void RecorderCallbackNapi::SaveCallbackReference(const std::string &callbackName
     } else if (callbackName == RELEASE_CALLBACK_NAME) {
         releaseCallback_ = cb;
     } else {
-        MEDIA_LOGE("unknown callback: %{public}s", callbackName.c_str());
+        MEDIA_LOGW("Unknown callback type: %{public}s", callbackName.c_str());
         return;
     }
 }
 
 void RecorderCallbackNapi::SendErrorCallback(napi_env env, MediaServiceExtErrCode errCode)
 {
+    (void)env;
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_LOG(env != nullptr, "env is nullptr");
-    CHECK_AND_RETURN_LOG(errorCallback_ != nullptr, "no error callback reference");
+    CHECK_AND_RETURN_LOG(env != nullptr, "Cannot find context");
+    CHECK_AND_RETURN_LOG(errorCallback_ != nullptr, "Cannot find the reference of error callback");
 
-    napi_value jsCallback = nullptr;
-    napi_status status = napi_get_reference_value(env, errorCallback_->cb_, &jsCallback);
-    CHECK_AND_RETURN_LOG(status == napi_ok && jsCallback != nullptr, "get reference value fail");
+    RecordJsCallback *cb = new(std::nothrow) RecordJsCallback();
+    CHECK_AND_RETURN_LOG(cb != nullptr, "cb is nullptr");
+    cb->callback = errorCallback_;
+    cb->callbackName = ERROR_CALLBACK_NAME;
+    cb->errorMsg = MSExtErrorToString(errCode);
+    cb->errorCode = errCode;
+    return OnJsErrorCallBack(cb);
+}
 
-    napi_value msgValStr = nullptr;
-    status = napi_create_string_utf8(env, MSExtErrorToString(errCode).c_str(), NAPI_AUTO_LENGTH, &msgValStr);
-    CHECK_AND_RETURN_LOG(status == napi_ok && msgValStr != nullptr, "create error message str fail");
-
-    napi_value args[1] = { nullptr };
-    status = napi_create_error(env, nullptr, msgValStr, &args[0]);
-    CHECK_AND_RETURN_LOG(status == napi_ok && args[0] != nullptr, "create error callback fail");
-
-    status = CommonNapi::FillErrorArgs(env, static_cast<int32_t>(errCode), args[0]);
-    CHECK_AND_RETURN_LOG(status == napi_ok, "create error callback fail");
-
-    const size_t argCount = 1;
-    napi_value result = nullptr;
-    status = napi_call_function(env, nullptr, jsCallback, argCount, args, &result);
-    CHECK_AND_RETURN_LOG(status == napi_ok, "call error callback fail");
+std::shared_ptr<AutoRef> RecorderCallbackNapi::StateCallbackSelect(const std::string &callbackName) const
+{
+    CHECK_AND_RETURN_RET_LOG(!callbackName.empty(), nullptr, "illegal callbackname");
+    if (callbackName == PREPARE_CALLBACK_NAME) {
+        return prepareCallback_;
+    } else if (callbackName == START_CALLBACK_NAME) {
+        return startCallback_;
+    } else if (callbackName == PAUSE_CALLBACK_NAME) {
+        return pauseCallback_;
+    } else if (callbackName == RESUME_CALLBACK_NAME) {
+        return resumeCallback_;
+    } else if (callbackName == STOP_CALLBACK_NAME) {
+        return stopCallback_;
+    } else if (callbackName == RESET_CALLBACK_NAME) {
+        return resetCallback_;
+    } else if (callbackName == RELEASE_CALLBACK_NAME) {
+        return releaseCallback_;
+    } else {
+        MEDIA_LOGW("Unknown callback type: %{public}s", callbackName.c_str());
+        return nullptr;
+    }
 }
 
 void RecorderCallbackNapi::SendCallback(napi_env env, const std::string &callbackName)
 {
     std::shared_ptr<AutoRef> callbackRef = nullptr;
-    if (callbackName == PREPARE_CALLBACK_NAME) {
-        callbackRef = prepareCallback_;
-    } else if (callbackName == START_CALLBACK_NAME) {
-        callbackRef = startCallback_;
-    } else if (callbackName == PAUSE_CALLBACK_NAME) {
-        callbackRef = pauseCallback_;
-    } else if (callbackName == RESUME_CALLBACK_NAME) {
-        callbackRef = resumeCallback_;
-    } else if (callbackName == STOP_CALLBACK_NAME) {
-        callbackRef = stopCallback_;
-    } else if (callbackName == RESET_CALLBACK_NAME) {
-        callbackRef = resetCallback_;
-    } else if (callbackName == RELEASE_CALLBACK_NAME) {
-        callbackRef = releaseCallback_;
-    } else {
-        MEDIA_LOGE("unknown callback: %{public}s", callbackName.c_str());
-        return;
-    }
-
+    callbackRef = StateCallbackSelect(callbackName);
     CHECK_AND_RETURN_LOG(callbackRef != nullptr, "no callback reference");
-    napi_value jsCallback = nullptr;
-    napi_status status = napi_get_reference_value(env, callbackRef->cb_, &jsCallback);
-    CHECK_AND_RETURN_LOG(status == napi_ok && jsCallback != nullptr, "get reference value fail");
-
-    napi_value result = nullptr;
-    status = napi_call_function(env, nullptr, jsCallback, 0, nullptr, &result);
-    CHECK_AND_RETURN_LOG(status == napi_ok, "send callback fail");
-
-    MEDIA_LOGD("send callback success");
+    RecordJsCallback *cb = new(std::nothrow) RecordJsCallback();
+    CHECK_AND_RETURN_LOG(cb != nullptr, "cb is nullptr");
+    cb->callback = callbackRef;
+    cb->callbackName = callbackName;
+    return OnJsStateCallBack(cb);
 }
 
 void RecorderCallbackNapi::OnError(RecorderErrorType errorType, int32_t errCode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGD("OnError is called, name: %{public}d, error message: %{public}d", errorType, errCode);
-    CHECK_AND_RETURN_LOG(errorCallback_ != nullptr, "errorCallback_ is nullptr");
+    CHECK_AND_RETURN_LOG(errorCallback_ != nullptr, "Cannot find the reference of error callback");
 
     RecordJsCallback *cb = new(std::nothrow) RecordJsCallback();
-    CHECK_AND_RETURN_LOG(cb != nullptr, "cb is nullptr");
+    CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
     cb->callback = errorCallback_;
     cb->callbackName = ERROR_CALLBACK_NAME;
-    cb->errorMsg = MSErrorToString(static_cast<MediaServiceErrCode>(errorType));
+    cb->errorMsg = MSErrorToString(static_cast<MediaServiceErrCode>(errCode));
     cb->errorCode = MSErrorToExtError(static_cast<MediaServiceErrCode>(errCode));
-    return ErrorCallbackToJS(cb);
+    return OnJsErrorCallBack(cb);
 }
 
 void RecorderCallbackNapi::OnInfo(int32_t type, int32_t extra)
@@ -149,14 +139,60 @@ void RecorderCallbackNapi::OnInfo(int32_t type, int32_t extra)
     MEDIA_LOGD("OnInfo() is called, type: %{public}d, extra: %{public}d", type, extra);
 }
 
-void RecorderCallbackNapi::ErrorCallbackToJS(RecordJsCallback *jsCb)
+void RecorderCallbackNapi::OnJsStateCallBack(RecordJsCallback *jsCb)
+{
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(env_, &loop);
+    if (loop == nullptr) {
+        MEDIA_LOGE("fail to get uv event loop");
+        delete jsCb;
+        return;
+    }
+
+    uv_work_t *work = new(std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        MEDIA_LOGE("fail to new uv_work_t");
+        delete jsCb;
+        return;
+    }
+
+    work->data = reinterpret_cast<void *>(jsCb);
+    int ret = uv_queue_work(loop, work, [] (uv_work_t *work) {}, [] (uv_work_t *work, int status) {
+        // Js Thread
+        RecordJsCallback *event = reinterpret_cast<RecordJsCallback *>(work->data);
+        std::string request = event->callbackName;
+        napi_env env = event->callback->env_;
+        napi_ref callback = event->callback->cb_;
+        MEDIA_LOGD("OnJsStateCallBack %{public}s, uv_queue_work start", request.c_str());
+        do {
+            CHECK_AND_BREAK_LOG(status != UV_ECANCELED, "%{public}s canceled", request.c_str());
+            napi_value jsCallback = nullptr;
+            napi_status nstatus = napi_get_reference_value(env, callback, &jsCallback);
+            CHECK_AND_BREAK_LOG(nstatus == napi_ok && jsCallback != nullptr, "%{public}s get reference value fail",
+                request.c_str());
+            // Call back function
+            napi_value result = nullptr;
+            nstatus = napi_call_function(env, nullptr, jsCallback, 0, nullptr, &result);
+            CHECK_AND_BREAK_LOG(nstatus == napi_ok, "%{public}s fail to napi call function", request.c_str());
+        } while (0);
+        delete event;
+        delete work;
+    });
+    if (ret != 0) {
+        MEDIA_LOGE("fail to uv_queue_work task");
+        delete jsCb;
+        delete work;
+    }
+}
+
+void RecorderCallbackNapi::OnJsErrorCallBack(RecordJsCallback *jsCb)
 {
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
 
     uv_work_t *work = new(std::nothrow) uv_work_t;
     if (work == nullptr) {
-        MEDIA_LOGE("fail to new uv_work_t");
+        MEDIA_LOGE("No memory");
         delete jsCb;
         return;
     }
@@ -200,7 +236,7 @@ void RecorderCallbackNapi::ErrorCallbackToJS(RecordJsCallback *jsCb)
         delete work;
     });
     if (ret != 0) {
-        MEDIA_LOGE("fail to uv_queue_work task");
+        MEDIA_LOGE("Failed to execute libuv work queue");
         delete jsCb;
         delete work;
     }

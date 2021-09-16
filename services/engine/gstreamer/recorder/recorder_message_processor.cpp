@@ -14,7 +14,6 @@
  */
 
 #include "recorder_message_processor.h"
-#include <gst/gst.h>
 #include "recorder_inner_defines.h"
 #include "media_errors.h"
 #include "media_log.h"
@@ -36,31 +35,27 @@ namespace Media {
 RecorderMsgProcResult RecorderMsgHandler::ProcessInfoMsgDefault(GstMessage &msg, RecorderMessage &prettyMsg)
 {
     (void)prettyMsg;
-    RecorderMsgProcResult ret = RecorderMsgProcResult::REC_MSG_PROC_IGNORE;
 
     GstInfoMsgParser parser(msg);
     CHECK_AND_RETURN_RET(parser.InitCheck(), RecorderMsgProcResult::REC_MSG_PROC_FAILED);
     MEDIA_LOGI("[INFO] %{public}s, %{public}s", parser.GetErr()->message, parser.GetDbg());
 
-    return ret;
+    return RecorderMsgProcResult::REC_MSG_PROC_IGNORE;
 }
 
 RecorderMsgProcResult RecorderMsgHandler::ProcessWarningMsgDefault(GstMessage &msg, RecorderMessage &prettyMsg)
 {
     (void)prettyMsg;
-    RecorderMsgProcResult ret = RecorderMsgProcResult::REC_MSG_PROC_IGNORE;
 
     GstWarningMsgParser parser(msg);
     CHECK_AND_RETURN_RET(parser.InitCheck(), RecorderMsgProcResult::REC_MSG_PROC_FAILED);
     MEDIA_LOGW("[WARNING] %{public}s, %{public}s", parser.GetErr()->message, parser.GetDbg());
 
-    return ret;
+    return RecorderMsgProcResult::REC_MSG_PROC_IGNORE;
 }
 
 RecorderMsgProcResult RecorderMsgHandler::ProcessErrorMsgDefault(GstMessage &msg, RecorderMessage &prettyMsg)
 {
-    RecorderMsgProcResult ret = RecorderMsgProcResult::REC_MSG_PROC_OK;
-
     GstErrorMsgParser parser(msg);
     CHECK_AND_RETURN_RET(parser.InitCheck(), RecorderMsgProcResult::REC_MSG_PROC_FAILED);
     MEDIA_LOGE("[ERROR] %{public}s, %{public}s", parser.GetErr()->message, parser.GetDbg());
@@ -69,7 +64,7 @@ RecorderMsgProcResult RecorderMsgHandler::ProcessErrorMsgDefault(GstMessage &msg
     prettyMsg.code = IRecorderEngineObs::ErrorType::ERROR_INTERNAL;
     prettyMsg.detail = MSERR_UNKNOWN;
 
-    return ret;
+    return RecorderMsgProcResult::REC_MSG_PROC_OK;
 }
 
 static RecorderMsgProcResult ProcessFeatureMessage(GstMessage &msg, RecorderMessage &prettyMsg)
@@ -86,7 +81,10 @@ static RecorderMsgProcResult ProcessFeatureMessage(GstMessage &msg, RecorderMess
 
 static RecorderMsgProcResult ProcessStateChangedMessage(GstMessage &msg, RecorderMessage &prettyMsg)
 {
-    GstState oldState, newState, pendingState;
+    GstState oldState = GST_STATE_NULL;
+    GstState newState = GST_STATE_NULL;
+    GstState pendingState = GST_STATE_NULL;
+
     gst_message_parse_state_changed(&msg, &oldState, &newState, &pendingState);
     MEDIA_LOGI("%{public}s finished state change, oldState: %{public}s, newState: %{public}s",
                GST_ELEMENT_NAME(msg.src), gst_element_state_get_name(oldState),
@@ -116,7 +114,7 @@ gboolean RecorderMsgProcessor::BusCallback(GstBus *bus, GstMessage *msg, gpointe
 {
     (void)bus;
 
-    RecorderMsgProcessor *processor = (RecorderMsgProcessor *)data;
+    RecorderMsgProcessor *processor = reinterpret_cast<RecorderMsgProcessor *>(data);
     if (processor == nullptr) {
         MEDIA_LOGE("processor is nullptr !");
         return FALSE;

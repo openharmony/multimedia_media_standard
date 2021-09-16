@@ -16,6 +16,7 @@
 #include <climits>
 #include <iostream>
 #include "player_test.h"
+#include "recorder_test.h"
 #include "avmetadatahelper_test.h"
 
 using namespace OHOS;
@@ -35,9 +36,14 @@ static int TestPlayer(const string &path)
     return 0;
 }
 
-static int TestRecorder(const string &path)
+static int TestRecorder()
 {
-    (void)path;
+    auto recorderTest = std::make_unique<RecorderTest>();
+    if (recorderTest == nullptr) {
+        cout << "recorderTest is null" << endl;
+        return 0;
+    }
+    recorderTest->TestCase();
     cout << "test recorder end" << endl;
     return 0;
 }
@@ -70,7 +76,7 @@ int main(int argc, char *argv[])
     if (mode == "" || mode == "0") {
         (void)TestPlayer(path);
     } else if (mode == "1") {
-        (void)TestRecorder(path);
+        (void)TestRecorder();
     } else if (mode == "2") {
         (void)TestAVMetadataHelper(path);
     } else {

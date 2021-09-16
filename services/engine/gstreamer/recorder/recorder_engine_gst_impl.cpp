@@ -15,7 +15,6 @@
 
 #include "recorder_engine_gst_impl.h"
 #include "media_errors.h"
-#include "surface.h"
 #include "media_log.h"
 #include "recorder_private_param.h"
 
@@ -86,7 +85,7 @@ int32_t RecorderEngineGstImpl::SetAudioSource(AudioSourceType source, int32_t &s
 
     if (source <= AUDIO_SOURCE_INVALID || source > AUDIO_VOICE_PERFORMANCE) {
         MEDIA_LOGE("Input AudioSourceType : %{public}d is invalid", source);
-        return MSERR_INVALID_OPERATION;
+        return MSERR_INVALID_VAL;
     }
 
     if (source == AudioSourceType::AUDIO_SOURCE_DEFAULT) {

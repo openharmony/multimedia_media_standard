@@ -23,7 +23,6 @@ namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaDataSourceNapi"};
     const std::string CLASS_NAME = "MediaDataSource";
     const std::string READ_AT_CALLBACK_NAME = "readAt";
-    const std::string GET_MEM_CALLBACK_NAME = "getMem";
 }
 
 namespace OHOS {
@@ -38,7 +37,6 @@ MediaDataSourceNapi::MediaDataSourceNapi()
 MediaDataSourceNapi::~MediaDataSourceNapi()
 {
     readAt_ = nullptr;
-    getMem_ = nullptr;
     if (wrapper_ != nullptr) {
         napi_delete_reference(env_, wrapper_);
     }
@@ -155,9 +153,6 @@ void MediaDataSourceNapi::SaveCallbackReference(napi_env env, const std::string 
     if (callbackName == READ_AT_CALLBACK_NAME) {
         readAt_ = JsCallback::Create(env, callback, callbackName);
         CHECK_AND_RETURN_LOG(readAt_ != nullptr, "creating reference for readAt_ fail")
-    } else if (callbackName == GET_MEM_CALLBACK_NAME) {
-        getMem_ = JsCallback::Create(env, callback, callbackName);
-        CHECK_AND_RETURN_LOG(getMem_ != nullptr, "creating reference for getMem_ fail")
     } else {
         MEDIA_LOGE("unknown callback: %{public}s", callbackName.c_str());
         return;
@@ -176,7 +171,6 @@ int32_t MediaDataSourceNapi::CheckCallbackWorks()
 int32_t MediaDataSourceNapi::CallbackCheckAndSetNoChange()
 {
     CHECK_AND_RETURN_RET_LOG(readAt_ != nullptr, MSERR_NO_MEMORY, "readAt is null");
-    CHECK_AND_RETURN_RET_LOG(getMem_ != nullptr, MSERR_NO_MEMORY, "getMem is null");
     noChange_ = true;
     return MSERR_OK;
 }
@@ -231,42 +225,17 @@ napi_value MediaDataSourceNapi::SetSize(napi_env env, napi_callback_info info)
     return undefinedResult;
 }
 
-std::shared_ptr<AVSharedMemory> MediaDataSourceNapi::GetMem()
-{
-    CHECK_AND_RETURN_RET_LOG(env_ != nullptr, nullptr, "env is nullptr");
-    CHECK_AND_RETURN_RET_LOG(getMem_ != nullptr, nullptr, "readAt_ is nullptr");
-
-    // this GetMem args count is 0
-    std::shared_ptr<CallbackWarp> cb = CallbackWarp::Create(env_, 0, getMem_);
-    CHECK_AND_RETURN_RET_LOG(cb != nullptr, nullptr, "create callback fail");
-    CHECK_AND_RETURN_RET_LOG(CheckCallbackWorks() == MSERR_OK, nullptr, "works in null");
-    CHECK_AND_RETURN_RET_LOG(callbackWorks_->Push(cb) == MSERR_OK, nullptr, "push work fail");
-    napi_value result = nullptr;
-    cb->GetResult(result);
-    CHECK_AND_RETURN_RET_LOG(result != nullptr, nullptr, "get result failed");
-    void *tmpArrayBufferPtr = nullptr;
-    size_t arrayBufferLength = 0;
-    napi_status status = napi_get_arraybuffer_info(env_, result, &tmpArrayBufferPtr, &arrayBufferLength);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "get value for ref failed");
-    std::string name = "mediaData";
-    std::shared_ptr<AVSharedMemory> mem = AVSharedMemory::Create(static_cast<int32_t>(arrayBufferLength),
-        AVSharedMemory::Flags::FLAGS_READ_ONLY, name);
-    CHECK_AND_RETURN_RET_LOG(mem != nullptr && mem->GetBase() != nullptr, nullptr, "create avshmem failed");
-    errno_t rc = memcpy_s(mem->GetBase(), static_cast<size_t>(mem->GetSize()), tmpArrayBufferPtr, arrayBufferLength);
-    CHECK_AND_RETURN_RET_LOG(rc == EOK, nullptr, "memcpy_s failed");
-    return mem;
-}
-
-int32_t MediaDataSourceNapi::ReadAt(int64_t pos, uint32_t length)
+int32_t MediaDataSourceNapi::ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem)
 {
     CHECK_AND_RETURN_RET_LOG(env_ != nullptr, 0, "env is nullptr");
     CHECK_AND_RETURN_RET_LOG(readAt_ != nullptr, 0, "readAt_ is nullptr");
 
-    // this ReadAt args count is 2
-    std::shared_ptr<CallbackWarp> cb = CallbackWarp::Create(env_, 2, readAt_);
+    // this ReadAt args count is 3
+    std::shared_ptr<CallbackWarp> cb = CallbackWarp::Create(env_, 3, readAt_);
     CHECK_AND_RETURN_RET_LOG(cb != nullptr, 0, "create callback fail");
     CHECK_AND_RETURN_RET_LOG(cb->SetArg(pos) == MSERR_OK, 0, "set arg failed");
     CHECK_AND_RETURN_RET_LOG(cb->SetArg(length) == MSERR_OK, 0, "set arg failed");
+    CHECK_AND_RETURN_RET_LOG(cb->SetArg(mem) == MSERR_OK, 0, "set arg failed");
 
     CHECK_AND_RETURN_RET_LOG(CheckCallbackWorks() == MSERR_OK, 0, "works in null");
     CHECK_AND_RETURN_RET_LOG(callbackWorks_->Push(cb) == MSERR_OK, 0, "push work fail");
@@ -279,14 +248,16 @@ int32_t MediaDataSourceNapi::ReadAt(int64_t pos, uint32_t length)
     return size;
 }
 
-int32_t MediaDataSourceNapi::ReadAt(uint32_t length)
+int32_t MediaDataSourceNapi::ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem)
 {
     CHECK_AND_RETURN_RET_LOG(env_ != nullptr, 0, "env is nullptr");
     CHECK_AND_RETURN_RET_LOG(readAt_ != nullptr, 0, "readAt_ is nullptr");
-    // this ReadAt args count is 1
-    std::shared_ptr<CallbackWarp> cb = CallbackWarp::Create(env_, 1, readAt_);
+
+    // this ReadAt args count is 2
+    std::shared_ptr<CallbackWarp> cb = CallbackWarp::Create(env_, 2, readAt_);
     CHECK_AND_RETURN_RET_LOG(cb != nullptr, 0, "create callback fail");
     CHECK_AND_RETURN_RET_LOG(cb->SetArg(length) == MSERR_OK, 0, "set arg failed");
+    CHECK_AND_RETURN_RET_LOG(cb->SetArg(mem) == MSERR_OK, 0, "set arg failed");
 
     CHECK_AND_RETURN_RET_LOG(CheckCallbackWorks() == MSERR_OK, 0, "works in null");
     CHECK_AND_RETURN_RET_LOG(callbackWorks_->Push(cb) == MSERR_OK, 0, "push work fail");
