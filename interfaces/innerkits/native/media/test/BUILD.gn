@@ -48,24 +48,24 @@ ohos_executable("media_test") {
   ]
 
   sources = [
-    "./testdemo.cpp",
-    "./player/player_test.cpp",
+    "./avmetadatahelper/avmetadatahelper_test.cpp",
     "./player/data_source/media_data_source_test_noseek.cpp",
     "./player/data_source/media_data_source_test_seekable.cpp",
+    "./player/player_test.cpp",
     "./recorder/recorder_test.cpp",
-    "./avmetadatahelper/avmetadatahelper_test.cpp",
+    "./testdemo.cpp",
   ]
 
   deps = [
     "//foundation/graphic/standard:libsurface",
-    "//utils/native/base:utils",
     "//foundation/graphic/standard:libwmclient",
     "//foundation/graphic/standard/frameworks/surface:surface",
+    "//utils/native/base:utils",
   ]
   external_deps = [
-    "multimedia_media_standard:media_client",
-    "ipc:ipc_core",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "multimedia_media_standard:media_client",
   ]
   part_name = "multimedia_media_standard"
   subsystem_name = "multimedia"
