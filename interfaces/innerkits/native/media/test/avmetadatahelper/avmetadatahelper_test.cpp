@@ -26,8 +26,8 @@ void AVMetadataHelperTest::GetMetadata(const std::string cmd)
 {
     if (cmd == "md") {
         std::unordered_map<int32_t, std::string> metadataMap = avMetadataHelper_->ResolveMetadata();
-        for (auto it = metadataMap.begin(); it != metadataMap.end(); it++) {
-            cout << "key: " <<it->first << " metadata: "  << it->second.c_str() << endl;
+        for (const auto &[key, value] : metadataMap) {
+            cout << "key: " << key << " metadata: " << value.c_str() << endl;
         }
     } else if (cmd.find("md") != std::string::npos) {
         std::string keyStr = cmd.substr(cmd.find_last_of("md ") + 1);

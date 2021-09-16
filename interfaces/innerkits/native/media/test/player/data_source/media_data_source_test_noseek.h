@@ -28,9 +28,8 @@ public:
     explicit MediaDataSourceTestNoseek(const std::string &uri);
     virtual ~MediaDataSourceTestNoseek();
     DISALLOW_COPY_AND_MOVE(MediaDataSourceTestNoseek);
-    std::shared_ptr<AVSharedMemory> GetMem() override;
-    int32_t ReadAt(int64_t pos, uint32_t length) override;
-    int32_t ReadAt(uint32_t length) override;
+    int32_t ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
+    int32_t ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
     int32_t GetSize(int64_t &size) override;
 
 private:
@@ -39,7 +38,6 @@ private:
     FILE *fd_ = nullptr;
     int64_t size_ = 0;
     int64_t pos_ = 0;
-    std::shared_ptr<AVSharedMemory> mem_;
 };
 } // namespace Media
 } // namespace OHOS

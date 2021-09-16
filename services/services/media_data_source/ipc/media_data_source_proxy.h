@@ -27,9 +27,8 @@ public:
     explicit MediaDataCallback(const sptr<IStandardMediaDataSource> &proxy);
     virtual ~MediaDataCallback();
     DISALLOW_COPY_AND_MOVE(MediaDataCallback);
-    std::shared_ptr<AVSharedMemory> GetMem() override;
-    int32_t ReadAt(int64_t pos, uint32_t length) override;
-    int32_t ReadAt(uint32_t length) override;
+    int32_t ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
+    int32_t ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
     int32_t GetSize(int64_t &size) override;
 
 private:
@@ -41,9 +40,8 @@ public:
     explicit MediaDataSourceProxy(const sptr<IRemoteObject> &impl);
     virtual ~MediaDataSourceProxy();
     DISALLOW_COPY_AND_MOVE(MediaDataSourceProxy);
-    std::shared_ptr<AVSharedMemory> GetMem() override;
-    int32_t ReadAt(int64_t pos, uint32_t length) override;
-    int32_t ReadAt(uint32_t length) override;
+    int32_t ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
+    int32_t ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
     int32_t GetSize(int64_t &size) override;
 
 private:

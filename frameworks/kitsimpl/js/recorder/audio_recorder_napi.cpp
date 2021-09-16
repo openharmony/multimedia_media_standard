@@ -71,16 +71,16 @@ napi_value AudioRecorderNapi::Init(napi_env env, napi_value exports)
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
         sizeof(properties) / sizeof(properties[0]), properties, &constructor);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "define class fail");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "Failed to define AudioRecorder class");
 
     status = napi_create_reference(env, constructor, 1, &constructor_);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "create reference fail");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "Failed to create reference of constructor");
 
     status = napi_set_named_property(env, exports, CLASS_NAME.c_str(), constructor);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "set named property fail");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "Failed to set constructor");
 
     status = napi_define_properties(env, exports, sizeof(staticProperty) / sizeof(staticProperty[0]), staticProperty);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "define properties fail");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "Failed to define static function");
 
     MEDIA_LOGD("Init success");
     return exports;
@@ -94,16 +94,16 @@ napi_value AudioRecorderNapi::Constructor(napi_env env, napi_callback_info info)
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok) {
         napi_get_undefined(env, &result);
-        MEDIA_LOGE("get callback info fail");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return result;
     }
 
     AudioRecorderNapi *recorderNapi = new(std::nothrow) AudioRecorderNapi();
-    CHECK_AND_RETURN_RET_LOG(recorderNapi != nullptr, nullptr, "recorderNapi no memory");
+    CHECK_AND_RETURN_RET_LOG(recorderNapi != nullptr, nullptr, "No memory");
 
     recorderNapi->env_ = env;
     recorderNapi->nativeRecorder_ = RecorderFactory::CreateRecorder();
-    CHECK_AND_RETURN_RET_LOG(recorderNapi->nativeRecorder_ != nullptr, nullptr, "nativeRecorder_ no memory");
+    CHECK_AND_RETURN_RET_LOG(recorderNapi->nativeRecorder_ != nullptr, nullptr, "No memory");
 
     if (recorderNapi->callbackNapi_ == nullptr) {
         recorderNapi->callbackNapi_ = std::make_shared<RecorderCallbackNapi>(env);
@@ -115,7 +115,7 @@ napi_value AudioRecorderNapi::Constructor(napi_env env, napi_callback_info info)
     if (status != napi_ok) {
         napi_get_undefined(env, &result);
         delete recorderNapi;
-        MEDIA_LOGE("native wrap fail");
+        MEDIA_LOGE("Failed to wrap native instance");
         return result;
     }
 
@@ -139,7 +139,7 @@ napi_value AudioRecorderNapi::CreateAudioRecorder(napi_env env, napi_callback_in
     napi_value constructor = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status != napi_ok) {
-        MEDIA_LOGE("get reference value fail");
+        MEDIA_LOGE("Failed to get the representation of constructor object");
         napi_get_undefined(env, &result);
         return result;
     }
@@ -165,13 +165,13 @@ napi_value AudioRecorderNapi::Prepare(napi_env env, napi_callback_info info)
     size_t argCount = 1;
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr || args[0] == nullptr) {
-        MEDIA_LOGE("Prepare fail to get napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
     AudioRecorderNapi *recorder = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&recorder));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && recorder != nullptr, undefinedResult, "get recorder napi error");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && recorder != nullptr, undefinedResult, "Failed to retrieve instance");
 
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_object) {
@@ -192,7 +192,7 @@ napi_value AudioRecorderNapi::Prepare(napi_env env, napi_callback_info info)
         recorder->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
-    CHECK_AND_RETURN_RET_LOG(recorder->nativeRecorder_ != nullptr, undefinedResult, "nativeRecorder_ no memory");
+    CHECK_AND_RETURN_RET_LOG(recorder->nativeRecorder_ != nullptr, undefinedResult, "No memory");
     if (recorder->nativeRecorder_->Prepare() != MSERR_OK) {
         recorder->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
         return undefinedResult;
@@ -212,15 +212,14 @@ napi_value AudioRecorderNapi::Start(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
-        MEDIA_LOGE("Start fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
     AudioRecorderNapi *recorder = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&recorder));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && recorder != nullptr, undefinedResult, "get recorder napi error");
-
-    CHECK_AND_RETURN_RET_LOG(recorder->nativeRecorder_ != nullptr, undefinedResult, "nativeRecorder_ no memory");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && recorder != nullptr, undefinedResult, "Failed to retrieve instance");
+    CHECK_AND_RETURN_RET_LOG(recorder->nativeRecorder_ != nullptr, undefinedResult, "No memory");
     if (recorder->nativeRecorder_->Start() != MSERR_OK) {
         recorder->ErrorCallback(env, MSERR_EXT_UNKNOWN);
         return undefinedResult;
@@ -240,15 +239,14 @@ napi_value AudioRecorderNapi::Pause(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
-        MEDIA_LOGE("Pause fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
     AudioRecorderNapi *recorder = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&recorder));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && recorder != nullptr, undefinedResult, "get recorder napi error");
-
-    CHECK_AND_RETURN_RET_LOG(recorder->nativeRecorder_ != nullptr, undefinedResult, "nativeRecorder_ no memory");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && recorder != nullptr, undefinedResult, "Failed to retrieve instance");
+    CHECK_AND_RETURN_RET_LOG(recorder->nativeRecorder_ != nullptr, undefinedResult, "No memory");
     if (recorder->nativeRecorder_->Pause() != MSERR_OK) {
         recorder->ErrorCallback(env, MSERR_EXT_UNKNOWN);
         return undefinedResult;
@@ -268,15 +266,14 @@ napi_value AudioRecorderNapi::Resume(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
-        MEDIA_LOGE("Resume fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
     AudioRecorderNapi *recorder = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&recorder));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && recorder != nullptr, undefinedResult, "get recorder napi error");
-
-    CHECK_AND_RETURN_RET_LOG(recorder->nativeRecorder_ != nullptr, undefinedResult, "nativeRecorder_ no memory");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && recorder != nullptr, undefinedResult, "Failed to retrieve instance");
+    CHECK_AND_RETURN_RET_LOG(recorder->nativeRecorder_ != nullptr, undefinedResult, "No memory");
     if (recorder->nativeRecorder_->Resume() != MSERR_OK) {
         recorder->ErrorCallback(env, MSERR_EXT_UNKNOWN);
         return undefinedResult;
@@ -296,15 +293,14 @@ napi_value AudioRecorderNapi::Stop(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
-        MEDIA_LOGE("Stop fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
     AudioRecorderNapi *recorder = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&recorder));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && recorder != nullptr, undefinedResult, "get recorder napi error");
-
-    CHECK_AND_RETURN_RET_LOG(recorder->nativeRecorder_ != nullptr, undefinedResult, "nativeRecorder_ no memory");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && recorder != nullptr, undefinedResult, "Failed to retrieve instance");
+    CHECK_AND_RETURN_RET_LOG(recorder->nativeRecorder_ != nullptr, undefinedResult, "No memory");
     if (recorder->nativeRecorder_->Stop(false) != MSERR_OK) {
         recorder->ErrorCallback(env, MSERR_EXT_UNKNOWN);
         return undefinedResult;
@@ -324,15 +320,14 @@ napi_value AudioRecorderNapi::Reset(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
-        MEDIA_LOGE("Reset fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
     AudioRecorderNapi *recorder = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&recorder));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && recorder != nullptr, undefinedResult, "get recorder napi error");
-
-    CHECK_AND_RETURN_RET_LOG(recorder->nativeRecorder_ != nullptr, undefinedResult, "nativeRecorder_ no memory");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && recorder != nullptr, undefinedResult, "Failed to retrieve instance");
+    CHECK_AND_RETURN_RET_LOG(recorder->nativeRecorder_ != nullptr, undefinedResult, "No memory");
     if (recorder->nativeRecorder_->Reset() != MSERR_OK) {
         recorder->ErrorCallback(env, MSERR_EXT_UNKNOWN);
         return undefinedResult;
@@ -353,15 +348,14 @@ napi_value AudioRecorderNapi::Release(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
-        MEDIA_LOGE("Reset fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
     AudioRecorderNapi *recorder = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&recorder));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && recorder != nullptr, undefinedResult, "get recorder napi error");
-
-    CHECK_AND_RETURN_RET_LOG(recorder->nativeRecorder_ != nullptr, undefinedResult, "nativeRecorder_ no memory");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && recorder != nullptr, undefinedResult, "Failed to retrieve instance");
+    CHECK_AND_RETURN_RET_LOG(recorder->nativeRecorder_ != nullptr, undefinedResult, "No memory");
     if (recorder->nativeRecorder_->Release() != MSERR_OK) {
         recorder->ErrorCallback(env, MSERR_EXT_UNKNOWN);
         return undefinedResult;
@@ -387,13 +381,13 @@ napi_value AudioRecorderNapi::On(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr || args[0] == nullptr || args[1] == nullptr) {
-        MEDIA_LOGE("On fail to napi_get_cb_info");
+        MEDIA_LOGE("Failed to retrieve details about the callback");
         return undefinedResult;
     }
 
     AudioRecorderNapi *recorder = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&recorder));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && recorder != nullptr, undefinedResult, "get recorder napi error");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && recorder != nullptr, undefinedResult, "Failed to retrieve instance");
 
     napi_valuetype valueType0 = napi_undefined;
     napi_valuetype valueType1 = napi_undefined;
@@ -424,7 +418,7 @@ int32_t AudioRecorderNapi::SetFormat(napi_env env, napi_value args, int32_t &sou
         default:
             break;
     }
-    CHECK_AND_RETURN_RET_LOG(this->nativeRecorder_ != nullptr, MSERR_INVALID_OPERATION, "nativeRecorder_ no memory");
+    CHECK_AND_RETURN_RET_LOG(this->nativeRecorder_ != nullptr, MSERR_INVALID_OPERATION, "No memory");
 
     if (this->nativeRecorder_->SetAudioSource(nativeSourceType, sourceId) != MSERR_OK) {
         this->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
@@ -462,7 +456,7 @@ int32_t AudioRecorderNapi::SetAudioProperties(napi_env env, napi_value args, int
         default:
             break;
     }
-    CHECK_AND_RETURN_RET_LOG(this->nativeRecorder_ != nullptr, MSERR_INVALID_OPERATION, "nativeRecorder_ no memory");
+    CHECK_AND_RETURN_RET_LOG(this->nativeRecorder_ != nullptr, MSERR_INVALID_OPERATION, "No memory");
     if (this->nativeRecorder_->SetAudioEncoder(sourceId, nativeAudioCodecFormat) != MSERR_OK) {
         this->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
         return MSERR_INVALID_OPERATION;
@@ -521,6 +515,7 @@ int32_t AudioRecorderNapi::CheckValidPath(const std::string &path)
 int32_t AudioRecorderNapi::SetUri(napi_env env, napi_value args)
 {
     bool exist = false;
+    int32_t returnVal = MSERR_OK;
     napi_status status = napi_has_named_property(env, args, "uri", &exist);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && exist, MSERR_INVALID_OPERATION, "can not find uri property");
 
@@ -531,7 +526,7 @@ int32_t AudioRecorderNapi::SetUri(napi_env env, napi_value args)
     size_t bytesToCopy = 0;
     status = napi_get_value_string_latin1(env, configItem, buffer, MAXIMUM_PATH_LENGTH - 1, &bytesToCopy);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, MSERR_INVALID_OPERATION, "can not get uri content");
-    CHECK_AND_RETURN_RET_LOG(nativeRecorder_ != nullptr, MSERR_INVALID_OPERATION, "nativeRecorder_ no memory");
+    CHECK_AND_RETURN_RET_LOG(nativeRecorder_ != nullptr, MSERR_INVALID_OPERATION, "No memory");
 
     std::string uriPath = buffer;
     const std::string fileHead = "file://";
@@ -546,10 +541,14 @@ int32_t AudioRecorderNapi::SetUri(napi_env env, napi_value args)
         CHECK_AND_RETURN_RET(fdNum >= 0, MSERR_INVALID_OPERATION);
         int32_t ret = nativeRecorder_->SetOutputFile(fdNum);
         if (ret != MSERR_OK) {
-            close(fdNum);
-            return MSERR_INVALID_OPERATION;
+            MEDIA_LOGE("setOutputFile failed!");
+            returnVal = MSERR_INVALID_OPERATION;
         }
-        close(fdNum);
+        ret = close(fdNum);
+        if (ret != 0) {
+            MEDIA_LOGE("close fd:%{public}d failed,errno is %{public}s", fdNum, strerror(errno));
+            returnVal = MSERR_UNKNOWN;
+        }
     } else if (uriPath.find(fdHead) != std::string::npos) {
         std::string inputFd = uriPath.substr(fdHead.size());
         CHECK_AND_RETURN_RET(StrToInt(inputFd, fdNum) == true, MSERR_INVALID_VAL);
@@ -557,10 +556,10 @@ int32_t AudioRecorderNapi::SetUri(napi_env env, napi_value args)
         CHECK_AND_RETURN_RET(nativeRecorder_->SetOutputFile(fdNum) == MSERR_OK, MSERR_INVALID_OPERATION);
     } else {
         MEDIA_LOGE("invalid input uri, neither file nor fd!");
-        return MSERR_INVALID_OPERATION;
+        returnVal = MSERR_INVALID_OPERATION;
     }
 
-    return MSERR_OK;
+    return returnVal;
 }
 
 void AudioRecorderNapi::ErrorCallback(napi_env env, MediaServiceExtErrCode errCode)

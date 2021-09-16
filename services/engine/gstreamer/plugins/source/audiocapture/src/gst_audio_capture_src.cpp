@@ -40,10 +40,6 @@ enum {
 
 using namespace OHOS::Media;
 
-namespace {
-    constexpr AudioSourceType DEFAULT_SOURCE_TYPE = AUDIO_SOURCE_TYPE_MIC;
-}
-
 #define gst_audio_capture_src_parent_class parent_class
 G_DEFINE_TYPE(GstAudioCaptureSrc, gst_audio_capture_src, GST_TYPE_PUSH_SRC);
 
@@ -76,6 +72,8 @@ static void gst_audio_capture_src_class_init(GstAudioCaptureSrcClass *klass)
     GstElementClass *gstelement_class = reinterpret_cast<GstElementClass *>(klass);
     GstBaseSrcClass *gstbasesrc_class = reinterpret_cast<GstBaseSrcClass *>(klass);
     GstPushSrcClass *gstpushsrc_class = reinterpret_cast<GstPushSrcClass *>(klass);
+    g_return_if_fail((gobject_class != nullptr) && (gstelement_class != nullptr) &&
+        (gstbasesrc_class != nullptr) && gstpushsrc_class != nullptr);
 
     gobject_class->finalize = gst_audio_capture_src_finalize;
     gobject_class->set_property = gst_audio_capture_src_set_property;
@@ -83,7 +81,7 @@ static void gst_audio_capture_src_class_init(GstAudioCaptureSrcClass *klass)
 
     g_object_class_install_property(gobject_class, PROP_SOURCE_TYPE,
         g_param_spec_enum("source-type", "Source type",
-            "Source type", GST_TYPE_AUDIO_CAPTURE_SRC_SOURCE_TYPE, DEFAULT_SOURCE_TYPE,
+            "Source type", GST_TYPE_AUDIO_CAPTURE_SRC_SOURCE_TYPE, AUDIO_SOURCE_TYPE_MIC,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
     g_object_class_install_property(gobject_class, PROP_SAMPLE_RATE,
@@ -114,6 +112,7 @@ static void gst_audio_capture_src_class_init(GstAudioCaptureSrcClass *klass)
 
 static void gst_audio_capture_src_init(GstAudioCaptureSrc *src)
 {
+    g_return_if_fail(src != nullptr);
     gst_base_src_set_format(GST_BASE_SRC(src), GST_FORMAT_TIME);
     gst_base_src_set_live(GST_BASE_SRC(src), TRUE);
     src->stream_type = AUDIO_STREAM_TYPE_UNKNOWN;
@@ -142,6 +141,7 @@ static void gst_audio_capture_src_set_property(GObject *object, guint prop_id,
 {
     (void)pspec;
     GstAudioCaptureSrc *src = GST_AUDIO_CAPTURE_SRC(object);
+    g_return_if_fail(src != nullptr);
     switch (prop_id) {
         case PROP_SOURCE_TYPE:
             src->source_type = (AudioSourceType)g_value_get_enum(value);
@@ -165,6 +165,7 @@ static void gst_audio_capture_src_get_property(GObject *object, guint prop_id,
 {
     (void)pspec;
     GstAudioCaptureSrc *src = GST_AUDIO_CAPTURE_SRC(object);
+    g_return_if_fail(src != nullptr);
     switch (prop_id) {
         case PROP_SOURCE_TYPE:
             g_value_set_enum(value, src->source_type);
@@ -233,6 +234,7 @@ static gboolean process_caps_info(GstAudioCaptureSrc *src)
 
 static GstStateChangeReturn gst_audio_capture_src_change_state(GstElement *element, GstStateChange transition)
 {
+    g_return_val_if_fail(element != nullptr, GST_STATE_CHANGE_FAILURE);
     GstAudioCaptureSrc *src = GST_AUDIO_CAPTURE_SRC(element);
     switch (transition) {
         case GST_STATE_CHANGE_NULL_TO_READY: {
@@ -280,6 +282,7 @@ static GstStateChangeReturn gst_audio_capture_src_change_state(GstElement *eleme
 
 static GstFlowReturn gst_audio_capture_src_create(GstPushSrc *psrc, GstBuffer **outbuf)
 {
+    g_return_val_if_fail((psrc != nullptr) && (outbuf != nullptr), GST_FLOW_ERROR);
     GstAudioCaptureSrc *src = GST_AUDIO_CAPTURE_SRC(psrc);
     if (src->is_start == FALSE) {
         return GST_FLOW_EOS;
@@ -298,6 +301,7 @@ static GstFlowReturn gst_audio_capture_src_create(GstPushSrc *psrc, GstBuffer **
 
 static gboolean gst_audio_capture_src_negotiate(GstBaseSrc *basesrc)
 {
+    g_return_val_if_fail(basesrc != nullptr, false);
     GstAudioCaptureSrc *src = GST_AUDIO_CAPTURE_SRC(basesrc);
     (void)gst_base_src_wait_playing(basesrc);
     return gst_base_src_set_caps(basesrc, src->src_caps);
@@ -305,6 +309,7 @@ static gboolean gst_audio_capture_src_negotiate(GstBaseSrc *basesrc)
 
 static gboolean plugin_init(GstPlugin *plugin)
 {
+    g_return_val_if_fail(plugin != nullptr, false);
     return gst_element_register(plugin, "audiocapturesrc", GST_RANK_PRIMARY, GST_TYPE_AUDIO_CAPTURE_SRC);
 }
 

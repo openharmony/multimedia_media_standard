@@ -15,6 +15,7 @@
 #include "callback_works.h"
 #include "media_log.h"
 #include "media_errors.h"
+#include "avsharedmemory.h"
 #include "native_engine/native_engine.h"
 
 namespace {

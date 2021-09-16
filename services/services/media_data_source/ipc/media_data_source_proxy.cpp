@@ -35,22 +35,16 @@ MediaDataCallback::~MediaDataCallback()
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
 }
 
-std::shared_ptr<AVSharedMemory> MediaDataCallback::GetMem()
-{
-    CHECK_AND_RETURN_RET_LOG(callbackProxy_ != nullptr, nullptr, "callbackProxy_ is nullptr");
-    return callbackProxy_->GetMem();
-}
-
-int32_t MediaDataCallback::ReadAt(uint32_t length)
+int32_t MediaDataCallback::ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem)
 {
     CHECK_AND_RETURN_RET_LOG(callbackProxy_ != nullptr, SOURCE_ERROR_IO, "callbackProxy_ is nullptr");
-    return callbackProxy_->ReadAt(length);
+    return callbackProxy_->ReadAt(length, mem);
 }
 
-int32_t MediaDataCallback::ReadAt(int64_t pos, uint32_t length)
+int32_t MediaDataCallback::ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem)
 {
     CHECK_AND_RETURN_RET_LOG(callbackProxy_ != nullptr, SOURCE_ERROR_IO, "callbackProxy_ is nullptr");
-    return callbackProxy_->ReadAt(pos, length);
+    return callbackProxy_->ReadAt(pos, length, mem);
 }
 
 int32_t MediaDataCallback::GetSize(int64_t &size)
@@ -70,26 +64,14 @@ MediaDataSourceProxy::~MediaDataSourceProxy()
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-std::shared_ptr<AVSharedMemory> MediaDataSourceProxy::GetMem()
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option(MessageOption::TF_SYNC);
-    int error = Remote()->SendRequest(ListenerMsg::GET_MEM, data, reply, option);
-    if (error != MSERR_OK) {
-        MEDIA_LOGE("on info failed, error: %{public}d", error);
-        return nullptr;
-    }
-    return ReadAVSharedMemoryFromParcel(reply);
-}
-
-int32_t MediaDataSourceProxy::ReadAt(int64_t pos, uint32_t length)
+int32_t MediaDataSourceProxy::ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
     data.WriteInt64(pos);
     data.WriteUint32(length);
+    WriteAVSharedMemoryToParcel(mem, data);
     int error = Remote()->SendRequest(ListenerMsg::READ_AT_POS, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("on info failed, error: %{public}d", error);
@@ -99,12 +81,13 @@ int32_t MediaDataSourceProxy::ReadAt(int64_t pos, uint32_t length)
     return realLen;
 }
 
-int32_t MediaDataSourceProxy::ReadAt(uint32_t length)
+int32_t MediaDataSourceProxy::ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
     data.WriteUint32(length);
+    WriteAVSharedMemoryToParcel(mem, data);
     int error = Remote()->SendRequest(ListenerMsg::READ_AT, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("on info failed, error: %{public}d", error);

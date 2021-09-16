@@ -16,7 +16,6 @@
 #include "recorder_element.h"
 #include <algorithm>
 #include <iterator>
-#include <unordered_map>
 #include "media_errors.h"
 #include "media_log.h"
 #include "recorder_private_param.h"
@@ -46,7 +45,7 @@ static const std::unordered_map<uint32_t, std::string> PARAM_TYPE_NAME_MAP = {
 
 namespace OHOS {
 namespace Media {
-int32_t RecorderElementFactory::RegisterElement(std::string key, ElementCreator creator)
+int32_t RecorderElementFactory::RegisterElement(const std::string &key, const ElementCreator creator)
 {
     std::unique_lock<std::mutex> lock(tblMutex_);
     if (creatorTbl_.find(key) != creatorTbl_.end()) {
@@ -114,7 +113,7 @@ RecorderMsgProcResult RecorderElement::OnMessageReceived(GstMessage &rawMsg, Rec
     return ret;
 }
 
-bool RecorderElement::CheckAllParamsConfiged(const std::set<int32_t>& expectedParams) const
+bool RecorderElement::CheckAllParamsConfiged(const std::set<int32_t> &expectedParams) const
 {
     std::set<int32_t> intersection;
     (void)std::set_intersection(expectedParams.begin(), expectedParams.end(),
@@ -139,7 +138,7 @@ bool RecorderElement::CheckAllParamsConfiged(const std::set<int32_t>& expectedPa
     return false;
 }
 
-bool RecorderElement::CheckAnyParamConfiged(const std::set<int32_t>& expectedParams) const
+bool RecorderElement::CheckAnyParamConfiged(const std::set<int32_t> &expectedParams) const
 {
     std::set<int32_t> intersection;
     (void)std::set_intersection(expectedParams.begin(), expectedParams.end(),

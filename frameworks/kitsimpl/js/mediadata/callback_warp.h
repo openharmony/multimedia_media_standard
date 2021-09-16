@@ -17,6 +17,7 @@
 #define CALLBACK_WARP_H
 
 #include <mutex>
+#include "avsharedmemory.h"
 #include "jscallback.h"
 
 namespace OHOS {
@@ -30,6 +31,7 @@ public:
     DISALLOW_COPY_AND_MOVE(CallbackWarp);
     int32_t SetArg(uint32_t arg);
     int32_t SetArg(int64_t arg);
+    int32_t SetArg(const std::shared_ptr<AVSharedMemory> &mem);
     const napi_value *GetArgs() const;
     size_t GetArgsCount() const;
     void SetResult(napi_value val);

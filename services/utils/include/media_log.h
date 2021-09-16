@@ -69,12 +69,12 @@ namespace OHOS {
     } while (0);
 
 #define CHECK_AND_BREAK_LOG(cond, fmt, ...)            \
-    do {                                               \
+    if (1) {                                           \
         if (!(cond)) {                                 \
             MEDIA_LOGE(fmt, ##__VA_ARGS__);            \
             break;                                     \
         }                                              \
-    } while (0);
+    } else void (0)
 
 #define POINTER_MASK 0x00FFFFFF
 #define FAKE_POINTER(addr) (POINTER_MASK & reinterpret_cast<uintptr_t>(addr))

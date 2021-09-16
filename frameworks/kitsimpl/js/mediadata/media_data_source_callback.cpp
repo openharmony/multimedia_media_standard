@@ -77,18 +77,16 @@ napi_value MediaDataSourceCallback::GetDataSrc() const
     return jsResult;
 }
 
-std::shared_ptr<AVSharedMemory> MediaDataSourceCallback::GetMem()
+int32_t MediaDataSourceCallback::ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem)
 {
-    return dataSrc_.GetMem();
+    return dataSrc_.ReadAt(pos, length, mem);
 }
-int32_t MediaDataSourceCallback::ReadAt(int64_t pos, uint32_t length)
+
+int32_t MediaDataSourceCallback::ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem)
 {
-    return dataSrc_.ReadAt(pos, length);
+    return dataSrc_.ReadAt(length, mem);
 }
-int32_t MediaDataSourceCallback::ReadAt(uint32_t length)
-{
-    return dataSrc_.ReadAt(length);
-}
+
 int32_t MediaDataSourceCallback::GetSize(int64_t &size)
 {
     return dataSrc_.GetSize(size);

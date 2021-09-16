@@ -41,7 +41,7 @@ namespace Media {
     } while (false)
 
 GstPad *RecorderPipelineLinkHelper::GetGstPad(
-    const std::shared_ptr<RecorderElement>& elem, bool isStaticPad, const std::string padName)
+    const std::shared_ptr<RecorderElement> &elem, bool isStaticPad, const std::string padName)
 {
     GstPad *pad = nullptr;
     if (isStaticPad) {
@@ -67,7 +67,7 @@ GstPad *RecorderPipelineLinkHelper::GetGstPad(
 }
 
 RecorderPipelineLinkHelper::RecorderPipelineLinkHelper(
-    const std::shared_ptr<RecorderPipeline>& pipeline, const std::shared_ptr<RecorderPipelineDesc>& desc)
+    const std::shared_ptr<RecorderPipeline> &pipeline, const std::shared_ptr<RecorderPipelineDesc> &desc)
     : pipeline_(pipeline), desc_(desc)
 {
 }
@@ -78,7 +78,7 @@ RecorderPipelineLinkHelper::~RecorderPipelineLinkHelper()
 }
 
 int32_t RecorderPipelineLinkHelper::ExecuteOneLink(
-    const std::shared_ptr<RecorderElement>& srcElem, const RecorderPipelineDesc::LinkDesc &linkDesc)
+    const std::shared_ptr<RecorderElement> &srcElem, const RecorderPipelineDesc::LinkDesc &linkDesc)
 {
     GstPad *srcPad = nullptr;
     GstPad *sinkPad = nullptr;
