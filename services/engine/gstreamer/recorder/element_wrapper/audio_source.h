@@ -28,7 +28,6 @@ public:
     int32_t Init() override;
     int32_t Configure(const RecorderParam &recParam) override;
     int32_t CheckConfigReady() override;
-    bool DrainAll() override;
     void Dump() override;
 
 private:

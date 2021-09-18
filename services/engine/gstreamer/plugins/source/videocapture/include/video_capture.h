@@ -143,6 +143,15 @@ public:
      * @version 1.0
      */
     virtual std::shared_ptr<VideoFrameBuffer> GetFrameBuffer() = 0;
+    
+    /**
+     * @brief Set or unset the end of stream status.
+     *
+     * This function will be invoked to notify that the data source is or not end-of-stream. For the data source is
+     * externel, process the notification properly is neccessary to avoid to be blocked in the GetFrameBuffer
+     * or GetCodecBuffer.
+     */
+    virtual void SetEndOfStream(bool endOfStream) = 0;
 };
 }  // namespace Media
 }  // namespace OHOS
