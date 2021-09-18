@@ -128,8 +128,8 @@ static void gst_surface_video_src_init(GstSurfaceVideoSrc *src)
     src->stream_type = VIDEO_STREAM_TYPE_ES_AVC;
     src->capture = nullptr;
     src->src_caps = nullptr;
-    src->surface_width = 0;
-    src->surface_height = 0;
+    src->video_width = 0;
+    src->video_height = 0;
     src->is_start = FALSE;
     src->need_codec_data = TRUE;
 }
@@ -153,10 +153,10 @@ static void gst_surface_video_src_set_property(GObject *object, guint prop_id,
             gst_surface_video_src_set_stream_type(src, g_value_get_enum(value));
             break;
         case PROP_SURFACE_WIDTH:
-            src->surface_width = g_value_get_uint(value);
+            src->video_width = g_value_get_uint(value);
             break;
         case PROP_SURFACE_HEIGHT:
-            src->surface_height = g_value_get_uint(value);
+            src->video_height = g_value_get_uint(value);
             break;
         default:
             break;
@@ -179,10 +179,10 @@ static void gst_surface_video_src_get_property(GObject *object, guint prop_id, G
             g_value_set_enum(value, src->stream_type);
             break;
         case PROP_SURFACE_WIDTH:
-            g_value_set_uint(value, src->surface_width);
+            g_value_set_uint(value, src->video_width);
             break;
         case PROP_SURFACE_HEIGHT:
-            g_value_set_uint(value, src->surface_height);
+            g_value_set_uint(value, src->video_height);
             break;
         case PROP_SURFACE:
             g_return_if_fail(src->capture != nullptr);
@@ -246,9 +246,9 @@ static GstStateChangeReturn gst_surface_video_src_change_state(GstElement *eleme
             break;
         case GST_STATE_CHANGE_READY_TO_PAUSED:
             g_return_val_if_fail(src->capture != nullptr, GST_STATE_CHANGE_FAILURE);
-            g_return_val_if_fail(src->capture->SetSurfaceHeight(src->surface_height) == MSERR_OK,
+            g_return_val_if_fail(src->capture->SetVideoHeight(src->video_height) == MSERR_OK,
                 GST_STATE_CHANGE_FAILURE);
-            g_return_val_if_fail(src->capture->SetSurfaceWidth(src->surface_width) == MSERR_OK,
+            g_return_val_if_fail(src->capture->SetVideoWidth(src->video_width) == MSERR_OK,
                 GST_STATE_CHANGE_FAILURE);
             g_return_val_if_fail(src->capture->Prepare() == MSERR_OK, GST_STATE_CHANGE_FAILURE);
             break;
