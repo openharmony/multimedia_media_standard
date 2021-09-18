@@ -45,6 +45,7 @@ private:
     int32_t CreateMuxSink();
     std::shared_ptr<RecorderElement> CreateElement(
         const std::string &name, const RecorderSourceDesc &desc, bool isSource);
+    void EnsureSourceOrder(bool isVideo);
 
     int32_t ExecuteLink();
 
@@ -53,6 +54,8 @@ private:
     std::shared_ptr<RecorderElement> muxSink_;
     bool outputFormatConfiged_ = false;
     std::unique_ptr<RecorderPipelineLinkHelper> linkHelper_;
+    size_t videoSrcCount = 0;
+    size_t otherSrcCount = 0;    
 };
 }
 }
