@@ -55,7 +55,7 @@ private:
     bool outputFormatConfiged_ = false;
     std::unique_ptr<RecorderPipelineLinkHelper> linkHelper_;
     size_t videoSrcCount = 0;
-    size_t otherSrcCount = 0;    
+    size_t otherSrcCount = 0;
 };
 }
 }

@@ -233,7 +233,7 @@ int32_t VideoCaptureSfImpl::AcquireSurfaceBuffer()
         MEDIA_LOGI("eos, skip acquire buffer");
         return MSERR_NO_MEMORY;
     }
-    
+
     if (!started_ || (dataConSurface_ == nullptr)) {
         return MSERR_INVALID_OPERATION;
     }
