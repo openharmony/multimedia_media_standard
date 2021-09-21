@@ -130,7 +130,6 @@ public:
 
     /**
      * @brief This interface is invoked before the Stop interface called. The components could send EOS event to
- 
      * relevant gstreamer element through this interface to only drain out all itself cached buffer before changing
      * state to NULL. It is designed to speed up the whole pipeline's stopping process. If the user requires a fast
      * stop, the components could firstly send FLUSH event to relevant gstreamer element. The upper layer will decide

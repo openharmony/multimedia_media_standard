@@ -143,7 +143,7 @@ public:
      * @version 1.0
      */
     virtual std::shared_ptr<VideoFrameBuffer> GetFrameBuffer() = 0;
-    
+
     /**
      * @brief Set or unset the end of stream status.
      *
