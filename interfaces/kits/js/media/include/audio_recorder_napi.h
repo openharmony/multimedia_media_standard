@@ -20,6 +20,7 @@
 #include "media_errors.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "task_queue.h"
 
 namespace OHOS {
 namespace Media {
@@ -52,22 +53,33 @@ private:
     static napi_value Reset(napi_env env, napi_callback_info info);
     static napi_value Release(napi_env env, napi_callback_info info);
     static napi_value On(napi_env env, napi_callback_info info);
-    void ErrorCallback(napi_env env, MediaServiceExtErrCode errCode);
-    void StateCallback(napi_env env, const std::string &callbackName);
-    int32_t SetFormat(napi_env env, napi_value args, int32_t &sourceId);
-    int32_t SetAudioProperties(napi_env env, napi_value args, int32_t sourceId);
-    int32_t SetUri(napi_env env, napi_value args);
-    int32_t CheckValidPath(const std::string &path);
+    void ErrorCallback(MediaServiceExtErrCode errCode);
+    void StateCallback(const std::string &callbackName);
 
+    struct AudioRecorderProperties {
+        AudioRecorderProperties();
+        ~AudioRecorderProperties();
+        AudioSourceType sourceType;
+        OutputFormatType outputFormatType;
+        AudioCodecFormat audioCodecFormat;
+        int32_t encodeBitRate;
+        int32_t audioSampleRate;
+        int32_t numberOfChannels;
+    };
+    int32_t GetAudioProperties(napi_env env, napi_value args, AudioRecorderProperties &properties);
+    int32_t GetAudioUriPath(napi_env env, napi_value args, std::string &uriPath);
+    int32_t OnPrepare(const std::string &uriPath, const AudioRecorderProperties &properties);
+    int32_t SetUri(const std::string &uriPath);
+    int32_t CheckValidPath(const std::string &filePath, std::string &realPath);
     AudioRecorderNapi();
     ~AudioRecorderNapi();
 
     static napi_ref constructor_;
     napi_env env_ = nullptr;
     napi_ref wrapper_ = nullptr;
-    std::shared_ptr<Recorder> nativeRecorder_ = nullptr;
+    std::shared_ptr<Recorder> recorderImpl_ = nullptr;
     std::shared_ptr<RecorderCallback> callbackNapi_ = nullptr;
-    std::string filePath_ = "";
+    std::unique_ptr<TaskQueue> taskQue_;
 };
 }  // namespace Media
 }  // namespace OHOS
