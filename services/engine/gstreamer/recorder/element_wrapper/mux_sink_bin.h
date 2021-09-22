@@ -31,7 +31,6 @@ public:
     int32_t Configure(const RecorderParam &recParam) override;
     int32_t CheckConfigReady() override;
     int32_t Prepare() override;
-    bool DrainAll() override;
     int32_t Reset() override;
     int32_t SetParameter(const RecorderParam &recParam) override;
     void Dump() override;
@@ -43,8 +42,6 @@ private:
     int32_t ConfigureMaxFileSize(const RecorderParam &recParam);
     int32_t SetOutFilePath();
     int32_t CreateMuxerElement(const std::string &name);
-    static GstPadProbeReturn MuxerSinkPadProbeWrapper(GstPad *pad, GstPadProbeInfo *info, MuxSinkBin *muxSinkBin);
-    GstPadProbeReturn MuxerSinkPadProbe(const GstPad &pad, GstPadProbeInfo &info);
 
     GstElement *gstMuxer_ = nullptr;
     GstElement *gstSink_ = nullptr;

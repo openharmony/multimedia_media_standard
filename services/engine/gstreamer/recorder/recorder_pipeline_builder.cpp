@@ -41,6 +41,21 @@ RecorderPipelineBuilder::~RecorderPipelineBuilder()
     Reset();
 }
 
+void RecorderPipelineBuilder::EnsureSourceOrder(bool isVideo)
+{
+    auto srcIter = std::next(pipelineDesc_->allElems.end(), -1);
+    if (isVideo) {
+        auto insertPos = std::next(pipelineDesc_->allElems.begin(), videoSrcCount);
+        pipelineDesc_->allElems.insert(insertPos, *srcIter);
+        videoSrcCount += 1;
+    } else {
+        auto insertPos = std::next(pipelineDesc_->allElems.begin(), videoSrcCount + otherSrcCount);
+        pipelineDesc_->allElems.insert(insertPos, *srcIter);
+        otherSrcCount += 1;
+    }
+    pipelineDesc_->allElems.erase(srcIter);
+}
+
 std::shared_ptr<RecorderElement> RecorderPipelineBuilder::CreateElement(
     const std::string &name,
     const RecorderSourceDesc &desc,
@@ -62,6 +77,7 @@ std::shared_ptr<RecorderElement> RecorderPipelineBuilder::CreateElement(
     pipelineDesc_->allElems.push_back(element);
     if (isSource) {
         pipelineDesc_->srcElems.emplace(desc.handle_, element);
+        EnsureSourceOrder(desc.IsVideo());
     }
 
     return element;
