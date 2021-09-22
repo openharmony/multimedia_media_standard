@@ -179,6 +179,78 @@ declare namespace media {
     on(type: 'error', callback: ErrorCallback): void;
   }
 
+  interface AudioRecorderConfig {
+    /**
+     * Audio source type.
+     * @devices
+     */
+    audioSourceType: AudioSourceType;
+
+    /**
+     * Audio encoding format. The default value is DEFAULT.
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    audioEncoder?: AudioEncoder;
+
+    /**
+     * Audio encoding bit rate.
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    audioEncodeBitRate?: number;
+
+    /**
+     * Audio sampling rate.
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    audioSampleRate?: number;
+
+    /**
+     * Number of audio channels.
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    numberOfChannels?: number;
+
+    /**
+     * Output file format.
+     * @devices
+     */
+    fileFormat?: FileFormat;
+
+    /**
+     * Audio output format. The default value is DEFAULT.
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    format?: AudioOutputFormat;
+
+    /**
+     * Audio output uri.support two kind of uri now.
+     * format like: scheme + "://" + "context".
+     * file:  file://path
+     * fd:    fd://fd
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    uri: string;
+
+    /**
+     * Geographical location information.
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    location?: Location;
+  }
   interface AudioRecorder {
     /**
      * Prepares for recording.
