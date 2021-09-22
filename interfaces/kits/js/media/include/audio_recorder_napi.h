@@ -24,17 +24,13 @@
 
 namespace OHOS {
 namespace Media {
-enum JSAudioSourceType : int32_t {
-    JS_MIC = 1,
-};
-
 enum JSAudioEncoder : int32_t {
-    JS_AAC_LC = 1,
+    JS_AAC_LC = 3,
 };
 
 enum JSFileFormat : int32_t {
-    JS_MP4 = 1,
-    JS_M4A = 2,
+    JS_MPEG_4 = 2,
+    JS_AAC_ADTS = 6,
 };
 
 class AudioRecorderNapi {
