@@ -328,7 +328,7 @@ static gboolean gst_surface_video_src_send_event(GstElement *element, GstEvent *
 {
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(element);
     g_return_val_if_fail(src != nullptr, FALSE);
-    switch (GST_EVENT_TYPE (event)) {
+    switch (GST_EVENT_TYPE(event)) {
         case GST_EVENT_FLUSH_START:
             g_return_val_if_fail(src->capture != nullptr, FALSE);
             src->is_eos = FALSE;
