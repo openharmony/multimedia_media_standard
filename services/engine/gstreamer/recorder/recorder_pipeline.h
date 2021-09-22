@@ -17,7 +17,7 @@
 #define RECORDER_PIPELINE
 
 #include <cstdint>
-#include <vector>
+#include <list>
 #include <memory>
 #include <string>
 #include <condition_variable>
@@ -45,7 +45,7 @@ struct RecorderPipelineDesc {
         bool isSinkPadStatic;
     };
 
-    std::vector<std::shared_ptr<RecorderElement>> allElems;
+    std::list<std::shared_ptr<RecorderElement>> allElems;
     std::map<int32_t, std::shared_ptr<RecorderElement>> srcElems;
     std::shared_ptr<RecorderElement> muxerSinkBin;
     std::map<std::shared_ptr<RecorderElement>, LinkDesc> allLinkDescs;
