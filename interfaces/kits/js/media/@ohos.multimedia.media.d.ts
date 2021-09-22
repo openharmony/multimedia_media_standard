@@ -13,7 +13,7 @@
 * limitations under the License.
 */
 
-import {ErrorCallback, AsyncCallback, Callback} from './basic';
+import { ErrorCallback, AsyncCallback, Callback } from './basic';
 
 /**
  * @name media
@@ -75,6 +75,14 @@ declare namespace media {
     stop(): void;
 
     /**
+     * Resets audio playback.
+     * @devices phone, tablet, tv, wearable
+     * @since 7
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+     reset(): void;
+
+    /**
      * Jumps to the specified playback position.
      * @devices phone, tablet, tv, wearable
      * @since 6
@@ -91,14 +99,6 @@ declare namespace media {
      * @param vol Relative volume. The value ranges from 0.00 to 1.00. The value 1 indicates the maximum volume (100%).
      */
     setVolume(vol: number): void;
-
-    /**
-     * Reset resources used for audio playback.
-     * @devices phone, tablet, tv, wearable
-     * @since 6
-     * @SysCap SystemCapability.Multimedia.Media
-     */
-    reset(): void;
 
     /**
      * Releases resources used for audio playback.
@@ -130,7 +130,7 @@ declare namespace media {
      * @since 6
      * @SysCap SystemCapability.Multimedia.Media
      */
-    readonly currentTime:number;
+    readonly currentTime: number;
 
     /**
      * Playback duration.
@@ -179,13 +179,58 @@ declare namespace media {
     on(type: 'error', callback: ErrorCallback): void;
   }
 
-  interface AudioRecorderConfig {
+  /**
+   * Enumerates audio encoding formats.
+   * @since 6
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @devices phone, tablet, tv, wearable
+   */
+  enum AudioEncoder {
     /**
-     * Audio source type.
-     * @devices
+     * Advanced Audio Coding Low Complexity (AAC-LC).
      */
-    audioSourceType: AudioSourceType;
+    AAC_LC = 3,
+  }
 
+  /**
+   * Enumerates audio output formats.
+   * @since 6
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @devices phone, tablet, tv, wearable
+   */
+  enum AudioOutputFormat {
+    /**
+     * Indicates the Moving Picture Experts Group-4 (MPEG4) media format.
+     */
+    MPEG_4 = 2,
+
+    /**
+     * Audio Data Transport Stream (ADTS), a transmission stream format of Advanced Audio Coding (AAC) audio.
+     */
+    AAC_ADTS = 6
+  }
+
+  interface Location {
+    /**
+     * Latitude.
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    latitude: number;
+
+    /**
+     * Longitude.
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    longitude: number;
+  }
+
+  interface AudioRecorderConfig {
     /**
      * Audio encoding format. The default value is DEFAULT.
      * @devices phone, tablet, tv, wearable
@@ -219,12 +264,6 @@ declare namespace media {
     numberOfChannels?: number;
 
     /**
-     * Output file format.
-     * @devices
-     */
-    fileFormat?: FileFormat;
-
-    /**
      * Audio output format. The default value is DEFAULT.
      * @devices phone, tablet, tv, wearable
      * @since 6
@@ -251,6 +290,7 @@ declare namespace media {
      */
     location?: Location;
   }
+
   interface AudioRecorder {
     /**
      * Prepares for recording.
@@ -318,7 +358,7 @@ declare namespace media {
      * @param type Type of the audio recording event to listen for.
      * @param callback Callback used to listen for the audio recording event.
      */
-     on(type: 'prepare' | 'start' | 'pause' | 'resume' | 'stop' | 'release' | 'reset', callback: () => void): void;
+    on(type: 'prepare' | 'start' | 'pause' | 'resume' | 'stop' | 'release' | 'reset', callback: () => void): void;
 
     /**
      * Listens for audio recording error events.

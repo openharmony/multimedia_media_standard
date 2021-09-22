@@ -225,23 +225,15 @@ napi_value AudioRecorderNapi::Prepare(napi_env env, napi_callback_info info)
 
 int32_t AudioRecorderNapi::GetAudioProperties(napi_env env, napi_value args, AudioRecorderProperties &properties)
 {
-    int32_t sourceType = -1;
-    CommonNapi::GetPropertyInt32(env, args, "AudioSourceType", sourceType);
-    switch (sourceType) {
-        case JS_MIC:
-            properties.sourceType = AUDIO_MIC;
-            break;
-        default:
-            break;
-    }
+    properties.sourceType = AUDIO_MIC;
 
     int32_t fileFormat = -1;
     CommonNapi::GetPropertyInt32(env, args, "fileFormat", fileFormat);
     switch (fileFormat) {
-        case JS_MP4:
+        case JS_MPEG_4:
             properties.outputFormatType = FORMAT_MPEG_4;
             break;
-        case JS_M4A:
+        case JS_AAC_ADTS:
             properties.outputFormatType = FORMAT_M4A;
             break;
         default:
