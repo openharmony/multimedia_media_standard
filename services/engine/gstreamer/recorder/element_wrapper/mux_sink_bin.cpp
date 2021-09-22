@@ -30,16 +30,6 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-GstPadProbeReturn MuxSinkBin::MuxerSinkPadProbeWrapper(GstPad *pad, GstPadProbeInfo *info, MuxSinkBin *muxSinkBin)
-{
-    if (pad == nullptr || info == nullptr || muxSinkBin == nullptr) {
-        MEDIA_LOGE("param is nullptr, ignore");
-        return GST_PAD_PROBE_PASS;
-    }
-
-    return muxSinkBin->MuxerSinkPadProbe(*pad, *info);
-}
-
 MuxSinkBin::~MuxSinkBin()
 {
     MEDIA_LOGD("enter, dtor");
@@ -255,39 +245,6 @@ int32_t MuxSinkBin::SetOutFilePath()
     return ERR_OK;
 }
 
-bool MuxSinkBin::DrainAll()
-{
-    MEDIA_LOGI("Not drain stop mode, need send eos to muxer's sinkpad");
-
-    GstEvent *eos = gst_event_new_eos();
-    if (eos == nullptr) {
-        MEDIA_LOGW("Create EOS event failed");
-        return false;
-    }
-
-    GList *muxerAllSinkPad = gstElem_->sinkpads;
-    for (GList *padNode = g_list_first(muxerAllSinkPad); padNode != nullptr; padNode = padNode->next) {
-        if (padNode->data == nullptr || GST_PAD_IS_EOS(padNode->data))  {
-            continue;
-        }
-
-        gst_pad_add_probe((GstPad *)padNode->data, GST_PAD_PROBE_TYPE_DATA_DOWNSTREAM,
-            (GstPadProbeCallback)&MuxSinkBin::MuxerSinkPadProbeWrapper, this, nullptr);
-        gboolean success = gst_pad_send_event((GstPad *)padNode->data, gst_event_ref(eos));
-        if (!success) {
-            MEDIA_LOGE("Send eos event to muxer %{public}s's pad %{public}s failed",
-                       GST_ELEMENT_NAME(gstElem_), GST_PAD_NAME(padNode->data));
-            gst_event_unref(eos);
-            return false;
-        }
-        MEDIA_LOGI("Send eos event to muxer %{public}s's pad %{public}s finished",
-                   GST_ELEMENT_NAME(gstElem_), GST_PAD_NAME(padNode->data));
-    }
-    gst_event_unref(eos);
-
-    return true;
-}
-
 int32_t MuxSinkBin::Reset()
 {
     if (outFd_ > 0) {
@@ -313,24 +270,6 @@ int32_t MuxSinkBin::CreateMuxerElement(const std::string &name)
     }
     g_object_set(gstElem_, "muxer", gstMuxer_, nullptr);
     return ERR_OK;
-}
-
-GstPadProbeReturn MuxSinkBin::MuxerSinkPadProbe(const GstPad &pad, GstPadProbeInfo &info)
-{
-    MEDIA_LOGI("During onlyEos state, pad %{public}s's probe is processing the 0x%{public}x type probeInfo",
-               GST_PAD_NAME(&pad), info.type);
-
-    if ((static_cast<unsigned int>(info.type) & GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM) == 0) {
-        return GST_PAD_PROBE_DROP;
-    }
-
-    GstEvent *event = gst_pad_probe_info_get_event (&info);
-    if ((event == nullptr) || (GST_EVENT_TYPE(event) != GST_EVENT_EOS))  {
-        return GST_PAD_PROBE_DROP;
-    }
-
-    MEDIA_LOGI("Capture EOS event for pad %{public}s, pass it", GST_PAD_NAME(&pad));
-    return GST_PAD_PROBE_PASS;
 }
 
 void MuxSinkBin::Dump()

@@ -51,6 +51,7 @@ struct _GstSurfaceVideoSrc {
     guint video_height;
     gboolean is_start;
     gboolean need_codec_data;
+    gboolean is_eos;
 };
 
 struct _GstSurfaceVideoSrcClass {
