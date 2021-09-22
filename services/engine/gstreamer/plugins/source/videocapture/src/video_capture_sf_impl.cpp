@@ -120,6 +120,14 @@ int32_t VideoCaptureSfImpl::Stop()
     return MSERR_OK;
 }
 
+void VideoCaptureSfImpl::SetEndOfStream(bool endOfStream)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    isEos = endOfStream;
+    bufferAvailableCondition_.notify_all();
+    MEDIA_LOGI("notify end of stream: %{public}d", isEos);
+}
+
 int32_t VideoCaptureSfImpl::SetVideoWidth(uint32_t width)
 {
     videoWidth_ = width;
@@ -219,7 +227,13 @@ int32_t VideoCaptureSfImpl::AcquireSurfaceBuffer()
     if (!started_ || (dataConSurface_ == nullptr)) {
         return MSERR_INVALID_OPERATION;
     }
-    bufferAvailableCondition_.wait(lock, [this]() { return bufferAvailableCount_ > 0; });
+
+    bufferAvailableCondition_.wait(lock, [this]() { return bufferAvailableCount_ > 0 || isEos; });
+    if (isEos) {
+        MEDIA_LOGI("eos, skip acquire buffer");
+        return MSERR_NO_MEMORY;
+    }
+
     if (!started_ || (dataConSurface_ == nullptr)) {
         return MSERR_INVALID_OPERATION;
     }

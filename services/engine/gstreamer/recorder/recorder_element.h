@@ -129,18 +129,14 @@ public:
     }
 
     /**
-     * @brief This interface is invoked before the Stop interface called. If it is required to drain out all cached
-     * buffer of the whole pipeline, this interface will not be called. The components could send EOS event to
+     * @brief This interface is invoked before the Stop interface called. The components could send EOS event to
      * relevant gstreamer element through this interface to only drain out all itself cached buffer before changing
-     * state to NULL. It is designed to speed up the whole pipeline's stopping process. Only the muxer component need
-     * to implement this interface, others will be ignored. The upper layer will decide to whether need to wait the
-     * GST_MESSAGE_EOS according to this interface's return value.
-     * @return true if it's necessarily to wait for GST_MESSAGE_EOS, or unnecessarily.
+     * state to NULL. It is designed to speed up the whole pipeline's stopping process. If the user requires a fast
+     * stop, the components could firstly send FLUSH event to relevant gstreamer element. The upper layer will decide
+     * to whether need to wait the GST_MESSAGE_EOS according to this interface's return value.
+     * @return MSERR_OK if success, or failed.
      */
-    virtual bool DrainAll()
-    {
-        return true;
-    }
+    int32_t DrainAll(bool isDrain);
 
     /**
      * @brief This interface is invoked before the corresponding gstreamer element's state changed from PLAYING or

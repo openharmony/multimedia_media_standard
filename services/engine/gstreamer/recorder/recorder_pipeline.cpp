@@ -219,16 +219,17 @@ void RecorderPipeline::DrainBuffer(bool isDrainAll)
         }
     }
 
-    if (isDrainAll) {
-        (void)PostAndSyncWaitEOS();
-        return;
+    int32_t ret = MSERR_OK;
+    auto iter = desc_->allElems.begin();
+    for (size_t index = 0; index < desc_->srcElems.size(); index++, iter = std::next(iter)) {
+        ret = (*iter)->DrainAll(isDrainAll);
+        if (ret != MSERR_OK) {
+            MEDIA_LOGE("drain [%{public}d] failed for %{public}s", isDrainAll, (*iter)->GetName().c_str());
+            break;
+        }
     }
-
-    if (desc_->muxerSinkBin != nullptr) {
-        bool needWaitEos = desc_->muxerSinkBin->DrainAll();
-        if (needWaitEos) {
-            (void)SyncWaitEOS();
-        } // no need wait eos does not mean a error
+    if (ret == MSERR_OK) {
+        SyncWaitEOS();
     }
 }
 
@@ -455,7 +456,7 @@ int32_t RecorderPipeline::BypassOneSource(int32_t sourceId)
         return MSERR_INVALID_VAL;
     }
 
-    bool ret = srcElemIter->second->DrainAll();
+    bool ret = srcElemIter->second->DrainAll(true);
     CHECK_AND_RETURN_RET(ret, MSERR_INVALID_OPERATION);
 
     return MSERR_OK;
