@@ -115,24 +115,6 @@ int32_t AudioSource::CheckConfigReady()
     return MSERR_OK;
 }
 
-bool AudioSource::DrainAll()
-{
-    GstEvent *eos = gst_event_new_eos();
-    if (eos == nullptr) {
-        MEDIA_LOGW("Create EOS event failed");
-        return false;
-    }
-
-    gboolean success = gst_element_send_event(gstElem_, eos);
-    if (!success) {
-        MEDIA_LOGE("Send eos event failed");
-        return false;
-    }
-
-    MEDIA_LOGI("Send eos event success");
-    return true;
-}
-
 void AudioSource::Dump()
 {
     MEDIA_LOGI("Audio [sourceId = 0x%{public}x]: sample rate = %{public}d, "
