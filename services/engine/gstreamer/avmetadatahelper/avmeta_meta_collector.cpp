@@ -61,7 +61,7 @@ AVMetaMetaCollector::~AVMetaMetaCollector()
         for (auto &[type, blockerVec] : temp) {
             for (auto &blocker : blockerVec) {
                 if (blocker != nullptr) {
-                    // Rather than cancel, just clear the blocks, for speed up the destroy
+                    // Rather than cancel, just clear the blocks, for speed up the destroy process
                     blocker->Clear();
                 }
             }
