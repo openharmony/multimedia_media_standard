@@ -15,7 +15,7 @@
 
 #include "recorder_listener_stub.h"
 #include "media_log.h"
-#include "errors.h"
+#include "media_errors.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "RecorderListenerStub"};
@@ -40,14 +40,14 @@ int RecorderListenerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Me
         case RecorderListenerMsg::ON_ERROR: {
             int errorType = data.ReadInt32();
             int errorCode = data.ReadInt32();
-            OnError(errorType, errorCode);
-            return ERR_OK;
+            OnError(static_cast<RecorderErrorType>(errorType), errorCode);
+            return MSERR_OK;
         }
         case RecorderListenerMsg::ON_INFO: {
             int type = data.ReadInt32();
             int extra = data.ReadInt32();
             OnInfo(type, extra);
-            return ERR_OK;
+            return MSERR_OK;
         }
         default: {
             MEDIA_LOGE("default case, need check RecorderListenerStub");
@@ -59,7 +59,7 @@ int RecorderListenerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Me
 void RecorderListenerStub::OnError(int32_t errorType, int32_t errorCode)
 {
     if (callback_ != nullptr) {
-        callback_->OnError(errorType, errorCode);
+        callback_->OnError(static_cast<RecorderErrorType>(errorType), errorCode);
     }
 }
 

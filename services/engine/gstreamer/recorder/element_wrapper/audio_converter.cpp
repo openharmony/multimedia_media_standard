@@ -29,10 +29,10 @@ int32_t AudioConverter::Init()
     gstElem_ = gst_element_factory_make("audioconvert", name_.c_str());
     if (gstElem_ == nullptr) {
         MEDIA_LOGE("Create audio converter gst element failed! sourceId: %{public}d", desc_.handle_);
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 REGISTER_RECORDER_ELEMENT(AudioConverter);

@@ -32,6 +32,7 @@ public:
         MEDIA_PLAYER = 0,
         MEDIA_RECORDER = 1,
         MEDIA_CODEC = 2,
+        MEDIA_AVMETADATAHELPER = 3,
     };
 
     /**
@@ -40,15 +41,15 @@ public:
      * @return Returns remote object sptr, nullptr on failure.
      */
     virtual sptr<IRemoteObject> GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId) = 0;
-
+    virtual int32_t SetListenerObject(const sptr<IRemoteObject> &object) = 0;
     /**
      * IPC code ID
      */
     enum MediaServiceMsg {
         GET_SUBSYSTEM = 0,
+        SET_LISTENER_OBJ,
     };
 
-public:
     DECLARE_INTERFACE_DESCRIPTOR(u"IStandardMediaService");
 };
 } // namespace Media

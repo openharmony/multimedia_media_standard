@@ -69,7 +69,7 @@ static gboolean get_hdi_video_frame_from_outInfo(GstHDIFormat *frame, const Outp
     VIDEO_FRAME_INFO_S *stVFrame = (VIDEO_FRAME_INFO_S*)outInfo->vendorPrivate;
     VIDEO_FRAME_S *pVBuf = &stVFrame->stVFrame;
     frame->width = pVBuf->u32Width;
-    frame->height = (pVBuf->u64PhyAddr[1] - pVBuf->u64PhyAddr[0]) / frame->width;
+    frame->height = (guint)((pVBuf->u64PhyAddr[1] - pVBuf->u64PhyAddr[0]) / frame->width);
     if (((frame->width > GST_1080P_STREAM_WIDTH) || (frame->height > GST_1080P_STREAM_HEIGHT)) &&
         ((frame->width > GST_1080P_STREAM_HEIGHT) || (frame->height > GST_1080P_STREAM_WIDTH))) {
         GST_ERROR_OBJECT(NULL, "hdi buffer is too large than 1080p");
@@ -112,8 +112,8 @@ gint gst_hdi_deque_output_buffer_and_format(GstHDICodec *codec, GstBuffer **gst_
     codec->output_free_buffers = g_list_remove(codec->output_free_buffers, output_info);
     buffer->codec = codec;
     buffer->output_info = output_info;
-    *gst_buffer = gst_buffer_new_wrapped_full((GstMemoryFlags)0, (gpointer)format->vir_addr, 
-            format->buffer_size, 0, sizeof(GstHDIBuffer),(guint8*)buffer,
+    *gst_buffer = gst_buffer_new_wrapped_full((GstMemoryFlags)0, (gpointer)format->vir_addr,
+            format->buffer_size, 0, sizeof(GstHDIBuffer), (guint8*)buffer,
             (GDestroyNotify)gst_hdi_move_outbuffer_to_dirty_list);
     if (*gst_buffer == NULL) {
         gst_hdi_move_outbuffer_to_dirty_list(buffer);
@@ -139,16 +139,17 @@ static void gst_hdi_change_vdec_format_to_params(Param *param,
 static void gst_hdi_set_format(const Param *param, GstHDIFormat *format)
 {
     g_return_if_fail(param != NULL);
+    g_return_if_fail(param->val != NULL);
     g_return_if_fail(format != NULL);
     switch (param->key) {
         case KEY_WIDTH:
-            format->width = (guint)(param->val);
+            format->width = *((guint *)param->val);
             break;
         case KEY_HEIGHT:
-            format->height = (guint)(param->val);
+            format->height = *((guint *)param->val);
             break;
         case KEY_STRIDE:
-            format->stride = (guint)(param->val);
+            format->stride = *((guint *)param->val);
             break;
         default:
             GST_INFO_OBJECT(NULL, "param key %d not in format", param->key);
@@ -156,7 +157,7 @@ static void gst_hdi_set_format(const Param *param, GstHDIFormat *format)
 }
 
 static void gst_hdi_change_params_to_format(const Param *param,
-        GstHDIFormat *format, const gint max_num)
+    GstHDIFormat *format, const gint max_num)
 {
     g_return_if_fail(param != NULL);
     g_return_if_fail(format != NULL);
@@ -185,9 +186,9 @@ GstHDICodec *gst_hdi_codec_new(const GstHDIClassData *cdata, const GstHDIFormat 
         GST_ERROR_OBJECT(NULL, "fail to create codec, in error %s", gst_hdi_error_to_string(ret));
         g_slice_free(GstHDICodec, codec);
         return NULL;
-    } 
+    }
     gst_mini_object_init(GST_MINI_OBJECT_CAST(codec), 0, gst_hdi_codec_get_type(), NULL, NULL,
-        (GstMiniObjectFreeFunction) gst_hdi_codec_free);
+        (GstMiniObjectFreeFunction)gst_hdi_codec_free);
     codec->handle = handle;
     codec->format_to_params = cdata->format_to_params;
     codec->input_buffer_num = DEFUALT_BUFFER_NUM;
@@ -439,6 +440,7 @@ gint gst_hdi_deque_input_buffer(const GstHDICodec *codec, GstBuffer **gst_buffer
         GST_ERROR_OBJECT(NULL, "fail to deque input buffer, in error %s", gst_hdi_error_to_string(ret));
         return ret;
     }
+    g_return_val_if_fail(input_buffer->buffers != NULL, HDI_FAILURE);
     (*gst_buffer) = gst_buffer_new_wrapped_full((GstMemoryFlags)0, (gpointer)input_buffer->buffers->addr,
         input_buffer->buffers->length, 0, 0, NULL, NULL);
     return ret;
@@ -471,6 +473,7 @@ gint gst_hdi_queue_output_buffer(const GstHDICodec *codec, GstBuffer *gst_buffer
     g_return_val_if_fail(codec->handle != NULL, HDI_FAILURE);
     g_return_val_if_fail(codec->output_free_buffers != NULL, HDI_FAILURE);
     OutputInfo *output_buffer = (OutputInfo*)codec->output_free_buffers->data;
+    g_return_val_if_fail(output_buffer != NULL, HDI_FAILURE);
     gst_hdi_gst_buffer_to_buffer_info(output_buffer->buffers, gst_buffer);
     int32_t ret = CodecQueueOutput(codec->handle, output_buffer, timeoutMs, -1);
     if (ret != HDI_SUCCESS) {
@@ -508,12 +511,13 @@ gint gst_hdi_deque_output_buffer(GstHDICodec *codec, GstBuffer **gst_buffer, gui
         return HDI_FAILURE;
     }
     g_return_val_if_fail(buffer != NULL, HDI_FAILURE);
+    g_return_val_if_fail(output_info->buffers != NULL, HDI_FAILURE);
     codec->output_free_buffers = g_list_remove(codec->output_free_buffers, output_info);
     buffer->codec = codec;
     buffer->output_info = output_info;
-    *gst_buffer = gst_buffer_new_wrapped_full((GstMemoryFlags)0, (gpointer)output_info->buffers->addr, 
-            output_info->buffers->length, 0, sizeof(GstHDIBuffer),(guint8*)buffer,
-            (GDestroyNotify)gst_hdi_move_outbuffer_to_dirty_list);
+    *gst_buffer = gst_buffer_new_wrapped_full((GstMemoryFlags)0, (gpointer)output_info->buffers->addr,
+        output_info->buffers->length, 0, sizeof(GstHDIBuffer), (guint8*)buffer,
+        (GDestroyNotify)gst_hdi_move_outbuffer_to_dirty_list);
     if (*gst_buffer == NULL) {
         gst_hdi_move_outbuffer_to_dirty_list(buffer);
         GST_ERROR_OBJECT(NULL, "new wrapped full buffer fail");
@@ -559,7 +563,7 @@ GstHDICodec *gst_hdi_codec_ref(GstHDICodec *codec)
 void gst_hdi_codec_unref(GstHDICodec *codec)
 {
     g_return_if_fail(codec != NULL);
-    gst_mini_object_unref (GST_MINI_OBJECT_CAST(codec));
+    gst_mini_object_unref(GST_MINI_OBJECT_CAST(codec));
 }
 
 static void gst_hdi_init_params_func(GstHDIClassData *class_data)
@@ -578,7 +582,7 @@ static void gst_hdi_buffer_mode_support(const CodecCapbility *hdi_cap, AllocateB
 {
     g_return_if_fail(hdi_cap != NULL);
     g_return_if_fail(support != NULL);
-    if (hdi_cap->allocateMask & mode) {
+    if (hdi_cap->allocateMask & (guint)mode) {
         (*support) |= (guint)support_mode;
     }
 }
@@ -614,7 +618,6 @@ void gst_hdi_class_data_init(GstHDIClassData *class_data)
         class_data->support_video_format =
             g_list_append(class_data->support_video_format, &format_array->element[index]);
     }
-
 }
 
 void gst_hdi_class_pad_caps_init(const GstHDIClassData *class_data, GstElementClass *element_class)
@@ -643,7 +646,7 @@ void gst_hdi_class_pad_caps_init(const GstHDIClassData *class_data, GstElementCl
 
 const gchar *gst_hdi_error_to_string(gint err)
 {
-    HDI_ERRORTYPE err_u = (HDI_ERRORTYPE) err;
+    HDI_ERRORTYPE err_u = (HDI_ERRORTYPE)err;
 
     switch (err_u) {
         case HDI_FAILURE:
@@ -668,7 +671,7 @@ static gchar *gst_hdi_codec_mime_of_cap(const CodecCapbility *caps)
     gchar *codec_mime = NULL;
     gchar *codec_type = NULL;
     gchar *codec_name = NULL;
-    switch(caps->mime) {
+    switch (caps->mime) {
         case MEDIA_MIMETYPE_IMAGE_JPEG:
             codec_mime = "hdijpeg";
             break;
@@ -710,7 +713,7 @@ static gchar *gst_hdi_codec_mime_of_cap(const CodecCapbility *caps)
     return codec_name;
 }
 
-GHashTable *gst_hdi_init_caps_map()
+GHashTable *gst_hdi_init_caps_map(void)
 {
     caps_map = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
     gchar *codec_name = NULL;

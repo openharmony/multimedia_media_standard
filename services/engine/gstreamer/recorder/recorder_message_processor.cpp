@@ -14,7 +14,6 @@
  */
 
 #include "recorder_message_processor.h"
-#include <gst/gst.h>
 #include "recorder_inner_defines.h"
 #include "media_errors.h"
 #include "media_log.h"
@@ -22,54 +21,50 @@
 #include "i_recorder_engine.h"
 
 namespace {
-    constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "RecMsgProc"};
-}
-
-namespace OHOS {
-namespace Media {
+using namespace OHOS::Media;
+constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "RecMsgProc"};
 static const std::unordered_map<GstMessageType, RecorderMessageFeature> FEATURE_MSG_TYPE_CVT_TABLE = {
     { GST_MESSAGE_EOS, REC_MSG_FEATURE_EOS_DONE },
     { GST_MESSAGE_ASYNC_DONE, REC_MSG_FEATURE_ASYNC_DONE },
     { GST_MESSAGE_STATE_CHANGED, REC_MSG_FEATURE_STATE_CHANGE_DONE },
 };
+}
 
+namespace OHOS {
+namespace Media {
 RecorderMsgProcResult RecorderMsgHandler::ProcessInfoMsgDefault(GstMessage &msg, RecorderMessage &prettyMsg)
 {
     (void)prettyMsg;
-    RecorderMsgProcResult ret = RecorderMsgProcResult::REC_MSG_PROC_IGNORE;
 
     GstInfoMsgParser parser(msg);
     CHECK_AND_RETURN_RET(parser.InitCheck(), RecorderMsgProcResult::REC_MSG_PROC_FAILED);
-    MEDIA_LOGI("[INFO] %{public}s, %{public}s", parser.error_->message, parser.debug_);
+    MEDIA_LOGI("[INFO] %{public}s, %{public}s", parser.GetErr()->message, parser.GetDbg());
 
-    return ret;
+    return RecorderMsgProcResult::REC_MSG_PROC_IGNORE;
 }
 
 RecorderMsgProcResult RecorderMsgHandler::ProcessWarningMsgDefault(GstMessage &msg, RecorderMessage &prettyMsg)
 {
     (void)prettyMsg;
-    RecorderMsgProcResult ret = RecorderMsgProcResult::REC_MSG_PROC_IGNORE;
 
     GstWarningMsgParser parser(msg);
     CHECK_AND_RETURN_RET(parser.InitCheck(), RecorderMsgProcResult::REC_MSG_PROC_FAILED);
-    MEDIA_LOGW("[WARNING] %{public}s, %{public}s", parser.error_->message, parser.debug_);
+    MEDIA_LOGW("[WARNING] %{public}s, %{public}s", parser.GetErr()->message, parser.GetDbg());
 
-    return ret;
+    return RecorderMsgProcResult::REC_MSG_PROC_IGNORE;
 }
 
 RecorderMsgProcResult RecorderMsgHandler::ProcessErrorMsgDefault(GstMessage &msg, RecorderMessage &prettyMsg)
 {
-    RecorderMsgProcResult ret = RecorderMsgProcResult::REC_MSG_PROC_OK;
-
     GstErrorMsgParser parser(msg);
     CHECK_AND_RETURN_RET(parser.InitCheck(), RecorderMsgProcResult::REC_MSG_PROC_FAILED);
-    MEDIA_LOGE("[ERROR] %{public}s, %{public}s", parser.error_->message, parser.debug_);
+    MEDIA_LOGE("[ERROR] %{public}s, %{public}s", parser.GetErr()->message, parser.GetDbg());
 
     prettyMsg.type = REC_MSG_ERROR;
     prettyMsg.code = IRecorderEngineObs::ErrorType::ERROR_INTERNAL;
     prettyMsg.detail = MSERR_UNKNOWN;
 
-    return ret;
+    return RecorderMsgProcResult::REC_MSG_PROC_OK;
 }
 
 static RecorderMsgProcResult ProcessFeatureMessage(GstMessage &msg, RecorderMessage &prettyMsg)
@@ -86,7 +81,10 @@ static RecorderMsgProcResult ProcessFeatureMessage(GstMessage &msg, RecorderMess
 
 static RecorderMsgProcResult ProcessStateChangedMessage(GstMessage &msg, RecorderMessage &prettyMsg)
 {
-    GstState oldState, newState, pendingState;
+    GstState oldState = GST_STATE_NULL;
+    GstState newState = GST_STATE_NULL;
+    GstState pendingState = GST_STATE_NULL;
+
     gst_message_parse_state_changed(&msg, &oldState, &newState, &pendingState);
     MEDIA_LOGI("%{public}s finished state change, oldState: %{public}s, newState: %{public}s",
                GST_ELEMENT_NAME(msg.src), gst_element_state_get_name(oldState),
@@ -95,7 +93,7 @@ static RecorderMsgProcResult ProcessStateChangedMessage(GstMessage &msg, Recorde
     if (GST_IS_PIPELINE(msg.src)) {
         prettyMsg.type = REC_MSG_FEATURE;
         prettyMsg.code = REC_MSG_FEATURE_STATE_CHANGE_DONE;
-        prettyMsg.detail = newState;
+        prettyMsg.detail = static_cast<int32_t>(newState);
         return RecorderMsgProcResult::REC_MSG_PROC_OK;
     }
 
@@ -116,7 +114,7 @@ gboolean RecorderMsgProcessor::BusCallback(GstBus *bus, GstMessage *msg, gpointe
 {
     (void)bus;
 
-    RecorderMsgProcessor *processor = (RecorderMsgProcessor *)data;
+    RecorderMsgProcessor *processor = reinterpret_cast<RecorderMsgProcessor *>(data);
     if (processor == nullptr) {
         MEDIA_LOGE("processor is nullptr !");
         return FALSE;
@@ -136,7 +134,7 @@ RecorderMsgProcessor::RecorderMsgProcessor(GstBus &gstBus, const MessageResCb &r
 
 RecorderMsgProcessor::~RecorderMsgProcessor()
 {
-    Reset();
+    (void)Reset();
 
     if (gstBus_ != nullptr) {
         gst_object_unref(gstBus_);
@@ -144,14 +142,14 @@ RecorderMsgProcessor::~RecorderMsgProcessor()
     }
 }
 
-int RecorderMsgProcessor::Init()
+int32_t RecorderMsgProcessor::Init()
 {
     if (msgResultCb_ == nullptr) {
         MEDIA_LOGE("message result callback is nullptr");
         return MSERR_INVALID_VAL;
     }
 
-    ON_SCOPE_EXIT(0) { Reset(); };
+    ON_SCOPE_EXIT(0) { (void)Reset(); };
 
     mainLoop_ = g_main_loop_new(nullptr, FALSE);
     CHECK_AND_RETURN_RET(mainLoop_ != nullptr, MSERR_NO_MEMORY);
@@ -159,16 +157,13 @@ int RecorderMsgProcessor::Init()
     busWatchId_ = gst_bus_add_watch(gstBus_, (GstBusFunc)&RecorderMsgProcessor::BusCallback, this);
     CHECK_AND_RETURN_RET(busWatchId_ != 0, MSERR_INVALID_OPERATION);
 
-    int ret = mainLoopGuard_.Start();
-    CHECK_AND_RETURN_RET(ret == ERR_OK, MSERR_INVALID_OPERATION);
+    int32_t ret = mainLoopGuard_.Start();
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, MSERR_INVALID_OPERATION);
 
-    auto mainLoopGuardTask = std::make_shared<TaskHandler>([this] {
-        g_main_loop_run(mainLoop_);
-        return ERR_OK; // need to optimize the taskhandler to support no-return or any return value type
-    }, ERR_OK);
+    auto mainLoopGuardTask = std::make_shared<TaskHandler<void>>([this] { g_main_loop_run(mainLoop_); });
 
     ret = mainLoopGuard_.EnqueueTask(mainLoopGuardTask);
-    CHECK_AND_RETURN_RET(ret == ERR_OK, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, MSERR_INVALID_OPERATION);
 
     CANCEL_SCOPE_EXIT_GUARD(0);
     return MSERR_OK;
@@ -191,15 +186,15 @@ void RecorderMsgProcessor::AddMsgHandler(std::shared_ptr<RecorderMsgHandler> han
     msgHandlers_.push_back(handler);
 }
 
-int RecorderMsgProcessor::Reset()
+int32_t RecorderMsgProcessor::Reset()
 {
     if (errorProcQ_ != nullptr) {
-        errorProcQ_->Stop();
+        (void)errorProcQ_->Stop();
         errorProcQ_ = nullptr;
     }
 
     if (busWatchId_ != 0) {
-        g_source_remove(busWatchId_);
+        (void)g_source_remove(busWatchId_);
         busWatchId_ = 0;
     }
 
@@ -211,7 +206,7 @@ int RecorderMsgProcessor::Reset()
         mainLoop_ = nullptr;
     }
 
-    mainLoopGuard_.Stop();
+    (void)mainLoopGuard_.Stop();
     return MSERR_OK;
 }
 
@@ -246,7 +241,7 @@ void RecorderMsgProcessor::ProcessMessage(GstMessage &msg)
     ReportMsgProcResult(prettyMsg);
 }
 
-RecorderMsgProcResult RecorderMsgProcessor::ProcessExtendMessage(GstMessage &msg, RecorderMessage &prettyMsg)
+RecorderMsgProcResult RecorderMsgProcessor::ProcessExtendMessage(GstMessage &msg, RecorderMessage &prettyMsg) const
 {
     (void)msg;
     (void)prettyMsg;
@@ -300,16 +295,13 @@ void RecorderMsgProcessor::ReportMsgProcResult(const RecorderMessage &msg)
     if (errorProcQ_ == nullptr) {
         errorProcQ_ = std::make_unique<TaskQueue>("rec-err-proc");
         int32_t ret = errorProcQ_->Start();
-        CHECK_AND_RETURN_LOG(ret == ERR_OK, "unable to async process error msg !");
+        CHECK_AND_RETURN_LOG(ret == MSERR_OK, "unable to async process error msg !");
     }
 
-    auto errorProc = std::make_shared<TaskHandler>([this, msg] {
-        msgResultCb_(msg);
-        return MSERR_OK;
-    });
+    auto errorProc = std::make_shared<TaskHandler<void>>([this, msg] { msgResultCb_(msg); });
 
     int32_t ret = errorProcQ_->EnqueueTask(errorProc);
-    CHECK_AND_RETURN_LOG(ret == ERR_OK, "unable to async process error msg !");
+    CHECK_AND_RETURN_LOG(ret == MSERR_OK, "unable to async process error msg !");
 }
 }
 }

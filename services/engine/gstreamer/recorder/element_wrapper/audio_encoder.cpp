@@ -31,12 +31,12 @@ int32_t AudioEncoder::Init()
     gstElem_ = gst_element_factory_make("avenc_aac", name_.c_str());
     if (gstElem_ == nullptr) {
         MEDIA_LOGE("Create audio encoder gst element failed! sourceId: %{public}d", desc_.handle_);
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
     MEDIA_LOGI("use avenc_aac");
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t AudioEncoder::Configure(const RecorderParam &recParam)
@@ -49,7 +49,7 @@ int32_t AudioEncoder::Configure(const RecorderParam &recParam)
         }
         if (encoderFormat_ != AudioCodecFormat::AAC_LC) {
             MEDIA_LOGE("Currently unsupported audio encode format: %{public}d", encoderFormat_);
-            return ERR_INVALID_VALUE;
+            return MSERR_INVALID_VAL;
         }
         MEDIA_LOGI("Set audio encode format: %{public}d", encoderFormat_);
         MarkParameter(param.type);
@@ -59,23 +59,23 @@ int32_t AudioEncoder::Configure(const RecorderParam &recParam)
         const AudBitRate &param = static_cast<const AudBitRate &>(recParam);
         if (param.bitRate <= 0) {
             MEDIA_LOGE("Audio encode bitrate is invalid: %{public}d", param.bitRate);
-            return ERR_INVALID_VALUE;
+            return MSERR_INVALID_VAL;
         }
         g_object_set(gstElem_, "bitrate", param.bitRate, nullptr);
         MEDIA_LOGI("Set audio bitrate: %{public}d", param.bitRate);
         MarkParameter(param.type);
     }
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t AudioEncoder::CheckConfigReady()
 {
     std::set<int32_t> expectedParam = { RecorderPublicParamType::AUD_ENC_FMT };
     bool configed = CheckAllParamsConfiged(expectedParam);
-    CHECK_AND_RETURN_RET(configed == true, ERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(configed == true, MSERR_INVALID_OPERATION);
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 RecorderMsgProcResult AudioEncoder::DoProcessMessage(GstMessage &rawMsg, RecorderMessage &prettyMsg)
@@ -92,15 +92,15 @@ RecorderMsgProcResult AudioEncoder::DoProcessMessage(GstMessage &rawMsg, Recorde
     GstWarningMsgParser parser(rawMsg);
     CHECK_AND_RETURN_RET(parser.InitCheck(), RecorderMsgProcResult::REC_MSG_PROC_FAILED);
 
-    MEDIA_LOGE("[WARNING] %{public}s, debug: %{public}s", parser.error_->message, parser.debug_);
-    if (parser.error_->domain == GST_CORE_ERROR) {
-        if (parser.error_->code == GST_CORE_ERROR_NEGOTIATION) {
+    MEDIA_LOGE("[WARNING] %{public}s, debug: %{public}s", parser.GetErr()->message, parser.GetDbg());
+    if (parser.GetErr()->domain == GST_CORE_ERROR) {
+        if (parser.GetErr()->code == GST_CORE_ERROR_NEGOTIATION) {
             MEDIA_LOGE("negotiation error");
             ret = RecorderMsgProcResult::REC_MSG_PROC_OK;
         }
     }
-    if (parser.error_->domain == GST_STREAM_ERROR) {
-        if (parser.error_->code == GST_STREAM_ERROR_ENCODE)  {
+    if (parser.GetErr()->domain == GST_STREAM_ERROR) {
+        if (parser.GetErr()->code == GST_STREAM_ERROR_ENCODE)  {
             MEDIA_LOGE("encode error");
             ret = RecorderMsgProcResult::REC_MSG_PROC_OK;
         }

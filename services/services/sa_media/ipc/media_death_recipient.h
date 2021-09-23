@@ -22,22 +22,23 @@ namespace OHOS {
 namespace Media {
 class MediaDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
-    MediaDeathRecipient() = default;
+    explicit MediaDeathRecipient(pid_t pid) : pid_(pid) {};
     virtual ~MediaDeathRecipient() = default;
     void OnRemoteDied(const wptr<IRemoteObject> &remote)
     {
         (void)remote;
         if (diedCb_ != nullptr) {
-            diedCb_();
+            diedCb_(pid_);
         }
     }
-    using NotifyCbFunc = std::function<void()>;
+    using NotifyCbFunc = std::function<void(pid_t)>;
     void SetNotifyCb(NotifyCbFunc func)
     {
         diedCb_ = func;
     }
 
 private:
+    pid_t pid_ = 0;
     NotifyCbFunc diedCb_ = nullptr;
 };
 } // namespace Media
