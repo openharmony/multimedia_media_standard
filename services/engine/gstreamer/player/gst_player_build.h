@@ -31,12 +31,10 @@ public:
     ~GstPlayerBuild();
     std::shared_ptr<GstPlayerCtrl> Build(sptr<Surface> surface = nullptr);
     void CreateLoop();
-    void DestroyLoop();
+    void DestroyLoop() const;
 
 private:
     void Release();
-
-private:
     GMainContext *context_ = nullptr;
     GMainLoop *loop_ = nullptr;
     GstPlayerVideoRenderer *videoRenderer_ = nullptr;

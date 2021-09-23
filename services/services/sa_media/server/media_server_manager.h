@@ -18,6 +18,7 @@
 
 #include <memory>
 #include "iremote_object.h"
+#include "ipc_skeleton.h"
 #include "recorder_service_stub.h"
 #include "player_service_stub.h"
 #include "nocopyable.h"
@@ -33,16 +34,22 @@ public:
     enum StubType {
         RECORDER = 0,
         PLAYER,
+        AVMETADATAHELPER,
     };
     sptr<IRemoteObject> CreateStubObject(StubType type);
     void DestroyStubObject(StubType type, sptr<IRemoteObject> object);
+    void DestroyStubObjectForPid(pid_t pid);
 
 private:
     MediaServerManager();
+    sptr<IRemoteObject> CreatePlayerStubObject();
+    sptr<IRemoteObject> CreateRecorderStubObject();
+    sptr<IRemoteObject> CreateAVMetadataHelperStubObject();
 
-private:
-    std::list<sptr<IRemoteObject>> recorderStubList_;
-    std::list<sptr<IRemoteObject>> playerStubList_;
+    std::map<sptr<IRemoteObject>, pid_t> recorderStubMap_;
+    std::map<sptr<IRemoteObject>, pid_t> playerStubMap_;
+    std::map<sptr<IRemoteObject>, pid_t> avMetadataHelperStubMap_;
+
     std::mutex mutex_;
 };
 } // namespace Media

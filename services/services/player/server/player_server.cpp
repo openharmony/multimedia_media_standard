@@ -31,9 +31,7 @@ std::shared_ptr<IPlayerService> PlayerServer::Create()
     std::shared_ptr<PlayerServer> server = std::make_shared<PlayerServer>();
     CHECK_AND_RETURN_RET_LOG(server != nullptr, nullptr, "failed to new PlayerServer");
 
-    int32_t ret = server->Init();
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "Player server init Failed!");
-
+    (void)server->Init();
     return server;
 }
 
@@ -58,13 +56,30 @@ int32_t PlayerServer::Init()
 int32_t PlayerServer::SetSource(const std::string &uri)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    int32_t ret = InitPlayEngine(uri);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetSource Failed!");
+    return ret;
+}
+
+int32_t PlayerServer::SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(dataSrc != nullptr, MSERR_INVALID_VAL, "data source is nullptr");
+    dataSrc_ = dataSrc;
+    std::string uri = "MediaDataSource";
+    int32_t ret = InitPlayEngine(uri);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetObs Failed!");
+
+    return ret;
+}
+
+int32_t PlayerServer::InitPlayEngine(const std::string &uri)
+{
     if (status_ != PLAYER_IDLE) {
         MEDIA_LOGE("current state is: %{public}d, not support SetSource", status_);
         return MSERR_INVALID_OPERATION;
     }
-
     startTimeMonitor_.StartTime();
-
     MEDIA_LOGD("current uri is : %{public}s", uri.c_str());
     auto engineFactory = EngineFactoryRepo::Instance().GetEngineFactory(IEngineFactory::Scene::SCENE_PLAYBACK, uri);
     CHECK_AND_RETURN_RET_LOG(engineFactory != nullptr, MSERR_CREATE_PLAYER_ENGINE_FAILED,
@@ -72,8 +87,12 @@ int32_t PlayerServer::SetSource(const std::string &uri)
     playerEngine_ = engineFactory->CreatePlayerEngine();
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_CREATE_PLAYER_ENGINE_FAILED,
         "failed to create player engine");
-
-    int32_t ret = playerEngine_->SetSource(uri);
+    int32_t ret = MSERR_OK;
+    if (dataSrc_ == nullptr) {
+        ret = playerEngine_->SetSource(uri);
+    } else {
+        ret = playerEngine_->SetSource(dataSrc_);
+    }
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetSource Failed!");
 
     std::shared_ptr<IPlayerEngineObs> obs = shared_from_this();
@@ -81,13 +100,17 @@ int32_t PlayerServer::SetSource(const std::string &uri)
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetObs Failed!");
 
     status_ = PLAYER_INITIALIZED;
-    return ret;
+    return MSERR_OK;
 }
 
 int32_t PlayerServer::Prepare()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    return OnPrepare(false);
+}
 
+int32_t PlayerServer::OnPrepare(bool async)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
     if (status_ != PLAYER_INITIALIZED && status_ != PLAYER_STOPPED && status_ != PLAYER_PREPARED) {
         MEDIA_LOGE("Can not Prepare, currentState is %{public}d", status_);
         return MSERR_INVALID_OPERATION;
@@ -96,6 +119,7 @@ int32_t PlayerServer::Prepare()
     if (status_ == PLAYER_PREPARED) {
         Format format;
         OnInfo(INFO_TYPE_STATE_CHANGE, status_, format);
+        return MSERR_OK;
     }
 
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
@@ -105,9 +129,13 @@ int32_t PlayerServer::Prepare()
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine SetVideoSurface Failed!");
     }
 
-    ret = playerEngine_->Prepare();
+    status_ = PLAYER_PREPARING;
+    if (async) {
+        ret = playerEngine_->PrepareAsync();
+    } else {
+        ret = playerEngine_->Prepare();
+    }
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine Prepare Failed!");
-    status_ = PLAYER_PREPARED;
     return MSERR_OK;
 }
 
@@ -138,29 +166,7 @@ int32_t PlayerServer::Play()
 
 int32_t PlayerServer::PrepareAsync()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    if (status_ != PLAYER_INITIALIZED && status_ != PLAYER_STOPPED && status_ != PLAYER_PREPARED) {
-        MEDIA_LOGE("Can not Prepare, currentState is %{public}d", status_);
-        return MSERR_INVALID_OPERATION;
-    }
-
-    if (status_ == PLAYER_PREPARED) {
-        Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, status_, format);
-    }
-
-    CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
-    int32_t ret = MSERR_OK;
-    if (surface_ != nullptr) {
-        ret = playerEngine_->SetVideoSurface(surface_);
-        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine SetVideoSurface Failed!");
-    }
-
-    status_ = PLAYER_PREPARING;
-    ret = playerEngine_->PrepareAsync();
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine PrepareAsync Failed!");
-    return MSERR_OK;
+    return OnPrepare(true);
 }
 
 int32_t PlayerServer::Pause()
@@ -238,6 +244,7 @@ int32_t PlayerServer::OnReset()
     int32_t ret = playerEngine_->Reset();
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine Reset Failed!");
     playerEngine_ = nullptr;
+    dataSrc_ = nullptr;
     Format format;
     OnInfo(INFO_TYPE_STATE_CHANGE, PLAYER_IDLE, format);
     stopTimeMonitor_.FinishTime();
@@ -298,9 +305,9 @@ int32_t PlayerServer::Seek(int32_t mSeconds, PlayerSeekMode mode)
 
     if (status_ != PLAYER_PREPARED && status_ != PLAYER_PAUSED &&
         status_ != PLAYER_STARTED && status_ != PLAYER_PLAYBACK_COMPLETE) {
-            MEDIA_LOGE("Can not Seek, currentState is %{public}d", status_);
-            return MSERR_INVALID_OPERATION;
-        }
+        MEDIA_LOGE("Can not Seek, currentState is %{public}d", status_);
+        return MSERR_INVALID_OPERATION;
+    }
 
     if (IsValidSeekMode(mode) != true) {
         MEDIA_LOGE("Seek failed, inValid mode");
@@ -394,7 +401,7 @@ bool PlayerServer::IsPlaying()
     std::lock_guard<std::mutex> lock(mutex_);
     if (status_ == PLAYER_STATE_ERROR) {
         MEDIA_LOGE("Can not judge IsPlaying, currentState is PLAYER_STATE_ERROR");
-        return MSERR_INVALID_OPERATION;
+        return false;
     }
 
     return status_ == PLAYER_STARTED;
@@ -405,7 +412,7 @@ bool PlayerServer::IsLooping()
     std::lock_guard<std::mutex> lock(mutex_);
     if (status_ == PLAYER_STATE_ERROR) {
         MEDIA_LOGE("Can not judge IsLooping, currentState is PLAYER_STATE_ERROR");
-        return MSERR_INVALID_OPERATION;
+        return false;
     }
 
     return looping_;
@@ -432,15 +439,11 @@ int32_t PlayerServer::SetPlayerCallback(const std::shared_ptr<PlayerCallback> &c
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(callback != nullptr, MSERR_INVALID_VAL, "callback is nullptr");
 
-    if (status_ == PLAYER_STATE_ERROR) {
-        MEDIA_LOGE("Can not SetPlayerCallback, currentState is PLAYER_STATE_ERROR");
-        return MSERR_INVALID_OPERATION;
-    }
-
-    if (status_ == PLAYER_IDLE || status_ == PLAYER_STOPPED) {
+    if (status_ != PLAYER_IDLE && status_ != PLAYER_INITIALIZED) {
         MEDIA_LOGE("Can not SetPlayerCallback, currentState is %{public}d", status_);
         return MSERR_INVALID_OPERATION;
     }
+
     {
         std::lock_guard<std::mutex> lockCb(mutexCb_);
         playerCb_ = callback;

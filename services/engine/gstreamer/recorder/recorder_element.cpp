@@ -16,17 +16,13 @@
 #include "recorder_element.h"
 #include <algorithm>
 #include <iterator>
-#include <unordered_map>
 #include "media_errors.h"
 #include "media_log.h"
 #include "recorder_private_param.h"
 
 namespace {
-    constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "RecorderElement"};
-}
-
-namespace OHOS {
-namespace Media {
+using namespace OHOS::Media;
+constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "RecorderElement"};
 #define PARAM_TYPE_NAME_ITEM(paramType, captionString) { paramType, captionString }
 static const std::unordered_map<uint32_t, std::string> PARAM_TYPE_NAME_MAP = {
     PARAM_TYPE_NAME_ITEM(VID_ENC_FMT, "video encode format"),
@@ -45,21 +41,24 @@ static const std::unordered_map<uint32_t, std::string> PARAM_TYPE_NAME_MAP = {
     PARAM_TYPE_NAME_ITEM(NEXT_OUT_FD, "next out file descripter"),
     PARAM_TYPE_NAME_ITEM(OUTPUT_FORMAT, "output file format"),
 };
+}
 
-int32_t RecorderElementFactory::RegisterElement(std::string key, ElementCreator creator)
+namespace OHOS {
+namespace Media {
+int32_t RecorderElementFactory::RegisterElement(const std::string &key, const ElementCreator creator)
 {
     std::unique_lock<std::mutex> lock(tblMutex_);
     if (creatorTbl_.find(key) != creatorTbl_.end()) {
         MEDIA_LOGE("key %{public}s already registered !", key.c_str());
-        return ERR_ALREADY_EXISTS;
+        return MSERR_INVALID_OPERATION;
     }
 
-    creatorTbl_.emplace(key, creator);
-    return ERR_OK;
+    (void)creatorTbl_.emplace(key, creator);
+    return MSERR_OK;
 }
 
 std::shared_ptr<RecorderElement> RecorderElementFactory::CreateElement(
-    std::string key, const RecorderElement::CreateParam &param)
+    const std::string key, const RecorderElement::CreateParam &param)
 {
     std::shared_ptr<RecorderElement> elem;
     {
@@ -77,7 +76,7 @@ std::shared_ptr<RecorderElement> RecorderElementFactory::CreateElement(
     }
 
     int32_t ret = elem->Init();
-    if (ret != ERR_OK) {
+    if (ret != MSERR_OK) {
         MEDIA_LOGE("init element for key(%{public}s) failed !", key.c_str());
         return nullptr;
     }
@@ -151,12 +150,12 @@ RecorderMsgProcResult RecorderElement::OnMessageReceived(GstMessage &rawMsg, Rec
     return ret;
 }
 
-bool RecorderElement::CheckAllParamsConfiged(const std::set<int32_t>& expectedParams)
+bool RecorderElement::CheckAllParamsConfiged(const std::set<int32_t> &expectedParams) const
 {
     std::set<int32_t> intersection;
-    std::set_intersection(expectedParams.begin(), expectedParams.end(),
-                          configedParams_.begin(), configedParams_.end(),
-                          std::inserter(intersection, intersection.end()));
+    (void)std::set_intersection(expectedParams.begin(), expectedParams.end(),
+                                configedParams_.begin(), configedParams_.end(),
+                                std::inserter(intersection, intersection.end()));
     if (intersection == expectedParams) {
         return true;
     }
@@ -176,12 +175,12 @@ bool RecorderElement::CheckAllParamsConfiged(const std::set<int32_t>& expectedPa
     return false;
 }
 
-bool RecorderElement::CheckAnyParamConfiged(const std::set<int32_t>& expectedParams)
+bool RecorderElement::CheckAnyParamConfiged(const std::set<int32_t> &expectedParams) const
 {
     std::set<int32_t> intersection;
-    std::set_intersection(expectedParams.begin(), expectedParams.end(),
-                          configedParams_.begin(), configedParams_.end(),
-                          std::inserter(intersection, intersection.end()));
+    (void)std::set_intersection(expectedParams.begin(), expectedParams.end(),
+                                configedParams_.begin(), configedParams_.end(),
+                                std::inserter(intersection, intersection.end()));
     if (!intersection.empty()) {
         return true;
     }

@@ -227,6 +227,7 @@ int32_t VideoCaptureSfImpl::AcquireSurfaceBuffer()
     if (!started_ || (dataConSurface_ == nullptr)) {
         return MSERR_INVALID_OPERATION;
     }
+
     bufferAvailableCondition_.wait(lock, [this]() { return bufferAvailableCount_ > 0 || isEos; });
     if (isEos) {
         MEDIA_LOGI("eos, skip acquire buffer");

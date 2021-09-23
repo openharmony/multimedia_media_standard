@@ -31,11 +31,13 @@ enum RecorderPrivateParamType : uint32_t {
 
 struct SurfaceParam : public RecorderParam {
     SurfaceParam() : RecorderParam(RecorderPrivateParamType::SURFACE), surface_(nullptr) {}
+    ~SurfaceParam() = default;
     sptr<Surface> surface_;
 };
 
 struct OutputFormat : public RecorderParam {
     explicit OutputFormat(int32_t format) : RecorderParam(RecorderPrivateParamType::OUTPUT_FORMAT), format_(format) {}
+    ~OutputFormat() = default;
     int32_t format_;
 };
 }

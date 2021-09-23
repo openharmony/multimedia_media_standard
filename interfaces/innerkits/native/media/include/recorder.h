@@ -223,18 +223,8 @@ enum RecorderInfoType : int32_t {
  * @version 1.0
  */
 enum RecorderErrorType : int32_t {
-    /* create file failed */
-    RECORDER_ERROR_CREATE_FILE_FAIL = 0,
-
-    /* write file failed */
-    RECORDER_ERROR_WRITE_FILE_FAIL,
-
     /* internal errors, error code passed by the errorCode, and definition see "MediaServiceErrCode" */
     RECORDER_ERROR_INTERNAL,
-
-    /* the service process is dead. if need extend other type that reporting by recorder engine,
-       should before RECORDER_ERROR_SERVICE_DIED not after. */
-    RECORDER_ERROR_SERVICE_DIED,
 
      /** extend error start,The extension error code agreed upon by the plug-in and
          the application will be transparently transmitted by the service. */
@@ -259,7 +249,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    virtual void OnError(int32_t errorType, int32_t errorCode) = 0;
+    virtual void OnError(RecorderErrorType errorType, int32_t errorCode) = 0;
 
     /**
      * @brief Called when an information event occurs during recording. This callback is used to report recording
@@ -291,7 +281,7 @@ public:
      * @param source Indicates the video source type. For details, see {@link VideoSourceType}.
      * @param sourceId Indicates the video source ID. The value <b>-1</b> indicates an invalid ID and the setting fails.
      *
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -304,7 +294,7 @@ public:
      *
      * @param source Indicates the audio source type. For details, see {@link AudioSourceType}.
      * @param sourceId Indicates the audio source ID. The value <b>-1</b> indicates an invalid ID and the setting fails.
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -318,7 +308,7 @@ public:
      *
      * @param sourceId Indicates the data source ID. The value <b>-1</b> indicates an invalid ID and the setting fails.
      *
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -331,7 +321,7 @@ public:
      * this function called, no more source settings allowed.
      *
      * @param format Indicates the output file format. For details, see {@link OutputFormatType}.
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -345,7 +335,7 @@ public:
      *
      * @param sourceId Indicates the video source ID, which can be obtained from {@link SetVideoSource}.
      * @param encoder Indicates the video encoder to set. For details, see {@link VideoCodecFormat}.
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -359,7 +349,7 @@ public:
      * @param sourceId Indicates the video source ID, which can be obtained from {@link SetVideoSource}.
      * @param width Indicates the video width to set.
      * @param height Indicates the video height to set.
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -373,7 +363,7 @@ public:
      *
      * @param sourceId Indicates the video source ID, which can be obtained from {@link SetVideoSource}.
      * @param frameRate Indicates the frame rate to set.
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -386,7 +376,7 @@ public:
      *
      * @param sourceId Indicates the video source ID, which can be obtained from {@link SetVideoSource}.
      * @param rate Indicates the encoding bit rate to set.
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -401,7 +391,7 @@ public:
      *
      * @param sourceId Indicates the video source ID, which can be obtained from {@link SetVideoSource}.
      * @param fps Indicates the rate at which frames are captured per second.
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -426,7 +416,7 @@ public:
      *
      * @param sourceId Indicates the audio source ID, which can be obtained from {@link SetAudioSource}.
      * @param encoder Indicates the audio encoder to set.
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -439,7 +429,7 @@ public:
      *
      * @param sourceId Indicates the audio source ID, which can be obtained from {@link SetAudioSource}.
      * @param rate Indicates the sampling rate of the audio per second.
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -452,7 +442,7 @@ public:
      *
      * @param sourceId Indicates the audio source ID, which can be obtained from {@link SetAudioSource}.
      * @param num Indicates the number of audio channels to set.
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -465,7 +455,7 @@ public:
      *
      * @param sourceId Indicates the audio source ID, which can be obtained from {@link SetAudioSource}.
      * @param bitRate Indicates the audio encoding bit rate, in bit/s.
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -483,7 +473,7 @@ public:
      *
      * @param duration Indicates the maximum recording duration to set. If the value is <b>0</b> or a negative number,
      * a failure message is returned. The default duration is 60s.
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -504,7 +494,7 @@ public:
      * @param size Indicates the maximum file size to set. If the value is <b>0</b> or a negative number, a failure
      * message is returned.
      * By default, the maximum size of a single file supported by the current file system is used as the limit.
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -517,7 +507,7 @@ public:
      * {@link SetOutputFile} must be set.
      *
      * @param path Indicates the output file path.
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -530,7 +520,7 @@ public:
      * {@link SetOutputPath} must be set.
      *
      * @param fd Indicates the FD of the file.
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -544,7 +534,7 @@ public:
      * {@link RECORDER_INFO_MAX_DURATION_APPROACHING} or {@link RECORDER_INFO_MAX_FILESIZE_APPROACHING} is received.
      *
      * @param fd Indicates the FD of the next output file.
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -556,7 +546,7 @@ public:
      * This function must be called after {@link SetOutputFormat} but before {@link Prepare}
      *
      * @param callback Indicates the recording listener to register. For details, see {@link RecorderCallback}.
-     * @return Returns {@link ERR_OK} if the setting is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -567,7 +557,7 @@ public:
      *
      * This function must be called before {@link Start}.
      *
-     * @return Returns {@link ERR_OK} if the preparation is successful; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the preparation is successful; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -578,7 +568,7 @@ public:
      *
      * This function must be called after {@link Prepare}.
      *
-     * @return Returns {@link ERR_OK} if the recording is started; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the recording is started; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -590,7 +580,7 @@ public:
      * After {@link Start} is called, you can call this function to pause recording. The audio and video source streams
      * are not paused, and source data is discarded.
      *
-     * @return Returns {@link ERR_OK} if the recording is paused; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the recording is paused; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -601,7 +591,7 @@ public:
     *
     * You can call this function to resume recording after {@link Pause} is called.
      *
-     * @return Returns {@link ERR_OK} if the recording is resumed; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the recording is resumed; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -614,7 +604,7 @@ public:
      * are processed, and <b>false</b> indicates that the processing stops immediately and all caches are discarded.
      * After the recording stopped, all sources and parameters must be set again to restore recording. The function is
      * like to {@link Reset}, except that the block parameter is allowed to be specified.
-     * @return Returns {@link ERR_OK} if the recording is stopped; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the recording is stopped; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -626,7 +616,7 @@ public:
      * After the function is called, add a recording source by calling {@link SetVideoSource} or {@link SetAudioSource},
      * set related parameters, and call {@link Start} to start recording again after {@link Prepare} is called.
      *
-     * @return Returns {@link ERR_OK} if the recording is stopped; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the recording is stopped; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -636,7 +626,7 @@ public:
      * @brief Releases recording resources. After this function called, none of interfaces of {@link Recorder}
      * can be used.
      *
-     * @return Returns {@link ERR_OK} if the recording is stopped; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the recording is stopped; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -654,7 +644,7 @@ public:
      * @param timestamp Indicates the file split timestamp. This parameter is not supported currently and can be set to
      * <b>-1</b>. The recording module splits a file based on the call time.
      * @param duration Indicates the duration for splitting the file.
-     * @return Returns {@link ERR_OK} if the recording is stopped; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the recording is stopped; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */
@@ -668,7 +658,7 @@ public:
      * @param sourceId Indicates the data source ID. The value <b>-1</b> indicates all sources.
      * @param format Indicates the string key and value. For details, see {@link Format} and
      * {@link RECORDER_PRE_CACHE_DURATION}.
-     * @return Returns {@link ERR_OK} if the recording is stopped; returns an error code otherwise.
+     * @return Returns {@link MSERR_OK} if the recording is stopped; returns an error code otherwise.
      * @since 1.0
      * @version 1.0
      */

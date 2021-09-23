@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace Media {
-class AVSharedMemoryBase : public AVSharedMemory {
+class __attribute__((visibility("default"))) AVSharedMemoryBase : public AVSharedMemory {
 public:
     // only used for local process
     AVSharedMemoryBase(int32_t size, uint32_t flags, const std::string &name);
@@ -31,8 +31,8 @@ public:
     ~AVSharedMemoryBase();
 
     int32_t Init();
-    int32_t GetFd();
-    std::string GetName()
+    int32_t GetFd() const;
+    std::string GetName() const
     {
         return name_;
     }
@@ -44,7 +44,7 @@ public:
 
 private:
     int32_t MapMemory(bool isRemote);
-    void Close();
+    void Close() noexcept;
 
     uint8_t *base_;
     int32_t size_;

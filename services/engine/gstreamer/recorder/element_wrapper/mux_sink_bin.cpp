@@ -33,7 +33,7 @@ namespace Media {
 MuxSinkBin::~MuxSinkBin()
 {
     MEDIA_LOGD("enter, dtor");
-    Reset();
+    (void)Reset();
 }
 
 int32_t MuxSinkBin::Init()
@@ -48,23 +48,23 @@ int32_t MuxSinkBin::Init()
     gstElem_ = gst_element_factory_make("splitmuxsink", name_.c_str());
     if (gstElem_ == nullptr) {
         MEDIA_LOGE("Create splitmuxsink gst element failed !");
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
     gstSink_ = gst_element_factory_make("fdsink", "fdsink");
     if (gstSink_ == nullptr) {
         MEDIA_LOGE("Create fdsink gst element failed !");
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
     CANCEL_SCOPE_EXIT_GUARD(0);
     g_object_set(gstElem_, "sink", gstSink_, nullptr);
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t MuxSinkBin::Configure(const RecorderParam &recParam)
 {
-    int32_t ret = ERR_OK;
+    int32_t ret = MSERR_OK;
     switch (recParam.type) {
         case RecorderPrivateParamType::OUTPUT_FORMAT:
             ret = ConfigureOutputFormat(recParam);
@@ -89,23 +89,23 @@ int32_t MuxSinkBin::Configure(const RecorderParam &recParam)
 int32_t MuxSinkBin::ConfigureOutputFormat(const RecorderParam &recParam)
 {
     if (recParam.type != RecorderPrivateParamType::OUTPUT_FORMAT) {
-        return ERR_OK;
+        return MSERR_OK;
     }
 
     const OutputFormat &param = static_cast<const OutputFormat &>(recParam);
     if ((param.format_ == OutputFormatType::FORMAT_MPEG_4) || (param.format_ == OutputFormatType::FORMAT_M4A)) {
         int ret = CreateMuxerElement("mp4mux");
-        CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+        CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
     } else {
         MEDIA_LOGE("output format type unsupported currently, format: %{public}d", param.format_);
-        return ERR_INVALID_VALUE;
+        return MSERR_INVALID_VAL;
     }
 
     MEDIA_LOGI("configure output format: %{public}d", param.format_);
     format_ = param.format_;
     MarkParameter(param.type);
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t MuxSinkBin::ConfigureOutputTarget(const RecorderParam &recParam)
@@ -115,7 +115,7 @@ int32_t MuxSinkBin::ConfigureOutputTarget(const RecorderParam &recParam)
         std::string realPath;
         if (!PathToRealPath(param.path, realPath)) {
             MEDIA_LOGE("Configured output path invalid: %{public}s, ignore !", param.path.c_str());
-            return ERR_INVALID_VALUE;
+            return MSERR_INVALID_VAL;
         }
         struct stat s;
         if (stat(realPath.c_str(), &s) != 0) {
@@ -135,22 +135,22 @@ int32_t MuxSinkBin::ConfigureOutputTarget(const RecorderParam &recParam)
         int flags = fcntl(param.fd, F_GETFL);
         if (flags == -1) {
             MEDIA_LOGE("Fail to get File Status Flags");
-            return ERR_INVALID_VALUE;
+            return MSERR_INVALID_VAL;
         }
         if ((static_cast<unsigned int>(flags) & (O_RDWR | O_WRONLY)) == 0) {
             MEDIA_LOGE("File descriptor is not in read-write mode or write-only mode");
-            return ERR_INVALID_VALUE;
+            return MSERR_INVALID_VAL;
         }
         MEDIA_LOGI("Configure output fd ok");
         if (outFd_ > 0) {
-            ::close(outFd_);
+            (void)::close(outFd_);
         }
         outFd_ = dup(param.fd);
-        g_object_set(gstSink_, "fd", param.fd, nullptr);
+        g_object_set(gstSink_, "fd", outFd_, nullptr);
     }
 
     MarkParameter(recParam.type);
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t MuxSinkBin::ConfigureMaxDuration(const RecorderParam &recParam)
@@ -158,13 +158,13 @@ int32_t MuxSinkBin::ConfigureMaxDuration(const RecorderParam &recParam)
     const MaxDuration &param = static_cast<const MaxDuration &>(recParam);
     if (param.duration <= 0) {
         MEDIA_LOGE("Invalid max record duration: %{public}d", param.duration);
-        return ERR_INVALID_VALUE;
+        return MSERR_INVALID_VAL;
     }
     MEDIA_LOGI("Set max duration success: %{public}d", param.duration);
 
     MarkParameter(recParam.type);
     maxDuration_ = param.duration;
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t MuxSinkBin::ConfigureMaxFileSize(const RecorderParam &recParam)
@@ -172,47 +172,47 @@ int32_t MuxSinkBin::ConfigureMaxFileSize(const RecorderParam &recParam)
     const MaxFileSize &param = static_cast<const MaxFileSize &>(recParam);
     if (param.size <= 0) {
         MEDIA_LOGE("Invalid max record file size: (%{public}" PRId64 ")", param.size);
-        return ERR_INVALID_VALUE;
+        return MSERR_INVALID_VAL;
     }
     MEDIA_LOGI("Set max filesize success: (%{public}" PRId64 ")", param.size);
 
     MarkParameter(recParam.type);
     maxSize_ = param.size;
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t MuxSinkBin::CheckConfigReady()
 {
     std::set<int32_t> expectedParam = { RecorderPrivateParamType::OUTPUT_FORMAT };
     bool configed = CheckAllParamsConfiged(expectedParam);
-    CHECK_AND_RETURN_RET(configed == true, ERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(configed == true, MSERR_INVALID_OPERATION);
 
     std::set<int32_t>({ RecorderPublicParamType::OUT_PATH, RecorderPublicParamType::OUT_FD }).swap(expectedParam);
     configed = CheckAnyParamConfiged(expectedParam);
-    CHECK_AND_RETURN_RET(configed == true, ERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(configed == true, MSERR_INVALID_OPERATION);
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t MuxSinkBin::Prepare()
 {
     int32_t ret = SetOutFilePath();
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t MuxSinkBin::SetOutFilePath()
 {
     if (outPath_.empty() || CheckParameter(RecorderPublicParamType::OUT_FD)) {
-        return ERR_OK;
+        return MSERR_OK;
     }
 
     struct tm now;
     bool success = GetSystemCurrentTime(&now);
     if (!success) {
         MEDIA_LOGE("Get system current time failed !");
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
     std::string outFilePath = IncludeTrailingPathDelimiter(outPath_);
@@ -226,7 +226,7 @@ int32_t MuxSinkBin::SetOutFilePath()
         suffix = ".m4a";
     } else {
         MEDIA_LOGE("Output format type unsupported currently, format: %{public}d", format_);
-        return ERR_INVALID_VALUE;
+        return MSERR_INVALID_VAL;
     }
 
     outFilePath += std::to_string(now.tm_year) + std::to_string(now.tm_mon) + std::to_string(now.tm_mday) + "_";
@@ -237,22 +237,22 @@ int32_t MuxSinkBin::SetOutFilePath()
     outFd_ = open(outFilePath.c_str(), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
     if (outFd_ < 0) {
         MEDIA_LOGE("Open file failed! filePath: %{public}s", outFilePath.c_str());
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
     g_object_set(gstSink_, "fd", outFd_, nullptr);
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t MuxSinkBin::Reset()
 {
     if (outFd_ > 0) {
-        close(outFd_);
+        (void)::close(outFd_);
         outFd_ = -1;
     }
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t MuxSinkBin::SetParameter(const RecorderParam &recParam)
@@ -266,10 +266,10 @@ int32_t MuxSinkBin::CreateMuxerElement(const std::string &name)
     gstMuxer_ = gst_element_factory_make(name.c_str(), name.c_str());
     if (gstMuxer_ == nullptr) {
         MEDIA_LOGE("Create %{public}s gst element failed !", name.c_str());
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
     g_object_set(gstElem_, "muxer", gstMuxer_, nullptr);
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 void MuxSinkBin::Dump()
