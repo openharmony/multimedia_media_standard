@@ -38,8 +38,8 @@ public:
     virtual ~RecorderCallbackNapi();
 
     void SaveCallbackReference(const std::string &callbackName, napi_value callback);
-    void SendErrorCallback(napi_env env, MediaServiceExtErrCode errCode);
-    void SendCallback(napi_env env, const std::string &callbackName);
+    void SendErrorCallback(MediaServiceExtErrCode errCode);
+    void SendStateCallback(const std::string &callbackName);
 
 protected:
     void OnError(RecorderErrorType errorType, int32_t errCode) override;
