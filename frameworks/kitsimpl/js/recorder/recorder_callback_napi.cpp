@@ -68,11 +68,9 @@ void RecorderCallbackNapi::SaveCallbackReference(const std::string &callbackName
     }
 }
 
-void RecorderCallbackNapi::SendErrorCallback(napi_env env, MediaServiceExtErrCode errCode)
+void RecorderCallbackNapi::SendErrorCallback(MediaServiceExtErrCode errCode)
 {
-    (void)env;
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_LOG(env != nullptr, "Cannot find context");
     CHECK_AND_RETURN_LOG(errorCallback_ != nullptr, "Cannot find the reference of error callback");
 
     RecordJsCallback *cb = new(std::nothrow) RecordJsCallback();
@@ -107,7 +105,7 @@ std::shared_ptr<AutoRef> RecorderCallbackNapi::StateCallbackSelect(const std::st
     }
 }
 
-void RecorderCallbackNapi::SendCallback(napi_env env, const std::string &callbackName)
+void RecorderCallbackNapi::SendStateCallback(const std::string &callbackName)
 {
     std::shared_ptr<AutoRef> callbackRef = nullptr;
     callbackRef = StateCallbackSelect(callbackName);
@@ -159,6 +157,7 @@ void RecorderCallbackNapi::OnJsStateCallBack(RecordJsCallback *jsCb)
     work->data = reinterpret_cast<void *>(jsCb);
     int ret = uv_queue_work(loop, work, [] (uv_work_t *work) {}, [] (uv_work_t *work, int status) {
         // Js Thread
+        CHECK_AND_RETURN_LOG(work != nullptr, "work is nullptr");
         RecordJsCallback *event = reinterpret_cast<RecordJsCallback *>(work->data);
         std::string request = event->callbackName;
         napi_env env = event->callback->env_;
@@ -201,6 +200,7 @@ void RecorderCallbackNapi::OnJsErrorCallBack(RecordJsCallback *jsCb)
     // async callback, jsWork and jsWork->data should be heap object.
     int ret = uv_queue_work(loop, work, [] (uv_work_t *work) {}, [] (uv_work_t *work, int status) {
         // Js Thread
+        CHECK_AND_RETURN_LOG(work != nullptr, "work is nullptr");
         RecordJsCallback *event = reinterpret_cast<RecordJsCallback *>(work->data);
         std::string request = event->callbackName;
         napi_env env = event->callback->env_;
