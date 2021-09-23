@@ -25,7 +25,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-int32_t WriteAVSharedMemoryToParcel(std::shared_ptr<AVSharedMemory> memory, MessageParcel &parcel)
+int32_t WriteAVSharedMemoryToParcel(const std::shared_ptr<AVSharedMemory> &memory, MessageParcel &parcel)
 {
     std::shared_ptr<AVSharedMemoryBase> baseMem = std::static_pointer_cast<AVSharedMemoryBase>(memory);
     if (baseMem == nullptr)  {

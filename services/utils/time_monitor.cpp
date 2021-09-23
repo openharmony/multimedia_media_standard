@@ -55,7 +55,7 @@ void TimeMonitor::FinishTime()
     }
 }
 
-int64_t TimeMonitor::Timeval2Sec(const timeval &tv, TimeValType valType)
+int64_t TimeMonitor::Timeval2Sec(const timeval &tv, TimeValType valType) const
 {
     if ((valType == TIME_VAL_MS) || (valType == TIME_VAL_US) || (valType == TIME_VAL_NS)) {
         if ((static_cast<int64_t>(tv.tv_sec) < (LLONG_MAX / valType)) &&

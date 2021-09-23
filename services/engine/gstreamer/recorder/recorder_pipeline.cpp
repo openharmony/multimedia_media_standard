@@ -36,7 +36,7 @@ RecorderPipeline::RecorderPipeline(std::shared_ptr<RecorderPipelineDesc> desc)
 RecorderPipeline::~RecorderPipeline()
 {
     MEDIA_LOGD("enter, dtor");
-    Reset();
+    (void)Reset();
 }
 
 void RecorderPipeline::SetNotifier(RecorderMsgNotifier notifier)
@@ -49,22 +49,21 @@ int32_t RecorderPipeline::Init()
 {
     if (desc_ == nullptr) {
         MEDIA_LOGE("pipeline desc is nullptr");
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
     gstPipeline_ = reinterpret_cast<GstPipeline *>(gst_pipeline_new("recorder-pipeline"));
     if (gstPipeline_ == nullptr) {
         MEDIA_LOGE("Create gst pipeline failed !");
-        return ERR_NO_MEMORY;
+        return MSERR_NO_MEMORY;
     }
 
     GstBus *bus = gst_pipeline_get_bus(gstPipeline_);
-    CHECK_AND_RETURN_RET(bus != nullptr, ERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(bus != nullptr, MSERR_INVALID_OPERATION);
 
     auto msgResCb = std::bind(&RecorderPipeline::OnNotifyMsgProcResult, this, std::placeholders::_1);
     msgProcessor_ = std::make_unique<RecorderMsgProcessor>(*bus, msgResCb);
     gst_object_unref(bus);
-    bus = nullptr;
 
     int32_t ret = msgProcessor_->Init();
     if (ret != MSERR_OK) {
@@ -77,7 +76,7 @@ int32_t RecorderPipeline::Init()
         msgProcessor_->AddMsgHandler(elem);
     }
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderPipeline::Prepare()
@@ -87,12 +86,12 @@ int32_t RecorderPipeline::Prepare()
     CHECK_AND_RETURN_RET(!errorState_.load(), MSERR_INVALID_STATE);
 
     int32_t ret = DoElemAction(&RecorderElement::Prepare);
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
     ret = SyncWaitChangeState(GST_STATE_PAUSED);
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderPipeline::Start()
@@ -102,13 +101,13 @@ int32_t RecorderPipeline::Start()
     CHECK_AND_RETURN_RET(!errorState_.load(), MSERR_INVALID_STATE);
 
     int32_t ret = DoElemAction(&RecorderElement::Start);
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
     ret = SyncWaitChangeState(GST_STATE_PLAYING);
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
     isStarted_ = true;
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderPipeline::Pause()
@@ -118,7 +117,7 @@ int32_t RecorderPipeline::Pause()
     CHECK_AND_RETURN_RET(!errorState_.load(), MSERR_INVALID_STATE);
 
     int32_t ret = DoElemAction(&RecorderElement::Pause);
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
     return SyncWaitChangeState(GST_STATE_PAUSED);
 }
@@ -130,7 +129,7 @@ int32_t RecorderPipeline::Resume()
     CHECK_AND_RETURN_RET(!errorState_.load(), MSERR_INVALID_STATE);
 
     int32_t ret = DoElemAction(&RecorderElement::Resume);
-    CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
     return SyncWaitChangeState(GST_STATE_PLAYING);
 }
@@ -142,33 +141,33 @@ int32_t RecorderPipeline::Stop(bool isDrainAll)
     }
 
     if (currState_ == GST_STATE_NULL) {
-        return ERR_OK;
+        return MSERR_OK;
     }
 
     MEDIA_LOGI("enter Stop, isDrainAll = %{public}d", isDrainAll);
     DrainBuffer(isDrainAll);
 
-    (void) DoElemAction(&RecorderElement::Stop, false);
+    (void)DoElemAction(&RecorderElement::Stop, false);
 
     int32_t ret = SyncWaitChangeState(GST_STATE_NULL);
-    if (ret != ERR_OK) {
+    if (ret != MSERR_OK) {
         MEDIA_LOGW("Stop failed !");
         return ret;
     }
 
     isStarted_ = false;
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderPipeline::SetParameter(int32_t sourceId, const RecorderParam &recParam)
 {
     CHECK_AND_RETURN_RET(!errorState_.load(), MSERR_INVALID_STATE);
 
-    int32_t ret = ERR_OK;
+    int32_t ret = MSERR_OK;
     for (auto &elem : desc_->allElems) {
         if (elem->GetSourceId() == sourceId)  {
             ret = elem->SetParameter(recParam);
-            CHECK_AND_RETURN_RET(ret == ERR_OK, ret);
+            CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
         }
     }
 
@@ -181,7 +180,7 @@ int32_t RecorderPipeline::GetParameter(int32_t sourceId, RecorderParam &recParam
 
     if (desc_->srcElems.find(sourceId) == desc_->srcElems.end()) {
         MEDIA_LOGE("invalid sourceId %{public}d", sourceId);
-        return ERR_INVALID_VALUE;
+        return MSERR_INVALID_VAL;
     }
     return desc_->srcElems[sourceId]->GetParameter(recParam);
 }
@@ -214,7 +213,7 @@ void RecorderPipeline::DrainBuffer(bool isDrainAll)
 {
     if (currState_ == GST_STATE_PAUSED) {
         if (isStarted_) {
-            SyncWaitChangeState(GST_STATE_PLAYING);
+            (void)SyncWaitChangeState(GST_STATE_PLAYING);
         } else {
             return;
         }
@@ -229,7 +228,6 @@ void RecorderPipeline::DrainBuffer(bool isDrainAll)
             break;
         }
     }
-
     if (ret == MSERR_OK) {
         SyncWaitEOS();
     }
@@ -245,17 +243,17 @@ int32_t RecorderPipeline::PostAndSyncWaitEOS()
     GstEvent *eos = gst_event_new_eos();
     if (eos == nullptr) {
         MEDIA_LOGE("Create EOS event failed");
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
     gboolean success = gst_element_send_event((GstElement *)gstPipeline_, eos);
     if (!success) {
         MEDIA_LOGE("Send EOS event failed");
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
-    SyncWaitEOS();
-    return ERR_OK;
+    (void)SyncWaitEOS();
+    return MSERR_OK;
 }
 
 bool RecorderPipeline::SyncWaitEOS()
@@ -274,22 +272,22 @@ bool RecorderPipeline::SyncWaitEOS()
 
 int32_t RecorderPipeline::Reset()
 {
-    Stop(false);
+    (void)Stop(false);
     (void)DoElemAction(&RecorderElement::Reset, false);
     ClearResource();
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderPipeline::DoElemAction(const ElemAction &action, bool needAllSucc)
 {
     if (desc_ == nullptr)  {
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
     bool allSucc = true;
     for (auto &elem : desc_->allElems) {
         int32_t ret = action(*elem);
-        if (ret == ERR_OK) {
+        if (ret == MSERR_OK) {
             continue;
         }
         allSucc = false;
@@ -300,7 +298,7 @@ int32_t RecorderPipeline::DoElemAction(const ElemAction &action, bool needAllSuc
         }
     }
 
-    return allSucc ? ERR_OK : ERR_INVALID_OPERATION;
+    return allSucc ? MSERR_OK : MSERR_INVALID_OPERATION;
 }
 
 void RecorderPipeline::ClearResource()
@@ -419,7 +417,7 @@ bool RecorderPipeline::CheckStopForError(const RecorderMessage &msg)
         return true;
     }
 
-    errorSources_.emplace(msg.sourceId);
+    (void)errorSources_.emplace(msg.sourceId);
     if (errorSources_.size() == desc_->srcElems.size()) {
         return true;
     }
@@ -434,8 +432,8 @@ void RecorderPipeline::StopForError(const RecorderMessage &msg)
 
     errorState_.store(true);
     DrainBuffer(false);
-    (void) DoElemAction(&RecorderElement::Stop, false);
-    (void) SyncWaitChangeState(GST_STATE_NULL);
+    (void)DoElemAction(&RecorderElement::Stop, false);
+    (void)SyncWaitChangeState(GST_STATE_NULL);
 
     isStarted_ = false;
     gstPipeCond_.notify_all();

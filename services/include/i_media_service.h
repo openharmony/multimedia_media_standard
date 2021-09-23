@@ -19,6 +19,7 @@
 #include <memory>
 #include "i_recorder_service.h"
 #include "i_player_service.h"
+#include "i_avmetadatahelper_service.h"
 
 namespace OHOS {
 namespace Media {
@@ -38,7 +39,7 @@ public:
     virtual std::shared_ptr<IRecorderService> CreateRecorderService() = 0;
 
     /**
-     * @brief Destroy a player service.
+     * @brief Create a player service.
      *
      * All player functions must be created and obtained first.
      *
@@ -49,7 +50,18 @@ public:
     virtual std::shared_ptr<IPlayerService> CreatePlayerService() = 0;
 
     /**
-     * @brief Create a recorder service.
+     * @brief Create an avmetadatahelper service.
+     *
+     * All player functions must be created and obtained first.
+     *
+     * @return Returns a valid pointer if the setting is successful;
+     * @since 1.0
+     * @version 1.0
+     */
+    virtual std::shared_ptr<IAVMetadataHelperService> CreateAVMetadataHelperService() = 0;
+
+    /**
+     * @brief Destroy a recorder service.
      *
      * call the API to destroy the recorder service.
      *
@@ -61,7 +73,7 @@ public:
     virtual int32_t DestroyRecorderService(std::shared_ptr<IRecorderService> recorder) = 0;
 
     /**
-     * @brief Create a player service.
+     * @brief Destroy a player service.
      *
      * call the API to destroy the player service.
      *
@@ -71,6 +83,18 @@ public:
      * @version 1.0
      */
     virtual int32_t DestroyPlayerService(std::shared_ptr<IPlayerService> player) = 0;
+
+    /**
+     * @brief Destroy a avmetadatahelper service.
+     *
+     * call the API to destroy the avmetadatahelper service.
+     *
+     * @param pointer to the avmetadatahelper service.
+     * @return Returns a valid pointer if the setting is successful;
+     * @since 1.0
+     * @version 1.0
+     */
+    virtual int32_t DestroyAVMetadataHelperService(std::shared_ptr<IAVMetadataHelperService> avMetadataHelper) = 0;
 };
 
 class __attribute__((visibility("default"))) MeidaServiceFactory {

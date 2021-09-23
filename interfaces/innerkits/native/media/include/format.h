@@ -58,7 +58,6 @@ class Format {
 public:
     Format() = default;
     ~Format() = default;
-
     const std::map<std::string, FormatData *> &GetFormatMap() const;
 
 private:
@@ -70,3 +69,4 @@ private:
 } // namespace OHOS
 
 #endif // FORMAT_H
+

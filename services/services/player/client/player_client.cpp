@@ -28,7 +28,7 @@ std::shared_ptr<PlayerClient> PlayerClient::Create(const sptr<IStandardPlayerSer
     std::shared_ptr<PlayerClient> player = std::make_shared<PlayerClient>(ipcProxy);
 
     int32_t ret = player->CreateListenerObject();
-    CHECK_AND_RETURN_RET_LOG(ret == ERR_OK, nullptr, "failed to create listener object..");
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "failed to create listener object..");
 
     return player;
 }
@@ -54,11 +54,11 @@ int32_t PlayerClient::CreateListenerObject()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     listenerStub_ = new(std::nothrow) PlayerListenerStub();
-    CHECK_AND_RETURN_RET_LOG(listenerStub_ != nullptr, ERR_NO_MEMORY, "failed to new PlayerListenerStub object");
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(listenerStub_ != nullptr, MSERR_NO_MEMORY, "failed to new PlayerListenerStub object");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
 
     sptr<IRemoteObject> object = listenerStub_->AsObject();
-    CHECK_AND_RETURN_RET_LOG(object != nullptr, ERR_DEAD_OBJECT, "listener object is nullptr..");
+    CHECK_AND_RETURN_RET_LOG(object != nullptr, MSERR_NO_MEMORY, "listener object is nullptr..");
 
     MEDIA_LOGD("SetListenerObject");
     return playerProxy_->SetListenerObject(object);
@@ -70,56 +70,71 @@ void PlayerClient::MediaServerDied()
     playerProxy_ = nullptr;
     listenerStub_ = nullptr;
     if (callback_ != nullptr) {
-        callback_->OnError(PLAYER_ERROR_SERVICE_DIED, 0);
+        callback_->OnError(PLAYER_ERROR, MSERR_SERVICE_DIED);
     }
 }
 
 int32_t PlayerClient::SetSource(const std::string &uri)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
     return playerProxy_->SetSource(uri);
+}
+
+int32_t PlayerClient::SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(dataSrc != nullptr, MSERR_NO_MEMORY, "data source is nullptr");
+
+    dataSrcStub_ = new(std::nothrow) MediaDataSourceStub(dataSrc);
+    CHECK_AND_RETURN_RET_LOG(dataSrcStub_ != nullptr, MSERR_NO_MEMORY, "failed to new dataSrcStub object");
+
+    sptr<IRemoteObject> object = dataSrcStub_->AsObject();
+    CHECK_AND_RETURN_RET_LOG(object != nullptr, MSERR_NO_MEMORY, "listener object is nullptr..");
+    return playerProxy_->SetSource(object);
 }
 
 int32_t PlayerClient::Play()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
     return playerProxy_->Play();
 }
 
 int32_t PlayerClient::Prepare()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
     return playerProxy_->Prepare();
 }
 
 int32_t PlayerClient::PrepareAsync()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
     return playerProxy_->PrepareAsync();
 }
 
 int32_t PlayerClient::Pause()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
     return playerProxy_->Pause();
 }
 
 int32_t PlayerClient::Stop()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
     return playerProxy_->Stop();
 }
 
 int32_t PlayerClient::Reset()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    dataSrcStub_ = nullptr;
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
     return playerProxy_->Reset();
 }
 
@@ -128,92 +143,93 @@ int32_t PlayerClient::Release()
     std::lock_guard<std::mutex> lock(mutex_);
     callback_ = nullptr;
     listenerStub_ = nullptr;
+    dataSrcStub_ = nullptr;
 
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
     return playerProxy_->Release();
 }
 
 int32_t PlayerClient::SetVolume(float leftVolume, float rightVolume)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
     return playerProxy_->SetVolume(leftVolume, rightVolume);
 }
 
 int32_t PlayerClient::Seek(int32_t mSeconds, PlayerSeekMode mode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
     return playerProxy_->Seek(mSeconds, mode);
 }
 
 int32_t PlayerClient::GetCurrentTime(int32_t &currentTime)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
     return playerProxy_->GetCurrentTime(currentTime);
 }
 
 int32_t PlayerClient::SetPlaybackSpeed(PlaybackRateMode mode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
     return playerProxy_->SetPlaybackSpeed(mode);
 }
 
 int32_t PlayerClient::GetPlaybackSpeed(PlaybackRateMode &mode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
     return playerProxy_->GetPlaybackSpeed(mode);
 }
 
 int32_t PlayerClient::GetDuration(int32_t &duration)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
     return playerProxy_->GetDuration(duration);
 }
 
 int32_t PlayerClient::SetVideoSurface(sptr<Surface> surface)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
-    CHECK_AND_RETURN_RET_LOG(surface != nullptr, ERR_INVALID_VALUE, "surface is nullptr..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(surface != nullptr, MSERR_NO_MEMORY, "surface is nullptr..");
     return playerProxy_->SetVideoSurface(surface);
 }
 
 bool PlayerClient::IsPlaying()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, false, "player service does not exist..");
     return playerProxy_->IsPlaying();
 }
 
 bool PlayerClient::IsLooping()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, false, "player service does not exist..");
     return playerProxy_->IsLooping();
 }
 
 int32_t PlayerClient::SetLooping(bool loop)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
     return playerProxy_->SetLooping(loop);
 }
 
 int32_t PlayerClient::SetPlayerCallback(const std::shared_ptr<PlayerCallback> &callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(callback != nullptr, ERR_INVALID_VALUE, "input param callback is nullptr..");
-    CHECK_AND_RETURN_RET_LOG(listenerStub_ != nullptr, ERR_INVALID_OPERATION, "listenerStub_ is nullptr..");
+    CHECK_AND_RETURN_RET_LOG(callback != nullptr, MSERR_NO_MEMORY, "input param callback is nullptr..");
+    CHECK_AND_RETURN_RET_LOG(listenerStub_ != nullptr, MSERR_NO_MEMORY, "listenerStub_ is nullptr..");
 
     callback_ = callback;
     listenerStub_->SetPlayerCallback(callback);
 
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, ERR_DEAD_OBJECT, "player service does not exist..");
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
     return playerProxy_->SetPlayerCallback();
 }
 } // Media

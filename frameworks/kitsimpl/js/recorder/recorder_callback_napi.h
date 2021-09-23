@@ -20,22 +20,52 @@
 #include "recorder.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "common_napi.h"
 
 namespace OHOS {
 namespace Media {
 const std::string ERROR_CALLBACK_NAME = "error";
+const std::string PREPARE_CALLBACK_NAME = "prepare";
+const std::string START_CALLBACK_NAME = "start";
+const std::string PAUSE_CALLBACK_NAME = "pause";
+const std::string RESUME_CALLBACK_NAME = "resume";
+const std::string STOP_CALLBACK_NAME = "stop";
+const std::string RESET_CALLBACK_NAME = "reset";
+const std::string RELEASE_CALLBACK_NAME = "release";
 class RecorderCallbackNapi : public RecorderCallback {
 public:
-    RecorderCallbackNapi(napi_env env, AudioRecorderNapi &recorder);
+    explicit RecorderCallbackNapi(napi_env env);
     virtual ~RecorderCallbackNapi();
 
+    void SaveCallbackReference(const std::string &callbackName, napi_value callback);
+    void SendErrorCallback(MediaServiceExtErrCode errCode);
+    void SendStateCallback(const std::string &callbackName);
+
 protected:
-    void OnError(int32_t errorType, int32_t errorCode) override;
+    void OnError(RecorderErrorType errorType, int32_t errCode) override;
     void OnInfo(int32_t type, int32_t extra) override;
 
 private:
-    napi_env env_;
-    AudioRecorderNapi &recorderNapi_;
+    struct RecordJsCallback {
+        std::shared_ptr<AutoRef> callback = nullptr;
+        std::string callbackName = "unknown";
+        std::string errorMsg = "unknown";
+        MediaServiceExtErrCode errorCode = MSERR_EXT_UNKNOWN;
+    };
+    void OnJsErrorCallBack(RecordJsCallback *jsCb);
+    void OnJsStateCallBack(RecordJsCallback *jsCb);
+    std::shared_ptr<AutoRef> StateCallbackSelect(const std::string &callbackName) const;
+    napi_env env_ = nullptr;
+    std::mutex mutex_;
+
+    std::shared_ptr<AutoRef> errorCallback_ = nullptr;
+    std::shared_ptr<AutoRef> prepareCallback_ = nullptr;
+    std::shared_ptr<AutoRef> startCallback_ = nullptr;
+    std::shared_ptr<AutoRef> pauseCallback_ = nullptr;
+    std::shared_ptr<AutoRef> resumeCallback_ = nullptr;
+    std::shared_ptr<AutoRef> stopCallback_ = nullptr;
+    std::shared_ptr<AutoRef> resetCallback_ = nullptr;
+    std::shared_ptr<AutoRef> releaseCallback_ = nullptr;
 };
 }  // namespace Media
 }  // namespace OHOS

@@ -79,7 +79,7 @@ int32_t AVSharedMemoryBase::Init()
     }
 
     if (fd_ <= 0) {
-        fd_ = AshmemCreate(name_.c_str(), size_);
+        fd_ = AshmemCreate(name_.c_str(), static_cast<size_t>(size_));
         CHECK_AND_RETURN_RET(fd_ > 0, MSERR_INVALID_VAL);
     }
 
@@ -100,24 +100,24 @@ int32_t AVSharedMemoryBase::MapMemory(bool isRemote)
     int result = AshmemSetProt(fd_, static_cast<int>(prot));
     CHECK_AND_RETURN_RET(result >= 0, MSERR_INVALID_OPERATION);
 
-    void *addr = ::mmap(nullptr, size_, static_cast<int>(prot), MAP_SHARED, fd_, 0);
+    void *addr = ::mmap(nullptr, static_cast<size_t>(size_), static_cast<int>(prot), MAP_SHARED, fd_, 0);
     CHECK_AND_RETURN_RET(addr != MAP_FAILED, MSERR_INVALID_OPERATION);
 
     base_ = reinterpret_cast<uint8_t*>(addr);
     return MSERR_OK;
 }
 
-void AVSharedMemoryBase::Close()
+void AVSharedMemoryBase::Close() noexcept
 {
     if (base_ != nullptr) {
-        ::munmap(base_, size_);
+        (void)::munmap(base_, static_cast<size_t>(size_));
         base_ = nullptr;
         size_ = 0;
         flags_ = 0;
     }
 
     if (fd_ > 0) {
-        ::close(fd_);
+        (void)::close(fd_);
         fd_ = -1;
     }
 }
@@ -137,7 +137,7 @@ uint32_t AVSharedMemoryBase::GetFlags()
     return flags_;
 }
 
-int32_t AVSharedMemoryBase::GetFd()
+int32_t AVSharedMemoryBase::GetFd() const
 {
     return fd_;
 }

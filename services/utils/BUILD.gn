@@ -25,6 +25,7 @@ ohos_shared_library("media_service_utils") {
   sources = [
     "task_queue.cpp",
     "time_monitor.cpp",
+    "uri_helper.cpp",
   ]
 
   if (defined(ohos_lite)) {
