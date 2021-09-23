@@ -228,7 +228,7 @@ int32_t AudioRecorderNapi::GetAudioProperties(napi_env env, napi_value args, Aud
     properties.sourceType = AUDIO_MIC;
 
     int32_t fileFormat = -1;
-    CommonNapi::GetPropertyInt32(env, args, "fileFormat", fileFormat);
+    CommonNapi::GetPropertyInt32(env, args, "format", fileFormat);
     switch (fileFormat) {
         case JS_MPEG_4:
             properties.outputFormatType = FORMAT_MPEG_4;
