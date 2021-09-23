@@ -77,7 +77,6 @@ public:
 private:
     int32_t Init();
 
-private:
     std::unique_ptr<IRecorderEngine> recorderEngine_ = nullptr;
     std::shared_ptr<RecorderCallback> recorderCb_ = nullptr;
     RecStatus status_ = REC_INITIALIZED;

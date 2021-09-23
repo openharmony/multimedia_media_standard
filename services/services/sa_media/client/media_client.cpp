@@ -17,10 +17,14 @@
 #include "media_log.h"
 #include "recorder_client.h"
 #include "player_client.h"
+#include "avmetadatahelper_client.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
+#include "ipc_skeleton.h"
 #include "i_standard_recorder_service.h"
 #include "i_standard_player_service.h"
+#include "i_standard_avmetadatahelper_service.h"
+#include "media_errors.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaClient"};
@@ -44,6 +48,21 @@ MediaClient::~MediaClient()
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
+int32_t MediaClient::CreateListenerObject()
+{
+    listenerStub_ = new(std::nothrow) MediaListenerStub();
+    CHECK_AND_RETURN_RET_LOG(listenerStub_ != nullptr, MSERR_NO_MEMORY,
+        "failed to new MediaListenerStub object");
+    CHECK_AND_RETURN_RET_LOG(mediaProxy_ != nullptr, MSERR_NO_MEMORY,
+        "AVMetadataHelperClient service does not exist.");
+
+    sptr<IRemoteObject> object = listenerStub_->AsObject();
+    CHECK_AND_RETURN_RET_LOG(object != nullptr, MSERR_NO_MEMORY, "listener object is nullptr..");
+
+    MEDIA_LOGD("SetListenerObject");
+    return mediaProxy_->SetListenerObject(object);
+}
+
 bool MediaClient::IsAlived()
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -57,7 +76,7 @@ bool MediaClient::IsAlived()
 std::shared_ptr<IRecorderService> MediaClient::CreateRecorderService()
 {
     if (!IsAlived()) {
-        MEDIA_LOGE("media service does not exist..");
+        MEDIA_LOGE("media service does not exist.");
         return nullptr;
     }
 
@@ -79,7 +98,7 @@ std::shared_ptr<IRecorderService> MediaClient::CreateRecorderService()
 std::shared_ptr<IPlayerService> MediaClient::CreatePlayerService()
 {
     if (!IsAlived()) {
-        MEDIA_LOGE("media service does not exist..");
+        MEDIA_LOGE("media service does not exist.");
         return nullptr;
     }
 
@@ -98,20 +117,51 @@ std::shared_ptr<IPlayerService> MediaClient::CreatePlayerService()
     return player;
 }
 
+std::shared_ptr<IAVMetadataHelperService> MediaClient::CreateAVMetadataHelperService()
+{
+    if (!IsAlived()) {
+        MEDIA_LOGE("media service does not exist.");
+        return nullptr;
+    }
+
+    sptr<IRemoteObject> object = mediaProxy_->GetSubSystemAbility(
+        IStandardMediaService::MediaSystemAbility::MEDIA_AVMETADATAHELPER);
+    CHECK_AND_RETURN_RET_LOG(object != nullptr, nullptr, "avmetadatahelper proxy object is nullptr.");
+
+    sptr<IStandardAVMetadataHelperService> avMetadataHelperProxy = iface_cast<IStandardAVMetadataHelperService>(object);
+    CHECK_AND_RETURN_RET_LOG(avMetadataHelperProxy != nullptr, nullptr, "avmetadatahelper proxy is nullptr.");
+
+    std::shared_ptr<AVMetadataHelperClient> avMetadataHelper = AVMetadataHelperClient::Create(avMetadataHelperProxy);
+    CHECK_AND_RETURN_RET_LOG(avMetadataHelper != nullptr, nullptr, "failed to create avmetadatahelper client.");
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    avMetadataHelperClientList_.push_back(avMetadataHelper);
+    return avMetadataHelper;
+}
+
 int32_t MediaClient::DestroyRecorderService(std::shared_ptr<IRecorderService> recorder)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(recorder != nullptr, ERR_INVALID_OPERATION, "input recorder is nullptr.");
+    CHECK_AND_RETURN_RET_LOG(recorder != nullptr, MSERR_NO_MEMORY, "input recorder is nullptr.");
     recorderClientList_.remove(recorder);
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t MediaClient::DestroyPlayerService(std::shared_ptr<IPlayerService> player)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(player != nullptr, ERR_INVALID_OPERATION, "input player is nullptr.");
+    CHECK_AND_RETURN_RET_LOG(player != nullptr, MSERR_NO_MEMORY, "input player is nullptr.");
     playerClientList_.remove(player);
-    return ERR_OK;
+    return MSERR_OK;
+}
+
+int32_t MediaClient::DestroyAVMetadataHelperService(std::shared_ptr<IAVMetadataHelperService> avMetadataHelper)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(avMetadataHelper != nullptr, MSERR_NO_MEMORY,
+        "input avmetadatahelper is nullptr.");
+    avMetadataHelperClientList_.remove(avMetadataHelper);
+    return MSERR_OK;
 }
 
 sptr<IStandardMediaService> MediaClient::GetMediaProxy()
@@ -126,24 +176,30 @@ sptr<IStandardMediaService> MediaClient::GetMediaProxy()
     mediaProxy_ = iface_cast<IStandardMediaService>(object);
     CHECK_AND_RETURN_RET_LOG(mediaProxy_ != nullptr, nullptr, "media proxy is nullptr.");
 
-    deathRecipient_ = new(std::nothrow) MediaDeathRecipient();
+    pid_t pid = 0;
+    deathRecipient_ = new(std::nothrow) MediaDeathRecipient(pid);
     CHECK_AND_RETURN_RET_LOG(deathRecipient_ != nullptr, nullptr, "failed to new MediaDeathRecipient.");
 
-    deathRecipient_->SetNotifyCb(std::bind(&MediaClient::MediaServerDied, this));
+    deathRecipient_->SetNotifyCb(std::bind(&MediaClient::MediaServerDied, this, std::placeholders::_1));
     bool result = object->AddDeathRecipient(deathRecipient_);
     if (!result) {
         MEDIA_LOGE("failed to add deathRecipient");
         return nullptr;
     }
+
+    int32_t ret = CreateListenerObject();
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "failed to new MediaListener.");
+
     return mediaProxy_;
 }
 
-void MediaClient::MediaServerDied()
+void MediaClient::MediaServerDied(pid_t pid)
 {
-    MEDIA_LOGE("media server is died!");
+    MEDIA_LOGE("media server is died, pid:%{public}d!", pid);
     std::lock_guard<std::mutex> lock(mutex_);
     (void)mediaProxy_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     mediaProxy_ = nullptr;
+    listenerStub_ = nullptr;
     deathRecipient_ = nullptr;
 
     for (auto &it : recorderClientList_) {
@@ -157,6 +213,13 @@ void MediaClient::MediaServerDied()
         auto player = std::static_pointer_cast<PlayerClient>(it);
         if (player != nullptr) {
             player->MediaServerDied();
+        }
+    }
+
+    for (auto &it : avMetadataHelperClientList_) {
+        auto avMetadataHelper = std::static_pointer_cast<AVMetadataHelperClient>(it);
+        if (avMetadataHelper != nullptr) {
+            avMetadataHelper->MediaServerDied();
         }
     }
 }

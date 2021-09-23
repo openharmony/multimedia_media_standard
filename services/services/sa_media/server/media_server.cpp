@@ -65,6 +65,9 @@ sptr<IRemoteObject> MediaServer::GetSubSystemAbility(IStandardMediaService::Medi
         case MediaSystemAbility::MEDIA_PLAYER: {
             return MediaServerManager::GetInstance().CreateStubObject(MediaServerManager::PLAYER);
         }
+        case MediaSystemAbility::MEDIA_AVMETADATAHELPER: {
+            return MediaServerManager::GetInstance().CreateStubObject(MediaServerManager::AVMETADATAHELPER);
+        }
         default: {
             MEDIA_LOGE("default case, media client need check subSystemId");
             return nullptr;

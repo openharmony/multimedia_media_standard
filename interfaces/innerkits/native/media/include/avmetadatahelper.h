@@ -22,13 +22,17 @@
 #include "refbase.h"
 #include "display_type.h"
 #include "nocopyable.h"
+#include "avsharedmemory.h"
 
 namespace OHOS {
 namespace Media {
 /**
  * @attention This is the stub for image module, the complete definition must be provided by the image module.
  */
-class PixelMap;
+class PixelMap : public RefBase {
+    PixelMap() = default;
+    ~PixelMap() = default;
+};
 
 /**
  * @brief Enumerates avmetadata usage.
@@ -59,7 +63,7 @@ enum AVMetadataCode : int32_t {
      * The metadata key to retrieve the information about the performers or
      * artist associated with the media source.
      */
-    AV_KEY_ALBUMARTIST = 1,
+    AV_KEY_ALBUM_ARTIST = 1,
     /**
      * The metadata key to retrieve the information about the artist of
      * the media source.
@@ -97,7 +101,7 @@ enum AVMetadataCode : int32_t {
      * example mime types include: "video/mp4", "audio/mp4", "audio/amr-wb",
      * etc.
      */
-    AV_KEY_MIMETYPE = 29,
+    AV_KEY_MIME_TYPE = 29,
     /**
      * The metadata key to retrieve the number of tracks, such as audio, video,
      * text, in the media source, such as a mp4 or 3gpp file.
@@ -106,7 +110,7 @@ enum AVMetadataCode : int32_t {
     /**
      * This key retrieves the sample rate, if available.
      */
-    AV_KEY_SAMPLERATE = 31,
+    AV_KEY_SAMPLE_RATE = 31,
     /**
      * The metadata key to retrieve the media source title.
      */
@@ -199,7 +203,7 @@ public:
     /**
      * Retrieve all meta data within the listed above at the definition of {@link AVMetadataCode}.
      * This method must be called after the SetSource.
-     * @return Returns the meta data values on success; empty string on failure.
+     * @return Returns the meta data values on success; empty hash map on failure.
      */
     virtual std::unordered_map<int32_t, std::string> ResolveMetadata() = 0;
 
@@ -236,4 +240,5 @@ private:
 };
 }
 }
+
 #endif

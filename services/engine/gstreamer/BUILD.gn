@@ -25,6 +25,8 @@ ohos_shared_library("media_engine_gst") {
     "player:media_engine_gst_player",
     "avmetadatahelper:media_engine_gst_avmeta",
     "common:media_engine_gst_common",
+    "factory:media_engine_gst_factory",
+    "loader:media_engine_gst_loader",
     ":media_engine_gst_plugins_package"
   ]
 

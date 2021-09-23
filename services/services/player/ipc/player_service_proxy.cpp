@@ -16,7 +16,7 @@
 #include "player_service_proxy.h"
 #include "player_listener_stub.h"
 #include "media_log.h"
-#include "errors.h"
+#include "media_errors.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayerServiceProxy"};
@@ -42,7 +42,7 @@ int32_t PlayerServiceProxy::SetListenerObject(const sptr<IRemoteObject> &object)
     MessageOption option;
     (void)data.WriteRemoteObject(object);
     int error = Remote()->SendRequest(SET_LISTENER_OBJ, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set listener obj failed, error: %{public}d", error);
         return error;
     }
@@ -57,10 +57,25 @@ int32_t PlayerServiceProxy::SetSource(const std::string &uri)
     MessageOption option;
     data.WriteString(uri);
     int error = Remote()->SendRequest(SET_SOURCE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set Source failed, error: %{public}d", error);
         return error;
     }
+    return reply.ReadInt32();
+}
+
+int32_t PlayerServiceProxy::SetSource(const sptr<IRemoteObject> &object)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    (void)data.WriteRemoteObject(object);
+    int error = Remote()->SendRequest(SET_MEDIA_DATA_SRC_OBJ, data, reply, option);
+    if (error != MSERR_OK) {
+        MEDIA_LOGE("Set SetSource obj failed, error: %{public}d", error);
+        return error;
+    }
+
     return reply.ReadInt32();
 }
 
@@ -70,7 +85,7 @@ int32_t PlayerServiceProxy::Play()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(PLAY, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Play failed, error: %{public}d", error);
         return error;
     }
@@ -83,7 +98,7 @@ int32_t PlayerServiceProxy::Prepare()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(PREPARE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Prepare failed, error: %{public}d", error);
         return error;
     }
@@ -96,7 +111,7 @@ int32_t PlayerServiceProxy::PrepareAsync()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(PREPAREASYNC, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("PrepareAsync failed, error: %{public}d", error);
         return error;
     }
@@ -109,7 +124,7 @@ int32_t PlayerServiceProxy::Pause()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(PAUSE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Pause failed, error: %{public}d", error);
         return error;
     }
@@ -122,7 +137,7 @@ int32_t PlayerServiceProxy::Stop()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(STOP, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Stop failed, error: %{public}d", error);
         return error;
     }
@@ -135,7 +150,7 @@ int32_t PlayerServiceProxy::Reset()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(RESET, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Reset failed, error: %{public}d", error);
         return error;
     }
@@ -148,7 +163,7 @@ int32_t PlayerServiceProxy::Release()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(RELEASE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Release failed, error: %{public}d", error);
         return error;
     }
@@ -163,7 +178,7 @@ int32_t PlayerServiceProxy::SetVolume(float leftVolume, float rightVolume)
     data.WriteFloat(leftVolume);
     data.WriteFloat(rightVolume);
     int error = Remote()->SendRequest(SET_VOLUME, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set volume failed, error: %{public}d", error);
         return error;
     }
@@ -178,7 +193,7 @@ int32_t PlayerServiceProxy::Seek(int32_t mSeconds, PlayerSeekMode mode)
     data.WriteInt32(mSeconds);
     data.WriteInt32(mode);
     int error = Remote()->SendRequest(SEEK, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Seek failed, error: %{public}d", error);
         return error;
     }
@@ -191,7 +206,7 @@ int32_t PlayerServiceProxy::GetCurrentTime(int32_t &currentTime)
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(GET_CURRENT_TIME, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Get current time failed, error: %{public}d", error);
         return error;
     }
@@ -205,7 +220,7 @@ int32_t PlayerServiceProxy::GetDuration(int32_t &duration)
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(GET_DURATION, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Get current time failed, error: %{public}d", error);
         return error;
     }
@@ -220,7 +235,7 @@ int32_t PlayerServiceProxy::SetPlaybackSpeed(PlaybackRateMode mode)
     MessageOption option;
     data.WriteInt32(mode);
     int error = Remote()->SendRequest(SET_PLAYERBACK_SPEED, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("SetPlaybackSpeed failed, error: %{public}d", error);
         return error;
     }
@@ -233,7 +248,7 @@ int32_t PlayerServiceProxy::GetPlaybackSpeed(PlaybackRateMode &mode)
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(GET_PLAYERBACK_SPEED, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("GetPlaybackSpeed failed, error: %{public}d", error);
         return error;
     }
@@ -248,12 +263,12 @@ int32_t PlayerServiceProxy::SetVideoSurface(sptr<Surface> surface)
     MessageParcel reply;
     MessageOption option;
 
-    CHECK_AND_RETURN_RET_LOG(surface != nullptr, ERR_INVALID_VALUE, "surface is nullptr");
+    CHECK_AND_RETURN_RET_LOG(surface != nullptr, MSERR_NO_MEMORY, "surface is nullptr");
     sptr<IBufferProducer> producer = surface->GetProducer();
-    CHECK_AND_RETURN_RET_LOG(producer != nullptr, ERR_INVALID_VALUE, "producer is nullptr");
+    CHECK_AND_RETURN_RET_LOG(producer != nullptr, MSERR_NO_MEMORY, "producer is nullptr");
 
     sptr<IRemoteObject> object = producer->AsObject();
-    CHECK_AND_RETURN_RET_LOG(object != nullptr, ERR_INVALID_VALUE, "object is nullptr");
+    CHECK_AND_RETURN_RET_LOG(object != nullptr, MSERR_NO_MEMORY, "object is nullptr");
 
     const std::string surfaceFormat = "SURFACE_FORMAT";
     std::string format = surface->GetUserData(surfaceFormat);
@@ -261,7 +276,7 @@ int32_t PlayerServiceProxy::SetVideoSurface(sptr<Surface> surface)
     (void)data.WriteRemoteObject(object);
     data.WriteString(format);
     int error = Remote()->SendRequest(SET_VIDEO_SURFACE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set video surface failed, error: %{public}d", error);
         return error;
     }
@@ -274,9 +289,9 @@ bool PlayerServiceProxy::IsPlaying()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(IS_PLAYING, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Get is playing failed, error: %{public}d", error);
-        return error;
+        return false;
     }
 
     return reply.ReadBool();
@@ -288,9 +303,9 @@ bool PlayerServiceProxy::IsLooping()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(IS_LOOPING, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Get is looping failed, error: %{public}d", error);
-        return error;
+        return false;
     }
 
     return reply.ReadBool();
@@ -303,7 +318,7 @@ int32_t PlayerServiceProxy::SetLooping(bool loop)
     MessageOption option;
     data.WriteBool(loop);
     int error = Remote()->SendRequest(SET_LOOPING, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set looping failed, error: %{public}d", error);
         return error;
     }
@@ -316,7 +331,7 @@ int32_t PlayerServiceProxy::DestroyStub()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(DESTROY, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("destroy failed, error: %{public}d", error);
         return error;
     }
@@ -329,7 +344,7 @@ int32_t PlayerServiceProxy::SetPlayerCallback()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(SET_CALLBACK, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("set callback failed, error: %{public}d", error);
         return error;
     }

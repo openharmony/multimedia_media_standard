@@ -16,7 +16,7 @@
 #include "recorder_service_proxy.h"
 #include "recorder_listener_stub.h"
 #include "media_log.h"
-#include "errors.h"
+#include "media_errors.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "RecorderServiceProxy"};
@@ -42,7 +42,7 @@ int32_t RecorderServiceProxy::SetListenerObject(const sptr<IRemoteObject> &objec
     MessageOption option;
     (void)data.WriteRemoteObject(object);
     int error = Remote()->SendRequest(SET_LISTENER_OBJ, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set listener obj failed, error: %{public}d", error);
         return error;
     }
@@ -56,7 +56,7 @@ int32_t RecorderServiceProxy::SetVideoSource(VideoSourceType source, int32_t &so
     MessageOption option;
     data.WriteInt32(source);
     int error = Remote()->SendRequest(SET_VIDEO_SOURCE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set video source failed, error: %{public}d", error);
         return error;
     }
@@ -72,7 +72,7 @@ int32_t RecorderServiceProxy::SetVideoEncoder(int32_t sourceId, VideoCodecFormat
     data.WriteInt32(sourceId);
     data.WriteInt32(encoder);
     int error = Remote()->SendRequest(SET_VIDEO_ENCODER, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set video encoder failed, error: %{public}d", error);
         return error;
     }
@@ -89,7 +89,7 @@ int32_t RecorderServiceProxy::SetVideoSize(int32_t sourceId, int32_t width, int3
     data.WriteInt32(width);
     data.WriteInt32(height);
     int error = Remote()->SendRequest(SET_VIDEO_SIZE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set video size failed, error: %{public}d", error);
         return error;
     }
@@ -104,7 +104,7 @@ int32_t RecorderServiceProxy::SetVideoFrameRate(int32_t sourceId, int32_t frameR
     data.WriteInt32(sourceId);
     data.WriteInt32(frameRate);
     int error = Remote()->SendRequest(SET_VIDEO_FARAME_RATE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set video frame rate failed, error: %{public}d", error);
         return error;
     }
@@ -119,7 +119,7 @@ int32_t RecorderServiceProxy::SetVideoEncodingBitRate(int32_t sourceId, int32_t 
     data.WriteInt32(sourceId);
     data.WriteInt32(rate);
     int error = Remote()->SendRequest(SET_VIDEO_ENCODING_BIT_RATE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set video encoding bit rate failed, error: %{public}d", error);
         return error;
     }
@@ -134,7 +134,7 @@ int32_t RecorderServiceProxy::SetCaptureRate(int32_t sourceId, double fps)
     data.WriteInt32(sourceId);
     data.WriteDouble(fps);
     int error = Remote()->SendRequest(SET_CAPTURE_RATE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set capture rate failed, error: %{public}d", error);
         return error;
     }
@@ -148,7 +148,7 @@ sptr<OHOS::Surface> RecorderServiceProxy::GetSurface(int32_t sourceId)
     MessageOption option;
     data.WriteInt32(sourceId);
     int error = Remote()->SendRequest(GET_SURFACE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Get surface failed, error: %{public}d", error);
         return nullptr;
     }
@@ -175,7 +175,7 @@ int32_t RecorderServiceProxy::SetAudioSource(AudioSourceType source, int32_t &so
     MessageOption option;
     data.WriteInt32(static_cast<int32_t>(source));
     int error = Remote()->SendRequest(SET_AUDIO_SOURCE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set audio source failed, error: %{public}d", error);
         return error;
     }
@@ -191,7 +191,7 @@ int32_t RecorderServiceProxy::SetAudioEncoder(int32_t sourceId, AudioCodecFormat
     data.WriteInt32(sourceId);
     data.WriteInt32(static_cast<int32_t>(encoder));
     int error = Remote()->SendRequest(SET_AUDIO_ENCODER, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set audio encoder failed, error: %{public}d", error);
         return error;
     }
@@ -206,7 +206,7 @@ int32_t RecorderServiceProxy::SetAudioSampleRate(int32_t sourceId, int32_t rate)
     data.WriteInt32(sourceId);
     data.WriteInt32(rate);
     int error = Remote()->SendRequest(SET_AUDIO_SAMPLE_RATE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set audio sample rate failed, error: %{public}d", error);
         return error;
     }
@@ -221,7 +221,7 @@ int32_t RecorderServiceProxy::SetAudioChannels(int32_t sourceId, int32_t num)
     data.WriteInt32(sourceId);
     data.WriteInt32(num);
     int error = Remote()->SendRequest(SET_AUDIO_CHANNELS, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set audio channels failed, error: %{public}d", error);
         return error;
     }
@@ -236,7 +236,7 @@ int32_t RecorderServiceProxy::SetAudioEncodingBitRate(int32_t sourceId, int32_t 
     data.WriteInt32(sourceId);
     data.WriteInt32(bitRate);
     int error = Remote()->SendRequest(SET_AUDIO_ENCODING_BIT_RATE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set audio encoding bit rate failed, error: %{public}d", error);
         return error;
     }
@@ -250,7 +250,7 @@ int32_t RecorderServiceProxy::SetDataSource(DataSourceType dataType, int32_t &so
     MessageOption option;
     data.WriteInt32(static_cast<int32_t>(dataType));
     int error = Remote()->SendRequest(SET_DATA_SOURCE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set data source failed, error: %{public}d", error);
         return error;
     }
@@ -265,7 +265,7 @@ int32_t RecorderServiceProxy::SetMaxDuration(int32_t duration)
     MessageOption option;
     data.WriteInt32(duration);
     int error = Remote()->SendRequest(SET_MAX_DURATION, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set max duration failed, error: %{public}d", error);
         return error;
     }
@@ -279,7 +279,7 @@ int32_t RecorderServiceProxy::SetOutputFormat(OutputFormatType format)
     MessageOption option;
     data.WriteInt32(static_cast<int32_t>(format));
     int error = Remote()->SendRequest(SET_OUTPUT_FORMAT, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set output format failed, error: %{public}d", error);
         return error;
     }
@@ -293,7 +293,7 @@ int32_t RecorderServiceProxy::SetOutputPath(const std::string &path)
     MessageOption option;
     data.WriteString(path);
     int error = Remote()->SendRequest(SET_OUTPUT_PATH, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set output path failed, error: %{public}d", error);
         return error;
     }
@@ -307,7 +307,7 @@ int32_t RecorderServiceProxy::SetOutputFile(int32_t fd)
     MessageOption option;
     (void)data.WriteFileDescriptor(fd);
     int error = Remote()->SendRequest(SET_OUTPUT_FILE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set output fd failed, error: %{public}d", error);
         return error;
     }
@@ -321,7 +321,7 @@ int32_t RecorderServiceProxy::SetNextOutputFile(int32_t fd)
     MessageOption option;
     (void)data.WriteFileDescriptor(fd);
     int error = Remote()->SendRequest(SET_NEXT_OUTPUT_FILE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set next output fd failed, error: %{public}d", error);
         return error;
     }
@@ -335,7 +335,7 @@ int32_t RecorderServiceProxy::SetMaxFileSize(int64_t size)
     MessageOption option;
     data.WriteInt64(size);
     int error = Remote()->SendRequest(SET_MAX_FILE_SIZE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set max file size failed, error: %{public}d", error);
         return error;
     }
@@ -348,7 +348,7 @@ int32_t RecorderServiceProxy::Prepare()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(PREPARE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("prepare failed, error: %{public}d", error);
         return error;
     }
@@ -361,7 +361,7 @@ int32_t RecorderServiceProxy::Start()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(START, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("start failed, error: %{public}d", error);
         return error;
     }
@@ -374,7 +374,7 @@ int32_t RecorderServiceProxy::Pause()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(PAUSE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("pause failed, error: %{public}d", error);
         return error;
     }
@@ -387,7 +387,7 @@ int32_t RecorderServiceProxy::Resume()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(RESUME, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("resume failed, error: %{public}d", error);
         return error;
     }
@@ -401,7 +401,7 @@ int32_t RecorderServiceProxy::Stop(bool block)
     MessageOption option;
     data.WriteBool(block);
     int error = Remote()->SendRequest(STOP, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("stop failed, error: %{public}d", error);
         return error;
     }
@@ -414,7 +414,7 @@ int32_t RecorderServiceProxy::Reset()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(RESET, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("reset failed, error: %{public}d", error);
         return error;
     }
@@ -427,7 +427,7 @@ int32_t RecorderServiceProxy::Release()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(RELEASE, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("release failed, error: %{public}d", error);
         return error;
     }
@@ -443,7 +443,7 @@ int32_t RecorderServiceProxy::SetFileSplitDuration(FileSplitType type, int64_t t
     data.WriteInt64(timestamp);
     data.WriteUint32(duration);
     int error = Remote()->SendRequest(SET_FILE_SPLIT_DURATION, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("Set file split duration failed, error: %{public}d", error);
         return error;
     }
@@ -456,7 +456,7 @@ int32_t RecorderServiceProxy::DestroyStub()
     MessageParcel reply;
     MessageOption option;
     int error = Remote()->SendRequest(DESTROY, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("destroy failed, error: %{public}d", error);
         return error;
     }

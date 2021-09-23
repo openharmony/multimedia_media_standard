@@ -55,13 +55,11 @@ private:
     int32_t BuildPipeline();
     bool CheckParamType(int32_t sourceId, const RecorderParam &recParam) const;
 
-    std::unique_ptr<RecorderPipelineBuilder> builder_;
-    std::shared_ptr<RecorderPipelineCtrler> ctrler_;
-    std::shared_ptr<RecorderPipeline> pipeline_;
-
+    std::unique_ptr<RecorderPipelineBuilder> builder_ = nullptr;
+    std::shared_ptr<RecorderPipelineCtrler> ctrler_ = nullptr;
+    std::shared_ptr<RecorderPipeline> pipeline_ = nullptr;
     std::map<int32_t, RecorderSourceDesc> allSources_;
     std::vector<uint32_t> sourceCount_;
-
     std::mutex mutex_;
 };
 }

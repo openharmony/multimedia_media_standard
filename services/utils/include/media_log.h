@@ -25,9 +25,9 @@ namespace OHOS {
 
 #define __FILENAME__ (__builtin_strrchr(__FILE__, '/') ? __builtin_strrchr(__FILE__, '/') + 1 : __FILE__)
 
-#define __MEDIA_LOG(func, fmt, args...)                                                  \
-    do {                                                                                 \
-        func(LABEL, "{%{public}s():%{public}d} " fmt, __FUNCTION__, __LINE__, ##args);  \
+#define __MEDIA_LOG(func, fmt, args...)                                                       \
+    do {                                                                                      \
+        (void)func(LABEL, "{%{public}s():%{public}d} " fmt, __FUNCTION__, __LINE__, ##args);  \
     } while (0)
 
 #define MEDIA_LOGD(fmt, ...) __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Debug, fmt, ##__VA_ARGS__)
@@ -69,12 +69,12 @@ namespace OHOS {
     } while (0);
 
 #define CHECK_AND_BREAK_LOG(cond, fmt, ...)            \
-    do {                                               \
+    if (1) {                                           \
         if (!(cond)) {                                 \
             MEDIA_LOGE(fmt, ##__VA_ARGS__);            \
             break;                                     \
         }                                              \
-    } while (0);
+    } else void (0)
 
 #define POINTER_MASK 0x00FFFFFF
 #define FAKE_POINTER(addr) (POINTER_MASK & reinterpret_cast<uintptr_t>(addr))

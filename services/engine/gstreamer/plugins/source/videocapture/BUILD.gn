@@ -38,7 +38,6 @@ config("gst_surface_video_src_config") {
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara/include",
     "include",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
@@ -72,7 +71,6 @@ ohos_shared_library("gst_surface_video_src") {
     "//third_party/glib:gobject",
     "//third_party/glib:gmodule",
     "//foundation/graphic/standard:libsurface",
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
   ]
 
   external_deps = [
