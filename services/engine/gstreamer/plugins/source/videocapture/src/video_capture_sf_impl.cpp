@@ -33,6 +33,7 @@ const std::map<uint32_t, uint32_t> VIDEO_RESOLUTION_MAP = {
     { 1920, 1080 },
     { 1280, 720 },
     { 720, 480 },
+    { 640, 360 },
 };
 VideoCaptureSfImpl::VideoCaptureSfImpl()
     : videoWidth_(DEFAULT_VIDEO_WIDTH),
