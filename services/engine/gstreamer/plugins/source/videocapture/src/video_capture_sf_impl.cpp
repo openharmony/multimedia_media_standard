@@ -33,6 +33,7 @@ const std::map<uint32_t, uint32_t> VIDEO_RESOLUTION_MAP = {
     { 1920, 1080 },
     { 1280, 720 },
     { 720, 480 },
+    { 640, 360 },
 };
 VideoCaptureSfImpl::VideoCaptureSfImpl()
     : videoWidth_(DEFAULT_VIDEO_WIDTH),
@@ -216,7 +217,7 @@ int32_t VideoCaptureSfImpl::GetSufferExtraData()
     surfaceRet = surfaceBuffer_->ExtraGet("isKeyFrame", isCodecFrame_);
     CHECK_AND_RETURN_RET_LOG(surfaceRet == SURFACE_ERROR_OK, MSERR_INVALID_OPERATION, "get isKeyFrame fail");
 
-    MEDIA_LOGI("surfaceBuffer extraData dataSize_: %{public}d, pts: (%{public}" PRId64 ")", dataSize_, pts_);
+    MEDIA_LOGI("surfaceBuffer extraData dataSize_: %{public}d, pts: %{public}" PRId64 "", dataSize_, pts_);
     MEDIA_LOGI("is this surfaceBuffer keyFrame ? : %{public}d", isCodecFrame_);
     return MSERR_OK;
 }
@@ -227,7 +228,6 @@ int32_t VideoCaptureSfImpl::AcquireSurfaceBuffer()
     if (!started_ || (dataConSurface_ == nullptr)) {
         return MSERR_INVALID_OPERATION;
     }
-
     bufferAvailableCondition_.wait(lock, [this]() { return bufferAvailableCount_ > 0 || isEos; });
     if (isEos) {
         MEDIA_LOGI("eos, skip acquire buffer");
