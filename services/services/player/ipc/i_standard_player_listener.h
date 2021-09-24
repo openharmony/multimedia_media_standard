@@ -28,14 +28,13 @@ class IStandardPlayerListener : public IRemoteBroker {
 public:
     virtual ~IStandardPlayerListener() = default;
     virtual void OnError(PlayerErrorType errorType, int32_t errorCode) = 0;
-    virtual void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody = {}) = 0;
+    virtual void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody) = 0;
 
     enum PlayerListenerMsg {
         ON_ERROR = 0,
         ON_INFO,
     };
 
-public:
     DECLARE_INTERFACE_DESCRIPTOR(u"IStandardPlayerListener");
 };
 } // OHOS

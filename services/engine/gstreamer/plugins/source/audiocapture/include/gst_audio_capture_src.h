@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef __GST_AUDIO_CAPTURE_SRC_H__
-#define __GST_AUDIO_CAPTURE_SRC_H__
+#ifndef GST_AUDIO_CAPTURE_SRC_H
+#define GST_AUDIO_CAPTURE_SRC_H
 
 #include <memory>
 #include <gst/base/gstpushsrc.h>
@@ -65,4 +65,4 @@ G_GNUC_INTERNAL GType gst_audio_capture_src_get_type(void);
 
 G_END_DECLS
 
-#endif /* __GST_AUDIO_CAPTURE_SRC_H__ */
+#endif /* GST_AUDIO_CAPTURE_SRC_H */

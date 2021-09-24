@@ -36,7 +36,7 @@ private:
         TIME_VAL_US = 1000000,      /* sec to us */
         TIME_VAL_NS = 1000000000,   /* sec to ns */
     };
-    int64_t Timeval2Sec(const timeval &tv, TimeValType valType);
+    int64_t Timeval2Sec(const timeval &tv, TimeValType valType) const;
     std::string objectName_ = "Unknown";
     struct timeval startTime_ = {};
     struct timeval finishTime_ = {};

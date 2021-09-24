@@ -14,13 +14,13 @@
  */
 
 #include "audio_capture_factory.h"
-#include <cstdlib>
 #include "audio_capture_as_impl.h"
 
 namespace OHOS {
 namespace Media {
 std::unique_ptr<AudioCapture> AudioCaptureFactory::CreateAudioCapture(AudioStreamType streamType)
 {
+    (void)streamType;
     return std::make_unique<AudioCaptureAsImpl>();
 }
 }  // namespace Media

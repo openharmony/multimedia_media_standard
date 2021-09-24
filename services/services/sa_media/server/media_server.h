@@ -28,13 +28,14 @@ public:
     explicit MediaServer(int32_t systemAbilityId, bool runOnCreate = true);
     ~MediaServer();
 
+    // IStandardMediaService override
+    sptr<IRemoteObject> GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId) override;
+
+protected:
     // SystemAbility override
     void OnDump() override;
     void OnStart() override;
     void OnStop() override;
-
-    // IStandardMediaService override
-    sptr<IRemoteObject> GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId) override;
 };
 } // namespace Media
 } // namespace OHOS

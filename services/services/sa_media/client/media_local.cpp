@@ -17,6 +17,8 @@
 #include "media_log.h"
 #include "recorder_server.h"
 #include "player_server.h"
+#include "media_errors.h"
+#include "avmetadatahelper_server.h"
 
 namespace OHOS {
 namespace Media {
@@ -36,16 +38,27 @@ std::shared_ptr<IPlayerService> MediaLocal::CreatePlayerService()
     return PlayerServer::Create();
 }
 
+std::shared_ptr<IAVMetadataHelperService> MediaLocal::CreateAVMetadataHelperService()
+{
+    return AVMetadataHelperServer::Create();
+}
+
 int32_t MediaLocal::DestroyRecorderService(std::shared_ptr<IRecorderService> recorder)
 {
     (void)recorder;
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t MediaLocal::DestroyPlayerService(std::shared_ptr<IPlayerService> player)
 {
     (void)player;
-    return ERR_OK;
+    return MSERR_OK;
+}
+
+int32_t MediaLocal::DestroyAVMetadataHelperService(std::shared_ptr<IAVMetadataHelperService> avMetadataHelper)
+{
+    (void)avMetadataHelper;
+    return MSERR_OK;
 }
 } // Media
 } // OHOS

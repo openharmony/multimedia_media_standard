@@ -25,6 +25,7 @@ public:
     explicit MediaServiceProxy(const sptr<IRemoteObject> &impl);
     virtual ~MediaServiceProxy();
     sptr<IRemoteObject> GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId) override;
+    int32_t SetListenerObject(const sptr<IRemoteObject> &object) override;
 
 private:
     static inline BrokerDelegator<MediaServiceProxy> delegator_;

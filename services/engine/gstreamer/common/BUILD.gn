@@ -39,14 +39,15 @@ config("media_engine_gst_common_config") {
     "//third_party/glib",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
+    "//third_party/gstreamer/gstplugins_base",
     "//third_party/gstreamer/gstplugins_base/gst-libs",
     "//third_party/gstreamer/gstplugins_bad/gst-libs",
-    "//foundation/multimedia/media_standard/services/include",
-    "//foundation/multimedia/media_standard/services/engine/include",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/player",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/recorder",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/avmetadatahelper",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/loader",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/message",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/metadata",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/playbin_adapter",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/state_machine",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
   ]
@@ -54,13 +55,19 @@ config("media_engine_gst_common_config") {
 
 ohos_static_library("media_engine_gst_common") {
   sources = [
-    "factory/engine_factory.cpp",
-    "loader/gst_loader.cpp"
+    "message/gst_msg_converter.cpp",
+    "message/gst_msg_processor.cpp",
+    "metadata/gst_meta_parser.cpp",
+    "playbin_adapter/playbin_ctrler_base.cpp",
+    "playbin_adapter/playbin_state.cpp",
+    "playbin_adapter/playbin2_ctrler.cpp",
+    "state_machine/state_machine.cpp",
+    "utils/dumper.cpp",
+    "utils/gst_utils.cpp",
   ]
 
   configs = [
     ":media_engine_gst_common_config",
-    "//foundation/graphic/standard/frameworks/surface:surface_public_config",
   ]
 
   deps = [
@@ -68,13 +75,12 @@ ohos_static_library("media_engine_gst_common") {
     "//third_party/gstreamer/gstreamer:gstreamer",
     "//third_party/glib:glib",
     "//third_party/glib:gobject",
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
-    "//foundation/graphic/standard/frameworks/surface:surface",
   ]
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
   ]
 
   subsystem_name = "multimedia"
