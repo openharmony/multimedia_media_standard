@@ -19,6 +19,7 @@
 #include "i_player_service.h"
 #include "i_standard_player_service.h"
 #include "player_listener_stub.h"
+#include "media_data_source_stub.h"
 
 namespace OHOS {
 namespace Media {
@@ -30,6 +31,7 @@ public:
 
     // IPlayerService override
     int32_t SetSource(const std::string &uri) override;
+    int32_t SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc) override;
     int32_t Play() override;
     int32_t Prepare() override;
     int32_t PrepareAsync() override;
@@ -55,9 +57,9 @@ public:
 private:
     int32_t CreateListenerObject();
 
-private:
     sptr<IStandardPlayerService> playerProxy_ = nullptr;
     sptr<PlayerListenerStub> listenerStub_ = nullptr;
+    sptr<MediaDataSourceStub> dataSrcStub_ = nullptr;
     std::shared_ptr<PlayerCallback> callback_ = nullptr;
     std::mutex mutex_;
 };

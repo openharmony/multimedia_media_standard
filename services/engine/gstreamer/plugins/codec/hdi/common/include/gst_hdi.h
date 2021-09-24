@@ -59,7 +59,7 @@ typedef struct {
     PixelFormat pixel_format;
     GstVideoFormat gst_format;
     guint frame_rate;
-    guint pts;
+    guint64 pts;
 #ifdef GST_HDI_PARAM_PILE
     guint64 phy_addr[2];
     guint8 *vir_addr;
@@ -122,7 +122,7 @@ gint gst_hdi_deque_output_buffer_and_format(GstHDICodec *codec, GstBuffer **gst_
 void gst_hdi_class_data_init(GstHDIClassData *classData);
 void gst_hdi_class_pad_caps_init(const GstHDIClassData *classData, GstElementClass *element_class);
 const gchar *gst_hdi_error_to_string(gint err);
-GHashTable *gst_hdi_init_caps_map();
+GHashTable *gst_hdi_init_caps_map(void);
 
 GType gst_hdi_codec_get_type(void);
 #endif /* GST_HDI_H */

@@ -34,7 +34,7 @@
 
 namespace OHOS {
 namespace Media {
-using RecorderMsgNotifier = std::function<void(const RecorderMessage&)>;
+using RecorderMsgNotifier = std::function<void(const RecorderMessage &)>;
 
 struct RecorderPipelineDesc {
     struct LinkDesc {

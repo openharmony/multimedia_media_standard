@@ -29,6 +29,7 @@ public:
     virtual ~IStandardPlayerService() = default;
     virtual int32_t SetListenerObject(const sptr<IRemoteObject> &object) = 0;
     virtual int32_t SetSource(const std::string &uri) = 0;
+    virtual int32_t SetSource(const sptr<IRemoteObject> &object) = 0;
     virtual int32_t Play() = 0;
     virtual int32_t Prepare() = 0;
     virtual int32_t PrepareAsync() = 0;
@@ -55,6 +56,7 @@ public:
     enum PlayerServiceMsg {
         SET_LISTENER_OBJ = 0,
         SET_SOURCE,
+        SET_MEDIA_DATA_SRC_OBJ,
         PLAY,
         PREPARE,
         PREPAREASYNC,
@@ -76,7 +78,6 @@ public:
         SET_CALLBACK,
     };
 
-public:
     DECLARE_INTERFACE_DESCRIPTOR(u"IStandardPlayerService");
 };
 } // namespace Media

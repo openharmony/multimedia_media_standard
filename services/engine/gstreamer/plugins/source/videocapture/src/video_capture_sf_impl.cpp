@@ -217,7 +217,7 @@ int32_t VideoCaptureSfImpl::GetSufferExtraData()
     surfaceRet = surfaceBuffer_->ExtraGet("isKeyFrame", isCodecFrame_);
     CHECK_AND_RETURN_RET_LOG(surfaceRet == SURFACE_ERROR_OK, MSERR_INVALID_OPERATION, "get isKeyFrame fail");
 
-    MEDIA_LOGI("surfaceBuffer extraData dataSize_: %{public}d, pts: (%{public}" PRId64 ")", dataSize_, pts_);
+    MEDIA_LOGI("surfaceBuffer extraData dataSize_: %{public}d, pts: %{public}" PRId64 "", dataSize_, pts_);
     MEDIA_LOGI("is this surfaceBuffer keyFrame ? : %{public}d", isCodecFrame_);
     return MSERR_OK;
 }

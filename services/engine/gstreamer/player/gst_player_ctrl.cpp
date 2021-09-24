@@ -14,49 +14,50 @@
  */
 
 #include "gst_player_ctrl.h"
-#include <gst/player/player.h>
 #include "media_log.h"
 #include "audio_system_manager.h"
 #include "media_errors.h"
 #include "audio_errors.h"
 
 namespace {
+    constexpr float INVALID_VOLUME = -1.0;
+    constexpr double DEFAULT_RATE = 1.0;
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "GstPlayerCtrl"};
+    constexpr int MILLI = 1000;
+    constexpr int MICRO = MILLI * 1000;
+    using namespace OHOS::Media;
+    using StreamToServiceErrFunc = void (*)(const gchar *name, int32_t &errorCode);
+    static const std::unordered_map<int32_t, StreamToServiceErrFunc> STREAM_TO_SERVICE_ERR_FUNC_TABLE = {
+        { GST_STREAM_ERROR_DECODE, GstPlayerCtrl::StreamDecErrorParse },
+    };
+    static const std::unordered_map<int32_t, MediaServiceErrCode> STREAM_TO_SERVICE_ERR_TABLE = {
+        { GST_STREAM_ERROR_FORMAT, MSERR_UNSUPPORT_CONTAINER_TYPE },
+        { GST_STREAM_ERROR_TYPE_NOT_FOUND, MSERR_NOT_FIND_CONTAINER },
+        /* Currently, audio decoding and video decoding cannot be distinguished which is not supported by msg.
+        * By default, we set video decoding is not supported.
+        * The identification method must be added when the new demux pulgin in is use.
+        */
+        { GST_STREAM_ERROR_CODEC_NOT_FOUND, MSERR_UNSUPPORT_VID_DEC_TYPE },
+        { GST_STREAM_ERROR_DEMUX, MSERR_DEMUXER_FAILED },
+    };
+    static const std::unordered_map<int32_t, MediaServiceErrCode> RESOURCE_TO_SERVICE_ERR_TABLE = {
+        { GST_RESOURCE_ERROR_NOT_FOUND, MSERR_OPEN_FILE_FAILED },
+        { GST_RESOURCE_ERROR_OPEN_READ, MSERR_OPEN_FILE_FAILED },
+        { GST_RESOURCE_ERROR_READ, MSERR_FILE_ACCESS_FAILED },
+        { GST_RESOURCE_ERROR_NOT_AUTHORIZED, MSERR_FILE_ACCESS_FAILED },
+    };
 }
 
 namespace OHOS {
 namespace Media {
-constexpr int MILLI = 1000;
-constexpr int VOLUME_TO_SYSTEM_VOLUME = 15;
-constexpr int MICRO = MILLI * 1000;
-using StreamToServiceErrFunc = void (*)(const gchar *name, int32_t &errorCode);
-static const std::unordered_map<int32_t, StreamToServiceErrFunc> STREAM_TO_SERVICE_ERR_FUNC_TABLE = {
-    { GST_STREAM_ERROR_DECODE, GstPlayerCtrl::StreamDecErrorParse },
-};
-static const std::unordered_map<int32_t, MediaServiceErrCode> STREAM_TO_SERVICE_ERR_TABLE = {
-    { GST_STREAM_ERROR_FORMAT, MSERR_UNSUPPORT_CONTAINER_TYPE },
-    { GST_STREAM_ERROR_TYPE_NOT_FOUND, MSERR_NOT_FIND_CONTAINER },
-    /* Currently, audio decoding and video decoding cannot be distinguished which is not supported by msg.
-     * By default, we set video decoding is not supported.
-     * The identification method must be added when the new demux pulgin in is use.
-     */
-    { GST_STREAM_ERROR_CODEC_NOT_FOUND, MSERR_UNSUPPORT_VID_DEC_TYPE },
-    { GST_STREAM_ERROR_DEMUX, MSERR_DEMUXER_FAILED },
-};
-
-static const std::unordered_map<int32_t, MediaServiceErrCode> RESOURCE_TO_SERVICE_ERR_TABLE = {
-    { GST_RESOURCE_ERROR_NOT_FOUND, MSERR_OPEN_FILE_FAILED },
-    { GST_RESOURCE_ERROR_OPEN_READ, MSERR_OPEN_FILE_FAILED },
-    { GST_RESOURCE_ERROR_READ, MSERR_FILE_ACCESS_FAILED },
-    { GST_RESOURCE_ERROR_NOT_AUTHORIZED, MSERR_FILE_ACCESS_FAILED },
-};
-
 GstPlayerCtrl::GstPlayerCtrl(GstPlayer *gstPlayer)
     : gstPlayer_(gstPlayer),
-      taskQue_("GstCtrlTask")
+      taskQue_("GstCtrlTask"),
+      volume_(INVALID_VOLUME),
+      rate_(DEFAULT_RATE)
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
-    taskQue_.Start();
+    (void)taskQue_.Start();
 }
 
 GstPlayerCtrl::~GstPlayerCtrl()
@@ -65,35 +66,59 @@ GstPlayerCtrl::~GstPlayerCtrl()
     condVarPauseSync_.notify_all();
     condVarStopSync_.notify_all();
     condVarSeekSync_.notify_all();
-    taskQue_.Stop();
+    condVarCompleteSync_.notify_all();
+    (void)taskQue_.Stop();
     for (auto &signalId : signalIds_) {
         g_signal_handler_disconnect(gstPlayer_, signalId);
     }
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-int32_t GstPlayerCtrl::SetUri(std::string uri)
+void GstPlayerCtrl::SetRingBufferMaxSize(uint64_t size)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(gstPlayer_ != nullptr, ERR_NO_INIT, "gstPlayer_ is nullptr");
+    CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
+    g_object_set(gstPlayer_, "ring-buffer-max-size", static_cast<guint64>(size), nullptr);
+}
+
+int32_t GstPlayerCtrl::SetUri(const std::string &uri)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(gstPlayer_ != nullptr, MSERR_INVALID_VAL, "gstPlayer_ is nullptr");
     gst_player_set_uri(gstPlayer_, uri.c_str());
     currentState_ = PLAYER_PREPARING;
-    return ERR_OK;
+    return MSERR_OK;
+}
+
+int32_t GstPlayerCtrl::SetSource(const std::shared_ptr<GstAppsrcWarp> &appsrcWarp)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(gstPlayer_ != nullptr, MSERR_INVALID_OPERATION, "gstPlayer_ is nullptr");
+    appsrcWarp_ = appsrcWarp;
+    gst_player_set_uri(gstPlayer_, "appsrc://");
+    currentState_ = PLAYER_PREPARING;
+    return MSERR_OK;
 }
 
 int32_t GstPlayerCtrl::SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs)
 {
-    CHECK_AND_RETURN_RET_LOG(obs.lock() != nullptr, ERR_INVALID_OPERATION, "obs is nullptr, please set playercallback");
+    CHECK_AND_RETURN_RET_LOG(obs.lock() != nullptr,
+        MSERR_INVALID_OPERATION, "obs is nullptr, please set playercallback");
+    if (appsrcWarp_ != nullptr) {
+        CHECK_AND_RETURN_RET_LOG(appsrcWarp_->SetErrorCallback(obs) == MSERR_OK,
+            MSERR_INVALID_OPERATION, "set obs failed");
+    }
 
     signalIds_.push_back(g_signal_connect(gstPlayer_, "state-changed", G_CALLBACK(OnStateChangedCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "end-of-stream", G_CALLBACK(OnEndOfStreamCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "error-msg", G_CALLBACK(OnErrorCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "seek-done", G_CALLBACK(OnSeekDoneCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "position-updated", G_CALLBACK(OnPositionUpdatedCb), this));
+    signalIds_.push_back(g_signal_connect(gstPlayer_, "source-setup", G_CALLBACK(OnSourceSetupCb), this));
 
     obs_ = obs;
     currentState_ = PLAYER_PREPARING;
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 void GstPlayerCtrl::SetVideoTrack(bool enable)
@@ -111,10 +136,7 @@ void GstPlayerCtrl::Pause(bool cancelNotExecuted)
         PauseSync();
     } else {
         std::unique_lock<std::mutex> lock(mutex_);
-        auto task = std::make_shared<TaskHandler>([this] {
-            PauseSync();
-            return ERR_OK;
-        });
+        auto task = std::make_shared<TaskHandler<void>>([this] { PauseSync(); });
         (void)taskQue_.EnqueueTask(task);
     }
 }
@@ -127,6 +149,7 @@ void GstPlayerCtrl::PauseSync()
         return;
     }
 
+    userPause_ = true;
     CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
     gst_player_pause(gstPlayer_);
 
@@ -139,10 +162,7 @@ void GstPlayerCtrl::PauseSync()
 void GstPlayerCtrl::Play()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    auto task = std::make_shared<TaskHandler>([this] {
-        PlaySync();
-        return ERR_OK;
-    });
+    auto task = std::make_shared<TaskHandler<void>>([this] { PlaySync(); });
     (void)taskQue_.EnqueueTask(task);
 }
 
@@ -154,7 +174,11 @@ void GstPlayerCtrl::PlaySync()
     }
 
     CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
-    gst_player_play(gstPlayer_);
+    if (currentState_ == PLAYER_PLAYBACK_COMPLETE) {
+        gst_player_seek(gstPlayer_, 0);
+    } else {
+        gst_player_play(gstPlayer_);
+    }
 
     {
         condVarPlaySync_.wait(lock);
@@ -184,42 +208,33 @@ int32_t GstPlayerCtrl::ChangeSeekModeToGstFlag(const PlayerSeekMode mode) const
     return flag;
 }
 
-void GstPlayerCtrl::Seek(uint64_t position, const PlayerSeekMode mode)
+int32_t GstPlayerCtrl::Seek(uint64_t position, const PlayerSeekMode mode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    position = (position > sourceDuration_) ? sourceDuration_ : position;
-    if (seekInProgress_) {
-        nextSeekFlag_ = true;
-        nextSeekPos_ = position;
-        nextSeekMode_ = mode;
-    } else {
-        seekInProgress_ = true;
-        auto task = std::make_shared<TaskHandler>([this, position, mode] {
-            SeekSync(position, mode);
-            return ERR_OK;
-        });
-        (void)taskQue_.EnqueueTask(task);
+    if (appsrcWarp_ != nullptr && appsrcWarp_->IsLiveMode()) {
+        return MSERR_INVALID_OPERATION;
     }
-}
 
-void GstPlayerCtrl::MultipleSeek()
-{
-    seekInProgress_ = false;
-    if (nextSeekFlag_) {
-        nextSeekFlag_ = false;
-        seekInProgress_ = true;
-        auto task = std::make_shared<TaskHandler>([this, position = nextSeekPos_, mode = nextSeekMode_] {
-            SeekSync(position, mode);
-            return ERR_OK;
-        });
-        (void)taskQue_.EnqueueTask(task);
+    position = (position > sourceDuration_) ? sourceDuration_ : position;
+    auto task = std::make_shared<TaskHandler<void>>([this, position, mode] { SeekSync(position, mode); });
+    if (taskQue_.EnqueueTask(task) != 0) {
+        MEDIA_LOGE("Seek fail");
+        return MSERR_INVALID_OPERATION;
     }
+
+    if (seekTask_ != nullptr) {
+        MEDIA_LOGI("cancel pre seek Task");
+        seekTask_->Cancel();
+    }
+    seekTask_ = task;
+
+    return MSERR_OK;
 }
 
 void GstPlayerCtrl::SeekSync(uint64_t position, const PlayerSeekMode mode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-
+    seekTask_ = nullptr;
     if (currentState_ == PLAYER_STOPPED) {
         return;
     }
@@ -236,20 +251,21 @@ void GstPlayerCtrl::SeekSync(uint64_t position, const PlayerSeekMode mode)
     }
 }
 
-void GstPlayerCtrl::Stop()
+void GstPlayerCtrl::Stop(bool cancelNotExecuted)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
-    auto task = std::make_shared<TaskHandler>([this] {
-        StopSync();
-        return ERR_OK;
-    });
-    (void)taskQue_.EnqueueTask(task);
+    if (cancelNotExecuted) {
+        auto task = std::make_shared<TaskHandler<void>>([this] { StopSync(); });
+        (void)taskQue_.EnqueueTask(task);
+        (void)task->GetResult();
+    } else {
+        auto task = std::make_shared<TaskHandler<void>>([this] { StopSync(); });
+        (void)taskQue_.EnqueueTask(task);
+    }
 }
 
 void GstPlayerCtrl::StopSync()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-
     if (currentState_ == PLAYER_STOPPED) {
         return;
     }
@@ -272,26 +288,43 @@ void GstPlayerCtrl::StopSync()
 
     bufferingStart_ = false;
     nextSeekFlag_ = false;
-    seekInProgress_ = false;
-    nextSeekPos_ = 0;
     enableLooping_ = false;
+    rate_ = DEFAULT_RATE;
+    if (audioSink_ != nullptr) {
+        g_signal_handler_disconnect(audioSink_, signalIdVolume_);
+        signalIdVolume_ = 0;
+        gst_object_unref(audioSink_);
+        audioSink_ = nullptr;
+    }
+    if (rateTask_ != nullptr) {
+        rateTask_->Cancel();
+        rateTask_ = nullptr;
+    }
+    if (seekTask_ != nullptr) {
+        seekTask_->Cancel();
+        seekTask_ = nullptr;
+    }
 }
 
-void GstPlayerCtrl::SetLoop(bool loop)
+int32_t GstPlayerCtrl::SetLoop(bool loop)
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    if (appsrcWarp_ != nullptr && appsrcWarp_->IsLiveMode()) {
+        return MSERR_INVALID_OPERATION;
+    }
     enableLooping_ = loop;
+    return MSERR_OK;
 }
 
-void GstPlayerCtrl::SetVolume(float leftVolume, float rightVolume)
+void GstPlayerCtrl::SetVolume(const float &leftVolume, const float &rightVolume)
 {
+    (void)rightVolume;
     std::unique_lock<std::mutex> lock(mutex_);
-    AudioStandard::AudioSystemManager *audioManager = AudioStandard::AudioSystemManager::GetInstance();
-    CHECK_AND_RETURN_LOG(audioManager != nullptr, "audioManager is nullptr");
-    int32_t volume = static_cast<int32_t>(VOLUME_TO_SYSTEM_VOLUME * leftVolume);
-    int32_t ret = audioManager->SetVolume(AudioStandard::AudioSystemManager::AudioVolumeType::STREAM_MUSIC, volume);
-    CHECK_AND_RETURN_LOG(ret == AudioStandard::SUCCESS, "set volume fail");
-    OnVolumeChange();
+    volume_ = leftVolume;
+    if (audioSink_ != nullptr) {
+        MEDIA_LOGI("SetVolume(%{public}f) to audio sink", volume_);
+        g_object_set(audioSink_, "volume", volume_, nullptr);
+    }
 }
 
 uint64_t GstPlayerCtrl::GetPosition()
@@ -314,7 +347,9 @@ uint64_t GstPlayerCtrl::GetDuration()
 {
     std::unique_lock<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(gstPlayer_ != nullptr, 0, "gstPlayer_ is nullptr");
-
+    if (appsrcWarp_ != nullptr && appsrcWarp_->IsLiveMode()) {
+        return 0;
+    }
     if (stopTimeFlag_) {
         return sourceDuration_;
     }
@@ -322,13 +357,41 @@ uint64_t GstPlayerCtrl::GetDuration()
     return sourceDuration_;
 }
 
-void GstPlayerCtrl::SetRate(double rate)
+int32_t GstPlayerCtrl::SetRate(double rate)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
+    if (appsrcWarp_ != nullptr && appsrcWarp_->IsLiveMode()) {
+        return MSERR_INVALID_OPERATION;
+    }
+    auto task = std::make_shared<TaskHandler<void>>([this, rate] { SetRateSync(rate); });
+    if (taskQue_.EnqueueTask(task) != 0) {
+        MEDIA_LOGE("set rate(%{public}lf) fail", rate);
+        return MSERR_INVALID_OPERATION;
+    }
 
-    MEDIA_LOGD("gst_player_set_rate rate(%{public}lf) in", rate);
+    if (rateTask_ != nullptr) {
+        MEDIA_LOGI("cancel pre rate task(%{public}lf)", rate_);
+        rateTask_->Cancel();
+    }
+    rateTask_ = task;
+    rate_ = rate;
+    return MSERR_OK;
+}
+
+void GstPlayerCtrl::SetRateSync(double rate)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    rateTask_ = nullptr;
+
+    CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
+    MEDIA_LOGD("SetRateSync in, rate=(%{public}lf)", rate);
     gst_player_set_rate(gstPlayer_, static_cast<gdouble>(rate));
+    if (currentState_ == PLAYER_PLAYBACK_COMPLETE) {
+        condVarCompleteSync_.wait(lock);
+    } else {
+        condVarSeekSync_.wait(lock);
+    }
+    MEDIA_LOGD("SetRateSync out, rate=(%{public}lf)", rate);
 }
 
 double GstPlayerCtrl::GetRate()
@@ -336,22 +399,45 @@ double GstPlayerCtrl::GetRate()
     std::unique_lock<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(gstPlayer_ != nullptr, 1.0, "gstPlayer_ is nullptr");
 
-    gdouble rate = gst_player_get_rate(gstPlayer_);
-    MEDIA_LOGD("gst_player_get_rate rate(%{public}lf) in", rate);
-    return static_cast<double>(rate);
+    MEDIA_LOGD("get rate=%{public}lf", rate_);
+    return rate_;
 }
 
-PlayerStates GstPlayerCtrl::GetState()
+PlayerStates GstPlayerCtrl::GetState() const
 {
     return currentState_;
 }
 
-void GstPlayerCtrl::OnStateChangedCb(const GstPlayer *player, GstPlayerState state, const GstPlayerCtrl *self)
+void GstPlayerCtrl::GetAudioSink()
+{
+    GstElement *playbin = gst_player_get_pipeline(gstPlayer_);
+    CHECK_AND_RETURN_LOG(playbin != nullptr, "playbin is null");
+
+    if (audioSink_ != nullptr) {
+        gst_object_unref(audioSink_);
+        audioSink_ = nullptr;
+    }
+    g_object_get(playbin, "audio-sink", &audioSink_, nullptr);
+
+    CHECK_AND_RETURN_LOG(audioSink_ != nullptr, "get audio sink fail");
+
+    signalIdVolume_ = g_signal_connect(audioSink_, "notify::volume", G_CALLBACK(OnVolumeChangeCb), this);
+
+    constexpr float maxVolume = 1.0;
+    constexpr float minVolume = 0;
+    if (volume_ >= minVolume && volume_ <= maxVolume) {
+        MEDIA_LOGI("SetVolume(%{public}f) to audio sink", volume_);
+        g_object_set(audioSink_, "volume", volume_, nullptr);
+        volume_ = INVALID_VOLUME;
+    }
+    gst_object_unref(playbin);
+}
+
+void GstPlayerCtrl::OnStateChangedCb(const GstPlayer *player, GstPlayerState state, GstPlayerCtrl *playerGst)
 {
     MEDIA_LOGD("OnStateChangedCb gstplayer State changed: %{public}s", gst_player_state_get_name(state));
     CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
-    CHECK_AND_RETURN_LOG(self != nullptr, "self is null");
-    auto playerGst = const_cast<GstPlayerCtrl *>(self);
+    CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
     playerGst->ProcessStateChanged(player, state);
 }
 
@@ -370,7 +456,7 @@ void GstPlayerCtrl::ProcessStateChanged(const GstPlayer *cbPlayer, GstPlayerStat
             break;
         }
         case GST_PLAYER_STATE_BUFFERING: {
-            OnMessage(PlayerMessageType::PLAYER_INFO_BUFFERING_START, 0);
+            OnMessage(PlayerMessageType::PLAYER_INFO_BUFFERING_START);
             bufferingStart_ = true;
             return;
         }
@@ -388,7 +474,7 @@ void GstPlayerCtrl::ProcessStateChanged(const GstPlayer *cbPlayer, GstPlayerStat
     }
 
     if (bufferingStart_) {
-        OnMessage(PlayerMessageType::PLAYER_INFO_BUFFERING_END, 0);
+        OnMessage(PlayerMessageType::PLAYER_INFO_BUFFERING_END);
         bufferingStart_ = false;
     }
 
@@ -396,7 +482,7 @@ void GstPlayerCtrl::ProcessStateChanged(const GstPlayer *cbPlayer, GstPlayerStat
     if (newState != PLAYER_IDLE && currentState_ != newState) {
         currentState_ = newState;
         if (newState == PLAYER_STARTED) {
-            OnMessage(PlayerMessageType::PLAYER_INFO_VIDEO_RENDERING_START, 0);
+            OnMessage(PlayerMessageType::PLAYER_INFO_VIDEO_RENDERING_START);
         }
         OnStateChanged(newState);
     }
@@ -407,11 +493,10 @@ void GstPlayerCtrl::ProcessStateChanged(const GstPlayer *cbPlayer, GstPlayerStat
     OnEndOfStream();
 }
 
-void GstPlayerCtrl::OnEndOfStreamCb(const GstPlayer *player, const GstPlayerCtrl *self)
+void GstPlayerCtrl::OnEndOfStreamCb(const GstPlayer *player, GstPlayerCtrl *playerGst)
 {
     CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
-    CHECK_AND_RETURN_LOG(self != nullptr, "self is null");
-    auto playerGst = const_cast<GstPlayerCtrl *>(self);
+    CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
     return playerGst->ProcessEndOfStream(player);
 }
 
@@ -425,7 +510,7 @@ void GstPlayerCtrl::ProcessEndOfStream(const GstPlayer *cbPlayer)
     endOfStreamCb_ = true;
 
     if (enableLooping_) {
-        Seek(0, SEEK_PREVIOUS_SYNC);
+        (void)Seek(0, SEEK_PREVIOUS_SYNC);
     }
 }
 
@@ -479,7 +564,7 @@ void GstPlayerCtrl::MessageErrorProcess(const char *name, const GError *err,
 {
     CHECK_AND_RETURN_LOG(err != nullptr, "err is null");
     CHECK_AND_RETURN_LOG(name != nullptr, "name is null");
-    char *errMsg = gst_error_get_message (err->domain, err->code);
+    char *errMsg = gst_error_get_message(err->domain, err->code);
     MEDIA_LOGE("errMsg:%{public}s", errMsg);
     if (err->domain == GST_STREAM_ERROR) {
         errorType = PLAYER_ERROR;
@@ -491,7 +576,7 @@ void GstPlayerCtrl::MessageErrorProcess(const char *name, const GError *err,
         errorType = PLAYER_ERROR_UNKNOWN;
         errorCode = MSERR_UNKNOWN;
     }
-    g_free (errMsg);
+    g_free(errMsg);
 }
 
 void GstPlayerCtrl::ErrorProcess(const GstMessage *msg, PlayerErrorType &errorType, int32_t &errorCode)
@@ -503,7 +588,7 @@ void GstPlayerCtrl::ErrorProcess(const GstMessage *msg, PlayerErrorType &errorTy
     CHECK_AND_RETURN_LOG(message != nullptr, "msg copy failed");
     gst_message_parse_error(message, &err, &debug);
     CHECK_AND_RETURN_LOG(msg->src != nullptr, "msg copy failed");
-    gchar *name = gst_object_get_path_string (msg->src);
+    gchar *name = gst_object_get_path_string(msg->src);
     MessageErrorProcess(name, err, errorType, errorCode);
     g_clear_error(&err);
     g_free(debug);
@@ -511,13 +596,12 @@ void GstPlayerCtrl::ErrorProcess(const GstMessage *msg, PlayerErrorType &errorTy
     gst_message_unref(message);
 }
 
-void GstPlayerCtrl::OnErrorCb(const GstPlayer *player, const GstMessage *msg, const GstPlayerCtrl *self)
+void GstPlayerCtrl::OnErrorCb(const GstPlayer *player, const GstMessage *msg, GstPlayerCtrl *playerGst)
 {
     MEDIA_LOGE("Received error signal from pipeline.");
     CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
     CHECK_AND_RETURN_LOG(msg != nullptr, "msg is null");
-    CHECK_AND_RETURN_LOG(self != nullptr, "self is null");
-    auto playerGst = const_cast<GstPlayerCtrl *>(self);
+    CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
 
     // If looping is enabled, then disable it else will keep looping forever
     playerGst->enableLooping_ = false;
@@ -534,11 +618,10 @@ void GstPlayerCtrl::OnErrorCb(const GstPlayer *player, const GstMessage *msg, co
     playerGst->errorFlag_ = true;
 }
 
-void GstPlayerCtrl::OnSeekDoneCb(const GstPlayer *player, guint64 position, const GstPlayerCtrl *self)
+void GstPlayerCtrl::OnSeekDoneCb(const GstPlayer *player, guint64 position, GstPlayerCtrl *playerGst)
 {
     CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
-    CHECK_AND_RETURN_LOG(self != nullptr, "self is null");
-    auto playerGst = const_cast<GstPlayerCtrl *>(self);
+    CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
     playerGst->ProcessSeekDone(player, static_cast<uint64_t>(position) / MICRO);
 }
 
@@ -556,15 +639,30 @@ void GstPlayerCtrl::ProcessSeekDone(const GstPlayer *cbPlayer, uint64_t position
     MEDIA_LOGI("gstplay seek Done: (%{public}" PRIu64 ")", seekDonePosition_);
 }
 
-void GstPlayerCtrl::OnPositionUpdatedCb(const GstPlayer *player, guint64 position, const GstPlayerCtrl *self)
+void GstPlayerCtrl::OnSourceSetupCb(const GstPlayer *player, GstElement *src, const GstPlayerCtrl *playerGst)
 {
     CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
-    CHECK_AND_RETURN_LOG(self != nullptr, "self is null");
-    auto playerGst = const_cast<GstPlayerCtrl *>(self);
+    CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
+    CHECK_AND_RETURN_LOG(src != nullptr, "self is null");
+    if (playerGst->appsrcWarp_ == nullptr) {
+        MEDIA_LOGD("appsrc is null, is not stream mode");
+        return;
+    }
+    GstElementFactory *elementFac = gst_element_get_factory(src);
+    const gchar *eleTypeName = g_type_name(gst_element_factory_get_element_type(elementFac));
+    if ((eleTypeName != nullptr) && (strstr(eleTypeName, "GstAppSrc") != nullptr)) {
+        (void)playerGst->appsrcWarp_->SetAppsrc(src);
+    }
+}
+
+void GstPlayerCtrl::OnPositionUpdatedCb(const GstPlayer *player, guint64 position, const GstPlayerCtrl *playerGst)
+{
+    CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
+    CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
     playerGst->ProcessPositionUpdated(player, static_cast<uint64_t>(position) / MICRO);
 }
 
-void GstPlayerCtrl::ProcessPositionUpdated(const GstPlayer *cbPlayer, uint64_t position)
+void GstPlayerCtrl::ProcessPositionUpdated(const GstPlayer *cbPlayer, uint64_t position) const
 {
     if (cbPlayer != gstPlayer_) {
         MEDIA_LOGE("gstplay cb object error: cbPlayer != gstPlayer_");
@@ -582,12 +680,22 @@ void GstPlayerCtrl::ProcessPositionUpdated(const GstPlayer *cbPlayer, uint64_t p
     }
 }
 
-void GstPlayerCtrl::OnVolumeChange()
+void GstPlayerCtrl::OnVolumeChangeCb(const GObject *combiner, const GParamSpec *pspec, const GstPlayerCtrl *playerGst)
+{
+    (void)combiner;
+    (void)pspec;
+
+    MEDIA_LOGI("OnVolumeChangeCb in");
+    CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
+    playerGst->OnVolumeChange();
+}
+
+void GstPlayerCtrl::OnVolumeChange() const
 {
     Format format;
     std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
     if (tempObs != nullptr) {
-        MEDIA_LOGE("OnVolumeChange");
+        MEDIA_LOGD("OnVolumeChange");
         tempObs->OnInfo(INFO_TYPE_VOLUME_CHANGE, 0, format);
     }
 }
@@ -596,6 +704,7 @@ void GstPlayerCtrl::OnStateChanged(PlayerStates state)
 {
     if (state == PLAYER_PREPARED) {
         InitDuration();
+        GetAudioSink();
     }
 
     MEDIA_LOGI("On State callback state: %{public}d", state);
@@ -604,6 +713,24 @@ void GstPlayerCtrl::OnStateChanged(PlayerStates state)
     if (tempObs != nullptr) {
         MEDIA_LOGD("OnStateChanged %{public}d", state);
         tempObs->OnInfo(INFO_TYPE_STATE_CHANGE, static_cast<int32_t>(state), format);
+    }
+}
+
+void GstPlayerCtrl::HandleStopNotify()
+{
+    condVarStopSync_.notify_all();
+    if (userPause_) {
+        condVarPauseSync_.notify_all();
+        userPause_ = false;
+    }
+}
+
+void GstPlayerCtrl::HandlePlayBackNotify()
+{
+    condVarCompleteSync_.notify_all();
+    if (userPause_) {
+        condVarPauseSync_.notify_all();
+        userPause_ = false;
     }
 }
 
@@ -620,7 +747,10 @@ void GstPlayerCtrl::OnNotify(PlayerStates state)
             condVarPauseSync_.notify_all();
             break;
         case PLAYER_STOPPED:
-            condVarStopSync_.notify_all();
+            HandleStopNotify();
+            break;
+        case PLAYER_PLAYBACK_COMPLETE:
+            HandlePlayBackNotify();
             break;
         default:
             break;
@@ -638,8 +768,6 @@ void GstPlayerCtrl::OnSeekDone()
         }
         seekDoneNeedCb_ = false;
         condVarSeekSync_.notify_all();
-
-        MultipleSeek();
     }
 }
 
@@ -656,13 +784,13 @@ void GstPlayerCtrl::OnEndOfStream()
     }
 }
 
-void GstPlayerCtrl::OnMessage(int32_t type, int32_t extra)
+void GstPlayerCtrl::OnMessage(int32_t extra) const
 {
-    MEDIA_LOGI("On Message callback infoType: %{public}d", type);
+    MEDIA_LOGI("On Message callback info: %{public}d", extra);
     std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
     Format format;
     if (tempObs != nullptr) {
-        tempObs->OnInfo(INFO_TYPE_MESSAGE, type, format);
+        tempObs->OnInfo(INFO_TYPE_MESSAGE, extra, format);
     }
 }
 

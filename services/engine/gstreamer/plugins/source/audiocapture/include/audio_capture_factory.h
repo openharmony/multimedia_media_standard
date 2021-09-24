@@ -28,8 +28,6 @@ public:
     AudioCaptureFactory() = delete;
     ~AudioCaptureFactory() = delete;
     static std::unique_ptr<AudioCapture> CreateAudioCapture(AudioStreamType streamType);
-
-    DISALLOW_COPY_AND_MOVE(AudioCaptureFactory);
 };
 }  // namespace Media
 }  // namespace OHOS

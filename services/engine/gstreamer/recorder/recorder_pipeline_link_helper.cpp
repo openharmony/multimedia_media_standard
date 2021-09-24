@@ -41,7 +41,7 @@ namespace Media {
     } while (false)
 
 GstPad *RecorderPipelineLinkHelper::GetGstPad(
-    const std::shared_ptr<RecorderElement>& elem, bool isStaticPad, const std::string padName)
+    const std::shared_ptr<RecorderElement> &elem, bool isStaticPad, const std::string padName)
 {
     GstPad *pad = nullptr;
     if (isStaticPad) {
@@ -58,7 +58,7 @@ GstPad *RecorderPipelineLinkHelper::GetGstPad(
 
     if (!isStaticPad) {
         if (requestedPads_.count(elem->gstElem_) == 0) {
-            requestedPads_.emplace(elem->gstElem_, std::vector<GstPad *>());
+            (void)requestedPads_.emplace(elem->gstElem_, std::vector<GstPad *>());
         }
         requestedPads_[elem->gstElem_].push_back(pad);
     }
@@ -67,7 +67,7 @@ GstPad *RecorderPipelineLinkHelper::GetGstPad(
 }
 
 RecorderPipelineLinkHelper::RecorderPipelineLinkHelper(
-    const std::shared_ptr<RecorderPipeline>& pipeline, const std::shared_ptr<RecorderPipelineDesc>& desc)
+    const std::shared_ptr<RecorderPipeline> &pipeline, const std::shared_ptr<RecorderPipelineDesc> &desc)
     : pipeline_(pipeline), desc_(desc)
 {
 }
@@ -78,7 +78,7 @@ RecorderPipelineLinkHelper::~RecorderPipelineLinkHelper()
 }
 
 int32_t RecorderPipelineLinkHelper::ExecuteOneLink(
-    const std::shared_ptr<RecorderElement>& srcElem, const RecorderPipelineDesc::LinkDesc &linkDesc)
+    const std::shared_ptr<RecorderElement> &srcElem, const RecorderPipelineDesc::LinkDesc &linkDesc)
 {
     GstPad *srcPad = nullptr;
     GstPad *sinkPad = nullptr;
@@ -89,27 +89,27 @@ int32_t RecorderPipelineLinkHelper::ExecuteOneLink(
     };
 
     srcPad = GetGstPad(srcElem, linkDesc.isSrcPadStatic, linkDesc.srcPad.c_str());
-    CHECK_AND_RETURN_RET(srcPad != nullptr, ERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(srcPad != nullptr, MSERR_INVALID_OPERATION);
 
     sinkPad = GetGstPad(linkDesc.dstElem, linkDesc.isSinkPadStatic, linkDesc.sinkPad.c_str());
-    CHECK_AND_RETURN_RET(sinkPad != nullptr, ERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(sinkPad != nullptr, MSERR_INVALID_OPERATION);
 
     GstPadLinkReturn ret = gst_pad_link(srcPad, sinkPad);
     if (ret != GST_PAD_LINK_OK) {
         MEDIA_LOGE("link elem(%{public}s)'s pad %{public}s to elem(%{public}s)'s pad %{public}s failed !",
                    srcElem->GetName().c_str(), linkDesc.srcPad.c_str(),
                    linkDesc.dstElem->GetName().c_str(), linkDesc.sinkPad.c_str());
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 int32_t RecorderPipelineLinkHelper::ExecuteLink()
 {
     if (desc_ == nullptr) {
         MEDIA_LOGE("pipeline desc is nullptr");
-        return ERR_INVALID_OPERATION;
+        return MSERR_INVALID_OPERATION;
     }
 
     std::set<std::shared_ptr<RecorderElement>> uniqueElems;
@@ -117,14 +117,14 @@ int32_t RecorderPipelineLinkHelper::ExecuteLink()
         ADD_ELEM_TO_PIPELINE(srcElemLinks.first, uniqueElems, pipeline_);
         ADD_ELEM_TO_PIPELINE(srcElemLinks.second.dstElem, uniqueElems, pipeline_);
         int32_t ret = ExecuteOneLink(srcElemLinks.first, srcElemLinks.second);
-        if (ret != ERR_OK) {
+        if (ret != MSERR_OK) {
             Clear();
             MEDIA_LOGE("Pipeline link failed !");
             return ret;
         }
     }
 
-    return ERR_OK;
+    return MSERR_OK;
 }
 
 void RecorderPipelineLinkHelper::Clear()

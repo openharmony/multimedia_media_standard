@@ -23,7 +23,7 @@ constexpr int DEFAULT_HDI_ALIGNMENT = 4;
 constexpr int DEFAULT_INPUT_BUFFER_SIZE = 5;
 }
 
-guint8 *GetSurfaceBufferVirAddr(GstBuffer *gstSurfaceBuffer)
+extern "C" guint8 *GetSurfaceBufferVirAddr(GstBuffer *gstSurfaceBuffer)
 {
     g_return_val_if_fail(gstSurfaceBuffer != nullptr, nullptr);
     GstMapInfo map = GST_MAP_INFO_INIT;
@@ -39,7 +39,7 @@ guint8 *GetSurfaceBufferVirAddr(GstBuffer *gstSurfaceBuffer)
     return static_cast<guint8 *>(surfaceBuffer->GetVirAddr());
 }
 
-guint GetSurfaceBufferSize(GstBuffer *gstSurfaceBuffer)
+extern "C" guint GetSurfaceBufferSize(GstBuffer *gstSurfaceBuffer)
 {
     g_return_val_if_fail(gstSurfaceBuffer != nullptr, 0);
     GstMapInfo map = GST_MAP_INFO_INIT;
@@ -63,12 +63,12 @@ static void FreeSurfaceBufferWrapper(gpointer surfaceBufferWrapper)
     if (!surfaceBufferWrap->BufferIsFlushed()) {
         sptr<Surface> producerSurface = surfaceBufferWrap->GetSurface();
         sptr<SurfaceBuffer> surfaceBuffer = surfaceBufferWrap->GetSurfaceBuffer();
-        producerSurface->CancelBuffer(surfaceBuffer);
+        (void)producerSurface->CancelBuffer(surfaceBuffer);
     }
     delete surfaceBufferWrap;
 }
 
-GstBuffer *SurfaceBufferToGstBuffer(void *surface, guint width, guint height)
+extern "C" GstBuffer *SurfaceBufferToGstBuffer(void *surface, guint width, guint height)
 {
     sptr<Surface> producerSurface = static_cast<Surface *>(surface);
     if (producerSurface->GetQueueSize() != DEFAULT_INPUT_BUFFER_SIZE) {
@@ -80,10 +80,10 @@ GstBuffer *SurfaceBufferToGstBuffer(void *surface, guint width, guint height)
     sptr<SurfaceBuffer> surfaceBuffer;
     int32_t releaseFence;
     BufferRequestConfig requestConfig;
-    requestConfig.width = width;
-    requestConfig.height = height;
+    requestConfig.width = static_cast<int32_t>(width);
+    requestConfig.height = static_cast<int32_t>(height);
     requestConfig.strideAlignment = DEFAULT_HDI_ALIGNMENT;
-    requestConfig.format = PIXEL_FMT_YCRCB_420_SP;
+    requestConfig.format = static_cast<int32_t>(PIXEL_FMT_YCRCB_420_SP);
     requestConfig.usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
     requestConfig.timeout = 0;
     SurfaceError ret = producerSurface->RequestBuffer(surfaceBuffer, releaseFence, requestConfig);
@@ -93,8 +93,9 @@ GstBuffer *SurfaceBufferToGstBuffer(void *surface, guint width, guint height)
     }
     Media::DecSurfaceBufferWrapper *surfaceBufferWrap =
         new(std::nothrow) Media::DecSurfaceBufferWrapper(producerSurface, surfaceBuffer);
+    g_return_val_if_fail(surfaceBufferWrap != nullptr, nullptr);
     surfaceBufferWrap->SetSurfaceSize(surfaceBuffer->GetSize());
-    GstBuffer *gstSurfaceBuffer = gst_buffer_new_wrapped_full((GstMemoryFlags)0, (gpointer)surfaceBufferWrap, 
+    GstBuffer *gstSurfaceBuffer = gst_buffer_new_wrapped_full((GstMemoryFlags)0, (gpointer)surfaceBufferWrap,
         sizeof(*surfaceBufferWrap), 0, sizeof(*surfaceBufferWrap), (guint8 *)(surfaceBufferWrap),
         (GDestroyNotify)(FreeSurfaceBufferWrapper));
 

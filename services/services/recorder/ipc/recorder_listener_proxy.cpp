@@ -15,7 +15,7 @@
 
 #include "recorder_listener_proxy.h"
 #include "media_log.h"
-#include "errors.h"
+#include "media_errors.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "RecorderListenerProxy"};
@@ -42,7 +42,7 @@ void RecorderListenerProxy::OnError(int32_t errorType, int32_t errorCode)
     data.WriteInt32(errorType);
     data.WriteInt32(errorCode);
     int error = Remote()->SendRequest(RecorderListenerMsg::ON_ERROR, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("on error failed, error: %{public}d", error);
     }
 }
@@ -55,32 +55,23 @@ void RecorderListenerProxy::OnInfo(int32_t type, int32_t extra)
     data.WriteInt32(static_cast<int>(type));
     data.WriteInt32(static_cast<int>(extra));
     int error = Remote()->SendRequest(RecorderListenerMsg::ON_INFO, data, reply, option);
-    if (error != ERR_OK) {
+    if (error != MSERR_OK) {
         MEDIA_LOGE("on info failed, error: %{public}d", error);
     }
 }
 
-RecorderListenerCallback::RecorderListenerCallback(const sptr<IStandardRecorderListener> &listener,
-                                                   const sptr<MediaDeathRecipient> &deathRecipient)
-    : listener_(listener), deathRecipient_(deathRecipient)
+RecorderListenerCallback::RecorderListenerCallback(const sptr<IStandardRecorderListener> &listener)
+    : listener_(listener)
 {
-    if (listener_ != nullptr && listener_->AsObject() != nullptr && deathRecipient_ != nullptr) {
-        (void)listener_->AsObject()->AddDeathRecipient(deathRecipient_);
-    }
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
 }
 
 RecorderListenerCallback::~RecorderListenerCallback()
 {
-    if (listener_ != nullptr && listener_->AsObject() != nullptr && deathRecipient_ != nullptr) {
-        (void)listener_->AsObject()->RemoveDeathRecipient(deathRecipient_);
-        deathRecipient_ = nullptr;
-        listener_ = nullptr;
-    }
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-void RecorderListenerCallback::OnError(int32_t errorType, int32_t errorCode)
+void RecorderListenerCallback::OnError(RecorderErrorType errorType, int32_t errorCode)
 {
     if (listener_ != nullptr) {
         listener_->OnError(errorType, errorCode);

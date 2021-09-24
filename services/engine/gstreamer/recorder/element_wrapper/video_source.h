@@ -43,7 +43,7 @@ private:
     int32_t bitRate_ = 0;
     int32_t encFmt_ = VideoCodecFormat::VIDEO_DEFAULT;
     int32_t frameRate_ = 0;
-    int32_t capRate_ = 0;
+    double capRate_ = 0;
 };
 }
 }
