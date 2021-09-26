@@ -32,8 +32,8 @@ struct VideoRecorderConfig {
     int32_t audioEncodingBitRate = 48000;
     int32_t channelCount = 2;
     int32_t duration = 60;
-    int32_t width = 1920;
-    int32_t height = 1080;
+    int32_t width = 1280;
+    int32_t height = 720;
     int32_t frameRate = 30;
     int32_t videoEncodingBitRate = 48000;
     int32_t sampleRate = 48000;
@@ -71,8 +71,8 @@ public:
     int32_t GetStubFile();
 
 private:
-    int64_t duration_  = 0;
     int64_t pts_ = 0;
+    int32_t isKeyFrame_ = 1;
     OHOS::sptr<OHOS::Surface> producerSurface_ = nullptr;
     std::shared_ptr<std::ifstream> testFile_ = nullptr;
     std::atomic<bool> isExit_{ false };
