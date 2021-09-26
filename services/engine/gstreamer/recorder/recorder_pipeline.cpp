@@ -228,8 +228,9 @@ void RecorderPipeline::DrainBuffer(bool isDrainAll)
             break;
         }
     }
+
     if (ret == MSERR_OK) {
-        SyncWaitEOS();
+        (void)SyncWaitEOS();
     }
 }
 

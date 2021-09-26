@@ -16,6 +16,7 @@
 #include "media_data_source_test_noseek.h"
 #include <iostream>
 #include "media_errors.h"
+#include "directory_ex.h"
 #include "media_log.h"
 
 namespace {
@@ -26,7 +27,12 @@ namespace OHOS {
 namespace Media {
 std::shared_ptr<IMediaDataSource> MediaDataSourceTestNoseek::Create(const std::string &uri)
 {
-    std::shared_ptr<MediaDataSourceTestNoseek> dataSrc = std::make_shared<MediaDataSourceTestNoseek>(uri);
+    std::string realPath;
+    if (!PathToRealPath(uri, realPath)) {
+        std::cout << "Path is unaccessable: " << uri << std::endl;
+        return nullptr;
+    }
+    std::shared_ptr<MediaDataSourceTestNoseek> dataSrc = std::make_shared<MediaDataSourceTestNoseek>(realPath);
     if (dataSrc == nullptr) {
         std::cout << "create source failed" << std::endl;
         return nullptr;
@@ -79,6 +85,9 @@ int32_t MediaDataSourceTestNoseek::ReadAt(uint32_t length, const std::shared_ptr
     if (pos_ >= size_) {
         return SOURCE_ERROR_EOF;
     }
+    if (mem->GetBase() == nullptr) {
+        return SOURCE_ERROR_IO;
+    }
     readRet = fread(mem->GetBase(), static_cast<size_t>(length), 1, fd_);
     if (readRet == 0) {
         realLen = static_cast<int32_t>(size_ - pos_);
@@ -98,4 +107,3 @@ int32_t MediaDataSourceTestNoseek::GetSize(int64_t &size)
 }
 } // Media
 } // OHOS
-

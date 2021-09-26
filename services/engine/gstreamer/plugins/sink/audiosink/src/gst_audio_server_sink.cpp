@@ -58,6 +58,7 @@ static gboolean gst_audio_server_sink_event(GstBaseSink *basesink, GstEvent *eve
 static gboolean gst_audio_server_sink_start(GstBaseSink *basesink);
 static gboolean gst_audio_server_sink_stop(GstBaseSink *basesink);
 static GstFlowReturn gst_audio_server_sink_render(GstBaseSink *basesink, GstBuffer *buffer);
+static void gst_audio_server_sink_clear_cache_buffer(GstAudioServerSink *sink);
 
 static void gst_audio_server_sink_class_init(GstAudioServerSinkClass *klass)
 {
@@ -127,6 +128,7 @@ static void gst_audio_server_sink_init(GstAudioServerSink *sink)
     sink->min_buffer_size = 0;
     sink->min_frame_count = 0;
     sink->cache_buffer = nullptr;
+    sink->pause_cache_buffer = nullptr;
     sink->cache_size = 0;
     sink->enable_cache = FALSE;
     sink->frame_after_segment = FALSE;
@@ -144,6 +146,7 @@ static void gst_audio_server_sink_finalize(GObject *object)
         (void)sink->audio_sink->Release();
         sink->audio_sink = nullptr;
     }
+    gst_audio_server_sink_clear_cache_buffer(sink);
 }
 
 static gboolean gst_audio_server_sink_set_volume(GstAudioServerSink *sink, gfloat volume)
@@ -258,6 +261,7 @@ static gboolean gst_audio_server_sink_event(GstBaseSink *basesink, GstEvent *eve
             g_mutex_unlock(&sink->render_lock);
             break;
         case GST_EVENT_FLUSH_START:
+            gst_audio_server_sink_clear_cache_buffer(sink);
             if (sink->audio_sink == nullptr) {
                 break;
             }
@@ -286,6 +290,15 @@ static gboolean gst_audio_server_sink_start(GstBaseSink *basesink)
     g_return_val_if_fail(sink->audio_sink->GetMinVolume(sink->min_volume) == MSERR_OK, FALSE);
 
     return TRUE;
+}
+
+static void gst_audio_server_sink_clear_cache_buffer(GstAudioServerSink *sink)
+{
+    std::unique_lock<std::mutex> lock(sink->mutex_);
+    if (sink->pause_cache_buffer != nullptr) {
+        gst_buffer_unref(sink->pause_cache_buffer);
+        sink->pause_cache_buffer = nullptr;
+    }
 }
 
 static gboolean gst_audio_server_sink_stop(GstBaseSink *basesink)
@@ -359,6 +372,7 @@ static GstFlowReturn gst_audio_server_sink_cache_render(GstAudioServerSink *sink
 static GstStateChangeReturn gst_audio_server_sink_change_state(GstElement *element, GstStateChange transition)
 {
     GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(element);
+    GstBaseSink *basesink = GST_BASE_SINK(element);
     g_return_val_if_fail(sink != nullptr, GST_STATE_CHANGE_FAILURE);
 
     switch (transition) {
@@ -368,6 +382,13 @@ static GstStateChangeReturn gst_audio_server_sink_change_state(GstElement *eleme
             } else {
                 g_return_val_if_fail(sink->audio_sink->Start() == MSERR_OK, GST_STATE_CHANGE_FAILURE);
             }
+            if (sink->pause_cache_buffer != nullptr) {
+                GST_INFO_OBJECT(basesink, "pause to play");
+                g_return_val_if_fail(gst_audio_server_sink_render(basesink,
+                    sink->pause_cache_buffer) == GST_FLOW_OK, GST_STATE_CHANGE_FAILURE);
+                gst_buffer_unref(sink->pause_cache_buffer);
+                sink->pause_cache_buffer = nullptr;
+            }
             break;
         default:
             break;
@@ -376,9 +397,13 @@ static GstStateChangeReturn gst_audio_server_sink_change_state(GstElement *eleme
 
     switch (transition) {
         case GST_STATE_CHANGE_PLAYING_TO_PAUSED:
-            g_return_val_if_fail(sink->audio_sink->Pause() == MSERR_OK, GST_STATE_CHANGE_FAILURE);
+            {
+                std::unique_lock<std::mutex> lock(sink->mutex_);
+                g_return_val_if_fail(sink->audio_sink->Pause() == MSERR_OK, GST_STATE_CHANGE_FAILURE);
+            }
             break;
         case GST_STATE_CHANGE_PAUSED_TO_READY:
+            gst_audio_server_sink_clear_cache_buffer(sink);
             sink->is_start = FALSE;
             break;
         default:
@@ -399,18 +424,31 @@ static GstFlowReturn gst_audio_server_sink_render(GstBaseSink *basesink, GstBuff
         return gst_audio_server_sink_cache_render(sink, buffer);
     }
 
-    GstMapInfo map;
-    if (gst_buffer_map(buffer, &map, GST_MAP_READ) != TRUE) {
-        GST_ERROR_OBJECT(basesink, "unknown error happened during gst_buffer_map");
-        return GST_FLOW_ERROR;
-    }
-    if (sink->audio_sink->Write(map.data, map.size) != MSERR_OK) {
-        GST_ERROR_OBJECT(basesink, "unknown error happened during Write");
-        gst_buffer_unmap(buffer, &map);
-        return GST_FLOW_ERROR;
-    }
+    {
+        std::unique_lock<std::mutex> lock(sink->mutex_);
+        if (!sink->audio_sink->Writeable()) {
+            if (sink->pause_cache_buffer == nullptr) {
+                sink->pause_cache_buffer = gst_buffer_ref(buffer);
+                g_return_val_if_fail(sink->pause_cache_buffer != nullptr, GST_FLOW_ERROR);
+                GST_INFO_OBJECT(basesink, "cache buffer for pause state");
+                return GST_FLOW_OK;
+            } else {
+                GST_ERROR_OBJECT(basesink, "cache buffer is not null");
+            }
+        }
 
-    gst_buffer_unmap(buffer, &map);
+        GstMapInfo map;
+        if (gst_buffer_map(buffer, &map, GST_MAP_READ) != TRUE) {
+            GST_ERROR_OBJECT(basesink, "unknown error happened during gst_buffer_map");
+            return GST_FLOW_ERROR;
+        }
+        if (sink->audio_sink->Write(map.data, map.size) != MSERR_OK) {
+            GST_ERROR_OBJECT(basesink, "unknown error happened during Write");
+            gst_buffer_unmap(buffer, &map);
+            return GST_FLOW_ERROR;
+        }
+        gst_buffer_unmap(buffer, &map);
+    }
 
     g_mutex_lock(&sink->render_lock);
     if (sink->frame_after_segment) {

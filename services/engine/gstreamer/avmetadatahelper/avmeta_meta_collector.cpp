@@ -83,6 +83,10 @@ void AVMetaMetaCollector::Start()
 
 void AVMetaMetaCollector::AddMetaSource(GstElement &source)
 {
+    if (stopCollecting_) {
+        return;
+    }
+
     uint8_t srcType = ProbeElemType(source);
     AddElemCollector(source, srcType);
     AddElemBlocker(source, srcType);
@@ -268,7 +272,7 @@ void AVMetaMetaCollector::AddElemBlocker(GstElement &source, uint8_t type)
             auto ret = blockers_.emplace(type, BufferBlockerVec {});          \
             typeBlockersIter = ret.first;                                     \
         }                                                                     \
-        (blocker)->Init();                                                      \
+        (blocker)->Init();                                                    \
         (void)typeBlockersIter->second.emplace_back(std::move(blocker));      \
     } while (0)
 
@@ -307,7 +311,7 @@ void AVMetaMetaCollector::UpdateElemBlocker(GstElement &source, uint8_t elemType
     if (elemType == GstElemType::DEMUXER) {
         auto signalId = g_signal_connect(&source, "pad-added", G_CALLBACK(PadAdded), this);
         if (signalId == 0) {
-            MEDIA_LOGE("add pad-added signal tp %{public}s failed", ELEM_NAME(&source));
+            MEDIA_LOGE("add pad-added signal to %{public}s failed", ELEM_NAME(&source));
             return;
         }
         (void)signalIds_.emplace_back(std::pair<GstElement *, gulong>{&source, signalId});

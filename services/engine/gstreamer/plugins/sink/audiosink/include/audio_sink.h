@@ -43,6 +43,7 @@ public:
     virtual int32_t Write(uint8_t *buffer, size_t size) = 0;
     virtual int32_t GetAudioTime(uint64_t &time) = 0;
     virtual int32_t GetLatency(uint64_t &latency) const = 0;
+    virtual bool Writeable() const;
 };
 }  // namespace Media
 }  // namespace OHOS

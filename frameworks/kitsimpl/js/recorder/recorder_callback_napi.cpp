@@ -137,7 +137,7 @@ void RecorderCallbackNapi::OnInfo(int32_t type, int32_t extra)
     MEDIA_LOGD("OnInfo() is called, type: %{public}d, extra: %{public}d", type, extra);
 }
 
-void RecorderCallbackNapi::OnJsStateCallBack(RecordJsCallback *jsCb)
+void RecorderCallbackNapi::OnJsStateCallBack(RecordJsCallback *jsCb) const
 {
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
@@ -184,7 +184,7 @@ void RecorderCallbackNapi::OnJsStateCallBack(RecordJsCallback *jsCb)
     }
 }
 
-void RecorderCallbackNapi::OnJsErrorCallBack(RecordJsCallback *jsCb)
+void RecorderCallbackNapi::OnJsErrorCallBack(RecordJsCallback *jsCb) const
 {
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);

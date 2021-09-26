@@ -52,8 +52,8 @@ private:
         std::string errorMsg = "unknown";
         MediaServiceExtErrCode errorCode = MSERR_EXT_UNKNOWN;
     };
-    void OnJsErrorCallBack(RecordJsCallback *jsCb);
-    void OnJsStateCallBack(RecordJsCallback *jsCb);
+    void OnJsErrorCallBack(RecordJsCallback *jsCb) const;
+    void OnJsStateCallBack(RecordJsCallback *jsCb) const;
     std::shared_ptr<AutoRef> StateCallbackSelect(const std::string &callbackName) const;
     napi_env env_ = nullptr;
     std::mutex mutex_;

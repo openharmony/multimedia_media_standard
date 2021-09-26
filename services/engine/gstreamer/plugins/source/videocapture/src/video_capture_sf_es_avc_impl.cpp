@@ -37,6 +37,7 @@ VideoCaptureSfEsAvcImpl::~VideoCaptureSfEsAvcImpl()
 GstBuffer *VideoCaptureSfEsAvcImpl::AVCDecoderConfiguration(std::vector<uint8_t> &sps,
     std::vector<uint8_t> &pps)
 {
+    // 11 is the length of AVCDecoderConfigurationRecord field except sps and pps
     uint32_t codecBufferSize = sps.size() + pps.size() + 11;
     GstBuffer *codec = gst_buffer_new_allocate(nullptr, codecBufferSize, nullptr);
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, nullptr, "no memory");
@@ -105,7 +106,7 @@ std::shared_ptr<EsAvcCodecBuffer> VideoCaptureSfEsAvcImpl::DoGetCodecBuffer()
     codecBuffer->segmentStart = 0;
     codecBuffer->gstCodecBuffer = configBuffer;
     codecData_ = (char *)buffer;
-    codecDataSize_ = nalSize_ * 3 + sps.size() + pps.size() + sei.size();
+    codecDataSize_ = nalSize_ * 3 + sps.size() + pps.size() + sei.size(); // 3 means sps pps sei common head size
 
     CANCEL_SCOPE_EXIT_GUARD(0);
     return codecBuffer;
@@ -168,8 +169,8 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfEsAvcImpl::DoGetFrameBuffer()
 
 std::shared_ptr<VideoFrameBuffer> VideoCaptureSfEsAvcImpl::GetIDRFrame()
 {
-    ON_SCOPE_EXIT(0) { 
-        (void)dataConSurface_->ReleaseBuffer(surfaceBuffer_, fence_); 
+    ON_SCOPE_EXIT(0) {
+        (void)dataConSurface_->ReleaseBuffer(surfaceBuffer_, fence_);
     };
 
     uint32_t bufferSize = static_cast<uint32_t>(dataSize_) - codecDataSize_;

@@ -16,6 +16,7 @@
 #include "media_data_source_test_seekable.h"
 #include <iostream>
 #include "media_errors.h"
+#include "directory_ex.h"
 #include "media_log.h"
 
 namespace {
@@ -26,7 +27,12 @@ namespace OHOS {
 namespace Media {
 std::shared_ptr<IMediaDataSource> MediaDataSourceTestSeekable::Create(const std::string &uri)
 {
-    std::shared_ptr<MediaDataSourceTestSeekable> dataSrc = std::make_shared<MediaDataSourceTestSeekable>(uri);
+    std::string realPath;
+    if (!PathToRealPath(uri, realPath)) {
+        std::cout << "Path is unaccessable: " << uri << std::endl;
+        return nullptr;
+    }
+    std::shared_ptr<MediaDataSourceTestSeekable> dataSrc = std::make_shared<MediaDataSourceTestSeekable>(realPath);
     if (dataSrc == nullptr) {
         std::cout << "create source failed" << std::endl;
         return nullptr;
@@ -66,7 +72,7 @@ int32_t MediaDataSourceTestSeekable::Init()
 int32_t MediaDataSourceTestSeekable::ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem)
 {
     if (pos != pos_) {
-        (void)fseek(fd_, pos, SEEK_SET);
+        (void)fseek(fd_, static_cast<long>(pos), SEEK_SET);
         pos_ = pos;
     }
     size_t readRet = 0;
@@ -74,6 +80,9 @@ int32_t MediaDataSourceTestSeekable::ReadAt(int64_t pos, uint32_t length, const 
     int32_t realLen = static_cast<int32_t>(length);
     if (pos_ >= size_) {
         return SOURCE_ERROR_EOF;
+    }
+    if (mem->GetBase() == nullptr) {
+        return SOURCE_ERROR_IO;
     }
     readRet = fread(mem->GetBase(), static_cast<size_t>(length), 1, fd_);
     if (readRet == 0) {
@@ -100,4 +109,3 @@ int32_t MediaDataSourceTestSeekable::GetSize(int64_t &size)
 }
 } // Media
 } // OHOS
-
