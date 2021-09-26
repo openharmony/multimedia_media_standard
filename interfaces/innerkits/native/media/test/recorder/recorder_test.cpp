@@ -158,7 +158,7 @@ void RecorderTest::HDICreateBuffer()
         (void)buffer->ExtraSet("timeStamp", pts_);
         (void)buffer->ExtraSet("isKeyFrame", isKeyFrame_);
         count_++;
-        (count_ % 30) == 0 ? (isKeyFrame_ = 1) : (isKeyFrame_ = 0);
+        (count_ % KEY_FRAME_FREQ) == 0 ? (isKeyFrame_ = 1) : (isKeyFrame_ = 0);
         pts_ += FRAME_DURATION;
         (void)producerSurface_->FlushBuffer(buffer, -1, g_flushConfig);
         frameLenArray++;
