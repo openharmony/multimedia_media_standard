@@ -36,15 +36,15 @@ struct AvMemNapiWarp {
 };
 
 std::shared_ptr<CallbackWarp> CallbackWarp::Create(napi_env env, const size_t argsCount,
-    std::shared_ptr<JsCallback> jsCb)
+    const std::shared_ptr<JsCallback> &jsCb)
 {
     CHECK_AND_RETURN_RET_LOG(env != nullptr, nullptr, "env is nullptr");
-    CHECK_AND_RETURN_RET_LOG(argsCount >= 0 && argsCount < ARGS_COUNT_MAX, nullptr, "args count error");
+    CHECK_AND_RETURN_RET_LOG(argsCount < ARGS_COUNT_MAX, nullptr, "args count error");
     CHECK_AND_RETURN_RET_LOG(jsCb != nullptr, nullptr, "JsCallback is nullptr");
     return std::make_shared<CallbackWarp>(env, argsCount, jsCb);
 }
 
-CallbackWarp::CallbackWarp(napi_env env, const size_t argsCount, std::shared_ptr<JsCallback> jsCb)
+CallbackWarp::CallbackWarp(napi_env env, const size_t argsCount, const std::shared_ptr<JsCallback> &jsCb)
     : env_(env),
       argsCount_(argsCount),
       jsCb_(jsCb)

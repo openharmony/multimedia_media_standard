@@ -151,15 +151,16 @@ static void gst_surface_video_src_set_property(GObject *object, guint prop_id,
 {
     (void)pspec;
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(object);
+    g_return_if_fail(src != nullptr);
     switch (prop_id) {
         case PROP_STREAM_TYPE:
             gst_surface_video_src_set_stream_type(src, g_value_get_enum(value));
             break;
         case PROP_SURFACE_WIDTH:
-            src->video_width = g_value_get_uint(value);
+            src->video_width  = g_value_get_uint(value);
             break;
         case PROP_SURFACE_HEIGHT:
-            src->video_height = g_value_get_uint(value);
+            src->video_height  = g_value_get_uint(value);
             break;
         default:
             break;
@@ -176,6 +177,7 @@ static void gst_surface_video_src_set_stream_type(GstSurfaceVideoSrc *src, gint 
 static void gst_surface_video_src_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(object);
+    g_return_if_fail(src != nullptr);
     (void)pspec;
     switch (prop_id) {
         case PROP_STREAM_TYPE:
@@ -328,7 +330,8 @@ static gboolean gst_surface_video_src_send_event(GstElement *element, GstEvent *
 {
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(element);
     g_return_val_if_fail(src != nullptr, FALSE);
-    switch (GST_EVENT_TYPE(event)) {
+
+    switch (GST_EVENT_TYPE (event)) {
         case GST_EVENT_FLUSH_START:
             g_return_val_if_fail(src->capture != nullptr, FALSE);
             src->is_eos = FALSE;
@@ -342,6 +345,7 @@ static gboolean gst_surface_video_src_send_event(GstElement *element, GstEvent *
         default:
             break;
     }
+
     return GST_ELEMENT_CLASS(parent_class)->send_event(element, event);
 }
 

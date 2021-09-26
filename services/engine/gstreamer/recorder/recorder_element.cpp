@@ -98,6 +98,7 @@ RecorderElement::~RecorderElement()
 int32_t RecorderElement::DrainAll(bool isDrain)
 {
     MEDIA_LOGI("perform drainAll for %{public}s", name_.c_str());
+
     if (!isDrain) {
         auto block = [] (GstPad *pad, GstPadProbeInfo *info, gpointer userdata) {
             (void)userdata;
@@ -110,6 +111,7 @@ int32_t RecorderElement::DrainAll(bool isDrain)
             }
             return GST_PAD_PROBE_PASS;
         };
+
         GList *allSrcPads = gstElem_->srcpads;
         for (GList *padNode = g_list_first(allSrcPads); padNode != nullptr; padNode = padNode->next) {
             if (padNode->data == nullptr)  {
@@ -119,16 +121,20 @@ int32_t RecorderElement::DrainAll(bool isDrain)
             (void)gst_pad_add_probe((GstPad *)padNode->data, GST_PAD_PROBE_TYPE_DATA_DOWNSTREAM,
                                     (GstPadProbeCallback)block, nullptr, nullptr);
         }
+
         GstEvent *event = gst_event_new_flush_start();
         CHECK_AND_RETURN_RET(event != nullptr, MSERR_NO_MEMORY);
         (void)gst_element_send_event(gstElem_, event);
+
         event = gst_event_new_flush_stop(FALSE);
         CHECK_AND_RETURN_RET(event != nullptr, MSERR_NO_MEMORY);
         (void)gst_element_send_event(gstElem_, event);
     }
+
     GstEvent *event = gst_event_new_eos();
     CHECK_AND_RETURN_RET(event != nullptr, MSERR_NO_MEMORY);
     (void)gst_element_send_event(gstElem_, event);
+
     return MSERR_OK;
 }
 

@@ -25,8 +25,8 @@ namespace Media {
 class CallbackWarp {
 public:
     static std::shared_ptr<CallbackWarp> Create(napi_env env, const size_t argsCount,
-        std::shared_ptr<JsCallback> jsCb);
-    CallbackWarp(napi_env env, const size_t argsCount, std::shared_ptr<JsCallback> jsCb);
+        const std::shared_ptr<JsCallback> &jsCb);
+    CallbackWarp(napi_env env, const size_t argsCount, const std::shared_ptr<JsCallback> &jsCb);
     ~CallbackWarp();
     DISALLOW_COPY_AND_MOVE(CallbackWarp);
     int32_t SetArg(uint32_t arg);

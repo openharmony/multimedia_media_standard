@@ -15,6 +15,7 @@ import("//build/test.gni")
 
 ohos_executable("media_test") {
   include_dirs = [
+    "./include",
     "./player",
     "./player/data_source",
     "./recorder",

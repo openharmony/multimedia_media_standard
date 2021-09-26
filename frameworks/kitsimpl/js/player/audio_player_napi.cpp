@@ -185,7 +185,7 @@ napi_value AudioPlayerNapi::SetSrc(napi_env env, napi_callback_info info)
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_string) {
         player->uri_.clear();
-        player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
 
@@ -193,13 +193,13 @@ napi_value AudioPlayerNapi::SetSrc(napi_env env, napi_callback_info info)
     CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->SetSource(player->uri_);
     if (ret != MSERR_OK) {
-        player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
 
     ret = player->nativePlayer_->PrepareAsync();
     if (ret != MSERR_OK) {
-        player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
 
@@ -254,29 +254,29 @@ napi_value AudioPlayerNapi::SetMediaDataSrc(napi_env env, napi_callback_info inf
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
     CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     if (player->dataSrcCallBack_ != nullptr) {
-        player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_object) {
-        player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
 
     player->dataSrcCallBack_ = MediaDataSourceCallback::Create(env, args[0]);
     if (player->dataSrcCallBack_ == nullptr) {
-        player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
     int32_t ret = player->nativePlayer_->SetSource(player->dataSrcCallBack_);
     if (ret != MSERR_OK) {
-        player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
 
     ret = player->nativePlayer_->PrepareAsync();
     if (ret != MSERR_OK) {
-        player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
     MEDIA_LOGD("SetMediaDataSrc success");
@@ -300,7 +300,7 @@ napi_value AudioPlayerNapi::GetMediaDataSrc(napi_env env, napi_callback_info inf
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
     if (player->dataSrcCallBack_ == nullptr) {
-        player->ErrorCallback(env, MSERR_EXT_NO_MEMORY);
+        player->ErrorCallback(MSERR_EXT_NO_MEMORY);
         return undefinedResult;
     }
 
@@ -331,7 +331,7 @@ napi_value AudioPlayerNapi::Play(napi_env env, napi_callback_info info)
     CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->Play();
     if (ret != MSERR_OK) {
-        player->ErrorCallback(env, MSERR_EXT_UNKNOWN);
+        player->ErrorCallback(MSERR_EXT_UNKNOWN);
         return undefinedResult;
     }
     MEDIA_LOGD("Play success");
@@ -358,7 +358,7 @@ napi_value AudioPlayerNapi::Pause(napi_env env, napi_callback_info info)
     CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->Pause();
     if (ret != MSERR_OK) {
-        player->ErrorCallback(env, MSERR_EXT_UNKNOWN);
+        player->ErrorCallback(MSERR_EXT_UNKNOWN);
         return undefinedResult;
     }
     MEDIA_LOGD("Pause success");
@@ -385,7 +385,7 @@ napi_value AudioPlayerNapi::Stop(napi_env env, napi_callback_info info)
     CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->Stop();
     if (ret != MSERR_OK) {
-        player->ErrorCallback(env, MSERR_EXT_UNKNOWN);
+        player->ErrorCallback(MSERR_EXT_UNKNOWN);
         return undefinedResult;
     }
     MEDIA_LOGD("Stop success");
@@ -416,7 +416,7 @@ napi_value AudioPlayerNapi::Reset(napi_env env, napi_callback_info info)
     }
     int32_t ret = player->nativePlayer_->Reset();
     if (ret != MSERR_OK) {
-        player->ErrorCallback(env, MSERR_EXT_UNKNOWN);
+        player->ErrorCallback(MSERR_EXT_UNKNOWN);
         return undefinedResult;
     }
     player->dataSrcCallBack_ = nullptr;
@@ -447,7 +447,7 @@ napi_value AudioPlayerNapi::Release(napi_env env, napi_callback_info info)
     }
     int32_t ret = player->nativePlayer_->Release();
     if (ret != MSERR_OK) {
-        player->ErrorCallback(env, MSERR_EXT_UNKNOWN);
+        player->ErrorCallback(MSERR_EXT_UNKNOWN);
         return undefinedResult;
     }
     player->callbackNapi_ = nullptr;
@@ -478,21 +478,21 @@ napi_value AudioPlayerNapi::Seek(napi_env env, napi_callback_info info)
 
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_number) {
-        player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
 
     int32_t position = -1;
     status = napi_get_value_int32(env, args[0], &position);
     if (status != napi_ok || position < 0) {
-        player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
 
     CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->Seek(position, SEEK_PREVIOUS_SYNC);
     if (ret != MSERR_OK) {
-        player->ErrorCallback(env, MSERR_EXT_UNKNOWN);
+        player->ErrorCallback(MSERR_EXT_UNKNOWN);
         return undefinedResult;
     }
 
@@ -521,21 +521,21 @@ napi_value AudioPlayerNapi::SetVolume(napi_env env, napi_callback_info info)
 
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_number) {
-        player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
 
     double volumeLevel;
     status = napi_get_value_double(env, args[0], &volumeLevel);
     if (status != napi_ok || volumeLevel < 0.0f || volumeLevel > 1.0f) {
-        player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
 
     CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->SetVolume(static_cast<float>(volumeLevel), static_cast<float>(volumeLevel));
     if (ret != MSERR_OK) {
-        player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
     MEDIA_LOGD("SetVolume success");
@@ -565,7 +565,7 @@ napi_value AudioPlayerNapi::On(napi_env env, napi_callback_info info)
     napi_valuetype valueType1 = napi_undefined;
     if (napi_typeof(env, args[0], &valueType0) != napi_ok || valueType0 != napi_string ||
         napi_typeof(env, args[1], &valueType1) != napi_ok || valueType1 != napi_function) {
-        player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
 
@@ -598,7 +598,7 @@ napi_value AudioPlayerNapi::SetLoop(napi_env env, napi_callback_info info)
 
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_boolean) {
-        player->ErrorCallback(env, MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
 
@@ -609,7 +609,7 @@ napi_value AudioPlayerNapi::SetLoop(napi_env env, napi_callback_info info)
     CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->SetLooping(loopFlag);
     if (ret != MSERR_OK) {
-        player->ErrorCallback(env, MSERR_EXT_UNKNOWN);
+        player->ErrorCallback(MSERR_EXT_UNKNOWN);
         return undefinedResult;
     }
 
@@ -667,7 +667,7 @@ napi_value AudioPlayerNapi::GetCurrentTime(napi_env env, napi_callback_info info
     int32_t currentTime = -1;
     int32_t ret = player->nativePlayer_->GetCurrentTime(currentTime);
     if (ret != MSERR_OK || currentTime < 0) {
-        player->ErrorCallback(env, MSERR_EXT_UNKNOWN);
+        player->ErrorCallback(MSERR_EXT_UNKNOWN);
         return undefinedResult;
     }
 
@@ -701,7 +701,7 @@ napi_value AudioPlayerNapi::GetDuration(napi_env env, napi_callback_info info)
     int32_t duration = -1;
     int32_t ret = player->nativePlayer_->GetDuration(duration);
     if (ret != MSERR_OK || duration < 0) {
-        player->ErrorCallback(env, MSERR_EXT_UNKNOWN);
+        player->ErrorCallback(MSERR_EXT_UNKNOWN);
         return undefinedResult;
     }
 
@@ -773,10 +773,8 @@ napi_value AudioPlayerNapi::GetState(napi_env env, napi_callback_info info)
     return jsResult;
 }
 
-void AudioPlayerNapi::ErrorCallback(napi_env env, MediaServiceExtErrCode errCode)
+void AudioPlayerNapi::ErrorCallback(MediaServiceExtErrCode errCode)
 {
-    (void)env;
-
     if (callbackNapi_ != nullptr) {
         std::shared_ptr<PlayerCallbackNapi> napiCb = std::static_pointer_cast<PlayerCallbackNapi>(callbackNapi_);
         napiCb->SendErrorCallback(errCode);

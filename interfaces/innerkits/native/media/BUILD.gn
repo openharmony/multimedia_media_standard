@@ -51,7 +51,7 @@ config("media_client_public_config") {
     "$MEIDA_ROOT_DIR/services/utils/include",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
     "//utils/system/safwk/native/include",
-    "//utils/native/base/include"
+    "//utils/native/base/include",
   ]
 
   cflags = [
@@ -77,83 +77,83 @@ config("media_client_public_config") {
 }
 
 ohos_shared_library("media_client") {
-    install_enable = true
-    sources = [
-        "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/player/player_impl.cpp",
-        "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/recorder/recorder_impl.cpp",
-        "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/avmetadatahelper/avmetadatahelper_impl.cpp",
-        "$MEIDA_ROOT_DIR/services/services/sa_media/client/media_client.cpp",
-        "$MEIDA_ROOT_DIR/services/services/sa_media/ipc/media_service_proxy.cpp",
-        "$MEIDA_ROOT_DIR/services/services/sa_media/ipc/media_listener_stub.cpp",
-        "$MEIDA_ROOT_DIR/services/services/player/client/player_client.cpp",
-        "$MEIDA_ROOT_DIR/services/services/player/ipc/player_service_proxy.cpp",
-        "$MEIDA_ROOT_DIR/services/services/player/ipc/player_listener_stub.cpp",
-        "$MEIDA_ROOT_DIR/services/services/media_data_source/ipc/media_data_source_stub.cpp",
-        "$MEIDA_ROOT_DIR/services/services/recorder/client/recorder_client.cpp",
-        "$MEIDA_ROOT_DIR/services/services/recorder/ipc/recorder_service_proxy.cpp",
-        "$MEIDA_ROOT_DIR/services/services/recorder/ipc/recorder_listener_stub.cpp",
-        "$MEIDA_ROOT_DIR/services/services/avmetadatahelper/client/avmetadatahelper_client.cpp",
-        "$MEIDA_ROOT_DIR/services/services/avmetadatahelper/ipc/avmetadatahelper_service_proxy.cpp",
-        "$MEIDA_ROOT_DIR/services/services/common/avsharedmemory_ipc.cpp",
-        "$MEIDA_ROOT_DIR/services/utils/avsharedmemorybase.cpp",
-        "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/common/media_errors.cpp",
-    ]
+  install_enable = true
+  sources = [
+    "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/avmetadatahelper/avmetadatahelper_impl.cpp",
+    "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/common/media_errors.cpp",
+    "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/player/player_impl.cpp",
+    "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/recorder/recorder_impl.cpp",
+    "$MEIDA_ROOT_DIR/services/services/avmetadatahelper/client/avmetadatahelper_client.cpp",
+    "$MEIDA_ROOT_DIR/services/services/avmetadatahelper/ipc/avmetadatahelper_service_proxy.cpp",
+    "$MEIDA_ROOT_DIR/services/services/common/avsharedmemory_ipc.cpp",
+    "$MEIDA_ROOT_DIR/services/services/media_data_source/ipc/media_data_source_stub.cpp",
+    "$MEIDA_ROOT_DIR/services/services/player/client/player_client.cpp",
+    "$MEIDA_ROOT_DIR/services/services/player/ipc/player_listener_stub.cpp",
+    "$MEIDA_ROOT_DIR/services/services/player/ipc/player_service_proxy.cpp",
+    "$MEIDA_ROOT_DIR/services/services/recorder/client/recorder_client.cpp",
+    "$MEIDA_ROOT_DIR/services/services/recorder/ipc/recorder_listener_stub.cpp",
+    "$MEIDA_ROOT_DIR/services/services/recorder/ipc/recorder_service_proxy.cpp",
+    "$MEIDA_ROOT_DIR/services/services/sa_media/client/media_client.cpp",
+    "$MEIDA_ROOT_DIR/services/services/sa_media/ipc/media_listener_stub.cpp",
+    "$MEIDA_ROOT_DIR/services/services/sa_media/ipc/media_service_proxy.cpp",
+    "$MEIDA_ROOT_DIR/services/utils/avsharedmemorybase.cpp",
+  ]
 
-    public_configs = [
-        ":media_client_ipc_config",
-        ":media_client_public_config",
-        "//foundation/graphic/standard/frameworks/surface:surface_public_config"
-    ]
+  public_configs = [
+    ":media_client_ipc_config",
+    ":media_client_public_config",
+    "//foundation/graphic/standard/frameworks/surface:surface_public_config",
+  ]
 
-    deps = [
-        "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-        "//utils/native/base:utils",
-        "//utils/native/base:utilsecurec",
-        "//foundation/graphic/standard/frameworks/surface:surface",
-    ]
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/standard/frameworks/surface:surface",
+    "//utils/native/base:utils",
+    "//utils/native/base:utilsecurec",
+  ]
 
-    external_deps = [
-        "ipc:ipc_core",
-        "samgr_L2:samgr_proxy",
-        "hiviewdfx_hilog_native:libhilog",
-    ]
-    subsystem_name = "multimedia"
-    part_name = "multimedia_media_standard"
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "samgr_L2:samgr_proxy",
+  ]
+  subsystem_name = "multimedia"
+  part_name = "multimedia_media_standard"
 }
 
 ohos_shared_library("media_local") {
-    install_enable = true
-    sources = [
-        "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/player/player_impl.cpp",
-        "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/recorder/recorder_impl.cpp",
-        "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/avmetadatahelper/avmetadatahelper_impl.cpp",
-        "$MEIDA_ROOT_DIR/services/services/sa_media/client/media_local.cpp",
-        "$MEIDA_ROOT_DIR/services/services/player/server/player_server.cpp",
-        "$MEIDA_ROOT_DIR/services/services/recorder/server/recorder_server.cpp",
-        "$MEIDA_ROOT_DIR/services/services/avmetadatahelper/server/avmetadatahelper_server.cpp",
-        "$MEIDA_ROOT_DIR/services/services/factory/engine_factory_repo.cpp",
-        "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/common/media_errors.cpp",
-    ]
+  install_enable = true
+  sources = [
+    "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/avmetadatahelper/avmetadatahelper_impl.cpp",
+    "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/common/media_errors.cpp",
+    "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/player/player_impl.cpp",
+    "$MEIDA_ROOT_DIR/frameworks/innerkitsimpl/native/recorder/recorder_impl.cpp",
+    "$MEIDA_ROOT_DIR/services/services/avmetadatahelper/server/avmetadatahelper_server.cpp",
+    "$MEIDA_ROOT_DIR/services/services/factory/engine_factory_repo.cpp",
+    "$MEIDA_ROOT_DIR/services/services/player/server/player_server.cpp",
+    "$MEIDA_ROOT_DIR/services/services/recorder/server/recorder_server.cpp",
+    "$MEIDA_ROOT_DIR/services/services/sa_media/client/media_local.cpp",
+  ]
 
-    public_configs = [
-        ":media_client_local_config",
-        ":media_client_public_config",
-        "//foundation/graphic/standard/frameworks/surface:surface_public_config"
-    ]
+  public_configs = [
+    ":media_client_local_config",
+    ":media_client_public_config",
+    "//foundation/graphic/standard/frameworks/surface:surface_public_config",
+  ]
 
-    deps = [
-        "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-        "//utils/native/base:utils",
-        "//utils/native/base:utilsecurec",
-        "//foundation/graphic/standard/frameworks/surface:surface",
-        "$MEIDA_ROOT_DIR/services/utils:media_service_utils",
-    ]
+  deps = [
+    "$MEIDA_ROOT_DIR/services/utils:media_service_utils",
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/standard/frameworks/surface:surface",
+    "//utils/native/base:utils",
+    "//utils/native/base:utilsecurec",
+  ]
 
-    external_deps = [
-        "hiviewdfx_hilog_native:libhilog",
-        "bytrace_standard:bytrace_core",
-        "ipc:ipc_core",
-    ]
-    subsystem_name = "multimedia"
-    part_name = "multimedia_media_standard"
+  external_deps = [
+    "bytrace_standard:bytrace_core",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
+  subsystem_name = "multimedia"
+  part_name = "multimedia_media_standard"
 }
