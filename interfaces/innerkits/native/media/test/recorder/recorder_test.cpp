@@ -33,6 +33,7 @@ namespace {
     constexpr uint32_t STRIDE_ALIGN = 8;
     constexpr uint32_t FRAME_DURATION = 40000000;
     constexpr uint32_t RECORDER_TIME = 5;
+    constexpr uint32_t KEY_FRAME_FREQ = 30;
     const string PURE_VIDEO = "1";
     const string PURE_AUDIO = "2";
     const string AUDIO_VIDEO = "3";
@@ -90,7 +91,7 @@ const uint32_t HIGH_VIDEO_FRAME_SIZE[STUB_STREAM_SIZE] = {
     3002, 3199, 4546, 3232, 3347, 2991, 4202, 3994, 3740, 3771, 30196, 2683, 4039, 3324, 4274, 3866, 3910,
     3214, 3016, 3079, 4113, 2674, 4028, 3957, 4141, 3585, 5638, 4704, 3764, 3483, 3457, 3365, 3520, 3619,
     3664, 3490, 3979, 2686, 3735, 3601, 29065, 4288, 4371, 3420, 4585, 3705, 4230, 3887, 3310, 2815, 3030,
-    2440, 2133, 2255, 2506, 2080, 2833, 2694, 3390, 3140,3265, 3067, 3000, 3754, 3743, 3662, 3439, 3698,
+    2440, 2133, 2255, 2506, 2080, 2833, 2694, 3390, 3140, 3265, 3067, 3000, 3754, 3743, 3662, 3439, 3698,
     3420, 3340, 36130, 2170, 2589, 2361, 3101, 3011, 2942, 2832, 3550, 3614, 3620, 3443, 3363, 3518, 2684,
     2650, 2680, 3285, 3121, 3471, 3343, 3250, 3207, 3269, 3169, 3147, 3247, 3367, 3791, 3039, 43578,
     1813, 2615, 2529, 2501, 2491, 2466, 2436, 2966, 2805, 2777, 3260, 3270, 3416, 2819, 3154, 3273, 3334,
@@ -157,7 +158,7 @@ void RecorderTest::HDICreateBuffer()
         (void)buffer->ExtraSet("timeStamp", pts_);
         (void)buffer->ExtraSet("isKeyFrame", isKeyFrame_);
         count_++;
-        (count_ % 30) == 0 ? (isKeyFrame_ = 1) : (isKeyFrame_ = 0);
+        (count_ % KEY_FRAME_FREQ) == 0 ? (isKeyFrame_ = 1) : (isKeyFrame_ = 0);
         pts_ += FRAME_DURATION;
         (void)producerSurface_->FlushBuffer(buffer, -1, g_flushConfig);
         frameLenArray++;
