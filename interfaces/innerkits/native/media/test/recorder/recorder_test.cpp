@@ -33,6 +33,7 @@ namespace {
     constexpr uint32_t STRIDE_ALIGN = 8;
     constexpr uint32_t FRAME_DURATION = 40000000;
     constexpr uint32_t RECORDER_TIME = 5;
+    constexpr uint32_t KEY_FRAME_FREQ = 30;
     const string PURE_VIDEO = "1";
     const string PURE_AUDIO = "2";
     const string AUDIO_VIDEO = "3";
