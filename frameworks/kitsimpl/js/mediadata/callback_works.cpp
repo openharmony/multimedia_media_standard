@@ -139,9 +139,9 @@ int32_t CallbackWorks::Run(uv_work_t *work)
             napi_value result = nullptr;
             napi_value jsCallback = callbackWarp->GetCallback();
             CHECK_AND_BREAK_LOG(jsCallback != nullptr, "%{public}s get callback fail", request.c_str());
-            status = napi_call_function(callbackWarp->GetEnv(), nullptr, jsCallback,
+            napi_status nstatus = napi_call_function(callbackWarp->GetEnv(), nullptr, jsCallback,
                 callbackWarp->GetArgsCount(), callbackWarp->GetArgs(), &result);
-            CHECK_AND_BREAK_LOG(status == napi_ok, "%{public}s fail to napi call function", request.c_str());
+            CHECK_AND_BREAK_LOG(nstatus == napi_ok, "%{public}s fail to napi call function", request.c_str());
             callbackWarp->SetResult(result);
         } while (0);
         CHECK_AND_RETURN_LOG(callbackWorks->Remove(work) == MSERR_OK, "unknow error, work not in works");

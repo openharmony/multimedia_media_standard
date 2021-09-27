@@ -42,4 +42,3 @@ private:
 } // namespace Media
 } // namespace OHOS
 #endif /* MEDIA_DATA_SOURCE_TEST_NOSEEK_H */
-

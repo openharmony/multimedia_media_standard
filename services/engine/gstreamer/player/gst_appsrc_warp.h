@@ -33,7 +33,7 @@ struct AppsrcMemWarp {
     // size of mem
     int32_t size;
     // offset of mem
-    uint32_t offset;
+    int32_t offset;
 };
 
 class GstAppsrcWarp {

@@ -695,7 +695,7 @@ void GstPlayerCtrl::OnVolumeChange() const
     Format format;
     std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
     if (tempObs != nullptr) {
-        MEDIA_LOGD("OnVolumeChange");
+        MEDIA_LOGI("OnVolumeChange");
         tempObs->OnInfo(INFO_TYPE_VOLUME_CHANGE, 0, format);
     }
 }

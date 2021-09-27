@@ -17,6 +17,7 @@
 #ifndef GST_AUDIO_SERVER_SINK_H
 #define GST_AUDIO_SERVER_SINK_H
 
+#include <mutex>
 #include <memory>
 #include <gst/base/gstbasesink.h>
 #include "audio_sink.h"
@@ -54,6 +55,8 @@ struct _GstAudioServerSink {
     gboolean enable_cache;
     gboolean frame_after_segment;
     GMutex render_lock;
+    std::mutex mutex_;
+    GstBuffer *pause_cache_buffer;
     gboolean is_start;
 };
 

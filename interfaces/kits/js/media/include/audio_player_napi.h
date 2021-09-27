@@ -49,7 +49,7 @@ private:
     static napi_value GetCurrentTime(napi_env env, napi_callback_info info);
     static napi_value GetDuration(napi_env env, napi_callback_info info);
     static napi_value GetState(napi_env env, napi_callback_info info);
-    void ErrorCallback(napi_env env, MediaServiceExtErrCode errCode);
+    void ErrorCallback(MediaServiceExtErrCode errCode);
     AudioPlayerNapi();
     ~AudioPlayerNapi();
 
