@@ -101,7 +101,7 @@ static void gst_audio_capture_src_class_init(GstAudioCaptureSrcClass *klass)
 
     gst_element_class_set_static_metadata(gstelement_class,
         "Audio capture source", "Source/Audio",
-        "Retrieve audio frame from audio buffer queue", "Harmony OS");
+        "Retrieve audio frame from audio buffer queue", "OpenHarmony");
 
     gst_element_class_add_static_pad_template(gstelement_class, &gst_audio_capture_src_template);
 
