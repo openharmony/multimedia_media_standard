@@ -37,7 +37,7 @@ static void gst_hdi_h265_dec_class_init(GstHDIH265DecClass *klass)
         "Hardware Driver Interface H.265 Video Decoder",
         "Codec/Decoder/Video/Hardware",
         "Decode H.265 video streams",
-        "Huawei");
+        "OpenHarmony");
     gst_hdi_class_data_init(&self->cdata);
     if (self->cdata.support_video_format != NULL) {
         self->cdata.src_caps = gst_caps_from_string(self->cdata.default_src_template_caps);

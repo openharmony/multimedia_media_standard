@@ -102,7 +102,7 @@ static void gst_audio_server_sink_class_init(GstAudioServerSinkClass *klass)
 
     gst_element_class_set_static_metadata(gstelement_class,
         "Audio server sink", "Sink/Audio",
-        "Push pcm data to Audio server", "Harmony OS");
+        "Push pcm data to Audio server", "OpenHarmony");
 
     gst_element_class_add_static_pad_template(gstelement_class, &g_sinktemplate);
 
