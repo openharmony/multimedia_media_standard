@@ -321,6 +321,9 @@ static GstFlowReturn gst_surface_video_src_create(GstPushSrc *psrc, GstBuffer **
 
     *outbuf = frame_buffer->gstBuffer;
     GST_BUFFER_PTS(*outbuf) = frame_buffer->timeStamp;
+    if (!frame_buffer->keyFrameFlag) {
+        gst_buffer_set_flags(*outbuf, GST_BUFFER_FLAG_DELTA_UNIT);
+    }
 
     GST_DEBUG_OBJECT(src, "end create...");
     return GST_FLOW_OK;
