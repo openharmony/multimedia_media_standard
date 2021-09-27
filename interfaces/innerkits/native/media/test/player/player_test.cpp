@@ -18,6 +18,8 @@
 #include "media_data_source_test_noseek.h"
 #include "media_data_source_test_seekable.h"
 #include "string_ex.h"
+#include "media_errors.h"
+#include "directory_ex.h"
 
 using namespace OHOS;
 using namespace OHOS::Media;
@@ -26,12 +28,19 @@ using namespace std;
 namespace {
 const std::string SURFACE_STRIDE_ALIGNMENT = "SURFACE_STRIDE_ALIGNMENT";
 const std::string SURFACE_FORMAT = "SURFACE_FORMAT";
+const float EPSINON = 0.0001;
+const float SPEED_0_75_X = 0.75;
+const float SPEED_1_00_X = 1.00;
+const float SPEED_1_25_X = 1.25;
+const float SPEED_1_75_X = 1.75;
+const float SPEED_2_00_X = 2.00;
 }
 
 // PlayerCallback override
 void PlayerCallbackTest::OnError(PlayerErrorType errorType, int32_t errorCode)
 {
-    cout << "Error received, errorType:" << errorType << "errorCode:" << errorCode << endl;
+    (void)errorType;
+    cout << "Error received, errorCode:" << MSErrorToString(static_cast<MediaServiceErrCode>(errorCode)) << endl;
 }
 
 void PlayerCallbackTest::OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
@@ -77,6 +86,7 @@ sptr<Surface> PlayerTest::GetVideoSurface()
     cout << "Please enter the number of mode(default no window):" << endl;
     cout << "0:no window" << endl;
     cout << "1:window" << endl;
+    cout << "2:sub window" << endl;
     string mode;
     (void)getline(cin, mode);
     sptr<Surface> producerSurface = nullptr;
@@ -101,12 +111,16 @@ sptr<Surface> PlayerTest::GetVideoSurface()
             return nullptr;
         }
         producerSurface = mwindow_->GetSurface();
-        if (producerSurface == nullptr) {
-            cout << "GetVideoSurface error" << endl;
-            return nullptr;
-        }
-        (void)producerSurface->SetUserData(SURFACE_FORMAT, std::to_string(static_cast<int>(PIXEL_FMT_RGBA_8888)));
+    } else if (mode == "2") {
+        cout << "invalid operation" << endl;
+        return nullptr;
     }
+    if (producerSurface == nullptr) {
+        cout << "producerSurface is nullptr" << endl;
+        return nullptr;
+    }
+    (void)producerSurface->SetUserData(SURFACE_FORMAT, std::to_string(static_cast<int>(PIXEL_FMT_RGBA_8888)));
+    cout << "GetVideoSurface ok" << endl;
     return producerSurface;
 }
 
@@ -121,6 +135,73 @@ void PlayerTest::Seek(const std::string cmd)
         cout << "Operation Failed" << endl;
     } else {
         cout << "Operation OK" << endl;
+    }
+}
+
+int32_t PlayerTest::ChangeModeToSpeed(const PlaybackRateMode &mode, double &rate) const
+{
+    if (mode == SPEED_FORWARD_0_75_X) {
+        rate = SPEED_0_75_X;
+    } else if (mode == SPEED_FORWARD_1_00_X) {
+        rate = SPEED_1_00_X;
+    } else if (mode == SPEED_FORWARD_1_25_X) {
+        rate = SPEED_1_25_X;
+    } else if (mode == SPEED_FORWARD_1_75_X) {
+        rate = SPEED_1_75_X;
+    } else if (mode == SPEED_FORWARD_2_00_X) {
+        rate = SPEED_2_00_X;
+    } else {
+        return -1;
+    }
+    return 0;
+}
+
+int32_t PlayerTest::ChangeSpeedToMode(const double &rate, PlaybackRateMode &mode) const
+{
+    if (abs(rate - SPEED_0_75_X) < EPSINON) {
+        mode = SPEED_FORWARD_0_75_X;
+    } else if (abs(rate - SPEED_1_00_X) < EPSINON) {
+        mode = SPEED_FORWARD_1_00_X;
+    } else if (abs(rate - SPEED_1_25_X) < EPSINON) {
+        mode = SPEED_FORWARD_1_25_X;
+    } else if (abs(rate - SPEED_1_75_X) < EPSINON) {
+        mode = SPEED_FORWARD_1_75_X;
+    } else if (abs(rate - SPEED_2_00_X) < EPSINON) {
+        mode = SPEED_FORWARD_2_00_X;
+    } else {
+        return -1;
+    }
+    return  0;
+}
+
+int32_t PlayerTest::GetPlaybackSpeed()
+{
+    PlaybackRateMode mode;
+    double rate;
+    (void)player_->GetPlaybackSpeed(mode);
+    if (ChangeModeToSpeed(mode, rate) != 0) {
+        cout << "Change mode " << mode << " to speed failed" << endl;
+    } else {
+        cout << "Speed:" << rate << endl;
+    }
+    return 0;
+}
+
+void PlayerTest::SetPlaybackSpeed(const std::string cmd)
+{
+    PlaybackRateMode mode;
+    if (!cmd.empty()) {
+        double rate = std::stod(cmd.c_str());
+        if (ChangeSpeedToMode(rate, mode) != 0) {
+            cout << "Change speed " << rate << " to mode failed" << endl;
+            return;
+        }
+
+        if (player_->SetPlaybackSpeed(mode) != 0) {
+            cout << "Operation Failed" << endl;
+        } else {
+            cout << "Operation OK" << endl;
+        }
     }
 }
 
@@ -141,14 +222,14 @@ void PlayerTest::SetLoop(const std::string cmd)
 int32_t PlayerTest::GetPlaying()
 {
     bool isPlay = player_->IsPlaying();
-    cout << "playing:" << isPlay << endl;
+    cout << "Playing:" << isPlay << endl;
     return 0;
 }
 
 int32_t PlayerTest::GetLooping()
 {
     bool isLoop = player_->IsLooping();
-    cout << "looping:" << isLoop << endl;
+    cout << "Looping:" << isLoop << endl;
     return 0;
 }
 
@@ -164,33 +245,35 @@ void PlayerTest::DoNext()
                 cout << "Operation error" << endl;
             }
             continue;
-        }
-        if (cmd.find("seek") != std::string::npos) {
+        } else if (cmd.find("source") != std::string::npos) {
+            (void)SelectSource(cmd.substr(cmd.find_last_of("source ") + 1));
+            continue;
+        } else if (cmd.find("seek") != std::string::npos) {
             Seek(cmd.substr(cmd.find_last_of("seek ") + 1));
             continue;
-        }
-        if (cmd.find("volume") != std::string::npos) {
+        } else if (cmd.find("volume") != std::string::npos) {
             std::string volume = cmd.substr(cmd.find_last_of("volume ") + 1);
-            (void)player_->SetVolume(std::stof(volume.c_str()), std::stof(volume.c_str()));
+            if (!volume.empty()) {
+                (void)player_->SetVolume(std::stof(volume.c_str()), std::stof(volume.c_str()));
+            }
             continue;
-        }
-        if (cmd.find("duration") != std::string::npos) {
+        } else if (cmd.find("duration") != std::string::npos) {
             int32_t duration = -1;
             (void)player_->GetDuration(duration);
             cout << "GetDuration:" << duration << endl;
             continue;
-        }
-        if (cmd.find("time") != std::string::npos) {
+        } else if (cmd.find("time") != std::string::npos) {
             int32_t time = -1;
             (void)player_->GetCurrentTime(time);
             cout << "GetCurrentTime:" << time << endl;
             continue;
-        }
-        if (cmd.find("loop") != std::string::npos) {
+        } else if (cmd.find("loop") != std::string::npos) {
             SetLoop(cmd.substr(cmd.find_last_of("loop ") + 1));
             continue;
-        }
-        if (cmd.find("quit") != std::string::npos ||
+        } else if (cmd.find("speed") != std::string::npos) {
+            SetPlaybackSpeed(cmd.substr(cmd.find_last_of("speed ") + 1));
+            continue;
+        } else if (cmd.find("quit") != std::string::npos ||
             cmd == "q") {
             break;
         }
@@ -209,6 +292,7 @@ void PlayerTest::RegisterTable()
     (void)playerTable_.emplace("release", std::bind(&Player::Release, player_));
     (void)playerTable_.emplace("isplaying", std::bind(&PlayerTest::GetPlaying, this));
     (void)playerTable_.emplace("isloop", std::bind(&PlayerTest::GetLooping, this));
+    (void)playerTable_.emplace("speed", std::bind(&PlayerTest::GetPlaybackSpeed, this));
 }
 
 int32_t PlayerTest::SetDataSrc(const string &path, bool seekable)
@@ -232,6 +316,11 @@ int32_t PlayerTest::SelectSource(const string &pathOuter)
     } else {
         path = pathOuter;
     }
+    std::string realPath;
+    if (!PathToRealPath(path, realPath)) {
+        cout << "Path is unaccessable: " << path << endl;
+        return -1;
+    }
     cout << "Path is " << path << endl;
     cout << "Please enter the number of source mode(default LOCAL):" << endl;
     cout << "0:local file source" << endl;
@@ -241,13 +330,13 @@ int32_t PlayerTest::SelectSource(const string &pathOuter)
     (void)getline(cin, srcMode);
     if (srcMode == "" || srcMode == "0") {
         cout << "source mode is LOCAL" << endl;
-        ret = player_->SetSource(path);
+        ret = player_->SetSource(realPath);
     } else if (srcMode == "1") {
         cout << "source mode is stream NO seek" << endl;
-        ret = SetDataSrc(path, false);
+        ret = SetDataSrc(realPath, false);
     } else if (srcMode == "2") {
         cout << "source mode is stream seekable" << endl;
-        ret = SetDataSrc(path, true);
+        ret = SetDataSrc(realPath, true);
     } else {
         cout << "unknow mode" << endl;
     }

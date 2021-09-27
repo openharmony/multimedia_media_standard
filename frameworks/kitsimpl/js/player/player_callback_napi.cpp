@@ -248,6 +248,7 @@ void PlayerCallbackNapi::OnJsCallBack(PlayerJsCallback *jsCb)
 
     int ret = uv_queue_work(loop, work, [] (uv_work_t *work) {}, [] (uv_work_t *work, int status) {
         // Js Thread
+        CHECK_AND_RETURN_LOG(work != nullptr, "work is nullptr");
         PlayerJsCallback *event = reinterpret_cast<PlayerJsCallback *>(work->data);
         std::string request = event->callbackName;
         napi_env env = event->callback->env_;
@@ -294,6 +295,7 @@ void PlayerCallbackNapi::OnJsCallBackError(PlayerJsCallback *jsCb)
 
     int ret = uv_queue_work(loop, work, [] (uv_work_t *work) {}, [] (uv_work_t *work, int status) {
         // Js Thread
+        CHECK_AND_RETURN_LOG(work != nullptr, "work is nullptr");
         PlayerJsCallback *event = reinterpret_cast<PlayerJsCallback *>(work->data);
         std::string request = event->callbackName;
         napi_env env = event->callback->env_;
@@ -352,6 +354,7 @@ void PlayerCallbackNapi::OnJsCallBackPosition(PlayerJsCallback *jsCb)
 
     int ret = uv_queue_work(loop, work, [] (uv_work_t *work) {}, [] (uv_work_t *work, int status) {
         // Js Thread
+        CHECK_AND_RETURN_LOG(work != nullptr, "work is nullptr");
         PlayerJsCallback *event = reinterpret_cast<PlayerJsCallback *>(work->data);
         std::string request = event->callbackName;
         napi_env env = event->callback->env_;

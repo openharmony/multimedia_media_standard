@@ -202,6 +202,11 @@ int32_t AudioSinkSvImpl::GetMinimumFrameCount(uint32_t &frameCount)
     return MSERR_OK;
 }
 
+bool AudioSinkSvImpl::Writeable() const
+{
+    return audioRenderer_->GetStatus() == AudioStandard::RENDERER_RUNNING;
+}
+
 int32_t AudioSinkSvImpl::Write(uint8_t *buffer, size_t size)
 {
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);

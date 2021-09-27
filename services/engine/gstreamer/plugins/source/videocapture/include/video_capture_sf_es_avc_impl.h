@@ -37,9 +37,9 @@ private:
     GstBuffer* AVCDecoderConfiguration(std::vector<uint8_t> &sps,
             std::vector<uint8_t> &pps);
 
-    int32_t frameSequence_ = 0;
+    uint32_t frameSequence_ = 0;
     char *codecData_ = nullptr;
-    int32_t codecDataSize_ = 0;
+    uint32_t codecDataSize_ = 0;
     uint32_t nalSize_ = 0;
 };
 }  // namespace Media

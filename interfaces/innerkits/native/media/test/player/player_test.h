@@ -53,12 +53,16 @@ private:
     void DoNext();
     void Seek(const std::string cmd);
     void SetLoop(const std::string cmd);
+    void SetPlaybackSpeed(const std::string cmd);
     int32_t GetPlaying();
     int32_t GetLooping();
+    int32_t GetPlaybackSpeed();
     int32_t SetDataSrc(const std::string &path, bool seekable);
     int32_t SelectSource(const std::string &path);
+    int32_t ChangeModeToSpeed(const PlaybackRateMode &mode, double &rate) const;
+    int32_t ChangeSpeedToMode(const double &rate, PlaybackRateMode &mode) const;
     void RegisterTable();
-    sptr<Window> mwindow_;
+    sptr<Window> mwindow_ = nullptr;
     std::map<std::string, std::function<int32_t()>> playerTable_;
     std::shared_ptr<Player> player_ = nullptr;
 };

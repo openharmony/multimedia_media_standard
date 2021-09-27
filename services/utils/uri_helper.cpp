@@ -82,8 +82,12 @@ UriHelper &UriHelper::FormatMe()
     }
 
     std::string_view::size_type start = uri_.find_first_not_of(' ');
-    std::string_view::size_type end = uri_.find_last_not_of(' ') + sizeof(char);
-    formattedUri_ = uri_.substr(start, end);
+    std::string_view::size_type end = uri_.find_last_not_of(' ');
+    if (end == std::string_view::npos) {
+        formattedUri_ = uri_.substr(start);
+    } else {
+        formattedUri_ = uri_.substr(start, end - start + 1);
+    }
     std::string_view rawUri = formattedUri_;
     type_ = URI_TYPE_UNKNOWN;
 

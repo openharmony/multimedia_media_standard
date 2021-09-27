@@ -72,7 +72,7 @@ int32_t AVSharedMemoryBase::Init()
     CHECK_AND_RETURN_RET(size_ > 0, MSERR_INVALID_VAL);
 
     bool isRemote = false;
-    if (fd_ >  0) {
+    if (fd_ > 0) {
         int size = AshmemGetSize(fd_);
         CHECK_AND_RETURN_RET(size == size_, MSERR_INVALID_VAL);
         isRemote = true;

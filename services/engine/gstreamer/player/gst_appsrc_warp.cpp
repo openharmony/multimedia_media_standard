@@ -72,7 +72,7 @@ int32_t GstAppsrcWarp::Init()
         CHECK_AND_RETURN_RET_LOG(appSrcMem != nullptr, MSERR_NO_MEMORY, "init AppsrcMemWarp failed");
         appSrcMem->mem = AVSharedMemory::Create(bufferSize_, AVSharedMemory::Flags::FLAGS_READ_WRITE, "appsrc");
         CHECK_AND_RETURN_RET_LOG(appSrcMem->mem != nullptr, MSERR_NO_MEMORY, "init AVSharedMemory failed");
-        emptyBuffers_.emplace(appSrcMem);
+        (void)emptyBuffers_.emplace(appSrcMem);
     }
     CHECK_AND_RETURN_RET_LOG(fillTaskQue_.Start() == MSERR_OK, MSERR_INVALID_OPERATION, "init task failed");
     CHECK_AND_RETURN_RET_LOG(emptyTaskQue_.Start() == MSERR_OK, MSERR_INVALID_OPERATION, "init task failed");
@@ -151,7 +151,7 @@ void GstAppsrcWarp::NeedDataInner(uint32_t size)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     int32_t ret = MSERR_OK;
-    needDataSize_ = size;
+    needDataSize_ = static_cast<int32_t>(size);
     while (needDataSize_ > bufferSize_ * (buffersNum_ - 1)) {
         ret = MSERR_NO_MEMORY;
         ++buffersNum_;
@@ -159,7 +159,7 @@ void GstAppsrcWarp::NeedDataInner(uint32_t size)
         CHECK_AND_BREAK_LOG(appSrcMem != nullptr, "init AppsrcMemWarp failed");
         appSrcMem->mem = AVSharedMemory::Create(bufferSize_, AVSharedMemory::Flags::FLAGS_READ_WRITE, "appsrc");
         CHECK_AND_BREAK_LOG(appSrcMem->mem != nullptr, "init AVSharedMemory failed");
-        emptyBuffers_.emplace(appSrcMem);
+        (void)emptyBuffers_.emplace(appSrcMem);
         ret = MSERR_OK;
     }
     if (ret != MSERR_OK) {
@@ -220,8 +220,8 @@ void GstAppsrcWarp::SeekAndFreeBuffers(uint64_t pos)
             emptyBuffers_.push(appSrcMem);
             continue;
         }
-        if (appSrcMem->pos <= pos && appSrcMem->pos + appSrcMem->size > pos) {
-            uint32_t len = pos - appSrcMem->pos;
+        if (appSrcMem->pos <= pos && appSrcMem->pos + static_cast<uint64_t>(appSrcMem->size) > pos) {
+            int32_t len = static_cast<int32_t>(pos - appSrcMem->pos);
             filledBufferSize_ += appSrcMem->offset;
             appSrcMem->offset = len;
             filledBufferSize_ -= appSrcMem->offset;
@@ -283,7 +283,7 @@ int32_t GstAppsrcWarp::ReadAndGetMem()
                 filledBufferSize_ += size;
                 appSrcMem->pos = curPos_;
                 appSrcMem->offset = 0;
-                curPos_ = curPos_ + size;
+                curPos_ = curPos_ + static_cast<uint64_t>(size);
                 filledBuffers_.push(appSrcMem);
             }
             emptyCond_.notify_all();
@@ -325,7 +325,8 @@ int32_t GstAppsrcWarp::GetAndPushMem()
     }
     GstBuffer *buffer = nullptr;
     buffer = gst_buffer_new_allocate(nullptr, size, nullptr);
-    GST_BUFFER_OFFSET(buffer) = appSrcMem->pos + appSrcMem->offset;
+    CHECK_AND_RETURN_RET_LOG(buffer != nullptr, MSERR_NO_MEMORY, "allocate buffer fail");
+    GST_BUFFER_OFFSET(buffer) = appSrcMem->pos + static_cast<uint64_t>(appSrcMem->offset);
     GstMapInfo info = GST_MAP_INFO_INIT;
     if (gst_buffer_map(buffer, &info, GST_MAP_WRITE) == FALSE) {
         gst_buffer_unref(buffer);
@@ -361,7 +362,8 @@ bool GstAppsrcWarp::CopyToGstBuffer(const GstMapInfo &info)
             "get mem is nullptr");
         int32_t lastSize = appSrcMem->size - appSrcMem->offset;
         int32_t copySize = std::min(lastSize, size);
-        CHECK_AND_BREAK_LOG(memcpy_s(data, size, appSrcMem->mem->GetBase() + appSrcMem->offset, copySize) == EOK,
+        CHECK_AND_BREAK_LOG(memcpy_s(data, static_cast<size_t>(size),
+            appSrcMem->mem->GetBase() + appSrcMem->offset, static_cast<size_t>(copySize)) == EOK,
             "get mem is nullptr");
         if (lastSize <= size) {
             filledBuffers_.pop();

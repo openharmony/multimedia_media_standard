@@ -83,9 +83,9 @@ static int32_t ConvertInfoMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
 
 static int32_t ConvertStateChangedMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
 {
-    GstState oldState;
-    GstState newState;
-    GstState pendingState;
+    GstState oldState = GST_STATE_VOID_PENDING;
+    GstState newState = GST_STATE_VOID_PENDING;
+    GstState pendingState = GST_STATE_VOID_PENDING;
     gst_message_parse_state_changed(const_cast<GstMessage *>(&gstMsg), &oldState, &newState, &pendingState);
     MEDIA_LOGD("%{public}s change state from %{public}s to %{public}s", ELEM_NAME(GST_MESSAGE_SRC(&gstMsg)),
         gst_element_state_get_name(oldState), gst_element_state_get_name(newState));
