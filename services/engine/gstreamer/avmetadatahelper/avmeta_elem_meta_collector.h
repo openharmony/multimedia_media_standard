@@ -46,6 +46,7 @@ public:
     virtual ~AVMetaElemMetaCollector();
 
     static std::unique_ptr<AVMetaElemMetaCollector> Create(AVMetaSourceType type, const MetaResCb &resCb);
+    static Metadata GetDefaultMeta();
 
     virtual void AddMetaSource(GstElement &elem) = 0;
     int32_t GetTrackCount();
