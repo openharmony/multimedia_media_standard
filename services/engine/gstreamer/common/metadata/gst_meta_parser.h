@@ -72,7 +72,7 @@ struct Metadata {
         tbl_[key] = value;
     }
 
-    bool GetMeta(int32_t key, std::string &value) const
+    bool TryGetMeta(int32_t key, std::string &value) const
     {
         auto it = tbl_.find(key);
         if (it == tbl_.end()) {
@@ -85,6 +85,14 @@ struct Metadata {
     bool HasMeta(int32_t key) const
     {
         return tbl_.count(key) != 0;
+    }
+
+    std::string GetMeta(int32_t key) const
+    {
+        if (tbl_.count(key) != 0) {
+            return tbl_.at(key);
+        }
+        return "";
     }
 
     std::unordered_map<int32_t, std::string> tbl_;

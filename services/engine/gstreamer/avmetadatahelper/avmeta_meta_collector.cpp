@@ -79,6 +79,8 @@ AVMetaMetaCollector::~AVMetaMetaCollector()
 void AVMetaMetaCollector::Start()
 {
     MEDIA_LOGD("start collecting...");
+
+    allMeta_ = AVMetaElemMetaCollector::GetDefaultMeta();
 }
 
 void AVMetaMetaCollector::AddMetaSource(GstElement &source)
@@ -189,12 +191,20 @@ uint8_t AVMetaMetaCollector::ProbeElemType(GstElement &source)
 
 void AVMetaMetaCollector::AdjustMimeType()
 {
-    std::string mimeType;
-    if (allMeta_.GetMeta(AV_KEY_MIME_TYPE, mimeType)) {
-        if ((mimeType.compare(FILE_MIMETYPE_VIDEO_MP4) == 0) && !allMeta_.HasMeta(AV_KEY_HAS_VIDEO)) {
-            if (allMeta_.HasMeta(AV_KEY_HAS_AUDIO)) {
-                allMeta_.SetMeta(AV_KEY_MIME_TYPE, std::string(FILE_MIMETYPE_AUDIO_MP4));
-            }
+    std::string mimeType = allMeta_.GetMeta(AV_KEY_MIME_TYPE);
+    if (mimeType.empty()) {
+        return;
+    }
+
+    if (mimeType.compare(FILE_MIMETYPE_VIDEO_MP4) == 0) {
+        std::string hasVideo = allMeta_.GetMeta(AV_KEY_HAS_VIDEO);
+        if (hasVideo.compare("yes") == 0) {
+            return;
+        }
+        std::string hasAudio = allMeta_.GetMeta(AV_KEY_HAS_AUDIO);
+        if (hasAudio.compare("yes") == 0) {
+            allMeta_.SetMeta(AV_KEY_MIME_TYPE, std::string(FILE_MIMETYPE_AUDIO_MP4));
+            return;
         }
     }
 }
