@@ -18,6 +18,7 @@
 #include "videodisplaymanager.h"
 
 #include <iremote_proxy.h>
+#include "idisplay_layer.h"
 
 using namespace OHOS::HDI::Display::V1_0;
 static OHOS::sptr<IDisplayLayer> g_layerService = nullptr;
