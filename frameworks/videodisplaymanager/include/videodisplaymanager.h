@@ -21,10 +21,8 @@
 
 #include "display_type.h"
 #include "ibuffer_producer.h"
-#include "idisplay_layer.h"
 
 namespace OHOS {
-using namespace OHOS::HDI::Display::V1_0;
 class Listener : public IBufferConsumerListener {
 public:
     Listener(sptr<Surface> impl, uint32_t id)
