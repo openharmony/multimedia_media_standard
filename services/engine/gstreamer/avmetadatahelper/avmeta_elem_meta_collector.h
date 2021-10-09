@@ -54,7 +54,6 @@ public:
     {
         return type_;
     }
-
     DISALLOW_COPY_AND_MOVE(AVMetaElemMetaCollector);
 
 protected:
@@ -82,6 +81,7 @@ private:
     bool fileMetaUpdated_ = false;
     std::mutex trackInfoMutex_;
     int64_t duration_ = 0;
+    bool globalTagCatched_ = false;
 };
 
 /**

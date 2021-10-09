@@ -53,6 +53,7 @@ config("media_service_config") {
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
     "//foundation/multimedia/media_standard/services/services/common",
     "//utils/native/base/include",
+    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
   ]
 
   if (target_cpu == "arm") {

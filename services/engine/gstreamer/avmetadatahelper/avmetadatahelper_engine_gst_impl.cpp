@@ -19,7 +19,8 @@
 #include "media_log.h"
 #include "i_playbin_ctrler.h"
 #include "avmeta_sinkprovider.h"
-#include "frame_converter.h"
+#include "avmeta_frame_extractor.h"
+#include "avmeta_meta_collector.h"
 #include "scope_guard.h"
 #include "uri_helper.h"
 
@@ -29,6 +30,43 @@ namespace {
 
 namespace OHOS {
 namespace Media {
+static const std::set<PixelFormat> SUPPORTED_PIXELFORMAT = { PixelFormat::RGB_565, PixelFormat::RGB_888 };
+
+static bool CheckFrameFetchParam(int64_t timeUsOrIndex, int32_t option, const OutputConfiguration &param)
+{
+    if (timeUsOrIndex < 0) {
+        MEDIA_LOGE("invalid timeUs or index: %{public}" PRIi64, timeUsOrIndex);
+        return false;
+    }
+
+    if ((option != AV_META_QUERY_CLOSEST) && (option != AV_META_QUERY_CLOSEST_SYNC) &&
+        (option != AV_META_QUERY_NEXT_SYNC) && (option != AV_META_QUERY_PREVIOUS_SYNC)) {
+        MEDIA_LOGE("Invalid query option: %{public}d", option);
+        return false;
+    }
+
+    if (SUPPORTED_PIXELFORMAT.count(param.colorFormat) == 0) {
+        MEDIA_LOGE("Unsupported pixelformat: %{public}d", param.colorFormat);
+        return false;
+    }
+
+    static const int32_t maxDstWidth = 7680;
+    static const int32_t minDstWidth = 32;
+    if (param.dstWidth > maxDstWidth || (param.dstWidth < minDstWidth && param.dstWidth != -1)) {
+        MEDIA_LOGE("Invalid dstWidth: %{public}d", param.dstWidth);
+        return false;
+    }
+
+    static const int32_t maxDstHeight = 4320;
+    static const int32_t minDstHeight = 32;
+    if (param.dstHeight > maxDstHeight || (param.dstHeight < minDstHeight && param.dstHeight != -1)) {
+        MEDIA_LOGE("Invalid dstHeight: %{public}d", param.dstHeight);
+        return false;
+    }
+
+    return true;
+}
+
 AVMetadataHelperEngineGstImpl::AVMetadataHelperEngineGstImpl()
 {
     MEDIA_LOGD("enter ctor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
@@ -69,7 +107,7 @@ std::string AVMetadataHelperEngineGstImpl::ResolveMetadata(int32_t key)
     int32_t ret = ExtractMetadata();
     CHECK_AND_RETURN_RET(ret == MSERR_OK, result);
 
-    if (collectedMeta_.count(key) == 0) {
+    if (collectedMeta_.count(key) == 0 || collectedMeta_.at(key).empty()) {
         MEDIA_LOGE("The specified metadata %{public}d cannot be obtained from the specified stream.", key);
         return result;
     }
@@ -95,129 +133,116 @@ std::shared_ptr<AVSharedMemory> AVMetadataHelperEngineGstImpl::FetchFrameAtTime(
 {
     MEDIA_LOGD("enter");
 
-    if ((option != AV_META_QUERY_CLOSEST) && (option != AV_META_QUERY_CLOSEST_SYNC) &&
-        (option != AV_META_QUERY_NEXT_SYNC) && (option != AV_META_QUERY_PREVIOUS_SYNC)) {
-        MEDIA_LOGE("Invalid query option: %{public}d", option);
-        return nullptr;
-    }
-
     if (usage_ != AVMetadataUsage::AV_META_USAGE_PIXEL_MAP) {
         MEDIA_LOGE("current instance is unavaiable for pixel map, check usage !");
         return nullptr;
     }
 
-    int32_t ret = ExtractMetadata();
-    CHECK_AND_RETURN_RET(ret == MSERR_OK, nullptr);
-
-    if (collectedMeta_.count(AV_KEY_HAS_VIDEO) == 0) {
-        MEDIA_LOGE("the associated media source does not have video track");
-        return nullptr;
-    }
-
-    ret = InitConverter(param);
-    CHECK_AND_RETURN_RET(ret == MSERR_OK, nullptr);
-
-    ret = PrepareInternel(IPlayBinCtrler::PlayBinScene::THUBNAIL);
-    CHECK_AND_RETURN_RET(ret == MSERR_OK, nullptr);
-
-    ret = SeekInternel(timeUs, option);
-    CHECK_AND_RETURN_RET(ret == MSERR_OK, nullptr);
-
-    std::shared_ptr<AVSharedMemory> frame = converter_->GetOneFrame(); // need exception awaken up.
-    CHECK_AND_RETURN_RET(frame != nullptr, nullptr);
+    std::vector<std::shared_ptr<AVSharedMemory>> outFrames;
+    int32_t ret = FetchFrameInternel(timeUs, option, 1, param, outFrames);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "fetch frame failed");
 
     MEDIA_LOGD("exit");
-    return frame;
+    return outFrames[0];
 }
 
 int32_t AVMetadataHelperEngineGstImpl::SetSourceInternel(const std::string &uri, int32_t usage)
 {
     Reset();
 
+    uint8_t renderMode = IPlayBinCtrler::PlayBinRenderMode::NATIVE_STREAM;
+    renderMode = renderMode | IPlayBinCtrler::PlayBinRenderMode::DISABLE_TEXT;
     auto notifier = std::bind(&AVMetadataHelperEngineGstImpl::OnNotifyMessage, this, std::placeholders::_1);
-    playBinCtrler_ = IPlayBinCtrler::Create(IPlayBinCtrler::PlayBinKind::PLAYBIN_KIND_PLAYBIN2, notifier);
+    sinkProvider_ = std::make_shared<AVMetaSinkProvider>(usage);
+
+    IPlayBinCtrler::PlayBinCreateParam createParam = {
+        static_cast<IPlayBinCtrler::PlayBinRenderMode>(renderMode), notifier, sinkProvider_
+    };
+
+    playBinCtrler_ = IPlayBinCtrler::Create(IPlayBinCtrler::PlayBinKind::PLAYBIN2, createParam);
     CHECK_AND_RETURN_RET(playBinCtrler_ != nullptr, MSERR_UNKNOWN);
 
     metaCollector_ = std::make_unique<AVMetaMetaCollector>();
     auto listener = std::bind(&AVMetadataHelperEngineGstImpl::OnNotifyElemSetup, this, std::placeholders::_1);
     playBinCtrler_->SetElemSetupListener(listener);
 
-    auto sinkProvider = std::make_shared<AVMetaSinkProvider>(usage);
-    int32_t ret = playBinCtrler_->SetSinkProvider(sinkProvider);
-    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
-
     if (usage == AVMetadataUsage::AV_META_USAGE_PIXEL_MAP) {
-        converter_ = std::make_shared<FrameConverter>();
-        sinkProvider->SetFrameCallback(converter_);
+        auto vidSink = sinkProvider_->CreateVideoSink();
+        CHECK_AND_RETURN_RET_LOG(vidSink != nullptr, MSERR_UNKNOWN, "get video sink failed");
+        frameExtractor_ = std::make_unique<AVMetaFrameExtractor>();
+        int32_t ret = frameExtractor_->Init(playBinCtrler_, *vidSink);
+        CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
+        gst_object_unref(vidSink);
     }
-    sinkProvider_ = sinkProvider;
 
-    ret = playBinCtrler_->SetSource(uri);
+    int32_t ret = playBinCtrler_->SetSource(uri);
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
     metaCollector_->Start();
     usage_ = usage;
 
-    return MSERR_OK;
-}
-
-int32_t AVMetadataHelperEngineGstImpl::InitConverter(const OutputConfiguration &config)
-{
-    // need to skip the same config
-    int32_t ret = converter_->Init(config);
-    CHECK_AND_RETURN_RET(ret == MSERR_OK, MSERR_INVALID_OPERATION);
-
-    ret = converter_->StartConvert();
-    CHECK_AND_RETURN_RET(ret == MSERR_OK, MSERR_INVALID_OPERATION);
+    ret = PrepareInternel(true);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
     return MSERR_OK;
 }
 
-int32_t AVMetadataHelperEngineGstImpl::PrepareInternel(IPlayBinCtrler::PlayBinScene scene)
+int32_t AVMetadataHelperEngineGstImpl::PrepareInternel(bool async)
 {
     CHECK_AND_RETURN_RET_LOG(playBinCtrler_ != nullptr, MSERR_INVALID_OPERATION, "set source firstly");
-
-    int32_t ret = playBinCtrler_->SetScene(scene);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "set scene failed");
 
     std::unique_lock<std::mutex> lock(mutex_);
     if (prepared_) {
         return MSERR_OK;
     }
 
-    if (scene == IPlayBinCtrler::PlayBinScene::METADATA) {
-        ret = playBinCtrler_->PrepareAsync();
-    } else {
-        metaCollector_->Stop();
-        ret = playBinCtrler_->Prepare();
-    }
+    int32_t ret = playBinCtrler_->PrepareAsync();
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "prepare failed");
+
+    if (!async) {
+        metaCollector_->Stop();
+        cond_.wait(lock, [this]() { return prepared_ || canceled_; });
+        CHECK_AND_RETURN_RET_LOG(!canceled_, MSERR_UNKNOWN, "prepare failed");
+    }
 
     return MSERR_OK;
 }
 
-int32_t AVMetadataHelperEngineGstImpl::SeekInternel(int64_t timeUs, int32_t option)
+int32_t AVMetadataHelperEngineGstImpl::FetchFrameInternel(int64_t timeUsOrIndex, int32_t option, int32_t numFrames,
+    const OutputConfiguration &param, std::vector<std::shared_ptr<AVSharedMemory>> &outFrames)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    if (!CheckFrameFetchParam(timeUsOrIndex, option, param)) {
+        MEDIA_LOGE("fetch frame's param invalid");
+        return MSERR_INVALID_OPERATION;
+    }
 
-    int32_t ret = playBinCtrler_->Seek(timeUs, option);
+    int32_t ret = ExtractMetadata();
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
-    seeking_ = true;
-    cond_.wait(lock, [this]() { return canceled_ || !seeking_; });
-    CHECK_AND_RETURN_RET_LOG(!canceled_, MSERR_UNKNOWN, "Canceled !");
+    if (collectedMeta_.find(AV_KEY_HAS_VIDEO) == collectedMeta_.end() ||
+        collectedMeta_[AV_KEY_HAS_VIDEO] != "yes") {
+        MEDIA_LOGE("There is no video track in the current media source !");
+        return MSERR_INVALID_OPERATION;
+    }
 
+    ret = PrepareInternel(false);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
+
+    auto frame = frameExtractor_->ExtractFrame(timeUsOrIndex, option, param);
+    if (frame == nullptr) {
+        MEDIA_LOGE("fetch frame failed");
+        return MSERR_UNKNOWN;
+    }
+
+    outFrames.push_back(frame);
     return MSERR_OK;
 }
 
 int32_t AVMetadataHelperEngineGstImpl::ExtractMetadata()
 {
-    if (!hasCollecteMeta_) {
-        int32_t ret = PrepareInternel(IPlayBinCtrler::PlayBinScene::METADATA);
-        CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
-
+    if (!hasCollectMeta_) {
         collectedMeta_ = metaCollector_->GetMetadata();
-        hasCollecteMeta_ = true;
+        hasCollectMeta_ = true;
     }
     return MSERR_OK;
 }
@@ -227,39 +252,53 @@ void AVMetadataHelperEngineGstImpl::Reset()
     std::unique_lock<std::mutex> lock(mutex_);
     if (metaCollector_ != nullptr) {
         metaCollector_ = nullptr;
-        hasCollecteMeta_ = false;
+        hasCollectMeta_ = false;
     }
 
     if (playBinCtrler_ != nullptr) {
+        auto tmp = playBinCtrler_;
         playBinCtrler_ = nullptr;
-        sinkProvider_ = nullptr;
+        // Some msg maybe be reported by the playbinCtrler_ during the playbinCtler_ destroying.
+        // unlock to avoid the deadlock.
+        lock.unlock();
+        tmp = nullptr;
+        lock.lock();
     }
 
-    if (converter_ != nullptr) {
-        (void)converter_->StopConvert();
-        converter_ = nullptr;
+    if (frameExtractor_ != nullptr) {
+        frameExtractor_->Reset();
+        frameExtractor_ = nullptr;
     }
 
-    canceled_ = true;
-    seeking_ = false;
+    sinkProvider_ = nullptr;
+
+    canceled_ = false;
     prepared_ = false;
-    cond_.notify_all();
 }
 
 void AVMetadataHelperEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
 {
     switch (msg.type) {
         case PLAYBIN_MSG_STATE_CHANGE: {
-            std::unique_lock<std::mutex> lock(mutex_);
             if (msg.code == PLAYBIN_STATE_PREPARED) {
+                std::unique_lock<std::mutex> lock(mutex_);
+                MEDIA_LOGI("prepare finished");
                 prepared_ = true;
+                cond_.notify_all();
             }
             break;
         }
-        case PLAYBIN_MSG_SEEKDONE: {
+        case PLAYBIN_MSG_ERROR: {
             std::unique_lock<std::mutex> lock(mutex_);
-            seeking_ = false;
-            cond_.notify_one();
+            canceled_ = true;
+            if (metaCollector_ != nullptr) {
+                metaCollector_->Stop();
+            }
+            if (frameExtractor_ != nullptr) {
+                frameExtractor_->Reset();
+            }
+            cond_.notify_all();
+            MEDIA_LOGE("error happended, cancel inprocessing job");
             break;
         }
         default:

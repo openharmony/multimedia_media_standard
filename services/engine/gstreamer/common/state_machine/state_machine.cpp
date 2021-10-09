@@ -37,6 +37,8 @@ void StateMachine::HandleMessage(const InnerMessage &msg)
 
 void StateMachine::ChangeState(const std::shared_ptr<State> &state)
 {
+    std::unique_lock<std::recursive_mutex> lock(recMutex_);
+
     if (state == nullptr || (state == currState_)) {
         return;
     }
@@ -52,8 +54,9 @@ void StateMachine::ChangeState(const std::shared_ptr<State> &state)
     state->StateEnter();
 }
 
-std::shared_ptr<State> StateMachine::GetCurrState() const
+std::shared_ptr<State> StateMachine::GetCurrState()
 {
+    std::unique_lock<std::recursive_mutex> lock(recMutex_);
     return currState_;
 }
 }

@@ -14,9 +14,6 @@
  */
 
 #include "media_client.h"
-#include "media_log.h"
-#include "recorder_client.h"
-#include "player_client.h"
 #include "avmetadatahelper_client.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
@@ -24,6 +21,7 @@
 #include "i_standard_recorder_service.h"
 #include "i_standard_player_service.h"
 #include "i_standard_avmetadatahelper_service.h"
+#include "media_log.h"
 #include "media_errors.h"
 
 namespace {

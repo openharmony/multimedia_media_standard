@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RECORDER_TEST_H
-#define RECORDER_TEST_H
+#ifndef RECORDER_DEMO_H
+#define RECORDER_DEMO_H
 
 #include <atomic>
 #include <thread>
@@ -58,12 +58,12 @@ struct AudioRecorderConfig {
     OutputFormatType outPutFormat = FORMAT_M4A;
 };
 
-class RecorderTest {
+class RecorderDemo {
 public:
-    RecorderTest() = default;
-    virtual ~RecorderTest() = default;
-    DISALLOW_COPY_AND_MOVE(RecorderTest);
-    void TestCase();
+    RecorderDemo() = default;
+    virtual ~RecorderDemo() = default;
+    DISALLOW_COPY_AND_MOVE(RecorderDemo);
+    void RunCase();
     void HDICreateBuffer();
     int32_t CameraServicesForVideo() const;
     int32_t CameraServicesForAudio() const;
@@ -74,21 +74,21 @@ private:
     int64_t pts_ = 0;
     int32_t isKeyFrame_ = 1;
     OHOS::sptr<OHOS::Surface> producerSurface_ = nullptr;
-    std::shared_ptr<std::ifstream> testFile_ = nullptr;
+    std::shared_ptr<std::ifstream> file_ = nullptr;
     std::atomic<bool> isExit_{ false };
     std::shared_ptr<Recorder> recorder_ = nullptr;
     std::unique_ptr<std::thread> camereHDIThread_;
     uint32_t count_ = 0;
 };
 
-class RecorderCallbackTest : public RecorderCallback {
+class RecorderCallbackDemo : public RecorderCallback {
 public:
-    RecorderCallbackTest() = default;
-    virtual ~RecorderCallbackTest() = default;
-    DISALLOW_COPY_AND_MOVE(RecorderCallbackTest);
+    RecorderCallbackDemo() = default;
+    virtual ~RecorderCallbackDemo() = default;
+    DISALLOW_COPY_AND_MOVE(RecorderCallbackDemo);
     void OnError(RecorderErrorType errorType, int32_t errorCode);
     void OnInfo(int32_t type, int32_t extra);
 };
 } // Media
 } // OHOS
-#endif // RECORDER_TEST_H
+#endif // RECORDER_DEMO_H

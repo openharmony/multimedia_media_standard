@@ -18,5 +18,7 @@ group("media_engine_gst_plugins") {
     "source/videocapture:gst_surface_video_src",
     "source/audiocapture:gst_audio_capture_src",
     "sink/audiosink:gst_audio_server_sink",
+    "sink/videoshmemsink:gst_video_shmem_sink",
+    "common:gst_plugins_common"
   ]
 }

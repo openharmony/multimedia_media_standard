@@ -35,7 +35,9 @@ AVMetaBufferBlocker::~AVMetaBufferBlocker()
     MEDIA_LOGD("dtor, elem: %{public}s", ELEM_NAME(&elem_));
     std::unique_lock<std::mutex> lock(mutex_);
     for (auto &padInfo : padInfos_) {
-        gst_pad_remove_probe(padInfo.pad, padInfo.probeId);
+        if (padInfo.probeId != 0) {
+            gst_pad_remove_probe(padInfo.pad, padInfo.probeId);
+        }
     }
     if (signalId_ != 0) {
         g_signal_handler_disconnect(&elem_, signalId_);

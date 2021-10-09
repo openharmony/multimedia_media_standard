@@ -41,12 +41,14 @@ GstBuffer *VideoCaptureSfEsAvcImpl::AVCDecoderConfiguration(std::vector<uint8_t>
     uint32_t codecBufferSize = sps.size() + pps.size() + 11;
     GstBuffer *codec = gst_buffer_new_allocate(nullptr, codecBufferSize, nullptr);
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, nullptr, "no memory");
-    GstMapInfo map;
+    ON_SCOPE_EXIT(0) {
+        gst_buffer_unref(codec);
+    };
+    GstMapInfo map = GST_MAP_INFO_INIT;
     CHECK_AND_RETURN_RET_LOG(gst_buffer_map(codec, &map, GST_MAP_READ) == TRUE, nullptr, "gst_buffer_map fail");
 
-    ON_SCOPE_EXIT(0) {
+    ON_SCOPE_EXIT(1) {
         gst_buffer_unmap(codec, &map);
-        gst_buffer_unref(codec);
     };
 
     uint32_t offset = 0;
@@ -158,7 +160,7 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfEsAvcImpl::DoGetFrameBuffer()
     CHECK_AND_RETURN_RET_LOG(size == static_cast<gsize>(bufferSize), nullptr, "unkonwn error during gst_buffer_fill");
 
     std::shared_ptr<VideoFrameBuffer> frameBuffer = std::make_shared<VideoFrameBuffer>();
-    isCodecFrame_ == 1 ? (frameBuffer->keyFrameFlag = 1) : (frameBuffer->keyFrameFlag = 0);
+    frameBuffer->keyFrameFlag = 0;
     frameBuffer->timeStamp = static_cast<uint64_t>(pts_);
     frameBuffer->gstBuffer = gstBuffer;
     frameBuffer->size = static_cast<uint64_t>(bufferSize);
@@ -198,7 +200,7 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfEsAvcImpl::GetIDRFrame()
     CHECK_AND_RETURN_RET_LOG(size == static_cast<gsize>(bufferSize), nullptr, "unkonwn error during gst_buffer_fill");
 
     std::shared_ptr<VideoFrameBuffer> frameBuffer = std::make_shared<VideoFrameBuffer>();
-    isCodecFrame_ == 1 ? (frameBuffer->keyFrameFlag = 1) : (frameBuffer->keyFrameFlag = 0);
+    frameBuffer->keyFrameFlag = 0;
     frameBuffer->timeStamp = static_cast<uint64_t>(pts_);
     frameBuffer->gstBuffer = gstBuffer;
     frameBuffer->size = static_cast<uint64_t>(bufferSize);
@@ -209,17 +211,17 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfEsAvcImpl::GetIDRFrame()
     return frameBuffer;
 }
 
-const uint8_t *VideoCaptureSfEsAvcImpl::FindNextNal(const uint8_t *start, const uint8_t *end, uint32_t &nalSize)
+const uint8_t *VideoCaptureSfEsAvcImpl::FindNextNal(const uint8_t *start, const uint8_t *end)
 {
     CHECK_AND_RETURN_RET(start != nullptr && end != nullptr, nullptr);
     // there is two kind of nal head. four byte 0x00000001 or three byte 0x000001
     while (start <= end - 3) {
         if (start[0] == 0x00 && start[1] == 0x00 && start[2] == 0x01) {
-            nalSize = 3; // 0x000001 Nal
+            nalSize_ = 3; // 0x000001 Nal
             return start;
         }
         if (start[0] == 0x00 && start[1] == 0x00 && start[2] == 0x00 && start[3] == 0x01) {
-            nalSize = 4; // 0x00000001 Nal
+            nalSize_ = 4; // 0x00000001 Nal
             return start;
         }
         start++;
@@ -235,12 +237,12 @@ void VideoCaptureSfEsAvcImpl::GetCodecData(const uint8_t *data, int32_t len,
     const uint8_t *pBegin = data;
     const uint8_t *pEnd = nullptr;
     while (pBegin < end) {
-        pBegin = FindNextNal(pBegin, end, nalSize_);
+        pBegin = FindNextNal(pBegin, end);
         if (pBegin == end) {
             break;
         }
         pBegin += nalSize_;
-        pEnd = FindNextNal(pBegin, end, nalSize_);
+        pEnd = FindNextNal(pBegin, end);
         if (((*pBegin) & 0x1F) == 0x07) { // sps
             sps.assign(pBegin, pBegin + static_cast<int>(pEnd - pBegin));
         }

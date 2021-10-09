@@ -20,6 +20,7 @@
 #include <atomic>
 #include <thread>
 #include "video_capture.h"
+#include "nocopyable.h"
 
 namespace OHOS {
 namespace Media {
@@ -27,6 +28,7 @@ class VideoCaptureSfImpl : public VideoCapture {
 public:
     VideoCaptureSfImpl();
     virtual ~VideoCaptureSfImpl();
+    DISALLOW_COPY_AND_MOVE(VideoCaptureSfImpl);
 
     int32_t Prepare() override;
     int32_t Start() override;
@@ -46,8 +48,9 @@ protected:
 
     class ConsumerListenerProxy : public IBufferConsumerListener {
     public:
-        ConsumerListenerProxy(VideoCaptureSfImpl &owner) : owner_(owner) {}
+        explicit ConsumerListenerProxy(VideoCaptureSfImpl &owner) : owner_(owner) {}
         ~ConsumerListenerProxy() = default;
+        DISALLOW_COPY_AND_MOVE(ConsumerListenerProxy);
         void OnBufferAvailable() override;
     private:
         VideoCaptureSfImpl &owner_;
@@ -66,7 +69,6 @@ protected:
     bool paused_;
     std::mutex mutex_;
     std::condition_variable bufferAvailableCondition_;
-    std::condition_variable startedCondition_;
     VideoStreamType streamType_;
     bool streamTypeUnknown_;
     sptr<Surface> dataConSurface_;

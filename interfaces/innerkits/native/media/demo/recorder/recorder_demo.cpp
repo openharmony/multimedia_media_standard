@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-#include "recorder_test.h"
+#include "recorder_demo.h"
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
 #include "display_type.h"
 #include "securec.h"
-#include "test_log.h"
+#include "demo_log.h"
 #include "media_errors.h"
 
 using namespace OHOS;
@@ -33,18 +33,17 @@ namespace {
     constexpr uint32_t STRIDE_ALIGN = 8;
     constexpr uint32_t FRAME_DURATION = 40000000;
     constexpr uint32_t RECORDER_TIME = 5;
-    constexpr uint32_t KEY_FRAME_FREQ = 30;
     const string PURE_VIDEO = "1";
     const string PURE_AUDIO = "2";
     const string AUDIO_VIDEO = "3";
 }
 
-void RecorderCallbackTest::OnError(RecorderErrorType errorType, int32_t errorCode)
+void RecorderCallbackDemo::OnError(RecorderErrorType errorType, int32_t errorCode)
 {
     cout << "Error received, errorType:" << errorType << " errorCode:" << errorCode << endl;
 }
 
-void RecorderCallbackTest::OnInfo(int32_t type, int32_t extra)
+void RecorderCallbackDemo::OnInfo(int32_t type, int32_t extra)
 {
     cout << "Info received, Infotype:" << type << " Infocode:" << extra << endl;
 }
@@ -107,29 +106,29 @@ const uint32_t HIGH_VIDEO_FRAME_SIZE[STUB_STREAM_SIZE] = {
     8322, 4885, 5643, 3339, 3379, 3299, 2804, 2362, 18116
 };
 
-int32_t RecorderTest::GetStubFile()
+int32_t RecorderDemo::GetStubFile()
 {
-    testFile_ = std::make_shared<std::ifstream>();
-    TEST_CHECK_AND_RETURN_RET_LOG(testFile_ != nullptr, MSERR_INVALID_OPERATION, "create file failed");
+    file_ = std::make_shared<std::ifstream>();
+    DEMO_CHECK_AND_RETURN_RET_LOG(file_ != nullptr, MSERR_INVALID_OPERATION, "create file failed");
     const std::string filePath = "/data/h264_1280_720.h264";
-    testFile_->open(filePath, std::ios::in | std::ios::binary);
-    TEST_CHECK_AND_RETURN_RET_LOG(testFile_->is_open(), MSERR_INVALID_OPERATION, "open file failed");
+    file_->open(filePath, std::ios::in | std::ios::binary);
+    DEMO_CHECK_AND_RETURN_RET_LOG(file_->is_open(), MSERR_INVALID_OPERATION, "open file failed");
 
     return MSERR_OK;
 }
 
-void RecorderTest::HDICreateBuffer()
+void RecorderDemo::HDICreateBuffer()
 {
     // camera hdi loop to requeset buffer
     const uint32_t *frameLenArray = HIGH_VIDEO_FRAME_SIZE;
     while (count_ < STUB_STREAM_SIZE) {
-        TEST_CHECK_AND_BREAK_LOG(!isExit_.load(), "close camera hdi thread");
+        DEMO_CHECK_AND_BREAK_LOG(!isExit_.load(), "close camera hdi thread");
         usleep(FRAME_RATE);
         OHOS::sptr<OHOS::SurfaceBuffer> buffer;
         int32_t releaseFence;
         OHOS::SurfaceError ret = producerSurface_->RequestBuffer(buffer, releaseFence, g_requestConfig);
-        TEST_CHECK_AND_CONTINUE_LOG(ret != OHOS::SURFACE_ERROR_NO_BUFFER, "surface loop full, no buffer now");
-        TEST_CHECK_AND_BREAK_LOG(ret == SURFACE_ERROR_OK && buffer != nullptr, "RequestBuffer failed");
+        DEMO_CHECK_AND_CONTINUE_LOG(ret != OHOS::SURFACE_ERROR_NO_BUFFER, "surface loop full, no buffer now");
+        DEMO_CHECK_AND_BREAK_LOG(ret == SURFACE_ERROR_OK && buffer != nullptr, "RequestBuffer failed");
 
         auto addr = static_cast<uint8_t *>(buffer->GetVirAddr());
         if (addr == nullptr) {
@@ -142,7 +141,7 @@ void RecorderTest::HDICreateBuffer()
             (void)producerSurface_->CancelBuffer(buffer);
             break;
         }
-        (void)testFile_->read(tempBuffer, *frameLenArray);
+        (void)file_->read(tempBuffer, *frameLenArray);
         if (*frameLenArray > buffer->GetSize()) {
             free(tempBuffer);
             (void)producerSurface_->CancelBuffer(buffer);
@@ -158,98 +157,98 @@ void RecorderTest::HDICreateBuffer()
         (void)buffer->ExtraSet("timeStamp", pts_);
         (void)buffer->ExtraSet("isKeyFrame", isKeyFrame_);
         count_++;
-        (count_ % KEY_FRAME_FREQ) == 0 ? (isKeyFrame_ = 1) : (isKeyFrame_ = 0);
+        (count_ % 30) == 0 ? (isKeyFrame_ = 1) : (isKeyFrame_ = 0);
         pts_ += FRAME_DURATION;
         (void)producerSurface_->FlushBuffer(buffer, -1, g_flushConfig);
         frameLenArray++;
         free(tempBuffer);
     }
     cout << "exit camera hdi loop" << endl;
-    if ((testFile_ != nullptr) && (testFile_->is_open())) {
-        testFile_->close();
+    if ((file_ != nullptr) && (file_->is_open())) {
+        file_->close();
     }
 }
 
-int32_t RecorderTest::CameraServicesForVideo() const
+int32_t RecorderDemo::CameraServicesForVideo() const
 {
     int32_t ret = recorder_->SetVideoEncoder(g_videoRecorderConfig.videoSourceId,
         g_videoRecorderConfig.videoFormat);
-    TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetVideoEncoder failed ");
+    DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetVideoEncoder failed ");
 
     ret = recorder_->SetVideoSize(g_videoRecorderConfig.videoSourceId,
         g_videoRecorderConfig.width, g_videoRecorderConfig.height);
-    TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetVideoSize failed ");
+    DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetVideoSize failed ");
 
     ret = recorder_->SetVideoFrameRate(g_videoRecorderConfig.videoSourceId, g_videoRecorderConfig.frameRate);
-    TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetVideoFrameRate failed ");
+    DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetVideoFrameRate failed ");
 
     ret = recorder_->SetVideoEncodingBitRate(g_videoRecorderConfig.videoSourceId,
         g_videoRecorderConfig.videoEncodingBitRate);
-    TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetVideoEncodingBitRate failed ");
+    DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetVideoEncodingBitRate failed ");
     return MSERR_OK;
 }
 
-int32_t RecorderTest::CameraServicesForAudio() const
+int32_t RecorderDemo::CameraServicesForAudio() const
 {
     int32_t ret = recorder_->SetAudioEncoder(g_videoRecorderConfig.audioSourceId, g_videoRecorderConfig.audioFormat);
-    TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetAudioEncoder failed ");
+    DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetAudioEncoder failed ");
 
     ret = recorder_->SetAudioSampleRate(g_videoRecorderConfig.audioSourceId, g_videoRecorderConfig.sampleRate);
-    TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetAudioSampleRate failed ");
+    DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetAudioSampleRate failed ");
 
     ret = recorder_->SetAudioChannels(g_videoRecorderConfig.audioSourceId, g_videoRecorderConfig.channelCount);
-    TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetAudioChannels failed ");
+    DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetAudioChannels failed ");
 
     ret = recorder_->SetAudioEncodingBitRate(g_videoRecorderConfig.audioSourceId,
         g_videoRecorderConfig.audioEncodingBitRate);
-    TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetAudioEncodingBitRate failed ");
+    DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetAudioEncodingBitRate failed ");
 
     return MSERR_OK;
 }
 
-int32_t RecorderTest::SetFormat(const std::string &recorderType) const
+int32_t RecorderDemo::SetFormat(const std::string &recorderType) const
 {
     int32_t ret;
     if (recorderType == PURE_VIDEO) {
         ret = recorder_->SetVideoSource(g_videoRecorderConfig.vSource, g_videoRecorderConfig.videoSourceId);
-        TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetVideoSource failed ");
+        DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetVideoSource failed ");
         ret = recorder_->SetOutputFormat(g_videoRecorderConfig.outPutFormat);
-        TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetOutputFormat failed ");
+        DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetOutputFormat failed ");
         ret = CameraServicesForVideo();
-        TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "CameraServices failed ");
+        DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "CameraServices failed ");
     } else if (recorderType == PURE_AUDIO) {
         ret = recorder_->SetAudioSource(g_videoRecorderConfig.aSource, g_videoRecorderConfig.audioSourceId);
-        TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetAudioSource failed ");
+        DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetAudioSource failed ");
         ret = recorder_->SetOutputFormat(g_audioRecorderConfig.outPutFormat);
-        TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetOutputFormat failed ");
+        DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetOutputFormat failed ");
         ret = CameraServicesForAudio();
-        TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "CameraServicesForAudio failed ");
+        DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "CameraServicesForAudio failed ");
     } else if (recorderType == AUDIO_VIDEO) {
         ret = recorder_->SetVideoSource(g_videoRecorderConfig.vSource, g_videoRecorderConfig.videoSourceId);
-        TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetVideoSource failed ");
+        DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetVideoSource failed ");
         ret = recorder_->SetAudioSource(g_videoRecorderConfig.aSource, g_videoRecorderConfig.audioSourceId);
-        TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetAudioSource failed ");
+        DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetAudioSource failed ");
         ret = recorder_->SetOutputFormat(g_videoRecorderConfig.outPutFormat);
-        TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetOutputFormat failed ");
+        DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetOutputFormat failed ");
         ret = CameraServicesForVideo();
-        TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "CameraServicesForVideo failed ");
+        DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "CameraServicesForVideo failed ");
         ret = CameraServicesForAudio();
-        TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "CameraServicesForAudio failed ");
+        DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "CameraServicesForAudio failed ");
     }
 
     ret = recorder_->SetMaxDuration(g_videoRecorderConfig.duration);
-    TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetMaxDuration failed ");
+    DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetMaxDuration failed ");
     ret = recorder_->SetOutputPath(g_videoRecorderConfig.outPath);
-    TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetOutputPath failed ");
-    std::shared_ptr<RecorderCallbackTest> testCallback = std::make_shared<RecorderCallbackTest>();
-    ret = recorder_->SetRecorderCallback(testCallback);
-    TEST_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetRecorderCallback failed ");
+    DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetOutputPath failed ");
+    std::shared_ptr<RecorderCallbackDemo> cb = std::make_shared<RecorderCallbackDemo>();
+    ret = recorder_->SetRecorderCallback(cb);
+    DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetRecorderCallback failed ");
 
     cout << "set format finished" << endl;
     return MSERR_OK;
 }
 
-void RecorderTest::TestCase()
+void RecorderDemo::RunCase()
 {
     recorder_ = OHOS::Media::RecorderFactory::CreateRecorder();
     if (recorder_ == nullptr) {
@@ -265,36 +264,36 @@ void RecorderTest::TestCase()
     (void)getline(cin, recorderType);
 
     int32_t ret = SetFormat(recorderType);
-    TEST_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "SetFormat failed ");
+    DEMO_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "SetFormat failed ");
 
     ret = recorder_->Prepare();
-    TEST_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "Prepare failed ");
+    DEMO_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "Prepare failed ");
     cout << "Prepare finished" << endl;
 
     if (recorderType != PURE_AUDIO) {
         producerSurface_ = recorder_->GetSurface(g_videoRecorderConfig.videoSourceId);
-        TEST_CHECK_AND_RETURN_LOG(producerSurface_ != nullptr, "GetSurface failed ");
+        DEMO_CHECK_AND_RETURN_LOG(producerSurface_ != nullptr, "GetSurface failed ");
 
         ret = GetStubFile();
-        TEST_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "GetStubFile failed ");
+        DEMO_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "GetStubFile failed ");
 
-        camereHDIThread_.reset(new(std::nothrow) std::thread(&RecorderTest::HDICreateBuffer, this));
+        camereHDIThread_.reset(new(std::nothrow) std::thread(&RecorderDemo::HDICreateBuffer, this));
     }
 
     ret = recorder_->Start();
-    TEST_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "Start failed ");
+    DEMO_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "Start failed ");
     cout << "start recordering" << endl;
     sleep(RECORDER_TIME);
 
     isExit_.store(true);
     ret = recorder_->Stop(false);
-    TEST_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "Stop failed ");
+    DEMO_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "Stop failed ");
     cout << "stop recordering" << endl;
     if (recorderType != PURE_AUDIO && camereHDIThread_ != nullptr) {
         camereHDIThread_->join();
     }
     ret = recorder_->Reset();
-    TEST_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "Reset failed ");
+    DEMO_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "Reset failed ");
     ret = recorder_->Release();
-    TEST_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "Release failed ");
+    DEMO_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "Release failed ");
 }

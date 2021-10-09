@@ -287,6 +287,7 @@ public:
     }
 
     ~RecorderElementRegister() = default;
+    DISALLOW_COPY_AND_MOVE(RecorderElementRegister);
 };
 
 /**
