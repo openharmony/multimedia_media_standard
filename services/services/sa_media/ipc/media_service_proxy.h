@@ -17,6 +17,7 @@
 #define MEDIA_SERVICE_PROXY_H
 
 #include "i_standard_media_service.h"
+#include "nocopyable.h"
 
 namespace OHOS {
 namespace Media {
@@ -24,6 +25,7 @@ class MediaServiceProxy : public IRemoteProxy<IStandardMediaService> {
 public:
     explicit MediaServiceProxy(const sptr<IRemoteObject> &impl);
     virtual ~MediaServiceProxy();
+    DISALLOW_COPY_AND_MOVE(MediaServiceProxy);
     sptr<IRemoteObject> GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId) override;
     int32_t SetListenerObject(const sptr<IRemoteObject> &object) override;
 

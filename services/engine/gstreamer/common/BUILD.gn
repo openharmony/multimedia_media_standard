@@ -50,6 +50,7 @@ config("media_engine_gst_common_config") {
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
   ]
 }
 
@@ -60,6 +61,7 @@ ohos_static_library("media_engine_gst_common") {
     "metadata/gst_meta_parser.cpp",
     "playbin_adapter/playbin_ctrler_base.cpp",
     "playbin_adapter/playbin_state.cpp",
+    "playbin_adapter/playbin_task_mgr.cpp",
     "playbin_adapter/playbin2_ctrler.cpp",
     "state_machine/state_machine.cpp",
     "utils/dumper.cpp",

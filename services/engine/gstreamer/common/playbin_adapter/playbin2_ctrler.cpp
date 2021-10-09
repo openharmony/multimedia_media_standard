@@ -23,13 +23,14 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-std::shared_ptr<IPlayBinCtrler> IPlayBinCtrler::Create(PlayBinKind kind, const PlayBinMsgNotifier &notifier)
+std::shared_ptr<IPlayBinCtrler> IPlayBinCtrler::Create(
+    PlayBinKind kind, const PlayBinCreateParam &createParam)
 {
-    if (kind != PlayBinKind::PLAYBIN_KIND_PLAYBIN2) {
+    if (kind != PlayBinKind::PLAYBIN2) {
         return nullptr;
     }
 
-    auto inst = std::make_shared<PlayBin2Ctrler>(notifier);
+    auto inst = std::make_shared<PlayBin2Ctrler>(createParam);
     int32_t ret = inst->Init();
     if (ret != MSERR_OK) {
         MEDIA_LOGE("create playbin2ctrler failed");
@@ -41,7 +42,9 @@ std::shared_ptr<IPlayBinCtrler> IPlayBinCtrler::Create(PlayBinKind kind, const P
 
 PlayBin2Ctrler::~PlayBin2Ctrler()
 {
-    gst_object_unref(playbin_);
+    if (playbin_ != nullptr) {
+        gst_object_unref(playbin_);
+    }
 }
 
 int32_t PlayBin2Ctrler::OnInit()

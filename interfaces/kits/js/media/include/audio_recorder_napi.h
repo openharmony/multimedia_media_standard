@@ -25,10 +25,12 @@
 namespace OHOS {
 namespace Media {
 enum JSAudioEncoder : int32_t {
+    JS_DEFAULT_ENCORD_TYPE = -1,
     JS_AAC_LC = 3,
 };
 
 enum JSFileFormat : int32_t {
+    JS_DEFAULT_FILE_FORMAT = -1,
     JS_MPEG_4 = 2,
     JS_AAC_ADTS = 6,
 };

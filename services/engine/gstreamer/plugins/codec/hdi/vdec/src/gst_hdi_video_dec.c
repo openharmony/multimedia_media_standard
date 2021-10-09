@@ -215,7 +215,6 @@ static void gst_hdi_set_flushing(GstHDIVideoDec *self, const gboolean flushing)
     g_mutex_lock(&self->lock);
     self->hdi_flushing = flushing;
     g_mutex_unlock(&self->lock);
-    return;
 }
 
 static gboolean gst_hdi_get_task_pausing(GstHDIVideoDec *self)
@@ -367,10 +366,7 @@ static gboolean gst_hdi_video_dec_negotiate(const GstHDIVideoDec *self)
 
     GstStructure *s = gst_caps_get_structure(intersection, 0);
     format_str = gst_structure_get_string(s, "format");
-    if (format_str == NULL ||
-        (format =
-            gst_video_format_from_string (format_str)) ==
-        GST_VIDEO_FORMAT_UNKNOWN) {
+    if (format_str == NULL || (format = gst_video_format_from_string (format_str)) == GST_VIDEO_FORMAT_UNKNOWN) {
         GST_ERROR_OBJECT(self, "Invalid caps");
         gst_caps_unref(intersection);
         return FALSE;
@@ -559,7 +555,6 @@ static void gst_hdi_video_dec_loop_invalid_buffer_err(GstHDIVideoDec *self)
     GST_ELEMENT_ERROR(self, LIBRARY, SETTINGS, (NULL), ("Invalid output buffer"));
     gst_pad_push_event(GST_VIDEO_DECODER_SRC_PAD (self), gst_event_new_eos ());
     gst_hdi_video_dec_pause_loop(self, GST_FLOW_ERROR);
-    return;
 }
 
 static void gst_hdi_video_dec_loop_flow_err(GstHDIVideoDec *self, GstFlowReturn flow_ret)
@@ -577,7 +572,6 @@ static void gst_hdi_video_dec_loop_flow_err(GstHDIVideoDec *self, GstFlowReturn 
         GST_DEBUG_OBJECT(self, "Flushing -- stopping task");
     }
     gst_hdi_video_dec_pause_loop(self, flow_ret);
-    return;
 }
 
 static void gst_hdi_video_dec_loop_hdi_eos(GstHDIVideoDec *self)
@@ -610,8 +604,6 @@ static void gst_hdi_video_dec_loop_hdi_eos(GstHDIVideoDec *self)
     if (flow_ret != GST_FLOW_OK) {
         gst_hdi_video_dec_loop_flow_err(self, flow_ret);
     }
-
-    return;
 }
 
 static void gst_hdi_video_dec_loop_hdi_error(GstHDIVideoDec *self, gint ret)
@@ -621,7 +613,6 @@ static void gst_hdi_video_dec_loop_hdi_error(GstHDIVideoDec *self, gint ret)
         gst_hdi_error_to_string(ret), ret));
     gst_pad_push_event (GST_VIDEO_DECODER_SRC_PAD(self), gst_event_new_eos());
     gst_hdi_video_dec_pause_loop(self, GST_FLOW_ERROR);
-    return;
 }
 
 static void gst_hdi_update_video_meta(const GstHDIVideoDec *self, GstBuffer *outbuf)
@@ -763,9 +754,7 @@ static gint gst_hdi_finish_frame(GstHDIVideoDec *self, GstVideoCodecFrame *frame
 
 static GstVideoCodecFrame *gst_hdi_video_dec_new_frame()
 {
-    GstVideoCodecFrame *frame = NULL;
-
-    frame = g_slice_new0 (GstVideoCodecFrame);
+    GstVideoCodecFrame *frame = g_slice_new0 (GstVideoCodecFrame);
     if (frame == NULL) {
         return NULL;
     }
@@ -865,7 +854,6 @@ static void gst_hdi_video_dec_loop(GstHDIVideoDec *self)
         GST_ERROR_OBJECT(self, "deal buffer error: %s", gst_hdi_error_to_string(ret));
     }
     frame = NULL;
-    return;
 }
 
 static void gst_hdi_video_dec_pause_loop(GstHDIVideoDec *self, GstFlowReturn flow_ret)

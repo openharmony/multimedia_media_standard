@@ -72,6 +72,9 @@ private:
     TimeMonitor startTimeMonitor_;
     TimeMonitor stopTimeMonitor_;
     std::shared_ptr<IMediaDataSource> dataSrc_ = nullptr;
+    float leftVolume_ = 1.0f;
+    float rightVolume_ = 1.0f;
+    PlaybackRateMode speedMode_ = SPEED_FORWARD_1_00_X;
 };
 } // namespace Media
 } // namespace OHOS

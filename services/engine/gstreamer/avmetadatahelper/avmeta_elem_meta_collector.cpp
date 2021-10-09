@@ -189,6 +189,13 @@ void AVMetaElemMetaCollector::ParseTagList(const GstTagList &tagList, TrackInfo 
     GstTagScope scope = gst_tag_list_get_scope(&tagList);
     MEDIA_LOGI("catch tag %{public}s event", scope == GST_TAG_SCOPE_GLOBAL ? "global" : "stream");
 
+    if (scope == GST_TAG_SCOPE_GLOBAL) {
+        if (globalTagCatched_) {
+            return;
+        }
+        globalTagCatched_ = true;
+    }
+
     Metadata innerMeta;
     GstMetaParser::ParseTagList(tagList, innerMeta);
     if (innerMeta.tbl_.empty()) {
@@ -293,7 +300,6 @@ void AVMetaElemMetaCollector::ConvertToAVMeta(const Metadata &innerMeta, Metadat
 
         std::string value;
         if (innerMeta.TryGetMeta(keyToXItem.innerKey, value)) {
-            MEDIA_LOGI("avkey: %{public}d, value: %{public}s", avKey, value.c_str());
             avmeta.SetMeta(avKey, value);
         }
     }

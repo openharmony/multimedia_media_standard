@@ -125,6 +125,7 @@ static void gst_surface_video_src_class_init(GstSurfaceVideoSrcClass *klass)
 
 static void gst_surface_video_src_init(GstSurfaceVideoSrc *src)
 {
+    g_return_if_fail(src != nullptr);
     gst_base_src_set_format(GST_BASE_SRC(src), GST_FORMAT_TIME);
     gst_base_src_set_live(GST_BASE_SRC(src), TRUE);
     src->stream_type = VIDEO_STREAM_TYPE_ES_AVC;
@@ -140,6 +141,7 @@ static void gst_surface_video_src_init(GstSurfaceVideoSrc *src)
 static void gst_surface_video_src_finalize(GObject *object)
 {
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(object);
+    g_return_if_fail(src != nullptr);
     if (src->src_caps != nullptr) {
         gst_caps_unref(src->src_caps);
         src->src_caps = nullptr;
@@ -157,10 +159,10 @@ static void gst_surface_video_src_set_property(GObject *object, guint prop_id,
             gst_surface_video_src_set_stream_type(src, g_value_get_enum(value));
             break;
         case PROP_SURFACE_WIDTH:
-            src->video_width  = g_value_get_uint(value);
+            src->video_width = g_value_get_uint(value);
             break;
         case PROP_SURFACE_HEIGHT:
-            src->video_height  = g_value_get_uint(value);
+            src->video_height = g_value_get_uint(value);
             break;
         default:
             break;
@@ -170,6 +172,7 @@ static void gst_surface_video_src_set_property(GObject *object, guint prop_id,
 static void gst_surface_video_src_set_stream_type(GstSurfaceVideoSrc *src, gint stream_type)
 {
     (void)stream_type;
+    g_return_if_fail(src != nullptr);
     src->stream_type = VIDEO_STREAM_TYPE_ES_AVC;
     src->need_codec_data = TRUE;
 }
@@ -200,6 +203,7 @@ static void gst_surface_video_src_get_property(GObject *object, guint prop_id, G
 
 static gboolean process_codec_data(GstSurfaceVideoSrc *src)
 {
+    g_return_val_if_fail(src != nullptr, FALSE);
     g_return_val_if_fail(src->capture != nullptr, FALSE);
 
     std::shared_ptr<EsAvcCodecBuffer> codec_buffer = src->capture->GetCodecBuffer();
@@ -226,11 +230,13 @@ static gboolean process_codec_data(GstSurfaceVideoSrc *src)
     GstBaseSrc *basesrc = GST_BASE_SRC_CAST(src);
     basesrc->segment.start = codec_buffer->segmentStart;
     gst_buffer_unref(codec_buffer->gstCodecBuffer);
+    codec_buffer->gstCodecBuffer = nullptr;
     return TRUE;
 }
 
 static gboolean start_video_capture(GstSurfaceVideoSrc *src)
 {
+    g_return_val_if_fail(src != nullptr, FALSE);
     g_return_val_if_fail(src->capture != nullptr, FALSE);
 
     g_return_val_if_fail(src->capture->Start() == MSERR_OK, FALSE);
@@ -244,6 +250,7 @@ static gboolean start_video_capture(GstSurfaceVideoSrc *src)
 static GstStateChangeReturn gst_surface_video_src_change_state(GstElement *element, GstStateChange transition)
 {
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(element);
+    g_return_val_if_fail(src != nullptr, GST_STATE_CHANGE_FAILURE);
     switch (transition) {
         case GST_STATE_CHANGE_NULL_TO_READY:
             src->capture = OHOS::Media::VideoCaptureFactory::CreateVideoCapture(src->stream_type);
@@ -297,12 +304,15 @@ static gboolean gst_surface_video_src_negotiate(GstBaseSrc *basesrc)
 {
     (void)gst_base_src_wait_playing(basesrc);
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(basesrc);
+    g_return_val_if_fail(src != nullptr, FALSE);
     return gst_base_src_set_caps(basesrc, src->src_caps);
 }
 
 static GstFlowReturn gst_surface_video_src_create(GstPushSrc *psrc, GstBuffer **outbuf)
 {
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(psrc);
+    g_return_val_if_fail(src != nullptr, GST_FLOW_ERROR);
+
     GST_DEBUG_OBJECT(src, "begin create...");
 
     if (src->is_start == FALSE) {
@@ -321,9 +331,6 @@ static GstFlowReturn gst_surface_video_src_create(GstPushSrc *psrc, GstBuffer **
 
     *outbuf = frame_buffer->gstBuffer;
     GST_BUFFER_PTS(*outbuf) = frame_buffer->timeStamp;
-    if (!frame_buffer->keyFrameFlag) {
-        gst_buffer_set_flags(*outbuf, GST_BUFFER_FLAG_DELTA_UNIT);
-    }
 
     GST_DEBUG_OBJECT(src, "end create...");
     return GST_FLOW_OK;
@@ -334,7 +341,7 @@ static gboolean gst_surface_video_src_send_event(GstElement *element, GstEvent *
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(element);
     g_return_val_if_fail(src != nullptr, FALSE);
 
-    switch (GST_EVENT_TYPE(event)) {
+    switch (GST_EVENT_TYPE (event)) {
         case GST_EVENT_FLUSH_START:
             g_return_val_if_fail(src->capture != nullptr, FALSE);
             src->is_eos = FALSE;

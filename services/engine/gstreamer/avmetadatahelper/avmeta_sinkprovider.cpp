@@ -62,7 +62,6 @@ PlayBinSinkProvider::SinkPtr AVMetaSinkProvider::CreateVideoSink()
             vidSink_ = gst_element_factory_make("fakesink", "avmeta_vid_sink");
         } else {
             vidSink_ = gst_element_factory_make("appsink", "avmeta_vid_sink");
-            // setup callbacks for appsink
         }
     }
 
@@ -71,11 +70,6 @@ PlayBinSinkProvider::SinkPtr AVMetaSinkProvider::CreateVideoSink()
     }
 
     return GST_ELEMENT_CAST(gst_object_ref(vidSink_));
-}
-
-void AVMetaSinkProvider::SetFrameCallback(const std::shared_ptr<FrameCallback> &callback)
-{
-    callback_ = callback;
 }
 }
 }

@@ -27,23 +27,33 @@ namespace OHOS {
 namespace Media {
 class IPlayBinCtrler {
 public:
-    enum class PlayBinScene : uint8_t {
-        METADATA,
-        THUBNAIL,
-        PLAYBACK,
-        UNKNOWN,
+    enum class PlayBinKind : uint8_t {
+        PLAYBIN2,
     };
 
-    enum class PlayBinKind : uint8_t {
-        PLAYBIN_KIND_PLAYBIN2,
+    enum PlayBinRenderMode : uint8_t {
+        DEFAULT_RENDER = 0,
+        NATIVE_STREAM = 1 << 0,
+        DISABLE_TEXT = 1 << 1,
+    };
+
+    enum PlayBinSeekMode : uint8_t {
+        NEXT_SYNC,
+        PREV_SYNC,
+        CLOSET_SYNC,
+        CLOSET,
+    };
+
+    struct PlayBinCreateParam {
+        PlayBinRenderMode renderMode;
+        PlayBinMsgNotifier notifier;
+        std::shared_ptr<PlayBinSinkProvider> sinkProvider;
     };
 
     virtual ~IPlayBinCtrler() = default;
 
-    static std::shared_ptr<IPlayBinCtrler> Create(PlayBinKind kind, const PlayBinMsgNotifier &notifier);
+    static std::shared_ptr<IPlayBinCtrler> Create(PlayBinKind kind, const PlayBinCreateParam &createParam);
 
-    virtual int32_t SetSinkProvider(std::shared_ptr<PlayBinSinkProvider> sinkProvider) = 0;
-    virtual int32_t SetScene(PlayBinScene scene) = 0;
     virtual int32_t SetSource(const std::string &uri) = 0;
     virtual int32_t Prepare() = 0; // sync
     virtual int32_t PrepareAsync() = 0; // async
@@ -51,6 +61,7 @@ public:
     virtual int32_t Pause() = 0; // async
     virtual int32_t Seek(int64_t timeUs, int32_t seekOption) = 0; // async
     virtual int32_t Stop() = 0; // async
+    virtual int64_t GetDuration() = 0; // usec
 
     using ElemSetupListener = std::function<void(GstElement &elem)>;
     virtual void SetElemSetupListener(ElemSetupListener listener) = 0;

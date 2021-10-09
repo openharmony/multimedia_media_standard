@@ -14,6 +14,7 @@
  */
 
 #include "playbin_ctrler_base.h"
+#include <gst/playback/gstplay-enum.h>
 #include "nocopyable.h"
 #include "string_ex.h"
 #include "media_errors.h"
@@ -29,6 +30,25 @@ namespace {
 
 namespace OHOS {
 namespace Media {
+static const std::unordered_map<int32_t, int32_t> SEEK_OPTION_TO_GST_SEEK_FLAGS = {
+    {
+        IPlayBinCtrler::PlayBinSeekMode::PREV_SYNC,
+        GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT | GST_SEEK_FLAG_SNAP_BEFORE,
+    },
+    {
+        IPlayBinCtrler::PlayBinSeekMode::NEXT_SYNC,
+        GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT | GST_SEEK_FLAG_SNAP_AFTER,
+    },
+    {
+        IPlayBinCtrler::PlayBinSeekMode::CLOSET_SYNC,
+        GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT | GST_SEEK_FLAG_SNAP_NEAREST,
+    },
+    {
+        IPlayBinCtrler::PlayBinSeekMode::CLOSET,
+        GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE,
+    }
+};
+
 using PlayBinCtrlerWrapper = ThizWrapper<PlayBinCtrlerBase>;
 
 void PlayBinCtrlerBase::ElementSetup(const GstElement *playbin, GstElement *elem, gpointer userdata)
@@ -44,7 +64,10 @@ void PlayBinCtrlerBase::ElementSetup(const GstElement *playbin, GstElement *elem
     }
 }
 
-PlayBinCtrlerBase::PlayBinCtrlerBase(const PlayBinMsgNotifier &notifier) : notifier_(notifier)
+PlayBinCtrlerBase::PlayBinCtrlerBase(const PlayBinCreateParam &createParam)
+    : renderMode_(createParam.renderMode),
+    notifier_(createParam.notifier),
+    sinkProvider_(createParam.sinkProvider)
 {
     MEDIA_LOGD("enter ctor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
 }
@@ -57,6 +80,8 @@ PlayBinCtrlerBase::~PlayBinCtrlerBase()
 
 int32_t PlayBinCtrlerBase::Init()
 {
+    CHECK_AND_RETURN_RET_LOG(sinkProvider_ != nullptr, MSERR_INVALID_VAL, "sinkprovider is nullptr");
+
     idleState_ = std::make_shared<IdleState>(*this);
     initializedState_ = std::make_shared<InitializedState>(*this);
     preparingState_ = std::make_shared<PreparingState>(*this);
@@ -67,50 +92,14 @@ int32_t PlayBinCtrlerBase::Init()
 
     ChangeState(idleState_);
 
-    taskQueue_ = std::make_unique<TaskQueue>("playbin-ctrl-job");
-    int32_t ret = taskQueue_->Start();
-    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
+    int32_t ret = taskMgr_.Init();
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "task mgr init failed");
 
     msgQueue_ = std::make_unique<TaskQueue>("playbin-ctrl-msg");
     ret = msgQueue_->Start();
-    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "msgqueue start failed");
 
     return ret;
-}
-
-int32_t PlayBinCtrlerBase::SetSinkProvider(std::shared_ptr<PlayBinSinkProvider> sinkProvider)
-{
-    if (sinkProvider == nullptr) {
-        return MSERR_INVALID_VAL;
-    }
-
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (sinkProvider_ != nullptr) {
-        MEDIA_LOGE("sink provider is set already");
-        return MSERR_INVALID_OPERATION;
-    }
-
-    MEDIA_LOGD("set sinkprovider ok");
-    sinkProvider_ = sinkProvider;
-    return MSERR_OK;
-}
-
-int32_t PlayBinCtrlerBase::SetScene(PlayBinScene scene)
-{
-    if (scene >= PlayBinScene::UNKNOWN) {
-        MEDIA_LOGE("invalid scene: %{public}hhu", scene);
-        return MSERR_INVALID_VAL;
-    }
-
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (currScene_ == scene) {
-        MEDIA_LOGI("set playbin scene %{public}hhu success", scene);
-        return MSERR_OK;
-    }
-
-    MEDIA_LOGI("set playbin scene %{public}hhu success", scene);
-    currScene_ = scene;
-    return MSERR_OK;
 }
 
 int32_t PlayBinCtrlerBase::SetSource(const std::string &uri)
@@ -128,25 +117,26 @@ int32_t PlayBinCtrlerBase::SetSource(const std::string &uri)
     return MSERR_OK;
 }
 
-std::string PlayBinCtrlerBase::GetSource()
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    return uri_;
-}
-
 int32_t PlayBinCtrlerBase::Prepare()
 {
     MEDIA_LOGD("enter");
 
-    int32_t ret = PrepareAsync();
-    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
-    CHECK_AND_RETURN_RET(preparedTask_ != nullptr, MSERR_UNKNOWN);
-
     std::unique_lock<std::mutex> lock(mutex_);
-    auto result = preparedTask_->GetResult();
-    CHECK_AND_RETURN_RET_LOG(result.HasResult(), MSERR_UNKNOWN, "Prepare failed");
-    CHECK_AND_RETURN_RET_LOG(result.Value() == MSERR_OK, result.Value(), "Prepare failed");
-    preparedTask_ = nullptr;
+
+    int32_t ret = PrepareAsyncInternel();
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
+
+    {
+        std::unique_lock<std::mutex> condLock(condMutex_);
+        stateCond_.wait(condLock, [this]() {
+            return GetCurrState() == preparedState_ || isErrorHappened_;
+        });
+    }
+
+    if (GetCurrState() != preparedState_) {
+        MEDIA_LOGE("Prepare failed");
+        return MSERR_UNKNOWN;
+    }
 
     MEDIA_LOGD("exit");
     return MSERR_OK;
@@ -157,22 +147,7 @@ int32_t PlayBinCtrlerBase::PrepareAsync()
     MEDIA_LOGD("enter");
 
     std::unique_lock<std::mutex> lock(mutex_);
-    if (preparedTask_ != nullptr) {
-        return MSERR_OK;
-    }
-
-    int32_t ret = EnterInitializedState();
-    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
-
-    preparedTask_ = std::make_shared<TaskHandler<int32_t>>([this]() {
-        auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
-        return currState->Prepare();
-    });
-
-    ret = taskQueue_->EnqueueTask(preparedTask_);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "PrepareAsync failed");
-
-    return MSERR_OK;
+    return PrepareAsyncInternel();
 }
 
 int32_t PlayBinCtrlerBase::Play()
@@ -180,12 +155,18 @@ int32_t PlayBinCtrlerBase::Play()
     MEDIA_LOGD("enter");
 
     std::unique_lock<std::mutex> lock(mutex_);
+
+    if (GetCurrState() == playingState_) {
+        MEDIA_LOGI("already at playing state, skip");
+        return MSERR_OK;
+    }
+
     auto playingTask = std::make_shared<TaskHandler<void>>([this]() {
         auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
         (void)currState->Play();
     });
 
-    int ret = taskQueue_->EnqueueTask(playingTask);
+    int ret = taskMgr_.LaunchTask(playingTask, PlayBinTaskType::STATE_CHANGE);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Play failed");
 
     return MSERR_OK;
@@ -196,12 +177,18 @@ int32_t PlayBinCtrlerBase::Pause()
     MEDIA_LOGD("enter");
 
     std::unique_lock<std::mutex> lock(mutex_);
+
+    if (GetCurrState() == pausedState_ || GetCurrState() == preparedState_) {
+        MEDIA_LOGI("already at paused state, skip");
+        return MSERR_OK;
+    }
+
     auto pauseTask = std::make_shared<TaskHandler<void>>([this]() {
         auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
         (void)currState->Pause();
     });
 
-    int ret = taskQueue_->EnqueueTask(pauseTask);
+    int ret = taskMgr_.LaunchTask(pauseTask, PlayBinTaskType::STATE_CHANGE);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Pause failed");
 
     return MSERR_OK;
@@ -211,14 +198,47 @@ int32_t PlayBinCtrlerBase::Seek(int64_t timeUs, int32_t seekOption)
 {
     MEDIA_LOGD("enter");
 
+    if (SEEK_OPTION_TO_GST_SEEK_FLAGS.find(seekOption) == SEEK_OPTION_TO_GST_SEEK_FLAGS.end()) {
+        MEDIA_LOGE("unsupported seek option: %{public}d", seekOption);
+        return MSERR_INVALID_VAL;
+    }
+
+    if (timeUs < 0) {
+        MEDIA_LOGE("negative seek position is invalid");
+        return MSERR_INVALID_VAL;
+    }
+
     std::unique_lock<std::mutex> lock(mutex_);
+
     auto seekTask = std::make_shared<TaskHandler<void>>([this, timeUs, seekOption]() {
         auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
         (void)currState->Seek(timeUs, seekOption);
     });
 
-    int ret = taskQueue_->EnqueueTask(seekTask);
+    int ret = taskMgr_.LaunchTask(seekTask, PlayBinTaskType::SEEKING);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Seek failed");
+
+    return MSERR_OK;
+}
+
+int32_t PlayBinCtrlerBase::StopInternel()
+{
+    taskMgr_.ClearAllTask();
+
+    auto state = GetCurrState();
+    if (state == idleState_ || state == stoppedState_ ||
+        state == initializedState_ || state == preparingState_) {
+        MEDIA_LOGI("curr state is %{public}s, skip", state->GetStateName().c_str());
+        return MSERR_OK;
+    }
+
+    auto stopTask = std::make_shared<TaskHandler<void>>([this]() {
+        auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
+        (void)currState->Stop();
+    });
+
+    int ret = taskMgr_.LaunchTask(stopTask, PlayBinTaskType::STATE_CHANGE);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Stop failed");
 
     return MSERR_OK;
 }
@@ -228,19 +248,14 @@ int32_t PlayBinCtrlerBase::Stop()
     MEDIA_LOGD("enter");
 
     std::unique_lock<std::mutex> lock(mutex_);
-    if (!isInitialized) {
-        return MSERR_OK;
-    }
+    return StopInternel();
+}
 
-    auto stopTask = std::make_shared<TaskHandler<void>>([this]() {
-        auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
-        (void)currState->Stop();
-    });
-
-    int ret = taskQueue_->EnqueueTask(stopTask);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Stop failed");
-
-    return MSERR_OK;
+int64_t PlayBinCtrlerBase::GetDuration()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    QueryDuration();
+    return duration_;
 }
 
 void PlayBinCtrlerBase::Reset() noexcept
@@ -248,35 +263,20 @@ void PlayBinCtrlerBase::Reset() noexcept
     MEDIA_LOGD("enter");
 
     std::unique_lock<std::mutex> lock(mutex_);
-
-    isInitialized = false;
-    currScene_ = PlayBinScene::UNKNOWN;
+    (void)StopInternel();
 
     auto idleTask = std::make_shared<TaskHandler<void>>([this]() { ChangeState(idleState_); });
-    (void)taskQueue_->EnqueueTask(idleTask, true);
+    // fake state_change type, just wait the previous stop task's second phase finish.
+    (void)taskMgr_.LaunchTask(idleTask, PlayBinTaskType::STATE_CHANGE);
+    (void)idleTask->GetResult();
 
-    if (taskQueue_ != nullptr) {
-        (void)taskQueue_->Stop();
-    }
+    (void)taskMgr_.Reset();
 
     if (msgQueue_ != nullptr) {
         (void)msgQueue_->Stop();
     }
 
-    if (msgProcessor_ != nullptr) {
-        msgProcessor_->Reset();
-        msgProcessor_ = nullptr;
-    }
-
-    sinkProvider_ = nullptr;
-    elemSetupListener_ = nullptr;
-
-    MEDIA_LOGD("unref playbin start");
-    if (playbin_ != nullptr) {
-        gst_object_unref(playbin_);
-        playbin_ = nullptr;
-    }
-    MEDIA_LOGD("unref playbin stop");
+    isErrorHappened_ = false;
 }
 
 void PlayBinCtrlerBase::SetElemSetupListener(ElemSetupListener listener)
@@ -297,32 +297,114 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
 
     MEDIA_LOGD("EnterInitializedState enter");
 
-    if (currScene_ == PlayBinScene::UNKNOWN) {
-        MEDIA_LOGE("Set scene firstly!");
-        return MSERR_INVALID_OPERATION;
+    ON_SCOPE_EXIT(0) {
+        ExitInitializedState();
+        PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_ERROR, 0, MSERR_UNKNOWN };
+        ReportMessage(msg);
+        MEDIA_LOGE("enter intialized state failed");
+    };
+
+    int32_t ret = OnInit();
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
+    CHECK_AND_RETURN_RET(playbin_ != nullptr, static_cast<int32_t>(MSERR_UNKNOWN));
+
+    playbin_ = GST_PIPELINE_CAST(gst_object_ref(playbin_));
+    SetupCustomElement();
+    ret = SetupSignalMessage();
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
+
+    uint32_t flags = 0;
+    g_object_get(playbin_, "flags", &flags, nullptr);
+    if (renderMode_ & PlayBinRenderMode::NATIVE_STREAM) {
+        flags |= GST_PLAY_FLAG_NATIVE_VIDEO | GST_PLAY_FLAG_NATIVE_AUDIO;
+        flags &= ~(GST_PLAY_FLAG_SOFT_COLORBALANCE | GST_PLAY_FLAG_SOFT_VOLUME);
+    }
+    if (renderMode_ & PlayBinCtrlerBase::DISABLE_TEXT) {
+        flags &= ~GST_PLAY_FLAG_TEXT;
+    }
+    g_object_set(playbin_, "flags", flags, nullptr);
+
+    // There may be a risk of data competition, but the uri is unlikely to be reconfigured.
+    g_object_set(playbin_, "uri", uri_.c_str(), nullptr);
+
+    isInitialized = true;
+    ChangeState(initializedState_);
+
+    CANCEL_SCOPE_EXIT_GUARD(0);
+    MEDIA_LOGD("EnterInitializedState exit");
+    return MSERR_OK;
+}
+
+void PlayBinCtrlerBase::ExitInitializedState()
+{
+    MEDIA_LOGD("ExitInitializedState enter");
+
+    isInitialized = false;
+
+    if (msgProcessor_ != nullptr) {
+        msgProcessor_->Reset();
+        msgProcessor_ = nullptr;
+    }
+
+    elemSetupListener_ = nullptr;
+    uri_.clear();
+
+    MEDIA_LOGD("unref playbin start");
+    if (playbin_ != nullptr) {
+        gst_object_unref(playbin_);
+        playbin_ = nullptr;
+    }
+    MEDIA_LOGD("unref playbin stop");
+
+    MEDIA_LOGD("ExitInitializedState exit");
+}
+
+int32_t PlayBinCtrlerBase::PrepareAsyncInternel()
+{
+    if ((GetCurrState() == preparingState_) || (GetCurrState() == preparedState_)) {
+        MEDIA_LOGI("already at preparing state, skip");
+        return MSERR_OK;
     }
 
     CHECK_AND_RETURN_RET_LOG(!uri_.empty(), MSERR_INVALID_OPERATION, "Set uri firsty!");
 
-    auto initHandler = std::make_shared<TaskHandler<int32_t>>([this]() {
+    auto preparedTask = std::make_shared<TaskHandler<int32_t>>([this]() {
+        int32_t ret = EnterInitializedState();
+        CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
+
         auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
-        return currState->SetUp();
+        return currState->Prepare();
     });
 
-    int32_t ret = taskQueue_->EnqueueTask(initHandler);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "playbin init failed");
+    int32_t ret = taskMgr_.LaunchTask(preparedTask, PlayBinTaskType::STATE_CHANGE);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "PrepareAsync failed");
 
-    auto result = initHandler->GetResult();
-    CHECK_AND_RETURN_RET_LOG(result.HasResult(), MSERR_UNKNOWN, "playbin init failed");
-    CHECK_AND_RETURN_RET_LOG(result.Value() == MSERR_OK, result.Value(), "playbin init failed");
+    return MSERR_OK;
+}
 
-    isInitialized = true;
-    MEDIA_LOGD("EnterInitializedState exit");
+int32_t PlayBinCtrlerBase::SeekInternel(int64_t timeUs, int32_t seekOption)
+{
+    MEDIA_LOGD("execute seek, time: %{public}" PRIi64 ", option: %{public}d", timeUs, seekOption);
+
+    int32_t seekFlags = SEEK_OPTION_TO_GST_SEEK_FLAGS.at(seekOption);
+    timeUs = timeUs > duration_ ? duration_ : timeUs;
+
+    constexpr int32_t usecToNanoSec = 1000;
+    int64_t timeNs = timeUs * usecToNanoSec;
+
+    GstEvent *event = gst_event_new_seek(1.0, GST_FORMAT_TIME, static_cast<GstSeekFlags>(seekFlags),
+        GST_SEEK_TYPE_SET, timeNs, GST_SEEK_TYPE_SET, GST_CLOCK_TIME_NONE);
+    CHECK_AND_RETURN_RET_LOG(event != nullptr, MSERR_NO_MEMORY, "seek failed");
+
+    gboolean ret = gst_element_send_event(GST_ELEMENT_CAST(playbin_), event);
+    CHECK_AND_RETURN_RET_LOG(ret, MSERR_SEEK_FAILED, "seek failed");
+
     return MSERR_OK;
 }
 
 void PlayBinCtrlerBase::SetupCustomElement()
 {
+    // There may be a risk of data competition, but the sinkProvider is unlikely to be reconfigured.
     if (sinkProvider_ != nullptr) {
         PlayBinSinkProvider::SinkPtr audSink = sinkProvider_->CreateAudioSink();
         if (audSink != nullptr) {
@@ -336,7 +418,7 @@ void PlayBinCtrlerBase::SetupCustomElement()
         MEDIA_LOGD("no sinkprovider, delay the sink selection until the playbin enters pause state.");
     }
 
-    if (currScene_ == PlayBinScene::PLAYBACK) {
+    if ((renderMode_ & PlayBinRenderMode::NATIVE_STREAM) == 0) {
         GstElement *audioFilter = gst_element_factory_make("scaletempo", "scaletempo");
         if (audioFilter != nullptr) {
             g_object_set(playbin_, "audio-filter", audioFilter, nullptr);
@@ -375,6 +457,23 @@ int32_t PlayBinCtrlerBase::SetupSignalMessage()
     return MSERR_OK;
 }
 
+void PlayBinCtrlerBase::QueryDuration()
+{
+    auto state = GetCurrState();
+    if (state != preparedState_ && state != playingState_ && state != pausedState_) {
+        MEDIA_LOGD("reuse the last query result: %{public}" PRIi64 " microsecond", duration_);
+        return;
+    }
+
+    gint64 duration = 0;
+    gboolean ret = gst_element_query_duration(GST_ELEMENT_CAST(playbin_), GST_FORMAT_TIME, &duration);
+    CHECK_AND_RETURN_LOG(ret, "query duration failed");
+
+    static const int32_t nanoSecPerUSec = 1000;
+    duration_ = duration / nanoSecPerUSec;
+    MEDIA_LOGI("update the duration: %{public}" PRIi64 " microsecond", duration_);
+}
+
 void PlayBinCtrlerBase::OnElementSetup(GstElement &elem)
 {
     MEDIA_LOGD("element setup: %{public}s", ELEM_NAME(&elem));
@@ -385,25 +484,10 @@ void PlayBinCtrlerBase::OnElementSetup(GstElement &elem)
     }
 }
 
-void PlayBinCtrlerBase::DeferTask(const std::shared_ptr<TaskHandler<void>> &task, int64_t delayNs)
-{
-    (void)delayNs; // taskqueue need support for delay
-
-    if (task != nullptr) {
-        int32_t ret = taskQueue_->EnqueueTask(task);
-        if (ret != MSERR_OK) {
-            MEDIA_LOGE("defer task failed");
-
-            PlayBinMessage msg = {PLAYBIN_MSG_ERROR, 0, MSERR_UNKNOWN, {}};
-            ReportMessage(msg);
-        }
-    }
-}
-
 void PlayBinCtrlerBase::OnMessageReceived(const InnerMessage &msg)
 {
     auto msgHandler = std::make_shared<TaskHandler<void>>([this, msg]() { HandleMessage(msg); });
-    int32_t ret = taskQueue_->EnqueueTask(msgHandler);
+    int32_t ret = taskMgr_.LaunchTask(msgHandler, PlayBinTaskType::PREEMPT);
     if (ret != MSERR_OK) {
         MEDIA_LOGE("sync process msg failed, type: %{public}d, detail1: %{public}d, detail2: %{public}d",
                    msg.type, msg.detail1, msg.detail2);
@@ -412,6 +496,16 @@ void PlayBinCtrlerBase::OnMessageReceived(const InnerMessage &msg)
 
 void PlayBinCtrlerBase::ReportMessage(const PlayBinMessage &msg)
 {
+    if (msg.type == PlayBinMsgType::PLAYBIN_MSG_ERROR) {
+        MEDIA_LOGE("error happend, error code: %{public}d", msg.code);
+
+        std::unique_lock<std::mutex> condLock(condMutex_);
+        isErrorHappened_ = true;
+        stateCond_.notify_all();
+    }
+
+    MEDIA_LOGD("report msg, type: %{public}d", msg.type);
+
     auto msgReportHandler = std::make_shared<TaskHandler<void>>([this, msg]() { notifier_(msg); });
     int32_t ret = msgQueue_->EnqueueTask(msgReportHandler);
     if (ret != MSERR_OK) {
