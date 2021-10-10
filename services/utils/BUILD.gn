@@ -14,9 +14,7 @@
 import("//build/ohos.gni")
 
 config("media_service_utils_public_config") {
-  include_dirs = [
-    "include",
-  ]
+  include_dirs = [ "include" ]
 }
 
 ohos_shared_library("media_service_utils") {
@@ -25,17 +23,14 @@ ohos_shared_library("media_service_utils") {
   sources = [
     "task_queue.cpp",
     "time_monitor.cpp",
+    "time_perf.cpp",
     "uri_helper.cpp",
   ]
 
   if (defined(ohos_lite)) {
-    sources += [
-      "avsharedmemorylocal.cpp",
-    ]
+    sources += [ "avsharedmemorylocal.cpp" ]
   } else {
-    sources += [
-      "avsharedmemorybase.cpp",
-    ]
+    sources += [ "avsharedmemorybase.cpp" ]
   }
 
   include_dirs = [
@@ -61,17 +56,11 @@ ohos_shared_library("media_service_utils") {
     "-Wdate-time",
   ]
 
-  configs = [
-    ":media_service_utils_public_config",
-  ]
+  configs = [ ":media_service_utils_public_config" ]
 
-  deps = [
-    "//utils/native/base:utils",
-  ]
+  deps = [ "//utils/native/base:utils" ]
 
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-  ]
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
   subsystem_name = "multimedia"
   part_name = "multimedia_media_standard"

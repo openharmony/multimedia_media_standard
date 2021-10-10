@@ -48,26 +48,20 @@ config("gst_plugins_common_config") {
 }
 
 ohos_static_library("gst_plugins_common") {
-  sources = [
-    "gst_shmem_allocator.cpp",
-  ]
+  sources = [ "gst_shmem_allocator.cpp" ]
 
-  configs = [
-    ":gst_plugins_common_config",
-  ]
+  configs = [ ":gst_plugins_common_config" ]
 
   deps = [
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
-    "//third_party/gstreamer/gstreamer:gstreamer",
-    "//third_party/gstreamer/gstreamer:gstbase",
     "//third_party/glib:glib",
-    "//third_party/glib:gobject",
     "//third_party/glib:gmodule",
+    "//third_party/glib:gobject",
+    "//third_party/gstreamer/gstreamer:gstbase",
+    "//third_party/gstreamer/gstreamer:gstreamer",
   ]
 
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-  ]
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
   subsystem_name = "multimedia"
   part_name = "multimedia_media_standard"

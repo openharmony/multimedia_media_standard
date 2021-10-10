@@ -59,6 +59,15 @@ static const std::unordered_map<int32_t, KeyToXMap> AVMETA_KEY_TO_X_MAP = {
     AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_VIDEO_WIDTH, INNER_META_KEY_VIDEO_WIDTH),
 };
 
+void PopulateMeta(Metadata &meta)
+{
+    for (auto &item : AVMETA_KEY_TO_X_MAP) {
+        if (!meta.HasMeta(item.first)) {
+            meta.SetMeta(item.first, "");
+        }
+    }
+}
+
 struct AVMetaElemMetaCollector::TrackInfo {
     int32_t tracknumber;
     Metadata metadata;
@@ -79,19 +88,6 @@ std::unique_ptr<AVMetaElemMetaCollector> AVMetaElemMetaCollector::Create(AVMetaS
     }
 
     return nullptr;
-}
-
-Metadata AVMetaElemMetaCollector::GetDefaultMeta()
-{
-    Metadata defaultMetas;
-
-    for (auto &item : AVMETA_KEY_TO_X_MAP) {
-        defaultMetas.SetMeta(item.first, "");
-    }
-
-    defaultMetas.SetMeta(AV_KEY_NUM_TRACKS, "0");
-
-    return defaultMetas;
 }
 
 AVMetaElemMetaCollector::AVMetaElemMetaCollector(AVMetaSourceType type, const MetaResCb &resCb)
@@ -326,13 +322,9 @@ void TypeFindMetaCollector::OnHaveType(const GstElement &elem, const GstCaps &ca
     Metadata meta;
     GstMetaParser::ParseFileMimeType(caps, meta);
 
-    std::string mimeType;
-    bool ret = meta.TryGetMeta(INNER_META_KEY_MIME_TYPE, mimeType);
-    if (!ret) {
-        return;
-    }
-
     Metadata avmeta;
+    std::string mimeType;
+    (void)meta.TryGetMeta(INNER_META_KEY_MIME_TYPE, mimeType);
     avmeta.SetMeta(AV_KEY_MIME_TYPE, mimeType);
     ReportMeta(AVMETA_TRACK_NUMBER_FILE, avmeta);
 }

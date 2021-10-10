@@ -21,6 +21,7 @@
 #include "nocopyable.h"
 #include "i_avmetadatahelper_engine.h"
 #include "i_playbin_ctrler.h"
+#include "gst_utils.h"
 
 namespace OHOS {
 namespace Media {
@@ -61,8 +62,11 @@ private:
 
     std::mutex mutex_;
     std::condition_variable cond_;
-    bool canceled_ = false;
+    bool errHappened_ = false;
     bool prepared_ = false;
+
+    bool firstFetch_ = true;
+    std::unique_ptr<DecoderPerf> decoderPerf_;
 };
 }
 }

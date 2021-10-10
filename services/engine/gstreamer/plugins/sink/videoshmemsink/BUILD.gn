@@ -52,28 +52,24 @@ ohos_shared_library("gst_video_shmem_sink") {
   install_enable = true
 
   sources = [
-    "gst_video_shmem_sink.cpp",
     "gst_video_shmem_pool.cpp",
+    "gst_video_shmem_sink.cpp",
   ]
 
-  configs = [
-    ":gst_video_shmem_sink_config",
-  ]
+  configs = [ ":gst_video_shmem_sink_config" ]
 
   deps = [
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_plugins_common",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
-    "//third_party/gstreamer/gstreamer:gstreamer",
-    "//third_party/gstreamer/gstreamer:gstbase",
-    "//third_party/gstreamer/gstplugins_base:gstvideo",
     "//third_party/glib:glib",
-    "//third_party/glib:gobject",
     "//third_party/glib:gmodule",
+    "//third_party/glib:gobject",
+    "//third_party/gstreamer/gstplugins_base:gstvideo",
+    "//third_party/gstreamer/gstreamer:gstbase",
+    "//third_party/gstreamer/gstreamer:gstreamer",
   ]
 
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-  ]
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
   relative_install_dir = "media/plugins"
   subsystem_name = "multimedia"

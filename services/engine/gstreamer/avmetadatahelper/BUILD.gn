@@ -59,26 +59,22 @@ config("media_engine_gst_avmeta_config") {
 
 ohos_static_library("media_engine_gst_avmeta") {
   sources = [
-    "avmetadatahelper_engine_gst_impl.cpp",
-    "avmeta_sinkprovider.cpp",
-    "avmeta_frame_extractor.cpp",
-    "avmeta_frame_converter.cpp",
-    "avmeta_meta_collector.cpp",
-    "avmeta_elem_meta_collector.cpp",
     "avmeta_buffer_blocker.cpp",
+    "avmeta_elem_meta_collector.cpp",
+    "avmeta_frame_converter.cpp",
+    "avmeta_frame_extractor.cpp",
+    "avmeta_meta_collector.cpp",
+    "avmeta_sinkprovider.cpp",
+    "avmetadatahelper_engine_gst_impl.cpp",
   ]
 
-  configs = [
-    ":media_engine_gst_avmeta_config",
-  ]
+  configs = [ ":media_engine_gst_avmeta_config" ]
 
   deps = [
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
   ]
 
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-  ]
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
   subsystem_name = "multimedia"
   part_name = "multimedia_media_standard"

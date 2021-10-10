@@ -157,7 +157,8 @@ struct PixelMapParams {
      */
     int32_t dstHeight = -1;
     /**
-     * Expected pixelmap's color format, see {@link PixelFormat}.
+     * Expected pixelmap's color format, see {@link PixelFormat}. Currently,
+     * RGB_565, RGB_888 are supported.
      */
     PixelFormat colorFormat = PixelFormat::RGB_565;
 };

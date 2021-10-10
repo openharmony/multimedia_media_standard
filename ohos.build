@@ -11,7 +11,7 @@
         "//foundation/multimedia/media_standard/sa_profile:media_service_sa_profile",
         "//foundation/multimedia/media_standard/interfaces/kits/js/media:media",
         "//foundation/multimedia/media_standard/interfaces/kits/js/media:media_js",
-        "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager",
+        "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager"
       ],
       "inner_kits": [
         {

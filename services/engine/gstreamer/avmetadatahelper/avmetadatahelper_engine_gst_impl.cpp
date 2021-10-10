@@ -23,6 +23,7 @@
 #include "avmeta_meta_collector.h"
 #include "scope_guard.h"
 #include "uri_helper.h"
+#include "time_perf.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVMetaEngineGstImpl"};
@@ -93,9 +94,14 @@ int32_t AVMetadataHelperEngineGstImpl::SetSource(const std::string &uri, int32_t
 
     MEDIA_LOGI("uri: %{public}s, usage: %{public}d", uri.c_str(), usage);
 
+    if (usage == AVMetadataUsage::AV_META_USAGE_PIXEL_MAP) {
+        ASYNC_PERF_START(this, "FirstFetchFrame");
+    }
+
     int32_t ret = SetSourceInternel(uri, usage);
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
-
+    
+    MEDIA_LOGI("set source success");
     return MSERR_OK;
 }
 
@@ -134,7 +140,7 @@ std::shared_ptr<AVSharedMemory> AVMetadataHelperEngineGstImpl::FetchFrameAtTime(
     MEDIA_LOGD("enter");
 
     if (usage_ != AVMetadataUsage::AV_META_USAGE_PIXEL_MAP) {
-        MEDIA_LOGE("current instance is unavaiable for pixel map, check usage !");
+        MEDIA_LOGE("current instance is unavaiable for fetch frame, check usage !");
         return nullptr;
     }
 
@@ -184,6 +190,13 @@ int32_t AVMetadataHelperEngineGstImpl::SetSourceInternel(const std::string &uri,
     ret = PrepareInternel(true);
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
+    std::string mimeType = metaCollector_->GetMetadata(AV_KEY_MIME_TYPE);
+    if (mimeType.empty()) {
+        MEDIA_LOGE("can not recognize the media source's mimetype, set source failed");
+        Reset();
+        return MSERR_INVALID_OPERATION;
+    }
+
     return MSERR_OK;
 }
 
@@ -201,8 +214,8 @@ int32_t AVMetadataHelperEngineGstImpl::PrepareInternel(bool async)
 
     if (!async) {
         metaCollector_->Stop();
-        cond_.wait(lock, [this]() { return prepared_ || canceled_; });
-        CHECK_AND_RETURN_RET_LOG(!canceled_, MSERR_UNKNOWN, "prepare failed");
+        cond_.wait(lock, [this]() { return prepared_ || errHappened_; });
+        CHECK_AND_RETURN_RET_LOG(!errHappened_, MSERR_UNKNOWN, "prepare failed");
     }
 
     return MSERR_OK;
@@ -211,10 +224,14 @@ int32_t AVMetadataHelperEngineGstImpl::PrepareInternel(bool async)
 int32_t AVMetadataHelperEngineGstImpl::FetchFrameInternel(int64_t timeUsOrIndex, int32_t option, int32_t numFrames,
     const OutputConfiguration &param, std::vector<std::shared_ptr<AVSharedMemory>> &outFrames)
 {
+    AUTO_PERF(this, "FetchFrame");
+
     if (!CheckFrameFetchParam(timeUsOrIndex, option, param)) {
         MEDIA_LOGE("fetch frame's param invalid");
         return MSERR_INVALID_OPERATION;
     }
+
+    CHECK_AND_RETURN_RET_LOG(frameExtractor_ != nullptr, MSERR_INVALID_OPERATION, "frameExtractor is nullptr");
 
     int32_t ret = ExtractMetadata();
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
@@ -234,12 +251,19 @@ int32_t AVMetadataHelperEngineGstImpl::FetchFrameInternel(int64_t timeUsOrIndex,
         return MSERR_UNKNOWN;
     }
 
+    if (firstFetch_) {
+        ASYNC_PERF_STOP(this, "FirstFetchFrame");
+        firstFetch_ = false;
+    }
+
     outFrames.push_back(frame);
     return MSERR_OK;
 }
 
 int32_t AVMetadataHelperEngineGstImpl::ExtractMetadata()
 {
+    CHECK_AND_RETURN_RET_LOG(metaCollector_ != nullptr, MSERR_INVALID_OPERATION, "metaCollector is nullptr");
+
     if (!hasCollectMeta_) {
         collectedMeta_ = metaCollector_->GetMetadata();
         hasCollectMeta_ = true;
@@ -272,8 +296,11 @@ void AVMetadataHelperEngineGstImpl::Reset()
 
     sinkProvider_ = nullptr;
 
-    canceled_ = false;
+    errHappened_ = false;
     prepared_ = false;
+
+    firstFetch_ = true;
+    decoderPerf_ = nullptr;
 }
 
 void AVMetadataHelperEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
@@ -290,7 +317,7 @@ void AVMetadataHelperEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
         }
         case PLAYBIN_MSG_ERROR: {
             std::unique_lock<std::mutex> lock(mutex_);
-            canceled_ = true;
+            errHappened_ = true;
             if (metaCollector_ != nullptr) {
                 metaCollector_->Stop();
             }
@@ -310,6 +337,13 @@ void AVMetadataHelperEngineGstImpl::OnNotifyElemSetup(GstElement &elem)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     metaCollector_->AddMetaSource(elem);
+
+    if (decoderPerf_ == nullptr) {
+        if (MatchElementByMeta(elem, GST_ELEMENT_METADATA_KLASS, { "Video", "Decoder", "Codec"})) {
+            decoderPerf_ = std::make_unique<DecoderPerf>(elem);
+            decoderPerf_->Init();
+        }
+    }
 }
 }
 }
