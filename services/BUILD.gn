@@ -15,8 +15,8 @@ import("//build/ohos.gni")
 
 group("media_services_package") {
   deps = [
-    "services:media_service",
+    "engine:media_engine_package",
     "etc:media_service.rc",
-    "engine:media_engine_package"
+    "services:media_service",
   ]
 }

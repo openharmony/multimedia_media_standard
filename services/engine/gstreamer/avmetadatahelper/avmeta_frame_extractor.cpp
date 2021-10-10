@@ -25,7 +25,6 @@ namespace {
 namespace OHOS {
 namespace Media {
 AVMetaFrameExtractor::AVMetaFrameExtractor()
-    : timeMoniter_("frame_extractor")
 {
     MEDIA_LOGD("enter ctor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
 }
@@ -56,15 +55,12 @@ int32_t AVMetaFrameExtractor::Init(const std::shared_ptr<IPlayBinCtrler> &playbi
 std::shared_ptr<AVSharedMemory> AVMetaFrameExtractor::ExtractFrame(
     int64_t timeUs, int32_t option, const OutputConfiguration &param)
 {
-    timeMoniter_.StartTime();
-
     int32_t ret = StartExtract(1, timeUs, option, param);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "start extract failed");
 
     auto outFrames = ExtractInternel();
     CHECK_AND_RETURN_RET_LOG(!outFrames.empty(), nullptr, "extract failed");
 
-    timeMoniter_.FinishTime();
     return outFrames[0];
 }
 
@@ -139,7 +135,7 @@ int32_t AVMetaFrameExtractor::StartExtract(
 
     frameConverter_ = std::make_unique<AVMetaFrameConverter>();
     ret = frameConverter_->Init(param);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "init failed, cancel extraact frames");
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "init failed, cancel extract frames");
 
     if (numFrames > 1) {
         ret = playbin_->Play(); // play to generate more frames

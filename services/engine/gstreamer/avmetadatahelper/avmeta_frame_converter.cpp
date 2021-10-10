@@ -21,6 +21,7 @@
 #include "gst_utils.h"
 #include "gst_shmem_memory.h"
 #include "scope_guard.h"
+#include "time_perf.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVMetaFrameConv"};
@@ -41,7 +42,6 @@ static const std::unordered_map<PixelFormat, PixelFormatInfo> PIXELFORMAT_INFO =
 };
 
 AVMetaFrameConverter::AVMetaFrameConverter()
-    : timeMonitor_("frame_converter")
 {
     MEDIA_LOGD("enter ctor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
 }
@@ -73,6 +73,8 @@ int32_t AVMetaFrameConverter::Init(const OutputConfiguration &config)
 
 std::shared_ptr<AVSharedMemory> AVMetaFrameConverter::Convert(GstCaps &inCaps, GstBuffer &inBuf)
 {
+    AUTO_PERF(this, "ConvertFrame");
+
     std::unique_lock<std::mutex> lock(mutex_);
 
     int32_t ret = StartConvert(inCaps);
@@ -89,8 +91,6 @@ std::shared_ptr<AVSharedMemory> AVMetaFrameConverter::Convert(GstCaps &inCaps, G
 
 int32_t AVMetaFrameConverter::StartConvert(GstCaps &inCaps)
 {
-    timeMonitor_.StartTime();
-
     ON_SCOPE_EXIT(0) { (void)StopConvert(); };
 
     if (lastCaps_ == nullptr || !gst_caps_is_equal(lastCaps_, &inCaps)) {
@@ -157,7 +157,6 @@ std::shared_ptr<AVSharedMemory> AVMetaFrameConverter::StopConvert()
     CHECK_AND_RETURN_RET_LOG(result->GetSize() >= frame->GetFlattenedSize(), nullptr, "size is incorrect");
 
     MEDIA_LOGI("======================Convert Frame Finished=========================");
-    timeMonitor_.FinishTime();
     MEDIA_LOGI("output width = %{public}d, height = %{public}d, format = %{public}d",
         videoMeta->width, videoMeta->height, outConfig_.colorFormat);
     return result;
@@ -165,17 +164,9 @@ std::shared_ptr<AVSharedMemory> AVMetaFrameConverter::StopConvert()
 
 void AVMetaFrameConverter::UninstallPipeline()
 {
-    /**
-     * Must flush before change state and delete the msgProcessor, otherwise deadlock will
-     * happend when try to destory the msgprocessor.
-     */
-    msgProcessor_->FlushBegin();
-
     if (currState_ > GST_STATE_READY) {
         (void)ChangeState(GST_STATE_READY);
     }
-
-    msgProcessor_ = nullptr;
 
     if (pipeline_ != nullptr) {
         gst_object_unref(pipeline_);
@@ -198,6 +189,16 @@ void AVMetaFrameConverter::UninstallPipeline()
 int32_t AVMetaFrameConverter::Reset()
 {
     std::unique_lock<std::mutex> lock(mutex_);
+
+    /**
+     * Must flush before change state and delete the msgProcessor, otherwise deadlock will
+     * happend when try to destory the msgprocessor.
+     */
+    auto tempMsgProc = std::move(msgProcessor_);
+    lock.unlock();
+    tempMsgProc->FlushBegin();
+    tempMsgProc->Reset();
+    lock.lock();
 
     UninstallPipeline();
 

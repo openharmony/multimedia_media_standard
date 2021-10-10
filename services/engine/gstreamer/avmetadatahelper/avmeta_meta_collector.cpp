@@ -85,8 +85,6 @@ void AVMetaMetaCollector::Start()
     if (stopCollecting_ || !allMeta_.tbl_.empty()) {
         return;
     }
-
-    allMeta_ = AVMetaElemMetaCollector::GetDefaultMeta();
 }
 
 void AVMetaMetaCollector::AddMetaSource(GstElement &source)
@@ -125,17 +123,28 @@ std::unordered_map<int32_t, std::string> AVMetaMetaCollector::GetMetadata()
     cond_.wait(lock, [this]() { return CheckCollectCompleted() || stopCollecting_; });
 
     AdjustMimeType();
+    PopulateMeta(allMeta_);
 
     return allMeta_.tbl_;
+}
+
+std::string AVMetaMetaCollector::GetMetadata(int32_t key)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    cond_.wait(lock, [this, key]() {
+        return stopCollecting_ || allMeta_.HasMeta(key) || CheckCollectCompleted();
+    });
+
+    AdjustMimeType();
+
+    std::string result;
+    (void)allMeta_.TryGetMeta(key, result);
+    return result;
 }
 
 bool AVMetaMetaCollector::CheckCollectCompleted() const
 {
     if (elemCollectors_.size() == 0 || blockers_.size() == 0) {
-        return false;
-    }
-
-    if (trackMetaCollected_.count(AVMETA_TRACK_NUMBER_FILE) == 0) {
         return false;
     }
 

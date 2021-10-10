@@ -24,7 +24,6 @@
 #include "inner_msg_define.h"
 #include "gst_msg_processor.h"
 #include "nocopyable.h"
-#include "time_monitor.h"
 
 namespace OHOS {
 namespace Media {
@@ -35,7 +34,6 @@ public:
 
     int32_t Init(const OutputConfiguration &outConfig);
     std::shared_ptr<AVSharedMemory> Convert(GstCaps &inCaps, GstBuffer &inBuf);
-    int32_t Reset();
 
     DISALLOW_COPY_AND_MOVE(AVMetaFrameConverter);
 
@@ -48,6 +46,7 @@ private:
     int32_t ChangeState(GstState targetState);
     int32_t StartConvert(GstCaps &inCaps);
     std::shared_ptr<AVSharedMemory> StopConvert();
+    int32_t Reset(); 
     void OnNotifyMessage(const InnerMessage &msg);
     static GstFlowReturn OnNotifyNewSample(GstElement *elem, AVMetaFrameConverter *thiz);
 
@@ -63,7 +62,6 @@ private:
     std::condition_variable cond_;
     bool startConverting_ = false;
     std::vector<GstBuffer *> allResults_;
-    TimeMonitor timeMonitor_;
 };
 }
 }

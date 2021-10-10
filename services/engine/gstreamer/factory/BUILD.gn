@@ -44,6 +44,7 @@ config("media_engine_gst_factory_config") {
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/playbin_adapter",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/message",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/metadata",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
@@ -57,9 +58,7 @@ config("media_engine_gst_factory_config") {
 }
 
 ohos_static_library("media_engine_gst_factory") {
-  sources = [
-    "engine_factory.cpp",
-  ]
+  sources = [ "engine_factory.cpp" ]
 
   configs = [
     ":media_engine_gst_factory_config",
@@ -67,8 +66,8 @@ ohos_static_library("media_engine_gst_factory") {
   ]
 
   deps = [
-    "//utils/native/base:utils",
     "//foundation/graphic/standard/frameworks/surface:surface",
+    "//utils/native/base:utils",
   ]
 
   external_deps = [

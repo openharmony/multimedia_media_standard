@@ -29,8 +29,14 @@
 
 namespace OHOS {
 namespace Media {
+/**
+ * @brief populate the default meta if the key does not exist.
+ */
+void PopulateMeta(Metadata &meta);
+
 // indicate this number is not track's number, just represent the whole file.
 inline constexpr int32_t AVMETA_TRACK_NUMBER_FILE = -1;
+
 /* param: trackId, metadata */
 using MetaResCb = std::function<void(int32_t, const Metadata &)>;
 
@@ -46,7 +52,6 @@ public:
     virtual ~AVMetaElemMetaCollector();
 
     static std::unique_ptr<AVMetaElemMetaCollector> Create(AVMetaSourceType type, const MetaResCb &resCb);
-    static Metadata GetDefaultMeta();
 
     virtual void AddMetaSource(GstElement &elem) = 0;
     int32_t GetTrackCount();
