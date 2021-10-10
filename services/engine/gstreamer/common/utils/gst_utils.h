@@ -72,7 +72,7 @@ private:
 
 class DecoderPerf {
 public:
-    DecoderPerf(GstElement &decoder) : decoder_(decoder) {}
+    explicit DecoderPerf(GstElement &decoder) : decoder_(decoder) {}
     ~DecoderPerf();
     void Init();
 
