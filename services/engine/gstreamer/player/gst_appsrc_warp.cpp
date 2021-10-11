@@ -134,7 +134,7 @@ bool GstAppsrcWarp::IsLiveMode() const
 int32_t GstAppsrcWarp::SetErrorCallback(const std::weak_ptr<IPlayerEngineObs> &obs)
 {
     CHECK_AND_RETURN_RET_LOG(obs.lock() != nullptr, MSERR_INVALID_OPERATION,
-        "obs is nullptr, please set playercallback");
+        "IPlayerEngineObs is nullptr, please set errorcallback");
     obs_ = obs;
     return MSERR_OK;
 }
@@ -152,26 +152,17 @@ void GstAppsrcWarp::NeedDataInner(uint32_t size)
     std::unique_lock<std::mutex> lock(mutex_);
     int32_t ret = MSERR_OK;
     needDataSize_ = static_cast<int32_t>(size);
-    while (needDataSize_ > bufferSize_ * (buffersNum_ - 1)) {
-        ret = MSERR_NO_MEMORY;
-        ++buffersNum_;
-        std::shared_ptr<AppsrcMemWarp> appSrcMem = std::make_shared<AppsrcMemWarp>();
-        CHECK_AND_BREAK_LOG(appSrcMem != nullptr, "init AppsrcMemWarp failed");
-        appSrcMem->mem = AVSharedMemory::Create(bufferSize_, AVSharedMemory::Flags::FLAGS_READ_WRITE, "appsrc");
-        CHECK_AND_BREAK_LOG(appSrcMem->mem != nullptr, "init AVSharedMemory failed");
-        (void)emptyBuffers_.emplace(appSrcMem);
-        ret = MSERR_OK;
-    }
-    if (ret != MSERR_OK) {
-        OnError(ret);
-    }
-    if (!filledBuffers_.empty() && (needDataSize_ <= filledBufferSize_ || atEos_)) {
+    if (!filledBuffers_.empty() && (needDataSize_ <= filledBufferSize_ || atEos_ ||
+        streamType_ == GST_APP_STREAM_TYPE_STREAM)) {
         ret = GetAndPushMem();
         if (ret != MSERR_OK) {
             OnError(ret);
         }
     } else {
         needData_ = true;
+        if (!filledBuffers_.empty()) {
+            emptyCond_.notify_all();
+        }
     }
 }
 
@@ -189,7 +180,7 @@ void GstAppsrcWarp::EmptyTask()
     while (ret == MSERR_OK) {
         std::unique_lock<std::mutex> lock(mutex_);
         emptyCond_.wait(lock, [this] {
-            return (!filledBuffers_.empty() && needData_ && (needDataSize_ <= filledBufferSize_ || atEos_)) || isExit_;
+            return (!filledBuffers_.empty() && needData_) || isExit_;
         });
         if (isExit_) {
             break;
@@ -298,63 +289,73 @@ void GstAppsrcWarp::EosAndCheckSize(int32_t size)
     switch (size) {
         case SOURCE_ERROR_IO:
             OnError(MSERR_DATA_SOURCE_IO_ERROR);
-            MEDIA_LOGW("IO ERROR %d", size);
+            MEDIA_LOGW("IO ERROR %{public}d", size);
             break;
         case SOURCE_ERROR_EOF:
             break;
         default:
             OnError(MSERR_DATA_SOURCE_ERROR_UNKNOWN);
-            MEDIA_LOGE("unknow error %d", size);
+            MEDIA_LOGE("unknow error %{public}d", size);
             break;
     }
 }
 
 int32_t GstAppsrcWarp::GetAndPushMem()
 {
-    int32_t ret = MSERR_OK;
-    int32_t size = needDataSize_;
+    int32_t size = needDataSize_ > filledBufferSize_ ? filledBufferSize_ : needDataSize_;
     std::shared_ptr<AppsrcMemWarp> appSrcMem = filledBuffers_.front();
     CHECK_AND_RETURN_RET_LOG(appSrcMem != nullptr && appSrcMem->mem != nullptr, MSERR_NO_MEMORY, "no mem");
-    size = size > filledBufferSize_ ? filledBufferSize_ : size;
     if (size == 0) {
         EosAndCheckSize(appSrcMem->size);
         filledBuffers_.pop();
         emptyBuffers_.push(appSrcMem);
         needData_ = false;
-        return ret;
+        return MSERR_OK;
     }
     GstBuffer *buffer = nullptr;
-    buffer = gst_buffer_new_allocate(nullptr, size, nullptr);
-    CHECK_AND_RETURN_RET_LOG(buffer != nullptr, MSERR_NO_MEMORY, "allocate buffer fail");
-    GST_BUFFER_OFFSET(buffer) = appSrcMem->pos + static_cast<uint64_t>(appSrcMem->offset);
+    if (bufferWarp_ != nullptr && bufferWarp_->buffer != nullptr) {
+        buffer = bufferWarp_->buffer;
+    } else {
+        bufferWarp_ = std::make_shared<AppsrcBufferWarp>();
+        int32_t allocSize = streamType_ == GST_APP_STREAM_TYPE_STREAM ? size : needDataSize_;
+        buffer = gst_buffer_new_allocate(nullptr, allocSize, nullptr);
+        CHECK_AND_RETURN_RET_LOG(buffer != nullptr, MSERR_NO_MEMORY, "no mem");
+        GST_BUFFER_OFFSET(buffer) = appSrcMem->pos + appSrcMem->offset;
+        bufferWarp_->buffer = buffer;
+        bufferWarp_->offset = 0;
+        bufferWarp_->size = allocSize;
+    }
     GstMapInfo info = GST_MAP_INFO_INIT;
     if (gst_buffer_map(buffer, &info, GST_MAP_WRITE) == FALSE) {
         gst_buffer_unref(buffer);
         MEDIA_LOGE("map buffer failed");
-        ret = MSERR_NO_MEMORY;
-        return ret;
+        return MSERR_NO_MEMORY;
     }
     bool copyRet = CopyToGstBuffer(info);
     gst_buffer_unmap(buffer, &info);
     if (!copyRet) {
         MEDIA_LOGE("copy buffer failed");
         gst_buffer_unref(buffer);
-        ret = MSERR_NO_MEMORY;
-        return ret;
+        return MSERR_NO_MEMORY;
     }
-    PushData(buffer);
-    filledBufferSize_ -= needDataSize_;
-    needDataSize_ = 0;
-    needData_ = false;
-    gst_buffer_unref(buffer);
-    return ret;
+    if (bufferWarp_->size == bufferWarp_->offset) {
+        bufferWarp_ = nullptr;
+        PushData(buffer);
+        needDataSize_ = 0;
+        needData_ = false;
+        gst_buffer_unref(buffer);
+    } else {
+        needDataSize_ = bufferWarp_->size - bufferWarp_->offset;
+    }
+    filledBufferSize_ -= size;
+    return MSERR_OK;
 }
 
 bool GstAppsrcWarp::CopyToGstBuffer(const GstMapInfo &info)
 {
-    guint8 *data = info.data;
-    int32_t size = static_cast<int32_t>(info.size);
-    while (size > 0) {
+    guint8 *data = info.data + bufferWarp_->offset;
+    int32_t size = static_cast<int32_t>(info.size) - bufferWarp_->offset;
+    while (size > 0 && !filledBuffers_.empty()) {
         std::shared_ptr<AppsrcMemWarp> appSrcMem = filledBuffers_.front();
         CHECK_AND_BREAK_LOG(appSrcMem != nullptr && appSrcMem->mem != nullptr
             && appSrcMem->mem->GetBase() != nullptr
@@ -373,9 +374,10 @@ bool GstAppsrcWarp::CopyToGstBuffer(const GstMapInfo &info)
             appSrcMem->offset += copySize;
         }
         data = data + copySize;
+        bufferWarp_->offset += copySize;
         size -= copySize;
     }
-    if (size != 0) {
+    if (size != 0 && !filledBuffers_.empty()) {
         return false;
     }
     return true;
@@ -404,7 +406,7 @@ void GstAppsrcWarp::PushEos()
     if (appSrc_ != nullptr) {
         g_signal_emit_by_name(appSrc_, "end-of-stream", &ret);
     }
-    MEDIA_LOGD("appsrcPushData ret:%{public}d", ret);
+    MEDIA_LOGD("appsrcPushEos ret:%{public}d", ret);
 }
 } // namespace Media
 } // namespace OHOS

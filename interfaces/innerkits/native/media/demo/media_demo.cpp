@@ -15,48 +15,48 @@
 
 #include <climits>
 #include <iostream>
-#include "player_test.h"
-#include "recorder_test.h"
-#include "avmetadatahelper_test.h"
+#include "player_demo.h"
+#include "recorder_demo.h"
+#include "avmetadatahelper_demo.h"
 
 using namespace OHOS;
 using namespace OHOS::Media;
-using namespace MediaTest;
+using namespace MediaDemo;
 using namespace std;
 
-static int TestPlayer(const string &path)
+static int RunPlayer(const string &path)
 {
-    auto playerTest = std::make_unique<PlayerTest>();
-    if (playerTest == nullptr) {
-        cout << "playerTest is null" << endl;
+    auto player = std::make_unique<PlayerDemo>();
+    if (player == nullptr) {
+        cout << "player is null" << endl;
         return 0;
     }
-    playerTest->TestCase(path);
-    cout << "test player end" << endl;
+    player->RunCase(path);
+    cout << "demo player end" << endl;
     return 0;
 }
 
-static int TestRecorder()
+static int RunRecorder()
 {
-    auto recorderTest = std::make_unique<RecorderTest>();
-    if (recorderTest == nullptr) {
-        cout << "recorderTest is null" << endl;
+    auto recorder = std::make_unique<RecorderDemo>();
+    if (recorder == nullptr) {
+        cout << "recorder is null" << endl;
         return 0;
     }
-    recorderTest->TestCase();
-    cout << "test recorder end" << endl;
+    recorder->RunCase();
+    cout << "demo recorder end" << endl;
     return 0;
 }
 
-static int TestAVMetadataHelper(const string &path)
+static int RunAVMetadataHelper(const string &path)
 {
-    auto avMetadataHelperTest = std::make_unique<AVMetadataHelperTest>();
-    if (avMetadataHelperTest == nullptr) {
-        cout << "avMetadataHelperTest is null" << endl;
+    auto avMetadataHelper = std::make_unique<AVMetadataHelperDemo>();
+    if (avMetadataHelper == nullptr) {
+        cout << "avMetadataHelper is null" << endl;
         return 0;
     }
-    avMetadataHelperTest->TestCase(path);
-    cout << "test avMetadataHelper end" << endl;
+    avMetadataHelper->RunCase(path);
+    cout << "demo avMetadataHelper end" << endl;
     return 0;
 }
 
@@ -67,18 +67,18 @@ int main(int argc, char *argv[])
     if (argc >= minRequiredArgCount && argv[1] != nullptr) {
         path = argv[1];
     }
-    cout << "Please select a test scenario number(defult player): " << endl;
+    cout << "Please select a demo scenario number(defult player): " << endl;
     cout << "0:player" << endl;
     cout << "1:recorder" << endl;
     cout << "2:avmetadatahelper" << endl;
     string mode;
     (void)getline(cin, mode);
     if (mode == "" || mode == "0") {
-        (void)TestPlayer(path);
+        (void)RunPlayer(path);
     } else if (mode == "1") {
-        (void)TestRecorder();
+        (void)RunRecorder();
     } else if (mode == "2") {
-        (void)TestAVMetadataHelper(path);
+        (void)RunAVMetadataHelper(path);
     } else {
         cout << "no that selection" << endl;
     }

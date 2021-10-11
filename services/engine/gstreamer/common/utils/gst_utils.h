@@ -69,6 +69,19 @@ public:
 private:
     std::weak_ptr<T> thiz_;
 };
+
+class DecoderPerf {
+public:
+    explicit DecoderPerf(GstElement &decoder) : decoder_(decoder) {}
+    ~DecoderPerf();
+    void Init();
+
+    DISALLOW_COPY_AND_MOVE(DecoderPerf);
+private:
+    static GstPadProbeReturn OnOutputArrived(GstPad *pad, GstPadProbeInfo *info, gpointer thiz);
+    std::vector<std::pair<GstPad *, gulong>> probes_;
+    GstElement &decoder_;
+};
 }
 }
 

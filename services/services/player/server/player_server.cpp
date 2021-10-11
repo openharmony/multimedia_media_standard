@@ -136,6 +136,9 @@ int32_t PlayerServer::OnPrepare(bool async)
         ret = playerEngine_->Prepare();
     }
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine Prepare Failed!");
+    (void)playerEngine_->SetVolume(leftVolume_, rightVolume_);
+    (void)playerEngine_->SetLooping(looping_);
+    (void)playerEngine_->SetPlaybackSpeed(speedMode_);
     return MSERR_OK;
 }
 
@@ -245,6 +248,7 @@ int32_t PlayerServer::OnReset()
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine Reset Failed!");
     playerEngine_ = nullptr;
     dataSrc_ = nullptr;
+    looping_ = false;
     Format format;
     OnInfo(INFO_TYPE_STATE_CHANGE, PLAYER_IDLE, format);
     stopTimeMonitor_.FinishTime();
@@ -265,8 +269,6 @@ int32_t PlayerServer::Release()
 int32_t PlayerServer::SetVolume(float leftVolume, float rightVolume)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
-
     if (status_ == PLAYER_STATE_ERROR) {
         MEDIA_LOGE("Can not SetVolume, currentState is PLAYER_STATE_ERROR");
         return MSERR_INVALID_OPERATION;
@@ -278,9 +280,18 @@ int32_t PlayerServer::SetVolume(float leftVolume, float rightVolume)
         return MSERR_INVALID_OPERATION;
     }
 
-    int32_t ret = playerEngine_->SetVolume(leftVolume, rightVolume);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine SetVolume Failed!");
-    return ret;
+    leftVolume_ = leftVolume;
+    rightVolume_ = rightVolume;
+    if (status_ == PLAYER_IDLE || status_ == PLAYER_INITIALIZED) {
+        MEDIA_LOGI("Waiting for the engine state is <prepared> to take effect");
+        return MSERR_OK;
+    }
+
+    if (playerEngine_ != nullptr) {
+        int32_t ret = playerEngine_->SetVolume(leftVolume_, rightVolume_);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetVolume Failed!");
+    }
+    return MSERR_OK;
 }
 
 bool PlayerServer::IsValidSeekMode(PlayerSeekMode mode)
@@ -354,7 +365,6 @@ int32_t PlayerServer::GetDuration(int32_t &duration)
 int32_t PlayerServer::SetPlaybackSpeed(PlaybackRateMode mode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
 
     if ((status_ != PLAYER_STARTED) && (status_ != PLAYER_PREPARED) &&
         (status_ != PLAYER_PAUSED) && (status_ != PLAYER_PLAYBACK_COMPLETE)) {
@@ -362,23 +372,24 @@ int32_t PlayerServer::SetPlaybackSpeed(PlaybackRateMode mode)
         return MSERR_INVALID_OPERATION;
     }
 
-    int ret = playerEngine_->SetPlaybackSpeed(mode);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine SetPlaybackSpeed Failed!");
+    if (playerEngine_ != nullptr) {
+        int ret = playerEngine_->SetPlaybackSpeed(mode);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine SetPlaybackSpeed Failed!");
+    }
+    speedMode_ = mode;
     return MSERR_OK;
 }
 
 int32_t PlayerServer::GetPlaybackSpeed(PlaybackRateMode &mode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
 
     if (status_ == PLAYER_STATE_ERROR) {
         MEDIA_LOGE("Can not GetDuration, currentState is PLAYER_STATE_ERROR");
         return MSERR_INVALID_OPERATION;
     }
 
-    int ret = playerEngine_->GetPlaybackSpeed(mode);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine GetPlaybackSpeed Failed!");
+    mode = speedMode_;
     return MSERR_OK;
 }
 
@@ -421,17 +432,22 @@ bool PlayerServer::IsLooping()
 int32_t PlayerServer::SetLooping(bool loop)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
-
     if (status_ == PLAYER_STATE_ERROR) {
         MEDIA_LOGE("Can not SetLooping, currentState is PLAYER_STATE_ERROR");
         return MSERR_INVALID_OPERATION;
     }
-    looping_ = loop;
 
-    int32_t ret = playerEngine_->SetLooping(loop);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine SetLooping Failed!");
-    return ret;
+    looping_ = loop;
+    if (status_ == PLAYER_IDLE || status_ == PLAYER_INITIALIZED) {
+        MEDIA_LOGI("Waiting for the engine state is <prepared> to take effect");
+        return MSERR_OK;
+    }
+
+    if (playerEngine_ != nullptr) {
+        int32_t ret = playerEngine_->SetLooping(looping_);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetLooping Failed!");
+    }
+    return MSERR_OK;
 }
 
 int32_t PlayerServer::SetPlayerCallback(const std::shared_ptr<PlayerCallback> &callback)

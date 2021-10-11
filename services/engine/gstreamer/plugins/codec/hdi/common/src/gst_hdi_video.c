@@ -16,8 +16,7 @@
 #include "gst_hdi_video.h"
 #include "gst_hdi_video_dec.h"
 
-GstVideoFormat
-gst_hdi_video_pixelformt_to_gstvideoformat(PixelFormat hdiColorformat)
+GstVideoFormat gst_hdi_video_pixelformt_to_gstvideoformat(PixelFormat hdiColorformat)
 {
     GstVideoFormat format;
 

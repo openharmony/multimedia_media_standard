@@ -18,6 +18,7 @@
 
 #include <string>
 #include <memory>
+#include <mutex>
 #include "nocopyable.h"
 #include "inner_msg_define.h"
 
@@ -47,9 +48,6 @@ private:
     std::string name_;
 };
 
-/**
- * Not thread-safe, do not concurrently invoke the StateMachine's interface in multiple threads.
- */
 class StateMachine {
 public:
     StateMachine() = default;
@@ -60,9 +58,10 @@ public:
 protected:
     void HandleMessage(const InnerMessage &msg);
     void ChangeState(const std::shared_ptr<State> &state);
-    std::shared_ptr<State> GetCurrState() const;
+    std::shared_ptr<State> GetCurrState();
 
 private:
+    std::recursive_mutex recMutex_;
     std::shared_ptr<State> currState_;
 };
 }

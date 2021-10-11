@@ -17,6 +17,7 @@
 #define VIDEO_CAPTURE_SF_ES_AVC_IMPL_H
 
 #include "video_capture_sf_impl.h"
+#include "nocopyable.h"
 
 namespace OHOS {
 namespace Media {
@@ -24,6 +25,7 @@ class VideoCaptureSfEsAvcImpl : public VideoCaptureSfImpl {
 public:
     VideoCaptureSfEsAvcImpl();
     virtual ~VideoCaptureSfEsAvcImpl();
+    DISALLOW_COPY_AND_MOVE(VideoCaptureSfEsAvcImpl);
 
 protected:
     std::shared_ptr<EsAvcCodecBuffer> DoGetCodecBuffer() override;
@@ -31,7 +33,7 @@ protected:
 
 private:
     std::shared_ptr<VideoFrameBuffer> GetIDRFrame();
-    const uint8_t *FindNextNal(const uint8_t *start, const uint8_t *end, uint32_t &nalLen);
+    const uint8_t *FindNextNal(const uint8_t *start, const uint8_t *end);
     void GetCodecData(const uint8_t *data, int32_t len, std::vector<uint8_t> &sps, std::vector<uint8_t> &pps,
             std::vector<uint8_t> &sei);
     GstBuffer* AVCDecoderConfiguration(std::vector<uint8_t> &sps,

@@ -107,7 +107,7 @@ std::unordered_map<int32_t, std::string> AVMetadataHelperServiceProxy::ResolveMe
 
     auto itKey = key.begin();
     auto itDataStr = dataStr.begin();
-    for (; itKey != key.end() && itDataStr != dataStr.end(); itKey++, itDataStr++) {
+    for (; itKey != key.end() && itDataStr != dataStr.end(); ++itKey, ++itDataStr) {
         metadata[*itKey] = *itDataStr;
     }
 
@@ -124,7 +124,7 @@ std::shared_ptr<AVSharedMemory> AVMetadataHelperServiceProxy::FetchFrameAtTime(i
     (void)data.WriteInt32(option);
     (void)data.WriteInt32(param.dstWidth);
     (void)data.WriteInt32(param.dstHeight);
-    (void)data.WriteInt32(param.colorFormat);
+    (void)data.WriteInt32(static_cast<int32_t>(param.colorFormat));
 
     int error = Remote()->SendRequest(FETCH_FRAME_AT_TIME, data, reply, opt);
     if (error != MSERR_OK) {

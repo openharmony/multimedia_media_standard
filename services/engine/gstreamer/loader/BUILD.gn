@@ -45,25 +45,19 @@ config("media_engine_gst_loader_config") {
 }
 
 ohos_static_library("media_engine_gst_loader") {
-  sources = [
-    "gst_loader.cpp",
-  ]
+  sources = [ "gst_loader.cpp" ]
 
-  configs = [
-    ":media_engine_gst_loader_config",
-  ]
+  configs = [ ":media_engine_gst_loader_config" ]
 
   deps = [
-    "//utils/native/base:utils",
-    "//third_party/gstreamer/gstreamer:gstreamer",
+    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//third_party/glib:glib",
     "//third_party/glib:gobject",
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
+    "//third_party/gstreamer/gstreamer:gstreamer",
+    "//utils/native/base:utils",
   ]
 
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-  ]
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
   subsystem_name = "multimedia"
   part_name = "multimedia_media_standard"

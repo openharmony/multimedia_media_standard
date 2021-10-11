@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef PLAYER_TEST_H
-#define PLAYER_TEST_H
+#ifndef PLAYER_DEMO_H
+#define PLAYER_DEMO_H
 
 #include "securec.h"
 #include "player.h"
@@ -23,7 +23,7 @@
 #include "window_manager.h"
 #include "nocopyable.h"
 
-namespace MediaTest {
+namespace MediaDemo {
     const int32_t HEIGHT = 720;
     const int32_t WIDTH = 1280;
     const int32_t POSITION_UPDATE_INTERVAL = 100;
@@ -41,22 +41,22 @@ namespace MediaTest {
 
 namespace OHOS {
 namespace Media {
-class PlayerTest {
+class PlayerDemo {
 public:
-    PlayerTest() = default;
-    virtual ~PlayerTest() = default;
-    DISALLOW_COPY_AND_MOVE(PlayerTest);
+    PlayerDemo() = default;
+    virtual ~PlayerDemo() = default;
+    DISALLOW_COPY_AND_MOVE(PlayerDemo);
     sptr<Surface> GetVideoSurface();
-    void TestCase(const std::string &path);
+    void RunCase(const std::string &path);
 
 private:
     void DoNext();
     void Seek(const std::string cmd);
     void SetLoop(const std::string cmd);
-    void SetPlaybackSpeed(const std::string cmd);
+    void SetPlaybackSpeed(const std::string cmd) const;
     int32_t GetPlaying();
     int32_t GetLooping();
-    int32_t GetPlaybackSpeed();
+    int32_t GetPlaybackSpeed() const;
     int32_t SetDataSrc(const std::string &path, bool seekable);
     int32_t SelectSource(const std::string &path);
     int32_t ChangeModeToSpeed(const PlaybackRateMode &mode, double &rate) const;
@@ -67,11 +67,11 @@ private:
     std::shared_ptr<Player> player_ = nullptr;
 };
 
-class PlayerCallbackTest : public PlayerCallback {
+class PlayerCallbackDemo : public PlayerCallback {
 public:
-    PlayerCallbackTest() = default;
-    virtual ~PlayerCallbackTest() = default;
-    DISALLOW_COPY_AND_MOVE(PlayerCallbackTest);
+    PlayerCallbackDemo() = default;
+    virtual ~PlayerCallbackDemo() = default;
+    DISALLOW_COPY_AND_MOVE(PlayerCallbackDemo);
     void OnError(PlayerErrorType errorType, int32_t errorCode) override;
     void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody = {}) override;
 

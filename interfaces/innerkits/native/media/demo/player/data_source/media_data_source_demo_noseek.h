@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef MEDIA_DATA_SOURCE_TEST_NOSEEK_H
-#define MEDIA_DATA_SOURCE_TEST_NOSEEK_H
+#ifndef MEDIA_DATA_SOURCE_DEMO_NOSEEK_H
+#define MEDIA_DATA_SOURCE_DEMO_NOSEEK_H
 
 #include <string>
 #include "media_data_source.h"
@@ -22,12 +22,12 @@
 
 namespace OHOS {
 namespace Media {
-class MediaDataSourceTestNoseek : public IMediaDataSource {
+class MediaDataSourceDemoNoSeek : public IMediaDataSource {
 public:
-    static std::shared_ptr<IMediaDataSource> Create(const std::string &uri);
-    explicit MediaDataSourceTestNoseek(const std::string &uri);
-    virtual ~MediaDataSourceTestNoseek();
-    DISALLOW_COPY_AND_MOVE(MediaDataSourceTestNoseek);
+    static std::shared_ptr<IMediaDataSource> Create(const std::string &uri, int32_t size);
+    MediaDataSourceDemoNoSeek(const std::string &uri, int32_t size);
+    virtual ~MediaDataSourceDemoNoSeek();
+    DISALLOW_COPY_AND_MOVE(MediaDataSourceDemoNoSeek);
     int32_t ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
     int32_t ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
     int32_t GetSize(int64_t &size) override;
@@ -38,7 +38,8 @@ private:
     FILE *fd_ = nullptr;
     int64_t size_ = 0;
     int64_t pos_ = 0;
+    int32_t fixedSize_ = 0;
 };
 } // namespace Media
 } // namespace OHOS
-#endif /* MEDIA_DATA_SOURCE_TEST_NOSEEK_H */
+#endif /* MEDIA_DATA_SOURCE_DEMO_NOSEEK_H */

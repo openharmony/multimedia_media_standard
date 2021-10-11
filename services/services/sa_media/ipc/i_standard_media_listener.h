@@ -26,7 +26,6 @@ namespace Media {
 class IStandardMediaListener : public IRemoteBroker {
 public:
     virtual ~IStandardMediaListener() = default;
-
     DECLARE_INTERFACE_DESCRIPTOR(u"IStandardMediaListener");
 };
 } // namespace Media

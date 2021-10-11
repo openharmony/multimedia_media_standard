@@ -214,6 +214,7 @@ static void gst_audio_server_sink_get_property(GObject *object, guint prop_id, G
 static gboolean gst_audio_server_sink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 {
     GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(basesink);
+    g_return_val_if_fail(sink != nullptr, FALSE);
     g_return_val_if_fail(sink->audio_sink != nullptr, FALSE);
     g_return_val_if_fail(caps != nullptr, FALSE);
 
@@ -245,6 +246,7 @@ static gboolean gst_audio_server_sink_set_caps(GstBaseSink *basesink, GstCaps *c
 static gboolean gst_audio_server_sink_event(GstBaseSink *basesink, GstEvent *event)
 {
     GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(basesink);
+    g_return_val_if_fail(sink != nullptr, FALSE);
     GstEventType type = GST_EVENT_TYPE(event);
     switch (type) {
         case GST_EVENT_EOS:

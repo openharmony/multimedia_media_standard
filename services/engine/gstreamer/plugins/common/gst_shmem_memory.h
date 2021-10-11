@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,24 +13,19 @@
  * limitations under the License.
  */
 
-#ifndef AVMETADATAHELPER_TEST_H
-#define AVMETADATAHELPER_TEST_H
+#ifndef GST_SHMEM_MEMORY_H
+#define GST_SHMEM_MEMORY_H
 
-#include "avmetadatahelper.h"
+#include <gst/gst.h>
+#include "avsharedmemory.h"
 
-namespace OHOS {
-namespace Media {
-class AVMetadataHelperTest {
-public:
-    AVMetadataHelperTest() = default;
-    ~AVMetadataHelperTest() = default;
-    void TestCase(const std::string &pathOuter);
+typedef struct _GstShMemMemory GstShMemMemory;
 
-private:
-    void GetMetadata(const std::string cmd);
-    void DoNext();
-    std::shared_ptr<AVMetadataHelper> avMetadataHelper_;
+struct _GstShMemMemory {
+    GstMemory parent;
+    std::shared_ptr<OHOS::Media::AVSharedMemory> mem;
 };
-}
-}
+
+gboolean gst_is_shmem_memory(GstMemory *mem);
+
 #endif

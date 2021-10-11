@@ -17,6 +17,7 @@
 #define MEDIA_DEATH_RECIPIENT_H
 
 #include "iremote_object.h"
+#include "nocopyable.h"
 
 namespace OHOS {
 namespace Media {
@@ -24,6 +25,7 @@ class MediaDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
     explicit MediaDeathRecipient(pid_t pid) : pid_(pid) {};
     virtual ~MediaDeathRecipient() = default;
+    DISALLOW_COPY_AND_MOVE(MediaDeathRecipient);
     void OnRemoteDied(const wptr<IRemoteObject> &remote)
     {
         (void)remote;

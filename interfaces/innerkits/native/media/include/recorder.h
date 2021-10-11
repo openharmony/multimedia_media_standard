@@ -55,33 +55,6 @@ enum AudioSourceType : int32_t {
     AUDIO_SOURCE_DEFAULT = 0,
     /** Microphone */
     AUDIO_MIC = 1,
-    /** The following app usages are not supported. */
-    /** Uplink voice */
-    AUDIO_VOICE_UPLINK = 2,
-    /** Downlink voice */
-    AUDIO_VOICE_DOWNLINK = 3,
-    /** Voice call */
-    AUDIO_VOICE_CALL = 4,
-    /** Camcorder */
-    AUDIO_CAMCORDER = 5,
-    /** Voice recognition */
-    AUDIO_VOICE_RECOGNITION = 6,
-    /** Voice communication */
-    AUDIO_VOICE_COMMUNICATION = 7,
-    /** Remote submix */
-    AUDIO_REMOTE_SUBMIX = 8,
-    /** Unprocessed audio */
-    AUDIO_UNPROCESSED = 9,
-    /** Voice performance */
-    AUDIO_VOICE_PERFORMANCE = 10,
-    /** Echo reference */
-    AUDIO_ECHO_REFERENCE = 1997,
-    /** Radio tuner */
-    AUDIO_RADIO_TUNER = 1998,
-    /** Hotword */
-    AUDIO_HOTWORD = 1999,
-    /** Extended remote submix */
-    AUDIO_REMOTE_SUBMIX_EXTEND = 10007,
 };
 
 /**
