@@ -77,6 +77,7 @@ AVMetadataHelperEngineGstImpl::~AVMetadataHelperEngineGstImpl()
 {
     MEDIA_LOGD("enter dtor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
     Reset();
+    CLEAN_PERF_RECORD(this);
 }
 
 int32_t AVMetadataHelperEngineGstImpl::SetSource(const std::string &uri, int32_t usage)
