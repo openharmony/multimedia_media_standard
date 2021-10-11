@@ -28,6 +28,7 @@ public:
     RecorderPipelineLinkHelper(const std::shared_ptr<RecorderPipeline> &pipeline,
                                const std::shared_ptr<RecorderPipelineDesc> &desc);
     ~RecorderPipelineLinkHelper();
+    DISALLOW_COPY_AND_MOVE(RecorderPipelineLinkHelper);
 
     int32_t ExecuteLink();
 

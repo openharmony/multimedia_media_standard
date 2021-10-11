@@ -21,6 +21,7 @@
 #include "i_standard_recorder_listener.h"
 #include "media_death_recipient.h"
 #include "recorder_server.h"
+#include "nocopyable.h"
 
 namespace OHOS {
 namespace Media {
@@ -28,6 +29,7 @@ class RecorderServiceStub : public IRemoteStub<IStandardRecorderService> {
 public:
     static sptr<RecorderServiceStub> Create();
     virtual ~RecorderServiceStub();
+    DISALLOW_COPY_AND_MOVE(RecorderServiceStub);
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
     using RecorderStubFunc = int32_t(RecorderServiceStub::*)(MessageParcel &data, MessageParcel &reply);

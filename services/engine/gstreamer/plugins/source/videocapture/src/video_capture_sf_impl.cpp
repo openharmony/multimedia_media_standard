@@ -29,6 +29,12 @@ namespace {
 
 namespace OHOS {
 namespace Media {
+const std::map<uint32_t, uint32_t> VIDEO_RESOLUTION_MAP = {
+    { 1920, 1080 },
+    { 1280, 720 },
+    { 720, 480 },
+};
+
 VideoCaptureSfImpl::VideoCaptureSfImpl()
     : videoWidth_(DEFAULT_VIDEO_WIDTH),
       videoHeight_(DEFAULT_VIDEO_HEIGHT),
@@ -53,7 +59,9 @@ VideoCaptureSfImpl::~VideoCaptureSfImpl()
 
 int32_t VideoCaptureSfImpl::Prepare()
 {
-    MEDIA_LOGI("videoWidth = %{public}d, videoHeight = %{public}d", videoWidth_, videoHeight_);
+    auto iter = VIDEO_RESOLUTION_MAP.find(videoWidth_);
+    CHECK_AND_RETURN_RET_LOG(iter != VIDEO_RESOLUTION_MAP.end(), MSERR_INVALID_VAL, "illegal video width");
+    CHECK_AND_RETURN_RET_LOG(videoHeight_ == iter->second, MSERR_INVALID_VAL, "illegal video height");
 
     sptr<Surface> consumerSurface = Surface::CreateSurfaceAsConsumer();
     CHECK_AND_RETURN_RET_LOG(consumerSurface != nullptr, MSERR_NO_MEMORY, "create surface fail");
@@ -81,7 +89,6 @@ int32_t VideoCaptureSfImpl::Start()
 {
     std::unique_lock<std::mutex> lock(mutex_);
     started_.store(true);
-    startedCondition_.notify_all();
     return MSERR_OK;
 }
 
@@ -204,12 +211,13 @@ int32_t VideoCaptureSfImpl::GetSufferExtraData()
 
     surfaceRet = surfaceBuffer_->ExtraGet("dataSize", dataSize_);
     CHECK_AND_RETURN_RET_LOG(surfaceRet == SURFACE_ERROR_OK, MSERR_INVALID_OPERATION, "get dataSize fail");
+    CHECK_AND_RETURN_RET_LOG(dataSize_ > 0, MSERR_INVALID_OPERATION, "illegal dataSize");
     surfaceRet = surfaceBuffer_->ExtraGet("timeStamp", pts_);
     CHECK_AND_RETURN_RET_LOG(surfaceRet == SURFACE_ERROR_OK, MSERR_INVALID_OPERATION, "get timeStamp fail");
     surfaceRet = surfaceBuffer_->ExtraGet("isKeyFrame", isCodecFrame_);
     CHECK_AND_RETURN_RET_LOG(surfaceRet == SURFACE_ERROR_OK, MSERR_INVALID_OPERATION, "get isKeyFrame fail");
 
-    MEDIA_LOGI("surfaceBuffer extraData dataSize_: %{public}d, pts: %{public}" PRId64 "", dataSize_, pts_);
+    MEDIA_LOGI("surfaceBuffer extraData dataSize_: %{public}d, pts: (%{public}" PRId64 ")", dataSize_, pts_);
     MEDIA_LOGI("is this surfaceBuffer keyFrame ? : %{public}d", isCodecFrame_);
     return MSERR_OK;
 }

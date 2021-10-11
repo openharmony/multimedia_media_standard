@@ -57,28 +57,24 @@ ohos_shared_library("gst_audio_server_sink") {
   install_enable = true
 
   sources = [
-    "src/gst_audio_server_sink.cpp",
     "src/audio_sink_factory.cpp",
     "src/audio_sink_sv_impl.cpp",
+    "src/gst_audio_server_sink.cpp",
   ]
 
-  configs = [
-    ":gst_audio_server_sink_config",
-  ]
+  configs = [ ":gst_audio_server_sink_config" ]
 
   deps = [
     "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiomanager:audio_client",
     "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiorenderer:audio_renderer",
-    "//third_party/gstreamer/gstreamer:gstreamer",
-    "//third_party/gstreamer/gstreamer:gstbase",
     "//third_party/glib:glib",
-    "//third_party/glib:gobject",
     "//third_party/glib:gmodule",
+    "//third_party/glib:gobject",
+    "//third_party/gstreamer/gstreamer:gstbase",
+    "//third_party/gstreamer/gstreamer:gstreamer",
   ]
 
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-  ]
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
   relative_install_dir = "media/plugins"
   subsystem_name = "multimedia"

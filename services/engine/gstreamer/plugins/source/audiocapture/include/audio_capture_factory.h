@@ -25,9 +25,11 @@ namespace OHOS {
 namespace Media {
 class AudioCaptureFactory {
 public:
+    static std::unique_ptr<AudioCapture> CreateAudioCapture(AudioStreamType streamType);
+
+private:
     AudioCaptureFactory() = delete;
     ~AudioCaptureFactory() = delete;
-    static std::unique_ptr<AudioCapture> CreateAudioCapture(AudioStreamType streamType);
 };
 }  // namespace Media
 }  // namespace OHOS

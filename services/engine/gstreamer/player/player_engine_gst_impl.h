@@ -18,10 +18,6 @@
 
 #include <mutex>
 #include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <fstream>
 #include <thread>
 #include <map>
 
@@ -36,6 +32,7 @@ class PlayerEngineGstImpl : public IPlayerEngine {
 public:
     PlayerEngineGstImpl();
     ~PlayerEngineGstImpl();
+    DISALLOW_COPY_AND_MOVE(PlayerEngineGstImpl);
 
     int32_t SetSource(const std::string &uri) override;
     int32_t SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc) override;
@@ -71,6 +68,10 @@ private:
     std::weak_ptr<IPlayerEngineObs> obs_;
     sptr<Surface> producerSurface_ = nullptr;
     std::string uri_ = "";
+    bool loop_ = false;
+    float leftVolume_ = 1.0f;
+    float rightVolume_ = 1.0f;
+    PlaybackRateMode rateMode_ = SPEED_FORWARD_1_00_X;
     std::condition_variable condVarSync_;
     bool gstPlayerInit_ = false;
     std::unique_ptr<std::thread> playerThread_;

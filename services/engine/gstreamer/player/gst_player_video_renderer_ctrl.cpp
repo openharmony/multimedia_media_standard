@@ -84,6 +84,7 @@ static GstPlayerVideoRenderer *player_video_renderer_new(
 GstElement *GstPlayerVideoRendererCap::CreateSink(GstPlayerVideoRenderer *renderer, GstPlayer *player)
 {
     MEDIA_LOGI("CreateVideoSink in.");
+    CHECK_AND_RETURN_RET_LOG(renderer != nullptr, nullptr, "renderer is nullptr..");
     GstPlayerVideoRendererCtrl *userData = (reinterpret_cast<PlayerVideoRenderer *>(renderer))->rendererCtrl;
     CHECK_AND_RETURN_RET_LOG(userData != nullptr, nullptr, "userData is nullptr..");
 
@@ -101,15 +102,19 @@ GstElement *GstPlayerVideoRendererCap::CreateAudioSink(const GstCaps *caps,
     const DataAvailableFunc callback, const gpointer userData)
 {
     (void)callback;
+    (void)caps;
     MEDIA_LOGI("CreateAudioSink in.");
-    CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "input caps is nullptr..");
     CHECK_AND_RETURN_RET_LOG(userData != nullptr, nullptr, "input userData is nullptr..");
 
     auto sink = gst_element_factory_make("audioserversink", nullptr);
     CHECK_AND_RETURN_RET_LOG(sink != nullptr, nullptr, "gst_element_factory_make failed..");
 
     GstPad *pad = gst_element_get_static_pad(sink, "sink");
-    CHECK_AND_RETURN_RET_LOG(pad != nullptr, nullptr, "gst_element_get_static_pad failed..");
+    if (pad == nullptr) {
+        gst_object_unref(sink);
+        MEDIA_LOGE("gst_element_get_static_pad failed..");
+        return nullptr;
+    }
 
     (void)gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_QUERY_DOWNSTREAM, SinkPadProbeCb, userData, nullptr);
     return sink;
@@ -131,7 +136,11 @@ GstElement *GstPlayerVideoRendererCap::CreateVideoSink(const GstCaps *caps,
     g_object_set(G_OBJECT(sink), "emit-signals", TRUE, nullptr);
 
     GstPad *pad = gst_element_get_static_pad(sink, "sink");
-    CHECK_AND_RETURN_RET_LOG(pad != nullptr, nullptr, "gst_element_get_static_pad failed..");
+    if (pad == nullptr) {
+        gst_object_unref(sink);
+        MEDIA_LOGE("gst_element_get_static_pad failed..");
+        return nullptr;
+    }
 
     (void)gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_QUERY_DOWNSTREAM, SinkPadProbeCb, userData, nullptr);
     return sink;
@@ -146,6 +155,7 @@ GstFlowReturn GstPlayerVideoRendererCap::VideoDataAvailableCb(const GstElement *
     int32_t ret = ctrl->PullVideoBuffer();
     if (ret != MSERR_OK) {
         MEDIA_LOGE("Failed to PullVideoBuffer!");
+        return GST_FLOW_ERROR;
     }
     return GST_FLOW_OK;
 }
@@ -163,7 +173,7 @@ GstPadProbeReturn GstPlayerVideoRendererCap::SinkPadProbeCb(GstPad *pad, GstPadP
         auto s = gst_caps_get_structure(caps, 0);
         auto mediaType = gst_structure_get_name(s);
         gboolean isVideo = g_str_has_prefix(mediaType, "video/");
-        if (isVideo == TRUE) {
+        if (isVideo) {
             gst_query_add_allocation_meta(query, GST_VIDEO_META_API_TYPE, nullptr);
         }
     }
@@ -191,11 +201,11 @@ GstPlayerVideoRendererCtrl::~GstPlayerVideoRendererCtrl()
         audioSink_ = nullptr;
     }
     if (audioCaps_ != nullptr) {
-        g_clear_pointer(&audioCaps_, gst_caps_unref);
+        gst_caps_unref(audioCaps_);
         audioCaps_ = nullptr;
     }
     if (videoCaps_ != nullptr) {
-        g_clear_pointer(&videoCaps_, gst_caps_unref);
+        gst_caps_unref(videoCaps_);
         videoCaps_ = nullptr;
     }
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
@@ -298,22 +308,23 @@ void GstPlayerVideoRendererCtrl::SetSurfaceTimeFromSysPara()
     }
 }
 
-void GstPlayerVideoRendererCtrl::UpdateResquestConfig(BufferRequestConfig &requestConfig,
-    const GstVideoMeta *videoMeta) const
+BufferRequestConfig GstPlayerVideoRendererCtrl::UpdateResquestConfig(const GstVideoMeta *videoMeta) const
 {
-    requestConfig.width = static_cast<int32_t>(videoMeta->width);
-    requestConfig.height = static_cast<int32_t>(videoMeta->height);
+    BufferRequestConfig config;
+    config.width = static_cast<int32_t>(videoMeta->width);
+    config.height = static_cast<int32_t>(videoMeta->height);
     constexpr int32_t strideAlignment = 8;
     const std::string surfaceFormat = "SURFACE_FORMAT";
-    requestConfig.strideAlignment = strideAlignment;
+    config.strideAlignment = strideAlignment;
     std::string format = producerSurface_->GetUserData(surfaceFormat);
     if (format == std::to_string(PIXEL_FMT_RGBA_8888)) {
-        requestConfig.format = PIXEL_FMT_RGBA_8888;
+        config.format = PIXEL_FMT_RGBA_8888;
     } else {
-        requestConfig.format = PIXEL_FMT_YCRCB_420_SP;
+        config.format = PIXEL_FMT_YCRCB_420_SP;
     }
-    requestConfig.usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
-    requestConfig.timeout = 0;
+    config.usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
+    config.timeout = 0;
+    return config;
 }
 
 int32_t GstPlayerVideoRendererCtrl::UpdateSurfaceBuffer(const GstBuffer &buffer)
@@ -328,36 +339,42 @@ int32_t GstPlayerVideoRendererCtrl::UpdateSurfaceBuffer(const GstBuffer &buffer)
     GstVideoMeta *videoMeta = gst_buffer_get_video_meta(buf);
     CHECK_AND_RETURN_RET_LOG(videoMeta != nullptr, MSERR_INVALID_VAL, "gst_buffer_get_video_meta failed..");
     CHECK_AND_RETURN_RET_LOG(videoMeta->width < MAX_DEFAULT_WIDTH && videoMeta->height < MAX_DEFAULT_HEIGHT,
-        MSERR_INVALID_VAL, "Surface is nullptr.Video cannot be played.");
+        MSERR_INVALID_VAL, "video size too large. Video cannot be played.");
 
-    gsize size = gst_buffer_get_size(buf);
-    CHECK_AND_RETURN_RET_LOG(size > 0, MSERR_INVALID_VAL, "gst_buffer_get_size failed..");
-
-    BufferRequestConfig requestConfig;
-    UpdateResquestConfig(requestConfig, videoMeta);
-    int32_t releaseFence;
-    sptr<SurfaceBuffer> surfaceBuffer;
-
+    sptr<SurfaceBuffer> surfaceBuffer = nullptr;
+    int32_t releaseFence = -1;
+    BufferRequestConfig requestConfig = UpdateResquestConfig(videoMeta);
     SurfaceError ret = producerSurface_->RequestBuffer(surfaceBuffer, releaseFence, requestConfig);
     CHECK_AND_RETURN_RET_LOG(ret == SURFACE_ERROR_OK, MSERR_INVALID_OPERATION,
         "RequestBuffer failed(ret = %{public}d)..", ret);
-
     CHECK_AND_RETURN_RET_LOG(surfaceBuffer != nullptr, MSERR_INVALID_OPERATION, "surfaceBuffer is nullptr..");
-    CHECK_AND_RETURN_RET_LOG(surfaceBuffer->GetVirAddr() != nullptr,
-        MSERR_INVALID_OPERATION, "Buffer addr is nullptr..");
-    gsize sizeCopy = gst_buffer_extract(buf, 0, surfaceBuffer->GetVirAddr(), size);
-    if (sizeCopy != size) {
-        MEDIA_LOGW("extract buffer from size : %" G_GSIZE_FORMAT " to size %" G_GSIZE_FORMAT, size, sizeCopy);
-    }
 
-    BufferFlushConfig flushConfig = {};
-    flushConfig.damage.x = 0;
-    flushConfig.damage.y = 0;
-    flushConfig.damage.w = static_cast<int32_t>(videoMeta->width);
-    flushConfig.damage.h = static_cast<int32_t>(videoMeta->height);
-    ret = producerSurface_->FlushBuffer(surfaceBuffer, -1, flushConfig);
-    CHECK_AND_RETURN_RET_LOG(ret == SURFACE_ERROR_OK, MSERR_INVALID_OPERATION,
-        "FlushBuffer failed(ret = %{public}d)..", ret);
+    bool needFlush = false;
+    do {
+        auto surfaceBufferAddr = surfaceBuffer->GetVirAddr();
+        CHECK_AND_BREAK_LOG(surfaceBufferAddr != nullptr, "Buffer addr is nullptr..");
+        gsize size = gst_buffer_get_size(buf);
+        CHECK_AND_BREAK_LOG(size > 0, "gst_buffer_get_size failed..");
+        gsize sizeCopy = gst_buffer_extract(buf, 0, surfaceBufferAddr, size);
+        if (sizeCopy != size) {
+            MEDIA_LOGW("extract buffer from size : %" G_GSIZE_FORMAT " to size %" G_GSIZE_FORMAT, size, sizeCopy);
+        }
+        needFlush = true;
+    } while (0);
+
+    if (needFlush) {
+        BufferFlushConfig flushConfig = {};
+        flushConfig.damage.x = 0;
+        flushConfig.damage.y = 0;
+        flushConfig.damage.w = requestConfig.width;
+        flushConfig.damage.h = requestConfig.height;
+        ret = producerSurface_->FlushBuffer(surfaceBuffer, -1, flushConfig);
+        CHECK_AND_RETURN_RET_LOG(ret == SURFACE_ERROR_OK, MSERR_INVALID_OPERATION,
+            "FlushBuffer failed(ret = %{public}d)..", ret);
+    } else {
+        (void)producerSurface_->CancelBuffer(surfaceBuffer);
+        return MSERR_INVALID_OPERATION;
+    }
     if (surfaceTimeEnable) {
         surfaceTimeMonitor_.FinishTime();
     }

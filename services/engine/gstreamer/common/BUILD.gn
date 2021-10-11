@@ -50,6 +50,7 @@ config("media_engine_gst_common_config") {
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
   ]
 }
 
@@ -58,30 +59,27 @@ ohos_static_library("media_engine_gst_common") {
     "message/gst_msg_converter.cpp",
     "message/gst_msg_processor.cpp",
     "metadata/gst_meta_parser.cpp",
+    "playbin_adapter/playbin2_ctrler.cpp",
     "playbin_adapter/playbin_ctrler_base.cpp",
     "playbin_adapter/playbin_state.cpp",
-    "playbin_adapter/playbin2_ctrler.cpp",
+    "playbin_adapter/playbin_task_mgr.cpp",
     "state_machine/state_machine.cpp",
     "utils/dumper.cpp",
     "utils/gst_utils.cpp",
   ]
 
-  configs = [
-    ":media_engine_gst_common_config",
-  ]
+  configs = [ ":media_engine_gst_common_config" ]
 
   deps = [
-    "//utils/native/base:utils",
-    "//third_party/gstreamer/gstreamer:gstreamer",
+    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gobject",
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
+    "//third_party/gstreamer/gstreamer:gstreamer",
+    "//utils/native/base:utils",
   ]
 
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-  ]
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
   subsystem_name = "multimedia"
   part_name = "multimedia_media_standard"

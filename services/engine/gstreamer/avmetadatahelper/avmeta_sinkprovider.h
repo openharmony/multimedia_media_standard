@@ -21,7 +21,6 @@
 #include <nocopyable.h>
 #include <gst/gst.h>
 #include "playbin_sink_provider.h"
-#include "frame_callback.h"
 
 namespace OHOS {
 namespace Media {
@@ -32,7 +31,6 @@ public:
 
     SinkPtr CreateAudioSink() override;
     SinkPtr CreateVideoSink() override;
-    void SetFrameCallback(const std::shared_ptr<FrameCallback> &callback);
 
     DISALLOW_COPY_AND_MOVE(AVMetaSinkProvider);
 
@@ -40,7 +38,6 @@ private:
     int32_t usage_;
     GstElement *audSink_ = nullptr;
     GstElement *vidSink_ = nullptr;
-    std::shared_ptr<FrameCallback> callback_;
 };
 }
 }

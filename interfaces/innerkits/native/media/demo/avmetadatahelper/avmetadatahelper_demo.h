@@ -13,19 +13,30 @@
  * limitations under the License.
  */
 
-#ifndef FRAME_CALLBACK_H
-#define FRAME_CALLBACK_H
+#ifndef AVMETADATAHELPER_DEMO_H
+#define AVMETADATAHELPER_DEMO_H
 
-#include <gst/gst.h>
+#include "avmetadatahelper.h"
+#include <queue>
+#include <string_view>
+#include "nocopyable.h"
 
 namespace OHOS {
 namespace Media {
-class FrameCallback {
+class AVMetadataHelperDemo {
 public:
-    virtual ~FrameCallback() = default;
-    virtual void OnFrameAvaiable(GstBuffer &frame) = 0;
+    AVMetadataHelperDemo() = default;
+    ~AVMetadataHelperDemo() = default;
+    DISALLOW_COPY_AND_MOVE(AVMetadataHelperDemo);
+    void RunCase(const std::string &pathOuter);
+
+private:
+    void GetMetadata(std::queue<std::string_view> &options);
+    void FetchFrame(std::queue<std::string_view> &options);
+    void DoFetchFrame(int64_t timeUs, int32_t queryOption, const PixelMapParams &param);
+    void DoNext();
+    std::shared_ptr<AVMetadataHelper> avMetadataHelper_;
 };
 }
 }
-
 #endif

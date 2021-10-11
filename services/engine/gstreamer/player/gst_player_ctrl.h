@@ -31,15 +31,15 @@ class GstPlayerCtrl {
 public:
     explicit GstPlayerCtrl(GstPlayer *gstPlayer);
     ~GstPlayerCtrl();
-
+    DISALLOW_COPY_AND_MOVE(GstPlayerCtrl);
     int32_t SetUri(const std::string &uri);
     int32_t SetSource(const std::shared_ptr<GstAppsrcWarp> &appsrcWarp);
     int32_t SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs);
     void SetVideoTrack(bool enable);
-    void Pause(bool cancelNotExecuted = false);
+    void Pause(bool syncExecuted = false);
     void Play();
     int32_t Seek(uint64_t position, const PlayerSeekMode mode);
-    void Stop(bool cancelNotExecuted = false);
+    void Stop(bool syncExecuted = false);
     int32_t SetLoop(bool loop);
     void SetVolume(const float &leftVolume, const float &rightVolume);
     uint64_t GetPosition();
@@ -98,7 +98,7 @@ private:
     bool bufferingStart_ = false;
     bool nextSeekFlag_ = false;
     bool userStop_ = false;
-    bool userPause_ = false;
+    bool locatedInEos_ = false;
     bool stopTimeFlag_ = false;
     bool errorFlag_ = false;
     PlayerStates currentState_ = PLAYER_IDLE;

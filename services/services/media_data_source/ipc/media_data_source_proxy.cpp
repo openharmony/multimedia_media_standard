@@ -74,11 +74,10 @@ int32_t MediaDataSourceProxy::ReadAt(int64_t pos, uint32_t length, const std::sh
     CHECK_AND_RETURN_RET_LOG(WriteAVSharedMemoryToParcel(mem, data) == MSERR_OK, 0, "write parcel failed");
     int error = Remote()->SendRequest(ListenerMsg::READ_AT_POS, data, reply, option);
     if (error != MSERR_OK) {
-        MEDIA_LOGE("on info failed, error: %{public}d", error);
+        MEDIA_LOGE("ReadAt failed, error: %{public}d", error);
         return 0;
     }
-    int32_t realLen = reply.ReadInt32();
-    return realLen;
+    return reply.ReadInt32();
 }
 
 int32_t MediaDataSourceProxy::ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem)
@@ -90,11 +89,10 @@ int32_t MediaDataSourceProxy::ReadAt(uint32_t length, const std::shared_ptr<AVSh
     CHECK_AND_RETURN_RET_LOG(WriteAVSharedMemoryToParcel(mem, data) == MSERR_OK, 0, "write parcel failed");
     int error = Remote()->SendRequest(ListenerMsg::READ_AT, data, reply, option);
     if (error != MSERR_OK) {
-        MEDIA_LOGE("on info failed, error: %{public}d", error);
+        MEDIA_LOGE("ReadAt failed, error: %{public}d", error);
         return 0;
     }
-    int32_t realLen = reply.ReadInt32();
-    return realLen;
+    return reply.ReadInt32();
 }
 
 int32_t MediaDataSourceProxy::GetSize(int64_t &size)
@@ -104,12 +102,11 @@ int32_t MediaDataSourceProxy::GetSize(int64_t &size)
     MessageOption option(MessageOption::TF_SYNC);
     int error = Remote()->SendRequest(ListenerMsg::GET_SIZE, data, reply, option);
     if (error != MSERR_OK) {
-        MEDIA_LOGE("on info failed, error: %{public}d", error);
+        MEDIA_LOGE("GetSize failed, error: %{public}d", error);
         return -1;
     }
     size = reply.ReadInt64();
-    int32_t ret = reply.ReadInt32();
-    return ret;
+    return reply.ReadInt32();
 }
 } // namespace Media
 } // namespace OHOS

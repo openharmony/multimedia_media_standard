@@ -104,6 +104,11 @@ public:
     virtual void Cancel() = 0;
     virtual bool IsCanceled() = 0;
     virtual Attribute GetAttribute() const = 0;
+
+private:
+    // clear the internel executed or canceled state.
+    virtual void Clear() = 0;
+    friend class TaskQueue;
 };
 
 template <typename T>
@@ -136,13 +141,17 @@ public:
         cond_.notify_all();
     }
 
+    /*
+     * After the GetResult called, the last execute result will be clear
+     */
     TaskResult<T> GetResult()
     {
         std::unique_lock<std::mutex> lock(mutex_);
         while ((state_ != TaskState::FINISHED) && (state_ != TaskState::CANCELED)) {
             cond_.wait(lock);
         }
-        return result_;
+
+        return ClearResult();
     }
 
     void Cancel() override
@@ -168,6 +177,27 @@ public:
     DISALLOW_COPY_AND_MOVE(TaskHandler);
 
 private:
+    TaskResult<T> ClearResult()
+    {
+        if (state_ == TaskState::FINISHED) {
+            state_ = TaskState::IDLE;
+            TaskResult<T> tmp;
+            if constexpr (std::is_void_v<T>) {
+                std::swap(tmp.executed, result_.executed);
+            } else {
+                result_.val.swap(tmp.val);
+            }
+            return tmp;
+        }
+        return result_;
+    }
+
+    void Clear() override
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        (void)ClearResult();
+    }
+
     enum TaskState {
         IDLE,
         RUNNING,

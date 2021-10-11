@@ -26,27 +26,29 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-int32_t PlayBinCtrlerBase::BaseState::SetUp()
+void PlayBinCtrlerBase::BaseState::ReportInvalidOperation()
 {
-    MEDIA_LOGE("invalid state");
-    return MSERR_INVALID_STATE;
+    MEDIA_LOGE("invalid operation for %{public}s", GetStateName().c_str());
+
+    PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_ERROR, 0, MSERR_INVALID_STATE };
+    ctrler_.ReportMessage(msg);
 }
 
 int32_t PlayBinCtrlerBase::BaseState::Prepare()
 {
-    MEDIA_LOGE("invalid state");
+    ReportInvalidOperation();
     return MSERR_INVALID_STATE;
 }
 
 int32_t PlayBinCtrlerBase::BaseState::Play()
 {
-    MEDIA_LOGE("invalid state");
+    ReportInvalidOperation();
     return MSERR_INVALID_STATE;
 }
 
 int32_t PlayBinCtrlerBase::BaseState::Pause()
 {
-    MEDIA_LOGE("invalid state");
+    ReportInvalidOperation();
     return MSERR_INVALID_STATE;
 }
 
@@ -55,64 +57,69 @@ int32_t PlayBinCtrlerBase::BaseState::Seek(int64_t timeUs, int32_t option)
     (void)timeUs;
     (void)option;
 
-    MEDIA_LOGE("invalid state");
+    ReportInvalidOperation();
     return MSERR_INVALID_STATE;
 }
 
 int32_t PlayBinCtrlerBase::BaseState::Stop()
 {
-    MEDIA_LOGE("invalid state");
+    ReportInvalidOperation();
     return MSERR_INVALID_STATE;
+}
+
+int32_t PlayBinCtrlerBase::BaseState::ChangePlayBinState(GstState targetState)
+{
+    GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(ctrler_.playbin_), targetState);
+    if (ret == GST_STATE_CHANGE_FAILURE) {
+        MEDIA_LOGE("Failed to change playbin's state to %{public}s", gst_element_state_get_name(targetState));
+        return MSERR_INVALID_OPERATION;
+    }
+
+    return MSERR_OK;
 }
 
 void PlayBinCtrlerBase::BaseState::OnMessageReceived(const InnerMessage &msg)
 {
     ProcessMessage(msg);
 
-    // process error, wanring, info msg , dump dot graph at here.
     if (msg.type == INNER_MSG_STATE_CHANGED) {
+        MEDIA_LOGI("state changed from %{public}s to %{public}s",
+                   gst_element_state_get_name(static_cast<GstState>(msg.detail1)),
+                   gst_element_state_get_name(static_cast<GstState>(msg.detail2)));
+
+        // every time the state of playbin changed, we try to awake the stateCond_'s waiters.
+        ctrler_.stateCond_.notify_one();
+
         Dumper::DumpDotGraph(*ctrler_.playbin_, msg.detail1, msg.detail2);
+
+        if ((msg.detail1 == GST_STATE_PAUSED) && (msg.detail2 == GST_STATE_PAUSED) &&
+            (ctrler_.taskMgr_.GetCurrTaskType() == PlayBinTaskType::SEEKING)) {
+            PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, 0 };
+            ctrler_.ReportMessage(playBinMsg);
+            (void)ctrler_.taskMgr_.MarkSecondPhase();
+        }
+        return;
+    }
+
+    if (msg.type == INNER_MSG_DURATION_CHANGED) {
+        if (this == ctrler_.preparingState_.get()) {
+            return;
+        }
+        MEDIA_LOGI("received duration change msg, update duration");
+        ctrler_.QueryDuration();
+        return;
     }
 
     if (msg.type == INNER_MSG_ERROR) {
-        if (ctrler_.GetCurrState() != ctrler_.idleState_) {
-            auto stopTask = std::make_shared<TaskHandler<void>>([this]() {
-                ctrler_.ChangeState(ctrler_.stoppedState_);
-            });
-            ctrler_.DeferTask(stopTask, 0);
-        }
-
         PlayBinMessage playbinMsg { PLAYBIN_MSG_ERROR, 0, msg.detail1 };
         ctrler_.ReportMessage(playbinMsg);
+        (void)ctrler_.StopInternel();
     }
 }
 
-int32_t PlayBinCtrlerBase::IdleState::SetUp()
+void PlayBinCtrlerBase::IdleState::StateEnter()
 {
-    MEDIA_LOGD("IdleState::SetUp enter");
-
-    int32_t ret = ctrler_.OnInit();
-    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
-    CHECK_AND_RETURN_RET(ctrler_.playbin_ != nullptr, static_cast<int32_t>(MSERR_UNKNOWN));
-
-    ctrler_.playbin_ = GST_PIPELINE_CAST(gst_object_ref(ctrler_.playbin_));
-    ctrler_.SetupCustomElement();
-    ret = ctrler_.SetupSignalMessage();
-    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
-
-    if (ctrler_.currScene_ == PlayBinScene::METADATA || ctrler_.currScene_ == PlayBinScene::THUBNAIL) {
-        uint32_t flags;
-        g_object_get(ctrler_.playbin_, "flags", &flags, nullptr);
-        flags |= GST_PLAY_FLAG_NATIVE_VIDEO | GST_PLAY_FLAG_NATIVE_AUDIO;
-        flags &= ~(GST_PLAY_FLAG_SOFT_COLORBALANCE | GST_PLAY_FLAG_SOFT_VOLUME);
-        g_object_set(ctrler_.playbin_, "flags", flags, nullptr);
-    }
-
-    g_object_set(ctrler_.playbin_, "uri", ctrler_.uri_.c_str(), nullptr);
-    ctrler_.ChangeState(ctrler_.initializedState_);
-
-    MEDIA_LOGD("IdleState::SetUp exit");
-    return MSERR_OK;
+    ctrler_.ExitInitializedState();
 }
 
 int32_t PlayBinCtrlerBase::InitializedState::Prepare()
@@ -126,11 +133,7 @@ void PlayBinCtrlerBase::PreparingState::StateEnter()
     PlayBinMessage msg = { PLAYBIN_MSG_SUBTYPE, PLAYBIN_SUB_MSG_BUFFERING_START, 0, {} };
     ctrler_.ReportMessage(msg);
 
-    GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(ctrler_.playbin_), GST_STATE_PAUSED);
-    if (ret == GST_STATE_CHANGE_FAILURE) {
-        MEDIA_LOGE("Failed to change playbin's state to paused");
-        return;
-    }
+    (void)ChangePlayBinState(GST_STATE_PAUSED);
 
     MEDIA_LOGD("PreparingState::StateEnter finished");
 }
@@ -139,7 +142,6 @@ void PlayBinCtrlerBase::PreparingState::ProcessMessage(const InnerMessage &msg)
 {
     if (msg.type == INNER_MSG_STATE_CHANGED) {
         if ((msg.detail1 == GST_STATE_READY) && (msg.detail2 == GST_STATE_PAUSED)) {
-            MEDIA_LOGI("state changed from ready to paused");
             ctrler_.ChangeState(ctrler_.preparedState_);
             return;
         }
@@ -148,16 +150,18 @@ void PlayBinCtrlerBase::PreparingState::ProcessMessage(const InnerMessage &msg)
 
 void PlayBinCtrlerBase::PreparingState::StateExit()
 {
-    PlayBinMessage msg = { PLAYBIN_MSG_SUBTYPE, PLAYBIN_SUB_MSG_BUFFERING_END, 0, {} };
-    ctrler_.ReportMessage(msg);
+    (void)ctrler_.taskMgr_.MarkSecondPhase();
 }
 
 void PlayBinCtrlerBase::PreparedState::StateEnter()
 {
-    PlayBinMessage msg = { PLAYBIN_MSG_STATE_CHANGE, 0, PLAYBIN_STATE_PREPARED, {} };
+    PlayBinMessage msg = { PLAYBIN_MSG_SUBTYPE, PLAYBIN_SUB_MSG_BUFFERING_END, 0, {} };
     ctrler_.ReportMessage(msg);
 
-    // get duration at here.
+    msg = { PLAYBIN_MSG_STATE_CHANGE, 0, PLAYBIN_STATE_PREPARED, {} };
+    ctrler_.ReportMessage(msg);
+
+    ctrler_.QueryDuration();
 }
 
 int32_t PlayBinCtrlerBase::PreparedState::Prepare()
@@ -167,28 +171,12 @@ int32_t PlayBinCtrlerBase::PreparedState::Prepare()
 
 int32_t PlayBinCtrlerBase::PreparedState::Play()
 {
-    MEDIA_LOGD("PreparedState::Play begin");
-
-    GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(ctrler_.playbin_), GST_STATE_PLAYING);
-    if (ret == GST_STATE_CHANGE_FAILURE) {
-        MEDIA_LOGE("Failed to change playbin's state to playing");
-        return MSERR_INVALID_OPERATION;
-    }
-
-    MEDIA_LOGD("PreparedState::Play finished");
-    return MSERR_OK;
-}
-
-int32_t PlayBinCtrlerBase::PreparedState::Pause()
-{
-    return MSERR_OK;
+    return ChangePlayBinState(GST_STATE_PLAYING);
 }
 
 int32_t PlayBinCtrlerBase::PreparedState::Seek(int64_t timeUs, int32_t option)
 {
-    (void)timeUs;
-    (void)option;
-    return MSERR_OK;
+    return ctrler_.SeekInternel(timeUs, option);
 }
 
 int32_t PlayBinCtrlerBase::PreparedState::Stop()
@@ -202,8 +190,8 @@ void PlayBinCtrlerBase::PreparedState::ProcessMessage(const InnerMessage &msg)
 {
     if (msg.type == INNER_MSG_STATE_CHANGED) {
         if ((msg.detail1 == GST_STATE_PAUSED) && (msg.detail2 == GST_STATE_PLAYING)) {
-            MEDIA_LOGI("state changed from paused to playing");
             ctrler_.ChangeState(ctrler_.playingState_);
+            (void)ctrler_.taskMgr_.MarkSecondPhase();
             return;
         }
     }
@@ -229,24 +217,59 @@ int32_t PlayBinCtrlerBase::PlayingState::Play()
 
 int32_t PlayBinCtrlerBase::PlayingState::Pause()
 {
-    return MSERR_OK;
+    return ChangePlayBinState(GST_STATE_PAUSED);
 }
 
 int32_t PlayBinCtrlerBase::PlayingState::Seek(int64_t timeUs, int32_t option)
 {
-    (void)timeUs;
-    (void)option;
+    seekPending_ = true;
+
+    int32_t ret = ChangePlayBinState(GST_STATE_PAUSED);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Pause failed");
+
+    auto seekTask = std::make_shared<TaskHandler<int32_t>>([this, timeUs, option]() {
+        return ctrler_.SeekInternel(timeUs, option);
+    });
+
+    ret = ctrler_.taskMgr_.LaunchTask(seekTask, PlayBinTaskType::SEEKING);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "launch seek task failed");
+
+    auto playTask = std::make_shared<TaskHandler<int32_t>>([this]()  {
+        return ChangePlayBinState(GST_STATE_PLAYING);
+    });
+
+    ret = ctrler_.taskMgr_.LaunchTask(playTask, PlayBinTaskType::STATE_CHANGE);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "launch play task failed");
+
     return MSERR_OK;
 }
 
 int32_t PlayBinCtrlerBase::PlayingState::Stop()
 {
+    // change to stop always success
+    ctrler_.ChangeState(ctrler_.stoppedState_);
     return MSERR_OK;
 }
 
 void PlayBinCtrlerBase::PlayingState::ProcessMessage(const InnerMessage &msg)
 {
-    (void)msg;
+    if (msg.type == INNER_MSG_STATE_CHANGED) {
+        if ((msg.detail1 == GST_STATE_PLAYING) && (msg.detail2 == GST_STATE_PAUSED)) {
+            if (!seekPending_) {
+                ctrler_.ChangeState(ctrler_.pausedState_);
+            }
+            (void)ctrler_.taskMgr_.MarkSecondPhase();
+            return;
+        }
+        if ((msg.detail1 == GST_STATE_PAUSED) && (msg.detail2 == GST_STATE_PAUSED)) {
+            if (!seekPending_) {
+                ctrler_.ChangeState(ctrler_.pausedState_);
+                (void)ctrler_.taskMgr_.MarkSecondPhase();
+            }
+            seekPending_ = false; // mark the seek task's second phase on the Parent Class
+            return;
+        }
+    }
 }
 
 void PlayBinCtrlerBase::PausedState::StateEnter()
@@ -257,7 +280,7 @@ void PlayBinCtrlerBase::PausedState::StateEnter()
 
 int32_t PlayBinCtrlerBase::PausedState::Play()
 {
-    return MSERR_OK;
+    return ChangePlayBinState(GST_STATE_PLAYING);
 }
 
 int32_t PlayBinCtrlerBase::PausedState::Pause()
@@ -267,54 +290,39 @@ int32_t PlayBinCtrlerBase::PausedState::Pause()
 
 int32_t PlayBinCtrlerBase::PausedState::Seek(int64_t timeUs, int32_t option)
 {
-    (void)timeUs;
-    (void)option;
-    return MSERR_OK;
+    return ctrler_.SeekInternel(timeUs, option);
 }
 
 int32_t PlayBinCtrlerBase::PausedState::Stop()
 {
+    // change to stop always success
+    ctrler_.ChangeState(ctrler_.stoppedState_);
     return MSERR_OK;
 }
 
 void PlayBinCtrlerBase::PausedState::ProcessMessage(const InnerMessage &msg)
 {
-    (void)msg;
+    if (msg.type == INNER_MSG_STATE_CHANGED) {
+        if ((msg.detail1 == GST_STATE_PAUSED) && (msg.detail2 == GST_STATE_PLAYING)) {
+            ctrler_.ChangeState(ctrler_.playingState_);
+            (void)ctrler_.taskMgr_.MarkSecondPhase();
+            return;
+        }
+    }
 }
 
 void PlayBinCtrlerBase::StoppedState::StateEnter()
 {
     // maybe need the deferred task to change state from ready to null, refer to gstplayer.
 
-    ctrler_.msgProcessor_->FlushBegin();
-    GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(ctrler_.playbin_), GST_STATE_READY);
-    if (ret == GST_STATE_CHANGE_FAILURE) {
-        MEDIA_LOGW("Failed to change playbin's state to ready");
-    }
-    ctrler_.msgProcessor_->FlushEnd();
+    (void)ChangePlayBinState(GST_STATE_READY);
 
     MEDIA_LOGD("StoppedState::StateEnter finished");
 }
 
 int32_t PlayBinCtrlerBase::StoppedState::Prepare()
 {
-    return MSERR_OK;
-}
-
-int32_t PlayBinCtrlerBase::StoppedState::Play()
-{
-    return MSERR_OK;
-}
-
-int32_t PlayBinCtrlerBase::StoppedState::Pause()
-{
-    return MSERR_OK;
-}
-
-int32_t PlayBinCtrlerBase::StoppedState::Seek(int64_t timeUs, int32_t option)
-{
-    (void)timeUs;
-    (void)option;
+    ctrler_.ChangeState(ctrler_.preparingState_);
     return MSERR_OK;
 }
 
@@ -327,12 +335,9 @@ void PlayBinCtrlerBase::StoppedState::ProcessMessage(const InnerMessage &msg)
 {
     if (msg.type == INNER_MSG_STATE_CHANGED) {
         if (msg.detail2 == GST_STATE_READY) {
-            MEDIA_LOGI("state changed from %{public}s to %{public}s",
-                       gst_element_state_get_name(static_cast<GstState>(msg.detail1)),
-                       gst_element_state_get_name(static_cast<GstState>(msg.detail2)));
-
             PlayBinMessage playBinMsg = { PLAYBIN_MSG_STATE_CHANGE, 0, PLAYBIN_STATE_STOPPED, {} };
             ctrler_.ReportMessage(playBinMsg);
+            (void)ctrler_.taskMgr_.MarkSecondPhase();
             return;
         }
     }

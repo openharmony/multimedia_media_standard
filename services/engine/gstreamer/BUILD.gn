@@ -14,20 +14,18 @@
 import("//build/ohos.gni")
 
 group("media_engine_gst_plugins_package") {
-  deps = [
-    "plugins:media_engine_gst_plugins",
-  ]
+  deps = [ "plugins:media_engine_gst_plugins" ]
 }
 
 ohos_shared_library("media_engine_gst") {
   deps = [
-    "recorder:media_engine_gst_recorder",
-    "player:media_engine_gst_player",
+    ":media_engine_gst_plugins_package",
     "avmetadatahelper:media_engine_gst_avmeta",
     "common:media_engine_gst_common",
     "factory:media_engine_gst_factory",
     "loader:media_engine_gst_loader",
-    ":media_engine_gst_plugins_package"
+    "player:media_engine_gst_player",
+    "recorder:media_engine_gst_recorder",
   ]
 
   relative_install_dir = "media"

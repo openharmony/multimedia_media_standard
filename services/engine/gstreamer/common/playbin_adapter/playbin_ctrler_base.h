@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 #include <unordered_map>
 #include <mutex>
 #include <gst/gst.h>
@@ -26,6 +27,7 @@
 #include "state_machine.h"
 #include "gst_msg_processor.h"
 #include "task_queue.h"
+#include "playbin_task_mgr.h"
 
 namespace OHOS {
 namespace Media {
@@ -34,14 +36,12 @@ class PlayBinCtrlerBase
       public StateMachine,
       public std::enable_shared_from_this<PlayBinCtrlerBase> {
 public:
-    explicit PlayBinCtrlerBase(const PlayBinMsgNotifier &notifier);
+    explicit PlayBinCtrlerBase(const PlayBinCreateParam &createParam);
     virtual ~PlayBinCtrlerBase();
 
     DISALLOW_COPY_AND_MOVE(PlayBinCtrlerBase);
 
     int32_t Init();
-    int32_t SetSinkProvider(std::shared_ptr<PlayBinSinkProvider> sinkProvider) override;
-    int32_t SetScene(PlayBinScene scene) override;
     int32_t SetSource(const std::string &uri)  override;
     int32_t Prepare() override;
     int32_t PrepareAsync() override;
@@ -49,6 +49,8 @@ public:
     int32_t Pause() override;
     int32_t Seek(int64_t timeUs, int32_t seekOption) override;
     int32_t Stop() override;
+    int64_t GetDuration() override;
+
     void SetElemSetupListener(ElemSetupListener listener) final;
 
 protected:
@@ -66,11 +68,14 @@ private:
     class PausedState;
     class StoppedState;
 
-    std::string GetSource();
     int32_t EnterInitializedState();
+    void ExitInitializedState();
+    int32_t PrepareAsyncInternel();
+    int32_t SeekInternel(int64_t timeUs, int32_t seekOption);
+    int32_t StopInternel();
     void SetupCustomElement();
     int32_t SetupSignalMessage();
-    void DeferTask(const std::shared_ptr<TaskHandler<void>> &task, int64_t delayNs = 0);
+    void QueryDuration();
     static void ElementSetup(const GstElement *playbin, GstElement *elem, gpointer userdata);
     void OnElementSetup(GstElement &elem);
     void OnMessageReceived(const InnerMessage &msg);
@@ -78,16 +83,21 @@ private:
     void Reset() noexcept;
 
     std::mutex mutex_;
-    std::unique_ptr<TaskQueue> taskQueue_;
+    PlayBinTaskMgr taskMgr_;
     std::unique_ptr<TaskQueue> msgQueue_;
+    PlayBinRenderMode renderMode_ = PlayBinRenderMode::DEFAULT_RENDER;
     PlayBinMsgNotifier notifier_;
     ElemSetupListener elemSetupListener_;
     std::shared_ptr<PlayBinSinkProvider> sinkProvider_;
     std::unique_ptr<GstMsgProcessor> msgProcessor_;
-    PlayBinScene currScene_ = PlayBinScene::UNKNOWN;
     std::string uri_;
     bool isInitialized = false;
-    std::shared_ptr<TaskHandler<int32_t>> preparedTask_;
+
+    bool isErrorHappened_ = false;
+    std::mutex condMutex_;
+    std::condition_variable stateCond_;
+
+    int64_t duration_ = 0;
 
     std::shared_ptr<IdleState> idleState_;
     std::shared_ptr<InitializedState> initializedState_;

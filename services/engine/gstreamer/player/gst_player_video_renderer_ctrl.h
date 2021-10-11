@@ -29,6 +29,7 @@ class GstPlayerVideoRendererCtrl {
 public:
     explicit GstPlayerVideoRendererCtrl(const sptr<Surface> &surface);
     ~GstPlayerVideoRendererCtrl();
+    DISALLOW_COPY_AND_MOVE(GstPlayerVideoRendererCtrl);
     int32_t InitVideoSink(const GstElement *playbin);
     int32_t InitAudioSink(const GstElement *playbin);
     const GstElement *GetVideoSink() const;
@@ -36,7 +37,7 @@ public:
     int32_t UpdateSurfaceBuffer(const GstBuffer &buffer);
 
 private:
-    void UpdateResquestConfig(BufferRequestConfig &requestConfig, const GstVideoMeta *videoMeta) const;
+    BufferRequestConfig UpdateResquestConfig(const GstVideoMeta *videoMeta) const;
     std::string GetVideoSinkFormat() const;
     void SetSurfaceTimeFromSysPara();
 

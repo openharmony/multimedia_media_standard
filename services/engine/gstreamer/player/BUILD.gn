@@ -33,7 +33,7 @@ config("media_engine_gst_player_config") {
     "-Wdate-time",
   ]
 
-    include_dirs = [
+  include_dirs = [
     "//utils/native/base/include",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
@@ -60,10 +60,10 @@ config("media_engine_gst_player_config") {
 ohos_static_library("media_engine_gst_player") {
   sources = [
     "gst_appsrc_warp.cpp",
-    "player_engine_gst_impl.cpp",
     "gst_player_build.cpp",
     "gst_player_ctrl.cpp",
     "gst_player_video_renderer_ctrl.cpp",
+    "player_engine_gst_impl.cpp",
   ]
 
   configs = [
@@ -73,15 +73,15 @@ ohos_static_library("media_engine_gst_player") {
   ]
 
   deps = [
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
-    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiomanager:audio_client",
-    "//third_party/gstreamer/gstreamer:gstreamer",
-    "//third_party/gstreamer/gstplugins_base:gstvideo",
-    "//third_party/gstreamer/gstplugins_bad:gstplayer",
-    "//third_party/glib:glib",
-    "//third_party/glib:gobject",
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//foundation/graphic/standard/frameworks/surface:surface",
+    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiomanager:audio_client",
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//third_party/glib:glib",
+    "//third_party/glib:gobject",
+    "//third_party/gstreamer/gstplugins_bad:gstplayer",
+    "//third_party/gstreamer/gstplugins_base:gstvideo",
+    "//third_party/gstreamer/gstreamer:gstreamer",
   ]
 
   external_deps = [
