@@ -55,6 +55,7 @@ AVMetaMetaCollector::~AVMetaMetaCollector()
 {
     MEDIA_LOGD("enter dtor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
 
+    std::unique_lock<std::mutex> lock(mutex_);
     {
         decltype(blockers_) temp;
         temp.swap(blockers_);
@@ -80,11 +81,15 @@ void AVMetaMetaCollector::Start()
 {
     MEDIA_LOGD("start collecting...");
 
-    allMeta_ = AVMetaElemMetaCollector::GetDefaultMeta();
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (stopCollecting_ || !allMeta_.tbl_.empty()) {
+        return;
+    }
 }
 
 void AVMetaMetaCollector::AddMetaSource(GstElement &source)
 {
+    std::unique_lock<std::mutex> lock(mutex_);
     if (stopCollecting_) {
         return;
     }
@@ -98,6 +103,7 @@ void AVMetaMetaCollector::Stop()
 {
     MEDIA_LOGD("stop collecting...");
 
+    std::unique_lock<std::mutex> lock(mutex_);
     {
         decltype(blockers_) temp;
         temp.swap(blockers_); // will cancel all blocks
@@ -117,17 +123,28 @@ std::unordered_map<int32_t, std::string> AVMetaMetaCollector::GetMetadata()
     cond_.wait(lock, [this]() { return CheckCollectCompleted() || stopCollecting_; });
 
     AdjustMimeType();
+    PopulateMeta(allMeta_);
 
     return allMeta_.tbl_;
+}
+
+std::string AVMetaMetaCollector::GetMetadata(int32_t key)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    cond_.wait(lock, [this, key]() {
+        return stopCollecting_ || allMeta_.HasMeta(key) || CheckCollectCompleted();
+    });
+
+    AdjustMimeType();
+
+    std::string result;
+    (void)allMeta_.TryGetMeta(key, result);
+    return result;
 }
 
 bool AVMetaMetaCollector::CheckCollectCompleted() const
 {
     if (elemCollectors_.size() == 0 || blockers_.size() == 0) {
-        return false;
-    }
-
-    if (trackMetaCollected_.count(AVMETA_TRACK_NUMBER_FILE) == 0) {
         return false;
     }
 
@@ -159,6 +176,7 @@ bool AVMetaMetaCollector::CheckCollectCompleted() const
         }
     }
 
+    MEDIA_LOGI("collect metadata finished !");
     return true;
 }
 
@@ -213,6 +231,9 @@ void AVMetaMetaCollector::UpdataMeta(int32_t trackId, const Metadata &metadata)
 {
     MEDIA_LOGD("trackId = %{public}d", trackId);
     std::unique_lock<std::mutex> lock(mutex_);
+    if (stopCollecting_) {
+        return;
+    }
 
     for (auto &[key, value] : metadata.tbl_) {
         allMeta_.SetMeta(key, value);
@@ -330,7 +351,6 @@ void AVMetaMetaCollector::UpdateElemBlocker(GstElement &source, uint8_t elemType
     MEDIA_LOGD("update blocker when elem %{public}s setup, elemType: %{public}hhu",
                ELEM_NAME(&source), elemType);
 
-    std::unique_lock<std::mutex> lock(mutex_);
     do {
         if (currSetupedElemType_ == GstElemType::UNKNOWN) {
             break;

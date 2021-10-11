@@ -17,6 +17,7 @@
 #define RECORDER_SERVICE_PROXY_H
 
 #include "i_standard_recorder_service.h"
+#include "nocopyable.h"
 
 namespace OHOS {
 namespace Media {
@@ -24,6 +25,8 @@ class RecorderServiceProxy : public IRemoteProxy<IStandardRecorderService> {
 public:
     explicit RecorderServiceProxy(const sptr<IRemoteObject> &impl);
     virtual ~RecorderServiceProxy();
+    DISALLOW_COPY_AND_MOVE(RecorderServiceProxy);
+
     int32_t SetListenerObject(const sptr<IRemoteObject> &object) override;
     int32_t SetVideoSource(VideoSourceType source, int32_t &sourceId) override;
     int32_t SetVideoEncoder(int32_t sourceId, VideoCodecFormat encoder) override;

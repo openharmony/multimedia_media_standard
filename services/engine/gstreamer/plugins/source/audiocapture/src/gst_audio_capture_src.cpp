@@ -130,6 +130,7 @@ static void gst_audio_capture_src_init(GstAudioCaptureSrc *src)
 static void gst_audio_capture_src_finalize(GObject *object)
 {
     GstAudioCaptureSrc *src = GST_AUDIO_CAPTURE_SRC(object);
+    g_return_if_fail(src != nullptr);
     if (src->src_caps != nullptr) {
         gst_caps_unref(src->src_caps);
         src->src_caps = nullptr;
@@ -189,6 +190,7 @@ static gboolean process_caps_info(GstAudioCaptureSrc *src)
     guint bitrate = 0;
     guint sample_rate = 0;
     guint channels = 0;
+    g_return_val_if_fail(src != nullptr, FALSE);
     g_return_val_if_fail(src->audio_capture->GetCaptureParameter(bitrate, channels, sample_rate) == MSERR_OK, FALSE);
 
     gboolean is_valid_params = TRUE;
@@ -284,6 +286,7 @@ static GstFlowReturn gst_audio_capture_src_create(GstPushSrc *psrc, GstBuffer **
 {
     g_return_val_if_fail((psrc != nullptr) && (outbuf != nullptr), GST_FLOW_ERROR);
     GstAudioCaptureSrc *src = GST_AUDIO_CAPTURE_SRC(psrc);
+    g_return_val_if_fail(src != nullptr, GST_FLOW_ERROR);
     if (src->is_start == FALSE) {
         return GST_FLOW_EOS;
     }
@@ -303,6 +306,7 @@ static gboolean gst_audio_capture_src_negotiate(GstBaseSrc *basesrc)
 {
     g_return_val_if_fail(basesrc != nullptr, false);
     GstAudioCaptureSrc *src = GST_AUDIO_CAPTURE_SRC(basesrc);
+    g_return_val_if_fail(src != nullptr, FALSE);
     (void)gst_base_src_wait_playing(basesrc);
     return gst_base_src_set_caps(basesrc, src->src_caps);
 }

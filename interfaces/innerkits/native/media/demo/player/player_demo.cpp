@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-#include "player_test.h"
+#include "player_demo.h"
 #include <iostream>
-#include "media_data_source_test_noseek.h"
-#include "media_data_source_test_seekable.h"
+#include "media_data_source_demo_noseek.h"
+#include "media_data_source_demo_seekable.h"
 #include "string_ex.h"
 #include "media_errors.h"
 #include "directory_ex.h"
 
 using namespace OHOS;
 using namespace OHOS::Media;
-using namespace MediaTest;
+using namespace MediaDemo;
 using namespace std;
 namespace {
 const std::string SURFACE_STRIDE_ALIGNMENT = "SURFACE_STRIDE_ALIGNMENT";
@@ -37,21 +37,21 @@ const float SPEED_2_00_X = 2.00;
 }
 
 // PlayerCallback override
-void PlayerCallbackTest::OnError(PlayerErrorType errorType, int32_t errorCode)
+void PlayerCallbackDemo::OnError(PlayerErrorType errorType, int32_t errorCode)
 {
     (void)errorType;
     cout << "Error received, errorCode:" << MSErrorToString(static_cast<MediaServiceErrCode>(errorCode)) << endl;
 }
 
-void PlayerCallbackTest::OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
+void PlayerCallbackDemo::OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
 {
     (void)infoBody;
     switch (type) {
         case INFO_TYPE_SEEKDONE:
-            cout << "TestPlayerCallback: OnSeekDone currentPositon is " << extra << endl;
+            cout << "PlayerCallback: OnSeekDone currentPositon is " << extra << endl;
             break;
         case INFO_TYPE_EOS:
-            cout << "TestPlayerCallback: OnEndOfStream isLooping is " << extra << endl;
+            cout << "PlayerCallback: OnEndOfStream isLooping is " << extra << endl;
             break;
         case INFO_TYPE_STATE_CHANGE:
             state_ = static_cast<PlayerStates>(extra);
@@ -65,14 +65,14 @@ void PlayerCallbackTest::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
             updateCount_++;
             break;
         case INFO_TYPE_MESSAGE:
-            cout << "TestPlayerCallback: OnMessage is " << extra << endl;
+            cout << "PlayerCallback: OnMessage is " << extra << endl;
             break;
         default:
             break;
     }
 }
 
-void PlayerCallbackTest::PrintState(PlayerStates state) const
+void PlayerCallbackDemo::PrintState(PlayerStates state) const
 {
     if (STATE_MAP.count(state) != 0) {
         cout << "State:" << (STATE_MAP.at(state)).c_str() << endl;
@@ -81,7 +81,7 @@ void PlayerCallbackTest::PrintState(PlayerStates state) const
     }
 }
 
-sptr<Surface> PlayerTest::GetVideoSurface()
+sptr<Surface> PlayerDemo::GetVideoSurface()
 {
     cout << "Please enter the number of mode(default no window):" << endl;
     cout << "0:no window" << endl;
@@ -104,6 +104,10 @@ sptr<Surface> PlayerTest::GetVideoSurface()
             cout << "WindowOption is null" << endl;
             return nullptr;
         }
+        (void)option->SetWidth(640);
+        (void)option->SetHeight(360);
+        (void)option->SetX(0);
+        (void)option->SetY(0);
         (void)option->SetWindowType(WINDOW_TYPE_NORMAL);
         (void)wmi->CreateWindow(mwindow_, option);
         if (mwindow_ == nullptr) {
@@ -124,7 +128,7 @@ sptr<Surface> PlayerTest::GetVideoSurface()
     return producerSurface;
 }
 
-void PlayerTest::Seek(const std::string cmd)
+void PlayerDemo::Seek(const std::string cmd)
 {
     int32_t time = -1;
     if (!StrToInt(cmd, time) || time < 0) {
@@ -138,7 +142,7 @@ void PlayerTest::Seek(const std::string cmd)
     }
 }
 
-int32_t PlayerTest::ChangeModeToSpeed(const PlaybackRateMode &mode, double &rate) const
+int32_t PlayerDemo::ChangeModeToSpeed(const PlaybackRateMode &mode, double &rate) const
 {
     if (mode == SPEED_FORWARD_0_75_X) {
         rate = SPEED_0_75_X;
@@ -156,7 +160,7 @@ int32_t PlayerTest::ChangeModeToSpeed(const PlaybackRateMode &mode, double &rate
     return 0;
 }
 
-int32_t PlayerTest::ChangeSpeedToMode(const double &rate, PlaybackRateMode &mode) const
+int32_t PlayerDemo::ChangeSpeedToMode(const double &rate, PlaybackRateMode &mode) const
 {
     if (abs(rate - SPEED_0_75_X) < EPSINON) {
         mode = SPEED_FORWARD_0_75_X;
@@ -174,7 +178,7 @@ int32_t PlayerTest::ChangeSpeedToMode(const double &rate, PlaybackRateMode &mode
     return  0;
 }
 
-int32_t PlayerTest::GetPlaybackSpeed()
+int32_t PlayerDemo::GetPlaybackSpeed() const
 {
     PlaybackRateMode mode;
     double rate;
@@ -187,7 +191,7 @@ int32_t PlayerTest::GetPlaybackSpeed()
     return 0;
 }
 
-void PlayerTest::SetPlaybackSpeed(const std::string cmd)
+void PlayerDemo::SetPlaybackSpeed(const std::string cmd) const
 {
     PlaybackRateMode mode;
     if (!cmd.empty()) {
@@ -205,7 +209,7 @@ void PlayerTest::SetPlaybackSpeed(const std::string cmd)
     }
 }
 
-void PlayerTest::SetLoop(const std::string cmd)
+void PlayerDemo::SetLoop(const std::string cmd)
 {
     int32_t loopEn = -1;
     if (!StrToInt(cmd, loopEn)) {
@@ -219,21 +223,21 @@ void PlayerTest::SetLoop(const std::string cmd)
     }
 }
 
-int32_t PlayerTest::GetPlaying()
+int32_t PlayerDemo::GetPlaying()
 {
     bool isPlay = player_->IsPlaying();
     cout << "Playing:" << isPlay << endl;
     return 0;
 }
 
-int32_t PlayerTest::GetLooping()
+int32_t PlayerDemo::GetLooping()
 {
     bool isLoop = player_->IsLooping();
     cout << "Looping:" << isLoop << endl;
     return 0;
 }
 
-void PlayerTest::DoNext()
+void PlayerDemo::DoNext()
 {
     cout << "Enter your step:" << endl;
     std::string cmd;
@@ -280,7 +284,7 @@ void PlayerTest::DoNext()
     }
 }
 
-void PlayerTest::RegisterTable()
+void PlayerDemo::RegisterTable()
 {
     (void)playerTable_.emplace("prepare", std::bind(&Player::Prepare, player_));
     (void)playerTable_.emplace("prepareasync", std::bind(&Player::PrepareAsync, player_));
@@ -290,23 +294,33 @@ void PlayerTest::RegisterTable()
     (void)playerTable_.emplace("stop", std::bind(&Player::Stop, player_));
     (void)playerTable_.emplace("reset", std::bind(&Player::Reset, player_));
     (void)playerTable_.emplace("release", std::bind(&Player::Release, player_));
-    (void)playerTable_.emplace("isplaying", std::bind(&PlayerTest::GetPlaying, this));
-    (void)playerTable_.emplace("isloop", std::bind(&PlayerTest::GetLooping, this));
-    (void)playerTable_.emplace("speed", std::bind(&PlayerTest::GetPlaybackSpeed, this));
+    (void)playerTable_.emplace("isplaying", std::bind(&PlayerDemo::GetPlaying, this));
+    (void)playerTable_.emplace("isloop", std::bind(&PlayerDemo::GetLooping, this));
+    (void)playerTable_.emplace("speed", std::bind(&PlayerDemo::GetPlaybackSpeed, this));
 }
 
-int32_t PlayerTest::SetDataSrc(const string &path, bool seekable)
+int32_t PlayerDemo::SetDataSrc(const string &path, bool seekable)
 {
     std::shared_ptr<IMediaDataSource> dataSrc = nullptr;
-    if (seekable == true) {
-        dataSrc = MediaDataSourceTestSeekable::Create(path);
+    cout << "Please enter the size of buffer:" << endl;
+    cout << "0:default" << endl;
+    string sizeStr;
+    (void)getline(cin, sizeStr);
+    int32_t size = -1;
+    if (!StrToInt(sizeStr, size) || size < 0) {
+        cout << "default size" << endl;
     } else {
-        dataSrc = MediaDataSourceTestNoseek::Create(path);
+        cout << "buffer size:" << size << endl;
+    }
+    if (seekable == true) {
+        dataSrc = MediaDataSourceDemoSeekable::Create(path, size);
+    } else {
+        dataSrc = MediaDataSourceDemoNoSeek::Create(path, size);
     }
     return player_->SetSource(dataSrc);
 }
 
-int32_t PlayerTest::SelectSource(const string &pathOuter)
+int32_t PlayerDemo::SelectSource(const string &pathOuter)
 {
     string path;
     int32_t ret = -1;
@@ -343,7 +357,7 @@ int32_t PlayerTest::SelectSource(const string &pathOuter)
     return ret;
 }
 
-void PlayerTest::TestCase(const string &path)
+void PlayerDemo::RunCase(const string &path)
 {
     player_ = OHOS::Media::PlayerFactory::CreatePlayer();
     if (player_ == nullptr) {
@@ -351,8 +365,8 @@ void PlayerTest::TestCase(const string &path)
         return;
     }
     RegisterTable();
-    std::shared_ptr<PlayerCallbackTest> testCallback = std::make_shared<PlayerCallbackTest>();
-    int32_t ret = player_->SetPlayerCallback(testCallback);
+    std::shared_ptr<PlayerCallbackDemo> cb = std::make_shared<PlayerCallbackDemo>();
+    int32_t ret = player_->SetPlayerCallback(cb);
     if (ret != 0) {
         cout << "SetPlayerCallback fail" << endl;
     }

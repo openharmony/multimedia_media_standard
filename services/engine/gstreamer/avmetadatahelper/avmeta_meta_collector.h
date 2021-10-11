@@ -38,6 +38,7 @@ public:
     void AddMetaSource(GstElement &source);
     void Stop();
     std::unordered_map<int32_t, std::string> GetMetadata();
+    std::string GetMetadata(int32_t key);
 
 private:
     uint8_t ProbeElemType(GstElement &source);

@@ -80,10 +80,10 @@ public:
     static RecorderMsgProcResult ProcessInfoMsgDefault(GstMessage &rawMsg, RecorderMessage &prettyMsg);
     static RecorderMsgProcResult ProcessWarningMsgDefault(GstMessage &rawMsg, RecorderMessage &prettyMsg);
     static RecorderMsgProcResult ProcessErrorMsgDefault(GstMessage &rawMsg, RecorderMessage &prettyMsg);
-
     DISALLOW_COPY_AND_MOVE(RecorderMsgHandler);
 };
 
+// not MT-safe
 #define GST_MSG_PARSER_DEFINE(type, Type)                               \
 class Gst##Type##MsgParser {                                            \
 public:                                                                 \

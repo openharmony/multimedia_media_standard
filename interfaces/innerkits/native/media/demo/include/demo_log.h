@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-#ifndef TEST_COMMOM_H
-#define TEST_COMMOM_H
+#ifndef DEMO_LOG_H
+#define DEMO_LOG_H
 
 #include <cstdio>
 
 namespace OHOS {
-#define TEST_CHECK_AND_RETURN_RET_LOG(cond, ret, fmt, ...)      \
+#define DEMO_CHECK_AND_RETURN_RET_LOG(cond, ret, fmt, ...)      \
     do {                                                        \
         if (!(cond)) {                                          \
             (void)printf("%s\n", fmt, ##__VA_ARGS__);             \
@@ -27,7 +27,7 @@ namespace OHOS {
         }                                                       \
     } while (0)
 
-#define TEST_CHECK_AND_RETURN_LOG(cond, fmt, ...)               \
+#define DEMO_CHECK_AND_RETURN_LOG(cond, fmt, ...)               \
     do {                                                        \
         if (!(cond)) {                                          \
             (void)printf("%s\n", fmt, ##__VA_ARGS__);             \
@@ -35,16 +35,16 @@ namespace OHOS {
         }                                                       \
     } while (0)
 
-#define TEST_CHECK_AND_BREAK_LOG(cond, fmt, ...)                \
+#define DEMO_CHECK_AND_BREAK_LOG(cond, fmt, ...)                \
         if (!(cond)) {                                          \
             (void)printf("%s\n", fmt, ##__VA_ARGS__);             \
             break;                                              \
         }
 
-#define TEST_CHECK_AND_CONTINUE_LOG(cond, fmt, ...)             \
+#define DEMO_CHECK_AND_CONTINUE_LOG(cond, fmt, ...)             \
         if (!(cond)) {                                          \
             (void)printf("%s\n", fmt, ##__VA_ARGS__);             \
             continue;                                           \
         }
 }
-#endif // TEST_COMMOM_H
+#endif // DEMO_LOG_H

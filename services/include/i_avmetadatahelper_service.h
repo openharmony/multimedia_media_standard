@@ -48,7 +48,7 @@ public:
 struct OutputConfiguration {
     int32_t dstWidth = -1;
     int32_t dstHeight = -1;
-    int32_t colorFormat = PIXEL_FMT_RGB_565;
+    PixelFormat colorFormat = PixelFormat::RGB_565;
 };
 
 class IAVMetadataHelperService {

@@ -30,7 +30,7 @@ public:
     int32_t SetSource(const std::string &uri, int32_t usage) override;
     std::string ResolveMetadata(int32_t key) override;
     std::unordered_map<int32_t, std::string> ResolveMetadata() override;
-    sptr<PixelMap> FetchFrameAtTime(int64_t timeUs, int32_t option, PixelMapParams param) override;
+    std::shared_ptr<PixelMap> FetchFrameAtTime(int64_t timeUs, int32_t option, PixelMapParams param) override;
     void Release() override;
     int32_t Init();
 private:

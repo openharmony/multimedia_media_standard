@@ -103,7 +103,7 @@ int32_t GstPlayerCtrl::SetSource(const std::shared_ptr<GstAppsrcWarp> &appsrcWar
 int32_t GstPlayerCtrl::SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs)
 {
     CHECK_AND_RETURN_RET_LOG(obs.lock() != nullptr,
-        MSERR_INVALID_OPERATION, "obs is nullptr, please set playercallback");
+        MSERR_INVALID_OPERATION, "obs is nullptr, please set callback");
     if (appsrcWarp_ != nullptr) {
         CHECK_AND_RETURN_RET_LOG(appsrcWarp_->SetErrorCallback(obs) == MSERR_OK,
             MSERR_INVALID_OPERATION, "set obs failed");
@@ -130,9 +130,9 @@ void GstPlayerCtrl::SetVideoTrack(bool enable)
     MEDIA_LOGI("SetVideoTrack Enabled %{public}d", enable);
 }
 
-void GstPlayerCtrl::Pause(bool cancelNotExecuted)
+void GstPlayerCtrl::Pause(bool syncExecuted)
 {
-    if (cancelNotExecuted) {
+    if (syncExecuted) {
         PauseSync();
     } else {
         std::unique_lock<std::mutex> lock(mutex_);
@@ -145,11 +145,13 @@ void GstPlayerCtrl::PauseSync()
 {
     std::unique_lock<std::mutex> lock(mutex_);
 
-    if (currentState_ == PLAYER_PAUSED || currentState_ == PLAYER_PREPARED) {
+    if (currentState_ == PLAYER_PAUSED ||
+        currentState_ == PLAYER_PREPARED ||
+        currentState_ == PLAYER_PLAYBACK_COMPLETE) {
         return;
     }
 
-    userPause_ = true;
+    MEDIA_LOGD("Pause start!");
     CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
     gst_player_pause(gstPlayer_);
 
@@ -174,11 +176,7 @@ void GstPlayerCtrl::PlaySync()
     }
 
     CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
-    if (currentState_ == PLAYER_PLAYBACK_COMPLETE) {
-        gst_player_seek(gstPlayer_, 0);
-    } else {
-        gst_player_play(gstPlayer_);
-    }
+    gst_player_play(gstPlayer_);
 
     {
         condVarPlaySync_.wait(lock);
@@ -239,6 +237,10 @@ void GstPlayerCtrl::SeekSync(uint64_t position, const PlayerSeekMode mode)
         return;
     }
 
+    if (currentState_ == PLAYER_PLAYBACK_COMPLETE) {
+        currentState_ = PLAYER_PAUSED;
+    }
+
     CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
     // need keep the seek and seek modes consistent.
     g_object_set(gstPlayer_, "seek-mode", static_cast<gint>(ChangeSeekModeToGstFlag(mode)), nullptr);
@@ -251,9 +253,9 @@ void GstPlayerCtrl::SeekSync(uint64_t position, const PlayerSeekMode mode)
     }
 }
 
-void GstPlayerCtrl::Stop(bool cancelNotExecuted)
+void GstPlayerCtrl::Stop(bool syncExecuted)
 {
-    if (cancelNotExecuted) {
+    if (syncExecuted) {
         auto task = std::make_shared<TaskHandler<void>>([this] { StopSync(); });
         (void)taskQue_.EnqueueTask(task);
         (void)task->GetResult();
@@ -267,13 +269,6 @@ void GstPlayerCtrl::StopSync()
 {
     std::unique_lock<std::mutex> lock(mutex_);
     if (currentState_ == PLAYER_STOPPED) {
-        return;
-    }
-
-    if (currentState_ == PLAYER_PLAYBACK_COMPLETE) {
-        MEDIA_LOGI("gstplayer already stopped!");
-        currentState_ = PLAYER_STOPPED;
-        OnStateChanged(currentState_);
         return;
     }
 
@@ -332,8 +327,12 @@ uint64_t GstPlayerCtrl::GetPosition()
     std::unique_lock<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(gstPlayer_ != nullptr, 0, "gstPlayer_ is nullptr");
 
-    if (stopTimeFlag_ || currentState_ == PLAYER_STOPPED) {
+    if (currentState_ == PLAYER_STOPPED) {
         return 0;
+    }
+
+    if (currentState_ == PLAYER_PLAYBACK_COMPLETE) {
+        return sourceDuration_;
     }
 
     GstClockTime position = gst_player_get_position(gstPlayer_);
@@ -350,9 +349,7 @@ uint64_t GstPlayerCtrl::GetDuration()
     if (appsrcWarp_ != nullptr && appsrcWarp_->IsLiveMode()) {
         return 0;
     }
-    if (stopTimeFlag_) {
-        return sourceDuration_;
-    }
+
     InitDuration();
     return sourceDuration_;
 }
@@ -386,11 +383,8 @@ void GstPlayerCtrl::SetRateSync(double rate)
     CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
     MEDIA_LOGD("SetRateSync in, rate=(%{public}lf)", rate);
     gst_player_set_rate(gstPlayer_, static_cast<gdouble>(rate));
-    if (currentState_ == PLAYER_PLAYBACK_COMPLETE) {
-        condVarCompleteSync_.wait(lock);
-    } else {
-        condVarSeekSync_.wait(lock);
-    }
+
+    condVarSeekSync_.wait(lock);
     MEDIA_LOGD("SetRateSync out, rate=(%{public}lf)", rate);
 }
 
@@ -423,13 +417,6 @@ void GstPlayerCtrl::GetAudioSink()
 
     signalIdVolume_ = g_signal_connect(audioSink_, "notify::volume", G_CALLBACK(OnVolumeChangeCb), this);
 
-    constexpr float maxVolume = 1.0;
-    constexpr float minVolume = 0;
-    if (volume_ >= minVolume && volume_ <= maxVolume) {
-        MEDIA_LOGI("SetVolume(%{public}f) to audio sink", volume_);
-        g_object_set(audioSink_, "volume", volume_, nullptr);
-        volume_ = INVALID_VOLUME;
-    }
     gst_object_unref(playbin);
 }
 
@@ -480,7 +467,6 @@ void GstPlayerCtrl::ProcessStateChanged(const GstPlayer *cbPlayer, GstPlayerStat
 
     MEDIA_LOGD("currentState_ = %{public}d, newState = %{public}d", currentState_, newState);
     if (newState != PLAYER_IDLE && currentState_ != newState) {
-        currentState_ = newState;
         if (newState == PLAYER_STARTED) {
             OnMessage(PlayerMessageType::PLAYER_INFO_VIDEO_RENDERING_START);
         }
@@ -511,6 +497,8 @@ void GstPlayerCtrl::ProcessEndOfStream(const GstPlayer *cbPlayer)
 
     if (enableLooping_) {
         (void)Seek(0, SEEK_PREVIOUS_SYNC);
+    } else {
+        (void)Pause(false);
     }
 }
 
@@ -587,7 +575,13 @@ void GstPlayerCtrl::ErrorProcess(const GstMessage *msg, PlayerErrorType &errorTy
     GstMessage *message = gst_message_copy(msg);
     CHECK_AND_RETURN_LOG(message != nullptr, "msg copy failed");
     gst_message_parse_error(message, &err, &debug);
-    CHECK_AND_RETURN_LOG(msg->src != nullptr, "msg copy failed");
+    if (msg->src == nullptr) {
+        g_clear_error(&err);
+        g_free(debug);
+        gst_message_unref(message);
+        MEDIA_LOGE("msg parse failed");
+        return;
+    }
     gchar *name = gst_object_get_path_string(msg->src);
     MessageErrorProcess(name, err, errorType, errorCode);
     g_clear_error(&err);
@@ -632,7 +626,6 @@ void GstPlayerCtrl::ProcessSeekDone(const GstPlayer *cbPlayer, uint64_t position
         return;
     }
 
-    // position = 99643, duration_ = 99591
     position = std::min(position, sourceDuration_);
     seekDoneNeedCb_ = true;
     seekDonePosition_ = position;
@@ -707,30 +700,13 @@ void GstPlayerCtrl::OnStateChanged(PlayerStates state)
         GetAudioSink();
     }
 
+    currentState_ = state;
     MEDIA_LOGI("On State callback state: %{public}d", state);
     std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
     Format format;
     if (tempObs != nullptr) {
         MEDIA_LOGD("OnStateChanged %{public}d", state);
         tempObs->OnInfo(INFO_TYPE_STATE_CHANGE, static_cast<int32_t>(state), format);
-    }
-}
-
-void GstPlayerCtrl::HandleStopNotify()
-{
-    condVarStopSync_.notify_all();
-    if (userPause_) {
-        condVarPauseSync_.notify_all();
-        userPause_ = false;
-    }
-}
-
-void GstPlayerCtrl::HandlePlayBackNotify()
-{
-    condVarCompleteSync_.notify_all();
-    if (userPause_) {
-        condVarPauseSync_.notify_all();
-        userPause_ = false;
     }
 }
 
@@ -744,13 +720,11 @@ void GstPlayerCtrl::OnNotify(PlayerStates state)
             condVarPlaySync_.notify_all();
             break;
         case PLAYER_PAUSED:
+        case PLAYER_PLAYBACK_COMPLETE:
             condVarPauseSync_.notify_all();
             break;
         case PLAYER_STOPPED:
-            HandleStopNotify();
-            break;
-        case PLAYER_PLAYBACK_COMPLETE:
-            HandlePlayBackNotify();
+            condVarStopSync_.notify_all();
             break;
         default:
             break;
@@ -797,13 +771,18 @@ void GstPlayerCtrl::OnMessage(int32_t extra) const
 PlayerStates GstPlayerCtrl::ProcessStoppedState()
 {
     PlayerStates newState = PLAYER_STOPPED;
-    stopTimeFlag_ = true;
     if (userStop_ || errorFlag_) {
-        newState = PLAYER_STOPPED;
         userStop_ = false;
     } else {
-        newState = PLAYER_PLAYBACK_COMPLETE;
-        stopTimeFlag_ = false;
+        if (currentState_ == PLAYER_STARTED) {
+            newState = PLAYER_STARTED;
+            locatedInEos_ = enableLooping_ ? false : true;
+        }
+    }
+
+    if (currentState_ == PLAYER_PREPARING) {
+        // return stop when vidoe/audio prepare failed, notify pause finished
+        condVarPauseSync_.notify_all();
     }
     return newState;
 }
@@ -811,16 +790,21 @@ PlayerStates GstPlayerCtrl::ProcessStoppedState()
 PlayerStates GstPlayerCtrl::ProcessPausedState()
 {
     PlayerStates newState = PLAYER_PAUSED;
-    MEDIA_LOGI("ProcessPausedState currentStatus: %{public}d", currentState_);
+
     if ((currentState_ == PLAYER_PREPARING) ||
         (currentState_ == PLAYER_STOPPED) ||
         (currentState_ == PLAYER_PREPARED)) {
         newState = PLAYER_PREPARED;
+    } else if (currentState_ == PLAYER_PLAYBACK_COMPLETE) {
+        newState = PLAYER_PLAYBACK_COMPLETE;
+    } else if (currentState_ == PLAYER_STARTED && locatedInEos_) {
+        newState = PLAYER_PLAYBACK_COMPLETE;
+        locatedInEos_ = false;
     } else {
         newState = PLAYER_PAUSED;
     }
+    MEDIA_LOGI("ProcessPausedState currentStatus: %{public}d, newState: %{public}d", currentState_, newState);
 
-    stopTimeFlag_ = false;
     return newState;
 }
 

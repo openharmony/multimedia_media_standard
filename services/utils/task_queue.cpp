@@ -77,6 +77,8 @@ int32_t TaskQueue::EnqueueTask(const std::shared_ptr<ITaskHandler> &task, bool c
     CHECK_AND_RETURN_RET_LOG(task != nullptr, MSERR_INVALID_VAL,
         "Enqueue task when taskqueue task is nullptr.[%{public}s]", name_.c_str());
 
+    task->Clear();
+
     CHECK_AND_RETURN_RET_LOG(delayUs < MAX_DELAY_US, MSERR_INVALID_VAL,
         "Enqueue task when taskqueue delayUs[%{public}" PRIu64 "] is >= max delayUs[ %{public}" PRIu64
         "], invalid! [%{public}s]",

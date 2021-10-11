@@ -29,6 +29,7 @@ class GstPlayerBuild {
 public:
     GstPlayerBuild();
     ~GstPlayerBuild();
+    DISALLOW_COPY_AND_MOVE(GstPlayerBuild);
     std::shared_ptr<GstPlayerCtrl> Build(sptr<Surface> surface = nullptr);
     void CreateLoop();
     void DestroyLoop() const;

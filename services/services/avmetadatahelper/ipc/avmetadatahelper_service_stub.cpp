@@ -159,7 +159,7 @@ int32_t AVMetadataHelperServiceStub::FetchFrameAtTime(MessageParcel &data, Messa
 {
     int64_t timeUs = data.ReadInt64();
     int32_t option = data.ReadInt32();
-    OutputConfiguration param = {data.ReadInt32(), data.ReadInt32(), data.ReadInt32()};
+    OutputConfiguration param = {data.ReadInt32(), data.ReadInt32(), static_cast<PixelFormat>(data.ReadInt32())};
     std::shared_ptr<AVSharedMemory> ashMem = FetchFrameAtTime(timeUs, option, param);
 
     return WriteAVSharedMemoryToParcel(ashMem, reply);

@@ -21,127 +21,121 @@ CAMERA_LIB_PLATFORM_DIR =
     rebase_path("//device/hisilicon/hardware/media/hal/camera/hi3516dv300/libs",
                 root_build_dir)
 group("hdi_plugins") {
-    deps = [
-        ":gst_hdi_codec",
-    ]
+  deps = [ ":gst_hdi_codec" ]
 }
 
 config("gst_hdi_config") {
-    visibility = [ ":*" ]
+  visibility = [ ":*" ]
 
-    include_dirs = [
-      "vdec/include",
-      "common/include",
-      "//utils/native/base/include",
-      "//third_party/gstreamer/gstreamer",
-      "//third_party/gstreamer/gstreamer/libs",
-      "//third_party/gstreamer/gstplugins_base",
-      "//third_party/gstreamer/gstplugins_base/gst-libs",
-      "//third_party/glib/glib",
-      "//third_party/glib",
-      "//third_party/glib/gmodule",
-      "//third_party/zlib/",
-      "//drivers/peripheral/codec/interfaces/include",
-      "//device/hisilicon/hispark_taurus/sdk_linux/soc/src/mpp/cbb/include",
-      "//device/hisilicon/hispark_taurus/sdk_linux/soc/src/osal/include",
-      "//device/hisilicon/hispark_taurus/sdk_linux/soc/src/mpp/cbb/init/include/linux",
-      "//device/hisilicon/hispark_taurus/sdk_linux/soc/src/mpp/cbb/based/arch/hi3516cv500/include/hi3516cv500",
-      "//device/hisilicon/hispark_taurus/sdk_linux/huawei_proprietary/include",
-      "//utils/native/base/include",
-      "//foundation/graphic/standard/utils/include",
-    ]
+  include_dirs = [
+    "vdec/include",
+    "common/include",
+    "//utils/native/base/include",
+    "//third_party/gstreamer/gstreamer",
+    "//third_party/gstreamer/gstreamer/libs",
+    "//third_party/gstreamer/gstplugins_base",
+    "//third_party/gstreamer/gstplugins_base/gst-libs",
+    "//third_party/glib/glib",
+    "//third_party/glib",
+    "//third_party/glib/gmodule",
+    "//third_party/zlib/",
+    "//drivers/peripheral/codec/interfaces/include",
+    "//device/hisilicon/hispark_taurus/sdk_linux/soc/src/mpp/cbb/include",
+    "//device/hisilicon/hispark_taurus/sdk_linux/soc/src/osal/include",
+    "//device/hisilicon/hispark_taurus/sdk_linux/soc/src/mpp/cbb/init/include/linux",
+    "//device/hisilicon/hispark_taurus/sdk_linux/soc/src/mpp/cbb/based/arch/hi3516cv500/include/hi3516cv500",
+    "//device/hisilicon/hispark_taurus/sdk_linux/huawei_proprietary/include",
+    "//utils/native/base/include",
+    "//foundation/graphic/standard/utils/include",
+  ]
 
-    cflags = [
-        "-Wall",
-        "-Werror",
-        "-DGST_DISABLE_DEPRECATED",
-        "-DHAVE_CONFIG_H",
-        "-DCOLORSPACE=\"videoconvert\"",
-        "-fno-strict-aliasing",
-        "-Wno-sign-compare",
-        "-Wno-builtin-requires-header",
-        "-Wno-implicit-function-declaration",
-        "-DGST_HDI_PARAM_PILE",
-        "-fPIC",
-    ]
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-DGST_DISABLE_DEPRECATED",
+    "-DHAVE_CONFIG_H",
+    "-DCOLORSPACE=\"videoconvert\"",
+    "-fno-strict-aliasing",
+    "-Wno-sign-compare",
+    "-Wno-builtin-requires-header",
+    "-Wno-implicit-function-declaration",
+    "-DGST_HDI_PARAM_PILE",
+    "-fPIC",
+  ]
 }
 
 ohos_shared_library("gst_hdi_codec") {
-    sources = [
-        "common/src/gst_hdi.c",
-        "vdec/src/gst_hdi_h264_dec.c",
-        "vdec/src/gst_hdi_h265_dec.c",
-        "common/src/gst_hdi_video.c",
-        "vdec/src/gst_hdi_video_dec.c",
-        "common/src/gst_dec_surface.cpp"
-    ]
+  sources = [
+    "common/src/gst_dec_surface.cpp",
+    "common/src/gst_hdi.c",
+    "common/src/gst_hdi_video.c",
+    "vdec/src/gst_hdi_h264_dec.c",
+    "vdec/src/gst_hdi_h265_dec.c",
+    "vdec/src/gst_hdi_video_dec.c",
+  ]
 
-    configs = [
-        ":gst_hdi_config",
-    ]
+  configs = [ ":gst_hdi_config" ]
 
-    deps = [
-        "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-        "//third_party/bounds_checking_function:libsec_static",
-        "//third_party/gstreamer/gstreamer:gstreamer",
-        "//third_party/gstreamer/gstreamer:gstbase",
-        "//third_party/gstreamer/gstplugins_base:gstvideo",
-        "//third_party/gstreamer/gstplugins_base:gstpbutils",
-        "//third_party/gstreamer/gstplugins_base:gsttag",
-        "//third_party/glib:glib",
-        "//third_party/glib:gobject",
-        "//third_party/glib:gmodule",
-        "//foundation/graphic/standard:libsurface",
-    ]
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/graphic/standard:libsurface",
+    "//third_party/bounds_checking_function:libsec_static",
+    "//third_party/glib:glib",
+    "//third_party/glib:gmodule",
+    "//third_party/glib:gobject",
+    "//third_party/gstreamer/gstplugins_base:gstpbutils",
+    "//third_party/gstreamer/gstplugins_base:gsttag",
+    "//third_party/gstreamer/gstplugins_base:gstvideo",
+    "//third_party/gstreamer/gstreamer:gstbase",
+    "//third_party/gstreamer/gstreamer:gstreamer",
+  ]
 
-    ldflags = [
-        "-L${SDK_LIB_DIR}",
-        "-L${CAMERA_LIB_PLATFORM_DIR}",
-        "-L${CODEC_LIB_DIR}",
-        "-lcodec",
-        "-lsdk",
-        "-lcamera_hw_platform",
-        "-lhi3516cv500_base",
-        "-lhi3516cv500_chnl",
-        "-lhi3516cv500_dis",
-        "-lhi3516cv500_gdc",
-        "-lhi3516cv500_h264e",
-        "-lhi3516cv500_h265e",
-        "-lhi3516cv500_isp",
-        "-lhi3516cv500_ive",
-        "-lhi3516cv500_jpegd",
-        "-lhi3516cv500_jpege",
-        "-lhi3516cv500_rc",
-        "-lhi3516cv500_rgn",
-        "-lhi3516cv500_sys",
-        "-lhi3516cv500_vdec",
-        "-lhi3516cv500_vedu",
-        "-lhi3516cv500_venc",
-        "-lhi3516cv500_vfmw",
-        "-lhi3516cv500_vgs",
-        "-lhi3516cv500_vi",
-        "-lhi3516cv500_vo",
-        "-lhi3516cv500_vpss",
-        "-lhi3516cv500_aio",
-        "-lhi3516cv500_ai",
-        "-lhi3516cv500_ao",
-        "-lhi3516cv500_adec",
-        "-lhi3516cv500_acodec",
-        "-lhi3516cv500_aenc",
-        "-lhi3516cv500_nnie",
-        "-lhi_osal",
-        "-lhi_irq",
-        "-lhi_sensor_i2c",
-        "-lmpi",
-        "-lupvqe",
-        "-ldnvqe",
-        "-lVoiceEngine",
-    ]
-    external_deps = [
-        "ipc:ipc_core",
-    ]
+  ldflags = [
+    "-L${SDK_LIB_DIR}",
+    "-L${CAMERA_LIB_PLATFORM_DIR}",
+    "-L${CODEC_LIB_DIR}",
+    "-lcodec",
+    "-lsdk",
+    "-lcamera_hw_platform",
+    "-lhi3516cv500_base",
+    "-lhi3516cv500_chnl",
+    "-lhi3516cv500_dis",
+    "-lhi3516cv500_gdc",
+    "-lhi3516cv500_h264e",
+    "-lhi3516cv500_h265e",
+    "-lhi3516cv500_isp",
+    "-lhi3516cv500_ive",
+    "-lhi3516cv500_jpegd",
+    "-lhi3516cv500_jpege",
+    "-lhi3516cv500_rc",
+    "-lhi3516cv500_rgn",
+    "-lhi3516cv500_sys",
+    "-lhi3516cv500_vdec",
+    "-lhi3516cv500_vedu",
+    "-lhi3516cv500_venc",
+    "-lhi3516cv500_vfmw",
+    "-lhi3516cv500_vgs",
+    "-lhi3516cv500_vi",
+    "-lhi3516cv500_vo",
+    "-lhi3516cv500_vpss",
+    "-lhi3516cv500_aio",
+    "-lhi3516cv500_ai",
+    "-lhi3516cv500_ao",
+    "-lhi3516cv500_adec",
+    "-lhi3516cv500_acodec",
+    "-lhi3516cv500_aenc",
+    "-lhi3516cv500_nnie",
+    "-lhi_osal",
+    "-lhi_irq",
+    "-lhi_sensor_i2c",
+    "-lmpi",
+    "-lupvqe",
+    "-ldnvqe",
+    "-lVoiceEngine",
+  ]
+  external_deps = [ "ipc:ipc_core" ]
 
-    relative_install_dir = "media/plugins"
-    part_name = "multimedia_media_standard"
-    subsystem_name = "multimedia"
+  relative_install_dir = "media/plugins"
+  part_name = "multimedia_media_standard"
+  subsystem_name = "multimedia"
 }

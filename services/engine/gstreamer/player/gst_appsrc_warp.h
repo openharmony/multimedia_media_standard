@@ -36,6 +36,12 @@ struct AppsrcMemWarp {
     int32_t offset;
 };
 
+struct AppsrcBufferWarp {
+    GstBuffer *buffer = nullptr;
+    int32_t offset = 0;
+    int32_t size = 0;
+};
+
 class GstAppsrcWarp {
 public:
     static std::shared_ptr<GstAppsrcWarp> Create(const std::shared_ptr<IMediaDataSource> &dataSrc);
@@ -86,6 +92,7 @@ private:
     int32_t filledBufferSize_ = 0;
     int32_t bufferSize_;
     int32_t buffersNum_;
+    std::shared_ptr<AppsrcBufferWarp> bufferWarp_;
 };
 } // namespace Media
 } // namespace OHOS

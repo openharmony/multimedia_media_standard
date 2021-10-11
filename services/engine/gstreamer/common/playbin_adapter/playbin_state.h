@@ -27,7 +27,6 @@ public:
     BaseState(PlayBinCtrlerBase &ctrler, const std::string &name) : State(name), ctrler_(ctrler) {}
     virtual ~BaseState() = default;
 
-    virtual int32_t SetUp();
     virtual int32_t Prepare();
     virtual int32_t Play();
     virtual int32_t Pause();
@@ -37,6 +36,8 @@ public:
 protected:
     void OnMessageReceived(const InnerMessage &msg) final;
     virtual void ProcessMessage(const InnerMessage &msg) {}
+    void ReportInvalidOperation();
+    int32_t ChangePlayBinState(GstState targetState);
 
     PlayBinCtrlerBase &ctrler_;
 };
@@ -46,7 +47,8 @@ public:
     explicit IdleState(PlayBinCtrlerBase &ctrler) : BaseState(ctrler, "idle_state") {}
     ~IdleState() = default;
 
-    int32_t SetUp() override;
+protected:
+    void StateEnter() override;
 };
 
 class PlayBinCtrlerBase::InitializedState : public PlayBinCtrlerBase::BaseState {
@@ -75,7 +77,6 @@ public:
 
     int32_t Prepare() override;
     int32_t Play() override;
-    int32_t Pause() override;
     int32_t Seek(int64_t timeUs, int32_t option) override;
     int32_t Stop() override;
 
@@ -97,6 +98,8 @@ public:
 protected:
     void ProcessMessage(const InnerMessage &msg) override;
     void StateEnter() override;
+
+    bool seekPending_ = false;
 };
 
 class PlayBinCtrlerBase::PausedState : public PlayBinCtrlerBase::BaseState {
@@ -120,9 +123,6 @@ public:
     ~StoppedState() = default;
 
     int32_t Prepare() override;
-    int32_t Play() override;
-    int32_t Pause() override;
-    int32_t Seek(int64_t timeUs, int32_t option) override;
     int32_t Stop() override;
 
 protected:
