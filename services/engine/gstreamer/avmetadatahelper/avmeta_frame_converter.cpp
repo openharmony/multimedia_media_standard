@@ -50,6 +50,7 @@ AVMetaFrameConverter::~AVMetaFrameConverter()
 {
     MEDIA_LOGD("enter dtor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
     (void)Reset();
+    CLEAN_PERF_RECORD(this);
 }
 
 int32_t AVMetaFrameConverter::Init(const OutputConfiguration &config)

@@ -58,6 +58,7 @@ DecoderPerf::~DecoderPerf()
     for (auto &item : probes_) {
         gst_pad_remove_probe(item.first, item.second);
     }
+    CLEAN_PERF_RECORD(this);
 }
 
 void DecoderPerf::Init()

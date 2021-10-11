@@ -33,6 +33,9 @@ namespace Media {
     TimePerfMgr::Inst().StartPerfRecord(reinterpret_cast<uintptr_t>(obj), tag)
 #define ASYNC_PERF_STOP(obj, tag) \
     TimePerfMgr::Inst().StopPerfRecord(reinterpret_cast<uintptr_t>(obj), tag)
+#define CLEAN_PERF_RECORD(obj) \
+    TimePerfMgr::Inst().DumpObjectRecord(reinterpret_cast<uintptr_t>(obj)); \
+    TimePerfMgr::Inst().CleanObjectRecord(reinterpret_cast<uintptr_t>(obj))
 
 class __attribute__((visibility("default"))) TimePerfMgr {
 public:
