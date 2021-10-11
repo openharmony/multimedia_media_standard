@@ -52,11 +52,10 @@ config("media_client_public_config") {
     "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
     "//utils/system/safwk/native/include",
     "//utils/native/base/include",
+    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
   ]
 
   cflags = [
-    "-std=c++17",
-    "-fno-rtti",
     "-fno-exceptions",
     "-Wall",
     "-fno-common",
@@ -69,6 +68,11 @@ config("media_client_public_config") {
     "-fvisibility=hidden",
     "-Wformat=2",
     "-Wdate-time",
+  ]
+
+  cflags_cc = [
+    "-std=c++17",
+    "-fno-rtti",
   ]
 
   if (target_cpu == "arm") {
@@ -108,6 +112,7 @@ ohos_shared_library("media_client") {
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/standard/frameworks/surface:surface",
+    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
     "//utils/native/base:utils",
     "//utils/native/base:utilsecurec",
   ]
@@ -145,6 +150,7 @@ ohos_shared_library("media_local") {
     "$MEIDA_ROOT_DIR/services/utils:media_service_utils",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/graphic/standard/frameworks/surface:surface",
+    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
     "//utils/native/base:utils",
     "//utils/native/base:utilsecurec",
   ]

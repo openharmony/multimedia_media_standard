@@ -39,10 +39,11 @@ AudioSinkSvImpl::~AudioSinkSvImpl()
 
 int32_t AudioSinkSvImpl::SetVolume(float volume)
 {
-    MEDIA_LOGD("SetVolume");
+    MEDIA_LOGD("audioRenderer SetVolume(%{public}lf) In", volume);
     CHECK_AND_RETURN_RET_LOG(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION, "audioRenderer_ is nullptr");
     int32_t ret = audioRenderer_->SetVolume(volume);
     CHECK_AND_RETURN_RET_LOG(ret == AudioStandard::SUCCESS, MSERR_UNKNOWN, "audio server setvolume failed!");
+    MEDIA_LOGD("audioRenderer SetVolume(%{public}lf) Out", volume);
     return MSERR_OK;
 }
 
@@ -70,33 +71,37 @@ int32_t AudioSinkSvImpl::GetMinVolume(float &volume)
 
 int32_t AudioSinkSvImpl::Prepare()
 {
-    MEDIA_LOGD("Prepare");
+    MEDIA_LOGD("audioRenderer Prepare In");
     audioRenderer_ = AudioStandard::AudioRenderer::Create(AudioStandard::AudioStreamType::STREAM_MUSIC);
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
+    MEDIA_LOGD("audioRenderer Prepare Out");
     return MSERR_OK;
 }
 
 int32_t AudioSinkSvImpl::Start()
 {
-    MEDIA_LOGD("Start");
+    MEDIA_LOGD("audioRenderer Start In");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(audioRenderer_->Start() == true, MSERR_UNKNOWN);
+    MEDIA_LOGD("audioRenderer Start Out");
     return MSERR_OK;
 }
 
 int32_t AudioSinkSvImpl::Stop()
 {
-    MEDIA_LOGD("Stop");
+    MEDIA_LOGD("audioRenderer Stop In");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(audioRenderer_->Stop() == true, MSERR_UNKNOWN);
+    MEDIA_LOGD("audioRenderer Stop Out");
     return MSERR_OK;
 }
 
 int32_t AudioSinkSvImpl::Pause()
 {
-    MEDIA_LOGD("Pause");
+    MEDIA_LOGD("audioRenderer Pause In");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(audioRenderer_->Pause() == true, MSERR_UNKNOWN);
+    MEDIA_LOGD("audioRenderer Pause Out");
     return MSERR_OK;
 }
 
@@ -118,10 +123,11 @@ int32_t AudioSinkSvImpl::Flush()
 
 int32_t AudioSinkSvImpl::Release()
 {
-    MEDIA_LOGD("Release");
+    MEDIA_LOGD("audioRenderer Release In");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(audioRenderer_->Release() == true, MSERR_UNKNOWN);
     audioRenderer_ = nullptr;
+    MEDIA_LOGD("audioRenderer Release Out");
     return MSERR_OK;
 }
 
@@ -165,7 +171,9 @@ int32_t AudioSinkSvImpl::SetParameters(uint32_t bitsPerSample, uint32_t channels
     params.sampleFormat = AudioStandard::SAMPLE_S16LE;
     params.encodingType = AudioStandard::ENCODING_PCM;
     MEDIA_LOGD("SetParameters out, channels:%{public}d, sampleRate:%{public}d", params.channelCount, params.sampleRate);
+    MEDIA_LOGD("audioRenderer SetParams In");
     CHECK_AND_RETURN_RET(audioRenderer_->SetParams(params) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
+    MEDIA_LOGD("audioRenderer SetParams Out");
     return MSERR_OK;
 }
 

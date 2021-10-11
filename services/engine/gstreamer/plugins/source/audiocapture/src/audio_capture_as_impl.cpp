@@ -22,6 +22,7 @@
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AudioCaptureAsImpl"};
     constexpr size_t MAXIMUM_BUFFER_SIZE = 100000;
+    const uint64_t SECTONANOSECOND = 1000000000;
 }
 
 namespace OHOS {
@@ -99,8 +100,7 @@ int32_t AudioCaptureAsImpl::GetCaptureParameter(uint32_t &bitrate, uint32_t &cha
     MEDIA_LOGD("get channels:%{public}u, sampleRate:%{public}u from audio server", channels, sampleRate);
     CHECK_AND_RETURN_RET(bufferSize_ > 0 && channels > 0 && sampleRate > 0, MSERR_UNKNOWN);
     const uint32_t bitsPerByte = 8;
-    const uint64_t secToNanosecond = 1000000000;
-    bufferDurationNs_ = (bufferSize_ * secToNanosecond) /
+    bufferDurationNs_ = (bufferSize_ * SECTONANOSECOND) /
         (sampleRate * (AudioStandard::SAMPLE_S16LE / bitsPerByte) * channels);
 
     MEDIA_LOGD("audio frame duration is (%{public}" PRIu64 ") ns", bufferDurationNs_);
@@ -114,11 +114,10 @@ int32_t AudioCaptureAsImpl::GetSegmentInfo(uint64_t &start)
     auto timestampBase = AudioStandard::Timestamp::Timestampbase::MONOTONIC;
     CHECK_AND_RETURN_RET(audioCapturer_->GetAudioTime(timeStamp, timestampBase), MSERR_UNKNOWN);
     CHECK_AND_RETURN_RET(timeStamp.time.tv_nsec >= 0 && timeStamp.time.tv_sec >= 0, MSERR_UNKNOWN);
-    const uint64_t secToNanosecond = 1000000000;
-    if (((UINT64_MAX - timeStamp.time.tv_nsec) / secToNanosecond) <= static_cast<uint64_t>(timeStamp.time.tv_sec)) {
+    if (((UINT64_MAX - timeStamp.time.tv_nsec) / SECTONANOSECOND) <= static_cast<uint64_t>(timeStamp.time.tv_sec)) {
         MEDIA_LOGW("audio frame pts too long, this shouldn't happen");
     }
-    start = timeStamp.time.tv_nsec + timeStamp.time.tv_sec * secToNanosecond;
+    start = timeStamp.time.tv_nsec + timeStamp.time.tv_sec * SECTONANOSECOND;
     return MSERR_OK;
 }
 
@@ -140,20 +139,20 @@ std::shared_ptr<AudioBuffer> AudioCaptureAsImpl::GetBuffer()
 
     GstMapInfo map = GST_MAP_INFO_INIT;
     if (gst_buffer_map(buffer->gstBuffer, &map, GST_MAP_READ) != TRUE) {
-        g_free(buffer->gstBuffer);
+        gst_buffer_unref(buffer->gstBuffer);
         return nullptr;
     }
     bool isBlocking = true;
     int32_t bytesRead = audioCapturer_->Read(*(map.data), map.size, isBlocking);
     gst_buffer_unmap(buffer->gstBuffer, &map);
     if (bytesRead <= 0) {
-        g_free(buffer->gstBuffer);
+        gst_buffer_unref(buffer->gstBuffer);
         return nullptr;
     }
 
     if (queryTimestamp_) {
         if (GetSegmentInfo(buffer->timestamp) != MSERR_OK) {
-            g_free(buffer->gstBuffer);
+            gst_buffer_unref(buffer->gstBuffer);
             return nullptr;
         }
     } else {

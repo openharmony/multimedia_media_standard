@@ -35,7 +35,6 @@ const std::string CLASS_NAME = "AudioRecorder";
 const int32_t DEFAULT_AUDIO_ENCODER_BIT_RATE = 48000;
 const int32_t DEFAULT_AUDIO_SAMPLE_RATE = 48000;
 const int32_t DEFAULT_NUMBER_OF_CHANNELS = 2;
-const int32_t MAXIMUM_PATH_LENGTH = 128;
 
 AudioRecorderNapi::AudioRecorderProperties::AudioRecorderProperties()
     : sourceType(AUDIO_SOURCE_DEFAULT),
@@ -230,6 +229,7 @@ int32_t AudioRecorderNapi::GetAudioProperties(napi_env env, napi_value args, Aud
     int32_t fileFormat = -1;
     CommonNapi::GetPropertyInt32(env, args, "format", fileFormat);
     switch (fileFormat) {
+        case JS_DEFAULT_FILE_FORMAT:
         case JS_MPEG_4:
             properties.outputFormatType = FORMAT_MPEG_4;
             break;
@@ -237,17 +237,18 @@ int32_t AudioRecorderNapi::GetAudioProperties(napi_env env, napi_value args, Aud
             properties.outputFormatType = FORMAT_M4A;
             break;
         default:
-            break;
+            return MSERR_INVALID_VAL;
     }
 
     int32_t audioEncoder = -1;
     CommonNapi::GetPropertyInt32(env, args, "audioEncoder", audioEncoder);
     switch (audioEncoder) {
+        case JS_DEFAULT_ENCORD_TYPE:
         case JS_AAC_LC:
             properties.audioCodecFormat = AAC_LC;
             break;
         default:
-            break;
+            return MSERR_INVALID_VAL;
     }
 
     CommonNapi::GetPropertyInt32(env, args, "audioEncodeBitRate", properties.encodeBitRate);
@@ -266,9 +267,9 @@ int32_t AudioRecorderNapi::GetAudioUriPath(napi_env env, napi_value args, std::s
     status = napi_get_named_property(env, args, "uri", &configItem);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, MSERR_INVALID_OPERATION, "can not get uri property");
 
-    char buffer[MAXIMUM_PATH_LENGTH] = {0};
+    char buffer[PATH_MAX] = {0};
     size_t bytesToCopy = 0;
-    status = napi_get_value_string_latin1(env, configItem, buffer, MAXIMUM_PATH_LENGTH - 1, &bytesToCopy);
+    status = napi_get_value_string_latin1(env, configItem, buffer, PATH_MAX - 1, &bytesToCopy);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, MSERR_INVALID_OPERATION, "can not get uri content");
 
     uriPath = buffer;

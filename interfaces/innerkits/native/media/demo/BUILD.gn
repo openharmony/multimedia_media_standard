@@ -11,9 +11,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/test.gni")
+import("//build/ohos.gni")
 
-ohos_executable("media_test") {
+ohos_executable("media_demo") {
   include_dirs = [
     "./include",
     "./player",
@@ -26,6 +26,8 @@ ohos_executable("media_test") {
     "//graphic/standard/interfaces/innerkits/surface",
     "//foundation/graphic/standard/interfaces/innerkits/wmclient",
     "//drivers/peripheral/display/interfaces/include",
+    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
+    "//third_party/libjpeg",
   ]
 
   cflags = [
@@ -49,18 +51,20 @@ ohos_executable("media_test") {
   ]
 
   sources = [
-    "./avmetadatahelper/avmetadatahelper_test.cpp",
-    "./player/data_source/media_data_source_test_noseek.cpp",
-    "./player/data_source/media_data_source_test_seekable.cpp",
-    "./player/player_test.cpp",
-    "./recorder/recorder_test.cpp",
-    "./testdemo.cpp",
+    "./avmetadatahelper/avmetadatahelper_demo.cpp",
+    "./media_demo.cpp",
+    "./player/data_source/media_data_source_demo_noseek.cpp",
+    "./player/data_source/media_data_source_demo_seekable.cpp",
+    "./player/player_demo.cpp",
+    "./recorder/recorder_demo.cpp",
   ]
 
   deps = [
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard:libwmclient",
     "//foundation/graphic/standard/frameworks/surface:surface",
+    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+    "//third_party/libjpeg:libjpeg_static",
     "//utils/native/base:utils",
   ]
   external_deps = [

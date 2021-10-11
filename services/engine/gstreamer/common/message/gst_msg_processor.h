@@ -24,6 +24,7 @@
 #include "inner_msg_define.h"
 #include "task_queue.h"
 #include "gst_msg_converter.h"
+#include "nocopyable.h"
 
 namespace OHOS {
 namespace Media {
@@ -44,6 +45,8 @@ public:
     void FlushBegin();
     void FlushEnd();
     void Reset() noexcept;
+
+    DISALLOW_COPY_AND_MOVE(GstMsgProcessor);
 
 private:
     int32_t DoInit();

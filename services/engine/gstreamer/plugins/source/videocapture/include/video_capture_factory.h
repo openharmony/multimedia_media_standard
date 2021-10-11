@@ -25,10 +25,11 @@ namespace OHOS {
 namespace Media {
 class VideoCaptureFactory {
 public:
-    VideoCaptureFactory() = delete;
-    ~VideoCaptureFactory() = delete;
     static std::unique_ptr<VideoCapture> CreateVideoCapture(VideoStreamType streamType);
 
+private:
+    VideoCaptureFactory() = delete;
+    ~VideoCaptureFactory() = delete;
     DISALLOW_COPY_AND_MOVE(VideoCaptureFactory);
 };
 }  // namespace Media

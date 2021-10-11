@@ -19,21 +19,12 @@
 #include <string>
 #include <unordered_map>
 #include <memory>
-#include "refbase.h"
-#include "display_type.h"
+#include "pixel_map.h"
 #include "nocopyable.h"
 #include "avsharedmemory.h"
 
 namespace OHOS {
 namespace Media {
-/**
- * @attention This is the stub for image module, the complete definition must be provided by the image module.
- */
-class PixelMap : public RefBase {
-    PixelMap() = default;
-    ~PixelMap() = default;
-};
-
 /**
  * @brief Enumerates avmetadata usage.
  */
@@ -166,9 +157,10 @@ struct PixelMapParams {
      */
     int32_t dstHeight = -1;
     /**
-     * Expected pixelmap's color format.
+     * Expected pixelmap's color format, see {@link PixelFormat}. Currently,
+     * RGB_565, RGB_888 are supported.
      */
-    int32_t colorFormat = PixelFormat::PIXEL_FMT_RGB_565;
+    PixelFormat colorFormat = PixelFormat::RGB_565;
 };
 
 /**
@@ -221,7 +213,7 @@ public:
      * @return Returns a pixelmap containing a scaled video frame, which can be null, if such a
      * frame cannot be fetched.
      */
-    virtual sptr<PixelMap> FetchFrameAtTime(int64_t timeUs, int32_t option, PixelMapParams param) = 0;
+    virtual std::shared_ptr<PixelMap> FetchFrameAtTime(int64_t timeUs, int32_t option, PixelMapParams param) = 0;
 
     /**
      * Release the internel resource. After this method called, the avmetadatahelper instance

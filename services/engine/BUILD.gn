@@ -14,7 +14,5 @@
 import("//build/ohos.gni")
 
 group("media_engine_package") {
-  deps = [
-    "gstreamer:media_engine_gst"
-  ]
+  deps = [ "gstreamer:media_engine_gst" ]
 }

@@ -53,7 +53,7 @@ static int32_t ConvertWarningMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
     if (error == nullptr || debug == nullptr) {
         return MSERR_UNKNOWN;
     }
-    MEDIA_LOGE("[WARNING] %{public}s, %{public}s", error->message, debug);
+    MEDIA_LOGW("[WARNING] %{public}s, %{public}s", error->message, debug);
 
     innerMsg.type = INNER_MSG_WARNING;
     innerMsg.detail1 = MSERR_UNKNOWN;
@@ -71,7 +71,7 @@ static int32_t ConvertInfoMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
     if (error == nullptr || debug == nullptr) {
         return MSERR_UNKNOWN;
     }
-    MEDIA_LOGE("[INFO] %{public}s, %{public}s", error->message, debug);
+    MEDIA_LOGI("[INFO] %{public}s, %{public}s", error->message, debug);
 
     innerMsg.type = INNER_MSG_INFO;
     innerMsg.detail1 = MSERR_UNKNOWN;
@@ -87,7 +87,7 @@ static int32_t ConvertStateChangedMessage(GstMessage &gstMsg, InnerMessage &inne
     GstState newState = GST_STATE_VOID_PENDING;
     GstState pendingState = GST_STATE_VOID_PENDING;
     gst_message_parse_state_changed(const_cast<GstMessage *>(&gstMsg), &oldState, &newState, &pendingState);
-    MEDIA_LOGD("%{public}s change state from %{public}s to %{public}s", ELEM_NAME(GST_MESSAGE_SRC(&gstMsg)),
+    MEDIA_LOGI("%{public}s change state from %{public}s to %{public}s", ELEM_NAME(GST_MESSAGE_SRC(&gstMsg)),
         gst_element_state_get_name(oldState), gst_element_state_get_name(newState));
 
     innerMsg.type = INNER_MSG_STATE_CHANGED;
@@ -97,6 +97,11 @@ static int32_t ConvertStateChangedMessage(GstMessage &gstMsg, InnerMessage &inne
 
     return MSERR_OK;
 }
+
+static const std::unordered_map<GstMessageType, InnerMsgType> SIMPLE_MSG_TYPE_MAPPING = {
+    { GST_MESSAGE_DURATION_CHANGED, INNER_MSG_DURATION_CHANGED },
+    { GST_MESSAGE_EOS, INNER_MSG_EOS },
+};
 
 using MsgConvFunc = std::function<int32_t(GstMessage&, InnerMessage&)>;
 static const std::unordered_map<GstMessageType, MsgConvFunc> MSG_CONV_FUNC_TABLE = {
@@ -109,6 +114,12 @@ static const std::unordered_map<GstMessageType, MsgConvFunc> MSG_CONV_FUNC_TABLE
 int32_t GstMsgConverterDefault::ConvertToInnerMsg(GstMessage &gstMsg, InnerMessage &innerMsg) const
 {
     innerMsg.type = INNER_MSG_UNKNOWN;
+
+    if (SIMPLE_MSG_TYPE_MAPPING.count(gstMsg.type) != 0) {
+        innerMsg.type = SIMPLE_MSG_TYPE_MAPPING.at(gstMsg.type);
+        MEDIA_LOGI("convert gst msg type: %{public}s", GST_MESSAGE_TYPE_NAME(&gstMsg));
+        return MSERR_OK;
+    }
 
     if (MSG_CONV_FUNC_TABLE.count(gstMsg.type) == 0) {
         return MSERR_OK;

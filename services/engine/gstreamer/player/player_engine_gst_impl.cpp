@@ -83,7 +83,7 @@ int32_t PlayerEngineGstImpl::SetSource(const std::string &uri)
     CHECK_AND_RETURN_RET_LOG(uri.length() <= MAX_URI_SIZE, MSERR_INVALID_VAL, "input uri length is invalid!");
 
     std::string realUriPath;
-    int32_t ret = MSERR_UNKNOWN;
+    int32_t ret = MSERR_OK;
 
     if (IsFileUri(uri)) {
         ret = GetRealPath(uri, realUriPath);
@@ -93,7 +93,6 @@ int32_t PlayerEngineGstImpl::SetSource(const std::string &uri)
         uri_ = "file://" + realUriPath;
     } else {
         uri_ = uri;
-        ret = MSERR_OK;
     }
 
     MEDIA_LOGI("set player source: %{public}s", uri_.c_str());
@@ -230,9 +229,8 @@ void PlayerEngineGstImpl::GstPlayerDeInit()
 
 int32_t PlayerEngineGstImpl::GstPlayerPrepare() const
 {
-    MEDIA_LOGI("GstPlayerPrepare In");
     CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_VAL, "playerCtrl_ is nullptr");
-    int32_t ret = MSERR_OK;
+    int32_t ret;
     if (appsrcWarp_ == nullptr) {
         ret = playerCtrl_->SetUri(uri_);
         playerCtrl_->SetRingBufferMaxSize(RING_BUFFER_MAX_SIZE);
@@ -247,7 +245,6 @@ int32_t PlayerEngineGstImpl::GstPlayerPrepare() const
     if (producerSurface_ == nullptr) {
         playerCtrl_->SetVideoTrack(false);
     }
-
     return MSERR_OK;
 }
 
@@ -337,29 +334,34 @@ PlaybackRateMode PlayerEngineGstImpl::ChangeSpeedToMode(double rate) const
 int32_t PlayerEngineGstImpl::SetPlaybackSpeed(PlaybackRateMode mode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
-
-    double rate = ChangeModeToSpeed(mode);
-    return playerCtrl_->SetRate(rate);
+    rateMode_ = mode;
+    if (playerCtrl_ != nullptr) {
+        double rate = ChangeModeToSpeed(mode);
+        (void)playerCtrl_->SetRate(rate);
+    }
+    return MSERR_OK;
 }
 
 int32_t PlayerEngineGstImpl::GetPlaybackSpeed(PlaybackRateMode &mode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
-
-    double rate = playerCtrl_->GetRate();
-    mode = ChangeSpeedToMode(rate);
+    mode = rateMode_;
+    if (playerCtrl_ != nullptr) {
+        double rate = playerCtrl_->GetRate();
+        mode = ChangeSpeedToMode(rate);
+    }
     return MSERR_OK;
 }
 
 int32_t PlayerEngineGstImpl::SetLooping(bool loop)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
-
-    MEDIA_LOGI("SetLooping in");
-    return playerCtrl_->SetLoop(loop);
+    loop_ = loop;
+    if (playerCtrl_ != nullptr) {
+        MEDIA_LOGI("SetLooping in");
+        (void)playerCtrl_->SetLoop(loop);
+    }
+    return MSERR_OK;
 }
 
 int32_t PlayerEngineGstImpl::Stop()
@@ -397,10 +399,12 @@ int32_t PlayerEngineGstImpl::Seek(int32_t mSeconds, PlayerSeekMode mode)
 int32_t PlayerEngineGstImpl::SetVolume(float leftVolume, float rightVolume)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    MEDIA_LOGI("SetVolume in");
-
-    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
-    playerCtrl_->SetVolume(leftVolume, rightVolume);
+    leftVolume_ = leftVolume;
+    rightVolume_ = rightVolume;
+    if (playerCtrl_ != nullptr) {
+        MEDIA_LOGI("SetVolume in");
+        playerCtrl_->SetVolume(leftVolume, rightVolume);
+    }
     return MSERR_OK;
 }
 } // Media

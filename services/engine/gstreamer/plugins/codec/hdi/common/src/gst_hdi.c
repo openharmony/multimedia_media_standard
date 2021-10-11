@@ -531,10 +531,11 @@ static void gst_hdi_codec_free(GstHDICodec *codec)
 {
     GST_DEBUG_OBJECT(codec, "destroy hdi");
     g_return_if_fail(codec != NULL);
-    g_return_if_fail(codec->handle != NULL);
-    int32_t ret = CodecDestroy(codec->handle);
-    if (ret != HDI_SUCCESS) {
-        GST_ERROR_OBJECT(NULL, "fail to destroy hdi, in error %s", gst_hdi_error_to_string(ret));
+    if (codec->handle != NULL) {
+        int32_t ret = CodecDestroy(codec->handle);
+        if (ret != HDI_SUCCESS) {
+            GST_ERROR_OBJECT(NULL, "fail to destroy hdi, in error %s", gst_hdi_error_to_string(ret));
+        }
     }
     g_mutex_clear(&codec->start_lock);
     g_slice_free(GstHDICodec, codec);
@@ -652,7 +653,7 @@ const gchar *gst_hdi_error_to_string(gint err)
         case HDI_FAILURE:
             return "Failed";
         case HDI_SUCCESS:
-            return "Successs";
+            return "Success";
         case HDI_ERR_STREAM_BUF_FULL:
             return "Stream buffer is full";
         case HDI_ERR_FRAME_BUF_EMPTY:

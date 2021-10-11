@@ -18,6 +18,7 @@
 
 #include "media_service_stub.h"
 #include "system_ability.h"
+#include "nocopyable.h"
 
 namespace OHOS {
 namespace Media {

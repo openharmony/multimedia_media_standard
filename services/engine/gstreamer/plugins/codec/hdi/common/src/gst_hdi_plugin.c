@@ -47,7 +47,6 @@ static void gst_mpi_init()
     if (ret != 0) {
         GST_ERROR_OBJECT(NULL, "HI_MPI_SYS_Init failed, err = %d !\n", ret);
     }
-    return;
 }
 
 void __attribute__((constructor)) gst_hdi_init()
@@ -57,7 +56,6 @@ void __attribute__((constructor)) gst_hdi_init()
     if (ret != HDI_SUCCESS) {
         GST_ERROR_OBJECT(NULL, "fail to init hdi, in error %s", gst_hdi_error_to_string(ret));
     }
-    return;
 }
 
 void __attribute__((destructor)) gst_hdi_deinit()
@@ -66,7 +64,6 @@ void __attribute__((destructor)) gst_hdi_deinit()
     if (ret != HDI_SUCCESS) {
         GST_ERROR_OBJECT(NULL, "fail to deinit hdi, in error %s", gst_hdi_error_to_string(ret));
     }
-    return;
 }
 
 static gboolean plugin_init(GstPlugin *plugin)
@@ -75,7 +72,8 @@ static gboolean plugin_init(GstPlugin *plugin)
     gboolean ret = FALSE;
     CodecCapbility *caps = g_hash_table_lookup(caps_map, "hdih264dec");
     if (caps != NULL) {
-        GST_WARNING_OBJECT(NULL, "caps->whAlignment.widthAlginment = %d %d", caps->whAlignment.widthAlginment, caps->whAlignment.heightAlginment);
+        GST_WARNING_OBJECT(NULL, "caps->whAlignment.widthAlginment = %d %d",
+            caps->whAlignment.widthAlginment, caps->whAlignment.heightAlginment);
         if (gst_element_register(plugin, "hdih264dec", GST_RANK_PRIMARY + 1, GST_TYPE_HDI_H264_DEC)) {
             ret = TRUE;
         } else {
@@ -86,14 +84,15 @@ static gboolean plugin_init(GstPlugin *plugin)
     }
     caps = g_hash_table_lookup(caps_map, "hdih265dec");
     if (caps != NULL) {
-        GST_WARNING_OBJECT(NULL, "caps->whAlignment.widthAlginment = %d %d", caps->whAlignment.widthAlginment, caps->whAlignment.heightAlginment);
-        if (gst_element_register(plugin, "hdih265dec", GST_RANK_PRIMARY + 1, GST_TYPE_HDI_H264_DEC)) {
+        GST_WARNING_OBJECT(NULL, "caps->whAlignment.widthAlginment = %d %d",
+            caps->whAlignment.widthAlginment, caps->whAlignment.heightAlginment);
+        if (gst_element_register(plugin, "hdih265dec", GST_RANK_PRIMARY + 1, GST_TYPE_HDI_H265_DEC)) {
             ret = TRUE;
         } else {
             GST_WARNING_OBJECT(NULL, "register hdih265dec failed");
         }
     } else {
-        GST_WARNING_OBJECT(NULL, "caps map find hdih264dec failed");
+        GST_WARNING_OBJECT(NULL, "caps map find hdih265dec failed");
     }
     return ret;
 }
