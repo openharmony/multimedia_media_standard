@@ -40,7 +40,7 @@ public:
     sptr<Surface> GetSurface() override;
     std::shared_ptr<EsAvcCodecBuffer> GetCodecBuffer() override;
     std::shared_ptr<VideoFrameBuffer> GetFrameBuffer() override;
-    void SetEndOfStream(bool endOfStream) override;
+    void UnLock(bool start) override;
 
 protected:
     virtual std::shared_ptr<EsAvcCodecBuffer> DoGetCodecBuffer() = 0;
@@ -83,7 +83,13 @@ private:
     std::shared_ptr<VideoFrameBuffer> GetFrameBufferInner();
     void ProbeStreamType();
     uint32_t bufferNumber_ = 0;
-    bool isEos = false;
+    uint64_t previousTimestamp_ = 0;
+    uint64_t pauseTime_ = 0;
+    uint64_t resumeTime_ = 0;
+    uint64_t persistTime_ = 0;
+    uint32_t pauseCount_ = 0;
+    uint64_t totalPauseTime_ = 0;
+    bool resourceLock_ = false;
 };
 }  // namespace Media
 }  // namespace OHOS

@@ -91,6 +91,30 @@ public:
     virtual int32_t StopAudioCapture() = 0;
 
     /**
+     * @brief Pause capturing audio.
+     *
+     * This function must be called after {@link StartAudioCapture}.
+     *
+     * @return Returns {@link SUCCESS} if the recording is started; returns an error code defined
+     * in {@link media_errors.h} otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    virtual int32_t PauseAudioCapture() = 0;
+
+    /**
+     * @brief Resume capturing audio.
+     *
+     * This function must be called after {@link PauseAudioCapture}.
+     *
+     * @return Returns {@link SUCCESS} if the recording is started; returns an error code defined
+     * in {@link media_errors.h} otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    virtual int32_t ResumeAudioCapture() = 0;
+
+    /**
      * @brief Gets the audio frame buffer.
      *
      * This function must be called after {@link StartAudioCapture} but before {@link StopAudioCapture}.

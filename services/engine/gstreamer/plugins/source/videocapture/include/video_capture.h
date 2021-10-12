@@ -145,13 +145,13 @@ public:
     virtual std::shared_ptr<VideoFrameBuffer> GetFrameBuffer() = 0;
 
     /**
-     * @brief Set or unset the end of stream status.
+     * @brief Lock or UnLock any pending access to the resource.
      *
-     * This function will be invoked to notify that the data source is or not end-of-stream. For the data source is
-     * externel, process the notification properly is neccessary to avoid to be blocked in the GetFrameBuffer
-     * or GetCodecBuffer.
+     * This function will be invoked to notify that the data source is or not end-of-stream or flush-start. For
+     * the data source is externel, process the notification properly is neccessary to avoid to be blocked
+     * in the GetFrameBuffer or GetCodecBuffer.
      */
-    virtual void SetEndOfStream(bool endOfStream) = 0;
+    virtual void UnLock(bool start) = 0;
 };
 }  // namespace Media
 }  // namespace OHOS
