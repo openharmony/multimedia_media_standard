@@ -83,7 +83,6 @@ private:
     std::shared_ptr<VideoFrameBuffer> GetFrameBufferInner();
     void ProbeStreamType();
     uint32_t bufferNumber_ = 0;
-    bool isEos = false;
     uint64_t previousTimestamp_ = 0;
     uint64_t pauseTime_ = 0;
     uint64_t resumeTime_ = 0;
