@@ -279,6 +279,9 @@ static GstStateChangeReturn gst_surface_video_src_change_state(GstElement *eleme
     GstStateChangeReturn ret = GST_ELEMENT_CLASS(parent_class)->change_state(element, transition);
 
     switch (transition) {
+        case GST_STATE_CHANGE_PLAYING_TO_PAUSED:
+            g_return_val_if_fail(src->capture->Pause() == MSERR_OK, GST_STATE_CHANGE_FAILURE);
+            break;
         case GST_STATE_CHANGE_PAUSED_TO_READY:
             src->is_start = FALSE;
             g_return_val_if_fail(src->capture != nullptr, GST_STATE_CHANGE_FAILURE);
@@ -345,12 +348,16 @@ static gboolean gst_surface_video_src_send_event(GstElement *element, GstEvent *
         case GST_EVENT_FLUSH_START:
             g_return_val_if_fail(src->capture != nullptr, FALSE);
             src->is_eos = FALSE;
-            src->capture->SetEndOfStream(false);
+            src->capture->UnLock(true);
+            break;
+        case GST_EVENT_FLUSH_STOP:
+            g_return_val_if_fail(src->capture != nullptr, FALSE);
+            src->capture->UnLock(false);
             break;
         case GST_EVENT_EOS:
             g_return_val_if_fail(src->capture != nullptr, FALSE);
             src->is_eos = TRUE;
-            src->capture->SetEndOfStream(true);
+            src->capture->UnLock(true);
             break;
         default:
             break;
