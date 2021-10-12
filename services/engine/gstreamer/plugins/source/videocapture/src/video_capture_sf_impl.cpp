@@ -15,6 +15,7 @@
 
 #include "video_capture_sf_impl.h"
 #include <map>
+#include <cmath>
 #include "media_log.h"
 #include "media_errors.h"
 #include "graphic_common.h"
@@ -29,12 +30,6 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-const std::map<uint32_t, uint32_t> VIDEO_RESOLUTION_MAP = {
-    { 1920, 1080 },
-    { 1280, 720 },
-    { 720, 480 },
-};
-
 VideoCaptureSfImpl::VideoCaptureSfImpl()
     : videoWidth_(DEFAULT_VIDEO_WIDTH),
       videoHeight_(DEFAULT_VIDEO_HEIGHT),
@@ -59,10 +54,7 @@ VideoCaptureSfImpl::~VideoCaptureSfImpl()
 
 int32_t VideoCaptureSfImpl::Prepare()
 {
-    auto iter = VIDEO_RESOLUTION_MAP.find(videoWidth_);
-    CHECK_AND_RETURN_RET_LOG(iter != VIDEO_RESOLUTION_MAP.end(), MSERR_INVALID_VAL, "illegal video width");
-    CHECK_AND_RETURN_RET_LOG(videoHeight_ == iter->second, MSERR_INVALID_VAL, "illegal video height");
-
+    MEDIA_LOGI("videoWidth %{public}d, videoHeight %{public}d", videoWidth_, videoHeight_);
     sptr<Surface> consumerSurface = Surface::CreateSurfaceAsConsumer();
     CHECK_AND_RETURN_RET_LOG(consumerSurface != nullptr, MSERR_NO_MEMORY, "create surface fail");
 
@@ -94,11 +86,24 @@ int32_t VideoCaptureSfImpl::Start()
 
 int32_t VideoCaptureSfImpl::Pause()
 {
+    pauseTime_ = pts_;
+    pauseCount_++;
     return MSERR_OK;
 }
 
 int32_t VideoCaptureSfImpl::Resume()
 {
+    resumeTime_ = pts_;
+    if (resumeTime_ < pauseTime_) {
+        MEDIA_LOGW("get wrong timestamp from HDI!");
+    }
+
+    persistTime_ = std::fabs(resumeTime_ - pauseTime_);
+
+    totalPauseTime_ += persistTime_;
+    
+    MEDIA_LOGI("video capture has %{public}d times paused, persistTime: %{public}" PRIu64 ",totalPauseTime: %{public}"
+    PRIu64 "", pauseCount_, persistTime_, totalPauseTime_);
     return MSERR_OK;
 }
 
@@ -117,15 +122,20 @@ int32_t VideoCaptureSfImpl::Stop()
         dataConSurface_ = nullptr;
         producerSurface_ = nullptr;
     }
+    pauseTime_ = 0;
+    resumeTime_ = 0;
+    persistTime_ = 0;
+    totalPauseTime_ = 0;
+    pauseCount_ = 0;
     return MSERR_OK;
 }
 
-void VideoCaptureSfImpl::SetEndOfStream(bool endOfStream)
+void VideoCaptureSfImpl::UnLock(bool start)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    isEos = endOfStream;
+    resourceLock_ = start;
     bufferAvailableCondition_.notify_all();
-    MEDIA_LOGI("notify end of stream: %{public}d", isEos);
+    MEDIA_LOGI("Unlock any pending access to the resource: %{public}d", resourceLock_);
 }
 
 int32_t VideoCaptureSfImpl::SetVideoWidth(uint32_t width)
@@ -219,6 +229,12 @@ int32_t VideoCaptureSfImpl::GetSufferExtraData()
 
     MEDIA_LOGI("surfaceBuffer extraData dataSize_: %{public}d, pts: (%{public}" PRId64 ")", dataSize_, pts_);
     MEDIA_LOGI("is this surfaceBuffer keyFrame ? : %{public}d", isCodecFrame_);
+
+    if (pts_ < previousTimestamp_) {
+        MEDIA_LOGW("get error timestamp from surfaceBuffer");
+    }
+    previousTimestamp_ = pts_;
+
     return MSERR_OK;
 }
 
@@ -229,9 +245,9 @@ int32_t VideoCaptureSfImpl::AcquireSurfaceBuffer()
         return MSERR_INVALID_OPERATION;
     }
 
-    bufferAvailableCondition_.wait(lock, [this]() { return bufferAvailableCount_ > 0 || isEos; });
-    if (isEos) {
-        MEDIA_LOGI("eos, skip acquire buffer");
+    bufferAvailableCondition_.wait(lock, [this]() { return bufferAvailableCount_ > 0 || resourceLock_; });
+    if (resourceLock_) {
+        MEDIA_LOGI("flush start / eos, skip acquire buffer");
         return MSERR_NO_MEMORY;
     }
 
@@ -245,6 +261,7 @@ int32_t VideoCaptureSfImpl::AcquireSurfaceBuffer()
     int32_t ret = GetSufferExtraData();
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "get ExtraData fail");
 
+    pts_ = pts_ - totalPauseTime_;
     bufferAvailableCount_--;
     return MSERR_OK;
 }

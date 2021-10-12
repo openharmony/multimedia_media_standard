@@ -32,15 +32,20 @@ public:
     int32_t GetSegmentInfo(uint64_t &start) override;
     int32_t StartAudioCapture() override;
     int32_t StopAudioCapture() override;
+    int32_t PauseAudioCapture() override;
+    int32_t ResumeAudioCapture() override;
     std::shared_ptr<AudioBuffer> GetBuffer() override;
 
 private:
     std::unique_ptr<OHOS::AudioStandard::AudioCapturer> audioCapturer_ = nullptr;
     size_t bufferSize_ = 0; // minimum size of each buffer acquired from AudioServer
-    uint32_t sequence_ = 0;
     uint64_t bufferDurationNs_ = 0; // each buffer
     uint64_t timestamp_ = 0;
-    bool queryTimestamp_ = true;
+    uint64_t pausedTime_ = 0; // the timestamp when audio pause called
+    uint64_t resumeTime_ = 0; // the timestamp when audio resume called
+    uint32_t pausedCount_ = 0; // the paused count times
+    uint64_t persistTime_ = 0;
+    uint64_t totalPauseTime_ = 0; 
 };
 }  // namespace Media
 }  // namespace OHOS
