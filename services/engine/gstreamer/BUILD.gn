@@ -26,6 +26,13 @@ ohos_shared_library("media_engine_gst") {
     "loader:media_engine_gst_loader",
     "player:media_engine_gst_player",
     "recorder:media_engine_gst_recorder",
+    "//third_party/glib:glib_packages",
+    "//third_party/gstreamer/gst_libav:gst_libav_packages",
+    "//third_party/gstreamer/gstplugins_bad:gstplugins_bad_packages",
+    "//third_party/gstreamer/gstplugins_base:gstplugins_base_packages",
+    "//third_party/gstreamer/gstplugins_good:gstplugins_good_packages",
+    "//third_party/gstreamer/gstreamer:gstreamer_packages",
+    "//third_party/libffi:ffi",
   ]
 
   relative_install_dir = "media"
