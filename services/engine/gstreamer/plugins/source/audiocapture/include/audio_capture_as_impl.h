@@ -45,7 +45,7 @@ private:
     uint64_t resumeTime_ = 0; // the timestamp when audio resume called
     uint32_t pausedCount_ = 0; // the paused count times
     uint64_t persistTime_ = 0;
-    uint64_t totalPauseTime_ = 0; 
+    uint64_t totalPauseTime_ = 0;
 };
 }  // namespace Media
 }  // namespace OHOS
