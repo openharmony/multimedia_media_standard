@@ -256,8 +256,12 @@ static GstStateChangeReturn gst_audio_capture_src_change_state(GstElement *eleme
             if (src->need_caps_info) {
                 g_return_val_if_fail(process_caps_info(src) == TRUE, GST_STATE_CHANGE_FAILURE);
             }
-            g_return_val_if_fail(src->audio_capture->StartAudioCapture() == MSERR_OK, GST_STATE_CHANGE_FAILURE);
-            src->is_start = TRUE;
+            if (src->is_start == FALSE) {
+                g_return_val_if_fail(src->audio_capture->StartAudioCapture() == MSERR_OK, GST_STATE_CHANGE_FAILURE);
+                src->is_start = TRUE;
+            } else {
+                g_return_val_if_fail(src->audio_capture->ResumeAudioCapture() == MSERR_OK, GST_STATE_CHANGE_FAILURE);
+            }
             break;
         }
         default: {
@@ -268,6 +272,10 @@ static GstStateChangeReturn gst_audio_capture_src_change_state(GstElement *eleme
     GstStateChangeReturn ret = GST_ELEMENT_CLASS(parent_class)->change_state(element, transition);
 
     switch (transition) {
+        case GST_STATE_CHANGE_PLAYING_TO_PAUSED:
+            g_return_val_if_fail(src->audio_capture != nullptr, GST_STATE_CHANGE_FAILURE);
+            g_return_val_if_fail(src->audio_capture->PauseAudioCapture() == MSERR_OK, GST_STATE_CHANGE_FAILURE);
+            break;
         case GST_STATE_CHANGE_PAUSED_TO_READY:
             src->is_start = FALSE;
             g_return_val_if_fail(src->audio_capture != nullptr, GST_STATE_CHANGE_FAILURE);
