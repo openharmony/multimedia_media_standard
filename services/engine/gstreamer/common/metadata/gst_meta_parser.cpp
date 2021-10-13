@@ -53,7 +53,8 @@ static const std::unordered_map<std::string_view, int32_t> GST_TAG_TO_KEY_MAPPIN
     { GST_TAG_COMPOSER, INNER_META_KEY_COMPOSER },
     { GST_TAG_GENRE, INNER_META_KEY_GENRE },
     { GST_TAG_TRACK_COUNT, INNER_META_KEY_NUM_TRACKS },
-    { GST_TAG_TITLE, INNER_META_KEY_TITLE }
+    { GST_TAG_TITLE, INNER_META_KEY_TITLE },
+    { GST_TAG_AUTHOR, INNER_META_KEY_AUTHOR }
 };
 
 static const std::unordered_map<std::string_view, int32_t> GST_CAPS_FIELD_TO_KEY_MAPPING = {
