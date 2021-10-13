@@ -110,8 +110,8 @@ void TimePerfMgr::StopPerfRecord(uintptr_t obj, std::string_view tag)
     if (record.firstTime == INVALID_TIME) {
         record.firstTime = currTime;
     }
+    record.avgTime = (record.avgTime * record.count + currTime) / (record.count + 1);
     record.count += 1;
-    record.avgTime = (record.avgTime * record.count + currTime) / record.count;
     record.currStart = INVALID_TIME;
     record.currStop = INVALID_TIME;
 
