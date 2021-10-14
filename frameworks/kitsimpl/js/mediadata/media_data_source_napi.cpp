@@ -233,9 +233,9 @@ int32_t MediaDataSourceNapi::ReadAt(int64_t pos, uint32_t length, const std::sha
     // this ReadAt args count is 3
     std::shared_ptr<CallbackWarp> cb = CallbackWarp::Create(env_, 3, readAt_);
     CHECK_AND_RETURN_RET_LOG(cb != nullptr, 0, "create callback fail");
-    CHECK_AND_RETURN_RET_LOG(cb->SetArg(pos) == MSERR_OK, 0, "set arg failed");
     CHECK_AND_RETURN_RET_LOG(cb->SetArg(length) == MSERR_OK, 0, "set arg failed");
     CHECK_AND_RETURN_RET_LOG(cb->SetArg(mem) == MSERR_OK, 0, "set arg failed");
+    CHECK_AND_RETURN_RET_LOG(cb->SetArg(pos) == MSERR_OK, 0, "set arg failed");
 
     CHECK_AND_RETURN_RET_LOG(CheckCallbackWorks() == MSERR_OK, 0, "works in null");
     CHECK_AND_RETURN_RET_LOG(callbackWorks_->Push(cb) == MSERR_OK, 0, "push work fail");

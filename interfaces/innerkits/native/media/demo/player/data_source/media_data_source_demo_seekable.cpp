@@ -25,7 +25,7 @@ constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaDataS
 
 namespace OHOS {
 namespace Media {
-std::shared_ptr<IMediaDataSource> MediaDataSourceDemoSeekable::Create(const std::string &uri, int32_t size)
+std::shared_ptr<MediaDataSourceDemo> MediaDataSourceDemoSeekable::Create(const std::string &uri, int32_t size)
 {
     std::string realPath;
     if (!PathToRealPath(uri, realPath)) {
@@ -71,6 +71,13 @@ int32_t MediaDataSourceDemoSeekable::Init()
     return MSERR_OK;
 }
 
+void MediaDataSourceDemoSeekable::Reset()
+{
+    std::cout<< "reset data source" << std::endl;
+    pos_ = 0;
+    (void)fseek(fd_, 0, SEEK_SET);
+}
+
 int32_t MediaDataSourceDemoSeekable::ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem)
 {
     if (pos != pos_) {
@@ -84,9 +91,11 @@ int32_t MediaDataSourceDemoSeekable::ReadAt(int64_t pos, uint32_t length, const 
     length = std::min(length, static_cast<uint32_t>(mem->GetSize()));
     int32_t realLen = static_cast<int32_t>(length);
     if (pos_ >= size_) {
+        MEDIA_LOGI("Is eos");
         return SOURCE_ERROR_EOF;
     }
     if (mem->GetBase() == nullptr) {
+        MEDIA_LOGI("Is null mem");
         return SOURCE_ERROR_IO;
     }
     readRet = fread(mem->GetBase(), static_cast<size_t>(length), 1, fd_);

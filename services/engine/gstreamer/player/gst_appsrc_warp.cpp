@@ -54,14 +54,7 @@ GstAppsrcWarp::GstAppsrcWarp(const std::shared_ptr<IMediaDataSource> &dataSrc, c
 GstAppsrcWarp::~GstAppsrcWarp()
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        isExit_ = true;
-        fillCond_.notify_all();
-        emptyCond_.notify_all();
-    }
-    (void)fillTaskQue_.Stop();
-    (void)emptyTaskQue_.Stop();
+    Stop();
     ClearAppsrc();
 }
 
@@ -73,6 +66,28 @@ int32_t GstAppsrcWarp::Init()
         appSrcMem->mem = AVSharedMemory::Create(bufferSize_, AVSharedMemory::Flags::FLAGS_READ_WRITE, "appsrc");
         CHECK_AND_RETURN_RET_LOG(appSrcMem->mem != nullptr, MSERR_NO_MEMORY, "init AVSharedMemory failed");
         (void)emptyBuffers_.emplace(appSrcMem);
+    }
+    return MSERR_OK;
+}
+
+int32_t GstAppsrcWarp::Prepare()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    MEDIA_LOGD("Prepare in");
+    if (!isExit_) {
+        MEDIA_LOGD("Prepared");
+        return MSERR_OK;
+    }
+    isExit_ = false;
+    needData_ = false;
+    filledBufferSize_ = 0;
+    needDataSize_ = 0;
+    atEos_ = false;
+    curPos_ = 0;
+    while (!filledBuffers_.empty()) {
+        std::shared_ptr<AppsrcMemWarp> appSrcMem = filledBuffers_.front();
+        filledBuffers_.pop();
+        emptyBuffers_.push(appSrcMem);        
     }
     CHECK_AND_RETURN_RET_LOG(fillTaskQue_.Start() == MSERR_OK, MSERR_INVALID_OPERATION, "init task failed");
     CHECK_AND_RETURN_RET_LOG(emptyTaskQue_.Start() == MSERR_OK, MSERR_INVALID_OPERATION, "init task failed");
@@ -86,7 +101,24 @@ int32_t GstAppsrcWarp::Init()
     });
     CHECK_AND_RETURN_RET_LOG(emptyTaskQue_.EnqueueTask(task) == MSERR_OK,
         MSERR_INVALID_OPERATION, "enque task failed");
-    return MSERR_OK;
+    MEDIA_LOGD("Prepare out");
+    return MSERR_OK;    
+}
+
+void GstAppsrcWarp::Stop()
+{
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        isExit_ = true;
+        if (bufferWarp_ != nullptr) {
+            gst_buffer_unref(bufferWarp_->buffer);
+            bufferWarp_ = nullptr;
+        }
+        fillCond_.notify_all();
+        emptyCond_.notify_all();
+    }
+    (void)fillTaskQue_.Stop();
+    (void)emptyTaskQue_.Stop();
 }
 
 void GstAppsrcWarp::ClearAppsrc()

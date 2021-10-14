@@ -53,6 +53,7 @@ static void gst_audio_server_sink_finalize(GObject *object);
 static void gst_audio_server_sink_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec);
 static void gst_audio_server_sink_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec);
 static GstStateChangeReturn gst_audio_server_sink_change_state(GstElement *element, GstStateChange transition);
+static GstCaps *gst_audio_server_sink_get_caps(GstBaseSink *basesink, GstCaps *caps);
 static gboolean gst_audio_server_sink_set_caps(GstBaseSink *basesink, GstCaps *caps);
 static gboolean gst_audio_server_sink_event(GstBaseSink *basesink, GstEvent *event);
 static gboolean gst_audio_server_sink_start(GstBaseSink *basesink);
@@ -109,7 +110,8 @@ static void gst_audio_server_sink_class_init(GstAudioServerSinkClass *klass)
 
     gstelement_class->change_state = gst_audio_server_sink_change_state;
 
-    gstbasesink_class->set_caps =  gst_audio_server_sink_set_caps;
+    gstbasesink_class->get_caps = gst_audio_server_sink_get_caps;
+    gstbasesink_class->set_caps = gst_audio_server_sink_set_caps;
     gstbasesink_class->event = gst_audio_server_sink_event;
     gstbasesink_class->start = gst_audio_server_sink_start;
     gstbasesink_class->stop = gst_audio_server_sink_stop;
@@ -118,6 +120,7 @@ static void gst_audio_server_sink_class_init(GstAudioServerSinkClass *klass)
 
 static void gst_audio_server_sink_init(GstAudioServerSink *sink)
 {
+    g_return_if_fail(sink != nullptr);
     sink->audio_sink = nullptr;
     sink->bits_per_sample = DEFAULT_BITS_PER_SAMPLE;
     sink->channels = 0;
@@ -138,7 +141,9 @@ static void gst_audio_server_sink_init(GstAudioServerSink *sink)
 
 static void gst_audio_server_sink_finalize(GObject *object)
 {
+    g_return_if_fail(object != nullptr);
     GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(object);
+    g_return_if_fail(sink != nullptr);
     GST_INFO_OBJECT(sink, "gst_audio_server_sink_finalize in");
 
     g_mutex_clear(&sink->render_lock);
@@ -152,6 +157,7 @@ static void gst_audio_server_sink_finalize(GObject *object)
 static gboolean gst_audio_server_sink_set_volume(GstAudioServerSink *sink, gfloat volume)
 {
     gboolean ret = FALSE;
+    g_return_val_if_fail(sink != nullptr, FALSE);
     g_return_val_if_fail(sink->audio_sink != nullptr, FALSE);
     g_return_val_if_fail(volume <= sink->max_volume, FALSE);
     g_return_val_if_fail(volume >= sink->min_volume, FALSE);
@@ -168,7 +174,11 @@ static gboolean gst_audio_server_sink_set_volume(GstAudioServerSink *sink, gfloa
 static void gst_audio_server_sink_set_property(GObject *object, guint prop_id,
     const GValue *value, GParamSpec *pspec)
 {
+    g_return_if_fail(object != nullptr);
+    g_return_if_fail(value != nullptr);
+    (void)pspec;
     GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(object);
+    g_return_if_fail(sink != nullptr);
     switch (prop_id) {
         case PROP_VOLUME:
             if (gst_audio_server_sink_set_volume(sink, g_value_get_float(value))) {
@@ -183,7 +193,11 @@ static void gst_audio_server_sink_set_property(GObject *object, guint prop_id,
 
 static void gst_audio_server_sink_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
+    g_return_if_fail(object != nullptr);
+    g_return_if_fail(value != nullptr);
+    (void)pspec;
     GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(object);
+    g_return_if_fail(sink != nullptr);
     switch (prop_id) {
         case PROP_BITS_PER_SAMPLE:
             g_value_set_uint(value, sink->bits_per_sample);
@@ -211,12 +225,21 @@ static void gst_audio_server_sink_get_property(GObject *object, guint prop_id, G
     }
 }
 
-static gboolean gst_audio_server_sink_set_caps(GstBaseSink *basesink, GstCaps *caps)
+static GstCaps *gst_audio_server_sink_get_caps(GstBaseSink *basesink, GstCaps *caps)
 {
     GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(basesink);
     g_return_val_if_fail(sink != nullptr, FALSE);
     g_return_val_if_fail(sink->audio_sink != nullptr, FALSE);
+    return sink->audio_sink->GetCaps();
+}
+
+static gboolean gst_audio_server_sink_set_caps(GstBaseSink *basesink, GstCaps *caps)
+{
+    g_return_val_if_fail(basesink != nullptr, FALSE);
     g_return_val_if_fail(caps != nullptr, FALSE);
+    GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(basesink);
+    g_return_val_if_fail(sink != nullptr, FALSE);
+    g_return_val_if_fail(sink->audio_sink != nullptr, FALSE);
 
     gchar *caps_str = gst_caps_to_string(caps);
     GST_INFO_OBJECT(basesink, "caps=%s", caps_str);
@@ -245,6 +268,8 @@ static gboolean gst_audio_server_sink_set_caps(GstBaseSink *basesink, GstCaps *c
 
 static gboolean gst_audio_server_sink_event(GstBaseSink *basesink, GstEvent *event)
 {
+    g_return_val_if_fail(basesink != nullptr, FALSE);
+    g_return_val_if_fail(event != nullptr, FALSE);
     GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(basesink);
     g_return_val_if_fail(sink != nullptr, FALSE);
     GstEventType type = GST_EVENT_TYPE(event);
@@ -283,10 +308,11 @@ static gboolean gst_audio_server_sink_event(GstBaseSink *basesink, GstEvent *eve
 
 static gboolean gst_audio_server_sink_start(GstBaseSink *basesink)
 {
+    g_return_val_if_fail(basesink != nullptr, FALSE);
     GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(basesink);
+    g_return_val_if_fail(sink != nullptr, FALSE);
     sink->audio_sink = OHOS::Media::AudioSinkFactory::CreateAudioSink();
     g_return_val_if_fail(sink->audio_sink != nullptr, FALSE);
-
     g_return_val_if_fail(sink->audio_sink->Prepare() == MSERR_OK, FALSE);
     g_return_val_if_fail(sink->audio_sink->GetMaxVolume(sink->max_volume) == MSERR_OK, FALSE);
     g_return_val_if_fail(sink->audio_sink->GetMinVolume(sink->min_volume) == MSERR_OK, FALSE);
@@ -305,9 +331,10 @@ static void gst_audio_server_sink_clear_cache_buffer(GstAudioServerSink *sink)
 
 static gboolean gst_audio_server_sink_stop(GstBaseSink *basesink)
 {
+    g_return_val_if_fail(basesink != nullptr, FALSE);
     GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(basesink);
+    g_return_val_if_fail(sink != nullptr, FALSE);
     g_return_val_if_fail(sink->audio_sink != nullptr, FALSE);
-
     g_return_val_if_fail(sink->audio_sink->Stop() == MSERR_OK, FALSE);
     g_return_val_if_fail(sink->audio_sink->Release() == MSERR_OK, FALSE);
     sink->audio_sink = nullptr;
@@ -373,9 +400,11 @@ static GstFlowReturn gst_audio_server_sink_cache_render(GstAudioServerSink *sink
 
 static GstStateChangeReturn gst_audio_server_sink_change_state(GstElement *element, GstStateChange transition)
 {
+    g_return_val_if_fail(element != nullptr, GST_STATE_CHANGE_FAILURE);
     GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(element);
-    GstBaseSink *basesink = GST_BASE_SINK(element);
     g_return_val_if_fail(sink != nullptr, GST_STATE_CHANGE_FAILURE);
+    GstBaseSink *basesink = GST_BASE_SINK(element);
+    g_return_val_if_fail(basesink != nullptr, GST_STATE_CHANGE_FAILURE);
 
     switch (transition) {
         case GST_STATE_CHANGE_PAUSED_TO_PLAYING:
@@ -417,9 +446,11 @@ static GstStateChangeReturn gst_audio_server_sink_change_state(GstElement *eleme
 
 static GstFlowReturn gst_audio_server_sink_render(GstBaseSink *basesink, GstBuffer *buffer)
 {
+    g_return_val_if_fail(basesink != nullptr, GST_FLOW_OK);
     g_return_val_if_fail(buffer != nullptr, GST_FLOW_OK);
     g_return_val_if_fail(gst_buffer_get_size(buffer) != 0, GST_FLOW_OK);
     GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(basesink);
+    g_return_val_if_fail(sink != nullptr, GST_FLOW_OK);
     g_return_val_if_fail(sink->audio_sink != nullptr, GST_FLOW_ERROR);
 
     if (sink->enable_cache) {
@@ -470,6 +501,7 @@ static GstFlowReturn gst_audio_server_sink_render(GstBaseSink *basesink, GstBuff
 
 static gboolean plugin_init(GstPlugin *plugin)
 {
+    g_return_val_if_fail(plugin != nullptr, FALSE);
     gboolean ret = gst_element_register(plugin, "audioserversink", GST_RANK_PRIMARY, GST_TYPE_AUDIO_SERVER_SINK);
     return ret;
 }

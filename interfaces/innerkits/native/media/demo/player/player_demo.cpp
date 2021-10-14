@@ -248,15 +248,18 @@ void PlayerDemo::DoNext()
             if (func() != 0) {
                 cout << "Operation error" << endl;
             }
+            if (cmd.find("stop") != std::string::npos && dataSrc_ != nullptr) {
+                dataSrc_->Reset();
+            }
             continue;
-        } else if (cmd.find("source") != std::string::npos) {
-            (void)SelectSource(cmd.substr(cmd.find_last_of("source ") + 1));
+        } else if (cmd.find("source ") != std::string::npos) {
+            (void)SelectSource(cmd.substr(cmd.find("source ") + std::string("source ").length()));
             continue;
-        } else if (cmd.find("seek") != std::string::npos) {
-            Seek(cmd.substr(cmd.find_last_of("seek ") + 1));
+        } else if (cmd.find("seek ") != std::string::npos) {
+            Seek(cmd.substr(cmd.find("seek ") + std::string("seek ").length()));
             continue;
-        } else if (cmd.find("volume") != std::string::npos) {
-            std::string volume = cmd.substr(cmd.find_last_of("volume ") + 1);
+        } else if (cmd.find("volume ") != std::string::npos) {
+            std::string volume = cmd.substr(cmd.find("volume ") + std::string("volume ").length());
             if (!volume.empty()) {
                 (void)player_->SetVolume(std::stof(volume.c_str()), std::stof(volume.c_str()));
             }
@@ -271,11 +274,11 @@ void PlayerDemo::DoNext()
             (void)player_->GetCurrentTime(time);
             cout << "GetCurrentTime:" << time << endl;
             continue;
-        } else if (cmd.find("loop") != std::string::npos) {
-            SetLoop(cmd.substr(cmd.find_last_of("loop ") + 1));
+        } else if (cmd.find("loop ") != std::string::npos) {
+            SetLoop(cmd.substr(cmd.find("loop ") + std::string("loop ").length()));
             continue;
-        } else if (cmd.find("speed") != std::string::npos) {
-            SetPlaybackSpeed(cmd.substr(cmd.find_last_of("speed ") + 1));
+        } else if (cmd.find("speed ") != std::string::npos) {
+            SetPlaybackSpeed(cmd.substr(cmd.find("speed ") + std::string("speed ").length()));
             continue;
         } else if (cmd.find("quit") != std::string::npos ||
             cmd == "q") {
@@ -301,7 +304,6 @@ void PlayerDemo::RegisterTable()
 
 int32_t PlayerDemo::SetDataSrc(const string &path, bool seekable)
 {
-    std::shared_ptr<IMediaDataSource> dataSrc = nullptr;
     cout << "Please enter the size of buffer:" << endl;
     cout << "0:default" << endl;
     string sizeStr;
@@ -313,11 +315,11 @@ int32_t PlayerDemo::SetDataSrc(const string &path, bool seekable)
         cout << "buffer size:" << size << endl;
     }
     if (seekable == true) {
-        dataSrc = MediaDataSourceDemoSeekable::Create(path, size);
+        dataSrc_ = MediaDataSourceDemoSeekable::Create(path, size);
     } else {
-        dataSrc = MediaDataSourceDemoNoSeek::Create(path, size);
+        dataSrc_ = MediaDataSourceDemoNoSeek::Create(path, size);
     }
-    return player_->SetSource(dataSrc);
+    return player_->SetSource(dataSrc_);
 }
 
 int32_t PlayerDemo::SelectSource(const string &pathOuter)
