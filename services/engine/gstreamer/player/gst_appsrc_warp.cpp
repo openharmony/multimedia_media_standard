@@ -87,7 +87,7 @@ int32_t GstAppsrcWarp::Prepare()
     while (!filledBuffers_.empty()) {
         std::shared_ptr<AppsrcMemWarp> appSrcMem = filledBuffers_.front();
         filledBuffers_.pop();
-        emptyBuffers_.push(appSrcMem);        
+        emptyBuffers_.push(appSrcMem);
     }
     CHECK_AND_RETURN_RET_LOG(fillTaskQue_.Start() == MSERR_OK, MSERR_INVALID_OPERATION, "init task failed");
     CHECK_AND_RETURN_RET_LOG(emptyTaskQue_.Start() == MSERR_OK, MSERR_INVALID_OPERATION, "init task failed");
@@ -102,7 +102,7 @@ int32_t GstAppsrcWarp::Prepare()
     CHECK_AND_RETURN_RET_LOG(emptyTaskQue_.EnqueueTask(task) == MSERR_OK,
         MSERR_INVALID_OPERATION, "enque task failed");
     MEDIA_LOGD("Prepare out");
-    return MSERR_OK;    
+    return MSERR_OK;
 }
 
 void GstAppsrcWarp::Stop()
