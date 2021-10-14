@@ -353,6 +353,9 @@ uint64_t GstPlayerCtrl::GetDuration()
     if (appsrcWarp_ != nullptr && appsrcWarp_->IsLiveMode()) {
         return 0;
     }
+    if (currentState_ == PLAYER_STOPPED) {
+        return sourceDuration_;
+    }
 
     InitDuration();
     return sourceDuration_;
