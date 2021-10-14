@@ -332,11 +332,6 @@ int32_t PlayerDemo::SelectSource(const string &pathOuter)
     } else {
         path = pathOuter;
     }
-    std::string realPath;
-    if (!PathToRealPath(path, realPath)) {
-        cout << "Path is unaccessable: " << path << endl;
-        return -1;
-    }
     cout << "Path is " << path << endl;
     cout << "Please enter the number of source mode(default LOCAL):" << endl;
     cout << "0:local file source" << endl;
@@ -346,13 +341,13 @@ int32_t PlayerDemo::SelectSource(const string &pathOuter)
     (void)getline(cin, srcMode);
     if (srcMode == "" || srcMode == "0") {
         cout << "source mode is LOCAL" << endl;
-        ret = player_->SetSource(realPath);
+        ret = player_->SetSource(path);
     } else if (srcMode == "1") {
         cout << "source mode is stream NO seek" << endl;
-        ret = SetDataSrc(realPath, false);
+        ret = SetDataSrc(path, false);
     } else if (srcMode == "2") {
         cout << "source mode is stream seekable" << endl;
-        ret = SetDataSrc(realPath, true);
+        ret = SetDataSrc(path, true);
     } else {
         cout << "unknow mode" << endl;
     }
