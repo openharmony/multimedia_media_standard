@@ -17,20 +17,21 @@
 #define MEDIA_DATA_SOURCE_DEMO_SEEKABLE_H
 
 #include <string>
-#include "media_data_source.h"
+#include "media_data_source_demo.h"
 #include "nocopyable.h"
 
 namespace OHOS {
 namespace Media {
-class MediaDataSourceDemoSeekable : public IMediaDataSource {
+class MediaDataSourceDemoSeekable : public MediaDataSourceDemo {
 public:
-    static std::shared_ptr<IMediaDataSource> Create(const std::string &uri, int32_t size);
+    static std::shared_ptr<MediaDataSourceDemo> Create(const std::string &uri, int32_t size);
     MediaDataSourceDemoSeekable(const std::string &uri, int32_t size);
     virtual ~MediaDataSourceDemoSeekable();
     DISALLOW_COPY_AND_MOVE(MediaDataSourceDemoSeekable);
     int32_t ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
     int32_t ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
     int32_t GetSize(int64_t &size) override;
+    void Reset() override;
 
 private:
     int32_t Init();

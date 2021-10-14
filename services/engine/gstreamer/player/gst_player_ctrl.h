@@ -39,7 +39,7 @@ public:
     void Pause(bool syncExecuted = false);
     void Play();
     int32_t Seek(uint64_t position, const PlayerSeekMode mode);
-    void Stop(bool syncExecuted = false);
+    void Stop();
     int32_t SetLoop(bool loop);
     void SetVolume(const float &leftVolume, const float &rightVolume);
     uint64_t GetPosition();
@@ -79,7 +79,6 @@ private:
     void PlaySync();
     void SeekSync(uint64_t position, const PlayerSeekMode mode);
     void SetRateSync(double rate);
-    void StopSync();
     void PauseSync();
     void OnNotify(PlayerStates state);
     void GetAudioSink();
@@ -90,7 +89,6 @@ private:
     std::condition_variable condVarPauseSync_;
     std::condition_variable condVarStopSync_;
     std::condition_variable condVarSeekSync_;
-    std::condition_variable condVarCompleteSync_;
     GstPlayer *gstPlayer_ = nullptr;
     TaskQueue taskQue_;
     std::weak_ptr<IPlayerEngineObs> obs_;

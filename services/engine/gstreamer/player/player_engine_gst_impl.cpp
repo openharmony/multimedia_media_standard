@@ -337,7 +337,7 @@ int32_t PlayerEngineGstImpl::SetPlaybackSpeed(PlaybackRateMode mode)
     rateMode_ = mode;
     if (playerCtrl_ != nullptr) {
         double rate = ChangeModeToSpeed(mode);
-        (void)playerCtrl_->SetRate(rate);
+        return playerCtrl_->SetRate(rate);
     }
     return MSERR_OK;
 }
@@ -359,7 +359,7 @@ int32_t PlayerEngineGstImpl::SetLooping(bool loop)
     loop_ = loop;
     if (playerCtrl_ != nullptr) {
         MEDIA_LOGI("SetLooping in");
-        (void)playerCtrl_->SetLoop(loop);
+        return playerCtrl_->SetLoop(loop);
     }
     return MSERR_OK;
 }
@@ -379,7 +379,7 @@ int32_t PlayerEngineGstImpl::Reset()
     std::unique_lock<std::mutex> lock(mutex_);
     MEDIA_LOGI("Reset in");
     if (playerCtrl_ != nullptr) {
-        playerCtrl_->Stop(true);
+        playerCtrl_->Stop();
     }
     GstPlayerDeInit();
     return MSERR_OK;

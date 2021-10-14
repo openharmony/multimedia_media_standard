@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <gst/gst.h>
 
 namespace OHOS {
 namespace Media {
@@ -25,6 +26,7 @@ class AudioSink {
 public:
     virtual ~AudioSink() = default;
 
+    virtual GstCaps *GetCaps() = 0;
     virtual int32_t SetVolume(float volume) = 0;
     virtual int32_t GetVolume(float &volume) = 0;
     virtual int32_t GetMaxVolume(float &volume) = 0;

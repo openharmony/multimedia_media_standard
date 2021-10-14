@@ -52,6 +52,8 @@ public:
     int32_t SetErrorCallback(const std::weak_ptr<IPlayerEngineObs> &obs);
     bool IsLiveMode() const;
     int32_t Init();
+    int32_t Prepare();
+    void Stop();
 
 private:
     void SetCallBackForAppSrc();
@@ -88,7 +90,7 @@ private:
     bool atEos_ = false;
     bool needData_ = false;
     int32_t needDataSize_ = 0;
-    bool isExit_ = false;
+    bool isExit_ = true;
     int32_t filledBufferSize_ = 0;
     int32_t bufferSize_;
     int32_t buffersNum_;
