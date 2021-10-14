@@ -146,7 +146,7 @@ int32_t CallbackWorks::Run(uv_work_t *work)
         } while (0);
         CHECK_AND_RETURN_LOG(callbackWorks->Remove(work) == MSERR_OK, "unknow error, work not in works");
     });
-    reinterpret_cast<NativeEngine*>(env_)->Loop(LOOP_DEFAULT);
+    reinterpret_cast<NativeEngine*>(env_)->Loop(LOOP_ONCE);
     return MSERR_OK;
 }
 } // namespace Media
