@@ -259,6 +259,9 @@ void RecorderPipelineBuilder::Reset()
     pipeline_ = nullptr;
     pipelineDesc_ = nullptr;
 
+    videoSrcCount = 0;
+    otherSrcCount = 0;
+
     outputFormatConfiged_ = false;
 }
 }
