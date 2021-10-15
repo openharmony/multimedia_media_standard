@@ -144,7 +144,7 @@ std::shared_ptr<AudioBuffer> AudioCaptureAsImpl::GetBuffer()
         return nullptr;
     }
 
-    if (GetSegmentInfo(buffer->timestamp) != MSERR_OK) {
+    if (GetSegmentInfo(timestamp_) != MSERR_OK) {
         gst_buffer_unref(buffer->gstBuffer);
         return nullptr;
     }
