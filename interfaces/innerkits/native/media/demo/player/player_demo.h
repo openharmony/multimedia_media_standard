@@ -22,6 +22,7 @@
 #include "display_type.h"
 #include "window_manager.h"
 #include "nocopyable.h"
+#include "media_data_source_demo.h"
 
 namespace MediaDemo {
     const int32_t HEIGHT = 720;
@@ -65,6 +66,7 @@ private:
     sptr<Window> mwindow_ = nullptr;
     std::map<std::string, std::function<int32_t()>> playerTable_;
     std::shared_ptr<Player> player_ = nullptr;
+    std::shared_ptr<MediaDataSourceDemo> dataSrc_ = nullptr;
 };
 
 class PlayerCallbackDemo : public PlayerCallback {

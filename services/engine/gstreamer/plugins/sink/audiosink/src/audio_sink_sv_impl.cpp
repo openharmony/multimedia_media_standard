@@ -20,6 +20,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AudioSinkSvImpl"};
+    const std::string DEFAULT_CAPS = "audio/x-raw, format = (string) S16LE, layout = (string) interleaved";
 }
 
 namespace OHOS {
@@ -35,6 +36,51 @@ AudioSinkSvImpl::~AudioSinkSvImpl()
         (void)audioRenderer_->Release();
         audioRenderer_ = nullptr;
     }
+}
+
+GstCaps *AudioSinkSvImpl::GetCaps()
+{
+    GstCaps *caps = gst_caps_from_string(DEFAULT_CAPS.c_str());
+    CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "caps is null");
+    InitChannelRange(caps);
+    InitRateRange(caps);
+    return caps;
+}
+
+void AudioSinkSvImpl::InitChannelRange(GstCaps *caps) const
+{
+    CHECK_AND_RETURN_LOG(caps != nullptr, "caps is null");
+    std::vector<AudioStandard::AudioChannel> supportedChannelsList = AudioStandard::
+                                                                     AudioRenderer::GetSupportedChannels();
+    GValue list = { 0, };
+    g_value_init(&list, GST_TYPE_LIST);
+    for (auto channel : supportedChannelsList) {
+        GValue value = { 0, };
+        g_value_init(&value, G_TYPE_INT);
+        g_value_set_int(&value, channel);
+        gst_value_list_append_value(&list, &value);
+        g_value_unset(&value);
+    }
+    gst_caps_set_value(caps, "channels", &list);
+    g_value_unset(&list);
+}
+
+void AudioSinkSvImpl::InitRateRange(GstCaps *caps) const
+{
+    CHECK_AND_RETURN_LOG(caps != nullptr, "caps is null");
+    std::vector<AudioStandard::AudioSamplingRate> supportedSampleList = AudioStandard::
+                                                                        AudioRenderer::GetSupportedSamplingRates();
+    GValue list = { 0, };
+    g_value_init(&list, GST_TYPE_LIST);
+    for (auto rate : supportedSampleList) {
+        GValue value = { 0, };
+        g_value_init(&value, G_TYPE_INT);
+        g_value_set_int(&value, rate);
+        gst_value_list_append_value(&list, &value);
+        g_value_unset(&value);
+    }
+    gst_caps_set_value(caps, "rate", &list);
+    g_value_unset(&list);
 }
 
 int32_t AudioSinkSvImpl::SetVolume(float volume)

@@ -28,6 +28,7 @@ public:
     AudioSinkSvImpl();
     virtual ~AudioSinkSvImpl();
 
+    GstCaps *GetCaps() override;
     int32_t SetVolume(float volume) override;
     int32_t GetVolume(float &volume) override;
     int32_t GetMaxVolume(float &volume) override;
@@ -50,6 +51,8 @@ public:
 
 private:
     std::unique_ptr<OHOS::AudioStandard::AudioRenderer> audioRenderer_;
+    void InitChannelRange(GstCaps *caps) const;
+    void InitRateRange(GstCaps *caps) const;
 };
 }  // namespace Media
 }  // namespace OHOS
