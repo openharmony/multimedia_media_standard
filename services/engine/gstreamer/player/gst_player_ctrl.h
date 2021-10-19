@@ -112,6 +112,7 @@ private:
     std::shared_ptr<ITaskHandler> seekTask_ = nullptr;
     std::shared_ptr<ITaskHandler> rateTask_ = nullptr;
     double rate_; // inited at the constructor
+    bool speeding_ = false;
 };
 } // Media
 } // OHOS

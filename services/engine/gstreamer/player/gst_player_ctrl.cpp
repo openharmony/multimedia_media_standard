@@ -288,6 +288,7 @@ void GstPlayerCtrl::Stop()
     bufferingStart_ = false;
     nextSeekFlag_ = false;
     enableLooping_ = false;
+	speeding_ = false;
     rate_ = DEFAULT_RATE;
     if (audioSink_ != nullptr) {
         g_signal_handler_disconnect(audioSink_, signalIdVolume_);
@@ -389,6 +390,7 @@ void GstPlayerCtrl::SetRateSync(double rate)
 
     CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
     MEDIA_LOGD("SetRateSync in, rate=(%{public}lf)", rate);
+	speeding_ = true;
     gst_player_set_rate(gstPlayer_, static_cast<gdouble>(rate));
 
     condVarSeekSync_.wait(lock);
@@ -748,7 +750,12 @@ void GstPlayerCtrl::OnSeekDone()
         std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
         Format format;
         if (tempObs != nullptr) {
-            tempObs->OnInfo(INFO_TYPE_SEEKDONE, static_cast<int32_t>(seekDonePosition_), format);
+			if (speeding_) {
+				tempObs->OnInfo(INFO_TYPE_SPEEDDONE, 0, format);
+				speeding_ = false;
+			} else {
+				tempObs->OnInfo(INFO_TYPE_SEEKDONE, static_cast<int32_t>(seekDonePosition_), format);
+			}
         }
         seekDoneNeedCb_ = false;
         condVarSeekSync_.notify_all();
