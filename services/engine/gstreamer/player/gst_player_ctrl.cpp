@@ -755,7 +755,7 @@ void GstPlayerCtrl::OnSeekDone()
                 speeding_ = false;
             } else {
                 tempObs->OnInfo(INFO_TYPE_SEEKDONE, static_cast<int32_t>(seekDonePosition_), format);
-						}
+            }
         }
         seekDoneNeedCb_ = false;
         condVarSeekSync_.notify_all();
