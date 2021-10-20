@@ -14,13 +14,7 @@
 import("//build/ohos.gni")
 
 config("videodisplaymanager_public_config") {
-  include_dirs = [
-    "//foundation/multimedia/media_standard/frameworks/videodisplaymanager/include",
-    "//drivers/peripheral/display/interfaces/include",
-    "//drivers/peripheral/display/interfaces/hdi_cpp/client",
-    "//drivers/adapter/uhdf2/hdi",
-    "//drivers/adapter/uhdf2/include/hdi",
-  ]
+  include_dirs = [ "//foundation/multimedia/media_standard/frameworks/videodisplaymanager/include" ]
 }
 
 ohos_shared_library("videodisplaymanager") {
@@ -34,7 +28,7 @@ ohos_shared_library("videodisplaymanager") {
   ]
 
   public_deps = [
-    "//drivers/peripheral/display/interfaces/hdi_cpp/client:display_client",
+    "//drivers/peripheral/display/hdi_service/video_layer/client:video_layer_client",
     "//foundation/graphic/standard/frameworks/surface:surface",
   ]
 
