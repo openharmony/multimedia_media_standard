@@ -22,7 +22,7 @@
 
 using namespace OHOS::HDI::Display::V1_0;
 static OHOS::sptr<IDisplayLayer> g_layerService = nullptr;
-constexpr const char *DISPLAY_LAYER_SERVICE_NAME = "hdi_display_layer_service";
+constexpr const char *DISPLAY_LAYER_SERVICE_NAME = "hdi_video_layer_service";
 
 #ifndef VIDEO_DISPLAY_DEBUG
 #define VIDEO_DISPLAY_ENTER() ((void)0)
