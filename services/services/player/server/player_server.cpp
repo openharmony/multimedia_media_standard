@@ -465,7 +465,7 @@ int32_t PlayerServer::SetLooping(bool loop)
 
     if (dataSrc_ != nullptr) {
         int64_t size = 0;
-        (void)dataS->GetSize(size);
+        (void)dataSrc_->GetSize(size);
         if (size == -1) {
             MEDIA_LOGE("Can not SetLooping, it is live-stream");
             return MSERR_INVALID_OPERATION;
