@@ -133,7 +133,7 @@ int32_t PlayerEngineGstImpl::Prepare()
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "GstPlayerInit failed");
 
     CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_VAL, "playerCtrl_ is nullptr");
-    playerCtrl_->Pause(true);
+    playerCtrl_->Prepare();
 
     if (playerCtrl_->GetState() != PLAYER_PREPARED) {
         MEDIA_LOGE("gstplayer prepare failed");
@@ -155,7 +155,7 @@ int32_t PlayerEngineGstImpl::PrepareAsync()
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "GstPlayerInit failed");
 
     CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_VAL, "playerCtrl_ is nullptr");
-    playerCtrl_->Pause();
+    playerCtrl_->PrepareAsync();
 
     // The duration of some resources without header information cannot be obtained.
     MEDIA_LOGD("Prepared ok out");
@@ -205,6 +205,8 @@ int32_t PlayerEngineGstImpl::GstPlayerInit()
         GstPlayerDeInit();
         return MSERR_INVALID_VAL;
     }
+
+    playerBuild_->WaitMainLoopStart();
 
     MEDIA_LOGI("GstPlayerInit out");
     gstPlayerInit_ = true;
@@ -270,22 +272,25 @@ int32_t PlayerEngineGstImpl::Pause()
 int32_t PlayerEngineGstImpl::GetCurrentTime(int32_t &currentTime)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
 
-    uint64_t tempTime = playerCtrl_->GetPosition();
-    currentTime = static_cast<int32_t>(tempTime);
-    MEDIA_LOGI("Time in milli seconds: %{public}d", currentTime);
+    currentTime = 0;
+    if (playerCtrl_ != nullptr) {
+        uint64_t tempTime = playerCtrl_->GetPosition();
+        currentTime = static_cast<int32_t>(tempTime);
+        MEDIA_LOGI("Time in milli seconds: %{public}d", currentTime);
+    }
     return MSERR_OK;
 }
 
 int32_t PlayerEngineGstImpl::GetDuration(int32_t &duration)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
-
-    uint64_t tempDura = playerCtrl_->GetDuration();
-    duration = static_cast<int32_t>(tempDura);
-    MEDIA_LOGI("Duration in milli seconds: %{public}d", duration);
+    duration = 0;
+    if (playerCtrl_ != nullptr) {
+        uint64_t tempDura = playerCtrl_->GetDuration();
+        duration = static_cast<int32_t>(tempDura);
+        MEDIA_LOGI("Duration in milli seconds: %{public}d", duration);
+    }
     return MSERR_OK;
 }
 

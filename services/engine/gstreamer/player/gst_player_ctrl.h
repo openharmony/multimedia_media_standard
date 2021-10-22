@@ -36,8 +36,10 @@ public:
     int32_t SetSource(const std::shared_ptr<GstAppsrcWarp> &appsrcWarp);
     int32_t SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs);
     void SetVideoTrack(bool enable);
-    void Pause(bool syncExecuted = false);
+    void Pause();
     void Play();
+    void Prepare();
+    void PrepareAsync();
     int32_t Seek(uint64_t position, const PlayerSeekMode mode);
     void Stop();
     int32_t SetLoop(bool loop);
@@ -58,7 +60,7 @@ public:
     static void ErrorProcess(const GstMessage *msg, PlayerErrorType &errorType, int32_t &errorCode);
     static void OnErrorCb(const GstPlayer *player, const GstMessage *msg, GstPlayerCtrl *playerGst);
     static void OnSeekDoneCb(const GstPlayer *player, guint64 position, GstPlayerCtrl *playerGst);
-    static void OnPositionUpdatedCb(const GstPlayer *player, guint64 position, const GstPlayerCtrl *playerGst);
+    static void OnPositionUpdatedCb(const GstPlayer *player, guint64 position, GstPlayerCtrl *playerGst);
     static void OnVolumeChangeCb(const GObject *combiner, const GParamSpec *pspec, const GstPlayerCtrl *playerGst);
     static void OnSourceSetupCb(const GstPlayer *player, GstElement *src, const GstPlayerCtrl *playerGst);
 
@@ -68,7 +70,7 @@ private:
     int32_t ChangeSeekModeToGstFlag(const PlayerSeekMode mode) const;
     void ProcessStateChanged(const GstPlayer *cbPlayer, GstPlayerState state);
     void ProcessSeekDone(const GstPlayer *cbPlayer, uint64_t position);
-    void ProcessPositionUpdated(const GstPlayer *cbPlayer, uint64_t position) const;
+    void ProcessPositionUpdated(const GstPlayer *cbPlayer, uint64_t position);
     void ProcessEndOfStream(const GstPlayer *cbPlayer);
     void OnStateChanged(PlayerStates state);
     void OnVolumeChange() const;
@@ -112,7 +114,9 @@ private:
     std::shared_ptr<ITaskHandler> seekTask_ = nullptr;
     std::shared_ptr<ITaskHandler> rateTask_ = nullptr;
     double rate_; // inited at the constructor
+    uint64_t lastTime_ = 0;
     bool speeding_ = false;
+    bool isExit_ = true;
 };
 } // Media
 } // OHOS
