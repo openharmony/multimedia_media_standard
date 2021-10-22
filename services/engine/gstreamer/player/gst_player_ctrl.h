@@ -86,6 +86,7 @@ private:
     void GetAudioSink();
     void HandleStopNotify();
     void HandlePlayBackNotify();
+    uint64_t GetPositionInner();
     std::mutex mutex_;
     std::condition_variable condVarPlaySync_;
     std::condition_variable condVarPauseSync_;
@@ -117,6 +118,7 @@ private:
     uint64_t lastTime_ = 0;
     bool speeding_ = false;
     bool isExit_ = true;
+    bool seeking_ =false;
 };
 } // Media
 } // OHOS

@@ -263,6 +263,8 @@ void GstPlayerCtrl::SeekSync(uint64_t position, const PlayerSeekMode mode)
     // need keep the seek and seek modes consistent.
     g_object_set(gstPlayer_, "seek-mode", static_cast<gint>(ChangeSeekModeToGstFlag(mode)), nullptr);
     GstClockTime time = static_cast<GstClockTime>(position * MICRO);
+    (void)GetPositionInner();
+    seeking_ = true;
     gst_player_seek(gstPlayer_, time);
 
     {
@@ -303,7 +305,9 @@ void GstPlayerCtrl::Stop()
     nextSeekFlag_ = false;
     enableLooping_ = false;
     speeding_ = false;
+    seeking_ = false;
     rate_ = DEFAULT_RATE;
+    lastTime_ = 0;
     if (audioSink_ != nullptr) {
         g_signal_handler_disconnect(audioSink_, signalIdVolume_);
         signalIdVolume_ = 0;
@@ -344,6 +348,11 @@ void GstPlayerCtrl::SetVolume(const float &leftVolume, const float &rightVolume)
 uint64_t GstPlayerCtrl::GetPosition()
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    return GetPositionInner();
+}
+
+uint64_t GstPlayerCtrl::GetPositionInner()
+{
     CHECK_AND_RETURN_RET_LOG(gstPlayer_ != nullptr, 0, "gstPlayer_ is nullptr");
 
     if (currentState_ == PLAYER_STOPPED) {
@@ -357,9 +366,14 @@ uint64_t GstPlayerCtrl::GetPosition()
         return sourceDuration_;
     }
 
+    if (seeking_ || speeding_) {
+        return lastTime_;
+    }
+
     GstClockTime position = gst_player_get_position(gstPlayer_);
     uint64_t curTime = static_cast<uint64_t>(position) / MICRO;
     curTime = std::min(curTime, sourceDuration_);
+    lastTime_ = curTime;
     MEDIA_LOGD("GetPosition curTime(%{public}" PRIu64 ") duration(%{public}" PRIu64 ")", curTime, sourceDuration_);
     return curTime;
 }
@@ -410,6 +424,7 @@ void GstPlayerCtrl::SetRateSync(double rate)
 
     CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
     MEDIA_LOGD("SetRateSync in, rate=(%{public}lf)", rate);
+    (void)GetPositionInner();
     speeding_ = true;
     gst_player_set_rate(gstPlayer_, static_cast<gdouble>(rate));
 
@@ -776,6 +791,7 @@ void GstPlayerCtrl::OnSeekDone()
                 speeding_ = false;
             } else {
                 tempObs->OnInfo(INFO_TYPE_SEEKDONE, static_cast<int32_t>(seekDonePosition_), format);
+                seeking_ = false;
             }
         }
         seekDoneNeedCb_ = false;
