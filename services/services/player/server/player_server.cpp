@@ -70,7 +70,7 @@ int32_t PlayerServer::SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc
     int32_t ret = InitPlayEngine(uri);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetObs Failed!");
     int64_t size = 0;
-    (void)dataSrc_->GetSize();
+    (void)dataSrc_->GetSize(size);
     if (size == -1) {
         looping_ = false;
         speedMode_ = SPEED_FORWARD_1_00_X;
