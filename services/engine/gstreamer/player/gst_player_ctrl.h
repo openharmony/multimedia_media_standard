@@ -118,7 +118,7 @@ private:
     uint64_t lastTime_ = 0;
     bool speeding_ = false;
     bool isExit_ = true;
-    bool seeking_ =false;
+    bool seeking_ = false;
 };
 } // Media
 } // OHOS
