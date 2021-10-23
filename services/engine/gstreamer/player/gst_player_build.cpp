@@ -118,7 +118,7 @@ void GstPlayerBuild::CreateLoop()
 
     GSource *source = g_idle_source_new();
     g_source_set_callback(source, (GSourceFunc)GstPlayerBuild::MainLoopRunCb, this,
-    nullptr)
+    nullptr);
     guint ret = g_source_attach(source, context_);
     CHECK_AND_RETURN_LOG(ret > 0, "add idle source failed");
     g_source_unref(source);
