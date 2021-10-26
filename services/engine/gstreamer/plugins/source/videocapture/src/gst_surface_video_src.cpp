@@ -110,7 +110,7 @@ static void gst_surface_video_src_class_init(GstSurfaceVideoSrcClass *klass)
 
     gst_element_class_set_static_metadata(gstelement_class,
         "Surface video source", "Source/Video",
-        "Retrieve video frame from surface buffer queue", "Harmony OS");
+        "Retrieve video frame from surface buffer queue", "OpenHarmony");
 
     gst_element_class_add_static_pad_template(gstelement_class, &gst_video_src_template);
 
