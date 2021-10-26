@@ -143,7 +143,7 @@ static void gst_video_shmem_sink_class_init(GstVideoShMemSinkClass *klass)
     gst_element_class_set_static_metadata(elementClass,
         "VideoShMemSink", "Sink/Video",
         "Output to ashmem memory and allow the application to get access to the ashmem memory",
-        "openharmony");
+        "OpenHarmony");
 
     gst_video_shmem_sink_setup_gobject_class(gobjectClass);
 
