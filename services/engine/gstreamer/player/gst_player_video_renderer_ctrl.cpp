@@ -232,7 +232,9 @@ int32_t GstPlayerVideoRendererCtrl::InitVideoSink(const GstElement *playbin)
 
         g_object_set(const_cast<GstElement *>(playbin), "video-sink", videoSink_, nullptr);
     }
-    producerSurface_->SetQueueSize(DEFAULT_BUFFER_NUM);
+    if (producerSurface_ != nullptr) {
+        producerSurface_->SetQueueSize(DEFAULT_BUFFER_NUM);
+    }
     return MSERR_OK;
 }
 
