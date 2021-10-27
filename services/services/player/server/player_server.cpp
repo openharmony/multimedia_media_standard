@@ -143,7 +143,9 @@ int32_t PlayerServer::OnPrepare(bool async)
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine Prepare Failed!");
     (void)playerEngine_->SetVolume(leftVolume_, rightVolume_);
     (void)playerEngine_->SetLooping(looping_);
-    (void)playerEngine_->SetPlaybackSpeed(speedMode_);
+    if (speedMode_ != SPEED_FORWARD_1_00_X) {
+        (void)playerEngine_->SetPlaybackSpeed(speedMode_);
+    }
     return MSERR_OK;
 }
 
