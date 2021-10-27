@@ -23,6 +23,9 @@ namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "GstPlayerVideoRendererCtrl"};
     constexpr uint32_t MAX_DEFAULT_WIDTH = 10000;
     constexpr uint32_t MAX_DEFAULT_HEIGHT = 10000;
+    constexpr uint32_t DEFAULT_BUFFER_NUM = 8;
+    constexpr uint32_t MAX_DEFAULT_TRY_TIMES = 100;
+    constexpr uint32_t DEFAULT_WAIT_TIME = 5000;
 }
 
 namespace OHOS {
@@ -229,6 +232,7 @@ int32_t GstPlayerVideoRendererCtrl::InitVideoSink(const GstElement *playbin)
 
         g_object_set(const_cast<GstElement *>(playbin), "video-sink", videoSink_, nullptr);
     }
+    producerSurface_->SetQueueSize(DEFAULT_BUFFER_NUM);
     return MSERR_OK;
 }
 
@@ -327,6 +331,27 @@ BufferRequestConfig GstPlayerVideoRendererCtrl::UpdateResquestConfig(const GstVi
     return config;
 }
 
+sptr<SurfaceBuffer> GstPlayerVideoRendererCtrl::RequestBuffer(const GstVideoMeta *videoMeta) const
+{
+    CHECK_AND_RETURN_RET_LOG(videoMeta != nullptr, nullptr, "gst_buffer_get_video_meta_failed..");
+    CHECK_AND_RETURN_RET_LOG(videoMeta->width < MAX_DEFAULT_WIDTH && videoMeta->height < MAX_DEFAULT_HEIGHT,
+        nullptr, "video size too large. Video cannot be played.");
+    BufferRequestConfig requestConfig = UpdateResquestConfig(videoMeta);
+    sptr<SurfaceBuffer> surfaceBuffer = nullptr;
+    int32_t releaseFence = -1;
+    SurfaceError ret = SURFACE_ERROR_OK;
+    uint32_t count = 0;
+    do {
+        ret = producerSurface_->RequestBuffer(surfaceBuffer, releaseFence, requestConfig);
+        if (ret == SURFACE_ERROR_NO_BUFFER) {
+            usleep(DEFAULT_WAIT_TIME);
+            ++count;
+        }
+    } while (ret == SURFACE_ERROR_NO_BUFFER && count < MAX_DEFAULT_TRY_TIMES);
+    CHECK_AND_RETURN_RET_LOG(ret == SURFACE_ERROR_OK, nullptr, "RequestBuffer is not ok..");
+    return surfaceBuffer;
+}
+
 int32_t GstPlayerVideoRendererCtrl::UpdateSurfaceBuffer(const GstBuffer &buffer)
 {
     CHECK_AND_RETURN_RET_LOG(producerSurface_ != nullptr, MSERR_INVALID_OPERATION,
@@ -335,20 +360,11 @@ int32_t GstPlayerVideoRendererCtrl::UpdateSurfaceBuffer(const GstBuffer &buffer)
         surfaceTimeMonitor_.StartTime();
     }
     auto buf = const_cast<GstBuffer *>(&buffer);
-
     GstVideoMeta *videoMeta = gst_buffer_get_video_meta(buf);
-    CHECK_AND_RETURN_RET_LOG(videoMeta != nullptr, MSERR_INVALID_VAL, "gst_buffer_get_video_meta failed..");
-    CHECK_AND_RETURN_RET_LOG(videoMeta->width < MAX_DEFAULT_WIDTH && videoMeta->height < MAX_DEFAULT_HEIGHT,
-        MSERR_INVALID_VAL, "video size too large. Video cannot be played.");
-
-    sptr<SurfaceBuffer> surfaceBuffer = nullptr;
-    int32_t releaseFence = -1;
-    BufferRequestConfig requestConfig = UpdateResquestConfig(videoMeta);
-    SurfaceError ret = producerSurface_->RequestBuffer(surfaceBuffer, releaseFence, requestConfig);
-    CHECK_AND_RETURN_RET_LOG(ret == SURFACE_ERROR_OK, MSERR_INVALID_OPERATION,
-        "RequestBuffer failed(ret = %{public}d)..", ret);
+    CHECK_AND_RETURN_RET_LOG(videoMeta != nullptr, MSERR_INVALID_VAL, "gst_buffer_get_video_meta_failed..");
+    sptr<SurfaceBuffer> surfaceBuffer = RequestBuffer(videoMeta);
     CHECK_AND_RETURN_RET_LOG(surfaceBuffer != nullptr, MSERR_INVALID_OPERATION, "surfaceBuffer is nullptr..");
-
+    SurfaceError ret = SURFACE_ERROR_OK;
     bool needFlush = false;
     do {
         auto surfaceBufferAddr = surfaceBuffer->GetVirAddr();
@@ -366,8 +382,8 @@ int32_t GstPlayerVideoRendererCtrl::UpdateSurfaceBuffer(const GstBuffer &buffer)
         BufferFlushConfig flushConfig = {};
         flushConfig.damage.x = 0;
         flushConfig.damage.y = 0;
-        flushConfig.damage.w = requestConfig.width;
-        flushConfig.damage.h = requestConfig.height;
+        flushConfig.damage.w = videoMeta->width;
+        flushConfig.damage.h = videoMeta->height;
         ret = producerSurface_->FlushBuffer(surfaceBuffer, -1, flushConfig);
         CHECK_AND_RETURN_RET_LOG(ret == SURFACE_ERROR_OK, MSERR_INVALID_OPERATION,
             "FlushBuffer failed(ret = %{public}d)..", ret);
