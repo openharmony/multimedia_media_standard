@@ -35,8 +35,8 @@ public:
     void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody) override;
 
 private:
-    void OnSeekDoneCb(int32_t currentPositon);
-    void OnEosCb(int32_t isLooping);
+    void OnSeekDoneCb(int32_t currentPositon) const;
+    void OnEosCb(int32_t isLooping) const;
     void OnStateChangeCb(PlayerStates state);
     void OnPositionUpdateCb(int32_t postion) const;
     void OnMessageCb(int32_t type) const;
@@ -48,9 +48,9 @@ private:
         MediaServiceExtErrCode errorCode = MSERR_EXT_UNKNOWN;
         int32_t position = -1;
     };
-    void OnJsCallBack(PlayerJsCallback *jsCb);
-    void OnJsCallBackError(PlayerJsCallback *jsCb);
-    void OnJsCallBackPosition(PlayerJsCallback *jsCb);
+    void OnJsCallBack(PlayerJsCallback *jsCb) const;
+    void OnJsCallBackError(PlayerJsCallback *jsCb) const;
+    void OnJsCallBackPosition(PlayerJsCallback *jsCb) const;
 
     std::mutex mutex_;
     napi_env env_ = nullptr;
