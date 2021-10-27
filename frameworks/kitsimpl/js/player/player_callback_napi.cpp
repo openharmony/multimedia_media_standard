@@ -141,7 +141,7 @@ void PlayerCallbackNapi::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
     MEDIA_LOGD("send OnInfo callback success");
 }
 
-void PlayerCallbackNapi::OnSeekDoneCb(int32_t currentPositon)
+void PlayerCallbackNapi::OnSeekDoneCb(int32_t currentPositon) const
 {
     MEDIA_LOGD("OnSeekDone is called, currentPositon: %{public}d", currentPositon);
     CHECK_AND_RETURN_LOG(timeUpdateCallback_ != nullptr, "Cannot find the reference of timeUpdate callback");
@@ -154,16 +154,9 @@ void PlayerCallbackNapi::OnSeekDoneCb(int32_t currentPositon)
     return OnJsCallBackPosition(cb);
 }
 
-void PlayerCallbackNapi::OnEosCb(int32_t isLooping)
+void PlayerCallbackNapi::OnEosCb(int32_t isLooping) const
 {
     MEDIA_LOGD("OnEndOfStream is called, isloop: %{public}d", isLooping);
-    CHECK_AND_RETURN_LOG(finishCallback_ != nullptr, "Cannot find the reference of finish callback");
-
-    PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
-    CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
-    cb->callback = finishCallback_;
-    cb->callbackName = FINISH_CALLBACK_NAME;
-    return OnJsCallBack(cb);
 }
 
 void PlayerCallbackNapi::OnStateChangeCb(PlayerStates state)
@@ -193,6 +186,10 @@ void PlayerCallbackNapi::OnStateChangeCb(PlayerStates state)
         case PLAYER_IDLE:
             callback = resetCallback_;
             callbackName = RESET_CALLBACK_NAME;
+            break;
+        case PLAYER_PLAYBACK_COMPLETE:
+            callback = finishCallback_;
+            callbackName = FINISH_CALLBACK_NAME;
             break;
         default:
             callback = nullptr;
@@ -229,7 +226,7 @@ void PlayerCallbackNapi::OnVolumeChangeCb()
     return OnJsCallBack(cb);
 }
 
-void PlayerCallbackNapi::OnJsCallBack(PlayerJsCallback *jsCb)
+void PlayerCallbackNapi::OnJsCallBack(PlayerJsCallback *jsCb) const
 {
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
@@ -276,7 +273,7 @@ void PlayerCallbackNapi::OnJsCallBack(PlayerJsCallback *jsCb)
     }
 }
 
-void PlayerCallbackNapi::OnJsCallBackError(PlayerJsCallback *jsCb)
+void PlayerCallbackNapi::OnJsCallBackError(PlayerJsCallback *jsCb) const
 {
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
@@ -335,7 +332,7 @@ void PlayerCallbackNapi::OnJsCallBackError(PlayerJsCallback *jsCb)
     }
 }
 
-void PlayerCallbackNapi::OnJsCallBackPosition(PlayerJsCallback *jsCb)
+void PlayerCallbackNapi::OnJsCallBackPosition(PlayerJsCallback *jsCb) const
 {
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);

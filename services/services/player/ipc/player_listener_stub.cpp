@@ -70,32 +70,8 @@ void PlayerListenerStub::OnError(PlayerErrorType errorType, int32_t errorCode)
 void PlayerListenerStub::OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
 {
     std::shared_ptr<PlayerCallback> cb = callback_.lock();
-    CHECK_AND_RETURN(cb != nullptr);
-    switch (type) {
-        case INFO_TYPE_SEEKDONE:
-            cb->OnInfo(INFO_TYPE_SEEKDONE, extra, infoBody);
-            break;
-        case INFO_TYPE_EOS:
-            cb->OnInfo(INFO_TYPE_EOS, extra, infoBody);
-            break;
-        case INFO_TYPE_STATE_CHANGE:
-            cb->OnInfo(INFO_TYPE_STATE_CHANGE, extra, infoBody);
-            break;
-        case INFO_TYPE_POSITION_UPDATE:
-            cb->OnInfo(INFO_TYPE_POSITION_UPDATE, extra, infoBody);
-            break;
-        case INFO_TYPE_MESSAGE:
-            cb->OnInfo(INFO_TYPE_MESSAGE, extra, infoBody);
-            break;
-        case INFO_TYPE_VOLUME_CHANGE:
-            cb->OnInfo(INFO_TYPE_VOLUME_CHANGE, extra, infoBody);
-            break;
-        case INFO_TYPE_EXTRA_FORMAT:
-            cb->OnInfo(INFO_TYPE_EXTRA_FORMAT, extra, infoBody);
-            break;
-        default:
-            MEDIA_LOGE("default case, need check PlayerListenerStub");
-            break;
+    if (cb != nullptr) {
+        cb->OnInfo(type, extra, infoBody);
     }
 }
 
