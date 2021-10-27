@@ -116,10 +116,36 @@ void GstPlayerBuild::CreateLoop()
     loop_ = g_main_loop_new(context_, FALSE);
     CHECK_AND_RETURN_LOG(loop_ != nullptr, "gstPlayer_ is nullptr");
 
+    GSource *source = g_idle_source_new();
+    g_source_set_callback(source, (GSourceFunc)GstPlayerBuild::MainLoopRunCb, this,
+    nullptr);
+    guint ret = g_source_attach(source, context_);
+    CHECK_AND_RETURN_LOG(ret > 0, "add idle source failed");
+    g_source_unref(source);
+
     g_main_loop_run(loop_);
     // wait g_main_loop_quit
     g_main_loop_unref(loop_);
     loop_ = nullptr;
+}
+
+gboolean GstPlayerBuild::MainLoopRunCb(GstPlayerBuild *build)
+{
+    if (build == nullptr) {
+        return G_SOURCE_REMOVE;
+    }
+
+    std::unique_lock<std::mutex> lock(build->mutex_);
+    build->needWaiting_ = false;
+    build->cond_.notify_one();
+
+    return G_SOURCE_REMOVE;
+}
+
+void GstPlayerBuild::WaitMainLoopStart()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    cond_.wait(lock, [this] { return !needWaiting_; }); // wait main loop run done
 }
 
 void GstPlayerBuild::DestroyLoop() const

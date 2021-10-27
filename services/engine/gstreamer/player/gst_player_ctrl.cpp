@@ -129,15 +129,23 @@ void GstPlayerCtrl::SetVideoTrack(bool enable)
     MEDIA_LOGI("SetVideoTrack Enabled %{public}d", enable);
 }
 
-void GstPlayerCtrl::Pause(bool syncExecuted)
+void GstPlayerCtrl::Prepare()
 {
-    if (syncExecuted) {
-        PauseSync();
-    } else {
-        std::unique_lock<std::mutex> lock(mutex_);
-        auto task = std::make_shared<TaskHandler<void>>([this] { PauseSync(); });
-        (void)taskQue_.EnqueueTask(task);
-    }
+    isExit_ = false;
+    PauseSync();
+}
+
+void GstPlayerCtrl::PrepareAsync()
+{
+    isExit_ = false;
+    Pause();
+}
+
+void GstPlayerCtrl::Pause()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    auto task = std::make_shared<TaskHandler<void>>([this] { PauseSync(); });
+    (void)taskQue_.EnqueueTask(task);
 }
 
 void GstPlayerCtrl::PauseSync()
@@ -147,7 +155,8 @@ void GstPlayerCtrl::PauseSync()
         appsrcWarp_->Prepare();
     }
 
-    if (currentState_ == PLAYER_PAUSED ||
+    if (isExit_ ||
+        currentState_ == PLAYER_PAUSED ||
         currentState_ == PLAYER_PREPARED ||
         currentState_ == PLAYER_PLAYBACK_COMPLETE) {
         return;
@@ -173,7 +182,7 @@ void GstPlayerCtrl::Play()
 void GstPlayerCtrl::PlaySync()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (currentState_ == PLAYER_STARTED) {
+    if (currentState_ == PLAYER_STARTED || isExit_) {
         return;
     }
     if (appsrcWarp_ != nullptr && appsrcWarp_->IsLiveMode() && currentState_ == PLAYER_PLAYBACK_COMPLETE) {
@@ -242,7 +251,7 @@ void GstPlayerCtrl::SeekSync(uint64_t position, const PlayerSeekMode mode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     seekTask_ = nullptr;
-    if (currentState_ == PLAYER_STOPPED) {
+    if (currentState_ == PLAYER_STOPPED || isExit_) {
         return;
     }
 
@@ -254,6 +263,8 @@ void GstPlayerCtrl::SeekSync(uint64_t position, const PlayerSeekMode mode)
     // need keep the seek and seek modes consistent.
     g_object_set(gstPlayer_, "seek-mode", static_cast<gint>(ChangeSeekModeToGstFlag(mode)), nullptr);
     GstClockTime time = static_cast<GstClockTime>(position * MICRO);
+    (void)GetPositionInner();
+    seeking_ = true;
     gst_player_seek(gstPlayer_, time);
 
     {
@@ -265,16 +276,21 @@ void GstPlayerCtrl::SeekSync(uint64_t position, const PlayerSeekMode mode)
 void GstPlayerCtrl::Stop()
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    if (currentState_ <= PLAYER_PREPARING) {
+        isExit_ = true;
+        return;
+    }
     if (appsrcWarp_ != nullptr) {
         appsrcWarp_->Stop();
     }
-
     if (currentState_ == PLAYER_STOPPED) {
         return;
     }
 
+    isExit_ = true;
     userStop_ = true;
     CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
+    MEDIA_LOGD("Stop start!");
     gst_player_stop(gstPlayer_);
 
     {
@@ -288,7 +304,10 @@ void GstPlayerCtrl::Stop()
     bufferingStart_ = false;
     nextSeekFlag_ = false;
     enableLooping_ = false;
+    speeding_ = false;
+    seeking_ = false;
     rate_ = DEFAULT_RATE;
+    lastTime_ = 0;
     if (audioSink_ != nullptr) {
         g_signal_handler_disconnect(audioSink_, signalIdVolume_);
         signalIdVolume_ = 0;
@@ -329,6 +348,11 @@ void GstPlayerCtrl::SetVolume(const float &leftVolume, const float &rightVolume)
 uint64_t GstPlayerCtrl::GetPosition()
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    return GetPositionInner();
+}
+
+uint64_t GstPlayerCtrl::GetPositionInner()
+{
     CHECK_AND_RETURN_RET_LOG(gstPlayer_ != nullptr, 0, "gstPlayer_ is nullptr");
 
     if (currentState_ == PLAYER_STOPPED) {
@@ -336,12 +360,20 @@ uint64_t GstPlayerCtrl::GetPosition()
     }
 
     if (currentState_ == PLAYER_PLAYBACK_COMPLETE) {
+        if (appsrcWarp_ != nullptr && appsrcWarp_->IsLiveMode()) {
+            return lastTime_;
+        }
         return sourceDuration_;
+    }
+
+    if (seeking_ || speeding_) {
+        return lastTime_;
     }
 
     GstClockTime position = gst_player_get_position(gstPlayer_);
     uint64_t curTime = static_cast<uint64_t>(position) / MICRO;
     curTime = std::min(curTime, sourceDuration_);
+    lastTime_ = curTime;
     MEDIA_LOGD("GetPosition curTime(%{public}" PRIu64 ") duration(%{public}" PRIu64 ")", curTime, sourceDuration_);
     return curTime;
 }
@@ -385,10 +417,15 @@ int32_t GstPlayerCtrl::SetRate(double rate)
 void GstPlayerCtrl::SetRateSync(double rate)
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    if (isExit_) {
+        return;
+    }
     rateTask_ = nullptr;
 
     CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
     MEDIA_LOGD("SetRateSync in, rate=(%{public}lf)", rate);
+    (void)GetPositionInner();
+    speeding_ = true;
     gst_player_set_rate(gstPlayer_, static_cast<gdouble>(rate));
 
     condVarSeekSync_.wait(lock);
@@ -508,7 +545,7 @@ void GstPlayerCtrl::ProcessEndOfStream(const GstPlayer *cbPlayer)
     if (enableLooping_) {
         (void)Seek(0, SEEK_PREVIOUS_SYNC);
     } else {
-        (void)Pause(false);
+        (void)Pause();
     }
 }
 
@@ -658,19 +695,20 @@ void GstPlayerCtrl::OnSourceSetupCb(const GstPlayer *player, GstElement *src, co
     }
 }
 
-void GstPlayerCtrl::OnPositionUpdatedCb(const GstPlayer *player, guint64 position, const GstPlayerCtrl *playerGst)
+void GstPlayerCtrl::OnPositionUpdatedCb(const GstPlayer *player, guint64 position, GstPlayerCtrl *playerGst)
 {
     CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
     CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
     playerGst->ProcessPositionUpdated(player, static_cast<uint64_t>(position) / MICRO);
 }
 
-void GstPlayerCtrl::ProcessPositionUpdated(const GstPlayer *cbPlayer, uint64_t position) const
+void GstPlayerCtrl::ProcessPositionUpdated(const GstPlayer *cbPlayer, uint64_t position)
 {
     if (cbPlayer != gstPlayer_) {
         MEDIA_LOGE("gstplay cb object error: cbPlayer != gstPlayer_");
         return;
     }
+    lastTime_ = position;
 
     // position = 99643, duration_ = 99591
     position = std::min(position, sourceDuration_);
@@ -748,7 +786,13 @@ void GstPlayerCtrl::OnSeekDone()
         std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
         Format format;
         if (tempObs != nullptr) {
-            tempObs->OnInfo(INFO_TYPE_SEEKDONE, static_cast<int32_t>(seekDonePosition_), format);
+            if (speeding_) {
+                tempObs->OnInfo(INFO_TYPE_SPEEDDONE, 0, format);
+                speeding_ = false;
+            } else {
+                tempObs->OnInfo(INFO_TYPE_SEEKDONE, static_cast<int32_t>(seekDonePosition_), format);
+                seeking_ = false;
+            }
         }
         seekDoneNeedCb_ = false;
         condVarSeekSync_.notify_all();
