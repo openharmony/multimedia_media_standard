@@ -33,6 +33,8 @@ public:
     std::shared_ptr<GstPlayerCtrl> Build(sptr<Surface> surface = nullptr);
     void CreateLoop();
     void DestroyLoop() const;
+    void WaitMainLoopStart();
+    static gboolean MainLoopRunCb(GstPlayerBuild *build);
 
 private:
     void Release();
@@ -43,6 +45,9 @@ private:
     GstPlayer *gstPlayer_ = nullptr;
     std::shared_ptr<GstPlayerCtrl> playerCtrl_ = nullptr;
     std::shared_ptr<GstPlayerVideoRendererCtrl> rendererCtrl_ = nullptr;
+    std::mutex mutex_;
+    std::condition_variable cond_;
+    bool needWaiting_ = true;
 };
 } // Media
 } // OHOS
