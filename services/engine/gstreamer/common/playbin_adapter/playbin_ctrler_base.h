@@ -91,6 +91,7 @@ private:
     std::shared_ptr<PlayBinSinkProvider> sinkProvider_;
     std::unique_ptr<GstMsgProcessor> msgProcessor_;
     std::string uri_;
+    gulong signalId_ = 0;
     bool isInitialized = false;
 
     bool isErrorHappened_ = false;

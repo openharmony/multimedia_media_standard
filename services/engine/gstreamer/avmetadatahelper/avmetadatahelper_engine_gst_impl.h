@@ -63,7 +63,7 @@ private:
     std::mutex mutex_;
     std::condition_variable cond_;
     bool errHappened_ = false;
-    bool prepared_ = false;
+    int32_t status_ = PLAYBIN_STATE_IDLE;
 
     bool firstFetch_ = true;
     std::unique_ptr<DecoderPerf> decoderPerf_;

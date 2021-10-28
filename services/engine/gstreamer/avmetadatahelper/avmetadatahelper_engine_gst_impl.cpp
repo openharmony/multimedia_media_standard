@@ -156,6 +156,7 @@ std::shared_ptr<AVSharedMemory> AVMetadataHelperEngineGstImpl::FetchFrameAtTime(
 int32_t AVMetadataHelperEngineGstImpl::SetSourceInternel(const std::string &uri, int32_t usage)
 {
     Reset();
+    ON_SCOPE_EXIT(0) { Reset(); };
 
     uint8_t renderMode = IPlayBinCtrler::PlayBinRenderMode::NATIVE_STREAM;
     renderMode = renderMode | IPlayBinCtrler::PlayBinRenderMode::DISABLE_TEXT;
@@ -169,6 +170,9 @@ int32_t AVMetadataHelperEngineGstImpl::SetSourceInternel(const std::string &uri,
     playBinCtrler_ = IPlayBinCtrler::Create(IPlayBinCtrler::PlayBinKind::PLAYBIN2, createParam);
     CHECK_AND_RETURN_RET(playBinCtrler_ != nullptr, MSERR_UNKNOWN);
 
+    int32_t ret = playBinCtrler_->SetSource(uri);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
+
     metaCollector_ = std::make_unique<AVMetaMetaCollector>();
     auto listener = std::bind(&AVMetadataHelperEngineGstImpl::OnNotifyElemSetup, this, std::placeholders::_1);
     playBinCtrler_->SetElemSetupListener(listener);
@@ -177,13 +181,10 @@ int32_t AVMetadataHelperEngineGstImpl::SetSourceInternel(const std::string &uri,
         auto vidSink = sinkProvider_->CreateVideoSink();
         CHECK_AND_RETURN_RET_LOG(vidSink != nullptr, MSERR_UNKNOWN, "get video sink failed");
         frameExtractor_ = std::make_unique<AVMetaFrameExtractor>();
-        int32_t ret = frameExtractor_->Init(playBinCtrler_, *vidSink);
+        ret = frameExtractor_->Init(playBinCtrler_, *vidSink);
         CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
         gst_object_unref(vidSink);
     }
-
-    int32_t ret = playBinCtrler_->SetSource(uri);
-    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
     metaCollector_->Start();
     usage_ = usage;
@@ -198,6 +199,7 @@ int32_t AVMetadataHelperEngineGstImpl::SetSourceInternel(const std::string &uri,
         return MSERR_INVALID_OPERATION;
     }
 
+    CANCEL_SCOPE_EXIT_GUARD(0);
     return MSERR_OK;
 }
 
@@ -206,7 +208,7 @@ int32_t AVMetadataHelperEngineGstImpl::PrepareInternel(bool async)
     CHECK_AND_RETURN_RET_LOG(playBinCtrler_ != nullptr, MSERR_INVALID_OPERATION, "set source firstly");
 
     std::unique_lock<std::mutex> lock(mutex_);
-    if (prepared_) {
+    if (status_ == PLAYBIN_STATE_PREPARED) {
         return MSERR_OK;
     }
 
@@ -214,8 +216,8 @@ int32_t AVMetadataHelperEngineGstImpl::PrepareInternel(bool async)
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "prepare failed");
 
     if (!async) {
-        metaCollector_->Stop();
-        cond_.wait(lock, [this]() { return prepared_ || errHappened_; });
+        metaCollector_->Stop(true);
+        cond_.wait(lock, [this]() { return status_ == PLAYBIN_STATE_PREPARED || errHappened_; });
         CHECK_AND_RETURN_RET_LOG(!errHappened_, MSERR_UNKNOWN, "prepare failed");
     }
 
@@ -275,12 +277,19 @@ int32_t AVMetadataHelperEngineGstImpl::ExtractMetadata()
 void AVMetadataHelperEngineGstImpl::Reset()
 {
     std::unique_lock<std::mutex> lock(mutex_);
+
     if (metaCollector_ != nullptr) {
-        metaCollector_ = nullptr;
+        metaCollector_->Stop();
         hasCollectMeta_ = false;
     }
 
+    if (frameExtractor_ != nullptr) {
+        frameExtractor_->Reset();
+    }
+
     if (playBinCtrler_ != nullptr) {
+        playBinCtrler_->SetElemSetupListener(nullptr);
+
         auto tmp = playBinCtrler_;
         playBinCtrler_ = nullptr;
         // Some msg maybe be reported by the playbinCtrler_ during the playbinCtler_ destroying.
@@ -290,29 +299,33 @@ void AVMetadataHelperEngineGstImpl::Reset()
         lock.lock();
     }
 
-    if (frameExtractor_ != nullptr) {
-        frameExtractor_->Reset();
-        frameExtractor_ = nullptr;
-    }
-
     sinkProvider_ = nullptr;
+    metaCollector_ = nullptr;
+    frameExtractor_ = nullptr;
+    frameExtractor_ = nullptr;
 
     errHappened_ = false;
-    prepared_ = false;
+    status_ = PLAYBIN_STATE_IDLE;
 
     firstFetch_ = true;
     decoderPerf_ = nullptr;
+
+    lock.unlock();
+    lock.lock();
 }
 
 void AVMetadataHelperEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
 {
     switch (msg.type) {
         case PLAYBIN_MSG_STATE_CHANGE: {
+            std::unique_lock<std::mutex> lock(mutex_);
+            status_ = msg.code;
+            cond_.notify_all();
             if (msg.code == PLAYBIN_STATE_PREPARED) {
-                std::unique_lock<std::mutex> lock(mutex_);
                 MEDIA_LOGI("prepare finished");
-                prepared_ = true;
-                cond_.notify_all();
+            }
+            if (msg.code == PLAYBIN_STATE_STOPPED) {
+                MEDIA_LOGI("stop finished");
             }
             break;
         }
@@ -337,7 +350,9 @@ void AVMetadataHelperEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
 void AVMetadataHelperEngineGstImpl::OnNotifyElemSetup(GstElement &elem)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    metaCollector_->AddMetaSource(elem);
+    if (metaCollector_ != nullptr) {
+        metaCollector_->AddMetaSource(elem);
+    }
 
     if (decoderPerf_ == nullptr) {
         if (MatchElementByMeta(elem, GST_ELEMENT_METADATA_KLASS, { "Video", "Decoder", "Codec"})) {

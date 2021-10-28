@@ -99,6 +99,12 @@ AVMetaElemMetaCollector::AVMetaElemMetaCollector(AVMetaSourceType type, const Me
 AVMetaElemMetaCollector::~AVMetaElemMetaCollector()
 {
     MEDIA_LOGD("enter dtor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
+}
+
+void AVMetaElemMetaCollector::Stop()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    stopCollecting_ = true;
 
     for (auto &[elem, signalId] : signalIds_) {
         g_signal_handler_disconnect(elem, signalId);
@@ -107,11 +113,14 @@ AVMetaElemMetaCollector::~AVMetaElemMetaCollector()
     for (auto &[pad, probeId] : padProbes_) {
         gst_pad_remove_probe(pad, probeId);
     }
+
+    lock.unlock();
+    lock.lock();
 }
 
 int32_t AVMetaElemMetaCollector::GetTrackCount()
 {
-    std::unique_lock<std::mutex> lock(trackInfoMutex_);
+    std::unique_lock<std::mutex> lock(mutex_);
     return static_cast<int32_t>(trackInfos_.size());
 }
 
@@ -133,6 +142,12 @@ bool AVMetaElemMetaCollector::AddProbeToPadList(GList &list)
 
 bool AVMetaElemMetaCollector::AddProbeToPad(GstPad &pad)
 {
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (stopCollecting_) {
+        MEDIA_LOGI("stop collecting...");
+        return false;
+    }
+
     gulong probeId = gst_pad_add_probe(&pad, GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM, ProbeCallback, this, nullptr);
     if (probeId == 0) {
         MEDIA_LOGE("add probe for %{public}s's pad %{public}s failed", PAD_PARENT_NAME(&pad), PAD_NAME(&pad));
@@ -141,7 +156,6 @@ bool AVMetaElemMetaCollector::AddProbeToPad(GstPad &pad)
 
     (void)padProbes_.emplace(&pad, probeId);
 
-    std::unique_lock<std::mutex> lock(trackInfoMutex_);
     int32_t tracknumber = static_cast<int32_t>(trackInfos_.size());
     (void)trackInfos_.emplace(&pad, TrackInfo {tracknumber, Metadata {}});
 
@@ -153,6 +167,12 @@ bool AVMetaElemMetaCollector::AddProbeToPad(GstPad &pad)
 
 bool AVMetaElemMetaCollector::ConnectSignal(GstElement &elem, std::string_view signal, GCallback callback)
 {
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (stopCollecting_) {
+        MEDIA_LOGI("stop collecting...");
+        return false;
+    }
+
     gulong signalId = g_signal_connect(&elem, signal.data(), callback, this);
     if (signalId == 0) {
         MEDIA_LOGE("connect signal '%{public}s' to %{public}s failed", signal.data(), ELEM_NAME(&elem));
@@ -217,6 +237,12 @@ void AVMetaElemMetaCollector::ParseCaps(const GstCaps &caps, TrackInfo &trackInf
 
 void AVMetaElemMetaCollector::OnEventProbe(GstPad &pad, GstEvent &event)
 {
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (stopCollecting_) {
+        MEDIA_LOGI("stop collecting...");
+        return;
+    }
+
     auto it = trackInfos_.find(&pad);
     CHECK_AND_RETURN_LOG(it != trackInfos_.end(), "unrecognized pad %{public}s", PAD_NAME(&pad));
 
@@ -269,7 +295,7 @@ void AVMetaElemMetaCollector::QueryDuration(GstPad &pad)
         }
 
         fileMeta_.SetMeta(AV_KEY_DURATION, std::to_string(milliSecond));
-        fileMetaUpdated_ = true;
+        ReportMeta(AVMETA_TRACK_NUMBER_FILE, fileMeta_);
     }
 }
 
@@ -279,12 +305,16 @@ void AVMetaElemMetaCollector::ReportMeta(int32_t trackId, const Metadata &metada
         return;
     }
 
-    if (fileMetaUpdated_) {
+    mutex_.unlock();
+
+    if (fileMetaUpdated_ && trackId != AVMETA_TRACK_NUMBER_FILE) {
         resCb_(AVMETA_TRACK_NUMBER_FILE, fileMeta_);
         fileMetaUpdated_ = false;
     }
 
     resCb_(trackId, metadata);
+
+    mutex_.lock();
 }
 
 void AVMetaElemMetaCollector::ConvertToAVMeta(const Metadata &innerMeta, Metadata &avmeta) const
@@ -319,6 +349,12 @@ void TypeFindMetaCollector::HaveTypeCallback(GstElement *elem, guint probability
 
 void TypeFindMetaCollector::OnHaveType(const GstElement &elem, const GstCaps &caps)
 {
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (stopCollecting_) {
+        MEDIA_LOGI("stop collecting...");
+        return;
+    }
+
     Metadata meta;
     GstMetaParser::ParseFileMimeType(caps, meta);
 
@@ -326,6 +362,7 @@ void TypeFindMetaCollector::OnHaveType(const GstElement &elem, const GstCaps &ca
     std::string mimeType;
     (void)meta.TryGetMeta(INNER_META_KEY_MIME_TYPE, mimeType);
     avmeta.SetMeta(AV_KEY_MIME_TYPE, mimeType);
+
     ReportMeta(AVMETA_TRACK_NUMBER_FILE, avmeta);
 }
 
