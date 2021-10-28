@@ -138,6 +138,13 @@ void PlayBinCtrlerBase::PreparingState::StateEnter()
     MEDIA_LOGD("PreparingState::StateEnter finished");
 }
 
+int32_t PlayBinCtrlerBase::PreparingState::Stop()
+{
+    // change to stop always success
+    ctrler_.ChangeState(ctrler_.stoppedState_);
+    return MSERR_OK;
+}
+
 void PlayBinCtrlerBase::PreparingState::ProcessMessage(const InnerMessage &msg)
 {
     if (msg.type == INNER_MSG_STATE_CHANGED) {

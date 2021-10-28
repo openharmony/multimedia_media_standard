@@ -56,6 +56,7 @@ private:
     std::condition_variable cond_;
     bool startExtracting_ = false;
     std::unique_ptr<AVMetaFrameConverter> frameConverter_;
+    std::vector<gulong> signalIds_;
 };
 }
 }

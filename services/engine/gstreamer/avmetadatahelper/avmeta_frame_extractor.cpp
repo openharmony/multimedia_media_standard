@@ -80,6 +80,16 @@ void AVMetaFrameExtractor::Reset()
     std::unique_lock<std::mutex> lock(mutex_);
 
     StopExtract();
+
+    decltype(signalIds_) tempSignalIds;
+    tempSignalIds.swap(signalIds_);
+
+    lock.unlock();
+    for(auto signalId : tempSignalIds) {
+        g_signal_handler_disconnect(vidAppSink_, signalId);
+    }
+    lock.lock();
+
     if (vidAppSink_ != nullptr) {
         gst_object_unref(vidAppSink_);
         vidAppSink_ = nullptr;
@@ -158,8 +168,14 @@ int32_t AVMetaFrameExtractor::SetupVideoSink()
 {
     g_object_set(G_OBJECT(vidAppSink_), "emit-signals", TRUE, nullptr);
     g_object_set(G_OBJECT(vidAppSink_), "max-buffers", 1, nullptr);
-    (void)g_signal_connect(G_OBJECT(vidAppSink_), "new-preroll", G_CALLBACK(OnNewPrerollArrived), this);
-    (void)g_signal_connect(G_OBJECT(vidAppSink_), "new-sample", G_CALLBACK(OnNewSampleArrived), this);
+
+    gulong signalId = g_signal_connect(G_OBJECT(vidAppSink_), "new-preroll", G_CALLBACK(OnNewPrerollArrived), this);
+    CHECK_AND_RETURN_RET_LOG(signalId != 0, MSERR_INVALID_OPERATION, "listen to new-preroll failed");
+    signalIds_.push_back(signalId);
+
+    signalId = g_signal_connect(G_OBJECT(vidAppSink_), "new-sample", G_CALLBACK(OnNewSampleArrived), this);
+    CHECK_AND_RETURN_RET_LOG(signalId != 0, MSERR_INVALID_OPERATION, "listen to new-sample failed");
+    signalIds_.push_back(signalId);
 
     return MSERR_OK;
 }

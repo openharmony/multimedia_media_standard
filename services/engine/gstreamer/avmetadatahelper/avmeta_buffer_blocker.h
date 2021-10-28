@@ -20,6 +20,7 @@
 #include <vector>
 #include <mutex>
 #include <functional>
+#include <memory>
 #include "nocopyable.h"
 
 namespace OHOS {
@@ -28,7 +29,7 @@ namespace Media {
  * Utility for easy to process the work that block buffer on one element's pads.
  * Only avaliable for avmeta_meta_collector.
  */
-class AVMetaBufferBlocker {
+class AVMetaBufferBlocker : public std::enable_shared_from_this<AVMetaBufferBlocker> {
 public:
     using BufferRecievedNotifier = std::function<void(void)>;
     // direction == true means block srcpads's buffer
@@ -40,7 +41,9 @@ public:
 
     // the subtitle streams are not counted.
     uint32_t GetStreamCount();
-    void CancelBlock(uint32_t index);
+
+    // index = -1 will cancel all block
+    void CancelBlock(int32_t index);
 
     // Just clear all block, not cancel. Be carefully, after clear, the block can not be
     // cancelled until the element is destroyed.
@@ -50,6 +53,8 @@ public:
 private:
     static GstPadProbeReturn BlockCallback(GstPad *pad, GstPadProbeInfo *info, gpointer usrdata);
     static void PadAdded(GstElement *elem, GstPad *pad, gpointer userdata);
+    GstPadProbeReturn OnBlockCallback(GstPad &pad, GstPadProbeInfo &info);
+    void OnPadAdded(GstElement &elem, GstPad &pad);
 
     struct PadInfo {
         GstPad *pad;
