@@ -203,7 +203,7 @@ public:
      * Fetch a representative video frame near a given timestamp by considering the given
      * option if possible, and return a pixelmap with given parameters. This method must be
      * called after the SetSource.
-     * @param timeMs The time position in microseconds where the frame will be fetched.
+     * @param timeUs The time position in microseconds where the frame will be fetched.
      * When fetching the frame at the given time position, there is no guarantee that
      * the video source has a frame located at the position. When this happens, a frame
      * nearby will be returned. If timeUs is negative, time position and option will ignored,

@@ -54,27 +54,15 @@ AVMetaMetaCollector::AVMetaMetaCollector()
 AVMetaMetaCollector::~AVMetaMetaCollector()
 {
     MEDIA_LOGD("enter dtor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
-
     std::unique_lock<std::mutex> lock(mutex_);
+    {
+        decltype(elemCollectors_) temp;
+        temp.swap(elemCollectors_);
+    }
     {
         decltype(blockers_) temp;
         temp.swap(blockers_);
-        for (auto &[type, blockerVec] : temp) {
-            for (auto &blocker : blockerVec) {
-                if (blocker != nullptr) {
-                    // Rather than cancel, just clear the blocks, for speed up the destroy
-                    blocker->Clear();
-                }
-            }
-        }
     }
-
-    for (auto &[elem, signalId] : signalIds_) {
-        g_signal_handler_disconnect(elem, signalId);
-    }
-
-    stopCollecting_ = true;
-    cond_.notify_all();
 }
 
 void AVMetaMetaCollector::Start()
@@ -89,7 +77,9 @@ void AVMetaMetaCollector::Start()
 
 void AVMetaMetaCollector::AddMetaSource(GstElement &source)
 {
+    MEDIA_LOGE("enter");
     std::unique_lock<std::mutex> lock(mutex_);
+    MEDIA_LOGE("enter locked");
     if (stopCollecting_) {
         return;
     }
@@ -99,22 +89,31 @@ void AVMetaMetaCollector::AddMetaSource(GstElement &source)
     AddElemBlocker(source, srcType);
 }
 
-void AVMetaMetaCollector::Stop()
+void AVMetaMetaCollector::Stop(bool unlock /* false */)
 {
     MEDIA_LOGD("stop collecting...");
 
     std::unique_lock<std::mutex> lock(mutex_);
-    {
-        decltype(blockers_) temp;
-        temp.swap(blockers_); // will cancel all blocks
-    }
-    {
-        decltype(elemCollectors_) temp;
-        temp.swap(elemCollectors_);
-    }
-
     stopCollecting_ = true;
     cond_.notify_all();
+
+    StopBlocker(unlock);
+
+    for (auto &elemCollector : elemCollectors_) {
+        elemCollector->Stop();
+    }
+
+    {
+        decltype(signalIds_) temp;
+        temp.swap(signalIds_);
+
+        for (auto &[elem, signalId] : temp) {
+            g_signal_handler_disconnect(elem, signalId);
+        }
+    }
+
+    lock.unlock();
+    lock.lock();
 }
 
 std::unordered_map<int32_t, std::string> AVMetaMetaCollector::GetMetadata()
@@ -154,10 +153,17 @@ bool AVMetaMetaCollector::CheckCollectCompleted() const
         }
 
         if (collector->GetType() == AVMetaSourceType::TYPEFIND) {
+            if (trackMetaCollected_.count(AVMETA_TRACK_NUMBER_FILE) == 0) {
+                return false;
+            }
             continue;
         }
 
         int32_t trackCount = collector->GetTrackCount();
+        if (trackCount == 0) {
+            return false;
+        }
+
         for (auto trackId = 0; trackId < trackCount; trackId++) {
             if (trackMetaCollected_.count(trackId) == 0) {
                 return false;
@@ -170,7 +176,7 @@ bool AVMetaMetaCollector::CheckCollectCompleted() const
             if (blocker == nullptr) {
                 continue;
             }
-            if (!blocker->CheckBufferRecieved()) {
+            if (blocker->GetStreamCount() == 0 || !blocker->CheckBufferRecieved()) {
                 return false;
             }
         }
@@ -304,24 +310,28 @@ void AVMetaMetaCollector::AddElemBlocker(GstElement &source, uint8_t type)
             typeBlockersIter = ret.first;                                     \
         }                                                                     \
         (blocker)->Init();                                                    \
-        (void)typeBlockersIter->second.emplace_back(std::move(blocker));      \
+        (void)typeBlockersIter->second.emplace_back(blocker);      \
     } while (0)
 
     if (type == GstElemType::TYPEFIND || type == GstElemType::UNKNOWN) {
         return;
     }
 
-    auto notifier = [this]() { cond_.notify_all(); };
+    auto notifier = [this]() {
+        // get lock to ensure the notification will take effect.
+        std::unique_lock<std::mutex> lock(mutex_);
+        cond_.notify_all();
+    };
 
     if (type == GstElemType::DEMUXER || type == GstElemType::PARSER) {
-        auto blocker = std::make_unique<AVMetaBufferBlocker>(source, true, notifier);
+        auto blocker = std::make_shared<AVMetaBufferBlocker>(source, true, notifier);
         PUSH_NEW_BLOCK(type, blocker);
         UpdateElemBlocker(source, type);
         return;
     }
 
     if (type == GstElemType::DECODER) {
-        auto blocker = std::make_unique<AVMetaBufferBlocker>(source, false, notifier);
+        auto blocker = std::make_shared<AVMetaBufferBlocker>(source, false, notifier);
         PUSH_NEW_BLOCK(type, blocker);
         UpdateElemBlocker(source, type);
     }
@@ -393,6 +403,23 @@ void AVMetaMetaCollector::PadAdded(GstElement *elem, GstPad *pad, gpointer userd
     collector->currSetupedElemType_ = GstElemType::DEMUXER;
     // when padadded notify, the demuxer had already been setup blocker
     collector->currSetupedElemIdx_ = collector->blockers_.at(GstElemType::DEMUXER).size() - 1;
+}
+
+void AVMetaMetaCollector::StopBlocker(bool unlock)
+{
+    for (auto &[type, blockerVec] : blockers_) {
+        for (auto &blocker : blockerVec) {
+            if (blocker == nullptr) {
+                continue;
+            }
+            // place the if-else at the for-loop for cyclomatic complexity
+            if (unlock) {
+                blocker->CancelBlock(-1);
+            } else {
+                blocker->Clear();
+            }
+        }
+    }
 }
 }
 }

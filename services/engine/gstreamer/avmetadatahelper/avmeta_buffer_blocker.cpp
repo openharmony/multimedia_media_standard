@@ -24,24 +24,43 @@ namespace {
 
 namespace OHOS {
 namespace Media {
+using AVMetaBufferBlockerWrapper = ThizWrapper<AVMetaBufferBlocker>;
+
+GstPadProbeReturn AVMetaBufferBlocker::BlockCallback(GstPad *pad, GstPadProbeInfo *info, gpointer usrdata)
+{
+    if (pad == nullptr || info == nullptr || usrdata == nullptr) {
+        return GST_PAD_PROBE_PASS;
+    }
+
+    auto thizStrong = AVMetaBufferBlockerWrapper::TakeStrongThiz(usrdata);
+    if (thizStrong != nullptr) {
+        return thizStrong->OnBlockCallback(*pad, *info);
+    }
+    return GST_PAD_PROBE_PASS;
+}
+
+void AVMetaBufferBlocker::PadAdded(GstElement *elem, GstPad *pad, gpointer userdata)
+{
+    if (elem == nullptr || pad == nullptr || userdata == nullptr) {
+        return;
+    }
+
+    auto thizStrong = AVMetaBufferBlockerWrapper::TakeStrongThiz(userdata);
+    if (thizStrong != nullptr) {
+        return thizStrong->OnPadAdded(*elem, *pad);
+    }
+}
+
 AVMetaBufferBlocker::AVMetaBufferBlocker(GstElement &elem, bool direction, BufferRecievedNotifier notifier)
     : elem_(elem), direction_(direction), notifier_(notifier)
 {
-    MEDIA_LOGD("ctor, elem: %{public}s, direction: %{public}d", ELEM_NAME(&elem_), direction_);
+    MEDIA_LOGD("ctor, elem: %{public}s, direction: %{public}d, 0x%{public}06" PRIXPTR,
+        ELEM_NAME(&elem_), direction_, FAKE_POINTER(this));
 }
 
 AVMetaBufferBlocker::~AVMetaBufferBlocker()
 {
-    MEDIA_LOGD("dtor, elem: %{public}s", ELEM_NAME(&elem_));
-    std::unique_lock<std::mutex> lock(mutex_);
-    for (auto &padInfo : padInfos_) {
-        if (padInfo.probeId != 0) {
-            gst_pad_remove_probe(padInfo.pad, padInfo.probeId);
-        }
-    }
-    if (signalId_ != 0) {
-        g_signal_handler_disconnect(&elem_, signalId_);
-    }
+    MEDIA_LOGD("dtor, 0x%{public}06" PRIXPTR, FAKE_POINTER(this));
 }
 
 void AVMetaBufferBlocker::Init()
@@ -58,17 +77,28 @@ void AVMetaBufferBlocker::Init()
         if (name.find("subtitle") != std::string_view::npos) { // the subtitle stream is ignore
             return;
         }
-        gulong probeId = gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM, BlockCallback, this, nullptr);
+
+        AVMetaBufferBlockerWrapper *wrapper = new(std::nothrow) AVMetaBufferBlockerWrapper(shared_from_this());
+        CHECK_AND_RETURN_LOG(wrapper != nullptr, "can not create this wrapper");
+
+        gulong probeId = gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM, BlockCallback, wrapper,
+            &AVMetaBufferBlockerWrapper::OnDestory);
         if (probeId == 0) {
             MEDIA_LOGW("add probe for %{public}s's pad %{public}s failed",
                        PAD_PARENT_NAME(&pad), PAD_NAME(&pad));
+            delete wrapper;
             continue;
         }
         (void)padInfos_.emplace_back(PadInfo {pad, probeId, false});
     }
 
-    signalId_ = g_signal_connect(&elem_, "pad-added", GCallback(&AVMetaBufferBlocker::PadAdded), this);
+    AVMetaBufferBlockerWrapper *wrapper = new(std::nothrow) AVMetaBufferBlockerWrapper(shared_from_this());
+    CHECK_AND_RETURN_LOG(wrapper != nullptr, "can not create this wrapper");
+
+    signalId_ = g_signal_connect_data(&elem_, "pad-added", GCallback(&AVMetaBufferBlocker::PadAdded), wrapper,
+        (GClosureNotify)&AVMetaBufferBlockerWrapper::OnDestory, static_cast<GConnectFlags>(0));
     if (signalId_ == 0) {
+        delete wrapper;
         MEDIA_LOGW("add signal failed for %{public}s", ELEM_NAME(&elem_));
     }
 }
@@ -93,26 +123,45 @@ uint32_t AVMetaBufferBlocker::GetStreamCount()
     return static_cast<uint32_t>(padInfos_.size());
 }
 
-void AVMetaBufferBlocker::CancelBlock(uint32_t index)
+void AVMetaBufferBlocker::CancelBlock(int32_t index)
 {
     MEDIA_LOGD("cancel block at %{public}s's block id : %{public}u", ELEM_NAME(&elem_), index);
 
     std::unique_lock<std::mutex> lock(mutex_);
-    if (index >= padInfos_.size()) {
+    if (index == -1) {
+        for (auto &padInfo : padInfos_) {
+            if (padInfo.probeId != 0) {
+                gst_pad_remove_probe(padInfo.pad, padInfo.probeId);
+                padInfo.probeId = 0;
+            }
+        }
+
+        if (signalId_ != 0) {
+            g_signal_handler_disconnect(&elem_, signalId_);
+            signalId_ = 0;
+        }
+        return;
+    }
+
+    if (static_cast<size_t>(index) >= padInfos_.size()) {
         return;
     }
     if (padInfos_[index].probeId != 0) {
         gst_pad_remove_probe(padInfos_[index].pad, padInfos_[index].probeId);
         padInfos_[index].probeId = 0;
     }
+
+    lock.unlock();
+    lock.lock();
 }
 
 void AVMetaBufferBlocker::Clear()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    {
-        decltype(padInfos_) temp;
-        temp.swap(padInfos_);
+    for (auto &padInfo : padInfos_) {
+        if (padInfo.probeId != 0) {
+            padInfo.probeId = 0;
+        }
     }
 
     if (signalId_ != 0) {
@@ -121,64 +170,70 @@ void AVMetaBufferBlocker::Clear()
     }
 }
 
-GstPadProbeReturn AVMetaBufferBlocker::BlockCallback(GstPad *pad, GstPadProbeInfo *info, gpointer usrdata)
+GstPadProbeReturn AVMetaBufferBlocker::OnBlockCallback(GstPad &pad, GstPadProbeInfo &info)
 {
-    if (pad == nullptr || info ==  nullptr || usrdata == nullptr) {
-        MEDIA_LOGE("param is invalid");
-        return GST_PAD_PROBE_PASS;
-    }
-
-    auto type = static_cast<unsigned int>(info->type);
+    auto type = static_cast<unsigned int>(info.type);
     if ((type & (GST_PAD_PROBE_TYPE_BUFFER | GST_PAD_PROBE_TYPE_BUFFER_LIST)) == 0) {
         return GST_PAD_PROBE_PASS;
     }
 
-    auto blocker = reinterpret_cast<AVMetaBufferBlocker *>(usrdata);
-    std::unique_lock<std::mutex> lock(blocker->mutex_);
-    for (auto &padInfo : blocker->padInfos_) {
-        if (padInfo.pad != pad) {
+    std::unique_lock<std::mutex> lock(mutex_);
+    for (auto &padInfo : padInfos_) {
+        if (padInfo.pad != &pad) {
             continue;
         }
-        padInfo.hasBuffer = true;
-        MEDIA_LOGD("buffer arrived at %{public}s's pad %{public}s", PAD_PARENT_NAME(pad), PAD_NAME(pad));
-        if (blocker->notifier_ != nullptr) {
-            blocker->notifier_();
+
+        if (padInfo.probeId == 0) {
+            MEDIA_LOGI("block already be canceled, exit");
+            return GST_PAD_PROBE_REMOVE;
         }
+
+        padInfo.hasBuffer = true;
+        MEDIA_LOGD("buffer arrived at %{public}s's pad %{public}s", PAD_PARENT_NAME(&pad), PAD_NAME(&pad));
+        lock.unlock();
+        if (notifier_ != nullptr) {
+            notifier_();
+        }
+        MEDIA_LOGD("buffer arrived at %{public}s's pad %{public}s exit", PAD_PARENT_NAME(&pad), PAD_NAME(&pad));
         return GST_PAD_PROBE_OK;
     }
 
     return GST_PAD_PROBE_PASS;
 }
 
-void AVMetaBufferBlocker::PadAdded(GstElement *elem, GstPad *pad, gpointer userdata)
+void AVMetaBufferBlocker::OnPadAdded(GstElement &elem, GstPad &pad)
 {
-    if (elem == nullptr || pad == nullptr || userdata == nullptr) {
-        MEDIA_LOGE("invalid param");
-        return;
-    }
-    MEDIA_LOGD("demuxer %{public}s sinkpad %{public}s added", ELEM_NAME(elem), PAD_NAME(pad));
+    MEDIA_LOGD("demuxer %{public}s sinkpad %{public}s added", ELEM_NAME(&elem), PAD_NAME(&pad));
 
-    auto blocker = reinterpret_cast<AVMetaBufferBlocker *>(userdata);
-    std::unique_lock<std::mutex> lock(blocker->mutex_);
+    std::unique_lock<std::mutex> lock(mutex_);
 
-    GstPadDirection gstDirection = (blocker->direction_) ? GST_PAD_SRC : GST_PAD_SINK;
-    if (GST_PAD_DIRECTION(pad) != gstDirection) {
+    if (signalId_ == 0) {
+        MEDIA_LOGI("block already be canceled, exit");
         return;
     }
 
-    std::string_view name = PAD_NAME(pad);
+    GstPadDirection gstDirection = (direction_) ? GST_PAD_SRC : GST_PAD_SINK;
+    if (GST_PAD_DIRECTION(&pad) != gstDirection) {
+        return;
+    }
+
+    std::string_view name = PAD_NAME(&pad);
     if (name.find("subtitle") != std::string_view::npos) { // the subtitle stream is ignore
         return;
     }
 
-    gulong probeId = gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM, BlockCallback, userdata, nullptr);
+    AVMetaBufferBlockerWrapper *wrapper = new(std::nothrow) AVMetaBufferBlockerWrapper(shared_from_this());
+    CHECK_AND_RETURN_LOG(wrapper != nullptr, "can not create this wrapper");
+
+    gulong probeId = gst_pad_add_probe(&pad, GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM, BlockCallback, wrapper,
+        &AVMetaBufferBlockerWrapper::OnDestory);
     if (probeId == 0) {
-        MEDIA_LOGW("add probe for %{public}s's pad %{public}s failed",
-                   PAD_PARENT_NAME(pad), PAD_NAME(pad));
+        MEDIA_LOGW("add probe for %{public}s's pad %{public}s failed", PAD_PARENT_NAME(&pad), PAD_NAME(&pad));
+        delete wrapper;
         return;
     }
 
-    (void)blocker->padInfos_.emplace_back(PadInfo {pad, probeId, false});
+    (void)padInfos_.emplace_back(PadInfo {&pad, probeId, false});
 }
 }
 }
