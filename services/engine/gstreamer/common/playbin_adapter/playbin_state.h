@@ -64,6 +64,8 @@ public:
     explicit PreparingState(PlayBinCtrlerBase &ctrler) : BaseState(ctrler, "preparing_state") {}
     ~PreparingState() = default;
 
+    int32_t Stop() override;
+
 protected:
     void ProcessMessage(const InnerMessage &msg) override;
     void StateEnter() override;

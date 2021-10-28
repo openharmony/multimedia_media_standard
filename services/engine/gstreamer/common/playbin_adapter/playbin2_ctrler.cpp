@@ -42,9 +42,7 @@ std::shared_ptr<IPlayBinCtrler> IPlayBinCtrler::Create(
 
 PlayBin2Ctrler::~PlayBin2Ctrler()
 {
-    if (playbin_ != nullptr) {
-        gst_object_unref(playbin_);
-    }
+    MEDIA_LOGE("enter dtor");
 }
 
 int32_t PlayBin2Ctrler::OnInit()

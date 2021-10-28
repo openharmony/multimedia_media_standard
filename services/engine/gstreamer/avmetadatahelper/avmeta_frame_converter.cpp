@@ -153,13 +153,14 @@ std::shared_ptr<AVSharedMemory> AVMetaFrameConverter::StopConvert()
     frame->bytesPerPixel_ = PIXELFORMAT_INFO.at(outConfig_.colorFormat).bytesPerPixel;
     frame->width_ = static_cast<int32_t>(videoMeta->width);
     frame->height_ = static_cast<int32_t>(videoMeta->height);
-    frame->size_ = frame->width_ * frame->bytesPerPixel_ * frame->height_;
+    frame->stride_ = videoMeta->stride[0];
+    frame->size_ = frame->stride_ * frame->height_;
 
     CHECK_AND_RETURN_RET_LOG(result->GetSize() >= frame->GetFlattenedSize(), nullptr, "size is incorrect");
 
     MEDIA_LOGI("======================Convert Frame Finished=========================");
-    MEDIA_LOGI("output width = %{public}d, height = %{public}d, format = %{public}d",
-        videoMeta->width, videoMeta->height, outConfig_.colorFormat);
+    MEDIA_LOGI("output width = %{public}d, stride = %{public}d, height = %{public}d, format = %{public}d",
+        frame->width_, frame->stride_, frame->height_, outConfig_.colorFormat);
     return result;
 }
 

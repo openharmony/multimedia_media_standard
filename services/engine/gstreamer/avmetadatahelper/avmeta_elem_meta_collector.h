@@ -59,6 +59,8 @@ public:
     {
         return type_;
     }
+    void Stop();
+
     DISALLOW_COPY_AND_MOVE(AVMetaElemMetaCollector);
 
 protected:
@@ -67,7 +69,6 @@ protected:
     bool ConnectSignal(GstElement &elem, std::string_view signal, GCallback callback);
     void ReportMeta(int32_t trackId, const Metadata &metadata);
 
-private:
     static GstPadProbeReturn ProbeCallback(GstPad *pad, GstPadProbeInfo *info, gpointer usrdata);
     void OnEventProbe(GstPad &pad, GstEvent &event);
     void QueryDuration(GstPad &pad);
@@ -84,9 +85,10 @@ private:
     std::unordered_map<GstPad *, TrackInfo> trackInfos_;
     Metadata fileMeta_;
     bool fileMetaUpdated_ = false;
-    std::mutex trackInfoMutex_;
     int64_t duration_ = 0;
     bool globalTagCatched_ = false;
+    bool stopCollecting_ = false;
+    std::mutex mutex_;
 };
 
 /**

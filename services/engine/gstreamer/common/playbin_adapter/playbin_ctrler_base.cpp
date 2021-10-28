@@ -226,8 +226,7 @@ int32_t PlayBinCtrlerBase::StopInternel()
     taskMgr_.ClearAllTask();
 
     auto state = GetCurrState();
-    if (state == idleState_ || state == stoppedState_ ||
-        state == initializedState_ || state == preparingState_) {
+    if (state == idleState_ || state == stoppedState_ || state == initializedState_) {
         MEDIA_LOGI("curr state is %{public}s, skip", state->GetStateName().c_str());
         return MSERR_OK;
     }
@@ -276,7 +275,11 @@ void PlayBinCtrlerBase::Reset() noexcept
         (void)msgQueue_->Stop();
     }
 
+    elemSetupListener_ = nullptr;
+    uri_.clear();
     isErrorHappened_ = false;
+
+    MEDIA_LOGD("exit");
 }
 
 void PlayBinCtrlerBase::SetElemSetupListener(ElemSetupListener listener)
@@ -308,7 +311,6 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
     CHECK_AND_RETURN_RET(playbin_ != nullptr, static_cast<int32_t>(MSERR_UNKNOWN));
 
-    playbin_ = GST_PIPELINE_CAST(gst_object_ref(playbin_));
     SetupCustomElement();
     ret = SetupSignalMessage();
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
@@ -346,8 +348,10 @@ void PlayBinCtrlerBase::ExitInitializedState()
         msgProcessor_ = nullptr;
     }
 
-    elemSetupListener_ = nullptr;
-    uri_.clear();
+    if (signalId_ != 0) {
+        g_signal_handler_disconnect(playbin_, signalId_);
+        signalId_ = 0;
+    }
 
     MEDIA_LOGD("unref playbin start");
     if (playbin_ != nullptr) {
@@ -435,7 +439,7 @@ int32_t PlayBinCtrlerBase::SetupSignalMessage()
     PlayBinCtrlerWrapper *wrapper = new(std::nothrow) PlayBinCtrlerWrapper(shared_from_this());
     CHECK_AND_RETURN_RET_LOG(wrapper != nullptr, MSERR_NO_MEMORY, "can not create this wrapper");
 
-    (void)g_signal_connect_data(playbin_, "element-setup", G_CALLBACK(&PlayBinCtrlerBase::ElementSetup),
+    signalId_ = g_signal_connect_data(playbin_, "element-setup", G_CALLBACK(&PlayBinCtrlerBase::ElementSetup),
         wrapper, (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory, static_cast<GConnectFlags>(0));
 
     GstBus *bus = gst_pipeline_get_bus(playbin_);
@@ -478,9 +482,17 @@ void PlayBinCtrlerBase::OnElementSetup(GstElement &elem)
 {
     MEDIA_LOGD("element setup: %{public}s", ELEM_NAME(&elem));
 
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (elemSetupListener_ != nullptr) {
-        elemSetupListener_(elem);
+    // limit to the g-signal, send this notification at this thread, do not change the work thread.
+    // otherwise ,the avmetaengine will work inproperly.
+
+    decltype(elemSetupListener_) listener = nullptr;
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        listener = elemSetupListener_;
+    }
+
+    if (listener != nullptr) {
+        listener(elem);
     }
 }
 

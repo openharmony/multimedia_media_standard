@@ -23,24 +23,28 @@ namespace OHOS {
 namespace Media {
 struct OutputFrame {
 public:
-    OutputFrame(int32_t width, int32_t height, int32_t bytesPerPixel)
-        : width_(width), height_(height), bytesPerPixel_(bytesPerPixel),
-          size_(width_ * height_ * bytesPerPixel_)
+    OutputFrame(int32_t width, int32_t height, int32_t stride, int32_t bytesPerPixel)
+        : width_(width),
+          height_(height),
+          stride_(stride),
+          bytesPerPixel_(bytesPerPixel),
+          size_(stride_ * height) // interleaved layout
     {
     }
 
-    int32_t GetFlattenedSize()
+    int32_t GetFlattenedSize() const
     {
         return sizeof(OutputFrame) + size_;
     }
 
-    uint8_t *GetFlattenedData()
+    uint8_t *GetFlattenedData() const
     {
-        return reinterpret_cast<uint8_t *>(this) + sizeof(OutputFrame);
+        return const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(this)) + sizeof(OutputFrame);
     }
 
     int32_t width_;
     int32_t height_;
+    int32_t stride_; // interleaved layout
     int32_t bytesPerPixel_;
     int32_t size_;
 };

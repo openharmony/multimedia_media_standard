@@ -18,6 +18,7 @@
 #include "i_media_service.h"
 #include "media_log.h"
 #include "media_errors.h"
+#include "scope_guard.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVMetadatahelperImpl"};
@@ -25,29 +26,94 @@ constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVMetadata
 
 namespace OHOS {
 namespace Media {
-struct AVShMemWrapper {
-    std::shared_ptr<AVSharedMemory> mem;
+struct PixelMapMemHolder {
+    bool isShmem;
+    std::shared_ptr<AVSharedMemory> shmem;
+    uint8_t *heap;
 };
 
 static void FreePixelMapData(void *addr, void *context, uint32_t size)
 {
-    (void)addr;
     (void)size;
 
     MEDIA_LOGI("free pixel map data");
 
     CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
-    AVShMemWrapper *wrapper = reinterpret_cast<AVShMemWrapper *>(context);
-    CHECK_AND_RETURN_LOG(wrapper->mem != nullptr, "mem is nullptr");
-    wrapper->mem = nullptr;
-    delete wrapper;
+    PixelMapMemHolder *holder = reinterpret_cast<PixelMapMemHolder *>(context);
+    if (holder->isShmem) {
+        if (holder->shmem == nullptr) {
+            MEDIA_LOGE("shmem is nullptr");
+        }
+        holder->shmem = nullptr;
+        holder->heap = nullptr;
+    } else {
+        if (holder->heap == nullptr || holder->heap != addr) {
+            MEDIA_LOGE("heap is invalid");
+        } else {
+            delete [] holder->heap;
+            holder->heap = nullptr;
+        }
+    }
+    delete holder;
+}
+
+static PixelMapMemHolder *CreatePixelMapData(const std::shared_ptr<AVSharedMemory> &mem, const OutputFrame &frame)
+{
+    PixelMapMemHolder *holder = new (std::nothrow) PixelMapMemHolder;
+    CHECK_AND_RETURN_RET_LOG(holder != nullptr, nullptr, "alloc pixelmap mem holder failed");
+
+    ON_SCOPE_EXIT(0) { delete holder; };
+
+    int32_t minStride = frame.width_ * frame.bytesPerPixel_;
+    CHECK_AND_RETURN_RET_LOG(minStride <= frame.stride_, nullptr, "stride info wrong");
+
+    if (frame.stride_ == minStride) {
+        CANCEL_SCOPE_EXIT_GUARD(0);
+        holder->isShmem = true;
+        holder->shmem = mem;
+        holder->heap = frame.GetFlattenedData();
+        return holder;
+    }
+
+    static const int64_t maxAllowedSize = 100 * 1024 * 1024;
+    int64_t memSize = minStride * frame.height_;
+    CHECK_AND_RETURN_RET_LOG(memSize <= maxAllowedSize, nullptr, "alloc heap size too large");
+
+    uint8_t *heap = new (std::nothrow) uint8_t[memSize];
+    CHECK_AND_RETURN_RET_LOG(heap != nullptr, nullptr, "alloc heap failed");
+
+    ON_SCOPE_EXIT(1) { delete [] heap; };
+
+    uint8_t *currDstPos = heap;
+    uint8_t *currSrcPos = frame.GetFlattenedData();
+    for (int32_t row = 0; row < frame.height_; ++row) {
+        errno_t rc = memcpy_s(currDstPos, memSize, currSrcPos, minStride);
+        CHECK_AND_RETURN_RET_LOG(rc == EOK, nullptr, "memcpy_s failed");
+
+        currDstPos += minStride;
+        currSrcPos += frame.stride_;
+        memSize -= minStride;
+    }
+
+    holder->isShmem = false;
+    holder->heap = heap;
+
+    CANCEL_SCOPE_EXIT_GUARD(0);
+    CANCEL_SCOPE_EXIT_GUARD(1);
+    return holder;
 }
 
 static std::shared_ptr<PixelMap> CreatePixelMap(const std::shared_ptr<AVSharedMemory> &mem, PixelFormat color)
 {
+    CHECK_AND_RETURN_RET_LOG(mem != nullptr, nullptr, "Fetch frame failed");
+    CHECK_AND_RETURN_RET_LOG(mem->GetBase() != nullptr, nullptr, "Addr is nullptr");
+    CHECK_AND_RETURN_RET_LOG(mem->GetSize() > 0, nullptr, "size is incorrect");
+    CHECK_AND_RETURN_RET_LOG(static_cast<uint32_t>(mem->GetSize()) >= sizeof(OutputFrame),
+                             nullptr, "size is incorrect");
+
     OutputFrame *frame = reinterpret_cast<OutputFrame *>(mem->GetBase());
-    MEDIA_LOGD("width: %{public}d, height: %{public}d, size: %{public}d, format: %{public}d",
-        frame->width_, frame->height_, frame->size_, color);
+    MEDIA_LOGD("width: %{public}d, stride : %{public}d, height: %{public}d, size: %{public}d, format: %{public}d",
+        frame->width_, frame->stride_, frame->height_, frame->size_, color);
 
     ImageInfo info;
     info.size.width = frame->width_;
@@ -58,13 +124,12 @@ static std::shared_ptr<PixelMap> CreatePixelMap(const std::shared_ptr<AVSharedMe
     std::shared_ptr<PixelMap> pixelMap = std::make_shared<PixelMap>();
     int32_t ret = pixelMap->SetImageInfo(info);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "Set image info failed");
-    CHECK_AND_RETURN_RET_LOG(pixelMap->GetByteCount() == frame->size_, nullptr, "Size inconsistent !");
+    CHECK_AND_RETURN_RET_LOG(pixelMap->GetByteCount() <= frame->size_, nullptr, "Size inconsistent !");
 
-    AVShMemWrapper *wrapper = new (std::nothrow) AVShMemWrapper;
-    CHECK_AND_RETURN_RET_LOG(wrapper != nullptr, nullptr, "alloc avshmem wrapper failed");
-    wrapper->mem = mem;
+    PixelMapMemHolder *holder = CreatePixelMapData(mem, *frame);
+    CHECK_AND_RETURN_RET_LOG(holder != nullptr, nullptr, "create pixel map data failed");
 
-    pixelMap->SetPixelsAddr(frame->GetFlattenedData(), wrapper, static_cast<uint32_t>(pixelMap->GetByteCount()),
+    pixelMap->SetPixelsAddr(holder->heap, holder, static_cast<uint32_t>(pixelMap->GetByteCount()),
         AllocatorType::CUSTOM_ALLOC, FreePixelMapData);
     return pixelMap;
 }
@@ -138,15 +203,7 @@ std::shared_ptr<PixelMap> AVMetadataHelperImpl::FetchFrameAtTime(int64_t timeUs,
     config.dstWidth = param.dstWidth;
 
     auto mem = avMetadataHelperService_->FetchFrameAtTime(timeUs, option, config);
-    CHECK_AND_RETURN_RET_LOG(mem != nullptr, nullptr, "Fetch frame failed");
-    CHECK_AND_RETURN_RET_LOG(mem->GetBase() != nullptr, nullptr, "Addr is nullptr");
-
-    if (mem->GetSize() > 0 && static_cast<uint32_t>(mem->GetSize()) >= sizeof(OutputFrame)) {
-        return CreatePixelMap(mem, param.colorFormat);
-    }
-
-    MEDIA_LOGE("size is incorrect");
-    return nullptr;
+    return CreatePixelMap(mem, param.colorFormat);
 }
 
 void AVMetadataHelperImpl::Release()
