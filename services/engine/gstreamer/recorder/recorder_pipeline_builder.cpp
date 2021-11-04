@@ -108,7 +108,7 @@ int32_t RecorderPipelineBuilder::SetVideoSource(const RecorderSourceDesc &desc)
     std::shared_ptr<RecorderElement> videoSrcElem;
     // ES Source and YUV Source is supported.
     if (desc.type_ == VideoSourceType::VIDEO_SOURCE_SURFACE_ES ||
-        desc.type == VideoSourceType::VIDEO_SOURCE_SURFACE_YUV) {
+        desc.type_ == VideoSourceType::VIDEO_SOURCE_SURFACE_YUV) {
         videoSrcElem = CreateElement("VideoSource", desc, true);
     } else {
         MEDIA_LOGE("Video source type %{public}d currently unsupported", desc.type_);
