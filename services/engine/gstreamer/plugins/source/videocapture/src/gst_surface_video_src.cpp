@@ -23,15 +23,7 @@ static GstStaticPadTemplate gst_video_src_template =
 GST_STATIC_PAD_TEMPLATE("src",
     GST_PAD_SRC,
     GST_PAD_ALWAYS,
-    GST_STATIC_CAPS("video/x-h264, "
-        "alignment=(string) au, "
-        "framerate=(fraction)30/1, "
-        "stream-format=(string) avc, "
-        "pixel-aspect-ratio=(fraction)1/1, "
-        "level=(string) 2, "
-        "profile=(string) high, "
-        "width =(int) [ 1, MAX ],"
-        "height =(int) [ 1, MAX ]"));
+    GST_STATIC_CAPS_ANY);
 
 namespace {
     constexpr VideoStreamType DEFAULT_STREAM_TYPE = VIDEO_STREAM_TYPE_UNKNOWN;
@@ -128,7 +120,7 @@ static void gst_surface_video_src_init(GstSurfaceVideoSrc *src)
     g_return_if_fail(src != nullptr);
     gst_base_src_set_format(GST_BASE_SRC(src), GST_FORMAT_TIME);
     gst_base_src_set_live(GST_BASE_SRC(src), TRUE);
-    src->stream_type = VIDEO_STREAM_TYPE_ES_AVC;
+    src->stream_type = VIDEO_STREAM_TYPE_UNKNOWN;
     src->capture = nullptr;
     src->src_caps = nullptr;
     src->video_width = 0;
@@ -136,16 +128,22 @@ static void gst_surface_video_src_init(GstSurfaceVideoSrc *src)
     src->is_start = FALSE;
     src->need_codec_data = TRUE;
     src->is_eos = FALSE;
+    // src->is_es = FALSE;
+    // src->is_yuv = FALSE;
 }
 
 static void gst_surface_video_src_finalize(GObject *object)
 {
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(object);
     g_return_if_fail(src != nullptr);
+
+    src->need_codec_data = FALSE;
+
     if (src->src_caps != nullptr) {
         gst_caps_unref(src->src_caps);
         src->src_caps = nullptr;
     }
+
 }
 
 static void gst_surface_video_src_set_property(GObject *object, guint prop_id,
@@ -171,10 +169,19 @@ static void gst_surface_video_src_set_property(GObject *object, guint prop_id,
 
 static void gst_surface_video_src_set_stream_type(GstSurfaceVideoSrc *src, gint stream_type)
 {
-    (void)stream_type;
+    switch (stream_type) {
+    case VideoStreamType::VIDEO_STREAM_TYPE_ES_AVC:
+        src->stream_type = VIDEO_STREAM_TYPE_ES_AVC;
+        src->need_codec_data = TRUE;
+        break;
+    case VideoStreamType::VIDEO_STREAM_TYPE_YUV_420:
+        src->stream_type = VIDEO_STREAM_TYPE_YUV_420;
+        src->need_codec_data = FALSE;
+        break;
+    default:
+        return;
+    }
     g_return_if_fail(src != nullptr);
-    src->stream_type = VIDEO_STREAM_TYPE_ES_AVC;
-    src->need_codec_data = TRUE;
 }
 
 static void gst_surface_video_src_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
@@ -234,6 +241,26 @@ static gboolean process_codec_data(GstSurfaceVideoSrc *src)
     return TRUE;
 }
 
+static gboolean set_fix_caps(GstSurfaceVideoSrc *src)
+{
+    g_return_val_if_fail(src != nullptr, FALSE);
+    g_return_val_if_fail(src->capture != nullptr, FALSE);
+
+    if (src->src_caps != nullptr) {
+        gst_caps_unref(src->src_caps);
+    }
+
+    src->src_caps = gst_caps_new_simple("video/x-raw",
+        "format", G_TYPE_STRING, "I420",
+        "framerate", GST_TYPE_FRACTION, DEFAULT_FRAME_RATE, 1,
+        "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1,
+        "width", G_TYPE_INT, src->video_width,
+        "height", G_TYPE_INT, src->video_height,
+        nullptr);
+
+    return TRUE;
+}
+
 static gboolean start_video_capture(GstSurfaceVideoSrc *src)
 {
     g_return_val_if_fail(src != nullptr, FALSE);
@@ -255,12 +282,15 @@ static GstStateChangeReturn gst_surface_video_src_change_state(GstElement *eleme
         case GST_STATE_CHANGE_NULL_TO_READY:
             src->capture = OHOS::Media::VideoCaptureFactory::CreateVideoCapture(src->stream_type);
             g_return_val_if_fail(src->capture != nullptr, GST_STATE_CHANGE_FAILURE);
+            g_return_val_if_fail(set_fix_caps(src) == TRUE, GST_STATE_CHANGE_FAILURE);
             break;
         case GST_STATE_CHANGE_READY_TO_PAUSED:
             g_return_val_if_fail(src->capture != nullptr, GST_STATE_CHANGE_FAILURE);
             g_return_val_if_fail(src->capture->SetVideoHeight(src->video_height) == MSERR_OK,
                 GST_STATE_CHANGE_FAILURE);
             g_return_val_if_fail(src->capture->SetVideoWidth(src->video_width) == MSERR_OK,
+                GST_STATE_CHANGE_FAILURE);
+            g_return_val_if_fail(src->capture->SetStreamType(src->stream_type) == MSERR_OK,
                 GST_STATE_CHANGE_FAILURE);
             g_return_val_if_fail(src->capture->Prepare() == MSERR_OK, GST_STATE_CHANGE_FAILURE);
             break;
@@ -305,7 +335,10 @@ static gboolean gst_surface_video_src_is_seekable(GstBaseSrc *basesrc)
 
 static gboolean gst_surface_video_src_negotiate(GstBaseSrc *basesrc)
 {
-    (void)gst_base_src_wait_playing(basesrc);
+    // no need to wait playing when yuv source
+    if (src->need_codec_data) {
+        (void)gst_base_src_wait_playing(basesrc);
+    }
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(basesrc);
     g_return_val_if_fail(src != nullptr, FALSE);
     return gst_base_src_set_caps(basesrc, src->src_caps);

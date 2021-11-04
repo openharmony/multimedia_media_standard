@@ -36,7 +36,8 @@ namespace Media {
     do {                                                                   \
         if (elemSet.find(elem) == elemSet.end())  {                        \
             elemSet.emplace(elem);                                         \
-            gst_bin_add(GST_BIN(pipeline_->gstPipeline_), elem->gstElem_); \
+            gst_bin_add(GST_BIN(pipeline_->gstPipeline_),                  \
+                GST_ELEMENT_CAST(gst_object_ref(elem->gstElem_)));         \
         }                                                                  \
     } while (false)
 
