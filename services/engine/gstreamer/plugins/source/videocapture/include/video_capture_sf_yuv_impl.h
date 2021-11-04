@@ -13,28 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef AUDIO_ENCORDER_H
-#define AUDIO_ENCORDER_H
+#ifndef VIDEO_CAPTURE_SF_YUV_IMPL_H
+#define VIDEO_CAPTURE_SF_YUV_IMPL_H
 
-#include "recorder_element.h"
+#include "video_capture_sf_impl.h"
+#include "nocopyable.h"
 
 namespace OHOS {
 namespace Media {
-class AudioEncoder : public RecorderElement {
+class VideoCaptureSfYuvImpl : public VideoCaptureSfImpl {
 public:
-    using RecorderElement::RecorderElement;
-    ~AudioEncoder() = default;
-
-    int32_t Init() override;
-    int32_t Configure(const RecorderParam &recParam) override;
-    int32_t CheckConfigReady() override;
-    void Dump() override;
+    VideoCaptureSfYuvImpl();
+    virtual ~VideoCaptureSfYuvImpl();
+    DISALLOW_COPY_AND_MOVE(VideoCaptureSfYuvImpl);
 
 protected:
-    RecorderMsgProcResult DoProcessMessage(GstMessage &rawMsg, RecorderMessage &prettyMsg) override;
-
-private:
-    int32_t encoderFormat_;
+    std::shared_ptr<VideoFrameBuffer> DoGetFrameBuffer() override;
+    std::shared_ptr<EsAvcCodecBuffer> DoGetCodecBuffer() override;
 };
 }
 }

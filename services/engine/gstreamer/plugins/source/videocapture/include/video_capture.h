@@ -53,8 +53,7 @@ public:
     /**
      * @brief Pauses capturing video.
      *
-     * After {@link Start} is called, you can call this function to pause capturing video. The video source streams
-     * are not paused, and source data is discarded.
+     * After {@link Start} is called, you can call this function to pause capturing video.
      *
      * @return Returns {@link SUCCESS} if the recording is paused; returns an error code defined
      * in {@link media_errors.h} otherwise.
@@ -110,6 +109,19 @@ public:
      * @version 1.0
      */
     virtual int32_t SetVideoHeight(uint32_t height) = 0;
+
+     /**
+     * @brief Sets the streamType of the video frame to capture.
+     *
+     * This function must be called before {@link Prepare}.
+     *
+     * @param streamType Indicates the stream type see {@link VideoStreamType} to set.
+     * @return Returns {@link SUCCESS} if the setting is successful; returns an error code defined
+     * in {@link media_errors.h} otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    virtual int32_t SetStreamType(VideoStreamType streamType) = 0;
 
     /**
      * @brief Obtains the surface of the video source.

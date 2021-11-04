@@ -101,7 +101,7 @@ int32_t VideoCaptureSfImpl::Resume()
     persistTime_ = std::fabs(resumeTime_ - pauseTime_);
 
     totalPauseTime_ += persistTime_;
-    
+
     MEDIA_LOGI("video capture has %{public}d times paused, persistTime: %{public}" PRIu64 ",totalPauseTime: %{public}"
     PRIu64 "", pauseCount_, persistTime_, totalPauseTime_);
     return MSERR_OK;
@@ -150,6 +150,13 @@ int32_t VideoCaptureSfImpl::SetVideoHeight(uint32_t height)
     return MSERR_OK;
 }
 
+int32_t VideoCaptureSfImpl::SetStreamType(VideoStreamType streamType)
+{
+    streamTypeUnknown_ = false;
+    streamType_ = streamType;
+    return MSERR_OK;
+}
+
 sptr<Surface> VideoCaptureSfImpl::GetSurface()
 {
     CHECK_AND_RETURN_RET_LOG(producerSurface_ != nullptr, nullptr, "surface not created");
@@ -179,7 +186,7 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfImpl::GetFrameBufferInner()
 
 std::shared_ptr<VideoFrameBuffer> VideoCaptureSfImpl::GetFrameBuffer()
 {
-    if (bufferNumber_  == 0) {
+    if (bufferNumber_  == 0 && streamType_ == VIDEO_STREAM_TYPE_ES_AVC) {
         return GetFrameBufferInner();
     } else {
         if (AcquireSurfaceBuffer() == MSERR_OK) {
@@ -286,7 +293,10 @@ void VideoCaptureSfImpl::OnBufferAvailable()
 void VideoCaptureSfImpl::ProbeStreamType()
 {
     streamTypeUnknown_ = false;
-    streamType_ = VIDEO_STREAM_TYPE_ES_AVC;
+    // streamType_ = VIDEO_STREAM_TYPE_ES_AVC;
+    // 从码流中或者从buffer中识别到底是es流还是yuv流
+    // 但如果已经走到这里了，其实识别正确与否没办法了，只能报错然后重新启动
+    // 可能后续会在次修改，识别nv12 nv21等一些同一类别下的流格式。
 }
 }  // namespace Media
 }  // namespace OHOS
