@@ -335,12 +335,14 @@ static gboolean gst_surface_video_src_is_seekable(GstBaseSrc *basesrc)
 
 static gboolean gst_surface_video_src_negotiate(GstBaseSrc *basesrc)
 {
+    GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(basesrc);
+    g_return_val_if_fail(src != nullptr, FALSE);
+
     // no need to wait playing when yuv source
     if (src->need_codec_data) {
         (void)gst_base_src_wait_playing(basesrc);
     }
-    GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(basesrc);
-    g_return_val_if_fail(src != nullptr, FALSE);
+
     return gst_base_src_set_caps(basesrc, src->src_caps);
 }
 
