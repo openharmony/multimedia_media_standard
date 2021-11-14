@@ -128,8 +128,6 @@ static void gst_surface_video_src_init(GstSurfaceVideoSrc *src)
     src->is_start = FALSE;
     src->need_codec_data = TRUE;
     src->is_eos = FALSE;
-    // src->is_es = FALSE;
-    // src->is_yuv = FALSE;
 }
 
 static void gst_surface_video_src_finalize(GObject *object)
@@ -143,7 +141,6 @@ static void gst_surface_video_src_finalize(GObject *object)
         gst_caps_unref(src->src_caps);
         src->src_caps = nullptr;
     }
-
 }
 
 static void gst_surface_video_src_set_property(GObject *object, guint prop_id,
@@ -170,16 +167,16 @@ static void gst_surface_video_src_set_property(GObject *object, guint prop_id,
 static void gst_surface_video_src_set_stream_type(GstSurfaceVideoSrc *src, gint stream_type)
 {
     switch (stream_type) {
-    case VideoStreamType::VIDEO_STREAM_TYPE_ES_AVC:
-        src->stream_type = VIDEO_STREAM_TYPE_ES_AVC;
-        src->need_codec_data = TRUE;
-        break;
-    case VideoStreamType::VIDEO_STREAM_TYPE_YUV_420:
-        src->stream_type = VIDEO_STREAM_TYPE_YUV_420;
-        src->need_codec_data = FALSE;
-        break;
-    default:
-        return;
+        case VideoStreamType::VIDEO_STREAM_TYPE_ES_AVC:
+            src->stream_type = VIDEO_STREAM_TYPE_ES_AVC;
+            src->need_codec_data = TRUE;
+            break;
+        case VideoStreamType::VIDEO_STREAM_TYPE_YUV_420:
+            src->stream_type = VIDEO_STREAM_TYPE_YUV_420;
+            src->need_codec_data = FALSE;
+            break;
+        default:
+            return;
     }
     g_return_if_fail(src != nullptr);
 }
