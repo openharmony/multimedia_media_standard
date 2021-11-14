@@ -52,8 +52,6 @@ struct _GstSurfaceVideoSrc {
     gboolean is_start;
     gboolean need_codec_data;
     gboolean is_eos;
-    // gboolean is_es;
-    // gboolean is_yuv;
 };
 
 struct _GstSurfaceVideoSrcClass {
