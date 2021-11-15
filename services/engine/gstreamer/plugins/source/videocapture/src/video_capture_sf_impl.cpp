@@ -101,7 +101,7 @@ int32_t VideoCaptureSfImpl::Resume()
     persistTime_ = std::fabs(resumeTime_ - pauseTime_);
 
     totalPauseTime_ += persistTime_;
-    
+
     MEDIA_LOGI("video capture has %{public}d times paused, persistTime: %{public}" PRIu64 ",totalPauseTime: %{public}"
     PRIu64 "", pauseCount_, persistTime_, totalPauseTime_);
     return MSERR_OK;
@@ -150,6 +150,13 @@ int32_t VideoCaptureSfImpl::SetVideoHeight(uint32_t height)
     return MSERR_OK;
 }
 
+int32_t VideoCaptureSfImpl::SetStreamType(VideoStreamType streamType)
+{
+    streamTypeUnknown_ = false;
+    streamType_ = streamType;
+    return MSERR_OK;
+}
+
 sptr<Surface> VideoCaptureSfImpl::GetSurface()
 {
     CHECK_AND_RETURN_RET_LOG(producerSurface_ != nullptr, nullptr, "surface not created");
@@ -179,7 +186,7 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfImpl::GetFrameBufferInner()
 
 std::shared_ptr<VideoFrameBuffer> VideoCaptureSfImpl::GetFrameBuffer()
 {
-    if (bufferNumber_  == 0) {
+    if (bufferNumber_  == 0 && streamType_ == VIDEO_STREAM_TYPE_ES_AVC) {
         return GetFrameBufferInner();
     } else {
         if (AcquireSurfaceBuffer() == MSERR_OK) {
@@ -286,7 +293,7 @@ void VideoCaptureSfImpl::OnBufferAvailable()
 void VideoCaptureSfImpl::ProbeStreamType()
 {
     streamTypeUnknown_ = false;
-    streamType_ = VIDEO_STREAM_TYPE_ES_AVC;
+    // Identify whether it is an ES stream or a YUV stream from the code stream or from the buffer.
 }
 }  // namespace Media
 }  // namespace OHOS

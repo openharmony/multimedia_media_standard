@@ -132,8 +132,7 @@ public:
     virtual int32_t Start() = 0;
 
     /**
-     * Pause recording. This function must be called during recording. The audio and video source streams are
-     * not paused, and source data is discarded.
+     * Pause recording. This function must be called during recording.
      * Return MSERR_OK indicates success, or others indicate failed.
      */
     virtual int32_t Pause() = 0;

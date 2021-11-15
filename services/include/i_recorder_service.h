@@ -342,8 +342,7 @@ public:
     /**
      * @brief Pauses recording.
      *
-     * After {@link Start} is called, you can call this function to pause recording. The audio and video source streams
-     * are not paused, and source data is discarded.
+     * After {@link Start} is called, you can call this function to pause recording.
      *
      * @return Returns {@link SUCCESS} if the recording is paused; returns an error code defined
      * in {@link media_errors.h} otherwise.

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef VIDEO_SOURCE_H
-#define VIDEO_SOURCE_H
+#ifndef MUX_SINK_BIN_H
+#define MUX_SINK_BIN_H
 
 #include <atomic>
 

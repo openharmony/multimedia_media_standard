@@ -105,18 +105,28 @@ int32_t RecorderPipelineBuilder::SetVideoSource(const RecorderSourceDesc &desc)
     int32_t ret = CreateMuxSink();
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
-    std::shared_ptr<RecorderElement> element;
-    // currently only the ES Source is supported.
-    if (desc.type_ == VideoSourceType::VIDEO_SOURCE_SURFACE_ES) {
-        element = CreateElement("VideoSource", desc, true);
+    std::shared_ptr<RecorderElement> videoSrcElem;
+    // ES Source and YUV Source is supported.
+    if (desc.type_ == VideoSourceType::VIDEO_SOURCE_SURFACE_ES ||
+        desc.type_ == VideoSourceType::VIDEO_SOURCE_SURFACE_YUV) {
+        videoSrcElem = CreateElement("VideoSource", desc, true);
     } else {
         MEDIA_LOGE("Video source type %{public}d currently unsupported", desc.type_);
     }
 
-    CHECK_AND_RETURN_RET(element != nullptr, MSERR_INVALID_VAL);
+    CHECK_AND_RETURN_RET(videoSrcElem != nullptr, MSERR_INVALID_VAL);
 
-    // for the second video source, the sinkpad name should be video_aux_%u
-    ADD_LINK_DESC(element, muxSink_, "src", "video", true, false);
+    // check yuv
+    if (desc.type_ == VideoSourceType::VIDEO_SOURCE_SURFACE_YUV) {
+        std::shared_ptr<RecorderElement> videoEncElem = CreateElement("VideoEncorder", desc, false);
+        CHECK_AND_RETURN_RET(videoEncElem != nullptr, MSERR_INVALID_VAL);
+
+        // for the second video source, the sinkpad name should be video_aux_%u
+        ADD_LINK_DESC(videoSrcElem, videoEncElem, "src", "sink", true, true);
+        ADD_LINK_DESC(videoEncElem, muxSink_, "src", "video", true, false);
+    } else {
+        ADD_LINK_DESC(videoSrcElem, muxSink_, "src", "video", true, false);
+    }
 
     return MSERR_OK;
 }

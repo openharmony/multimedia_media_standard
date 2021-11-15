@@ -17,12 +17,21 @@
 #include <cstdlib>
 #include <memory>
 #include "video_capture_sf_es_avc_impl.h"
+#include "video_capture_sf_yuv_impl.h"
 
 namespace OHOS {
 namespace Media {
 std::unique_ptr<VideoCapture> VideoCaptureFactory::CreateVideoCapture(VideoStreamType streamType)
 {
-    return std::make_unique<VideoCaptureSfEsAvcImpl>();
+    if (streamType == VIDEO_STREAM_TYPE_ES_AVC) {
+        return std::make_unique<VideoCaptureSfEsAvcImpl>();
+    }
+
+    if (streamType == VIDEO_STREAM_TYPE_YUV_420) {
+        return std::make_unique<VideoCaptureSfYuvImpl>();
+    }
+
+    return nullptr;
 }
 }  // namespace Media
 }  // namespace OHOS

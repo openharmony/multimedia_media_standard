@@ -92,6 +92,10 @@ RecorderElement::RecorderElement(const CreateParam &createParam)
 
 RecorderElement::~RecorderElement()
 {
+    if (gstElem_ != nullptr) {
+        gst_object_unref(gstElem_);
+    }
+
     MEDIA_LOGD("enter %{public}s dtor", name_.c_str());
 }
 

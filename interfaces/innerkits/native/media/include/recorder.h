@@ -100,6 +100,8 @@ enum VideoCodecFormat : int32_t {
     /** Unsupported App Usage. */
     /** High Efficiency Video Coding (HEVC) */
     HEVC = 5,
+    /** MPEG4 */
+    MPEG4 = 6,
     VIDEO_CODEC_FORMAT_BUTT,
 };
 
@@ -550,8 +552,7 @@ public:
     /**
      * @brief Pauses recording.
      *
-     * After {@link Start} is called, you can call this function to pause recording. The audio and video source streams
-     * are not paused, and source data is discarded.
+     * After {@link Start} is called, you can call this function to pause recording.
      *
      * @return Returns {@link MSERR_OK} if the recording is paused; returns an error code otherwise.
      * @since 1.0
