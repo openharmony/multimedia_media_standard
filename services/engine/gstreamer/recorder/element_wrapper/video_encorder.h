@@ -35,6 +35,7 @@ protected:
 private:
     int32_t CreateElement();
     int32_t encoderFormat_;
+    int32_t bitRate_;
 };
 }
 }
