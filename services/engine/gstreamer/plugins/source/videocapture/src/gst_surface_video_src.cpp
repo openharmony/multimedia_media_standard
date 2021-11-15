@@ -279,7 +279,9 @@ static GstStateChangeReturn gst_surface_video_src_change_state(GstElement *eleme
         case GST_STATE_CHANGE_NULL_TO_READY:
             src->capture = OHOS::Media::VideoCaptureFactory::CreateVideoCapture(src->stream_type);
             g_return_val_if_fail(src->capture != nullptr, GST_STATE_CHANGE_FAILURE);
-            g_return_val_if_fail(set_fix_caps(src) == TRUE, GST_STATE_CHANGE_FAILURE);
+            if (src->need_codec_data != TRUE) {
+                g_return_val_if_fail(set_fix_caps(src) == TRUE, GST_STATE_CHANGE_FAILURE);
+            }
             break;
         case GST_STATE_CHANGE_READY_TO_PAUSED:
             g_return_val_if_fail(src->capture != nullptr, GST_STATE_CHANGE_FAILURE);
