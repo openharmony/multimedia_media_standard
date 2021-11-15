@@ -75,6 +75,7 @@ int32_t VideoEncorder::Configure(const RecorderParam &recParam)
             MEDIA_LOGE("video encode bitrate is invalid: %{public}d", param.bitRate);
             return MSERR_INVALID_VAL;
         }
+        bitRate_ = param.bitRate;
         g_object_set(gstElem_, "bitrate", param.bitRate, nullptr);
         MEDIA_LOGI("Set video bitrate: %{public}d", param.bitRate);
         MarkParameter(param.type);
@@ -126,7 +127,7 @@ RecorderMsgProcResult VideoEncorder::DoProcessMessage(GstMessage &rawMsg, Record
 void VideoEncorder::Dump()
 {
     MEDIA_LOGI("video [sourceId = 0x%{public}x]: encode format = %{public}d bitrate = %{public}d",
-        desc_.handle_, encoderFormat_, param.bitRate);
+        desc_.handle_, encoderFormat_, bitRate_);
 }
 
 REGISTER_RECORDER_ELEMENT(VideoEncorder);
