@@ -293,9 +293,7 @@ void VideoCaptureSfImpl::OnBufferAvailable()
 void VideoCaptureSfImpl::ProbeStreamType()
 {
     streamTypeUnknown_ = false;
-    // 从码流中或者从buffer中识别到底是es流还是yuv流
-    // 但如果已经走到这里了，其实识别正确与否没办法了，只能报错然后重新启动
-    // 可能后续会在次修改，识别nv12 nv21等一些同一类别下的流格式。
+    // Identify whether it is an ES stream or a YUV stream from the code stream or from the buffer.
 }
 }  // namespace Media
 }  // namespace OHOS

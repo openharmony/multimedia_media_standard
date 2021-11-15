@@ -34,6 +34,10 @@ int32_t VideoEncorder::Init()
 
 int32_t VideoEncorder::CreateElement()
 {
+    if (gstElem_ != nullptr) {
+        gst_object_unref(gstElem_);
+        gstElem_ = nullptr;
+    }
     gstElem_ = gst_element_factory_make("avenc_mpeg4", name_.c_str());
     if (gstElem_ == nullptr) {
         MEDIA_LOGE("Create avenc_mpeg4 gst_element failed! sourceId: %{public}d", desc_.handle_);
@@ -121,7 +125,8 @@ RecorderMsgProcResult VideoEncorder::DoProcessMessage(GstMessage &rawMsg, Record
 
 void VideoEncorder::Dump()
 {
-    MEDIA_LOGI("video [sourceId = 0x%{public}x]: encode format = %{public}d", desc_.handle_, encoderFormat_);
+    MEDIA_LOGI("video [sourceId = 0x%{public}x]: encode format = %{public}d bitrate = %{public}d",
+        desc_.handle_, encoderFormat_, param.bitRate);
 }
 
 REGISTER_RECORDER_ELEMENT(VideoEncorder);
