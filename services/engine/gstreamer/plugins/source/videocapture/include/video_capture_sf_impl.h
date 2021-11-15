@@ -37,6 +37,7 @@ public:
     int32_t Stop() override;
     int32_t SetVideoWidth(uint32_t width) override;
     int32_t SetVideoHeight(uint32_t height) override;
+    int32_t SetStreamType(VideoStreamType streamType) override;
     sptr<Surface> GetSurface() override;
     std::shared_ptr<EsAvcCodecBuffer> GetCodecBuffer() override;
     std::shared_ptr<VideoFrameBuffer> GetFrameBuffer() override;

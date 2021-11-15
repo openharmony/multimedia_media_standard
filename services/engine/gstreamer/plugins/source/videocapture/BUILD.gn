@@ -58,6 +58,7 @@ ohos_shared_library("gst_surface_video_src") {
     "src/video_capture_factory.cpp",
     "src/video_capture_sf_es_avc_impl.cpp",
     "src/video_capture_sf_impl.cpp",
+    "src/video_capture_sf_yuv_impl.cpp",
   ]
 
   configs = [ ":gst_surface_video_src_config" ]
