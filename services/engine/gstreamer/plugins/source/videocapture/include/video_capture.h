@@ -110,7 +110,7 @@ public:
      */
     virtual int32_t SetVideoHeight(uint32_t height) = 0;
 
-     /**
+    /**
      * @brief Sets the streamType of the video frame to capture.
      *
      * This function must be called before {@link Prepare}.

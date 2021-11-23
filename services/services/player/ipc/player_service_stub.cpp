@@ -120,10 +120,10 @@ int32_t PlayerServiceStub::SetListenerObject(const sptr<IRemoteObject> &object)
     return MSERR_OK;
 }
 
-int32_t PlayerServiceStub::SetSource(const std::string &uri)
+int32_t PlayerServiceStub::SetSource(const std::string &url)
 {
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
-    return playerServer_->SetSource(uri);
+    return playerServer_->SetSource(url);
 }
 
 int32_t PlayerServiceStub::SetSource(const sptr<IRemoteObject> &object)
@@ -259,8 +259,8 @@ int32_t PlayerServiceStub::SetListenerObject(MessageParcel &data, MessageParcel 
 
 int32_t PlayerServiceStub::SetSource(MessageParcel &data, MessageParcel &reply)
 {
-    std::string uri = data.ReadString();
-    reply.WriteInt32(SetSource(uri));
+    std::string url = data.ReadString();
+    reply.WriteInt32(SetSource(url));
     return MSERR_OK;
 }
 

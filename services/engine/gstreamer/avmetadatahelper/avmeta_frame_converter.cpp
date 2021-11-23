@@ -78,8 +78,8 @@ std::shared_ptr<AVSharedMemory> AVMetaFrameConverter::Convert(GstCaps &inCaps, G
 
     std::unique_lock<std::mutex> lock(mutex_);
 
-    int32_t ret = StartConvert(inCaps);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "start convert failed");
+    int32_t ret = PrepareConvert(inCaps);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "prepare convert failed");
 
     GstFlowReturn flowRet = GST_FLOW_ERROR;
     g_signal_emit_by_name(G_OBJECT(appSrc_), "push-buffer", &inBuf, &flowRet);
@@ -87,12 +87,12 @@ std::shared_ptr<AVSharedMemory> AVMetaFrameConverter::Convert(GstCaps &inCaps, G
 
     cond_.wait(lock, [this]() { return lastResult_ != nullptr || !startConverting_; });
 
-    return StopConvert();
+    return GetConvertResult();
 }
 
-int32_t AVMetaFrameConverter::StartConvert(GstCaps &inCaps)
+int32_t AVMetaFrameConverter::PrepareConvert(GstCaps &inCaps)
 {
-    ON_SCOPE_EXIT(0) { (void)StopConvert(); };
+    ON_SCOPE_EXIT(0) { (void)GetConvertResult(); };
 
     if (lastCaps_ == nullptr || !gst_caps_is_equal(lastCaps_, &inCaps)) {
         MEDIA_LOGI("caps changed");
@@ -116,7 +116,7 @@ int32_t AVMetaFrameConverter::StartConvert(GstCaps &inCaps)
     return MSERR_OK;
 }
 
-std::shared_ptr<AVSharedMemory> AVMetaFrameConverter::StopConvert()
+std::shared_ptr<AVSharedMemory> AVMetaFrameConverter::GetConvertResult()
 {
     startConverting_ = false;
 
@@ -175,9 +175,9 @@ void AVMetaFrameConverter::UninstallPipeline()
         pipeline_ = nullptr;
     }
 
-    if (vidShMemSink != nullptr) {
-        gst_object_unref(vidShMemSink);
-        vidShMemSink = nullptr;
+    if (vidShMemSink_ != nullptr) {
+        gst_object_unref(vidShMemSink_);
+        vidShMemSink_ = nullptr;
     }
 
     if (appSrc_ != nullptr) {
@@ -243,15 +243,15 @@ int32_t AVMetaFrameConverter::SetupConvPipeline()
     CHECK_AND_RETURN_RET(conv != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(gst_bin_add(bin, conv), MSERR_INVALID_OPERATION);
 
-    vidShMemSink = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("vidshmemsink", "conv_sink")));
-    CHECK_AND_RETURN_RET(vidShMemSink != nullptr, MSERR_INVALID_OPERATION);
-    CHECK_AND_RETURN_RET(gst_bin_add(bin, vidShMemSink), MSERR_INVALID_OPERATION);
+    vidShMemSink_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("vidshmemsink", "conv_sink")));
+    CHECK_AND_RETURN_RET(vidShMemSink_ != nullptr, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(gst_bin_add(bin, vidShMemSink_), MSERR_INVALID_OPERATION);
 
     gboolean ret = gst_element_link_pads_full(appSrc_, "src", scale, "sink", GST_PAD_LINK_CHECK_NOTHING);
     CHECK_AND_RETURN_RET(ret, MSERR_INVALID_OPERATION);
     ret = gst_element_link_pads_full(scale, "src", conv, "sink", GST_PAD_LINK_CHECK_NOTHING);
     CHECK_AND_RETURN_RET(ret, MSERR_INVALID_OPERATION);
-    ret = gst_element_link_pads_full(conv, "src", vidShMemSink, "sink", GST_PAD_LINK_CHECK_NOTHING);
+    ret = gst_element_link_pads_full(conv, "src", vidShMemSink_, "sink", GST_PAD_LINK_CHECK_NOTHING);
     CHECK_AND_RETURN_RET(ret, MSERR_INVALID_OPERATION);
 
     MEDIA_LOGI("setup converter pipeline success");
@@ -291,12 +291,12 @@ int32_t AVMetaFrameConverter::SetupConvSink(const OutputConfiguration &outConfig
     GstCaps *caps = gst_caps_new_full(struc, nullptr);
     CHECK_AND_RETURN_RET(caps != nullptr, MSERR_NO_MEMORY);
 
-    g_object_set(G_OBJECT(vidShMemSink), "caps", caps, nullptr);
+    g_object_set(G_OBJECT(vidShMemSink_), "caps", caps, nullptr);
     gst_caps_unref(caps);
     caps = nullptr;
 
-    g_object_set(G_OBJECT(vidShMemSink), "mem-prefix", sizeof(OutputFrame), nullptr);
-    (void)g_signal_connect(G_OBJECT(vidShMemSink), "new-sample", G_CALLBACK(OnNotifyNewSample), this);
+    g_object_set(G_OBJECT(vidShMemSink_), "mem-prefix", sizeof(OutputFrame), nullptr);
+    (void)g_signal_connect(G_OBJECT(vidShMemSink_), "new-sample", G_CALLBACK(OnNotifyNewSample), this);
 
     outConfig_ = outConfig;
     return MSERR_OK;
@@ -336,6 +336,7 @@ int32_t AVMetaFrameConverter::ChangeState(GstState targetState)
 
 void AVMetaFrameConverter::OnNotifyMessage(const InnerMessage &msg)
 {
+    MEDIA_LOGD("msg: %{public}d", msg.type);
     std::unique_lock<std::mutex> lock(mutex_);
 
     switch (msg.type) {

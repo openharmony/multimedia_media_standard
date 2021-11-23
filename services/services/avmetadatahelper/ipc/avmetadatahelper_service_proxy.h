@@ -30,7 +30,7 @@ public:
     std::string ResolveMetadata(int32_t key) override;
     std::unordered_map<int32_t, std::string> ResolveMetadataMap() override;
     std::shared_ptr<AVSharedMemory> FetchFrameAtTime(int64_t timeUs,
-        int32_t option, OutputConfiguration param) override;
+        int32_t option, const OutputConfiguration &param) override;
     void Release() override;
     int32_t DestroyStub() override;
 private:

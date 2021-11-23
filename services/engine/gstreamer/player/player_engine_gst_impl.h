@@ -34,7 +34,7 @@ public:
     ~PlayerEngineGstImpl();
     DISALLOW_COPY_AND_MOVE(PlayerEngineGstImpl);
 
-    int32_t SetSource(const std::string &uri) override;
+    int32_t SetSource(const std::string &url) override;
     int32_t SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc) override;
     int32_t SetObs(const std::weak_ptr<IPlayerEngineObs> &obs) override;
     int32_t SetVideoSurface(sptr<Surface> surface) override;
@@ -59,19 +59,15 @@ private:
     int32_t GstPlayerPrepare() const;
     void PlayerLoop();
     void GstPlayerDeInit();
-    int32_t GetRealPath(const std::string &uri, std::string &realUriPath) const;
-    bool IsFileUri(const std::string &uri) const;
+    int32_t GetRealPath(const std::string &url, std::string &realUrlPath) const;
+    bool IsFileUrl(const std::string &url) const;
     std::mutex mutex_;
     std::mutex mutexSync_;
     std::unique_ptr<GstPlayerBuild> playerBuild_ = nullptr;
     std::shared_ptr<GstPlayerCtrl> playerCtrl_ = nullptr;
     std::weak_ptr<IPlayerEngineObs> obs_;
     sptr<Surface> producerSurface_ = nullptr;
-    std::string uri_ = "";
-    bool loop_ = false;
-    float leftVolume_ = 1.0f;
-    float rightVolume_ = 1.0f;
-    PlaybackRateMode rateMode_ = SPEED_FORWARD_1_00_X;
+    std::string url_ = "";
     std::condition_variable condVarSync_;
     bool gstPlayerInit_ = false;
     std::unique_ptr<std::thread> playerThread_;

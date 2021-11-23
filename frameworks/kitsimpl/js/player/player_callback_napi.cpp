@@ -29,6 +29,8 @@ const std::string FINISH_CALLBACK_NAME = "finish";
 const std::string TIME_UPDATE_CALLBACK_NAME = "timeUpdate";
 const std::string ERROR_CALLBACK_NAME = "error";
 const std::string VOL_CHANGE_CALLBACK_NAME = "volumeChange";
+const std::string CACHED_PERCENT_CALLBACK_NAME = "cachedPercent";
+const std::string BUFFERING_TIME_CALLBACK_NAME = "bufferingTime";
 }
 
 namespace OHOS {
@@ -71,6 +73,10 @@ void PlayerCallbackNapi::SaveCallbackReference(const std::string &callbackName, 
         errorCallback_ = cb;
     } else if (callbackName == VOL_CHANGE_CALLBACK_NAME) {
         volumeChangeCallback_ = cb;
+    } else if (callbackName == CACHED_PERCENT_CALLBACK_NAME) {
+        cachedPercentCallback_ = cb;
+    } else if (callbackName == BUFFERING_TIME_CALLBACK_NAME) {
+        bufferingTimeCallback_ = cb;
     } else {
         MEDIA_LOGW("Unknown callback type: %{public}s", callbackName.c_str());
     }
@@ -135,6 +141,12 @@ void PlayerCallbackNapi::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
         case INFO_TYPE_VOLUME_CHANGE:
             OnVolumeChangeCb();
             break;
+        case INFO_TYPE_CACHED_PERCENT_UPDATE:
+            OnCachedPercentCb(extra);
+            break;
+        case INFO_TYPE_BUFFERING_TIME_UPDATE:
+            OnBufferingTimeCb(extra);
+            break;
         default:
             break;
     }
@@ -150,8 +162,36 @@ void PlayerCallbackNapi::OnSeekDoneCb(int32_t currentPositon) const
     CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
     cb->callback = timeUpdateCallback_;
     cb->callbackName = TIME_UPDATE_CALLBACK_NAME;
-    cb->position = currentPositon;
-    return OnJsCallBackPosition(cb);
+    cb->callValue = currentPositon;
+    return OnJsCallBackInt(cb);
+}
+
+void PlayerCallbackNapi::OnCachedPercentCb(int32_t percent) const
+{
+    MEDIA_LOGD("OnCachedPercentCb is called, buffering percent: %{public}d", percent);
+    CHECK_AND_RETURN_LOG(cachedPercentCallback_ != nullptr,
+        "Cannot find the reference of buffering percent callback");
+
+    PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
+    CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
+    cb->callback = cachedPercentCallback_;
+    cb->callbackName = CACHED_PERCENT_CALLBACK_NAME;
+    cb->callValue = percent;
+    return OnJsCallBackInt(cb);
+}
+
+void PlayerCallbackNapi::OnBufferingTimeCb(int32_t bufferingTime) const
+{
+    MEDIA_LOGD("OnBufferingTimeCb is called, buffering time: %{public}d", bufferingTime);
+    CHECK_AND_RETURN_LOG(bufferingTimeCallback_ != nullptr,
+        "Cannot find the reference of buffering time callback");
+
+    PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
+    CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
+    cb->callback = bufferingTimeCallback_;
+    cb->callbackName = BUFFERING_TIME_CALLBACK_NAME;
+    cb->callValue = bufferingTime;
+    return OnJsCallBackInt(cb);
 }
 
 void PlayerCallbackNapi::OnEosCb(int32_t isLooping) const
@@ -332,7 +372,7 @@ void PlayerCallbackNapi::OnJsCallBackError(PlayerJsCallback *jsCb) const
     }
 }
 
-void PlayerCallbackNapi::OnJsCallBackPosition(PlayerJsCallback *jsCb) const
+void PlayerCallbackNapi::OnJsCallBackInt(PlayerJsCallback *jsCb) const
 {
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
@@ -367,9 +407,9 @@ void PlayerCallbackNapi::OnJsCallBackPosition(PlayerJsCallback *jsCb) const
 
             // Call back function
             napi_value args[1] = { nullptr };
-            nstatus = napi_create_int32(env, event->position, &args[0]);
+            nstatus = napi_create_int32(env, event->callValue, &args[0]);
             CHECK_AND_BREAK_LOG(nstatus == napi_ok && args[0] != nullptr,
-                "%{public}s fail to create position callback", request.c_str());
+                "%{public}s fail to create callback", request.c_str());
 
             const size_t argCount = 1;
             napi_value result = nullptr;

@@ -46,6 +46,7 @@ private:
     GstElement *gstMuxer_ = nullptr;
     GstElement *gstSink_ = nullptr;
     std::string outPath_;
+    bool isReg_ = false;
     int outFd_ = -1;
     int32_t format_ = OutputFormatType::FORMAT_MPEG_4;
     int32_t maxDuration_ = -1;

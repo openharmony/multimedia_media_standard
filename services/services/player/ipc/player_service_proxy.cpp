@@ -50,12 +50,12 @@ int32_t PlayerServiceProxy::SetListenerObject(const sptr<IRemoteObject> &object)
     return reply.ReadInt32();
 }
 
-int32_t PlayerServiceProxy::SetSource(const std::string &uri)
+int32_t PlayerServiceProxy::SetSource(const std::string &url)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    data.WriteString(uri);
+    data.WriteString(url);
     int error = Remote()->SendRequest(SET_SOURCE, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Set Source failed, error: %{public}d", error);

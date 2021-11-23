@@ -13,6 +13,25 @@
 
 import("//build/ohos.gni")
 
+ohos_static_library("media_format") {
+  sources = [
+    "format.cpp",
+  ]
+
+  include_dirs = [
+    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/media_standard/services/utils/include",
+    "//utils/native/base/include",
+  ]
+
+  deps = [ "//foundation/multimedia/media_standard/services/utils:media_service_utils" ]
+
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+
+  subsystem_name = "multimedia"
+  part_name = "multimedia_media_standard"
+}
+
 config("media_service_utils_public_config") {
   include_dirs = [ "include" ]
 }

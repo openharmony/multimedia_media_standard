@@ -78,6 +78,7 @@ ohos_shared_library("media_service") {
     "recorder/ipc/recorder_service_stub.cpp",
     "recorder/server/recorder_server.cpp",
     "sa_media/ipc/media_listener_proxy.cpp",
+    "sa_media/ipc/media_parcel.cpp",
     "sa_media/ipc/media_service_stub.cpp",
     "sa_media/server/media_server.cpp",
     "sa_media/server/media_server_manager.cpp",
@@ -90,6 +91,7 @@ ohos_shared_library("media_service") {
 
   deps = [
     "//foundation/graphic/standard/frameworks/surface:surface",
+    "//foundation/multimedia/media_standard/services/utils:media_format",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//utils/native/base:utils",
   ]

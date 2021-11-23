@@ -23,8 +23,8 @@
 #include <vector>
 #include <mutex>
 #include <memory>
-#include <nocopyable.h>
 #include <gst/gst.h>
+#include "nocopyable.h"
 #include "gst_meta_parser.h"
 
 namespace OHOS {

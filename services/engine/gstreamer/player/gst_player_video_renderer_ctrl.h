@@ -38,7 +38,7 @@ public:
     int32_t UpdateSurfaceBuffer(const GstBuffer &buffer);
 
 private:
-    BufferRequestConfig UpdateResquestConfig(const GstVideoMeta *videoMeta) const;
+    BufferRequestConfig UpdateRequestConfig(const GstVideoMeta *videoMeta) const;
     std::string GetVideoSinkFormat() const;
     void SetSurfaceTimeFromSysPara();
 
@@ -47,7 +47,7 @@ private:
     GstElement *audioSink_ = nullptr;
     GstCaps *videoCaps_ = nullptr;
     GstCaps *audioCaps_ = nullptr;
-    bool surfaceTimeEnable = false;
+    bool surfaceTimeEnable_ = false;
     TimeMonitor surfaceTimeMonitor_;
     gulong signalId_ = 0;
 };

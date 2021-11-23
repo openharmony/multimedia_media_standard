@@ -16,6 +16,7 @@
 #ifndef GST_VIDEO_SHMEM_SINK_H
 #define GST_VIDEO_SHMEM_SINK_H
 
+#include "config.h"
 #include <gst/base/gstbasesink.h>
 
 G_BEGIN_DECLS

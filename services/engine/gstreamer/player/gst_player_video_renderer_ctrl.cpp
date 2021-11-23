@@ -303,18 +303,18 @@ void GstPlayerVideoRendererCtrl::SetSurfaceTimeFromSysPara()
     std::string timeEnable;
     int32_t res = OHOS::system::GetStringParameter("sys.media.time.surface", timeEnable, "");
     if (res != 0 || timeEnable.empty()) {
-        surfaceTimeEnable = false;
+        surfaceTimeEnable_ = false;
         MEDIA_LOGD("sys.media.time.surface=false");
         return;
     }
     MEDIA_LOGD("sys.media.time.surface=%{public}s", timeEnable.c_str());
 
     if (timeEnable == "true") {
-        surfaceTimeEnable = true;
+        surfaceTimeEnable_ = true;
     }
 }
 
-BufferRequestConfig GstPlayerVideoRendererCtrl::UpdateResquestConfig(const GstVideoMeta *videoMeta) const
+BufferRequestConfig GstPlayerVideoRendererCtrl::UpdateRequestConfig(const GstVideoMeta *videoMeta) const
 {
     BufferRequestConfig config;
     config.width = static_cast<int32_t>(videoMeta->width);
@@ -335,10 +335,10 @@ BufferRequestConfig GstPlayerVideoRendererCtrl::UpdateResquestConfig(const GstVi
 
 sptr<SurfaceBuffer> GstPlayerVideoRendererCtrl::RequestBuffer(const GstVideoMeta *videoMeta) const
 {
-    CHECK_AND_RETURN_RET_LOG(videoMeta != nullptr, nullptr, "gst_buffer_get_video_meta_failed..");
+    CHECK_AND_RETURN_RET_LOG(videoMeta != nullptr, nullptr, "gst_buffer_get_video_meta failed..");
     CHECK_AND_RETURN_RET_LOG(videoMeta->width < MAX_DEFAULT_WIDTH && videoMeta->height < MAX_DEFAULT_HEIGHT,
         nullptr, "video size too large. Video cannot be played.");
-    BufferRequestConfig requestConfig = UpdateResquestConfig(videoMeta);
+    BufferRequestConfig requestConfig = UpdateRequestConfig(videoMeta);
     sptr<SurfaceBuffer> surfaceBuffer = nullptr;
     int32_t releaseFence = -1;
     SurfaceError ret = SURFACE_ERROR_OK;
@@ -358,12 +358,12 @@ int32_t GstPlayerVideoRendererCtrl::UpdateSurfaceBuffer(const GstBuffer &buffer)
 {
     CHECK_AND_RETURN_RET_LOG(producerSurface_ != nullptr, MSERR_INVALID_OPERATION,
         "Surface is nullptr.Video cannot be played.");
-    if (surfaceTimeEnable) {
+    if (surfaceTimeEnable_) {
         surfaceTimeMonitor_.StartTime();
     }
     auto buf = const_cast<GstBuffer *>(&buffer);
     GstVideoMeta *videoMeta = gst_buffer_get_video_meta(buf);
-    CHECK_AND_RETURN_RET_LOG(videoMeta != nullptr, MSERR_INVALID_VAL, "gst_buffer_get_video_meta_failed..");
+    CHECK_AND_RETURN_RET_LOG(videoMeta != nullptr, MSERR_INVALID_VAL, "gst_buffer_get_video_meta failed..");
     sptr<SurfaceBuffer> surfaceBuffer = RequestBuffer(videoMeta);
     CHECK_AND_RETURN_RET_LOG(surfaceBuffer != nullptr, MSERR_INVALID_OPERATION, "surfaceBuffer is nullptr..");
     SurfaceError ret = SURFACE_ERROR_OK;
@@ -393,7 +393,7 @@ int32_t GstPlayerVideoRendererCtrl::UpdateSurfaceBuffer(const GstBuffer &buffer)
         (void)producerSurface_->CancelBuffer(surfaceBuffer);
         return MSERR_INVALID_OPERATION;
     }
-    if (surfaceTimeEnable) {
+    if (surfaceTimeEnable_) {
         surfaceTimeMonitor_.FinishTime();
     }
     return MSERR_OK;

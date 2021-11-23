@@ -74,7 +74,7 @@ std::unordered_map<int32_t, std::string> AVMetadataHelperClient::ResolveMetadata
 }
 
 std::shared_ptr<AVSharedMemory> AVMetadataHelperClient::FetchFrameAtTime(int64_t timeUs, int32_t option,
-    OutputConfiguration param)
+    const OutputConfiguration &param)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(avMetadataHelperProxy_ != nullptr, nullptr, "avmetadatahelper service does not exist.");

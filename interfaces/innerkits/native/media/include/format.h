@@ -22,51 +22,159 @@
 namespace OHOS {
 namespace Media {
 enum FormatDataType : uint32_t {
-    /** None */
+    /* None */
     FORMAT_TYPE_NONE,
-    /** Int8 */
-    FORMAT_TYPE_INT8,
-    /** Int16 */
-    FORMAT_TYPE_INT16,
-    /** Int32 */
+    /* Int32 */
     FORMAT_TYPE_INT32,
-    /** Int64 */
+    /* Int64 */
     FORMAT_TYPE_INT64,
-    /** UInt8 */
-    FORMAT_TYPE_UINT8,
-    /** UInt16 */
-    FORMAT_TYPE_UINT16,
-    /** UInt32 */
-    FORMAT_TYPE_UINT32,
-    /** UInt64 */
-    FORMAT_TYPE_UINT64,
-    /** Float */
+    /* Float */
     FORMAT_TYPE_FLOAT,
-    /** Double */
+    /* Double */
     FORMAT_TYPE_DOUBLE,
-    /** String */
+    /* String */
     FORMAT_TYPE_STRING
 };
 
-class FormatData {
-public:
-    FormatData() = default;
-    ~FormatData() = default;
+struct FormatData {
+    FormatDataType type = FORMAT_TYPE_NONE;
+    union Val {
+        int32_t int32Val;
+        int64_t int64Val;
+        float floatVal;
+        double doubleVal;
+    } val = {0};
+    std::string stringVal = "";
 };
 
-class Format {
+class __attribute__((visibility("default"))) Format {
 public:
     Format() = default;
     ~Format() = default;
-    const std::map<std::string, FormatData *> &GetFormatMap() const;
+    /**
+     * @brief Sets metadata of the integer type.
+     *
+     * @param key Indicates the metadata key.
+     * @param value Indicates the metadata value, which is a 32-bit integer.
+     * @return Returns <b>true</b> if the setting is successful; returns <b>false</b> otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    bool PutIntValue(const std::string &key, int32_t value);
+
+    /**
+     * @brief Sets metadata of the long integer type.
+     *
+     * @param key Indicates the metadata key.
+     * @param value Indicates the metadata value, which is a 64-bit integer.
+     * @return Returns <b>true</b> if the setting is successful; returns <b>false</b> otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    bool PutLongValue(const std::string &key, int64_t value);
+
+    /**
+     * @brief Sets metadata of the single-precision floating-point type.
+     *
+     * @param key Indicates the metadata key.
+     * @param value Indicates the metadata value, which is a single-precision floating-point number.
+     * @return Returns <b>true</b> if the metadata is successfully set; returns <b>false</b> otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    bool PutFloatValue(const std::string &key, float value);
+
+    /**
+     * @brief Sets metadata of the double-precision floating-point type.
+     *
+     * @param key Indicates the metadata key.
+     * @param value Indicates the metadata value, which is a double-precision floating-point number.
+     * @return Returns <b>true</b> if the setting is successful; returns <b>false</b> otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    bool PutDoubleValue(const std::string &key, double value);
+
+    /**
+     * @brief Sets metadata of the string type.
+     *
+     * @param key Indicates the metadata key.
+     * @param value Indicates the metadata value, which is a string.
+     * @return Returns <b>true</b> if the metadata is successfully set; returns <b>false</b> otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    bool PutStringValue(const std::string &key, const std::string &value);
+
+    /**
+     * @brief Obtains the metadata value of the integer type.
+     *
+     * @param key Indicates the metadata key.
+     * @param value Indicates the metadata value to obtain, which is a 32-bit integer.
+     * @return Returns <b>true</b> if the integer is successfully obtained; returns <b>false</b> otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    bool GetIntValue(const std::string &key, int32_t &value) const;
+
+    /**
+     * @brief Obtains the metadata value of the long integer type.
+     *
+     * @param key Indicates the metadata key.
+     * @param value Indicates the metadata value to obtain, which is a 64-bit long integer.
+     * @return Returns <b>true</b> if the integer is successfully obtained; returns <b>false</b> otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    bool GetLongValue(const std::string &key, int64_t &value) const;
+
+    /**
+     * @brief Obtains the metadata value of the single-precision floating-point type.
+     *
+     * @param key Indicates the metadata key.
+     * @param value Indicates the metadata value to obtain, which is a single-precision floating-point number.
+     * @return Returns <b>true</b> if the single-precision number is successfully obtained; returns
+     * <b>false</b> otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    bool GetFloatValue(const std::string &key, float &value) const;
+
+    /**
+     * @brief Obtains the metadata value of the double-precision floating-point type.
+     *
+     * @param key Indicates the metadata key.
+     * @param value Indicates the metadata value to obtain, which is a double-precision floating-point number.
+     * @return Returns <b>true</b> if the double-precision number is successfully obtained; returns
+     * <b>false</b> otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    bool GetDoubleValue(const std::string &key, double &value) const;
+
+    /**
+     * @brief Obtains the metadata value of the string type.
+     *
+     * @param key Indicates the metadata key.
+     * @param value Indicates the metadata value to obtain, which is a string.
+     * @return Returns <b>true</b> if the string is successfully obtained; returns <b>false</b> otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    bool GetStringValue(const std::string &key, std::string &value) const;
+
+    /**
+     * @brief Obtains the metadata map.
+     *
+     * @return Returns the map object.
+     * @since 1.0
+     * @version 1.0
+     */
+    const std::map<std::string, FormatData> &GetFormatMap() const;
 
 private:
-    // string: such as video_width
-    // FormatData: such as int32_t 1080
-    std::map<std::string, FormatData *> formatMap_;
+    std::map<std::string, FormatData> formatMap_;
 };
 } // namespace Media
 } // namespace OHOS
-
 #endif // FORMAT_H
-

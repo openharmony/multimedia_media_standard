@@ -211,10 +211,6 @@ int32_t RecorderPipeline::SyncWaitChangeState(GstState targetState)
 
 void RecorderPipeline::DrainBuffer(bool isDrainAll)
 {
-    if (currState_ == GST_STATE_READY) {
-        return;
-    }
-    
     if (currState_ == GST_STATE_PAUSED) {
         if (isStarted_) {
             (void)SyncWaitChangeState(GST_STATE_PLAYING);

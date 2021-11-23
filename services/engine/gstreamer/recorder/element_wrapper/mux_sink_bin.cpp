@@ -110,6 +110,7 @@ int32_t MuxSinkBin::ConfigureOutputFormat(const RecorderParam &recParam)
 
 int32_t MuxSinkBin::ConfigureOutputTarget(const RecorderParam &recParam)
 {
+    isReg_ = false;
     if (recParam.type == RecorderPublicParamType::OUT_PATH) {
         const OutFilePath &param = static_cast<const OutFilePath &>(recParam);
         std::string realPath;
@@ -122,9 +123,12 @@ int32_t MuxSinkBin::ConfigureOutputTarget(const RecorderParam &recParam)
             MEDIA_LOGE("Configured output path invalid: %{public}s, ignore !", param.path.c_str());
             return MSERR_INVALID_VAL;
         }
-        if ((s.st_mode & S_IFDIR) == 0) {
+        if (((s.st_mode & S_IFREG) == 0) && ((s.st_mode & S_IFDIR) == 0)) {
             MEDIA_LOGE("Configured output path invalid: %{public}s, ignore !", param.path.c_str());
             return MSERR_INVALID_VAL;
+        }
+        if ((s.st_mode & S_IFREG) == S_IFREG) {
+            isReg_ = true;
         }
         outPath_ = realPath;
         MEDIA_LOGI("Configure output path ok: %{public}s", outPath_.c_str());
@@ -204,7 +208,7 @@ int32_t MuxSinkBin::Prepare()
 
 int32_t MuxSinkBin::SetOutFilePath()
 {
-    if (outPath_.empty() || CheckParameter(RecorderPublicParamType::OUT_FD)) {
+    if (outPath_.empty() || CheckParameter(RecorderPublicParamType::OUT_FD) || isReg_) {
         return MSERR_OK;
     }
 

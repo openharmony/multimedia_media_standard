@@ -86,8 +86,8 @@ public:
     RecorderCallbackDemo() = default;
     virtual ~RecorderCallbackDemo() = default;
     DISALLOW_COPY_AND_MOVE(RecorderCallbackDemo);
-    void OnError(RecorderErrorType errorType, int32_t errorCode);
-    void OnInfo(int32_t type, int32_t extra);
+    void OnError(RecorderErrorType errorType, int32_t errorCode) override;
+    void OnInfo(int32_t type, int32_t extra) override;
 };
 } // Media
 } // OHOS

@@ -34,6 +34,8 @@ const float SPEED_1_00_X = 1.00;
 const float SPEED_1_25_X = 1.25;
 const float SPEED_1_75_X = 1.75;
 const float SPEED_2_00_X = 2.00;
+const int32_t PERCENT = 1;
+const int32_t TIME = 2;
 }
 
 // PlayerCallback override
@@ -50,8 +52,21 @@ void PlayerCallbackDemo::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
         case INFO_TYPE_SEEKDONE:
             cout << "PlayerCallback: OnSeekDone currentPositon is " << extra << endl;
             break;
+        case INFO_TYPE_SPEEDDONE:
+            cout << "PlayerCallback: SpeedDone " << endl;
+            break;
         case INFO_TYPE_EOS:
             cout << "PlayerCallback: OnEndOfStream isLooping is " << extra << endl;
+            break;
+        case INFO_TYPE_CACHED_PERCENT_UPDATE:
+            if ((bufferingOut_ & PERCENT) == PERCENT) {
+                cout << "OnCachedPercent update is " << extra << "%" << endl;
+            }
+            break;
+        case INFO_TYPE_BUFFERING_TIME_UPDATE:
+            if ((bufferingOut_ & TIME) == TIME) {
+                cout << "OnBufferingTime update is " << extra << "ms" << endl;
+            }
             break;
         case INFO_TYPE_STATE_CHANGE:
             state_ = static_cast<PlayerStates>(extra);
@@ -67,9 +82,20 @@ void PlayerCallbackDemo::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
         case INFO_TYPE_MESSAGE:
             cout << "PlayerCallback: OnMessage is " << extra << endl;
             break;
+        case INFO_TYPE_RESOLUTION_CHANGE:
+            PrintResolution(infoBody);
+            break;
+        case INFO_TYPE_VOLUME_CHANGE:
+            cout << "PlayerCallback: volume changed" << endl;
+            break;
         default:
             break;
     }
+}
+
+void PlayerCallbackDemo::SetBufferingOut(int32_t bufferingOut)
+{
+    bufferingOut_ = bufferingOut;
 }
 
 void PlayerCallbackDemo::PrintState(PlayerStates state) const
@@ -79,6 +105,15 @@ void PlayerCallbackDemo::PrintState(PlayerStates state) const
     } else {
         cout << "Invalid state" << endl;
     }
+}
+
+void PlayerCallbackDemo::PrintResolution(const Format &infoBody) const
+{
+    int32_t width = 0;
+    int32_t height = 0;
+    (void)infoBody.GetIntValue(PLAYER_WIDTH, width);
+    (void)infoBody.GetIntValue(PLAYER_HEIGHT, height);
+    cout << "PlayerCallback: OnResolution changed width " << width << " height " << height << endl;
 }
 
 sptr<Surface> PlayerDemo::GetVideoSurface()
@@ -98,14 +133,14 @@ sptr<Surface> PlayerDemo::GetVideoSurface()
             cout << "WindowManager is null" << endl;
             return nullptr;
         }
-        (void)wmi->Init();
+        wmi->Init();
         sptr<WindowOption> option = WindowOption::Get();
         if (option == nullptr) {
             cout << "WindowOption is null" << endl;
             return nullptr;
         }
-        (void)option->SetWidth(640);
-        (void)option->SetHeight(360);
+        (void)option->SetWidth(WIDTH);
+        (void)option->SetHeight(HEIGHT);
         (void)option->SetX(0);
         (void)option->SetY(0);
         (void)option->SetWindowType(WINDOW_TYPE_NORMAL);
@@ -135,7 +170,24 @@ void PlayerDemo::Seek(const std::string cmd)
         cout << "You need to configure the seek time parameter" << endl;
         return;
     }
-    if (player_->Seek(time, PlayerSeekMode::SEEK_PREVIOUS_SYNC) != 0) {
+
+    cout << "Please enter the seek mode(seek previous sync):" << endl;
+    cout << "0:seek previous sync" << endl;
+    cout << "1:seek next sync" << endl;
+    cout << "2:seek closest sync" << endl;
+    cout << "3:seek closest" << endl;
+    string mode;
+    PlayerSeekMode seekMode = SEEK_PREVIOUS_SYNC;
+    (void)getline(cin, mode);
+    if (mode == "1") {
+        seekMode = SEEK_NEXT_SYNC;
+    } else if (mode == "2") {
+        seekMode = SEEK_CLOSEST_SYNC;
+    } else if (mode == "3") {
+        seekMode = SEEK_CLOSEST;
+    }
+
+    if (player_->Seek(time, seekMode) != 0) {
         cout << "Operation Failed" << endl;
     } else {
         cout << "Operation OK" << endl;
@@ -332,6 +384,7 @@ int32_t PlayerDemo::SelectSource(const string &pathOuter)
     } else {
         path = pathOuter;
     }
+
     cout << "Path is " << path << endl;
     cout << "Please enter the number of source mode(default LOCAL):" << endl;
     cout << "0:local file source" << endl;
@@ -354,6 +407,26 @@ int32_t PlayerDemo::SelectSource(const string &pathOuter)
     return ret;
 }
 
+int32_t PlayerDemo::SelectBufferingOut()
+{
+    cout << "Please enter the number of mode(no buffering info):" << endl;
+    cout << "0:no buffering info" << endl;
+    cout << "1:percent" << endl;
+    cout << "2:time" << endl;
+    cout << "3:percent and time" << endl;
+    string mode;
+    (void)getline(cin, mode);
+    if (mode == "1") {
+        return PERCENT;
+    } else if (mode == "2") {
+        return TIME;
+    } else if (mode == "3") {
+        return (PERCENT | TIME);
+    } else {
+        return 0;
+    }
+}
+
 void PlayerDemo::RunCase(const string &path)
 {
     player_ = OHOS::Media::PlayerFactory::CreatePlayer();
@@ -363,6 +436,8 @@ void PlayerDemo::RunCase(const string &path)
     }
     RegisterTable();
     std::shared_ptr<PlayerCallbackDemo> cb = std::make_shared<PlayerCallbackDemo>();
+    cb->SetBufferingOut(SelectBufferingOut());
+
     int32_t ret = player_->SetPlayerCallback(cb);
     if (ret != 0) {
         cout << "SetPlayerCallback fail" << endl;

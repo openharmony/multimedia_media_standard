@@ -90,30 +90,26 @@ int AVMetadataHelperServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &d
 
 int32_t AVMetadataHelperServiceStub::SetSource(const std::string &uri, int32_t usage)
 {
-    CHECK_AND_RETURN_RET_LOG(avMetadateHelperServer_ != nullptr, MSERR_NO_MEMORY,
-        "avmetadatahelper server is nullptr");
+    CHECK_AND_RETURN_RET_LOG(avMetadateHelperServer_ != nullptr, MSERR_NO_MEMORY, "avmetadatahelper server is nullptr");
     return avMetadateHelperServer_->SetSource(uri, usage);
 }
 
 std::string AVMetadataHelperServiceStub::ResolveMetadata(int32_t key)
 {
-    CHECK_AND_RETURN_RET_LOG(avMetadateHelperServer_ != nullptr, "",
-        "avmetadatahelper server is nullptr");
+    CHECK_AND_RETURN_RET_LOG(avMetadateHelperServer_ != nullptr, "", "avmetadatahelper server is nullptr");
     return avMetadateHelperServer_->ResolveMetadata(key);
 }
 
 std::unordered_map<int32_t, std::string> AVMetadataHelperServiceStub::ResolveMetadataMap()
 {
-    CHECK_AND_RETURN_RET_LOG(avMetadateHelperServer_ != nullptr, {},
-        "avmetadatahelper server is nullptr");
+    CHECK_AND_RETURN_RET_LOG(avMetadateHelperServer_ != nullptr, {}, "avmetadatahelper server is nullptr");
     return avMetadateHelperServer_->ResolveMetadata();
 }
 
 std::shared_ptr<AVSharedMemory> AVMetadataHelperServiceStub::FetchFrameAtTime(int64_t timeUs,
-    int32_t option, OutputConfiguration param)
+    int32_t option, const OutputConfiguration &param)
 {
-    CHECK_AND_RETURN_RET_LOG(avMetadateHelperServer_ != nullptr, nullptr,
-        "avmetadatahelper server is nullptr");
+    CHECK_AND_RETURN_RET_LOG(avMetadateHelperServer_ != nullptr, nullptr, "avmetadatahelper server is nullptr");
     return avMetadateHelperServer_->FetchFrameAtTime(timeUs, option, param);
 }
 
