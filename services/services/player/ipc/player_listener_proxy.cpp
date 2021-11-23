@@ -16,6 +16,7 @@
 #include "player_listener_proxy.h"
 #include "media_log.h"
 #include "media_errors.h"
+#include "media_parcel.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayerListenerProxy"};
@@ -53,7 +54,12 @@ void PlayerListenerProxy::OnInfo(PlayerOnInfoType type, int32_t extra, const For
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
     data.WriteInt32(type);
-    data.WriteInt32(extra);
+    if (type == INFO_TYPE_EXTRA_FORMAT ||
+        type == INFO_TYPE_RESOLUTION_CHANGE) {
+        MediaParcel::Marshalling(data, infoBody);
+    } else {
+        data.WriteInt32(extra);
+    }
     int error = Remote()->SendRequest(PlayerListenerMsg::ON_INFO, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("on info failed, error: %{public}d", error);

@@ -31,9 +31,8 @@ public:
     DISALLOW_COPY_AND_MOVE(PlayerServiceStub);
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-    using PlayerStubFunc = int32_t(PlayerServiceStub::*)(MessageParcel &data, MessageParcel &reply);
     int32_t SetListenerObject(const sptr<IRemoteObject> &object) override;
-    int32_t SetSource(const std::string &uri) override;
+    int32_t SetSource(const std::string &url) override;
     int32_t SetSource(const sptr<IRemoteObject> &object) override;
     int32_t Play() override;
     int32_t Prepare() override;
@@ -84,6 +83,7 @@ private:
     std::mutex mutex_;
     std::shared_ptr<PlayerCallback> playerCallback_ = nullptr;
     std::shared_ptr<IPlayerService> playerServer_ = nullptr;
+    using PlayerStubFunc = int32_t(PlayerServiceStub::*)(MessageParcel &data, MessageParcel &reply);
     std::map<uint32_t, PlayerStubFunc> playerFuncs_;
 };
 }

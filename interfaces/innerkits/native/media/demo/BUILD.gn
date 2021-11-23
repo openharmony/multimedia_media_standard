@@ -22,7 +22,6 @@ ohos_executable("media_demo") {
     "./avmetadatahelper",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
     "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/services/avmetadatahelper/server/include",
     "//graphic/standard/interfaces/innerkits/surface",
     "//foundation/graphic/standard/interfaces/innerkits/wmclient",
     "//drivers/peripheral/display/interfaces/include",
@@ -67,11 +66,13 @@ ohos_executable("media_demo") {
     "//third_party/libjpeg:libjpeg_static",
     "//utils/native/base:utils",
   ]
+
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "multimedia_media_standard:media_client",
   ]
+
   part_name = "multimedia_media_standard"
   subsystem_name = "multimedia"
 }

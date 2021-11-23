@@ -207,7 +207,6 @@ int32_t AudioCaptureAsImpl::ResumeAudioCapture()
 
     persistTime_ = std::fabs(resumeTime_ - pausedTime_);
 
-    // to check persistTime_ and newpersistTime_
     totalPauseTime_ += persistTime_;
     CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(audioCapturer_->Start(), MSERR_UNKNOWN);

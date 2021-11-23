@@ -39,7 +39,7 @@ public:
     std::string ResolveMetadata(int32_t key) override;
     std::unordered_map<int32_t, std::string> ResolveMetadata() override;
     std::shared_ptr<AVSharedMemory> FetchFrameAtTime(
-        int64_t timeUs, int32_t option, OutputConfiguration param) override;
+        int64_t timeUs, int32_t option, const OutputConfiguration &param) override;
 
 private:
     void OnNotifyMessage(const PlayBinMessage &msg);

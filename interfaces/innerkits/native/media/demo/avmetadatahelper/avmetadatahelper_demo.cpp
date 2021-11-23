@@ -116,9 +116,9 @@ static int RGB565ToRGB888(const unsigned short *rgb565Buf, int rgb565Size, unsig
         rgb888Buf[i * RGB888_PIXEL_BYTES + R_INDEX] = (rgb565Buf[i] & RGB565_MASK_RED);
         rgb888Buf[i * RGB888_PIXEL_BYTES + G_INDEX] = (rgb565Buf[i] & RGB565_MASK_GREEN) >> SHIFT_5_BIT;
         rgb888Buf[i * RGB888_PIXEL_BYTES + B_INDEX] = (rgb565Buf[i] & RGB565_MASK_BLUE) >> SHIFT_11_BIT;
-        rgb888Buf[i  * RGB888_PIXEL_BYTES + R_INDEX] <<= SHITF_3_BIT;
-        rgb888Buf[i  * RGB888_PIXEL_BYTES + G_INDEX] <<= SHIFT_2_BIT;
-        rgb888Buf[i  * RGB888_PIXEL_BYTES + B_INDEX] <<= SHITF_3_BIT;
+        rgb888Buf[i * RGB888_PIXEL_BYTES + R_INDEX] <<= SHITF_3_BIT;
+        rgb888Buf[i * RGB888_PIXEL_BYTES + G_INDEX] <<= SHIFT_2_BIT;
+        rgb888Buf[i * RGB888_PIXEL_BYTES + B_INDEX] <<= SHITF_3_BIT;
     }
 
     return 0;
@@ -156,7 +156,7 @@ void MySplitStr(const std::string_view& str, const std::string_view &sep, std::q
     std::string_view strPart;
     while (true) {
         std::string::size_type pos = strTmp.find(sep);
-        if (std::string::npos == pos || sep.empty()) {
+        if (pos == std::string::npos || sep.empty()) {
             strPart = TrimStr(strTmp);
             if (!strPart.empty()) {
                 strs.push(strPart);

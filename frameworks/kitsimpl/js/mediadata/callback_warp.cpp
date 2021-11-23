@@ -139,6 +139,7 @@ void CallbackWarp::SetResult(napi_value result)
 void CallbackWarp::GetResult(napi_value &result)
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    MEDIA_LOGD("get result");
     if (result_ == nullptr) {
         condVarResult_.wait(lock);
     }

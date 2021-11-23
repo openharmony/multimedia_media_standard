@@ -30,7 +30,7 @@ public:
     virtual ~PlayerServer();
     DISALLOW_COPY_AND_MOVE(PlayerServer);
 
-    int32_t SetSource(const std::string &uri) override;
+    int32_t SetSource(const std::string &url) override;
     int32_t SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc) override;
     int32_t Play() override;
     int32_t Prepare() override;
@@ -59,7 +59,7 @@ private:
     int32_t Init();
     bool IsValidSeekMode(PlayerSeekMode mode);
     int32_t OnReset();
-    int32_t InitPlayEngine(const std::string &uri);
+    int32_t InitPlayEngine(const std::string &url);
     int32_t OnPrepare(bool async);
 
     std::unique_ptr<IPlayerEngine> playerEngine_ = nullptr;
@@ -72,8 +72,8 @@ private:
     TimeMonitor startTimeMonitor_;
     TimeMonitor stopTimeMonitor_;
     std::shared_ptr<IMediaDataSource> dataSrc_ = nullptr;
-    float leftVolume_ = 1.0f;
-    float rightVolume_ = 1.0f;
+    float leftVolume_ = 1.0f; // audiotrack volume range [0, 1]
+    float rightVolume_ = 1.0f; // audiotrack volume range [0, 1]
     PlaybackRateMode speedMode_ = SPEED_FORWARD_1_00_X;
 };
 } // namespace Media

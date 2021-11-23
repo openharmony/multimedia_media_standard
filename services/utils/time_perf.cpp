@@ -26,7 +26,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-void TimePerfMgr::StartPerfRecord(uintptr_t obj, std::string_view tag)
+void TimePerf::StartPerfRecord(uintptr_t obj, std::string_view tag)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -65,7 +65,7 @@ void TimePerfMgr::StartPerfRecord(uintptr_t obj, std::string_view tag)
     TimeVal2USec(start, record.currStart);
 }
 
-void TimePerfMgr::StopPerfRecord(uintptr_t obj, std::string_view tag)
+void TimePerf::StopPerfRecord(uintptr_t obj, std::string_view tag)
 {
     struct timeval stop {};
     int getTimeRet = gettimeofday(&stop, nullptr);
@@ -110,20 +110,21 @@ void TimePerfMgr::StopPerfRecord(uintptr_t obj, std::string_view tag)
     if (record.firstTime == INVALID_TIME) {
         record.firstTime = currTime;
     }
+
     record.avgTime = (record.avgTime * record.count + currTime) / (record.count + 1);
     record.count += 1;
     record.currStart = INVALID_TIME;
     record.currStop = INVALID_TIME;
 
-    MEDIA_LOGD("======== obj[0x%{public}06" PRIXPTR "] tag[%{public}s] "
+    MEDIA_LOGD("obj[0x%{public}06" PRIXPTR "] tag[%{public}s] "
                "current take time: %{public}" PRIi64 "us, first time: %{public}" PRIi64 ", "
                "peak time: %{public}" PRIi64 ", avg time: %{public}" PRIi64 ", "
-               "count: %{public}" PRIi64 " ======",
+               "count: %{public}" PRIi64 "",
                FAKE_POINTER(obj), tag.data(), currTime, record.firstTime,
                record.peakTime, record.avgTime, record.count);
 }
 
-void TimePerfMgr::DumpObjectRecord(uintptr_t obj)
+void TimePerf::DumpObjectRecord(uintptr_t obj)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -137,7 +138,7 @@ void TimePerfMgr::DumpObjectRecord(uintptr_t obj)
         if (record.count == 0) {
             continue;
         }
-        MEDIA_LOGD("======== obj[0x%{public}06" PRIXPTR "] tag[%{public}s] "
+        MEDIA_LOGD("obj[0x%{public}06" PRIXPTR "] tag[%{public}s] "
                    ", first time: %{public}" PRIi64 ", peak time: %{public}" PRIi64 ", "
                    "avg time: %{public}" PRIi64 ", count: %{public}" PRIi64 "",
                    FAKE_POINTER(obj), tag.data(), record.firstTime,
@@ -145,7 +146,7 @@ void TimePerfMgr::DumpObjectRecord(uintptr_t obj)
     }
 }
 
-void TimePerfMgr::CleanObjectRecord(uintptr_t obj)
+void TimePerf::CleanObjectRecord(uintptr_t obj)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -153,10 +154,10 @@ void TimePerfMgr::CleanObjectRecord(uintptr_t obj)
     if (objIter == objPerfRecords_.end()) {
         return;
     }
-    objPerfRecords_.erase(objIter);
+    (void)objPerfRecords_.erase(objIter);
 }
 
-void TimePerfMgr::DumpAllRecord()
+void TimePerf::DumpAllRecord()
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -173,13 +174,13 @@ void TimePerfMgr::DumpAllRecord()
     }
 }
 
-void TimePerfMgr::CleanAllRecord()
+void TimePerf::CleanAllRecord()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     objPerfRecords_.clear();
 }
 
-void TimePerfMgr::TimeVal2USec(const struct timeval &time, int64_t &usec)
+void TimePerf::TimeVal2USec(const struct timeval &time, int64_t &usec)
 {
     if ((static_cast<int64_t>(time.tv_sec) > MAX_SEC) ||
         (static_cast<int64_t>(time.tv_sec) == MAX_SEC && time.tv_usec > 0) ||

@@ -64,25 +64,22 @@ std::string AVMetadataHelperServer::ResolveMetadata(int32_t key)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGD("Key is %{public}d", key);
-    CHECK_AND_RETURN_RET_LOG(avMetadataHelperEngine_ != nullptr, "",
-        "avMetadataHelperEngine_ is nullptr");
+    CHECK_AND_RETURN_RET_LOG(avMetadataHelperEngine_ != nullptr, "", "avMetadataHelperEngine_ is nullptr");
     return avMetadataHelperEngine_->ResolveMetadata(key);
 }
 
 std::unordered_map<int32_t, std::string> AVMetadataHelperServer::ResolveMetadata()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(avMetadataHelperEngine_ != nullptr, {},
-        "avMetadataHelperEngine_ is nullptr");
+    CHECK_AND_RETURN_RET_LOG(avMetadataHelperEngine_ != nullptr, {}, "avMetadataHelperEngine_ is nullptr");
     return avMetadataHelperEngine_->ResolveMetadata();
 }
 
 std::shared_ptr<AVSharedMemory> AVMetadataHelperServer::FetchFrameAtTime(int64_t timeUs, int32_t option,
-    OutputConfiguration param)
+    const OutputConfiguration &param)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(avMetadataHelperEngine_ != nullptr, nullptr,
-        "avMetadataHelperEngine_ is nullptr");
+    CHECK_AND_RETURN_RET_LOG(avMetadataHelperEngine_ != nullptr, nullptr, "avMetadataHelperEngine_ is nullptr");
     return avMetadataHelperEngine_->FetchFrameAtTime(timeUs, option, param);
 }
 

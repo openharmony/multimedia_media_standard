@@ -30,16 +30,14 @@ public:
     DISALLOW_COPY_AND_MOVE(AVMetadataHelperServiceStub);
 
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
-
-    using AVMetadataHelperStubFunc =
-        int32_t(AVMetadataHelperServiceStub::*)(MessageParcel &data, MessageParcel &reply);
     int32_t SetSource(const std::string &uri, int32_t usage) override;
     std::string ResolveMetadata(int32_t key) override;
     std::unordered_map<int32_t, std::string> ResolveMetadataMap() override;
     std::shared_ptr<AVSharedMemory> FetchFrameAtTime(int64_t timeUs,
-        int32_t option, OutputConfiguration param) override;
+        int32_t option, const OutputConfiguration &param) override;
     void Release() override;
     int32_t DestroyStub() override;
+
 private:
     AVMetadataHelperServiceStub();
     int32_t Init();
@@ -52,6 +50,7 @@ private:
 
     std::mutex mutex_;
     std::shared_ptr<IAVMetadataHelperService> avMetadateHelperServer_ = nullptr;
+    using AVMetadataHelperStubFunc = int32_t(AVMetadataHelperServiceStub::*)(MessageParcel &data, MessageParcel &reply);
     std::map<uint32_t, AVMetadataHelperStubFunc> avMetadataHelperFuncs_;
 };
 } // namespace Media

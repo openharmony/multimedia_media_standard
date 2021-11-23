@@ -72,6 +72,7 @@ static GType gst_surface_video_src_stream_type_get_type(void)
 
 static void gst_surface_video_src_class_init(GstSurfaceVideoSrcClass *klass)
 {
+    g_return_if_fail(klass != nullptr);
     GObjectClass *gobject_class = reinterpret_cast<GObjectClass *>(klass);
     GstElementClass *gstelement_class = reinterpret_cast<GstElementClass *>(klass);
     GstBaseSrcClass *gstbasesrc_class = reinterpret_cast<GstBaseSrcClass *>(klass);
@@ -108,10 +109,8 @@ static void gst_surface_video_src_class_init(GstSurfaceVideoSrcClass *klass)
 
     gstelement_class->change_state = gst_surface_video_src_change_state;
     gstelement_class->send_event = gst_surface_video_src_send_event;
-
     gstbasesrc_class->negotiate = gst_surface_video_src_negotiate;
     gstbasesrc_class->is_seekable = gst_surface_video_src_is_seekable;
-
     gstpushsrc_class->create = gst_surface_video_src_create;
 }
 
@@ -132,6 +131,7 @@ static void gst_surface_video_src_init(GstSurfaceVideoSrc *src)
 
 static void gst_surface_video_src_finalize(GObject *object)
 {
+    g_return_if_fail(object != nullptr);
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(object);
     g_return_if_fail(src != nullptr);
 
@@ -147,6 +147,8 @@ static void gst_surface_video_src_set_property(GObject *object, guint prop_id,
     const GValue *value, GParamSpec *pspec)
 {
     (void)pspec;
+    g_return_if_fail(object != nullptr);
+    g_return_if_fail(value != nullptr);
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(object);
     g_return_if_fail(src != nullptr);
     switch (prop_id) {
@@ -183,6 +185,8 @@ static void gst_surface_video_src_set_stream_type(GstSurfaceVideoSrc *src, gint 
 
 static void gst_surface_video_src_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
+    g_return_if_fail(object != nullptr);
+    g_return_if_fail(value != nullptr);
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(object);
     g_return_if_fail(src != nullptr);
     (void)pspec;
@@ -271,10 +275,8 @@ static gboolean start_video_capture(GstSurfaceVideoSrc *src)
     return TRUE;
 }
 
-static GstStateChangeReturn gst_surface_video_src_change_state(GstElement *element, GstStateChange transition)
+static GstStateChangeReturn gst_state_change_forward_direction(GstSurfaceVideoSrc *src, GstStateChange transition)
 {
-    GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(element);
-    g_return_val_if_fail(src != nullptr, GST_STATE_CHANGE_FAILURE);
     switch (transition) {
         case GST_STATE_CHANGE_NULL_TO_READY:
             src->capture = OHOS::Media::VideoCaptureFactory::CreateVideoCapture(src->stream_type);
@@ -305,7 +307,19 @@ static GstStateChangeReturn gst_surface_video_src_change_state(GstElement *eleme
         default:
             break;
     }
-    GstStateChangeReturn ret = GST_ELEMENT_CLASS(parent_class)->change_state(element, transition);
+    return GST_STATE_CHANGE_SUCCESS;
+}
+
+static GstStateChangeReturn gst_surface_video_src_change_state(GstElement *element, GstStateChange transition)
+{
+    g_return_val_if_fail(element != nullptr, GST_STATE_CHANGE_FAILURE);
+    GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(element);
+    g_return_val_if_fail(src != nullptr, GST_STATE_CHANGE_FAILURE);
+
+    GstStateChangeReturn ret = gst_state_change_forward_direction(src, transition);
+    g_return_val_if_fail(ret != GST_STATE_CHANGE_SUCCESS, GST_STATE_CHANGE_FAILURE);
+
+    ret = GST_ELEMENT_CLASS(parent_class)->change_state(element, transition);
 
     switch (transition) {
         case GST_STATE_CHANGE_PLAYING_TO_PAUSED:
@@ -334,8 +348,10 @@ static gboolean gst_surface_video_src_is_seekable(GstBaseSrc *basesrc)
 
 static gboolean gst_surface_video_src_negotiate(GstBaseSrc *basesrc)
 {
+    g_return_val_if_fail(basesrc != nullptr, FALSE);
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(basesrc);
     g_return_val_if_fail(src != nullptr, FALSE);
+    g_return_val_if_fail(src->src_caps != nullptr, FALSE);
 
     // no need to wait playing when yuv source
     if (src->need_codec_data) {
@@ -347,6 +363,8 @@ static gboolean gst_surface_video_src_negotiate(GstBaseSrc *basesrc)
 
 static GstFlowReturn gst_surface_video_src_create(GstPushSrc *psrc, GstBuffer **outbuf)
 {
+    g_return_val_if_fail(psrc != nullptr, GST_FLOW_ERROR);
+    g_return_val_if_fail(outbuf != nullptr, GST_FLOW_ERROR);
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(psrc);
     g_return_val_if_fail(src != nullptr, GST_FLOW_ERROR);
 
@@ -375,6 +393,7 @@ static GstFlowReturn gst_surface_video_src_create(GstPushSrc *psrc, GstBuffer **
 
 static gboolean gst_surface_video_src_send_event(GstElement *element, GstEvent *event)
 {
+    g_return_val_if_fail(element != nullptr, FALSE);
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(element);
     g_return_val_if_fail(src != nullptr, FALSE);
 
@@ -402,6 +421,7 @@ static gboolean gst_surface_video_src_send_event(GstElement *element, GstEvent *
 
 static gboolean plugin_init(GstPlugin *plugin)
 {
+    g_return_val_if_fail(plugin != nullptr, FALSE);
     return gst_element_register(plugin, "surfacevideosrc", GST_RANK_PRIMARY, GST_TYPE_SURFACE_VIDEO_SRC);
 }
 

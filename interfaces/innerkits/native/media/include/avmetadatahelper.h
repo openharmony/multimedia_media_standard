@@ -213,7 +213,7 @@ public:
      * @return Returns a pixelmap containing a scaled video frame, which can be null, if such a
      * frame cannot be fetched.
      */
-    virtual std::shared_ptr<PixelMap> FetchFrameAtTime(int64_t timeUs, int32_t option, PixelMapParams param) = 0;
+    virtual std::shared_ptr<PixelMap> FetchFrameAtTime(int64_t timeUs, int32_t option, const PixelMapParams &param) = 0;
 
     /**
      * Release the internel resource. After this method called, the avmetadatahelper instance

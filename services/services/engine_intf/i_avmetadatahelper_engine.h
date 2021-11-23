@@ -68,7 +68,7 @@ public:
      * can be null, if such a frame cannot be fetched.
      */
     virtual std::shared_ptr<AVSharedMemory> FetchFrameAtTime(
-        int64_t timeUs, int32_t option, OutputConfiguration param) = 0;
+        int64_t timeUs, int32_t option, const OutputConfiguration &param) = 0;
 };
 }
 }

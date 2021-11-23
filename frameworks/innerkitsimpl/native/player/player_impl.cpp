@@ -81,11 +81,11 @@ int32_t PlayerImpl::SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc)
     return playerService_->SetSource(dataSrc);
 }
 
-int32_t PlayerImpl::SetSource(const std::string &uri)
+int32_t PlayerImpl::SetSource(const std::string &url)
 {
     CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
-    CHECK_AND_RETURN_RET_LOG(!uri.empty(), MSERR_INVALID_VAL, "uri is empty..");
-    return playerService_->SetSource(uri);
+    CHECK_AND_RETURN_RET_LOG(!url.empty(), MSERR_INVALID_VAL, "url is empty..");
+    return playerService_->SetSource(url);
 }
 
 int32_t PlayerImpl::Play()
