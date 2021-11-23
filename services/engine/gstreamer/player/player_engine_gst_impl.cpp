@@ -54,7 +54,7 @@ bool PlayerEngineGstImpl::IsFileUrl(const std::string &url) const
     return false;
 }
 
-int32_t PlayerEngineGstImpl::GetRealPath(const std::string &url, std::string &realUriPath) const
+int32_t PlayerEngineGstImpl::GetRealPath(const std::string &url, std::string &realUrlPath) const
 {
     std::string fileHead = "file://";
     std::string tempUrlPath;
@@ -65,11 +65,11 @@ int32_t PlayerEngineGstImpl::GetRealPath(const std::string &url, std::string &re
         tempUrlPath = url;
     }
 
-    bool ret = PathToRealPath(tempUrlPath, realUriPath);
+    bool ret = PathToRealPath(tempUrlPath, realUrlPath);
     CHECK_AND_RETURN_RET_LOG(ret, MSERR_OPEN_FILE_FAILED,
         "invalid url. The Url (%{public}s) path may be invalid.", url.c_str());
 
-    if (access(realUriPath.c_str(), R_OK) != 0) {
+    if (access(realUrlPath.c_str(), R_OK) != 0) {
         return MSERR_FILE_ACCESS_FAILED;
     }
 
