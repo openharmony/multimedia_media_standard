@@ -26,21 +26,20 @@ public:
     virtual ~IPlayerService() = default;
 
     /**
-     * @brief Sets the playback source for the player. The corresponding source can be l
-     * ocal file URI
+     * @brief Sets the playback source for the player. The corresponding source can be local file url.
      *
-     * @param uri Indicates the playback source. Currently, only local file URIs are supported.
-     * @return Returns {@link MSERR_OK} if the uri is set successfully; returns an error code defined
+     * @param url Indicates the playback source.
+     * @return Returns {@link MSERR_OK} if the url is set successfully; returns an error code defined
      * in {@link media_errors.h} otherwise.
      * @since 1.0
      * @version 1.0
      */
-    virtual int32_t SetSource(const std::string &uri) = 0;
+    virtual int32_t SetSource(const std::string &url) = 0;
     /**
      * @brief Sets the playback media data source for the player.
      *
      * @param dataSrc Indicates the media data source. in {@link media_data_source.h}
-     * @return Returns {@link MSERR_OK} if the uri is set successfully; returns an error code defined
+     * @return Returns {@link MSERR_OK} if the dataSrc is set successfully; returns an error code defined
      * in {@link media_errors.h} otherwise.
      * @since 1.0
      * @version 1.0
@@ -170,7 +169,7 @@ public:
     virtual int32_t GetCurrentTime(int32_t &currentTime) = 0;
 
     /**
-     * @brief Obtains the total duration of media files, accurate to millseconds.
+     * @brief Obtains the total duration of media files, accurate to milliseconds.
      *
      * @param duration Indicates the total duration of media files.
      * @return Returns {@link MSERR_OK} if the current duration is get; returns an error code defined
@@ -184,7 +183,7 @@ public:
      * @brief set the player playback rate
      *
      * @param mode the rate mode {@link PlaybackRateMode} which can set.
-     * @return Returns {@link MSERR_OK} if the playback rate is set successfull; returns an error code defined
+     * @return Returns {@link MSERR_OK} if the playback rate is set successfully; returns an error code defined
      * in {@link media_errors.h} otherwise.
      * @since 1.0
      * @version 1.0

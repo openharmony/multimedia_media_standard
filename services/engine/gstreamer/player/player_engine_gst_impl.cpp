@@ -46,56 +46,56 @@ PlayerEngineGstImpl::~PlayerEngineGstImpl()
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-bool PlayerEngineGstImpl::IsFileUri(const std::string &uri) const
+bool PlayerEngineGstImpl::IsFileUrl(const std::string &url) const
 {
-    if (uri.find("://") == std::string::npos || uri.find("file://") == 0) {
+    if (url.find("://") == std::string::npos || url.find("file://") == 0) {
         return true;
     }
     return false;
 }
 
-int32_t PlayerEngineGstImpl::GetRealPath(const std::string &uri, std::string &realUriPath) const
+int32_t PlayerEngineGstImpl::GetRealPath(const std::string &url, std::string &realUrlPath) const
 {
     std::string fileHead = "file://";
-    std::string tempUriPath;
+    std::string tempUrlPath;
 
-    if (uri.find(fileHead) == 0 && uri.size() > fileHead.size()) {
-        tempUriPath = uri.substr(fileHead.size());
+    if (url.find(fileHead) == 0 && url.size() > fileHead.size()) {
+        tempUrlPath = url.substr(fileHead.size());
     } else {
-        tempUriPath = uri;
+        tempUrlPath = url;
     }
 
-    bool ret = PathToRealPath(tempUriPath, realUriPath);
+    bool ret = PathToRealPath(tempUrlPath, realUrlPath);
     CHECK_AND_RETURN_RET_LOG(ret, MSERR_OPEN_FILE_FAILED,
-        "invalid uri. The Uri (%{public}s) path may be invalid.", uri.c_str());
+        "invalid url. The Url (%{public}s) path may be invalid.", url.c_str());
 
-    if (access(realUriPath.c_str(), R_OK) != 0) {
+    if (access(realUrlPath.c_str(), R_OK) != 0) {
         return MSERR_FILE_ACCESS_FAILED;
     }
 
     return MSERR_OK;
 }
 
-int32_t PlayerEngineGstImpl::SetSource(const std::string &uri)
+int32_t PlayerEngineGstImpl::SetSource(const std::string &url)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(!uri.empty(), MSERR_INVALID_VAL, "input uri is empty!");
-    CHECK_AND_RETURN_RET_LOG(uri.length() <= MAX_URI_SIZE, MSERR_INVALID_VAL, "input uri length is invalid!");
+    CHECK_AND_RETURN_RET_LOG(!url.empty(), MSERR_INVALID_VAL, "input url is empty!");
+    CHECK_AND_RETURN_RET_LOG(url.length() <= MAX_URI_SIZE, MSERR_INVALID_VAL, "input url length is invalid!");
 
     std::string realUriPath;
     int32_t ret = MSERR_OK;
 
-    if (IsFileUri(uri)) {
-        ret = GetRealPath(uri, realUriPath);
+    if (IsFileUrl(url)) {
+        ret = GetRealPath(url, realUriPath);
         if (ret != MSERR_OK) {
             return ret;
         }
-        uri_ = "file://" + realUriPath;
+        url_ = "file://" + realUriPath;
     } else {
-        uri_ = uri;
+        url_ = url;
     }
 
-    MEDIA_LOGI("set player source: %{public}s", uri_.c_str());
+    MEDIA_LOGD("set player source: %{public}s", url_.c_str());
     return ret;
 }
 
@@ -127,7 +127,7 @@ int32_t PlayerEngineGstImpl::SetVideoSurface(sptr<Surface> surface)
 int32_t PlayerEngineGstImpl::Prepare()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    MEDIA_LOGI("Prepare in");
+    MEDIA_LOGD("Prepare in");
 
     int32_t ret = GstPlayerInit();
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "GstPlayerInit failed");
@@ -149,7 +149,7 @@ int32_t PlayerEngineGstImpl::Prepare()
 int32_t PlayerEngineGstImpl::PrepareAsync()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    MEDIA_LOGI("Prepare in");
+    MEDIA_LOGD("Prepare in");
 
     int32_t ret = GstPlayerInit();
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "GstPlayerInit failed");
@@ -173,9 +173,9 @@ void PlayerEngineGstImpl::PlayerLoop()
 
     condVarSync_.notify_all();
 
-    MEDIA_LOGI("Start the player loop");
+    MEDIA_LOGD("Start the player loop");
     playerBuild_->CreateLoop();
-    MEDIA_LOGI("Stop the player loop");
+    MEDIA_LOGD("Stop the player loop");
 }
 
 int32_t PlayerEngineGstImpl::GstPlayerInit()
@@ -186,10 +186,10 @@ int32_t PlayerEngineGstImpl::GstPlayerInit()
 
     MEDIA_LOGD("GstPlayerInit in");
     playerThread_.reset(new(std::nothrow) std::thread(&PlayerEngineGstImpl::PlayerLoop, this));
-    CHECK_AND_RETURN_RET_LOG(playerThread_ != nullptr, MSERR_INVALID_VAL, "std::thread failed..");
+    CHECK_AND_RETURN_RET_LOG(playerThread_ != nullptr, MSERR_NO_MEMORY, "new std::thread failed.");
 
     if (!playerCtrl_) {
-        MEDIA_LOGI("Player not yet initialized, wait for 1 second");
+        MEDIA_LOGD("Player not yet initialized, wait for 1 second");
         std::unique_lock<std::mutex> lockSync(mutexSync_);
         (void)condVarSync_.wait_for(lockSync, std::chrono::seconds(1));
         if (playerCtrl_ == nullptr) {
@@ -208,7 +208,7 @@ int32_t PlayerEngineGstImpl::GstPlayerInit()
 
     playerBuild_->WaitMainLoopStart();
 
-    MEDIA_LOGI("GstPlayerInit out");
+    MEDIA_LOGD("GstPlayerInit out");
     gstPlayerInit_ = true;
     return MSERR_OK;
 }
@@ -234,12 +234,14 @@ int32_t PlayerEngineGstImpl::GstPlayerPrepare() const
     CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_VAL, "playerCtrl_ is nullptr");
     int32_t ret;
     if (appsrcWarp_ == nullptr) {
-        ret = playerCtrl_->SetUri(uri_);
+        ret = playerCtrl_->SetUrl(url_);
         playerCtrl_->SetRingBufferMaxSize(RING_BUFFER_MAX_SIZE);
+        playerCtrl_->SetBufferingInfo();
+        playerCtrl_->SetHttpTimeOut();
     } else {
         ret = playerCtrl_->SetSource(appsrcWarp_);
     }
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetUri failed");
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetUrl failed");
 
     ret = playerCtrl_->SetCallbacks(obs_);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetCallbacks failed");
@@ -277,7 +279,7 @@ int32_t PlayerEngineGstImpl::GetCurrentTime(int32_t &currentTime)
     if (playerCtrl_ != nullptr) {
         uint64_t tempTime = playerCtrl_->GetPosition();
         currentTime = static_cast<int32_t>(tempTime);
-        MEDIA_LOGI("Time in milli seconds: %{public}d", currentTime);
+        MEDIA_LOGD("Time in milli seconds: %{public}d", currentTime);
     }
     return MSERR_OK;
 }
@@ -285,11 +287,12 @@ int32_t PlayerEngineGstImpl::GetCurrentTime(int32_t &currentTime)
 int32_t PlayerEngineGstImpl::GetDuration(int32_t &duration)
 {
     std::unique_lock<std::mutex> lock(mutex_);
+
     duration = 0;
     if (playerCtrl_ != nullptr) {
         uint64_t tempDura = playerCtrl_->GetDuration();
         duration = static_cast<int32_t>(tempDura);
-        MEDIA_LOGI("Duration in milli seconds: %{public}d", duration);
+        MEDIA_LOGD("Duration in milli seconds: %{public}d", duration);
     }
     return MSERR_OK;
 }
@@ -311,7 +314,9 @@ double PlayerEngineGstImpl::ChangeModeToSpeed(const PlaybackRateMode &mode) cons
     if (mode == SPEED_FORWARD_2_00_X) {
         return SPEED_2_00_X;
     }
-    MEDIA_LOGD("unknow return mode!");
+
+    MEDIA_LOGW("unknow mode:%{public}d, return default speed(SPEED_1_00_X)", mode);
+
     return SPEED_1_00_X;
 }
 
@@ -332,14 +337,15 @@ PlaybackRateMode PlayerEngineGstImpl::ChangeSpeedToMode(double rate) const
     if (abs(rate - SPEED_2_00_X) < EPSINON) {
         return SPEED_FORWARD_2_00_X;
     }
-    MEDIA_LOGD("unknow return speed!");
+
+    MEDIA_LOGW("unknow rate:%{public}lf, return default speed(SPEED_FORWARD_1_00_X)", rate);
+
     return  SPEED_FORWARD_1_00_X;
 }
 
 int32_t PlayerEngineGstImpl::SetPlaybackSpeed(PlaybackRateMode mode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    rateMode_ = mode;
     if (playerCtrl_ != nullptr) {
         double rate = ChangeModeToSpeed(mode);
         return playerCtrl_->SetRate(rate);
@@ -350,7 +356,6 @@ int32_t PlayerEngineGstImpl::SetPlaybackSpeed(PlaybackRateMode mode)
 int32_t PlayerEngineGstImpl::GetPlaybackSpeed(PlaybackRateMode &mode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    mode = rateMode_;
     if (playerCtrl_ != nullptr) {
         double rate = playerCtrl_->GetRate();
         mode = ChangeSpeedToMode(rate);
@@ -361,9 +366,8 @@ int32_t PlayerEngineGstImpl::GetPlaybackSpeed(PlaybackRateMode &mode)
 int32_t PlayerEngineGstImpl::SetLooping(bool loop)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    loop_ = loop;
     if (playerCtrl_ != nullptr) {
-        MEDIA_LOGI("SetLooping in");
+        MEDIA_LOGD("SetLooping in");
         return playerCtrl_->SetLoop(loop);
     }
     return MSERR_OK;
@@ -374,7 +378,7 @@ int32_t PlayerEngineGstImpl::Stop()
     std::unique_lock<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
 
-    MEDIA_LOGI("Stop in");
+    MEDIA_LOGD("Stop in");
     playerCtrl_->Stop();
     return MSERR_OK;
 }
@@ -382,7 +386,7 @@ int32_t PlayerEngineGstImpl::Stop()
 int32_t PlayerEngineGstImpl::Reset()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    MEDIA_LOGI("Reset in");
+    MEDIA_LOGD("Reset in");
     if (playerCtrl_ != nullptr) {
         playerCtrl_->Stop();
     }
@@ -395,7 +399,7 @@ int32_t PlayerEngineGstImpl::Seek(int32_t mSeconds, PlayerSeekMode mode)
     std::unique_lock<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
     CHECK_AND_RETURN_RET_LOG(mSeconds >= 0, MSERR_INVALID_OPERATION, "seek time must >= 0");
-    MEDIA_LOGI("Seek in %{public}d", mSeconds);
+    MEDIA_LOGD("Seek in %{public}d", mSeconds);
 
     uint64_t position = static_cast<uint64_t>(mSeconds);
     return playerCtrl_->Seek(position, mode);
@@ -404,10 +408,8 @@ int32_t PlayerEngineGstImpl::Seek(int32_t mSeconds, PlayerSeekMode mode)
 int32_t PlayerEngineGstImpl::SetVolume(float leftVolume, float rightVolume)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    leftVolume_ = leftVolume;
-    rightVolume_ = rightVolume;
     if (playerCtrl_ != nullptr) {
-        MEDIA_LOGI("SetVolume in");
+        MEDIA_LOGD("SetVolume in");
         playerCtrl_->SetVolume(leftVolume, rightVolume);
     }
     return MSERR_OK;

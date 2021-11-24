@@ -16,10 +16,10 @@
 #ifndef AVMETADATAHELPER_DEMO_H
 #define AVMETADATAHELPER_DEMO_H
 
-#include "avmetadatahelper.h"
 #include <queue>
 #include <string_view>
 #include "nocopyable.h"
+#include "avmetadatahelper.h"
 
 namespace OHOS {
 namespace Media {

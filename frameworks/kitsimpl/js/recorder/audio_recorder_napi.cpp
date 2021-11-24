@@ -226,8 +226,11 @@ int32_t AudioRecorderNapi::GetAudioProperties(napi_env env, napi_value args, Aud
 {
     properties.sourceType = AUDIO_MIC;
 
-    int32_t fileFormat = -1;
-    CommonNapi::GetPropertyInt32(env, args, "format", fileFormat);
+    int32_t fileFormat = 0;
+    bool ret = CommonNapi::GetPropertyInt32(env, args, "format", fileFormat);
+    if (ret == false) {
+        fileFormat = JS_DEFAULT_FILE_FORMAT;
+    }
     switch (fileFormat) {
         case JS_DEFAULT_FILE_FORMAT:
         case JS_MPEG_4:
@@ -240,8 +243,11 @@ int32_t AudioRecorderNapi::GetAudioProperties(napi_env env, napi_value args, Aud
             return MSERR_INVALID_VAL;
     }
 
-    int32_t audioEncoder = -1;
-    CommonNapi::GetPropertyInt32(env, args, "audioEncoder", audioEncoder);
+    int32_t audioEncoder = 0;
+    ret = CommonNapi::GetPropertyInt32(env, args, "audioEncoder", audioEncoder);
+    if (ret == false) {
+        fileFormat = JS_DEFAULT_ENCORD_TYPE;
+    }
     switch (audioEncoder) {
         case JS_DEFAULT_ENCORD_TYPE:
         case JS_AAC_LC:
@@ -251,9 +257,12 @@ int32_t AudioRecorderNapi::GetAudioProperties(napi_env env, napi_value args, Aud
             return MSERR_INVALID_VAL;
     }
 
-    CommonNapi::GetPropertyInt32(env, args, "audioEncodeBitRate", properties.encodeBitRate);
-    CommonNapi::GetPropertyInt32(env, args, "audioSampleRate", properties.audioSampleRate);
-    CommonNapi::GetPropertyInt32(env, args, "numberOfChannels", properties.numberOfChannels);
+    ret = CommonNapi::GetPropertyInt32(env, args, "audioEncodeBitRate", properties.encodeBitRate);
+    CHECK_AND_RETURN_RET_LOG(ret, MSERR_INVALID_VAL, "get audioEncodeBitRate failed");
+    ret = CommonNapi::GetPropertyInt32(env, args, "audioSampleRate", properties.audioSampleRate);
+    CHECK_AND_RETURN_RET_LOG(ret, MSERR_INVALID_VAL, "get audioSampleRate failed");
+    ret = CommonNapi::GetPropertyInt32(env, args, "numberOfChannels", properties.numberOfChannels);
+    CHECK_AND_RETURN_RET_LOG(ret, MSERR_INVALID_VAL, "get numberOfChannels failed");
     return MSERR_OK;
 }
 
@@ -572,10 +581,7 @@ int32_t AudioRecorderNapi::SetUri(const std::string &uriPath)
         std::string realPath = "invalid";
         CHECK_AND_RETURN_RET(CheckValidPath(filePath, realPath) == MSERR_OK, MSERR_INVALID_VAL);
         CHECK_AND_RETURN_RET(!realPath.empty(), MSERR_INVALID_VAL);
-        fd = open(realPath.c_str(), O_CREAT | O_WRONLY, 0664); // rw-rw-r
-        CHECK_AND_RETURN_RET(fd >= 0, MSERR_INVALID_VAL);
-        int32_t ret = recorderImpl_->SetOutputFile(fd);
-        (void)close(fd);
+        int32_t ret = recorderImpl_->SetOutputPath(realPath);
         CHECK_AND_RETURN_RET(ret == MSERR_OK, MSERR_INVALID_OPERATION);
     } else if (uriPath.find(fdHead) != std::string::npos) {
         std::string inputFd = uriPath.substr(fdHead.size());

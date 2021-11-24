@@ -42,7 +42,7 @@ public:
     DISALLOW_COPY_AND_MOVE(PlayBinCtrlerBase);
 
     int32_t Init();
-    int32_t SetSource(const std::string &uri)  override;
+    int32_t SetSource(const std::string &url)  override;
     int32_t Prepare() override;
     int32_t PrepareAsync() override;
     int32_t Play() override;

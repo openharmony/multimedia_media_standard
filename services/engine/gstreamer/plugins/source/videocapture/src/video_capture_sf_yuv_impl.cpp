@@ -69,4 +69,3 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfYuvImpl::DoGetFrameBuffer()
 }
 } // namespace Media
 } // namespace OHOS
-

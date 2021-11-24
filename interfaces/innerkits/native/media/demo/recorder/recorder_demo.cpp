@@ -157,7 +157,7 @@ void RecorderDemo::HDICreateBuffer()
         (void)buffer->ExtraSet("timeStamp", pts_);
         (void)buffer->ExtraSet("isKeyFrame", isKeyFrame_);
         count_++;
-        (count_ % 30) == 0 ? (isKeyFrame_ = 1) : (isKeyFrame_ = 0);
+        (count_ % 30) == 0 ? (isKeyFrame_ = 1) : (isKeyFrame_ = 0); // keyframe every 30fps
         pts_ += FRAME_DURATION;
         (void)producerSurface_->FlushBuffer(buffer, -1, g_flushConfig);
         frameLenArray++;

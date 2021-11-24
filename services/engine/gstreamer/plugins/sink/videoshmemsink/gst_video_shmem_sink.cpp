@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-#include <cinttypes>
-#include "config.h"
 #include "gst_video_shmem_sink.h"
+#include <cinttypes>
 #include "gst/base/gstqueuearray.h"
 #include "gst/video/video-info.h"
 #include "gst_video_shmem_pool.h"
@@ -345,7 +344,7 @@ static GstCaps *gst_video_shmem_sink_getcaps(GstVideoShMemSink *vidShMemSink)
     GST_OBJECT_LOCK(vidShMemSink);
     GstCaps *caps = priv->caps;
     if (caps != nullptr) {
-        gst_caps_ref(caps);
+        (void)gst_caps_ref(caps);
         GST_INFO_OBJECT(vidShMemSink, "getting caps of %" GST_PTR_FORMAT, caps);
     }
     GST_OBJECT_UNLOCK(vidShMemSink);
@@ -578,7 +577,7 @@ static GstCaps *gst_video_shmem_sink_get_caps(GstBaseSink *sink, GstCaps *filter
         if (filter != nullptr) {
             caps = gst_caps_intersect_full(filter, caps, GST_CAPS_INTERSECT_FIRST);
         } else {
-            gst_caps_ref(caps);
+            (void)gst_caps_ref(caps);
         }
         GST_INFO_OBJECT(vidShMemSink, "got caps %" GST_PTR_FORMAT, caps);
     }
@@ -639,7 +638,9 @@ static GstBuffer *DequeueBuffer(GstVideoShMemSink *vidShMemSink)
             priv->numBuffers--;
             buffer = GST_BUFFER_CAST(obj);
             break;
-        } else if (GST_IS_EVENT(obj)) {
+        }
+
+        if (GST_IS_EVENT(obj)) {
             GstEvent *event = GST_EVENT_CAST(obj);
             switch (GST_EVENT_TYPE(obj)) {
                 case GST_EVENT_CAPS: {

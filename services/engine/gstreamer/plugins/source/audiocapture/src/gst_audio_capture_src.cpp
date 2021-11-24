@@ -234,10 +234,8 @@ static gboolean process_caps_info(GstAudioCaptureSrc *src)
     return TRUE;
 }
 
-static GstStateChangeReturn gst_audio_capture_src_change_state(GstElement *element, GstStateChange transition)
+static GstStateChangeReturn gst_state_change_forward_direction(GstAudioCaptureSrc *src, GstStateChange transition)
 {
-    g_return_val_if_fail(element != nullptr, GST_STATE_CHANGE_FAILURE);
-    GstAudioCaptureSrc *src = GST_AUDIO_CAPTURE_SRC(element);
     switch (transition) {
         case GST_STATE_CHANGE_NULL_TO_READY: {
             src->audio_capture = OHOS::Media::AudioCaptureFactory::CreateAudioCapture(src->stream_type);
@@ -255,6 +253,7 @@ static GstStateChangeReturn gst_audio_capture_src_change_state(GstElement *eleme
             g_return_val_if_fail(src->audio_capture != nullptr, GST_STATE_CHANGE_FAILURE);
             if (src->need_caps_info) {
                 g_return_val_if_fail(process_caps_info(src) == TRUE, GST_STATE_CHANGE_FAILURE);
+                src->need_caps_info = FALSE;
             }
             if (src->is_start == FALSE) {
                 g_return_val_if_fail(src->audio_capture->StartAudioCapture() == MSERR_OK, GST_STATE_CHANGE_FAILURE);
@@ -264,12 +263,21 @@ static GstStateChangeReturn gst_audio_capture_src_change_state(GstElement *eleme
             }
             break;
         }
-        default: {
+        default:
             break;
-        }
     }
+    return GST_STATE_CHANGE_SUCCESS;
+}
 
-    GstStateChangeReturn ret = GST_ELEMENT_CLASS(parent_class)->change_state(element, transition);
+static GstStateChangeReturn gst_audio_capture_src_change_state(GstElement *element, GstStateChange transition)
+{
+    g_return_val_if_fail(element != nullptr, GST_STATE_CHANGE_FAILURE);
+    GstAudioCaptureSrc *src = GST_AUDIO_CAPTURE_SRC(element);
+
+    GstStateChangeReturn ret = gst_state_change_forward_direction(src, transition);
+    g_return_val_if_fail(ret != GST_STATE_CHANGE_SUCCESS, GST_STATE_CHANGE_FAILURE);
+
+    ret = GST_ELEMENT_CLASS(parent_class)->change_state(element, transition);
 
     switch (transition) {
         case GST_STATE_CHANGE_PLAYING_TO_PAUSED:
@@ -315,6 +323,7 @@ static gboolean gst_audio_capture_src_negotiate(GstBaseSrc *basesrc)
     g_return_val_if_fail(basesrc != nullptr, false);
     GstAudioCaptureSrc *src = GST_AUDIO_CAPTURE_SRC(basesrc);
     g_return_val_if_fail(src != nullptr, FALSE);
+    g_return_val_if_fail(src->src_caps != nullptr, FALSE);
     (void)gst_base_src_wait_playing(basesrc);
     return gst_base_src_set_caps(basesrc, src->src_caps);
 }

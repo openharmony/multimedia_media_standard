@@ -54,8 +54,8 @@ private:
     std::shared_ptr<RecorderElement> muxSink_;
     bool outputFormatConfiged_ = false;
     std::unique_ptr<RecorderPipelineLinkHelper> linkHelper_;
-    size_t videoSrcCount = 0;
-    size_t otherSrcCount = 0;
+    size_t videoSrcCount_ = 0;
+    size_t otherSrcCount_ = 0;
 };
 }
 }

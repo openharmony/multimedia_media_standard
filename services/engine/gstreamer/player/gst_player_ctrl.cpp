@@ -25,6 +25,14 @@ namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "GstPlayerCtrl"};
     constexpr int MILLI = 1000;
     constexpr int MICRO = MILLI * 1000;
+    // multiqueue property
+    constexpr int PLAYBIN_QUEUE_MAX_SIZE = 100 * 1024 * 1024; // 100 * 1024 * 1024 Bytes
+    constexpr int BUFFER_TIME_DEFAULT = 15000;  // 15s
+    constexpr int HTTP_TIME_OUT_DEFAULT = 15000;  // 15s
+    constexpr int BUFFER_LOW_PERCENT_DEFAULT = 1;
+    constexpr int BUFFER_HIGH_PERCENT_DEFAULT = 4;
+    constexpr int BUFFER_FULL_PERCENT_DEFAULT = 100;
+
     using namespace OHOS::Media;
     using StreamToServiceErrFunc = void (*)(const gchar *name, int32_t &errorCode);
     static const std::unordered_map<int32_t, StreamToServiceErrFunc> STREAM_TO_SERVICE_ERR_FUNC_TABLE = {
@@ -44,7 +52,7 @@ namespace {
         { GST_RESOURCE_ERROR_NOT_FOUND, MSERR_OPEN_FILE_FAILED },
         { GST_RESOURCE_ERROR_OPEN_READ, MSERR_OPEN_FILE_FAILED },
         { GST_RESOURCE_ERROR_READ, MSERR_FILE_ACCESS_FAILED },
-        { GST_RESOURCE_ERROR_NOT_AUTHORIZED, MSERR_FILE_ACCESS_FAILED },
+        { GST_RESOURCE_ERROR_NOT_AUTHORIZED, MSERR_FILE_ACCESS_FAILED }
     };
 }
 
@@ -80,11 +88,35 @@ void GstPlayerCtrl::SetRingBufferMaxSize(uint64_t size)
     g_object_set(gstPlayer_, "ring-buffer-max-size", static_cast<guint64>(size), nullptr);
 }
 
-int32_t GstPlayerCtrl::SetUri(const std::string &uri)
+void GstPlayerCtrl::SetBufferingInfo()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
+    MEDIA_LOGD("SetBufferingInfo");
+
+    bool flags = true;
+    g_object_set(gstPlayer_, "buffering-flags", flags, nullptr);
+
+    uint64_t bufferDuration = static_cast<uint64_t>(BUFFER_TIME_DEFAULT) * static_cast<uint64_t>(MICRO);
+    g_object_set(gstPlayer_, "buffer-size", PLAYBIN_QUEUE_MAX_SIZE,
+        "buffer-duration", bufferDuration, "low-percent", BUFFER_LOW_PERCENT_DEFAULT,
+        "high-percent", BUFFER_HIGH_PERCENT_DEFAULT, nullptr);
+}
+
+void GstPlayerCtrl::SetHttpTimeOut()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
+    MEDIA_LOGD("SetHttpTimeOut");
+
+    g_object_set(gstPlayer_, "timeout", static_cast<uint32_t>(HTTP_TIME_OUT_DEFAULT / MILLI), nullptr);
+}
+
+int32_t GstPlayerCtrl::SetUrl(const std::string &url)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(gstPlayer_ != nullptr, MSERR_INVALID_VAL, "gstPlayer_ is nullptr");
-    gst_player_set_uri(gstPlayer_, uri.c_str());
+    gst_player_set_uri(gstPlayer_, url.c_str());
     currentState_ = PLAYER_PREPARING;
     return MSERR_OK;
 }
@@ -114,6 +146,10 @@ int32_t GstPlayerCtrl::SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs)
     signalIds_.push_back(g_signal_connect(gstPlayer_, "seek-done", G_CALLBACK(OnSeekDoneCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "position-updated", G_CALLBACK(OnPositionUpdatedCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "source-setup", G_CALLBACK(OnSourceSetupCb), this));
+    signalIds_.push_back(g_signal_connect(gstPlayer_, "buffering", G_CALLBACK(OnCachedPercentCb), this));
+    signalIds_.push_back(g_signal_connect(gstPlayer_, "buffering-time", G_CALLBACK(OnBufferingTimeCb), this));
+    signalIds_.push_back(g_signal_connect(gstPlayer_, "mq-num-use-buffering", G_CALLBACK(OnMqNumUseBufferingCb), this));
+    signalIds_.push_back(g_signal_connect(gstPlayer_, "resolution-changed", G_CALLBACK(OnResolutionChanegdCb), this));
 
     obs_ = obs;
     currentState_ = PLAYER_PREPARING;
@@ -152,7 +188,7 @@ void GstPlayerCtrl::PauseSync()
 {
     std::unique_lock<std::mutex> lock(mutex_);
     if (appsrcWarp_ != nullptr) {
-        appsrcWarp_->Prepare();
+        (void)appsrcWarp_->Prepare();
     }
 
     if (isExit_ ||
@@ -291,6 +327,7 @@ void GstPlayerCtrl::Stop()
     userStop_ = true;
     CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
     MEDIA_LOGD("Stop start!");
+    g_object_set(gstPlayer_, "exit-block", 1, nullptr);
     gst_player_stop(gstPlayer_);
 
     {
@@ -489,6 +526,7 @@ void GstPlayerCtrl::ProcessStateChanged(const GstPlayer *cbPlayer, GstPlayerStat
         case GST_PLAYER_STATE_BUFFERING: {
             OnMessage(PlayerMessageType::PLAYER_INFO_BUFFERING_START);
             bufferingStart_ = true;
+            percent_ = 0;
             return;
         }
         case GST_PLAYER_STATE_PAUSED: {
@@ -545,7 +583,7 @@ void GstPlayerCtrl::ProcessEndOfStream(const GstPlayer *cbPlayer)
     if (enableLooping_) {
         (void)Seek(0, SEEK_PREVIOUS_SYNC);
     } else {
-        (void)Pause();
+        Pause();
     }
 }
 
@@ -659,6 +697,27 @@ void GstPlayerCtrl::OnErrorCb(const GstPlayer *player, const GstMessage *msg, Gs
     playerGst->errorFlag_ = true;
 }
 
+void GstPlayerCtrl::OnResolutionChanegdCb(const GstPlayer *player,
+    int32_t width, int32_t height, const GstPlayerCtrl *playerGst)
+{
+    CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
+    CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
+
+    playerGst->OnResolutionChange(width, height);
+}
+
+void GstPlayerCtrl::OnResolutionChange(int32_t width, int32_t height) const
+{
+    Format format;
+    (void)format.PutIntValue(PLAYER_WIDTH, width);
+    (void)format.PutIntValue(PLAYER_HEIGHT, height);
+    std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
+    if (tempObs != nullptr) {
+        MEDIA_LOGD("OnResolutionChange width:%{public}d, height:%{public}d", width, height);
+        tempObs->OnInfo(INFO_TYPE_RESOLUTION_CHANGE, 0, format);
+    }
+}
+
 void GstPlayerCtrl::OnSeekDoneCb(const GstPlayer *player, guint64 position, GstPlayerCtrl *playerGst)
 {
     CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
@@ -695,6 +754,117 @@ void GstPlayerCtrl::OnSourceSetupCb(const GstPlayer *player, GstElement *src, co
     }
 }
 
+void GstPlayerCtrl::OnBufferingTimeCb(const GstPlayer *player, guint64 bufferingTime,
+    guint mqNumId, GstPlayerCtrl *playerGst)
+{
+    CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
+    CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
+    playerGst->ProcessBufferingTime(player, bufferingTime, mqNumId);
+}
+
+void GstPlayerCtrl::ProcessBufferingTime(const GstPlayer *cbPlayer, guint64 bufferingTime, guint mqNumId)
+{
+    if (cbPlayer != gstPlayer_) {
+        MEDIA_LOGE("gstplay cb object error: cbPlayer != gstPlayer_");
+        return;
+    }
+
+    if (currentState_ == PLAYER_PLAYBACK_COMPLETE) {
+        return;
+    }
+
+    bufferingTime = bufferingTime / MICRO;
+    if (bufferingTime > BUFFER_TIME_DEFAULT) {
+        bufferingTime = BUFFER_TIME_DEFAULT;
+    }
+
+    mqBufferingTime_[mqNumId] = bufferingTime;
+
+    MEDIA_LOGD("ProcessBufferingTime(%{public}" PRIu64 "), mqNumId = %{public}u mqNumUseBuffering_ = %{public}u",
+        bufferingTime, mqNumId, mqNumUseBuffering_);
+
+    if (mqBufferingTime_.size() == mqNumUseBuffering_) {
+        guint64 mqBufferingTime = BUFFER_TIME_DEFAULT;
+        for (auto iter = mqBufferingTime_.begin(); iter != mqBufferingTime_.end(); ++iter) {
+            MEDIA_LOGD("iter->second = (%{public}" PRIu64 ") mqBufferingTime = (%{public}" PRIu64 ")" PRIu64 "",
+                iter->second, mqBufferingTime);
+            if (iter->second < mqBufferingTime) {
+                mqBufferingTime = iter->second;
+            }
+        }
+
+        MEDIA_LOGD("mqBufferingTime(%{public}" PRIu64 ") bufferingTime_(%{public}" PRIu64 ")",
+            mqBufferingTime, bufferingTime_);
+
+        if (bufferingTime_ != mqBufferingTime) {
+            bufferingTime_ = mqBufferingTime;
+            Format format;
+            std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
+            if (tempObs != nullptr) {
+                tempObs->OnInfo(INFO_TYPE_BUFFERING_TIME_UPDATE, static_cast<int32_t>(mqBufferingTime), format);
+            }
+        }
+    }
+}
+
+void GstPlayerCtrl::OnCachedPercentCb(const GstPlayer *player, guint percent, GstPlayerCtrl *playerGst)
+{
+    CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
+    CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
+    playerGst->ProcessCachedPercent(player, percent);
+}
+
+void GstPlayerCtrl::ProcessCachedPercent(const GstPlayer *cbPlayer, int32_t percent)
+{
+    if (cbPlayer != gstPlayer_) {
+        MEDIA_LOGE("gstplay cb object error: cbPlayer != gstPlayer_");
+        return;
+    }
+
+    if (currentState_ == PLAYER_PLAYBACK_COMPLETE) {
+        return;
+    }
+
+    int32_t lastPercent = percent_;
+    if (percent >= BUFFER_HIGH_PERCENT_DEFAULT) {
+        percent_ = BUFFER_FULL_PERCENT_DEFAULT;
+    } else {
+        int per = percent * BUFFER_FULL_PERCENT_DEFAULT / BUFFER_HIGH_PERCENT_DEFAULT;
+        if (percent_ < per) {
+            percent_ = per;
+        }
+    }
+
+    if (lastPercent == percent_) {
+        return;
+    }
+
+    Format format;
+    std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
+    if (tempObs != nullptr) {
+        MEDIA_LOGD("percent = (%{public}d), percent_ = %{public}d, 0x%{public}06" PRIXPTR "",
+            percent, percent_, FAKE_POINTER(this));
+        tempObs->OnInfo(INFO_TYPE_CACHED_PERCENT_UPDATE, percent_, format);
+    }
+}
+
+void GstPlayerCtrl::OnMqNumUseBufferingCb(const GstPlayer *player, guint mqNumUseBuffering, GstPlayerCtrl *playerGst)
+{
+    CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
+    CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
+    playerGst->ProcessMqNumUseBuffering(player, mqNumUseBuffering);
+}
+
+void GstPlayerCtrl::ProcessMqNumUseBuffering(const GstPlayer *cbPlayer, uint32_t mqNumUseBuffering)
+{
+    if (cbPlayer != gstPlayer_) {
+        MEDIA_LOGE("gstplay cb object error: cbPlayer != gstPlayer_");
+        return;
+    }
+
+    MEDIA_LOGD("mqNumUseBuffering = (%{public}u)", mqNumUseBuffering);
+    mqNumUseBuffering_ = mqNumUseBuffering;
+}
 void GstPlayerCtrl::OnPositionUpdatedCb(const GstPlayer *player, guint64 position, GstPlayerCtrl *playerGst)
 {
     CHECK_AND_RETURN_LOG(player != nullptr, "player is null");

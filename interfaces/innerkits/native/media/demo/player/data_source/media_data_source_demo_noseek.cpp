@@ -91,6 +91,7 @@ int32_t MediaDataSourceDemoNoSeek::ReadAt(uint32_t length, const std::shared_ptr
     if (fixedSize_ > 0) {
         length = static_cast<uint32_t>(fixedSize_);
     }
+    CHECK_AND_RETURN_RET_LOG(mem->GetSize() > 0, SOURCE_ERROR_IO, "AVSHMEM length should large than 0");
     length = std::min(length, static_cast<uint32_t>(mem->GetSize()));
     int32_t realLen = static_cast<int32_t>(length);
     if (pos_ >= size_) {

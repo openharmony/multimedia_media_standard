@@ -77,9 +77,9 @@ void AVMetaMetaCollector::Start()
 
 void AVMetaMetaCollector::AddMetaSource(GstElement &source)
 {
-    MEDIA_LOGE("enter");
+    MEDIA_LOGD("enter");
+
     std::unique_lock<std::mutex> lock(mutex_);
-    MEDIA_LOGE("enter locked");
     if (stopCollecting_) {
         return;
     }
@@ -89,7 +89,7 @@ void AVMetaMetaCollector::AddMetaSource(GstElement &source)
     AddElemBlocker(source, srcType);
 }
 
-void AVMetaMetaCollector::Stop(bool unlock /* false */)
+void AVMetaMetaCollector::Stop(bool unlock) /* false */
 {
     MEDIA_LOGD("stop collecting...");
 
@@ -111,9 +111,6 @@ void AVMetaMetaCollector::Stop(bool unlock /* false */)
             g_signal_handler_disconnect(elem, signalId);
         }
     }
-
-    lock.unlock();
-    lock.lock();
 }
 
 std::unordered_map<int32_t, std::string> AVMetaMetaCollector::GetMetadata()
@@ -272,6 +269,7 @@ void AVMetaMetaCollector::AddElemCollector(GstElement &source, uint8_t type)
     auto metaUpdateCb = std::bind(&AVMetaMetaCollector::UpdataMeta,
                                   this, std::placeholders::_1, std::placeholders::_2);
     auto result = AVMetaElemMetaCollector::Create(static_cast<AVMetaSourceType>(type), metaUpdateCb);
+    CHECK_AND_RETURN(result != nullptr);
     result->AddMetaSource(source);
     elemCollectors_.push_back(std::move(result));
 }

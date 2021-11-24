@@ -156,7 +156,7 @@ int32_t VideoSource::GetParameter(RecorderParam &recParam)
 void VideoSource::Dump()
 {
     MEDIA_LOGI("Video [sourceId = 0x%{public}x]: width = %{public}d, height = %{public}d "
-               "frameRate = %{public}d", desc_.handle_, width_, height_, frameRate_);
+        "frameRate = %{public}d", desc_.handle_, width_, height_, frameRate_);
 }
 
 REGISTER_RECORDER_ELEMENT(VideoSource);

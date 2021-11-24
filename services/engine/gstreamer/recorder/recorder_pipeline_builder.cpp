@@ -45,13 +45,13 @@ void RecorderPipelineBuilder::EnsureSourceOrder(bool isVideo)
 {
     auto srcIter = std::next(pipelineDesc_->allElems.end(), -1);
     if (isVideo) {
-        auto insertPos = std::next(pipelineDesc_->allElems.begin(), videoSrcCount);
+        auto insertPos = std::next(pipelineDesc_->allElems.begin(), videoSrcCount_);
         (void)pipelineDesc_->allElems.insert(insertPos, *srcIter);
-        videoSrcCount += 1;
+        videoSrcCount_ += 1;
     } else {
-        auto insertPos = std::next(pipelineDesc_->allElems.begin(), videoSrcCount + otherSrcCount);
+        auto insertPos = std::next(pipelineDesc_->allElems.begin(), videoSrcCount_ + otherSrcCount_);
         (void)pipelineDesc_->allElems.insert(insertPos, *srcIter);
-        otherSrcCount += 1;
+        otherSrcCount_ += 1;
     }
     (void)pipelineDesc_->allElems.erase(srcIter);
 }
@@ -269,8 +269,8 @@ void RecorderPipelineBuilder::Reset()
     pipeline_ = nullptr;
     pipelineDesc_ = nullptr;
 
-    videoSrcCount = 0;
-    otherSrcCount = 0;
+    videoSrcCount_ = 0;
+    otherSrcCount_ = 0;
 
     outputFormatConfiged_ = false;
 }

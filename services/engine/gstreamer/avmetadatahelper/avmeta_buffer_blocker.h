@@ -16,11 +16,11 @@
 #ifndef AVMETA_BUFFER_BLOCKER_H
 #define AVMETA_BUFFER_BLOCKER_H
 
-#include <gst/gst.h>
 #include <vector>
 #include <mutex>
 #include <functional>
 #include <memory>
+#include <gst/gst.h>
 #include "nocopyable.h"
 
 namespace OHOS {

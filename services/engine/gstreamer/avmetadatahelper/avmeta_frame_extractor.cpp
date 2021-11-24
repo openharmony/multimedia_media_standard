@@ -17,6 +17,7 @@
 #include "media_errors.h"
 #include "media_log.h"
 #include "scope_guard.h"
+#include "time_perf.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVMetaFrameExtract"};

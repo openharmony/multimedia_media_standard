@@ -16,9 +16,9 @@
 #ifndef AVMETA_FRAME_CONVERTER_H
 #define AVMETA_FRAME_CONVERTER_H
 
-#include <gst/gst.h>
 #include <mutex>
 #include <condition_variable>
+#include <gst/gst.h>
 #include "i_avmetadatahelper_service.h"
 #include "avsharedmemory.h"
 #include "inner_msg_define.h"
@@ -44,15 +44,15 @@ private:
     int32_t SetupMsgProcessor();
     void UninstallPipeline();
     int32_t ChangeState(GstState targetState);
-    int32_t StartConvert(GstCaps &inCaps);
-    std::shared_ptr<AVSharedMemory> StopConvert();
-    int32_t Reset(); 
+    int32_t PrepareConvert(GstCaps &inCaps);
+    std::shared_ptr<AVSharedMemory> GetConvertResult();
+    int32_t Reset();
     void OnNotifyMessage(const InnerMessage &msg);
     static GstFlowReturn OnNotifyNewSample(GstElement *elem, AVMetaFrameConverter *thiz);
 
     OutputConfiguration outConfig_;
     GstPipeline *pipeline_ = nullptr;
-    GstElement *vidShMemSink = nullptr;
+    GstElement *vidShMemSink_ = nullptr;
     GstElement *appSrc_ = nullptr;
     std::unique_ptr<GstMsgProcessor> msgProcessor_;
     GstState currState_ = GST_STATE_NULL;

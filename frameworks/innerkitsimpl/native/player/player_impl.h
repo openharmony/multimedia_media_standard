@@ -27,7 +27,7 @@ public:
     ~PlayerImpl();
     DISALLOW_COPY_AND_MOVE(PlayerImpl);
 
-    int32_t SetSource(const std::string &uri) override;
+    int32_t SetSource(const std::string &url) override;
     int32_t SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc) override;
     int32_t Play() override;
     int32_t Prepare() override;

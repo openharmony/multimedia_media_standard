@@ -53,7 +53,7 @@ static GstMemory *gst_shmem_allocator_alloc(GstAllocator *allocator, gsize size,
     GstShMemMemory *mem = reinterpret_cast<GstShMemMemory *>(g_slice_alloc0(sizeof(GstShMemMemory)));
     g_return_val_if_fail(mem != nullptr, nullptr);
     gst_memory_init(GST_MEMORY_CAST(mem), GST_MEMORY_FLAG_NO_SHARE,
-        allocator, nullptr, allocSize, 0, 0, size);
+        allocator, nullptr, static_cast<gsize>(allocSize), 0, 0, size);
 
     mem->mem = avSharedMem;
     GST_INFO_OBJECT(allocator, "alloc memory for size: %" PRIu64 ", addr: 0x%06" PRIXPTR "",

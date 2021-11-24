@@ -36,7 +36,7 @@ static void FreePixelMapData(void *addr, void *context, uint32_t size)
 {
     (void)size;
 
-    MEDIA_LOGI("free pixel map data");
+    MEDIA_LOGD("free pixel map data");
 
     CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
     PixelMapMemHolder *holder = reinterpret_cast<PixelMapMemHolder *>(context);
@@ -76,7 +76,7 @@ static PixelMapMemHolder *CreatePixelMapData(const std::shared_ptr<AVSharedMemor
     }
 
     static const int64_t maxAllowedSize = 100 * 1024 * 1024;
-    int64_t memSize = minStride * frame.height_;
+    int64_t memSize = static_cast<int64_t>(minStride) * frame.height_;
     CHECK_AND_RETURN_RET_LOG(memSize <= maxAllowedSize, nullptr, "alloc heap size too large");
 
     uint8_t *heap = new (std::nothrow) uint8_t[memSize];
@@ -87,7 +87,7 @@ static PixelMapMemHolder *CreatePixelMapData(const std::shared_ptr<AVSharedMemor
     uint8_t *currDstPos = heap;
     uint8_t *currSrcPos = frame.GetFlattenedData();
     for (int32_t row = 0; row < frame.height_; ++row) {
-        errno_t rc = memcpy_s(currDstPos, memSize, currSrcPos, minStride);
+        errno_t rc = memcpy_s(currDstPos, static_cast<size_t>(memSize), currSrcPos, static_cast<size_t>(minStride));
         CHECK_AND_RETURN_RET_LOG(rc == EOK, nullptr, "memcpy_s failed");
 
         currDstPos += minStride;
@@ -122,7 +122,7 @@ static std::shared_ptr<PixelMap> CreatePixelMap(const std::shared_ptr<AVSharedMe
     info.colorSpace = ColorSpace::SRGB;
 
     std::shared_ptr<PixelMap> pixelMap = std::make_shared<PixelMap>();
-    int32_t ret = pixelMap->SetImageInfo(info);
+    uint32_t ret = pixelMap->SetImageInfo(info);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "Set image info failed");
     CHECK_AND_RETURN_RET_LOG(pixelMap->GetByteCount() <= frame->size_, nullptr, "Size inconsistent !");
 
@@ -192,7 +192,8 @@ std::unordered_map<int32_t, std::string> AVMetadataHelperImpl::ResolveMetadata()
     return avMetadataHelperService_->ResolveMetadata();
 }
 
-std::shared_ptr<PixelMap> AVMetadataHelperImpl::FetchFrameAtTime(int64_t timeUs, int32_t option, PixelMapParams param)
+std::shared_ptr<PixelMap> AVMetadataHelperImpl::FetchFrameAtTime(
+    int64_t timeUs, int32_t option, const PixelMapParams &param)
 {
     CHECK_AND_RETURN_RET_LOG(avMetadataHelperService_ != nullptr, nullptr,
         "avmetadatahelper service does not exist.");

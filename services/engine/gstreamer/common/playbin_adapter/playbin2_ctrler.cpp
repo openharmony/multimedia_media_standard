@@ -42,7 +42,7 @@ std::shared_ptr<IPlayBinCtrler> IPlayBinCtrler::Create(
 
 PlayBin2Ctrler::~PlayBin2Ctrler()
 {
-    MEDIA_LOGE("enter dtor");
+    MEDIA_LOGD("enter dtor");
 }
 
 int32_t PlayBin2Ctrler::OnInit()
