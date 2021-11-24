@@ -30,18 +30,18 @@ namespace Media {
 #define AUTO_PERF(obj, tag) \
     AutoPerf SPLICE(autoPerf, __LINE__)(reinterpret_cast<uintptr_t>(obj), tag)
 #define ASYNC_PERF_START(obj, tag) \
-    TimePerfMgr::Inst().StartPerfRecord(reinterpret_cast<uintptr_t>(obj), tag)
+    TimePerf::Inst().StartPerfRecord(reinterpret_cast<uintptr_t>(obj), tag)
 #define ASYNC_PERF_STOP(obj, tag) \
-    TimePerfMgr::Inst().StopPerfRecord(reinterpret_cast<uintptr_t>(obj), tag)
+    TimePerf::Inst().StopPerfRecord(reinterpret_cast<uintptr_t>(obj), tag)
 #define CLEAN_PERF_RECORD(obj) \
-    TimePerfMgr::Inst().DumpObjectRecord(reinterpret_cast<uintptr_t>(obj)); \
-    TimePerfMgr::Inst().CleanObjectRecord(reinterpret_cast<uintptr_t>(obj))
+    TimePerf::Inst().DumpObjectRecord(reinterpret_cast<uintptr_t>(obj)); \
+    TimePerf::Inst().CleanObjectRecord(reinterpret_cast<uintptr_t>(obj))
 
-class __attribute__((visibility("default"))) TimePerfMgr {
+class __attribute__((visibility("default"))) TimePerf {
 public:
-    static TimePerfMgr &Inst()
+    static TimePerf &Inst()
     {
-        static TimePerfMgr inst;
+        static TimePerf inst;
         return inst;
     }
 
@@ -53,8 +53,8 @@ public:
     void CleanAllRecord();
 
 private:
-    TimePerfMgr() = default;
-    ~TimePerfMgr() = default;
+    TimePerf() = default;
+    ~TimePerf() = default;
 
     void TimeVal2USec(const struct timeval &time, int64_t &usec);
 
@@ -75,12 +75,12 @@ private:
 struct __attribute__((visibility("default"))) AutoPerf {
     AutoPerf(uintptr_t obj, std::string_view tag) : obj_(obj), tag_(tag)
     {
-        TimePerfMgr::Inst().StartPerfRecord(obj, tag);
+        TimePerf::Inst().StartPerfRecord(obj, tag);
     }
 
     ~AutoPerf()
     {
-        TimePerfMgr::Inst().StopPerfRecord(obj_, tag_);
+        TimePerf::Inst().StopPerfRecord(obj_, tag_);
     }
 
     DISALLOW_COPY_AND_MOVE(AutoPerf);

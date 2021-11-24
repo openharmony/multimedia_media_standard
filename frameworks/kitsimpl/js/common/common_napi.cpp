@@ -43,24 +43,26 @@ std::string CommonNapi::GetStringArgument(napi_env env, napi_value value)
     return strValue;
 }
 
-void CommonNapi::GetPropertyInt32(napi_env env, napi_value configObj, const std::string &type, int32_t &result)
+bool CommonNapi::GetPropertyInt32(napi_env env, napi_value configObj, const std::string &type, int32_t &result)
 {
     napi_value item = nullptr;
     bool exist = false;
     napi_status status = napi_has_named_property(env, configObj, type.c_str(), &exist);
     if (status != napi_ok || !exist) {
-        MEDIA_LOGE("can not find named property");
-        return;
+        MEDIA_LOGE("can not find %{public}s property", type.c_str());
+        return false;
     }
 
     if (napi_get_named_property(env, configObj, type.c_str(), &item) != napi_ok) {
-        MEDIA_LOGE("get named property fail");
-        return;
+        MEDIA_LOGE("get %{public}s property fail", type.c_str());
+        return false;
     }
 
     if (napi_get_value_int32(env, item, &result) != napi_ok) {
-        MEDIA_LOGE("get property value fail");
+        MEDIA_LOGE("get %{public}s property value fail", type.c_str());
+        return false;
     }
+    return true;
 }
 
 napi_status CommonNapi::FillErrorArgs(napi_env env, int32_t errCode, const napi_value &args)

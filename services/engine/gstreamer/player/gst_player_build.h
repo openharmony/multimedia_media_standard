@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef PLAYER_PIPELINE_BUILD_H
-#define PLAYER_PIPELINE_BUILD_H
+#ifndef GST_PLAYER_BUILD_H
+#define GST_PLAYER_BUILD_H
 
 #include <memory>
 #include <string>
@@ -51,4 +51,4 @@ private:
 };
 } // Media
 } // OHOS
-#endif // PLAYER_PIPELINE_BUILD_H
+#endif // GST_PLAYER_BUILD_H

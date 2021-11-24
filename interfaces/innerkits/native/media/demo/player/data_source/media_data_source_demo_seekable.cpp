@@ -88,6 +88,7 @@ int32_t MediaDataSourceDemoSeekable::ReadAt(int64_t pos, uint32_t length, const 
         length = static_cast<uint32_t>(fixedSize_);
     }
     size_t readRet = 0;
+    CHECK_AND_RETURN_RET_LOG(mem->GetSize() > 0, SOURCE_ERROR_IO, "AVSHMEM length should large than 0");
     length = std::min(length, static_cast<uint32_t>(mem->GetSize()));
     int32_t realLen = static_cast<int32_t>(length);
     if (pos_ >= size_) {

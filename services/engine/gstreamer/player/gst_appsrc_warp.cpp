@@ -23,6 +23,7 @@ namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "GstAppsrcWarp"};
     constexpr int32_t BUFFERS_NUM = 5;
     constexpr int32_t BUFFER_SIZE = 81920;
+    constexpr int64_t INVALID_SIZE = -1;
 }
 
 namespace OHOS {
@@ -33,7 +34,7 @@ std::shared_ptr<GstAppsrcWarp> GstAppsrcWarp::Create(const std::shared_ptr<IMedi
     int64_t size = 0;
     int32_t ret = dataSrc->GetSize(size);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "media data source get size failed!");
-    CHECK_AND_RETURN_RET_LOG(size >= -1, nullptr, "size cannot less than -1");
+    CHECK_AND_RETURN_RET_LOG(size >= INVALID_SIZE, nullptr, "size cannot less than -1");
     std::shared_ptr<GstAppsrcWarp> warp = std::make_shared<GstAppsrcWarp>(dataSrc, size);
     CHECK_AND_RETURN_RET_LOG(warp->Init() == MSERR_OK, nullptr, "init failed");
     return warp;
@@ -48,7 +49,7 @@ GstAppsrcWarp::GstAppsrcWarp(const std::shared_ptr<IMediaDataSource> &dataSrc, c
       buffersNum_(BUFFERS_NUM)
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create and size %{public}" PRId64 "", FAKE_POINTER(this), size);
-    streamType_ = size == -1 ? GST_APP_STREAM_TYPE_STREAM : GST_APP_STREAM_TYPE_RANDOM_ACCESS;
+    streamType_ = size == INVALID_SIZE ? GST_APP_STREAM_TYPE_STREAM : GST_APP_STREAM_TYPE_RANDOM_ACCESS;
 }
 
 GstAppsrcWarp::~GstAppsrcWarp()
@@ -185,7 +186,7 @@ void GstAppsrcWarp::NeedDataInner(uint32_t size)
     int32_t ret = MSERR_OK;
     needDataSize_ = static_cast<int32_t>(size);
     if (!filledBuffers_.empty() && (needDataSize_ <= filledBufferSize_ || atEos_ ||
-        streamType_ == GST_APP_STREAM_TYPE_STREAM)) {
+        streamType_ == GST_APP_STREAM_TYPE_STREAM) && !isExit_) {
         ret = GetAndPushMem();
         if (ret != MSERR_OK) {
             OnError(ret);
@@ -284,7 +285,7 @@ int32_t GstAppsrcWarp::ReadAndGetMem()
             appSrcMem->pos = curPos_;
             emptyBuffers_.pop();
         }
-        if (size_ == -1) {
+        if (size_ == INVALID_SIZE) {
             size = dataSrc_->ReadAt(bufferSize_, appSrcMem->mem);
         } else {
             size = dataSrc_->ReadAt(static_cast<int64_t>(appSrcMem->pos), bufferSize_, appSrcMem->mem);
@@ -317,6 +318,7 @@ int32_t GstAppsrcWarp::ReadAndGetMem()
 
 void GstAppsrcWarp::EosAndCheckSize(int32_t size)
 {
+    MEDIA_LOGD("%{public}d", size);
     PushEos();
     switch (size) {
         case SOURCE_ERROR_IO:
@@ -350,7 +352,7 @@ int32_t GstAppsrcWarp::GetAndPushMem()
     } else {
         bufferWarp_ = std::make_shared<AppsrcBufferWarp>();
         int32_t allocSize = streamType_ == GST_APP_STREAM_TYPE_STREAM ? size : needDataSize_;
-        buffer = gst_buffer_new_allocate(nullptr, allocSize, nullptr);
+        buffer = gst_buffer_new_allocate(nullptr, static_cast<gsize>(allocSize), nullptr);
         CHECK_AND_RETURN_RET_LOG(buffer != nullptr, MSERR_NO_MEMORY, "no mem");
         GST_BUFFER_OFFSET(buffer) = appSrcMem->pos + appSrcMem->offset;
         bufferWarp_->buffer = buffer;

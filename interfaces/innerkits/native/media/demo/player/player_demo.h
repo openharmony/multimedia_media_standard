@@ -25,8 +25,8 @@
 #include "media_data_source_demo.h"
 
 namespace MediaDemo {
-    const int32_t HEIGHT = 720;
-    const int32_t WIDTH = 1280;
+    const int32_t HEIGHT = 360;
+    const int32_t WIDTH = 640;
     const int32_t POSITION_UPDATE_INTERVAL = 100;
     const std::map<OHOS::Media::PlayerStates, std::string> STATE_MAP = {
         {OHOS::Media::PlayerStates::PLAYER_STATE_ERROR, "Error"},
@@ -60,6 +60,7 @@ private:
     int32_t GetPlaybackSpeed() const;
     int32_t SetDataSrc(const std::string &path, bool seekable);
     int32_t SelectSource(const std::string &path);
+    int32_t SelectBufferingOut();
     int32_t ChangeModeToSpeed(const PlaybackRateMode &mode, double &rate) const;
     int32_t ChangeSpeedToMode(const double &rate, PlaybackRateMode &mode) const;
     void RegisterTable();
@@ -75,11 +76,14 @@ public:
     virtual ~PlayerCallbackDemo() = default;
     DISALLOW_COPY_AND_MOVE(PlayerCallbackDemo);
     void OnError(PlayerErrorType errorType, int32_t errorCode) override;
-    void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody = {}) override;
+    void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody) override;
+    void SetBufferingOut(int32_t bufferingOut);
 
 private:
     void PrintState(PlayerStates state) const;
+    void PrintResolution(const Format &infoBody) const;
     int32_t updateCount_ = 0;
+    int32_t bufferingOut_ = 0;
     PlayerStates state_ = PLAYER_STATE_ERROR;
 };
 }

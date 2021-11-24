@@ -53,10 +53,10 @@ void AudioSinkSvImpl::InitChannelRange(GstCaps *caps) const
     std::vector<AudioStandard::AudioChannel> supportedChannelsList = AudioStandard::
                                                                      AudioRenderer::GetSupportedChannels();
     GValue list = { 0, };
-    g_value_init(&list, GST_TYPE_LIST);
+    (void)g_value_init(&list, GST_TYPE_LIST);
     for (auto channel : supportedChannelsList) {
         GValue value = { 0, };
-        g_value_init(&value, G_TYPE_INT);
+        (void)g_value_init(&value, G_TYPE_INT);
         g_value_set_int(&value, channel);
         gst_value_list_append_value(&list, &value);
         g_value_unset(&value);
@@ -71,10 +71,10 @@ void AudioSinkSvImpl::InitRateRange(GstCaps *caps) const
     std::vector<AudioStandard::AudioSamplingRate> supportedSampleList = AudioStandard::
                                                                         AudioRenderer::GetSupportedSamplingRates();
     GValue list = { 0, };
-    g_value_init(&list, GST_TYPE_LIST);
+    (void)g_value_init(&list, GST_TYPE_LIST);
     for (auto rate : supportedSampleList) {
         GValue value = { 0, };
-        g_value_init(&value, G_TYPE_INT);
+        (void)g_value_init(&value, G_TYPE_INT);
         g_value_set_int(&value, rate);
         gst_value_list_append_value(&list, &value);
         g_value_unset(&value);

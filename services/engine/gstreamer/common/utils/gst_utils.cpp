@@ -63,7 +63,7 @@ DecoderPerf::~DecoderPerf()
 
 void DecoderPerf::Init()
 {
-    if (g_list_length(decoder_.srcpads) <= 0) {
+    if (g_list_length(decoder_.srcpads) == 0) {
         MEDIA_LOGE("%{public}s no srcpads, ignore", ELEM_NAME(&decoder_));
         return;
     }
@@ -89,7 +89,7 @@ GstPadProbeReturn DecoderPerf::OnOutputArrived(GstPad *pad, GstPadProbeInfo *inf
     if ((type & (GST_PAD_PROBE_TYPE_BUFFER | GST_PAD_PROBE_TYPE_BUFFER_LIST)) == 0) {
         return GST_PAD_PROBE_OK;
     }
-    
+
     ASYNC_PERF_STOP(thiz, "DecodeFrame");
     ASYNC_PERF_START(thiz, "DecodeFrame");
     return GST_PAD_PROBE_OK;

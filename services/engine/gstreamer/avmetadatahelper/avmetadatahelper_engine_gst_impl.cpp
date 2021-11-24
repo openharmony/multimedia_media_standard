@@ -101,7 +101,7 @@ int32_t AVMetadataHelperEngineGstImpl::SetSource(const std::string &uri, int32_t
 
     int32_t ret = SetSourceInternel(uri, usage);
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
-    
+
     MEDIA_LOGI("set source success");
     return MSERR_OK;
 }
@@ -136,7 +136,7 @@ std::unordered_map<int32_t, std::string> AVMetadataHelperEngineGstImpl::ResolveM
 }
 
 std::shared_ptr<AVSharedMemory> AVMetadataHelperEngineGstImpl::FetchFrameAtTime(
-    int64_t timeUs, int32_t option, OutputConfiguration param)
+    int64_t timeUs, int32_t option, const OutputConfiguration &param)
 {
     MEDIA_LOGD("enter");
 
@@ -182,7 +182,9 @@ int32_t AVMetadataHelperEngineGstImpl::SetSourceInternel(const std::string &uri,
         CHECK_AND_RETURN_RET_LOG(vidSink != nullptr, MSERR_UNKNOWN, "get video sink failed");
         frameExtractor_ = std::make_unique<AVMetaFrameExtractor>();
         ret = frameExtractor_->Init(playBinCtrler_, *vidSink);
-        CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
+        if (ret != MSERR_OK) {
+            MEDIA_LOGE("frameExtractor init failed");
+        }
         gst_object_unref(vidSink);
     }
 
@@ -227,6 +229,8 @@ int32_t AVMetadataHelperEngineGstImpl::PrepareInternel(bool async)
 int32_t AVMetadataHelperEngineGstImpl::FetchFrameInternel(int64_t timeUsOrIndex, int32_t option, int32_t numFrames,
     const OutputConfiguration &param, std::vector<std::shared_ptr<AVSharedMemory>> &outFrames)
 {
+    (void)numFrames;
+
     AUTO_PERF(this, "FetchFrame");
 
     if (!CheckFrameFetchParam(timeUsOrIndex, option, param)) {
@@ -301,7 +305,6 @@ void AVMetadataHelperEngineGstImpl::Reset()
 
     sinkProvider_ = nullptr;
     metaCollector_ = nullptr;
-    frameExtractor_ = nullptr;
     frameExtractor_ = nullptr;
 
     errHappened_ = false;

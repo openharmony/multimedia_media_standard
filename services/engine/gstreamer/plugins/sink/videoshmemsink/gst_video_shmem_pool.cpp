@@ -21,6 +21,7 @@ G_DEFINE_TYPE (GstVideoShMemPool, gst_video_shmem_pool, GST_TYPE_VIDEO_BUFFER_PO
 
 static const gchar **gst_video_shmem_pool_get_options (GstBufferPool *pool)
 {
+    (void)pool;
     static const gchar *options[] = { GST_BUFFER_POOL_OPTION_VIDEO_META, NULL };
     return options;
 }
@@ -42,14 +43,18 @@ static gboolean gst_video_shmem_pool_set_config(GstBufferPool *pool, GstStructur
 
 static void gst_video_shmem_pool_finalize(GObject *obj)
 {
+    g_return_if_fail(obj != nullptr);
+
     G_OBJECT_CLASS(parent_class)->finalize(obj);
 }
 
 static void gst_video_shmem_pool_class_init (GstVideoShMemPoolClass *klass)
 {
     g_return_if_fail(klass != nullptr);
-    GstBufferPoolClass *poolClass = GST_BUFFER_POOL_CLASS (klass);
+    GstBufferPoolClass *poolClass = GST_BUFFER_POOL_CLASS(klass);
+    g_return_if_fail(poolClass != nullptr);
     GObjectClass *gobjectClass = G_OBJECT_CLASS(klass);
+    g_return_if_fail(gobjectClass != nullptr);
 
     gobjectClass->finalize = gst_video_shmem_pool_finalize;
     poolClass->get_options = gst_video_shmem_pool_get_options;

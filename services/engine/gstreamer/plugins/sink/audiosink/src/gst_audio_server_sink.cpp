@@ -227,6 +227,7 @@ static void gst_audio_server_sink_get_property(GObject *object, guint prop_id, G
 
 static GstCaps *gst_audio_server_sink_get_caps(GstBaseSink *basesink, GstCaps *caps)
 {
+    (void)caps;
     GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(basesink);
     g_return_val_if_fail(sink != nullptr, FALSE);
     g_return_val_if_fail(sink->audio_sink != nullptr, FALSE);
@@ -411,6 +412,7 @@ static GstStateChangeReturn gst_audio_server_sink_change_state(GstElement *eleme
             if (sink->is_start == FALSE) {
                 sink->is_start = TRUE;
             } else {
+                g_return_val_if_fail(sink->audio_sink != nullptr, GST_STATE_CHANGE_FAILURE);
                 g_return_val_if_fail(sink->audio_sink->Start() == MSERR_OK, GST_STATE_CHANGE_FAILURE);
             }
             if (sink->pause_cache_buffer != nullptr) {
@@ -430,6 +432,7 @@ static GstStateChangeReturn gst_audio_server_sink_change_state(GstElement *eleme
         case GST_STATE_CHANGE_PLAYING_TO_PAUSED:
             {
                 std::unique_lock<std::mutex> lock(sink->mutex_);
+                g_return_val_if_fail(sink->audio_sink != nullptr, GST_STATE_CHANGE_FAILURE);
                 g_return_val_if_fail(sink->audio_sink->Pause() == MSERR_OK, GST_STATE_CHANGE_FAILURE);
             }
             break;
@@ -446,11 +449,11 @@ static GstStateChangeReturn gst_audio_server_sink_change_state(GstElement *eleme
 
 static GstFlowReturn gst_audio_server_sink_render(GstBaseSink *basesink, GstBuffer *buffer)
 {
-    g_return_val_if_fail(basesink != nullptr, GST_FLOW_OK);
-    g_return_val_if_fail(buffer != nullptr, GST_FLOW_OK);
+    g_return_val_if_fail(basesink != nullptr, GST_FLOW_ERROR);
+    g_return_val_if_fail(buffer != nullptr, GST_FLOW_ERROR);
     g_return_val_if_fail(gst_buffer_get_size(buffer) != 0, GST_FLOW_OK);
     GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(basesink);
-    g_return_val_if_fail(sink != nullptr, GST_FLOW_OK);
+    g_return_val_if_fail(sink != nullptr, GST_FLOW_ERROR);
     g_return_val_if_fail(sink->audio_sink != nullptr, GST_FLOW_ERROR);
 
     if (sink->enable_cache) {

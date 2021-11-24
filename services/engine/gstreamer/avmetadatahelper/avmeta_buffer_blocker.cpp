@@ -125,7 +125,7 @@ uint32_t AVMetaBufferBlocker::GetStreamCount()
 
 void AVMetaBufferBlocker::CancelBlock(int32_t index)
 {
-    MEDIA_LOGD("cancel block at %{public}s's block id : %{public}u", ELEM_NAME(&elem_), index);
+    MEDIA_LOGD("cancel block at %{public}s's block id : %{public}d", ELEM_NAME(&elem_), index);
 
     std::unique_lock<std::mutex> lock(mutex_);
     if (index == -1) {
@@ -143,12 +143,13 @@ void AVMetaBufferBlocker::CancelBlock(int32_t index)
         return;
     }
 
-    if (static_cast<size_t>(index) >= padInfos_.size()) {
+    uint32_t uIndex = static_cast<size_t>(index);
+    if (uIndex >= padInfos_.size()) {
         return;
     }
-    if (padInfos_[index].probeId != 0) {
-        gst_pad_remove_probe(padInfos_[index].pad, padInfos_[index].probeId);
-        padInfos_[index].probeId = 0;
+    if (padInfos_[uIndex].probeId != 0) {
+        gst_pad_remove_probe(padInfos_[uIndex].pad, padInfos_[uIndex].probeId);
+        padInfos_[uIndex].probeId = 0;
     }
 
     lock.unlock();

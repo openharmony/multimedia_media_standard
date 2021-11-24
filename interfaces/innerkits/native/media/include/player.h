@@ -23,6 +23,9 @@
 
 namespace OHOS {
 namespace Media {
+const std::string PLAYER_WIDTH = "width";
+const std::string PLAYER_HEIGHT = "height";
+
 enum PlayerErrorType : int32_t {
     /* Valid error, error code reference defined in media_errors.h */
     PLAYER_ERROR,
@@ -70,6 +73,12 @@ enum PlayerOnInfoType : int32_t {
     INFO_TYPE_MESSAGE,
     /* return the message when volume changed.  */
     INFO_TYPE_VOLUME_CHANGE,
+    /* return the message when video size is first known or updated. */
+    INFO_TYPE_RESOLUTION_CHANGE,
+    /* return multiqueue cached percent. */
+    INFO_TYPE_CACHED_PERCENT_UPDATE,
+    /* return multiqueue buffering time. */
+    INFO_TYPE_BUFFERING_TIME_UPDATE,
     /* return the message with extra infomation in format. */
     INFO_TYPE_EXTRA_FORMAT
 };
@@ -145,16 +154,15 @@ public:
     virtual ~Player() = default;
 
     /**
-     * @brief Sets the playback source for the player. The corresponding source can be l
-     * ocal file URI
+     * @brief Sets the playback source for the player. The corresponding source can be local file url
      *
-     * @param uri Indicates the playback source. Currently, only local file URIs are supported.
-     * @return Returns {@link MSERR_OK} if the uri is set successfully; returns an error code defined
+     * @param url Indicates the playback source.
+     * @return Returns {@link MSERR_OK} if the url is set successfully; returns an error code defined
      * in {@link media_errors.h} otherwise.
      * @since 1.0
      * @version 1.0
      */
-    virtual int32_t SetSource(const std::string &uri) = 0;
+    virtual int32_t SetSource(const std::string &url) = 0;
 
     /**
      * @brief Sets the playback media data source for the player.

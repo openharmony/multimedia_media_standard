@@ -13,33 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef AVMETA_SINKPROVIDER_H
-#define AVMETA_SINKPROVIDER_H
+#ifndef MEDIA_PARCEL_H
+#define MEDIA_PARCEL_H
 
-#include <cstdint>
-#include <memory>
-#include <gst/gst.h>
-#include "nocopyable.h"
-#include "playbin_sink_provider.h"
+#include "format.h"
+#include "message_parcel.h"
 
 namespace OHOS {
 namespace Media {
-class AVMetaSinkProvider : public PlayBinSinkProvider {
+class MediaParcel {
 public:
-    explicit AVMetaSinkProvider(int32_t usage);
-    ~AVMetaSinkProvider();
-
-    SinkPtr CreateAudioSink() override;
-    SinkPtr CreateVideoSink() override;
-
-    DISALLOW_COPY_AND_MOVE(AVMetaSinkProvider);
-
-private:
-    int32_t usage_;
-    GstElement *audSink_ = nullptr;
-    GstElement *vidSink_ = nullptr;
+    MediaParcel() = delete;
+    ~MediaParcel() = delete;
+    static bool Marshalling(MessageParcel &parcel, const Format &format);
+    static bool Unmarshalling(MessageParcel &parcel, Format &format);
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // MEDIA_PARCEL_H

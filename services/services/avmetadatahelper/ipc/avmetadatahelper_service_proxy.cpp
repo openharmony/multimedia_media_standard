@@ -115,7 +115,7 @@ std::unordered_map<int32_t, std::string> AVMetadataHelperServiceProxy::ResolveMe
 }
 
 std::shared_ptr<AVSharedMemory> AVMetadataHelperServiceProxy::FetchFrameAtTime(int64_t timeUs,
-    int32_t option, OutputConfiguration param)
+    int32_t option, const OutputConfiguration &param)
 {
     MessageParcel data;
     MessageParcel reply;

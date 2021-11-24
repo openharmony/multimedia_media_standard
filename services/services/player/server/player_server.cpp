@@ -53,10 +53,10 @@ int32_t PlayerServer::Init()
     return MSERR_OK;
 }
 
-int32_t PlayerServer::SetSource(const std::string &uri)
+int32_t PlayerServer::SetSource(const std::string &url)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    int32_t ret = InitPlayEngine(uri);
+    int32_t ret = InitPlayEngine(url);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetSource Failed!");
     return ret;
 }
@@ -66,8 +66,8 @@ int32_t PlayerServer::SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(dataSrc != nullptr, MSERR_INVALID_VAL, "data source is nullptr");
     dataSrc_ = dataSrc;
-    std::string uri = "MediaDataSource";
-    int32_t ret = InitPlayEngine(uri);
+    std::string url = "MediaDataSource";
+    int32_t ret = InitPlayEngine(url);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetObs Failed!");
     int64_t size = 0;
     (void)dataSrc_->GetSize(size);
@@ -78,15 +78,15 @@ int32_t PlayerServer::SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc
     return ret;
 }
 
-int32_t PlayerServer::InitPlayEngine(const std::string &uri)
+int32_t PlayerServer::InitPlayEngine(const std::string &url)
 {
     if (status_ != PLAYER_IDLE) {
         MEDIA_LOGE("current state is: %{public}d, not support SetSource", status_);
         return MSERR_INVALID_OPERATION;
     }
     startTimeMonitor_.StartTime();
-    MEDIA_LOGD("current uri is : %{public}s", uri.c_str());
-    auto engineFactory = EngineFactoryRepo::Instance().GetEngineFactory(IEngineFactory::Scene::SCENE_PLAYBACK, uri);
+    MEDIA_LOGD("current url is : %{public}s", url.c_str());
+    auto engineFactory = EngineFactoryRepo::Instance().GetEngineFactory(IEngineFactory::Scene::SCENE_PLAYBACK, url);
     CHECK_AND_RETURN_RET_LOG(engineFactory != nullptr, MSERR_CREATE_PLAYER_ENGINE_FAILED,
         "failed to get engine factory");
     playerEngine_ = engineFactory->CreatePlayerEngine();
@@ -94,7 +94,7 @@ int32_t PlayerServer::InitPlayEngine(const std::string &uri)
         "failed to create player engine");
     int32_t ret = MSERR_OK;
     if (dataSrc_ == nullptr) {
-        ret = playerEngine_->SetSource(uri);
+        ret = playerEngine_->SetSource(url);
     } else {
         ret = playerEngine_->SetSource(dataSrc_);
     }
@@ -298,8 +298,10 @@ int32_t PlayerServer::SetVolume(float leftVolume, float rightVolume)
 
     leftVolume_ = leftVolume;
     rightVolume_ = rightVolume;
-    if (status_ == PLAYER_IDLE || status_ == PLAYER_INITIALIZED) {
+    if (status_ == PLAYER_IDLE || status_ == PLAYER_INITIALIZED || status_ == PLAYER_STOPPED) {
         MEDIA_LOGI("Waiting for the engine state is <prepared> to take effect");
+        Format format;
+        OnInfo(INFO_TYPE_VOLUME_CHANGE, 0, format);
         return MSERR_OK;
     }
 
