@@ -71,6 +71,7 @@ public:
     static void OnBufferingTimeCb(const GstPlayer *player, guint64 bufferingTime, guint mqNumId,
         GstPlayerCtrl *playerGst);
     static void OnMqNumUseBufferingCb(const GstPlayer *player, guint mqNumUseBuffering, GstPlayerCtrl *playerGst);
+    static void OnRenderFirstVideoFrameCb(const GstPlayer *player, const GstPlayerCtrl *playerGst);
 private:
     PlayerStates ProcessStoppedState();
     PlayerStates ProcessPausedState();

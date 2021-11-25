@@ -291,7 +291,13 @@ int32_t PlayerEngineGstImpl::GetDuration(int32_t &duration)
     duration = 0;
     if (playerCtrl_ != nullptr) {
         uint64_t tempDura = playerCtrl_->GetDuration();
-        duration = static_cast<int32_t>(tempDura);
+        if (tempDura != GST_CLOCK_TIME_NONE) {
+            duration = static_cast<int32_t>(tempDura);
+        } else {
+            duration = -1;
+            MEDIA_LOGD("it's live mode");
+        }
+
         MEDIA_LOGD("Duration in milli seconds: %{public}d", duration);
     }
     return MSERR_OK;
