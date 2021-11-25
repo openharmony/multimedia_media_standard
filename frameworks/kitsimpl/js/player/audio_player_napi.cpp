@@ -700,7 +700,7 @@ napi_value AudioPlayerNapi::GetDuration(napi_env env, napi_callback_info info)
     CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t duration = -1;
     int32_t ret = player->nativePlayer_->GetDuration(duration);
-    if (ret != MSERR_OK || duration < 0) {
+    if (ret != MSERR_OK) {
         player->ErrorCallback(MSERR_EXT_UNKNOWN);
         return undefinedResult;
     }
