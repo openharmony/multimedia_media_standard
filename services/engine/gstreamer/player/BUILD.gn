@@ -31,7 +31,7 @@ config("media_engine_gst_player_config") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
-    "-DOHOS_EXT_FUNC"
+    "-DOHOS_EXT_FUNC",
   ]
 
   include_dirs = [
