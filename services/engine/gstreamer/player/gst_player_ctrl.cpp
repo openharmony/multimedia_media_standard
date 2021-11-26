@@ -788,7 +788,7 @@ void GstPlayerCtrl::ProcessBufferingTime(const GstPlayer *cbPlayer, guint64 buff
 
     if (mqBufferingTime_.size() != mqNumUseBuffering_) {
         return;
-    } 
+    }
     
     guint64 mqBufferingTime = BUFFER_TIME_DEFAULT;
     for (auto iter = mqBufferingTime_.begin(); iter != mqBufferingTime_.end(); ++iter) {
