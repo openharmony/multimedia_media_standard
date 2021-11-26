@@ -85,6 +85,7 @@ private:
     void OnSeekDone();
     void OnEndOfStream();
     void OnMessage(int32_t extra) const;
+    void OnBufferingUpdate(const std::string Message) const;
     void OnResolutionChange(int32_t width, int32_t height) const;
     void InitDuration();
     void PlaySync();
@@ -99,6 +100,7 @@ private:
     void ProcessCachedPercent(const GstPlayer *cbPlayer, int32_t percent);
     void ProcessBufferingTime(const GstPlayer *cbPlayer, guint64 bufferingTime, guint mqNumId);
     void ProcessMqNumUseBuffering(const GstPlayer *cbPlayer, uint32_t mqNumUseBuffering);
+    bool IsLiveMode() const;
     std::mutex mutex_;
     std::condition_variable condVarPlaySync_;
     std::condition_variable condVarPauseSync_;

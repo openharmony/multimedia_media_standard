@@ -55,7 +55,8 @@ void PlayerListenerProxy::OnInfo(PlayerOnInfoType type, int32_t extra, const For
     MessageOption option(MessageOption::TF_ASYNC);
     data.WriteInt32(type);
     if (type == INFO_TYPE_EXTRA_FORMAT ||
-        type == INFO_TYPE_RESOLUTION_CHANGE) {
+        type == INFO_TYPE_RESOLUTION_CHANGE ||
+        type == INFO_TYPE_BUFFERING_UPDATE) {
         MediaParcel::Marshalling(data, infoBody);
     } else {
         data.WriteInt32(extra);
