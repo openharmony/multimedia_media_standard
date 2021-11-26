@@ -1078,7 +1078,7 @@ bool GstPlayerCtrl::IsLiveMode() const
     }
 
     if (sourceDuration_ == GST_CLOCK_TIME_NONE) {
-       return true; 
+        return true;
     }
 
     return false;
