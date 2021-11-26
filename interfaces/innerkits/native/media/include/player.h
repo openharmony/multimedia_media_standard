@@ -25,6 +25,21 @@ namespace OHOS {
 namespace Media {
 const std::string PLAYER_WIDTH = "width";
 const std::string PLAYER_HEIGHT = "height";
+const std::string PLAYER_BUFFERING_START = "buffering_start";
+const std::string PLAYER_BUFFERING_END = "buffering_end";
+const std::string PLAYER_BUFFERING_PERCENT = "buffering_percent";
+const std::string PLAYER_CACHED_DURATION = "cached_duration";
+
+enum BufferingInfoType : int32_t{
+    /* begin to b buffering */
+    BUFFERING_START = 1,
+    /* end to buffering */
+    BUFFERING_END = 2,
+    /* buffering percent */
+    BUFFERING_PERCENT = 3,
+    /* cached duration in milliseconds*/
+    CACHED_DURATION = 4,
+};
 
 enum PlayerErrorType : int32_t {
     /* Valid error, error code reference defined in media_errors.h */
@@ -41,16 +56,8 @@ enum PlayerMessageType : int32_t {
     PLAYER_INFO_UNKNOWN = 0,
     /* first video frame start to render. */
     PLAYER_INFO_VIDEO_RENDERING_START,
-    /* start buffering. */
-    PLAYER_INFO_BUFFERING_START,
-    /* end buffering. */
-    PLAYER_INFO_BUFFERING_END,
     /* network bandwidth, uint is KB and passed by "extra"(arg 2). */
     PLAYER_INFO_NETWORK_BANDWIDTH,
-    /* video size changed after prepared.format key:play-vid-width;play-vid-height */
-    PLAYER_INFO_VIDEO_SIZE_CHANGED,
-    /* buffering percent update. passed by "extra"(arg 2), [0~100]. */
-    PLAYER_INFO_BUFFER_PERCENT,
     /* not fatal errors accured, errorcode see "media_errors.h" and passed by "extra"(arg 2). */
     PLAYER_INFO_WARNING,
     /* system new info type should be added here.
@@ -75,10 +82,8 @@ enum PlayerOnInfoType : int32_t {
     INFO_TYPE_VOLUME_CHANGE,
     /* return the message when video size is first known or updated. */
     INFO_TYPE_RESOLUTION_CHANGE,
-    /* return multiqueue cached percent. */
-    INFO_TYPE_CACHED_PERCENT_UPDATE,
     /* return multiqueue buffering time. */
-    INFO_TYPE_BUFFERING_TIME_UPDATE,
+    INFO_TYPE_BUFFERING_UPDATE,
     /* return the message with extra infomation in format. */
     INFO_TYPE_EXTRA_FORMAT
 };
