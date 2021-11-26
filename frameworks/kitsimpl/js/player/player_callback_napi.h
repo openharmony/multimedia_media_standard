@@ -41,8 +41,7 @@ private:
     void OnPositionUpdateCb(int32_t postion) const;
     void OnMessageCb(int32_t type) const;
     void OnVolumeChangeCb();
-    void OnCachedPercentCb(int32_t percent) const;
-    void OnBufferingTimeCb(int32_t bufferingTime) const;
+    void OnBufferingUpdateCb(const Format &infoBody) const;
     struct PlayerJsCallback {
         std::shared_ptr<AutoRef> callback = nullptr;
         std::string callbackName = "unknown";

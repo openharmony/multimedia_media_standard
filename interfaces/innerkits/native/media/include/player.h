@@ -30,14 +30,14 @@ const std::string PLAYER_BUFFERING_END = "buffering_end";
 const std::string PLAYER_BUFFERING_PERCENT = "buffering_percent";
 const std::string PLAYER_CACHED_DURATION = "cached_duration";
 
-enum BufferingInfoType : int32_t{
+enum BufferingInfoType : int32_t {
     /* begin to b buffering */
     BUFFERING_START = 1,
     /* end to buffering */
     BUFFERING_END = 2,
     /* buffering percent */
     BUFFERING_PERCENT = 3,
-    /* cached duration in milliseconds*/
+    /* cached duration in milliseconds */
     CACHED_DURATION = 4,
 };
 
