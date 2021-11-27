@@ -317,7 +317,7 @@ static GstStateChangeReturn gst_surface_video_src_change_state(GstElement *eleme
     g_return_val_if_fail(src != nullptr, GST_STATE_CHANGE_FAILURE);
 
     GstStateChangeReturn ret = gst_state_change_forward_direction(src, transition);
-    g_return_val_if_fail(ret != GST_STATE_CHANGE_SUCCESS, GST_STATE_CHANGE_FAILURE);
+    g_return_val_if_fail(ret == GST_STATE_CHANGE_SUCCESS, GST_STATE_CHANGE_FAILURE);
 
     ret = GST_ELEMENT_CLASS(parent_class)->change_state(element, transition);
 
