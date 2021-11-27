@@ -14,6 +14,7 @@
  */
 
 #include "format.h"
+#include "securec.h"
 #include "media_log.h"
 #include "media_errors.h"
 
@@ -23,6 +24,16 @@ constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "Format"};
 
 namespace OHOS {
 namespace Media {
+Format::~Format()
+{
+    for (auto it = formatMap_.begin(); it != formatMap_.end(); ++it) {
+        if (it->second.type == FORMAT_TYPE_ADDR && it->second.addr != 0) {
+            delete it->second.addr;
+            it->second.addr = nullptr;
+        }
+    }
+}
+
 bool Format::PutIntValue(const std::string &key, int32_t value)
 {
     FormatData data;
@@ -123,24 +134,35 @@ bool Format::GetDoubleValue(const std::string &key, double &value) const
     return true;
 }
 
-bool Format::PutBuffer(const std::string &key, const intptr_t addr, int32_t size)
+bool Format::PutBuffer(const std::string &key, const uint8_t *addr, size_t size)
 {
+    const size_t sizeMax = 1024;
+    if (size > sizeMax) {
+        MEDIA_LOGE("PutBuffer input size failed. Key: %{public}s", key.c_str());
+        return false;
+    }
+
     FormatData data;
     data.type = FORMAT_TYPE_ADDR;
-    data.addr = addr;
+    data.addr = reinterpret_cast<uint8_t *>(malloc(size));
+    errno_t err = memcpy_s(reinterpret_cast<void *>(data.addr), size, reinterpret_cast<const void *>(addr), size);
+    if (err != EOK) {
+        MEDIA_LOGE("PutBuffer memcpy addr failed. Key: %{public}s", key.c_str());
+        return false;
+    }
     data.size = size;
     auto ret = formatMap_.insert(std::make_pair(key, data));
     return ret.second; 
 }
 
-bool Format::GetBuffer(const std::string &key, intptr_t &addr, int32_t &size) const
+bool Format::GetBuffer(const std::string &key, uint8_t **addr, size_t &size) const
 {
     auto iter = formatMap_.find(key);
     if (iter == formatMap_.end() || iter->second.type != FORMAT_TYPE_ADDR) {
         MEDIA_LOGE("Format::GetFormat failed. Key: %{public}s", key.c_str());
         return false;
     }
-    addr = iter->second.addr;
+    *addr = iter->second.addr;
     size = iter->second.size;
     return true;
 }
