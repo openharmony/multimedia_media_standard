@@ -275,7 +275,7 @@ static GstStateChangeReturn gst_audio_capture_src_change_state(GstElement *eleme
     GstAudioCaptureSrc *src = GST_AUDIO_CAPTURE_SRC(element);
 
     GstStateChangeReturn ret = gst_state_change_forward_direction(src, transition);
-    g_return_val_if_fail(ret != GST_STATE_CHANGE_SUCCESS, GST_STATE_CHANGE_FAILURE);
+    g_return_val_if_fail(ret == GST_STATE_CHANGE_SUCCESS, GST_STATE_CHANGE_FAILURE);
 
     ret = GST_ELEMENT_CLASS(parent_class)->change_state(element, transition);
 
