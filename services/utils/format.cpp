@@ -152,7 +152,7 @@ bool Format::PutBuffer(const std::string &key, const uint8_t *addr, size_t size)
     }
     data.size = size;
     auto ret = formatMap_.insert(std::make_pair(key, data));
-    return ret.second; 
+    return ret.second;
 }
 
 bool Format::GetBuffer(const std::string &key, uint8_t **addr, size_t &size) const
