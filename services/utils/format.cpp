@@ -123,6 +123,28 @@ bool Format::GetDoubleValue(const std::string &key, double &value) const
     return true;
 }
 
+bool Format::PutBuffer(const std::string &key, const intptr_t addr, int32_t size)
+{
+    FormatData data;
+    data.type = FORMAT_TYPE_ADDR;
+    data.addr = addr;
+    data.size = size;
+    auto ret = formatMap_.insert(std::make_pair(key, data));
+    return ret.second; 
+}
+
+bool Format::GetBuffer(const std::string &key, intptr_t &addr, int32_t &size) const
+{
+    auto iter = formatMap_.find(key);
+    if (iter == formatMap_.end() || iter->second.type != FORMAT_TYPE_ADDR) {
+        MEDIA_LOGE("Format::GetFormat failed. Key: %{public}s", key.c_str());
+        return false;
+    }
+    addr = iter->second.addr;
+    size = iter->second.size;
+    return true;
+}
+
 const std::map<std::string, FormatData> &Format::GetFormatMap() const
 {
     return formatMap_;

@@ -45,6 +45,10 @@ bool MediaParcel::Marshalling(MessageParcel &parcel, const Format &format)
             case FORMAT_TYPE_STRING:
                 (void)parcel.WriteString(it->second.stringVal);
                 break;
+            case FORMAT_TYPE_ADDR:
+                (void)parcel.WriteInt32(it->second.size);
+                (void)parcel.WriteBuffer(reinterpret_cast<const void *>(it->second.addr), static_cast<size_t>(it->second.size));
+                break;
             default:
                 MEDIA_LOGE("fail to Marshalling Key: %{public}s", it->first.c_str());
                 return false;
@@ -76,6 +80,16 @@ bool MediaParcel::Unmarshalling(MessageParcel &parcel, Format &format)
             case FORMAT_TYPE_STRING:
                 (void)format.PutStringValue(key, parcel.ReadString());
                 break;
+            case FORMAT_TYPE_ADDR: {
+                auto addrSize = parcel.ReadInt32();
+                auto addr = parcel.ReadBuffer(static_cast<size_t>(addrSize));
+                if (addr == nullptr) {
+                    MEDIA_LOGE("fail to ReadBuffer Key: %{public}s", key.c_str());
+                    return false;
+                }
+                (void)format.PutBuffer(key, reinterpret_cast<const intptr_t>(addr), addrSize);
+                break;
+            }
             default:
                 MEDIA_LOGE("fail to Unmarshalling Key: %{public}s", key.c_str());
                 return false;
