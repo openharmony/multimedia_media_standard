@@ -25,10 +25,10 @@ namespace Media {
 bool MediaParcel::Marshalling(MessageParcel &parcel, const Format &format)
 {
     auto dataMap = format.GetFormatMap();
-    parcel.WriteUint32(dataMap.size());
+    (void)parcel.WriteUint32(dataMap.size());
     for (auto it = dataMap.begin(); it != dataMap.end(); ++it) {
-        parcel.WriteString(it->first);
-        parcel.WriteUint32(it->second.type);
+        (void)parcel.WriteString(it->first);
+        (void)parcel.WriteUint32(it->second.type);
         switch (it->second.type) {
             case FORMAT_TYPE_INT32:
                 (void)parcel.WriteInt32(it->second.val.int32Val);
@@ -46,8 +46,8 @@ bool MediaParcel::Marshalling(MessageParcel &parcel, const Format &format)
                 (void)parcel.WriteString(it->second.stringVal);
                 break;
             case FORMAT_TYPE_ADDR:
-                (void)parcel.WriteInt32(it->second.size);
-                (void)parcel.WriteBuffer(reinterpret_cast<const void *>(it->second.addr), static_cast<size_t>(it->second.size));
+                (void)parcel.WriteInt32(static_cast<int32_t>(it->second.size));
+                (void)parcel.WriteBuffer(reinterpret_cast<const void *>(it->second.addr), it->second.size);
                 break;
             default:
                 MEDIA_LOGE("fail to Marshalling Key: %{public}s", it->first.c_str());
@@ -87,7 +87,7 @@ bool MediaParcel::Unmarshalling(MessageParcel &parcel, Format &format)
                     MEDIA_LOGE("fail to ReadBuffer Key: %{public}s", key.c_str());
                     return false;
                 }
-                (void)format.PutBuffer(key, reinterpret_cast<const intptr_t>(addr), addrSize);
+                (void)format.PutBuffer(key, addr, static_cast<size_t>(addrSize));
                 break;
             }
             default:

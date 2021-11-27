@@ -47,14 +47,14 @@ struct FormatData {
         double doubleVal;
     } val = {0};
     std::string stringVal = "";
-    intptr_t addr = 0;
-    int32_t size = 0;
+    uint8_t *addr = nullptr;
+    size_t size = 0;
 };
 
 class __attribute__((visibility("default"))) Format {
 public:
     Format() = default;
-    ~Format() = default;
+    ~Format();
     /**
      * @brief Sets metadata of the integer type.
      *
@@ -114,13 +114,13 @@ public:
      * @brief Sets metadata of the string type.
      *
      * @param key Indicates the metadata key.
-     * @param addr Indicates the metadata addr, which is a intptr_t.
-     * @param size Indicates the metadata addr size, which is a int32_t.
+     * @param addr Indicates the metadata addr, which is a uint8_t *.
+     * @param size Indicates the metadata addr size, which is a size_t.
      * @return Returns <b>true</b> if the metadata is successfully set; returns <b>false</b> otherwise.
      * @since 1.0
      * @version 1.0
      */
-    bool PutBuffer(const std::string &key, const intptr_t addr, int32_t size);
+    bool PutBuffer(const std::string &key, const uint8_t *addr, size_t size);
 
     /**
      * @brief Obtains the metadata value of the integer type.
@@ -183,13 +183,13 @@ public:
      * @brief Obtains the metadata value of the string type.
      *
      * @param key Indicates the metadata key.
-     * @param addr Indicates the metadata addr to obtain, which is a intptr_t.
-     * @param size Indicates the metadata addr size to obtain, which is a int32_t.
+     * @param addr Indicates the metadata addr to obtain, which is a uint8_t **.
+     * @param size Indicates the metadata addr size to obtain, which is a size_t.
      * @return Returns <b>true</b> if the string is successfully obtained; returns <b>false</b> otherwise.
      * @since 1.0
      * @version 1.0
      */
-    bool GetBuffer(const std::string &key, intptr_t &addr, int32_t &size) const;
+    bool GetBuffer(const std::string &key, uint8_t **addr, size_t &size) const;
 
     /**
      * @brief Obtains the metadata map.
