@@ -27,8 +27,8 @@ namespace Media {
 Format::~Format()
 {
     for (auto it = formatMap_.begin(); it != formatMap_.end(); ++it) {
-        if (it->second.type == FORMAT_TYPE_ADDR && it->second.addr != 0) {
-            delete it->second.addr;
+        if (it->second.type == FORMAT_TYPE_ADDR && it->second.addr != nullptr) {
+            free(it->second.addr);
             it->second.addr = nullptr;
         }
     }
