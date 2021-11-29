@@ -284,7 +284,7 @@ int32_t GstPlayerVideoRendererCtrl::PullVideoBuffer()
 {
     CHECK_AND_RETURN_RET_LOG(videoSink_ != nullptr, MSERR_INVALID_OPERATION, "videoSink_ is nullptr..");
 
-    if (firstRenderFrame_){
+    if (firstRenderFrame_) {
         std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
         if (tempObs != nullptr) {
             Format format;

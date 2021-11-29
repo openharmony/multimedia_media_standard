@@ -550,9 +550,6 @@ void GstPlayerCtrl::ProcessStateChanged(const GstPlayer *cbPlayer, GstPlayerStat
 
     MEDIA_LOGD("currentState_ = %{public}d, newState = %{public}d", currentState_, newState);
     if (newState != PLAYER_IDLE && currentState_ != newState) {
-        if (newState == PLAYER_STARTED) {
-            OnMessage(PlayerMessageType::PLAYER_INFO_VIDEO_RENDERING_START);
-        }
         OnStateChanged(newState);
     }
 

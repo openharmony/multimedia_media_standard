@@ -114,7 +114,7 @@ void PlayerCallbackDemo::PrintBufferingUpdate(const Format &infoBody) const
     int32_t value = 0;
     if (infoBody.GetIntValue(PLAYER_BUFFERING_START, value)) {
         cout << "PlayerCallback: OnMessage is buffering start" << endl;
-    } else if (infoBody.GetIntValue(PLAYER_BUFFERING_START, value)) {
+    } else if (infoBody.GetIntValue(PLAYER_BUFFERING_END, value)) {
         cout << "PlayerCallback: OnMessage is buffering end" << endl;
     } else if (infoBody.GetIntValue(PLAYER_BUFFERING_PERCENT, value)) {
         if ((bufferingOut_ & PERCENT) == PERCENT) {
