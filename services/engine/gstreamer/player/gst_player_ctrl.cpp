@@ -151,8 +151,6 @@ int32_t GstPlayerCtrl::SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs)
     signalIds_.push_back(g_signal_connect(gstPlayer_, "buffering-time", G_CALLBACK(OnBufferingTimeCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "mq-num-use-buffering", G_CALLBACK(OnMqNumUseBufferingCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "resolution-changed", G_CALLBACK(OnResolutionChanegdCb), this));
-    signalIds_.push_back(g_signal_connect(gstPlayer_, "render-first-video-frame",
-        G_CALLBACK(OnRenderFirstVideoFrameCb), this));
 
     obs_ = obs;
     currentState_ = PLAYER_PREPARING;
@@ -866,14 +864,6 @@ void GstPlayerCtrl::ProcessMqNumUseBuffering(const GstPlayer *cbPlayer, uint32_t
 
     MEDIA_LOGD("mqNumUseBuffering = (%{public}u)", mqNumUseBuffering);
     mqNumUseBuffering_ = mqNumUseBuffering;
-}
-
-void GstPlayerCtrl::OnRenderFirstVideoFrameCb(const GstPlayer *player, const GstPlayerCtrl *playerGst)
-{
-    CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
-    CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
-
-    MEDIA_LOGI("gstplay render first video frame");
 }
 
 void GstPlayerCtrl::OnPositionUpdatedCb(const GstPlayer *player, guint64 position, GstPlayerCtrl *playerGst)

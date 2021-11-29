@@ -65,6 +65,7 @@ private:
     std::mutex mutexSync_;
     std::unique_ptr<GstPlayerBuild> playerBuild_ = nullptr;
     std::shared_ptr<GstPlayerCtrl> playerCtrl_ = nullptr;
+    std::shared_ptr<GstPlayerVideoRendererCtrl> rendererCtrl_ = nullptr;
     std::weak_ptr<IPlayerEngineObs> obs_;
     sptr<Surface> producerSurface_ = nullptr;
     std::string url_ = "";
