@@ -33,7 +33,9 @@ enum FormatDataType : uint32_t {
     /* Double */
     FORMAT_TYPE_DOUBLE,
     /* String */
-    FORMAT_TYPE_STRING
+    FORMAT_TYPE_STRING,
+    /* Addr */
+    FORMAT_TYPE_ADDR,
 };
 
 struct FormatData {
@@ -45,12 +47,14 @@ struct FormatData {
         double doubleVal;
     } val = {0};
     std::string stringVal = "";
+    uint8_t *addr = nullptr;
+    size_t size = 0;
 };
 
 class __attribute__((visibility("default"))) Format {
 public:
     Format() = default;
-    ~Format() = default;
+    ~Format();
     /**
      * @brief Sets metadata of the integer type.
      *
@@ -105,6 +109,18 @@ public:
      * @version 1.0
      */
     bool PutStringValue(const std::string &key, const std::string &value);
+
+    /**
+     * @brief Sets metadata of the string type.
+     *
+     * @param key Indicates the metadata key.
+     * @param addr Indicates the metadata addr, which is a uint8_t *.
+     * @param size Indicates the metadata addr size, which is a size_t.
+     * @return Returns <b>true</b> if the metadata is successfully set; returns <b>false</b> otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    bool PutBuffer(const std::string &key, const uint8_t *addr, size_t size);
 
     /**
      * @brief Obtains the metadata value of the integer type.
@@ -162,6 +178,18 @@ public:
      * @version 1.0
      */
     bool GetStringValue(const std::string &key, std::string &value) const;
+
+    /**
+     * @brief Obtains the metadata value of the string type.
+     *
+     * @param key Indicates the metadata key.
+     * @param addr Indicates the metadata addr to obtain, which is a uint8_t **.
+     * @param size Indicates the metadata addr size to obtain, which is a size_t.
+     * @return Returns <b>true</b> if the string is successfully obtained; returns <b>false</b> otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    bool GetBuffer(const std::string &key, uint8_t **addr, size_t &size) const;
 
     /**
      * @brief Obtains the metadata map.
