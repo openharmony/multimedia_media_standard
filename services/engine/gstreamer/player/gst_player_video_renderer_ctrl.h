@@ -36,6 +36,7 @@ public:
     int32_t PullVideoBuffer();
     sptr<SurfaceBuffer> RequestBuffer(const GstVideoMeta *videoMeta) const;
     int32_t UpdateSurfaceBuffer(const GstBuffer &buffer);
+    int32_t SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs);
 
 private:
     BufferRequestConfig UpdateRequestConfig(const GstVideoMeta *videoMeta) const;
@@ -48,8 +49,10 @@ private:
     GstCaps *videoCaps_ = nullptr;
     GstCaps *audioCaps_ = nullptr;
     bool surfaceTimeEnable_ = false;
+    bool firstRenderFrame_ = true;
     TimeMonitor surfaceTimeMonitor_;
     gulong signalId_ = 0;
+    std::weak_ptr<IPlayerEngineObs> obs_;
 };
 
 class GstPlayerVideoRendererFactory {
