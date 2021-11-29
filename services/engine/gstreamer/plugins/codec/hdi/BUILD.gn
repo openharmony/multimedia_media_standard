@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 SDK_LIB_DIR = rebase_path("//device/hisilicon/hispark_taurus/sdk_linux/soc/lib",
                           root_build_dir)
 CODEC_LIB_DIR = rebase_path(
-        "//device/hisilicon/hardware/media/hal/codec/hi3516dv300/llvm/ext/libs",
+        "//device/hisilicon/hardware/media/hal/codec/hi3516dv300/llvm/linux_standard/libs",
         root_build_dir)
 CAMERA_LIB_PLATFORM_DIR =
     rebase_path("//device/hisilicon/hardware/media/hal/camera/hi3516dv300/libs",
