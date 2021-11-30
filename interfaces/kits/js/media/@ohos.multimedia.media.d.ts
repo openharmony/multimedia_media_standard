@@ -133,7 +133,7 @@ declare namespace media {
     readonly currentTime: number;
 
     /**
-     * Playback duration.
+     * Playback duration. When the data source does not support seek, it returns - 1, such as a live broadcast scenario.
      * @devices phone, tablet, tv, wearable
      * @since 6
      * @SysCap SystemCapability.Multimedia.Media
