@@ -41,19 +41,18 @@ private:
     void OnPositionUpdateCb(int32_t postion) const;
     void OnMessageCb(int32_t type) const;
     void OnVolumeChangeCb();
-    void OnCachedPercentCb(int32_t percent) const;
-    void OnBufferingTimeCb(int32_t bufferingTime) const;
+    void OnBufferingUpdateCb(const Format &infoBody) const;
     struct PlayerJsCallback {
         std::shared_ptr<AutoRef> callback = nullptr;
         std::string callbackName = "unknown";
         std::string errorMsg = "unknown";
         MediaServiceExtErrCode errorCode = MSERR_EXT_UNKNOWN;
-        int32_t callValue = -1;
+        std::vector<int32_t> valueVec;
     };
     void OnJsCallBack(PlayerJsCallback *jsCb) const;
     void OnJsCallBackError(PlayerJsCallback *jsCb) const;
     void OnJsCallBackInt(PlayerJsCallback *jsCb) const;
-
+    void OnJsCallBackBufferingUpdate(PlayerJsCallback *jsCb) const;
     std::mutex mutex_;
     napi_env env_ = nullptr;
     PlayerStates currentState_ = PLAYER_IDLE;
@@ -66,8 +65,7 @@ private:
     std::shared_ptr<AutoRef> finishCallback_ = nullptr; // endofstream
     std::shared_ptr<AutoRef> timeUpdateCallback_ = nullptr; // seekdone
     std::shared_ptr<AutoRef> volumeChangeCallback_ = nullptr; // volumedone
-    std::shared_ptr<AutoRef> cachedPercentCallback_ = nullptr; // cached percent
-    std::shared_ptr<AutoRef> bufferingTimeCallback_ = nullptr; // buffering time
+    std::shared_ptr<AutoRef> bufferingUpdateCallback_ = nullptr; // buffering update
 };
 }  // namespace Media
 }  // namespace OHOS

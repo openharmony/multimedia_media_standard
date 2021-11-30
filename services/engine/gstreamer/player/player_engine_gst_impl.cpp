@@ -168,7 +168,10 @@ void PlayerEngineGstImpl::PlayerLoop()
     playerBuild_ = std::make_unique<GstPlayerBuild>();
     CHECK_AND_RETURN_LOG(playerBuild_ != nullptr, "playerBuild_ is nullptr");
 
-    playerCtrl_ = playerBuild_->Build(producerSurface_);
+    rendererCtrl_ = playerBuild_->BuildRendererCtrl(producerSurface_);
+    CHECK_AND_RETURN_LOG(rendererCtrl_ != nullptr, "rendererCtrl_ is nullptr");
+
+    playerCtrl_ = playerBuild_->BuildPlayerCtrl();
     CHECK_AND_RETURN_LOG(playerCtrl_ != nullptr, "playerCtrl_ is nullptr");
 
     condVarSync_.notify_all();
@@ -223,6 +226,7 @@ void PlayerEngineGstImpl::GstPlayerDeInit()
         playerThread_->join();
     }
 
+    rendererCtrl_ = nullptr;
     playerCtrl_ = nullptr;
     playerBuild_ = nullptr;
     gstPlayerInit_ = false;
@@ -242,6 +246,9 @@ int32_t PlayerEngineGstImpl::GstPlayerPrepare() const
         ret = playerCtrl_->SetSource(appsrcWarp_);
     }
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetUrl failed");
+
+    ret = rendererCtrl_->SetCallbacks(obs_);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetCallbacks failed");
 
     ret = playerCtrl_->SetCallbacks(obs_);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetCallbacks failed");

@@ -274,9 +274,24 @@ int32_t GstPlayerVideoRendererCtrl::InitAudioSink(const GstElement *playbin)
     return MSERR_OK;
 }
 
+int32_t GstPlayerVideoRendererCtrl::SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs)
+{
+    obs_ = obs;
+    return MSERR_OK;
+}
+
 int32_t GstPlayerVideoRendererCtrl::PullVideoBuffer()
 {
     CHECK_AND_RETURN_RET_LOG(videoSink_ != nullptr, MSERR_INVALID_OPERATION, "videoSink_ is nullptr..");
+
+    if (firstRenderFrame_) {
+        std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
+        if (tempObs != nullptr) {
+            Format format;
+            tempObs->OnInfo(INFO_TYPE_MESSAGE, PlayerMessageType::PLAYER_INFO_VIDEO_RENDERING_START, format);
+            firstRenderFrame_ = false;
+        }
+    }
 
     GstSample *sample = nullptr;
     g_signal_emit_by_name(G_OBJECT(videoSink_), "pull-sample", &sample);

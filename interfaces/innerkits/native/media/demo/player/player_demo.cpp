@@ -58,15 +58,8 @@ void PlayerCallbackDemo::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
         case INFO_TYPE_EOS:
             cout << "PlayerCallback: OnEndOfStream isLooping is " << extra << endl;
             break;
-        case INFO_TYPE_CACHED_PERCENT_UPDATE:
-            if ((bufferingOut_ & PERCENT) == PERCENT) {
-                cout << "OnCachedPercent update is " << extra << "%" << endl;
-            }
-            break;
-        case INFO_TYPE_BUFFERING_TIME_UPDATE:
-            if ((bufferingOut_ & TIME) == TIME) {
-                cout << "OnBufferingTime update is " << extra << "ms" << endl;
-            }
+        case INFO_TYPE_BUFFERING_UPDATE:
+            PrintBufferingUpdate(infoBody);
             break;
         case INFO_TYPE_STATE_CHANGE:
             state_ = static_cast<PlayerStates>(extra);
@@ -114,6 +107,24 @@ void PlayerCallbackDemo::PrintResolution(const Format &infoBody) const
     (void)infoBody.GetIntValue(PLAYER_WIDTH, width);
     (void)infoBody.GetIntValue(PLAYER_HEIGHT, height);
     cout << "PlayerCallback: OnResolution changed width " << width << " height " << height << endl;
+}
+
+void PlayerCallbackDemo::PrintBufferingUpdate(const Format &infoBody) const
+{
+    int32_t value = 0;
+    if (infoBody.GetIntValue(PLAYER_BUFFERING_START, value)) {
+        cout << "PlayerCallback: OnMessage is buffering start" << endl;
+    } else if (infoBody.GetIntValue(PLAYER_BUFFERING_END, value)) {
+        cout << "PlayerCallback: OnMessage is buffering end" << endl;
+    } else if (infoBody.GetIntValue(PLAYER_BUFFERING_PERCENT, value)) {
+        if ((bufferingOut_ & PERCENT) == PERCENT) {
+            cout << "OnBufferingPercent update is " << value << "%" << endl;
+        }
+    } else if (infoBody.GetIntValue(PLAYER_CACHED_DURATION, value)) {
+        if ((bufferingOut_ & TIME) == TIME) {
+            cout << "OnCachedDuration update is " << value << "ms" << endl;
+        }
+    }
 }
 
 sptr<Surface> PlayerDemo::GetVideoSurface()
