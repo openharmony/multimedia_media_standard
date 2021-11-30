@@ -151,8 +151,6 @@ int32_t GstPlayerCtrl::SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs)
     signalIds_.push_back(g_signal_connect(gstPlayer_, "buffering-time", G_CALLBACK(OnBufferingTimeCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "mq-num-use-buffering", G_CALLBACK(OnMqNumUseBufferingCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "resolution-changed", G_CALLBACK(OnResolutionChanegdCb), this));
-    signalIds_.push_back(g_signal_connect(gstPlayer_, "render-first-video-frame",
-        G_CALLBACK(OnRenderFirstVideoFrameCb), this));
 
     obs_ = obs;
     currentState_ = PLAYER_PREPARING;
@@ -224,7 +222,7 @@ void GstPlayerCtrl::PlaySync()
     if (currentState_ == PLAYER_STARTED || isExit_) {
         return;
     }
-    if (appsrcWarp_ != nullptr && appsrcWarp_->IsLiveMode() && currentState_ == PLAYER_PLAYBACK_COMPLETE) {
+    if (IsLiveMode() && currentState_ == PLAYER_PLAYBACK_COMPLETE) {
         std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
         if (tempObs != nullptr) {
             tempObs->OnError(PLAYER_ERROR_UNKNOWN, MSERR_INVALID_STATE);
@@ -266,7 +264,7 @@ int32_t GstPlayerCtrl::ChangeSeekModeToGstFlag(const PlayerSeekMode mode) const
 int32_t GstPlayerCtrl::Seek(uint64_t position, const PlayerSeekMode mode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (appsrcWarp_ != nullptr && appsrcWarp_->IsLiveMode()) {
+    if (IsLiveMode()) {
         return MSERR_INVALID_OPERATION;
     }
 
@@ -367,7 +365,7 @@ void GstPlayerCtrl::Stop()
 int32_t GstPlayerCtrl::SetLoop(bool loop)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (appsrcWarp_ != nullptr && appsrcWarp_->IsLiveMode()) {
+    if (IsLiveMode()) {
         return MSERR_INVALID_OPERATION;
     }
     enableLooping_ = loop;
@@ -400,7 +398,7 @@ uint64_t GstPlayerCtrl::GetPositionInner()
     }
 
     if (currentState_ == PLAYER_PLAYBACK_COMPLETE) {
-        if (appsrcWarp_ != nullptr && appsrcWarp_->IsLiveMode()) {
+        if (IsLiveMode()) {
             return lastTime_;
         }
         return sourceDuration_;
@@ -422,8 +420,8 @@ uint64_t GstPlayerCtrl::GetDuration()
 {
     std::unique_lock<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(gstPlayer_ != nullptr, 0, "gstPlayer_ is nullptr");
-    if (appsrcWarp_ != nullptr && appsrcWarp_->IsLiveMode()) {
-        return 0;
+    if (IsLiveMode()) {
+        return GST_CLOCK_TIME_NONE;
     }
     if (currentState_ == PLAYER_STOPPED) {
         return sourceDuration_;
@@ -436,7 +434,7 @@ uint64_t GstPlayerCtrl::GetDuration()
 int32_t GstPlayerCtrl::SetRate(double rate)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (appsrcWarp_ != nullptr && appsrcWarp_->IsLiveMode()) {
+    if (IsLiveMode()) {
         return MSERR_INVALID_OPERATION;
     }
     auto task = std::make_shared<TaskHandler<void>>([this, rate] { SetRateSync(rate); });
@@ -527,7 +525,7 @@ void GstPlayerCtrl::ProcessStateChanged(const GstPlayer *cbPlayer, GstPlayerStat
             break;
         }
         case GST_PLAYER_STATE_BUFFERING: {
-            OnMessage(PlayerMessageType::PLAYER_INFO_BUFFERING_START);
+            OnBufferingUpdate(PLAYER_BUFFERING_START);
             bufferingStart_ = true;
             percent_ = 0;
             return;
@@ -546,15 +544,12 @@ void GstPlayerCtrl::ProcessStateChanged(const GstPlayer *cbPlayer, GstPlayerStat
     }
 
     if (bufferingStart_) {
-        OnMessage(PlayerMessageType::PLAYER_INFO_BUFFERING_END);
+        OnBufferingUpdate(PLAYER_BUFFERING_END);
         bufferingStart_ = false;
     }
 
     MEDIA_LOGD("currentState_ = %{public}d, newState = %{public}d", currentState_, newState);
     if (newState != PLAYER_IDLE && currentState_ != newState) {
-        if (newState == PLAYER_STARTED) {
-            OnMessage(PlayerMessageType::PLAYER_INFO_VIDEO_RENDERING_START);
-        }
         OnStateChanged(newState);
     }
 
@@ -579,7 +574,7 @@ void GstPlayerCtrl::ProcessEndOfStream(const GstPlayer *cbPlayer)
     }
     MEDIA_LOGD("End of stream");
     endOfStreamCb_ = true;
-    if (appsrcWarp_ != nullptr && appsrcWarp_->IsLiveMode()) {
+    if (IsLiveMode()) {
         return;
     }
 
@@ -786,26 +781,24 @@ void GstPlayerCtrl::ProcessBufferingTime(const GstPlayer *cbPlayer, guint64 buff
     MEDIA_LOGD("ProcessBufferingTime(%{public}" PRIu64 "), mqNumId = %{public}u mqNumUseBuffering_ = %{public}u",
         bufferingTime, mqNumId, mqNumUseBuffering_);
 
-    if (mqBufferingTime_.size() == mqNumUseBuffering_) {
-        guint64 mqBufferingTime = BUFFER_TIME_DEFAULT;
-        for (auto iter = mqBufferingTime_.begin(); iter != mqBufferingTime_.end(); ++iter) {
-            MEDIA_LOGD("iter->second = (%{public}" PRIu64 ") mqBufferingTime = (%{public}" PRIu64 ")" PRIu64 "",
-                iter->second, mqBufferingTime);
-            if (iter->second < mqBufferingTime) {
-                mqBufferingTime = iter->second;
-            }
+    if (mqBufferingTime_.size() != mqNumUseBuffering_) {
+        return;
+    }
+    
+    guint64 mqBufferingTime = BUFFER_TIME_DEFAULT;
+    for (auto iter = mqBufferingTime_.begin(); iter != mqBufferingTime_.end(); ++iter) {
+        if (iter->second < mqBufferingTime) {
+            mqBufferingTime = iter->second;
         }
+    }
 
-        MEDIA_LOGD("mqBufferingTime(%{public}" PRIu64 ") bufferingTime_(%{public}" PRIu64 ")",
-            mqBufferingTime, bufferingTime_);
-
-        if (bufferingTime_ != mqBufferingTime) {
-            bufferingTime_ = mqBufferingTime;
+    if (bufferingTime_ != mqBufferingTime) {
+        bufferingTime_ = mqBufferingTime;
+        std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
+        if (tempObs != nullptr) {
             Format format;
-            std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
-            if (tempObs != nullptr) {
-                tempObs->OnInfo(INFO_TYPE_BUFFERING_TIME_UPDATE, static_cast<int32_t>(mqBufferingTime), format);
-            }
+            (void)format.PutIntValue(PLAYER_CACHED_DURATION, static_cast<int32_t>(mqBufferingTime));
+            tempObs->OnInfo(INFO_TYPE_BUFFERING_UPDATE, 0, format);
         }
     }
 }
@@ -842,12 +835,13 @@ void GstPlayerCtrl::ProcessCachedPercent(const GstPlayer *cbPlayer, int32_t perc
         return;
     }
 
-    Format format;
     std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
     if (tempObs != nullptr) {
+        Format format;
+        (void)format.PutIntValue(PLAYER_BUFFERING_PERCENT, percent_);
         MEDIA_LOGD("percent = (%{public}d), percent_ = %{public}d, 0x%{public}06" PRIXPTR "",
             percent, percent_, FAKE_POINTER(this));
-        tempObs->OnInfo(INFO_TYPE_CACHED_PERCENT_UPDATE, percent_, format);
+        tempObs->OnInfo(INFO_TYPE_BUFFERING_UPDATE, 0, format);
     }
 }
 
@@ -867,14 +861,6 @@ void GstPlayerCtrl::ProcessMqNumUseBuffering(const GstPlayer *cbPlayer, uint32_t
 
     MEDIA_LOGD("mqNumUseBuffering = (%{public}u)", mqNumUseBuffering);
     mqNumUseBuffering_ = mqNumUseBuffering;
-}
-
-void GstPlayerCtrl::OnRenderFirstVideoFrameCb(const GstPlayer *player, const GstPlayerCtrl *playerGst)
-{
-    CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
-    CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
-
-    MEDIA_LOGI("gstplay render first video frame");
 }
 
 void GstPlayerCtrl::OnPositionUpdatedCb(const GstPlayer *player, guint64 position, GstPlayerCtrl *playerGst)
@@ -1004,12 +990,23 @@ void GstPlayerCtrl::OnMessage(int32_t extra) const
     }
 }
 
+void GstPlayerCtrl::OnBufferingUpdate(const std::string Message) const
+{
+    MEDIA_LOGI("On Message callback info: %{public}s", Message.c_str());
+    std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
+    if (tempObs != nullptr) {
+        Format format;
+        (void)format.PutIntValue(Message, 0);
+        tempObs->OnInfo(INFO_TYPE_BUFFERING_UPDATE, 0, format);
+    }
+}
+
 PlayerStates GstPlayerCtrl::ProcessStoppedState()
 {
     PlayerStates newState = PLAYER_STOPPED;
     if (userStop_ || errorFlag_) {
         userStop_ = false;
-    } else if (appsrcWarp_ != nullptr && appsrcWarp_->IsLiveMode()) {
+    } else if (IsLiveMode()) {
         if (currentState_ == PLAYER_STARTED) {
             newState = PLAYER_PLAYBACK_COMPLETE;
         }
@@ -1059,6 +1056,19 @@ void GstPlayerCtrl::InitDuration()
     }
 
     MEDIA_LOGD("InitDuration duration(%{public}" PRIu64 ")", sourceDuration_);
+}
+
+bool GstPlayerCtrl::IsLiveMode() const
+{
+    if (appsrcWarp_ != nullptr && appsrcWarp_->IsLiveMode()) {
+        return true;
+    }
+
+    if (sourceDuration_ == GST_CLOCK_TIME_NONE) {
+        return true;
+    }
+
+    return false;
 }
 } // Media
 } // OHOS

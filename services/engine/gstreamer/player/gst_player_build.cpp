@@ -69,7 +69,7 @@ GstPlayerBuild::~GstPlayerBuild()
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-std::shared_ptr<GstPlayerCtrl> GstPlayerBuild::Build(sptr<Surface> surface)
+std::shared_ptr<GstPlayerVideoRendererCtrl> GstPlayerBuild::BuildRendererCtrl(sptr<Surface> surface)
 {
     if (surface == nullptr) {
         MEDIA_LOGI("This is an audio scene.");
@@ -85,6 +85,16 @@ std::shared_ptr<GstPlayerCtrl> GstPlayerBuild::Build(sptr<Surface> surface)
     rendererCtrl_ = std::make_shared<GstPlayerVideoRendererCtrl>(surface);
     if (rendererCtrl_ == nullptr) {
         Release();
+        MEDIA_LOGE("rendererCtrl_ is nullptr");
+        return nullptr;
+    }
+
+    return rendererCtrl_;
+}
+
+std::shared_ptr<GstPlayerCtrl> GstPlayerBuild::BuildPlayerCtrl()
+{
+    if (rendererCtrl_ == nullptr) {
         MEDIA_LOGE("rendererCtrl_ is nullptr");
         return nullptr;
     }
