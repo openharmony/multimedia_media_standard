@@ -174,7 +174,7 @@ void PlayerCallbackNapi::OnBufferingUpdateCb(const Format &infoBody) const
     int32_t bufferingType = -1;
     if (infoBody.GetIntValue(PLAYER_BUFFERING_START, value)) {
         bufferingType = BUFFERING_START;
-    } else if (infoBody.GetIntValue(PLAYER_BUFFERING_START, value)) {
+    } else if (infoBody.GetIntValue(PLAYER_BUFFERING_END, value)) {
         bufferingType = BUFFERING_END;
     } else if (infoBody.GetIntValue(PLAYER_BUFFERING_PERCENT, value)) {
         bufferingType = BUFFERING_PERCENT;
