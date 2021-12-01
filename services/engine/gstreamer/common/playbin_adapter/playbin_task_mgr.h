@@ -62,7 +62,7 @@ private:
         std::shared_ptr<ITaskHandler> task;
     };
 
-    TaskQueue taskThread_;
+    std::unique_ptr<TaskQueue> taskThread_;
     std::shared_ptr<ITaskHandler> currTwoPhaseTask_;
     PlayBinTaskType currTwoPhaseType_ = PlayBinTaskType::PREEMPT;
     std::list<TwoPhaseTaskItem> pendingTwoPhaseTasks_;
