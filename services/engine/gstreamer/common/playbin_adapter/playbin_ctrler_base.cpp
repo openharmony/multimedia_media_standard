@@ -223,13 +223,13 @@ int32_t PlayBinCtrlerBase::Seek(int64_t timeUs, int32_t seekOption)
 
 int32_t PlayBinCtrlerBase::StopInternel()
 {
-    taskMgr_.ClearAllTask();
-
     auto state = GetCurrState();
     if (state == idleState_ || state == stoppedState_ || state == initializedState_) {
         MEDIA_LOGI("curr state is %{public}s, skip", state->GetStateName().c_str());
         return MSERR_OK;
     }
+
+    taskMgr_.ClearAllTask();
 
     auto stopTask = std::make_shared<TaskHandler<void>>([this]() {
         auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
