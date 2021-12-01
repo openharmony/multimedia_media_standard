@@ -106,7 +106,8 @@ sptr<IRemoteObject> MediaServerManager::CreateRecorderStubObject()
 
 sptr<IRemoteObject> MediaServerManager::CreateAVMetadataHelperStubObject()
 {
-    if (avMetadataHelperStubMap_.size() >= SERVER_MAX_NUMBER) {
+    constexpr uint32_t metadataHelperNumMax = 32;
+    if (avMetadataHelperStubMap_.size() >= metadataHelperNumMax) {
         MEDIA_LOGE("The number of avmetadatahelper services(%{public}zu) has reached the upper limit."
             "Please release the applied resources.", avMetadataHelperStubMap_.size());
         return nullptr;
@@ -132,7 +133,7 @@ void MediaServerManager::DestroyStubObject(StubType type, sptr<IRemoteObject> ob
     switch (type) {
         case RECORDER: {
             for (auto it = recorderStubMap_.begin(); it != recorderStubMap_.end(); it++) {
-                if (it->first ==  object) {
+                if (it->first == object) {
                     MEDIA_LOGD("destory recorder stub services(%{public}zu) pid(%{public}d).",
                         recorderStubMap_.size(), pid);
                     (void)recorderStubMap_.erase(it);
@@ -144,7 +145,7 @@ void MediaServerManager::DestroyStubObject(StubType type, sptr<IRemoteObject> ob
         }
         case PLAYER: {
             for (auto it = playerStubMap_.begin(); it != playerStubMap_.end(); it++) {
-                if (it->first ==  object) {
+                if (it->first == object) {
                     MEDIA_LOGD("destory player stub services(%{public}zu) pid(%{public}d).",
                         playerStubMap_.size(), pid);
                     (void)playerStubMap_.erase(it);
@@ -156,7 +157,7 @@ void MediaServerManager::DestroyStubObject(StubType type, sptr<IRemoteObject> ob
         }
         case AVMETADATAHELPER: {
             for (auto it = avMetadataHelperStubMap_.begin(); it != avMetadataHelperStubMap_.end(); it++) {
-                if (it->first ==  object) {
+                if (it->first == object) {
                     MEDIA_LOGD("destory avmetadatahelper stub services(%{public}zu) pid(%{public}d).",
                         avMetadataHelperStubMap_.size(), pid);
                     (void)avMetadataHelperStubMap_.erase(it);
@@ -178,7 +179,7 @@ void MediaServerManager::DestroyStubObjectForPid(pid_t pid)
     std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGD("recorder stub services(%{public}zu) pid(%{public}d).", recorderStubMap_.size(), pid);
     for (auto itRecorder = recorderStubMap_.begin(); itRecorder != recorderStubMap_.end();) {
-        if (itRecorder->second ==  pid) {
+        if (itRecorder->second == pid) {
             itRecorder = recorderStubMap_.erase(itRecorder);
         } else {
             itRecorder++;
@@ -188,7 +189,7 @@ void MediaServerManager::DestroyStubObjectForPid(pid_t pid)
 
     MEDIA_LOGD("player stub services(%{public}zu) pid(%{public}d).", playerStubMap_.size(), pid);
     for (auto itPlayer = playerStubMap_.begin(); itPlayer != playerStubMap_.end();) {
-        if (itPlayer->second ==  pid) {
+        if (itPlayer->second == pid) {
             itPlayer = playerStubMap_.erase(itPlayer);
         } else {
             itPlayer++;
@@ -198,7 +199,7 @@ void MediaServerManager::DestroyStubObjectForPid(pid_t pid)
 
     MEDIA_LOGD("avmetadatahelper stub services(%{public}zu) pid(%{public}d).", avMetadataHelperStubMap_.size(), pid);
     for (auto itAvMetadata = avMetadataHelperStubMap_.begin(); itAvMetadata != avMetadataHelperStubMap_.end();) {
-        if (itAvMetadata->second ==  pid) {
+        if (itAvMetadata->second == pid) {
             itAvMetadata = avMetadataHelperStubMap_.erase(itAvMetadata);
         } else {
             itAvMetadata++;
