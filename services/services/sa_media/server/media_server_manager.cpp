@@ -106,7 +106,8 @@ sptr<IRemoteObject> MediaServerManager::CreateRecorderStubObject()
 
 sptr<IRemoteObject> MediaServerManager::CreateAVMetadataHelperStubObject()
 {
-    if (avMetadataHelperStubMap_.size() >= SERVER_MAX_NUMBER) {
+    constexpr uint32_t metadataHelperNumMax = 32;
+    if (avMetadataHelperStubMap_.size() >= metadataHelperNumMax) {
         MEDIA_LOGE("The number of avmetadatahelper services(%{public}zu) has reached the upper limit."
             "Please release the applied resources.", avMetadataHelperStubMap_.size());
         return nullptr;
