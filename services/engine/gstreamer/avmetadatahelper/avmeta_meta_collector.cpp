@@ -360,7 +360,7 @@ void AVMetaMetaCollector::UpdateElemBlocker(GstElement &source, uint8_t elemType
                ELEM_NAME(&source), elemType);
 
     do {
-        if (currSetupedElemType_ == GstElemType::UNKNOWN) {
+        if (currSetupedElemType_ != GstElemType::DEMUXER) {
             break;
         }
         auto typeBlockersIter = blockers_.find(currSetupedElemType_);
