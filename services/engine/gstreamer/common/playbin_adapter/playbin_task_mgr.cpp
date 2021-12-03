@@ -160,13 +160,15 @@ int32_t PlayBinTaskMgr::Reset()
     pendingTwoPhaseTasks_.clear();
     isInited_ = false;
 
-    std::unique_ptr<TaskQueue> tmp;
-    std::swap(tmp, taskThread_);
+    if (taskThread_ != nullptr) {
+        std::unique_ptr<TaskQueue> tmp;
+        std::swap(tmp, taskThread_);
 
-    lock.unlock();
-    int32_t ret = tmp->Stop();
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "stop task thread failed");
-    lock.lock();
+        lock.unlock();
+        int32_t ret = tmp->Stop();
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "stop task thread failed");
+        lock.lock();
+    }
 
     MEDIA_LOGD("exit");
     return MSERR_OK;
