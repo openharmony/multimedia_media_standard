@@ -281,10 +281,6 @@ void AVMetaMetaCollector::AddElemBlocker(GstElement &source, uint8_t type)
      * them will send one frame buffer to downstream. If there is decoder at the downstream,
      * the decode will happened, which is unneccesary and wastefully for metadata resolving.
      * We can block the demuxer or parser's sinkpads to prevent the decode process happened.
-     * However, as long as the conditions for preventing the buffer from reaching the decoder
-     * are met, the blocked plug-in should be more downstream in the entire pipeline as far
-     * as possible, so that the upstream plugin of the decoder is not affected by the block
-     * operation as much as possible.
      *
      * One kind of possible sequence of element setuped to the pipeline is :
      * Demuxer1 --> Demuxer2 ---> Parser1 --> Decoder1
@@ -312,6 +308,21 @@ void AVMetaMetaCollector::AddElemBlocker(GstElement &source, uint8_t type)
     } while (0)
 
     if (type == GstElemType::TYPEFIND || type == GstElemType::UNKNOWN) {
+        return;
+    }
+
+    /**
+     * We only move the blocker to downstream if the lastest blocker comes from the demuxer, for
+     * avoiding delete the blocker incorrectly, because we can not figure out the direct upstream
+     * element if the lastest blocker does not come from the demuxer. The playbin's auto-pluggging
+     * mechanism always guarantees the fact that when the demuxer's new pad added, the first downstream
+     * element for this new pad will be found and connected immediately. Then, based on this fact, we
+     * can properly move the lastest blocker to the current setuped element when the lastest blocker
+     * comes from the demuxer.
+     *
+     * Considering this element setuped order: demuxer, audio parser, video decoder, audio decoder.
+     */
+    if (currSetupedElemType_ != GstElemType::UNKNOWN && currSetupedElemType_ != GstElemType::DEMUXER) {
         return;
     }
 
@@ -360,7 +371,8 @@ void AVMetaMetaCollector::UpdateElemBlocker(GstElement &source, uint8_t elemType
                ELEM_NAME(&source), elemType);
 
     do {
-        if (currSetupedElemType_ != GstElemType::DEMUXER) {
+        /* We don't need to cancel the lastest blocker if the current setuped element is the first one. */
+        if (currSetupedElemType_ == GstElemType::UNKNOWN) {
             break;
         }
         auto typeBlockersIter = blockers_.find(currSetupedElemType_);

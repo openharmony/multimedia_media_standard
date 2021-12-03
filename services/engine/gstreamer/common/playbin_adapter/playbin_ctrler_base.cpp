@@ -285,10 +285,6 @@ void PlayBinCtrlerBase::Reset() noexcept
 void PlayBinCtrlerBase::SetElemSetupListener(ElemSetupListener listener)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (listener == nullptr) {
-        MEDIA_LOGE("nullptr listener");
-        return;
-    }
     elemSetupListener_ = listener;
 }
 
