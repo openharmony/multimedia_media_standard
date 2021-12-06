@@ -23,7 +23,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-PlayBinTaskMgr::PlayBinTaskMgr() : taskThread_("playbin_task_mgr")
+PlayBinTaskMgr::PlayBinTaskMgr()
 {
     MEDIA_LOGD("enter ctor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
 }
@@ -41,14 +41,15 @@ int32_t PlayBinTaskMgr::Init()
         return MSERR_OK;
     }
 
-    int32_t ret = taskThread_.Start();
+    taskThread_ = std::make_unique<TaskQueue>("playbin_task_mgr");
+    int32_t ret = taskThread_->Start();
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "task thread start failed");
 
     auto dummyTask = std::make_shared<TaskHandler<void>>([this]() {
         taskThreadId_ = std::this_thread::get_id();
     });
 
-    ret = taskThread_.EnqueueTask(dummyTask);
+    ret = taskThread_->EnqueueTask(dummyTask);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "try get thread id failed");
 
     auto result = dummyTask->GetResult();
@@ -70,13 +71,13 @@ int32_t PlayBinTaskMgr::LaunchTask(const std::shared_ptr<ITaskHandler> &task, Pl
     CHECK_AND_RETURN_RET_LOG(isInited_, MSERR_INVALID_OPERATION, "not init");
 
     if (type == PlayBinTaskType::PREEMPT) {
-        int32_t ret = taskThread_.EnqueueTask(task);
+        int32_t ret = taskThread_->EnqueueTask(task);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "launch preempt task failed");
         return MSERR_OK;
     }
 
     if (currTwoPhaseTask_ == nullptr) {
-        int32_t ret = taskThread_.EnqueueTask(task);
+        int32_t ret = taskThread_->EnqueueTask(task);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "launch two phase task failed");
         currTwoPhaseTask_ = task;
         currTwoPhaseType_ = type;
@@ -118,7 +119,7 @@ int32_t PlayBinTaskMgr::MarkSecondPhase()
     currTwoPhaseTask_ = item.task;
     currTwoPhaseType_ = item.type;
 
-    int32_t ret = taskThread_.EnqueueTask(currTwoPhaseTask_);
+    int32_t ret = taskThread_->EnqueueTask(currTwoPhaseTask_);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret,
         "execute the stack top task failed, type: %{public}hhu", item.type);
 
@@ -136,6 +137,7 @@ void PlayBinTaskMgr::ClearAllTask()
 {
     MEDIA_LOGD("enter");
     std::unique_lock<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_LOG(isInited_, "not init");
 
     currTwoPhaseTask_ = nullptr;
     currTwoPhaseType_ = PlayBinTaskType::PREEMPT;
@@ -144,7 +146,7 @@ void PlayBinTaskMgr::ClearAllTask()
     auto dummyTask = std::make_shared<TaskHandler<void>>([]() {
         MEDIA_LOGI("execute dummy task...");
     });
-    (void)taskThread_.EnqueueTask(dummyTask, true, 0);
+    (void)taskThread_->EnqueueTask(dummyTask, true, 0);
     MEDIA_LOGD("exit");
 }
 
@@ -153,13 +155,20 @@ int32_t PlayBinTaskMgr::Reset()
     MEDIA_LOGD("enter");
     std::unique_lock<std::mutex> lock(mutex_);
 
-    int32_t ret = taskThread_.Stop();
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "stop task thread failed");
-
     currTwoPhaseTask_ = nullptr;
     currTwoPhaseType_ = PlayBinTaskType::PREEMPT;
     pendingTwoPhaseTasks_.clear();
     isInited_ = false;
+
+    if (taskThread_ != nullptr) {
+        std::unique_ptr<TaskQueue> tmp;
+        std::swap(tmp, taskThread_);
+
+        lock.unlock();
+        int32_t ret = tmp->Stop();
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "stop task thread failed");
+        lock.lock();
+    }
 
     MEDIA_LOGD("exit");
     return MSERR_OK;
