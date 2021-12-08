@@ -323,8 +323,8 @@ static gboolean gst_audio_capture_src_negotiate(GstBaseSrc *basesrc)
     g_return_val_if_fail(basesrc != nullptr, false);
     GstAudioCaptureSrc *src = GST_AUDIO_CAPTURE_SRC(basesrc);
     g_return_val_if_fail(src != nullptr, FALSE);
-    g_return_val_if_fail(src->src_caps != nullptr, FALSE);
     (void)gst_base_src_wait_playing(basesrc);
+    g_return_val_if_fail(src->src_caps != nullptr, FALSE);
     return gst_base_src_set_caps(basesrc, src->src_caps);
 }
 
