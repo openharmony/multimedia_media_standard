@@ -169,6 +169,46 @@ public:
     virtual int32_t GetCurrentTime(int32_t &currentTime) = 0;
 
     /**
+     * @brief Obtains the video track info, contains mimeType, bitRate, width, height, frameRata.
+     *
+     * @param video track info vec.
+     * @return Returns {@link MSERR_OK} if the track info is get; returns an error code defined
+     * in {@link media_errors.h} otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    virtual int32_t GetVideoTrackInfo(std::vector<Format> &videoTrack) = 0;
+
+    /**
+     * @brief Obtains the audio track info, contains mimeType, bitRate, sampleRate, channels, language.
+     *
+     * @param audio track info vec.
+     * @return Returns {@link MSERR_OK} if the track info is get; returns an error code defined
+     * in {@link media_errors.h} otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    virtual int32_t GetAudioTrackInfo(std::vector<Format> &audioTrack) = 0;
+
+    /**
+     * @brief get the video width.
+     *
+     * @return Returns width if success; else returns 0
+     * @since 1.0
+     * @version 1.0
+     */
+    virtual int32_t GetVideoWidth() = 0;
+
+    /**
+     * @brief get the video height.
+     *
+     * @return Returns height if success; else returns 0
+     * @since 1.0
+     * @version 1.0
+     */
+    virtual int32_t GetVideoHeight() = 0;
+
+    /**
      * @brief Obtains the total duration of media files, accurate to milliseconds.
      *
      * @param duration Indicates the total duration of media files.

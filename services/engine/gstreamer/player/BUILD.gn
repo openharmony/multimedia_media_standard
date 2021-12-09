@@ -63,6 +63,7 @@ ohos_static_library("media_engine_gst_player") {
     "gst_appsrc_warp.cpp",
     "gst_player_build.cpp",
     "gst_player_ctrl.cpp",
+    "gst_player_track_parse.cpp",
     "gst_player_video_renderer_ctrl.cpp",
     "player_engine_gst_impl.cpp",
   ]

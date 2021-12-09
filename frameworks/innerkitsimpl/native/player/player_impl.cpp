@@ -160,6 +160,34 @@ int32_t PlayerImpl::GetCurrentTime(int32_t &currentTime)
     return playerService_->GetCurrentTime(currentTime);
 }
 
+int32_t PlayerImpl::GetVideoTrackInfo(std::vector<Format> &videoTrack)
+{
+    CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
+
+    return playerService_->GetVideoTrackInfo(videoTrack);
+}
+
+int32_t PlayerImpl::GetAudioTrackInfo(std::vector<Format> &audioTrack)
+{
+    CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
+
+    return playerService_->GetAudioTrackInfo(audioTrack);
+}
+
+int32_t PlayerImpl::GetVideoWidth()
+{
+    CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
+
+    return playerService_->GetVideoWidth();
+}
+
+int32_t PlayerImpl::GetVideoHeight()
+{
+    CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
+
+    return playerService_->GetVideoHeight();
+}
+
 int32_t PlayerImpl::SetPlaybackSpeed(PlaybackRateMode mode)
 {
     CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");

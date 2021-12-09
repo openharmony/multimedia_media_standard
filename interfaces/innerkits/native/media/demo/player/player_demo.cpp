@@ -104,23 +104,23 @@ void PlayerCallbackDemo::PrintResolution(const Format &infoBody) const
 {
     int32_t width = 0;
     int32_t height = 0;
-    (void)infoBody.GetIntValue(PLAYER_WIDTH, width);
-    (void)infoBody.GetIntValue(PLAYER_HEIGHT, height);
+    (void)infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_WIDTH), width);
+    (void)infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_HEIGHT), height);
     cout << "PlayerCallback: OnResolution changed width " << width << " height " << height << endl;
 }
 
 void PlayerCallbackDemo::PrintBufferingUpdate(const Format &infoBody) const
 {
     int32_t value = 0;
-    if (infoBody.GetIntValue(PLAYER_BUFFERING_START, value)) {
+    if (infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_START), value)) {
         cout << "PlayerCallback: OnMessage is buffering start" << endl;
-    } else if (infoBody.GetIntValue(PLAYER_BUFFERING_END, value)) {
+    } else if (infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_END), value)) {
         cout << "PlayerCallback: OnMessage is buffering end" << endl;
-    } else if (infoBody.GetIntValue(PLAYER_BUFFERING_PERCENT, value)) {
+    } else if (infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_PERCENT), value)) {
         if ((bufferingOut_ & PERCENT) == PERCENT) {
             cout << "OnBufferingPercent update is " << value << "%" << endl;
         }
-    } else if (infoBody.GetIntValue(PLAYER_CACHED_DURATION, value)) {
+    } else if (infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_CACHED_DURATION), value)) {
         if ((bufferingOut_ & TIME) == TIME) {
             cout << "OnCachedDuration update is " << value << "ms" << endl;
         }
@@ -241,6 +241,50 @@ int32_t PlayerDemo::ChangeSpeedToMode(const double &rate, PlaybackRateMode &mode
     return  0;
 }
 
+int32_t PlayerDemo::GetTrackInfo()
+{
+    std::vector<Format> videoTrack;
+    int32_t ret = player_->GetVideoTrackInfo(videoTrack);
+    if (ret == 0) {
+        cout << "Video Track cnt: " << videoTrack.size() << endl;
+        std::string mime = "";
+        int32_t bitrate = -1;
+        int32_t width = -1;
+        int32_t height = -1;
+        int32_t framerate = -1;
+        for (auto iter = videoTrack.begin(); iter != videoTrack.end(); iter++) {
+            iter->GetStringValue(std::string(PlayerKeys::PLAYER_MIME), mime);
+            iter->GetIntValue(std::string(PlayerKeys::PLAYER_BITRATE), bitrate);
+            iter->GetIntValue(std::string(PlayerKeys::PLAYER_WIDTH), width);
+            iter->GetIntValue(std::string(PlayerKeys::PLAYER_HEIGHT), height);
+            iter->GetIntValue(std::string(PlayerKeys::PLAYER_FRAMERATE), framerate);
+            cout << "mime: " << mime.c_str() << ", bitrate: " << bitrate <<
+                ", width: " << width << ", height: " << height << ", framerate: " << framerate << endl;
+        }
+    }
+
+    std::vector<Format> audioTrack;
+    ret = player_->GetAudioTrackInfo(audioTrack);
+    if (ret == 0) {
+        cout << "Audio Track cnt: " << audioTrack.size() << endl;
+        std::string mime = "";
+        int32_t bitrate = -1;
+        int32_t sampleRate = -1;
+        int32_t channels = -1;
+        std::string language = "";
+        for (auto iter = audioTrack.begin(); iter != audioTrack.end(); iter++) {
+            iter->GetStringValue(std::string(PlayerKeys::PLAYER_MIME), mime);
+            iter->GetIntValue(std::string(PlayerKeys::PLAYER_BITRATE), bitrate);
+            iter->GetIntValue(std::string(PlayerKeys::PLAYER_SAMPLE_RATE), sampleRate);
+            iter->GetIntValue(std::string(PlayerKeys::PLAYER_CHANNELS), channels);
+            iter->GetStringValue(std::string(PlayerKeys::PLAYER_LANGUGAE), language);
+            cout << "mime: " << mime.c_str() << ", bitrate: " << bitrate << ", samplerate: " << sampleRate <<
+                ", channels: " << channels << ", language: " << language.c_str() << endl;
+        }
+    }
+    return 0;
+}
+
 int32_t PlayerDemo::GetPlaybackSpeed() const
 {
     PlaybackRateMode mode;
@@ -300,9 +344,15 @@ int32_t PlayerDemo::GetLooping()
     return 0;
 }
 
+void PlayerDemo::GetCurrentTime()
+{
+    int32_t time = -1;
+    (void)player_->GetCurrentTime(time);
+    cout << "GetCurrentTime:" << time << endl;
+}
+
 void PlayerDemo::DoNext()
 {
-    cout << "Enter your step:" << endl;
     std::string cmd;
     while (std::getline(std::cin, cmd)) {
         auto iter = playerTable_.find(cmd);
@@ -333,9 +383,7 @@ void PlayerDemo::DoNext()
             cout << "GetDuration:" << duration << endl;
             continue;
         } else if (cmd.find("time") != std::string::npos) {
-            int32_t time = -1;
-            (void)player_->GetCurrentTime(time);
-            cout << "GetCurrentTime:" << time << endl;
+            GetCurrentTime();
             continue;
         } else if (cmd.find("loop ") != std::string::npos) {
             SetLoop(cmd.substr(cmd.find("loop ") + std::string("loop ").length()));
@@ -343,8 +391,13 @@ void PlayerDemo::DoNext()
         } else if (cmd.find("speed ") != std::string::npos) {
             SetPlaybackSpeed(cmd.substr(cmd.find("speed ") + std::string("speed ").length()));
             continue;
-        } else if (cmd.find("quit") != std::string::npos ||
-            cmd == "q") {
+        } else if (cmd.find("trackinfo") != std::string::npos) {
+            GetTrackInfo();
+            continue;
+        } else if (cmd.find("videosize") != std::string::npos) {
+            cout << "video width: " << player_->GetVideoWidth() << ", height: " << player_->GetVideoHeight();
+            continue;
+        } else if (cmd.find("quit") != std::string::npos || cmd == "q") {
             break;
         }
     }
@@ -471,5 +524,6 @@ void PlayerDemo::RunCase(const string &path)
         cout << "PrepareAsync fail" << endl;
         return;
     }
+    cout << "Enter your step:" << endl;
     DoNext();
 }

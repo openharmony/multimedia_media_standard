@@ -44,6 +44,10 @@ public:
     int32_t SetVolume(float leftVolume, float rightVolume) override;
     int32_t Seek(int32_t mSeconds, PlayerSeekMode mode) override;
     int32_t GetCurrentTime(int32_t &currentTime) override;
+    int32_t GetVideoTrackInfo(std::vector<Format> &videoTrack) override;
+    int32_t GetAudioTrackInfo(std::vector<Format> &audioTrack) override;
+    int32_t GetVideoWidth() override;
+    int32_t GetVideoHeight() override;
     int32_t GetDuration(int32_t &duration) override;
     int32_t SetPlaybackSpeed(PlaybackRateMode mode) override;
     int32_t GetPlaybackSpeed(PlaybackRateMode &mode) override;
@@ -70,6 +74,10 @@ private:
     int32_t SetVolume(MessageParcel &data, MessageParcel &reply);
     int32_t Seek(MessageParcel &data, MessageParcel &reply);
     int32_t GetCurrentTime(MessageParcel &data, MessageParcel &reply);
+    int32_t GetVideoTrackInfo(MessageParcel &data, MessageParcel &reply);
+    int32_t GetAudioTrackInfo(MessageParcel &data, MessageParcel &reply);
+    int32_t GetVideoWidth(MessageParcel &data, MessageParcel &reply);
+    int32_t GetVideoHeight(MessageParcel &data, MessageParcel &reply);
     int32_t GetDuration(MessageParcel &data, MessageParcel &reply);
     int32_t SetPlaybackSpeed(MessageParcel &data, MessageParcel &reply);
     int32_t GetPlaybackSpeed(MessageParcel &data, MessageParcel &reply);

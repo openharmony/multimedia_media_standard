@@ -19,6 +19,7 @@
 #include "media_server_manager.h"
 #include "media_log.h"
 #include "media_errors.h"
+#include "media_parcel.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayerServiceStub"};
@@ -73,6 +74,10 @@ int32_t PlayerServiceStub::Init()
     playerFuncs_[SET_LOOPING] = &PlayerServiceStub::SetLooping;
     playerFuncs_[DESTROY] = &PlayerServiceStub::DestroyStub;
     playerFuncs_[SET_CALLBACK] = &PlayerServiceStub::SetPlayerCallback;
+    playerFuncs_[GET_VIDEO_TRACK_INFO] = &PlayerServiceStub::GetVideoTrackInfo;
+    playerFuncs_[GET_AUDIO_TRACK_INFO] = &PlayerServiceStub::GetAudioTrackInfo;
+    playerFuncs_[GET_VIDEO_WIDTH] = &PlayerServiceStub::GetVideoWidth;
+    playerFuncs_[GET_VIDEO_HEIGHT] = &PlayerServiceStub::GetVideoHeight;
     return MSERR_OK;
 }
 
@@ -198,6 +203,30 @@ int32_t PlayerServiceStub::GetCurrentTime(int32_t &currentTime)
 {
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->GetCurrentTime(currentTime);
+}
+
+int32_t PlayerServiceStub::GetVideoTrackInfo(std::vector<Format> &videoTrack)
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->GetVideoTrackInfo(videoTrack);
+}
+
+int32_t PlayerServiceStub::GetAudioTrackInfo(std::vector<Format> &audioTrack)
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->GetAudioTrackInfo(audioTrack);
+}
+
+int32_t PlayerServiceStub::GetVideoWidth()
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->GetVideoWidth();
+}
+
+int32_t PlayerServiceStub::GetVideoHeight()
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->GetVideoHeight();
 }
 
 int32_t PlayerServiceStub::GetDuration(int32_t &duration)
@@ -341,6 +370,52 @@ int32_t PlayerServiceStub::GetCurrentTime(MessageParcel &data, MessageParcel &re
     int32_t ret = GetCurrentTime(currentTime);
     reply.WriteInt32(currentTime);
     reply.WriteInt32(ret);
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::GetVideoTrackInfo(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data;
+    std::vector<Format> videoTrack;
+    int32_t ret = GetVideoTrackInfo(videoTrack);
+    reply.WriteInt32(static_cast<int32_t>(videoTrack.size()));
+    for (auto iter = videoTrack.begin(); iter != videoTrack.end(); iter++) {
+        (void)MediaParcel::Marshalling(reply, *iter);
+    }
+    reply.WriteInt32(ret);
+
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::GetAudioTrackInfo(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data;
+    std::vector<Format> audioTrack;
+    int32_t ret = GetAudioTrackInfo(audioTrack);
+    reply.WriteInt32(static_cast<int32_t>(audioTrack.size()));
+    for (auto iter = audioTrack.begin(); iter != audioTrack.end(); iter++) {
+        (void)MediaParcel::Marshalling(reply, *iter);
+    }
+    reply.WriteInt32(ret);
+
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::GetVideoWidth(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data;
+    int32_t witdh = GetVideoWidth();
+    reply.WriteInt32(witdh);
+
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::GetVideoHeight(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data;
+    int32_t height = GetVideoHeight();
+    reply.WriteInt32(height);
+
     return MSERR_OK;
 }
 
