@@ -367,6 +367,70 @@ int32_t PlayerServer::GetCurrentTime(int32_t &currentTime)
     return MSERR_OK;
 }
 
+int32_t PlayerServer::GetVideoTrackInfo(std::vector<Format> &videoTrack)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
+
+    if (status_ != PLAYER_PREPARED && status_ != PLAYER_PAUSED &&
+        status_ != PLAYER_STARTED && status_ != PLAYER_STOPPED &&
+        status_ != PLAYER_PLAYBACK_COMPLETE) {
+        MEDIA_LOGE("Can not get track info, currentState is %{public}d", status_);
+        return MSERR_INVALID_OPERATION;
+    }
+
+    int32_t ret = playerEngine_->GetVideoTrackInfo(videoTrack);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine GetVideoTrackInfo Failed!");
+    return MSERR_OK;
+}
+
+int32_t PlayerServer::GetAudioTrackInfo(std::vector<Format> &audioTrack)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
+
+    if (status_ != PLAYER_PREPARED && status_ != PLAYER_PAUSED &&
+        status_ != PLAYER_STARTED && status_ != PLAYER_STOPPED &&
+        status_ != PLAYER_PLAYBACK_COMPLETE) {
+        MEDIA_LOGE("Can not get track info, currentState is %{public}d", status_);
+        return MSERR_INVALID_OPERATION;
+    }
+
+    int32_t ret = playerEngine_->GetAudioTrackInfo(audioTrack);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine GetAudioTrackInfo Failed!");
+    return MSERR_OK;
+}
+
+int32_t PlayerServer::GetVideoWidth()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
+
+    if (status_ != PLAYER_PREPARED && status_ != PLAYER_PAUSED &&
+        status_ != PLAYER_STARTED && status_ != PLAYER_STOPPED &&
+        status_ != PLAYER_PLAYBACK_COMPLETE) {
+        MEDIA_LOGE("Can not get track info, currentState is %{public}d", status_);
+        return MSERR_INVALID_OPERATION;
+    }
+
+    return playerEngine_->GetVideoWidth();
+}
+
+int32_t PlayerServer::GetVideoHeight()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
+
+    if (status_ != PLAYER_PREPARED && status_ != PLAYER_PAUSED &&
+        status_ != PLAYER_STARTED && status_ != PLAYER_STOPPED &&
+        status_ != PLAYER_PLAYBACK_COMPLETE) {
+        MEDIA_LOGE("Can not get track info, currentState is %{public}d", status_);
+        return MSERR_INVALID_OPERATION;
+    }
+
+    return playerEngine_->GetVideoHeight();
+}
+
 int32_t PlayerServer::GetDuration(int32_t &duration)
 {
     std::lock_guard<std::mutex> lock(mutex_);

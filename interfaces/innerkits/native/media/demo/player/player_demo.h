@@ -57,6 +57,8 @@ private:
     void SetPlaybackSpeed(const std::string cmd) const;
     int32_t GetPlaying();
     int32_t GetLooping();
+    void GetCurrentTime();
+    int32_t GetTrackInfo();
     int32_t GetPlaybackSpeed() const;
     int32_t SetDataSrc(const std::string &path, bool seekable);
     int32_t SelectSource(const std::string &path);

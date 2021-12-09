@@ -291,6 +291,40 @@ int32_t PlayerEngineGstImpl::GetCurrentTime(int32_t &currentTime)
     return MSERR_OK;
 }
 
+int32_t PlayerEngineGstImpl::GetVideoTrackInfo(std::vector<Format> &videoTrack)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
+
+    int32_t retVal = playerCtrl_->GetVideoTrackInfo(videoTrack);
+    return retVal;
+}
+
+int32_t PlayerEngineGstImpl::GetAudioTrackInfo(std::vector<Format> &audioTrack)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
+
+    int32_t retVal = playerCtrl_->GetAudioTrackInfo(audioTrack);
+    return retVal;
+}
+
+int32_t PlayerEngineGstImpl::GetVideoWidth()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
+
+    return playerCtrl_->GetVideoWidth();
+}
+
+int32_t PlayerEngineGstImpl::GetVideoHeight()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
+
+    return playerCtrl_->GetVideoHeight();
+}
+
 int32_t PlayerEngineGstImpl::GetDuration(int32_t &duration)
 {
     std::unique_lock<std::mutex> lock(mutex_);
