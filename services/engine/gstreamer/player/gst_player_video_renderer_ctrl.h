@@ -42,6 +42,9 @@ private:
     BufferRequestConfig UpdateRequestConfig(const GstVideoMeta *videoMeta) const;
     std::string GetVideoSinkFormat() const;
     void SetSurfaceTimeFromSysPara();
+    void SetDumpFrameFromSysPara();
+    void SetDumpFrameInternalFromSysPara();
+    void SaveFrameToFile(const unsigned char *buffer, size_t size) const;
 
     sptr<Surface> producerSurface_ = nullptr;
     GstElement *videoSink_ = nullptr;
@@ -49,7 +52,10 @@ private:
     GstCaps *videoCaps_ = nullptr;
     GstCaps *audioCaps_ = nullptr;
     bool surfaceTimeEnable_ = false;
+    bool dumpFrameEnable_ = false;
     bool firstRenderFrame_ = true;
+    uint32_t dumpFrameNum_ = 0;
+    uint32_t dumpFrameInternal_ = 1;
     TimeMonitor surfaceTimeMonitor_;
     gulong signalId_ = 0;
     std::weak_ptr<IPlayerEngineObs> obs_;
