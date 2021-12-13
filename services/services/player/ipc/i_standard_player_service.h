@@ -40,6 +40,10 @@ public:
     virtual int32_t SetVolume(float leftVolume, float rightVolume) = 0;
     virtual int32_t Seek(int32_t mSeconds, PlayerSeekMode mode) = 0;
     virtual int32_t GetCurrentTime(int32_t &currentTime) = 0;
+    virtual int32_t GetVideoTrackInfo(std::vector<Format> &videoTrack) = 0;
+    virtual int32_t GetAudioTrackInfo(std::vector<Format> &audioTrack) = 0;
+    virtual int32_t GetVideoWidth() = 0;
+    virtual int32_t GetVideoHeight() = 0;
     virtual int32_t GetDuration(int32_t &duration) = 0;
     virtual int32_t SetPlaybackSpeed(PlaybackRateMode mode) = 0;
     virtual int32_t GetPlaybackSpeed(PlaybackRateMode &mode) = 0;
@@ -76,6 +80,10 @@ public:
         SET_LOOPING,
         DESTROY,
         SET_CALLBACK,
+        GET_VIDEO_TRACK_INFO,
+        GET_AUDIO_TRACK_INFO,
+        GET_VIDEO_WIDTH,
+        GET_VIDEO_HEIGHT
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"IStandardPlayerService");

@@ -17,6 +17,7 @@
 #include "player_listener_stub.h"
 #include "media_log.h"
 #include "media_errors.h"
+#include "media_parcel.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayerServiceProxy"};
@@ -211,6 +212,71 @@ int32_t PlayerServiceProxy::GetCurrentTime(int32_t &currentTime)
         return error;
     }
     currentTime = reply.ReadInt32();
+    return reply.ReadInt32();
+}
+
+int32_t PlayerServiceProxy::GetVideoTrackInfo(std::vector<Format> &videoTrack)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int error = Remote()->SendRequest(GET_VIDEO_TRACK_INFO, data, reply, option);
+    if (error != MSERR_OK) {
+        MEDIA_LOGE("Get video track info failed, error: %{public}d", error);
+        return error;
+    }
+    int32_t trackCnt = reply.ReadInt32();
+    for (int32_t i = 0; i < trackCnt; i++) {
+        Format trackInfo;
+        (void)MediaParcel::Unmarshalling(reply, trackInfo);
+        videoTrack.push_back(trackInfo);
+    }
+    return reply.ReadInt32();
+}
+
+int32_t PlayerServiceProxy::GetAudioTrackInfo(std::vector<Format> &audioTrack)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int error = Remote()->SendRequest(GET_AUDIO_TRACK_INFO, data, reply, option);
+    if (error != MSERR_OK) {
+        MEDIA_LOGE("Get audio track info failed, error: %{public}d", error);
+        return error;
+    }
+    int32_t trackCnt = reply.ReadInt32();
+    for (int32_t i = 0; i < trackCnt; i++) {
+        Format trackInfo;
+        (void)MediaParcel::Unmarshalling(reply, trackInfo);
+
+        audioTrack.push_back(trackInfo);
+    }
+    return reply.ReadInt32();
+}
+
+int32_t PlayerServiceProxy::GetVideoWidth()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int error = Remote()->SendRequest(GET_VIDEO_WIDTH, data, reply, option);
+    if (error != MSERR_OK) {
+        MEDIA_LOGE("Get video width failed, error: %{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t PlayerServiceProxy::GetVideoHeight()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int error = Remote()->SendRequest(GET_VIDEO_HEIGHT, data, reply, option);
+    if (error != MSERR_OK) {
+        MEDIA_LOGE("Get video height failed, error: %{public}d", error);
+        return error;
+    }
     return reply.ReadInt32();
 }
 
