@@ -138,13 +138,15 @@ struct MaxFileSize : public RecorderParam {
 };
 
 struct GeoLocation : public RecorderParam {
-    explicit GeoLocation(float lat, float lng) : RecorderParam(RecorderPublicParamType::GEO_LOCATION), latitude(lat), longitude(lng) {}
+    explicit GeoLocation(float lat, float lng)
+        : RecorderParam(RecorderPublicParamType::GEO_LOCATION), latitude(lat), longitude(lng) {}
     float latitude;
     float longitude;
 };
 
 struct RotationAngle : public RecorderParam {
-    explicit RotationAngle(int32_t angle) : RecorderParam(RecorderPublicParamType::VID_ORIENTATION_HINT), rotation(angle) {}
+    explicit RotationAngle(int32_t angle)
+        : RecorderParam(RecorderPublicParamType::VID_ORIENTATION_HINT), rotation(angle) {}
     int32_t rotation;
 };
 
