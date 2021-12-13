@@ -14,6 +14,10 @@
  */
 
 #include "gst_player_video_renderer_ctrl.h"
+#include <iostream>
+#include <fstream>
+#include <cstdio>
+#include "string_ex.h"
 #include "display_type.h"
 #include "media_log.h"
 #include "param_wrapper.h"
@@ -189,6 +193,8 @@ GstPlayerVideoRendererCtrl::GstPlayerVideoRendererCtrl(const sptr<Surface> &surf
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
     SetSurfaceTimeFromSysPara();
+    SetDumpFrameFromSysPara();
+    SetDumpFrameInternalFromSysPara();
 }
 
 GstPlayerVideoRendererCtrl::~GstPlayerVideoRendererCtrl()
@@ -329,6 +335,43 @@ void GstPlayerVideoRendererCtrl::SetSurfaceTimeFromSysPara()
     }
 }
 
+void GstPlayerVideoRendererCtrl::SetDumpFrameFromSysPara()
+{
+    std::string dumpFrameEnable;
+    int32_t res = OHOS::system::GetStringParameter("sys.media.dump.frame.enable", dumpFrameEnable, "");
+    if (res != 0 || dumpFrameEnable.empty()) {
+        dumpFrameEnable_ = false;
+        MEDIA_LOGD("sys.media.dump.frame.enable=false");
+        return;
+    }
+    MEDIA_LOGD("sys.media.dump.frame.enable=%{public}s", dumpFrameEnable.c_str());
+
+    if (dumpFrameEnable == "true") {
+        dumpFrameEnable_ = true;
+    } else if (dumpFrameEnable == "false") {
+        dumpFrameEnable_ = false;
+    }
+}
+
+void GstPlayerVideoRendererCtrl::SetDumpFrameInternalFromSysPara()
+{
+    std::string dumpFrameInternal;
+    int32_t res = OHOS::system::GetStringParameter("sys.media.dump.frame.internal", dumpFrameInternal, "");
+    if (res != 0 || dumpFrameInternal.empty()) {
+        MEDIA_LOGD("sys.media.dump.frame.internal");
+        return;
+    }
+    MEDIA_LOGD("sys.media.dump.frame.internal=%{public}s", dumpFrameInternal.c_str());
+
+    int32_t internal = -1;
+    if (!StrToInt(dumpFrameInternal, internal) || (internal < 0)) {
+        MEDIA_LOGD("sys.media.dump.frame.internal");
+        return;
+    }
+
+    dumpFrameInternal_ = static_cast<uint32_t>(internal);
+}
+
 BufferRequestConfig GstPlayerVideoRendererCtrl::UpdateRequestConfig(const GstVideoMeta *videoMeta) const
 {
     BufferRequestConfig config;
@@ -369,6 +412,31 @@ sptr<SurfaceBuffer> GstPlayerVideoRendererCtrl::RequestBuffer(const GstVideoMeta
     return surfaceBuffer;
 }
 
+void GstPlayerVideoRendererCtrl::SaveFrameToFile(const unsigned char *buffer, size_t size) const
+{
+    if (!dumpFrameEnable_) {
+        return;
+    }
+
+    if ((dumpFrameNum_ % dumpFrameInternal_) != 0) {
+        return;
+    }
+
+    std::string fileName = "video_frame_" + std::to_string(dumpFrameNum_);
+    std::ofstream outfile;
+    std::string path("/data/media/");
+    outfile.open(path + fileName);
+    if (!outfile.is_open()) {
+        MEDIA_LOGE("failed to open file %{public}s", fileName.c_str());
+        return;
+    }
+
+    for (size_t i = 0; i < size; ++i) {
+        outfile << buffer[i];
+    }
+    outfile.close();
+}
+
 int32_t GstPlayerVideoRendererCtrl::UpdateSurfaceBuffer(const GstBuffer &buffer)
 {
     CHECK_AND_RETURN_RET_LOG(producerSurface_ != nullptr, MSERR_INVALID_OPERATION,
@@ -393,6 +461,10 @@ int32_t GstPlayerVideoRendererCtrl::UpdateSurfaceBuffer(const GstBuffer &buffer)
             MEDIA_LOGW("extract buffer from size : %" G_GSIZE_FORMAT " to size %" G_GSIZE_FORMAT, size, sizeCopy);
         }
         needFlush = true;
+
+        const unsigned char *bufferAddr = static_cast<unsigned char *>(static_cast<void *>(surfaceBufferAddr));
+        SaveFrameToFile(bufferAddr, size);
+        dumpFrameNum_++;
     } while (0);
 
     if (needFlush) {
