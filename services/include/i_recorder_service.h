@@ -303,6 +303,29 @@ public:
     virtual int32_t SetMaxFileSize(int64_t size) = 0;
 
     /**
+     * @brief Set and store the geodata (latitude and longitude) in the output file.
+     * This method should be called before prepare(). The geodata is stored in udta box if
+     * the output format is OutputFormat.THREE_GPP or OutputFormat.MPEG_4,
+     * and is ignored for other output formats.
+     *
+     * @param latitude float: latitude in degrees. Its value must be in the range [-90, 90].
+     * @param longitude float: longitude in degrees. Its value must be in the range [-180, 180].
+     * @since 1openharmony 3.1
+     * @version 1.0
+     */
+    virtual void SetLocation(float latitude, float longitude) = 0;
+
+    /**
+     * @brief set the orientation hint in output file, and for the file to playback. mp4 support.
+     * the range of orientation should be {0, 90, 180, 270}, default is 0.
+     *
+     * @param rotation int32_t: should be {0, 90, 180, 270}, default is 0.
+     * @since 1openharmony 3.1
+     * @version 1.0
+     */
+    virtual void SetOrientationHint(int32_t rotation) = 0;
+
+    /**
      * @brief Registers a recording listener.
      *
      * This function must be called before {@link Prepare}.

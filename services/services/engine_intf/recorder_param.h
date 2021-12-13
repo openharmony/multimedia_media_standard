@@ -42,6 +42,7 @@ enum RecorderPublicParamType : uint32_t {
     VID_FRAMERATE,
     VID_CAPTURERATE,
     VID_PUBLIC_PARAM_END,
+    VID_ORIENTATION_HINT,
     // audio begin
     AUD_PUBLIC_PARAM_BEGIN,
     AUD_ENC_FMT,
@@ -55,6 +56,7 @@ enum RecorderPublicParamType : uint32_t {
     OUT_PATH,
     OUT_FD,
     NEXT_OUT_FD, // reserved.
+    GEO_LOCATION,
 
     PUBLIC_PARAM_TYPE_END,
 };
@@ -133,6 +135,17 @@ struct MaxDuration : public RecorderParam {
 struct MaxFileSize : public RecorderParam {
     explicit MaxFileSize(int64_t maxSize) : RecorderParam(RecorderPublicParamType::MAX_SIZE), size(maxSize) {}
     int64_t size;
+};
+
+struct GeoLocation : public RecorderParam {
+    explicit GeoLocation(float lat, float lng) : RecorderParam(RecorderPublicParamType::GEO_LOCATION), latitude(lat), longitude(lng) {}
+    float latitude;
+    float longitude;
+};
+
+struct RotationAngle : public RecorderParam {
+    explicit RotationAngle(int32_t angle) : RecorderParam(RecorderPublicParamType::VID_ORIENTATION_HINT), rotation(angle) {}
+    int32_t rotation;
 };
 
 struct OutFilePath : public RecorderParam {

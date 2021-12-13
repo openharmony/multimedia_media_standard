@@ -71,6 +71,8 @@ int32_t RecorderServiceStub::Init()
     recFuncs_[SET_OUTPUT_FILE] = &RecorderServiceStub::SetOutputFile;
     recFuncs_[SET_NEXT_OUTPUT_FILE] = &RecorderServiceStub::SetNextOutputFile;
     recFuncs_[SET_MAX_FILE_SIZE] = &RecorderServiceStub::SetMaxFileSize;
+    recFuncs_[SET_LOCATION] = &RecorderServiceStub::SetLocation;
+    recFuncs_[SET_ORIENTATION_HINT] = &RecorderServiceStub::SetOrientationHint;
     recFuncs_[PREPARE] = &RecorderServiceStub::Prepare;
     recFuncs_[START] = &RecorderServiceStub::Start;
     recFuncs_[PAUSE] = &RecorderServiceStub::Pause;
@@ -239,6 +241,20 @@ int32_t RecorderServiceStub::SetMaxFileSize(int64_t size)
 {
     CHECK_AND_RETURN_RET_LOG(recorderServer_ != nullptr, MSERR_NO_MEMORY, "recorder server is nullptr");
     return recorderServer_->SetMaxFileSize(size);
+}
+
+int32_t RecorderServiceStub::SetLocation(float latitude, float longitude)
+{
+    CHECK_AND_RETURN_RET_LOG(recorderServer_ != nullptr, MSERR_NO_MEMORY, "recorder server is nullptr");
+    recorderServer_->SetLocation(latitude, longitude);
+    return MSERR_OK;
+}
+
+int32_t RecorderServiceStub::SetOrientationHint(int32_t rotation)
+{
+    CHECK_AND_RETURN_RET_LOG(recorderServer_ != nullptr, MSERR_NO_MEMORY, "recorder server is nullptr");
+    recorderServer_->SetOrientationHint(rotation);
+    return MSERR_OK;
 }
 
 int32_t RecorderServiceStub::Prepare()
@@ -457,6 +473,21 @@ int32_t RecorderServiceStub::SetMaxFileSize(MessageParcel &data, MessageParcel &
 {
     int64_t size = data.ReadInt64();
     reply.WriteInt32(SetMaxFileSize(size));
+    return MSERR_OK;
+}
+
+int32_t RecorderServiceStub::SetLocation(MessageParcel &data, MessageParcel &reply)
+{
+    float latitude = data.ReadFloat();
+    float longitude = data.ReadFloat();
+    SetLocation(latitude, longitude);
+    return MSERR_OK;
+}
+
+int32_t RecorderServiceStub::SetOrientationHint(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t rotation = data.ReadInt32();
+    SetOrientationHint(rotation);
     return MSERR_OK;
 }
 

@@ -342,6 +342,35 @@ int32_t RecorderServiceProxy::SetMaxFileSize(int64_t size)
     return reply.ReadInt32();
 }
 
+int32_t RecorderServiceProxy::SetLocation(float latitude, float longitude)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteFloat(latitude);
+    data.WriteFloat(longitude);
+    int error = Remote()->SendRequest(SET_LOCATION, data, reply, option);
+    if (error != MSERR_OK) {
+        MEDIA_LOGE("Set SetLocation failed, error: %{public}d", error);
+    }
+
+    return MSERR_OK;
+}
+
+int32_t RecorderServiceProxy::SetOrientationHint(int32_t rotation)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInt32(rotation);
+    int error = Remote()->SendRequest(SET_ORIENTATION_HINT, data, reply, option);
+    if (error != MSERR_OK) {
+        MEDIA_LOGE("Set orientation hint failed, error: %{public}d", error);
+    }
+
+    return MSERR_OK;
+}
+
 int32_t RecorderServiceProxy::Prepare()
 {
     MessageParcel data;
