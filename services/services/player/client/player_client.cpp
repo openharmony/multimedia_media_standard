@@ -170,6 +170,34 @@ int32_t PlayerClient::GetCurrentTime(int32_t &currentTime)
     return playerProxy_->GetCurrentTime(currentTime);
 }
 
+int32_t PlayerClient::GetVideoTrackInfo(std::vector<Format> &videoTrack)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
+    return playerProxy_->GetVideoTrackInfo(videoTrack);
+}
+
+int32_t PlayerClient::GetAudioTrackInfo(std::vector<Format> &audioTrack)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
+    return playerProxy_->GetAudioTrackInfo(audioTrack);
+}
+
+int32_t PlayerClient::GetVideoWidth()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
+    return playerProxy_->GetVideoWidth();
+}
+
+int32_t PlayerClient::GetVideoHeight()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
+    return playerProxy_->GetVideoHeight();
+}
+
 int32_t PlayerClient::SetPlaybackSpeed(PlaybackRateMode mode)
 {
     std::lock_guard<std::mutex> lock(mutex_);

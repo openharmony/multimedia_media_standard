@@ -67,6 +67,10 @@ GstPlayerCtrl::GstPlayerCtrl(GstPlayer *gstPlayer)
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
     (void)taskQue_.Start();
+    trackParse_ = GstPlayerTrackParse::Create();
+    if (trackParse_ == nullptr) {
+        MEDIA_LOGE("creat track parse fail");
+    }
 }
 
 GstPlayerCtrl::~GstPlayerCtrl()
@@ -151,10 +155,37 @@ int32_t GstPlayerCtrl::SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs)
     signalIds_.push_back(g_signal_connect(gstPlayer_, "buffering-time", G_CALLBACK(OnBufferingTimeCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "mq-num-use-buffering", G_CALLBACK(OnMqNumUseBufferingCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "resolution-changed", G_CALLBACK(OnResolutionChanegdCb), this));
+    signalIds_.push_back(g_signal_connect(gstPlayer_, "element-setup", G_CALLBACK(OnElementSetupCb), this));
 
     obs_ = obs;
     currentState_ = PLAYER_PREPARING;
     return MSERR_OK;
+}
+
+void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, GstPlayerCtrl *playerGst)
+{
+    CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
+    CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
+    CHECK_AND_RETURN_LOG(src != nullptr, "src is null");
+
+    if (playerGst->trackParse_->GetDemuxerElementFind() == true) {
+        return;
+    }
+
+    const gchar *metadata = gst_element_get_metadata(src, GST_ELEMENT_METADATA_KLASS);
+    if (metadata == nullptr) {
+        MEDIA_LOGE("gst_element_get_metadata return nullptr");
+        return;
+    }
+
+    MEDIA_LOGD("get element_name %{public}s, get metadata %{public}s", GST_ELEMENT_NAME(src), metadata);
+    std::string metaStr(metadata);
+
+    if (metaStr.find("Codec/Demuxer") != std::string::npos || metaStr.find("Codec/Parser") != std::string::npos) {
+        playerGst->signalIds_.push_back(g_signal_connect(src,
+            "pad-added", G_CALLBACK(GstPlayerTrackParse::OnPadAddedCb), playerGst->trackParse_.get()));
+        playerGst->trackParse_->SetDemuxerElementFind(true);
+    }
 }
 
 void GstPlayerCtrl::SetVideoTrack(bool enable)
@@ -431,6 +462,38 @@ uint64_t GstPlayerCtrl::GetDuration()
     return sourceDuration_;
 }
 
+int32_t GstPlayerCtrl::GetVideoTrackInfo(std::vector<Format> &videoTrack)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(trackParse_ != nullptr, 0, "trackParse_ is nullptr");
+
+    return trackParse_->GetVideoTrackInfo(videoTrack);
+}
+
+int32_t GstPlayerCtrl::GetAudioTrackInfo(std::vector<Format> &audioTrack)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(trackParse_ != nullptr, 0, "trackParse_ is nullptr");
+
+    return trackParse_->GetAudioTrackInfo(audioTrack);
+}
+
+int32_t GstPlayerCtrl::GetVideoWidth()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(trackParse_ != nullptr, 0, "trackParse_ is nullptr");
+
+    return trackParse_->GetVideoWidth();
+}
+
+int32_t GstPlayerCtrl::GetVideoHeight()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(trackParse_ != nullptr, 0, "trackParse_ is nullptr");
+
+    return trackParse_->GetVideoHeight();
+}
+
 int32_t GstPlayerCtrl::SetRate(double rate)
 {
     std::unique_lock<std::mutex> lock(mutex_);
@@ -525,7 +588,7 @@ void GstPlayerCtrl::ProcessStateChanged(const GstPlayer *cbPlayer, GstPlayerStat
             break;
         }
         case GST_PLAYER_STATE_BUFFERING: {
-            OnBufferingUpdate(PLAYER_BUFFERING_START);
+            OnBufferingUpdate(std::string(PlayerKeys::PLAYER_BUFFERING_START));
             bufferingStart_ = true;
             percent_ = 0;
             return;
@@ -544,7 +607,7 @@ void GstPlayerCtrl::ProcessStateChanged(const GstPlayer *cbPlayer, GstPlayerStat
     }
 
     if (bufferingStart_) {
-        OnBufferingUpdate(PLAYER_BUFFERING_END);
+        OnBufferingUpdate(std::string(PlayerKeys::PLAYER_BUFFERING_END));
         bufferingStart_ = false;
     }
 
@@ -707,8 +770,8 @@ void GstPlayerCtrl::OnResolutionChanegdCb(const GstPlayer *player,
 void GstPlayerCtrl::OnResolutionChange(int32_t width, int32_t height) const
 {
     Format format;
-    (void)format.PutIntValue(PLAYER_WIDTH, width);
-    (void)format.PutIntValue(PLAYER_HEIGHT, height);
+    (void)format.PutIntValue(std::string(PlayerKeys::PLAYER_WIDTH), width);
+    (void)format.PutIntValue(std::string(PlayerKeys::PLAYER_HEIGHT), height);
     std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
     if (tempObs != nullptr) {
         MEDIA_LOGD("OnResolutionChange width:%{public}d, height:%{public}d", width, height);
@@ -736,7 +799,7 @@ void GstPlayerCtrl::ProcessSeekDone(const GstPlayer *cbPlayer, uint64_t position
     MEDIA_LOGI("gstplay seek Done: (%{public}" PRIu64 ")", seekDonePosition_);
 }
 
-void GstPlayerCtrl::OnSourceSetupCb(const GstPlayer *player, GstElement *src, const GstPlayerCtrl *playerGst)
+void GstPlayerCtrl::OnSourceSetupCb(const GstPlayer *player, GstElement *src, GstPlayerCtrl *playerGst)
 {
     CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
     CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
@@ -797,7 +860,8 @@ void GstPlayerCtrl::ProcessBufferingTime(const GstPlayer *cbPlayer, guint64 buff
         std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
         if (tempObs != nullptr) {
             Format format;
-            (void)format.PutIntValue(PLAYER_CACHED_DURATION, static_cast<int32_t>(mqBufferingTime));
+            (void)format.PutIntValue(std::string(PlayerKeys::PLAYER_CACHED_DURATION),
+                                     static_cast<int32_t>(mqBufferingTime));
             tempObs->OnInfo(INFO_TYPE_BUFFERING_UPDATE, 0, format);
         }
     }
@@ -838,7 +902,7 @@ void GstPlayerCtrl::ProcessCachedPercent(const GstPlayer *cbPlayer, int32_t perc
     std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
     if (tempObs != nullptr) {
         Format format;
-        (void)format.PutIntValue(PLAYER_BUFFERING_PERCENT, percent_);
+        (void)format.PutIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_PERCENT), percent_);
         MEDIA_LOGD("percent = (%{public}d), percent_ = %{public}d, 0x%{public}06" PRIXPTR "",
             percent, percent_, FAKE_POINTER(this));
         tempObs->OnInfo(INFO_TYPE_BUFFERING_UPDATE, 0, format);

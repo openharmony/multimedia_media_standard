@@ -24,6 +24,7 @@
 #include "i_player_engine.h"
 #include "task_queue.h"
 #include "gst_appsrc_warp.h"
+#include "gst_player_track_parse.h"
 
 namespace OHOS {
 namespace Media {
@@ -46,6 +47,10 @@ public:
     void SetVolume(const float &leftVolume, const float &rightVolume);
     uint64_t GetPosition();
     uint64_t GetDuration();
+    int32_t GetVideoTrackInfo(std::vector<Format> &videoTrack);
+    int32_t GetAudioTrackInfo(std::vector<Format> &audioTrack);
+    int32_t GetVideoWidth();
+    int32_t GetVideoHeight();
     int32_t SetRate(double rate);
     double GetRate();
     PlayerStates GetState() const;
@@ -64,7 +69,8 @@ public:
     static void OnSeekDoneCb(const GstPlayer *player, guint64 position, GstPlayerCtrl *playerGst);
     static void OnPositionUpdatedCb(const GstPlayer *player, guint64 position, GstPlayerCtrl *playerGst);
     static void OnVolumeChangeCb(const GObject *combiner, const GParamSpec *pspec, const GstPlayerCtrl *playerGst);
-    static void OnSourceSetupCb(const GstPlayer *player, GstElement *src, const GstPlayerCtrl *playerGst);
+    static void OnSourceSetupCb(const GstPlayer *player, GstElement *src, GstPlayerCtrl *playerGst);
+    static void OnElementSetupCb(const GstPlayer *player, GstElement *src, GstPlayerCtrl *playerGst);
     static void OnResolutionChanegdCb(const GstPlayer *player,
         int32_t width, int32_t height, const GstPlayerCtrl *playerGst);
     static void OnCachedPercentCb(const GstPlayer *player, guint percent, GstPlayerCtrl *playerGst);
@@ -136,6 +142,7 @@ private:
     bool isExit_ = true;
     bool seeking_ = false;
     std::map<guint, guint64> mqBufferingTime_;
+    std::shared_ptr<GstPlayerTrackParse> trackParse_ = nullptr;
 };
 } // Media
 } // OHOS
