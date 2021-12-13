@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "video_encorder.h"
+#include "video_encoder.h"
 #include <gst/gst.h>
 #include "media_errors.h"
 #include "media_log.h"
@@ -26,13 +26,13 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-int32_t VideoEncorder::Init()
+int32_t VideoEncoder::Init()
 {
-    MEDIA_LOGI("VideoEncorder Init");
+    MEDIA_LOGI("VideoEncoder Init");
     return MSERR_OK;
 }
 
-int32_t VideoEncorder::CreateElement()
+int32_t VideoEncoder::CreateElement()
 {
     if (gstElem_ != nullptr) {
         gst_object_unref(gstElem_);
@@ -49,7 +49,7 @@ int32_t VideoEncorder::CreateElement()
     return MSERR_OK;
 }
 
-int32_t VideoEncorder::Configure(const RecorderParam &recParam)
+int32_t VideoEncoder::Configure(const RecorderParam &recParam)
 {
     if (recParam.type == RecorderPublicParamType::VID_ENC_FMT) {
         const VidEnc &param = static_cast<const VidEnc &>(recParam);
@@ -84,7 +84,7 @@ int32_t VideoEncorder::Configure(const RecorderParam &recParam)
     return MSERR_OK;
 }
 
-int32_t VideoEncorder::CheckConfigReady()
+int32_t VideoEncoder::CheckConfigReady()
 {
     std::set<int32_t> expectedParam = { RecorderPublicParamType::VID_ENC_FMT };
     bool configed = CheckAllParamsConfiged(expectedParam);
@@ -93,7 +93,7 @@ int32_t VideoEncorder::CheckConfigReady()
     return MSERR_OK;
 }
 
-RecorderMsgProcResult VideoEncorder::DoProcessMessage(GstMessage &rawMsg, RecorderMessage &prettyMsg)
+RecorderMsgProcResult VideoEncoder::DoProcessMessage(GstMessage &rawMsg, RecorderMessage &prettyMsg)
 {
     if (GST_MESSAGE_TYPE(&rawMsg) != GST_MESSAGE_WARNING) {
         return RecorderMsgProcResult::REC_MSG_PROC_IGNORE;
@@ -124,12 +124,12 @@ RecorderMsgProcResult VideoEncorder::DoProcessMessage(GstMessage &rawMsg, Record
     return ret;
 }
 
-void VideoEncorder::Dump()
+void VideoEncoder::Dump()
 {
     MEDIA_LOGI("video [sourceId = 0x%{public}x]: encode format = %{public}d bitrate = %{public}d",
         desc_.handle_, encoderFormat_, bitRate_);
 }
 
-REGISTER_RECORDER_ELEMENT(VideoEncorder);
+REGISTER_RECORDER_ELEMENT(VideoEncoder);
 }
 }
