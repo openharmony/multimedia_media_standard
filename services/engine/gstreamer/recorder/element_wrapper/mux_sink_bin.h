@@ -40,6 +40,8 @@ private:
     int32_t ConfigureOutputTarget(const RecorderParam &recParam);
     int32_t ConfigureMaxDuration(const RecorderParam &recParam);
     int32_t ConfigureMaxFileSize(const RecorderParam &recParam);
+    int32_t ConfigureGeoLocation(const RecorderParam &recParm);
+    int32_t ConfigureRotationAngle(const RecorderParam &recParm);
     int32_t SetOutFilePath();
     int32_t CreateMuxerElement(const std::string &name);
 

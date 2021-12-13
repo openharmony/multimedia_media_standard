@@ -257,6 +257,30 @@ int32_t RecorderServer::SetMaxFileSize(int64_t size)
     return recorderEngine_->Configure(DUMMY_SOURCE_ID, maxFileSize);
 }
 
+void RecorderServer::SetLocation(float latitude, float longitude)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (status_ != REC_CONFIGURED) {
+        return;
+    }
+    CHECK_AND_RETURN_LOG(recorderEngine_ != nullptr, "engine is nullptr");
+    GeoLocation geoLocation(latitude, longitude);
+    recorderEngine_->Configure(DUMMY_SOURCE_ID, geoLocation);
+    return;
+}
+
+void RecorderServer::SetOrientationHint(int32_t rotation)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (status_ != REC_CONFIGURED) {
+        return;
+    }
+    CHECK_AND_RETURN_LOG(recorderEngine_ != nullptr, "engine is nullptr");
+    RotationAngle rotationAngle(rotation);
+    recorderEngine_->Configure(DUMMY_SOURCE_ID, rotationAngle);
+    return;
+}
+
 int32_t RecorderServer::SetRecorderCallback(const std::shared_ptr<RecorderCallback> &callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);

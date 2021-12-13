@@ -47,6 +47,8 @@ public:
     virtual int32_t SetOutputFile(int32_t fd) = 0;
     virtual int32_t SetNextOutputFile(int32_t fd) = 0;
     virtual int32_t SetMaxFileSize(int64_t size) = 0;
+    virtual int32_t SetLocation(float latitude, float longitude) = 0;
+    virtual int32_t SetOrientationHint(int32_t rotation) = 0;
     virtual int32_t Prepare() = 0;
     virtual int32_t Start() = 0;
     virtual int32_t Pause() = 0;
@@ -80,6 +82,8 @@ public:
         SET_OUTPUT_FILE,
         SET_NEXT_OUTPUT_FILE,
         SET_MAX_FILE_SIZE,
+        SET_LOCATION,
+        SET_ORIENTATION_HINT,
         PREPARE,
         START,
         PAUSE,
