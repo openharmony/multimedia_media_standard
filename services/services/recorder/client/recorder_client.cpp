@@ -246,6 +246,24 @@ int32_t RecorderClient::SetMaxFileSize(int64_t size)
     return recorderProxy_->SetMaxFileSize(size);
 }
 
+void RecorderClient::SetLocation(float latitude, float longitude)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_LOG(recorderProxy_ != nullptr, "recorder service does not exist.");
+
+    MEDIA_LOGD ("SetLocation latitude: %{public}f, longitude: %{public}f", latitude, longitude);
+    recorderProxy_->SetLocation(latitude, longitude);
+}
+
+void RecorderClient::SetOrientationHint(int32_t rotation)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_LOG(recorderProxy_ != nullptr, "recorder service does not exist.");
+
+    MEDIA_LOGD ("SetLocation orientation hint: %{public}d", rotation);
+    recorderProxy_->SetOrientationHint(rotation);
+}
+
 int32_t RecorderClient::SetRecorderCallback(const std::shared_ptr<RecorderCallback> &callback)
 {
     CHECK_AND_RETURN_RET_LOG(callback != nullptr, MSERR_NO_MEMORY, "input param callback is nullptr.");

@@ -47,6 +47,8 @@ public:
     int32_t SetOutputFile(int32_t fd) override;
     int32_t SetNextOutputFile(int32_t fd) override;
     int32_t SetMaxFileSize(int64_t size) override;
+    int32_t SetLocation(float latitude, float longitude) override;
+    int32_t SetOrientationHint(int32_t rotation) override;
     int32_t Prepare() override;
     int32_t Start() override;
     int32_t Pause() override;

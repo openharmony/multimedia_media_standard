@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-#ifndef VIDEO_ENCORDER_H
-#define VIDEO_ENCORDER_H
+#ifndef VIDEO_ENCODER_H
+#define VIDEO_ENCODER_H
 
 #include "recorder_element.h"
 
 namespace OHOS {
 namespace Media {
-class VideoEncorder : public RecorderElement {
+class VideoEncoder : public RecorderElement {
 public:
     using RecorderElement::RecorderElement;
-    ~VideoEncorder() = default;
+    ~VideoEncoder() = default;
 
     int32_t Init() override;
     int32_t Configure(const RecorderParam &recParam) override;

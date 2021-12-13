@@ -26,6 +26,14 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MuxSinkBin"};
+    constexpr uint32_t ROTATION_90 = 90;
+    constexpr uint32_t ROTATION_180 = 180;
+    constexpr uint32_t ROTATION_270 = 270;
+    constexpr int32_t MAX_LATITUDE = 90;
+    constexpr int32_t MIN_LATITUDE = -90;
+    constexpr int32_t MAX_LONGITUDE = 180;
+    constexpr int32_t MIN_LONGITUDE = -180;
+    constexpr uint32_t MULTIPLY10000 = 10000;
 }
 
 namespace OHOS {
@@ -79,6 +87,12 @@ int32_t MuxSinkBin::Configure(const RecorderParam &recParam)
             break;
         case RecorderPublicParamType::MAX_SIZE:
             ret = ConfigureMaxFileSize(recParam);
+            break;
+        case RecorderPublicParamType::GEO_LOCATION:
+            ret = ConfigureGeoLocation(recParam);
+            break;
+        case RecorderPublicParamType::VID_ORIENTATION_HINT:
+            ret = ConfigureRotationAngle(recParam);
             break;
         default:
             break;
@@ -182,6 +196,46 @@ int32_t MuxSinkBin::ConfigureMaxFileSize(const RecorderParam &recParam)
 
     MarkParameter(recParam.type);
     maxSize_ = param.size;
+    return MSERR_OK;
+}
+
+int32_t MuxSinkBin::ConfigureGeoLocation(const RecorderParam &recParam)
+{
+    const GeoLocation &param = static_cast<const GeoLocation &>(recParam);
+    bool setLocationToMux = true;
+    if (param.latitude < MIN_LATITUDE || param.latitude > MAX_LATITUDE || param.longitude < MIN_LONGITUDE
+        || param.longitude > MAX_LONGITUDE) {
+            setLocationToMux = false;
+            MEDIA_LOGE("Invalid GeoLocation, latitude: %{public}f, longitude: %{public}f",
+                param.latitude, param.longitude);
+        }
+
+    MarkParameter(recParam.type);
+    int32_t latitudex10000 = param.latitude * MULTIPLY10000;
+    int32_t longitudex10000 = param.longitude * MULTIPLY10000;
+    if (setLocationToMux) {
+        g_object_set(gstMuxer_, "set-latitude", latitudex10000, nullptr);
+        g_object_set(gstMuxer_, "set-longitude", longitudex10000, nullptr);
+        MEDIA_LOGI("set GeoLocation x 10000, latitude %{public}d, longitude %{public}d",
+            latitudex10000, longitudex10000);
+    }
+    return MSERR_OK;
+}
+
+int32_t MuxSinkBin::ConfigureRotationAngle(const RecorderParam &recParam)
+{
+    const RotationAngle &param = static_cast<const RotationAngle &>(recParam);
+    bool setRotationToMux = true;
+    if (param.rotation != ROTATION_90 && param.rotation != ROTATION_180 && param.rotation != ROTATION_270) {
+            setRotationToMux = false;
+            MEDIA_LOGE("Invalid rotation: %{public}d, keep default 0", param.rotation);
+        }
+
+    MarkParameter(recParam.type);
+    if (setRotationToMux) {
+        g_object_set(gstMuxer_, "orientation-hint", param.rotation, nullptr);
+        MEDIA_LOGI("set rotation: %{public}d", param.rotation);
+    }
     return MSERR_OK;
 }
 
