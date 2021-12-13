@@ -26,6 +26,14 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MuxSinkBin"};
+    constexpr uint32_t ROTATION_90 = 90;
+    constexpr uint32_t ROTATION_180 = 180;
+    constexpr uint32_t ROTATION_270 = 270;
+    constexpr int32_t MAX_LATITUDE = 90;
+    constexpr int32_t MIN_LATITUDE = -90;
+    constexpr int32_t MAX_LONGITUDE = 180;
+    constexpr int32_t MIN_LONGITUDE = -180;
+    constexpr uint32_t MULTIPLY10000 = 10000;
 }
 
 namespace OHOS {
@@ -195,17 +203,16 @@ int32_t MuxSinkBin::ConfigureGeoLocation(const RecorderParam &recParam)
 {
     const GeoLocation &param = static_cast<const GeoLocation &>(recParam);
     bool setLocationToMux = true;
-    if (param.latitude < -90 || param.latitude > 90 || param.longitude < -180
-        || param.longitude > 180) {
+    if (param.latitude < MIN_LATITUDE || param.latitude > MAX_LATITUDE || param.longitude < MIN_LONGITUDE
+        || param.longitude > MAX_LONGITUDE) {
             setLocationToMux = false;
             MEDIA_LOGE("Invalid GeoLocation, latitude: %{public}f, longitude: %{public}f",
                 param.latitude, param.longitude);
-
         }
 
     MarkParameter(recParam.type);
-    int32_t latitudex10000 = param.latitude * 10000;
-    int32_t longitudex10000 = param.longitude * 10000;
+    int32_t latitudex10000 = param.latitude * MULTIPLY10000;
+    int32_t longitudex10000 = param.longitude * MULTIPLY10000;
     if (setLocationToMux) {
         g_object_set(gstMuxer_, "set-latitude", latitudex10000, nullptr);
         g_object_set(gstMuxer_, "set-longitude", longitudex10000, nullptr);
@@ -219,7 +226,7 @@ int32_t MuxSinkBin::ConfigureRotationAngle(const RecorderParam &recParam)
 {
     const RotationAngle &param = static_cast<const RotationAngle &>(recParam);
     bool setRotationToMux = true;
-    if (param.rotation != 90 && param.rotation != 180 && param.rotation != 270) {
+    if (param.rotation != ROTATION_90 && param.rotation != ROTATION_180 && param.rotation != ROTATION_270) {
             setRotationToMux = false;
             MEDIA_LOGE("Invalid rotation: %{public}d, keep default 0", param.rotation);
         }
