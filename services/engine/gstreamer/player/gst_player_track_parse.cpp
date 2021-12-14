@@ -23,6 +23,14 @@ namespace {
 
 namespace OHOS {
 namespace Media {
+static const uint32_t MEDIA_TYPE_AUD = 0;
+static const uint32_t MEDIA_TYPE_VID = 1;
+static const std::unordered_map<std::string_view, std::string> TRACK_FORMAT_STRING_CHANGE = {
+    {PlayerKeys::PLAYER_WIDTH, "width"}, {PlayerKeys::PLAYER_HEIGHT, "height"}, {PlayerKeys::PLAYER_MIME, "codec_mime"},
+    {PlayerKeys::PLAYER_BITRATE, "bitrate"}, {PlayerKeys::PLAYER_FRAMERATE, "framerate"},
+    {PlayerKeys::PLAYER_LANGUGAE, "language-code"}, {PlayerKeys::PLAYER_SAMPLE_RATE, "rate"},
+    {PlayerKeys::PLAYER_CHANNELS, "channels"},
+};
 std::shared_ptr<GstPlayerTrackParse> GstPlayerTrackParse::Create()
 {
     std::shared_ptr<GstPlayerTrackParse> trackInfo = std::make_shared<GstPlayerTrackParse>();
@@ -60,7 +68,6 @@ int32_t GstPlayerTrackParse::GetVideoTrackInfo(std::vector<Format> &videoTrack)
             }
             int32_t num = std::stoi(framerate.substr(0, delimPos));
             int32_t den = std::stoi(framerate.substr(delimPos + 1, framerate.length()));
-            MEDIA_LOGD("get framerate num %{public}d, den %{public}d, %{public}s", num, den, framerate.c_str());
             if (den != 0) {
                 /* 100: float to int ratio */
                 value = (static_cast<float>(num) / den) * 100;
@@ -70,6 +77,11 @@ int32_t GstPlayerTrackParse::GetVideoTrackInfo(std::vector<Format> &videoTrack)
 
             (void)trackInfo.PutIntValue(std::string(PlayerKeys::PLAYER_FRAMERATE), value);
         }
+        if (trackInfoMap.count(std::string(PlayerKeys::PLAYER_TRACK_INDEX)) > 0) {
+            value = std::stoi(trackInfoMap.at(std::string(PlayerKeys::PLAYER_TRACK_INDEX)));
+            (void)trackInfo.PutIntValue(std::string(PlayerKeys::PLAYER_TRACK_INDEX), value);
+        }
+        (void)trackInfo.PutIntValue(std::string(PlayerKeys::PLAYER_TRACK_TYPE), MEDIA_TYPE_VID);
         videoTrack.push_back(trackInfo);
     }
     return MSERR_OK;
@@ -100,6 +112,11 @@ int32_t GstPlayerTrackParse::GetAudioTrackInfo(std::vector<Format> &audioTrack)
             std::string value = trackInfoMap.at(std::string(PlayerKeys::PLAYER_LANGUGAE));
             (void)trackInfo.PutStringValue(std::string(PlayerKeys::PLAYER_LANGUGAE), value);
         }
+        if (trackInfoMap.count(std::string(PlayerKeys::PLAYER_TRACK_INDEX)) > 0) {
+            int32_t value = std::stoi(trackInfoMap.at(std::string(PlayerKeys::PLAYER_TRACK_INDEX)));
+            (void)trackInfo.PutIntValue(std::string(PlayerKeys::PLAYER_TRACK_INDEX), value);
+        }
+        (void)trackInfo.PutIntValue(std::string(PlayerKeys::PLAYER_TRACK_TYPE), MEDIA_TYPE_AUD);
         audioTrack.push_back(trackInfo);
     }
     return MSERR_OK;
@@ -154,21 +171,29 @@ std::string GstPlayerTrackParse::GetSerializedValue(const GValue *value)
 
 void GstPlayerTrackParse::ParseSingleCapsStructure(const GstStructure *struc, const GstPad *pad,
     std::vector<std::unordered_map<GstPad *, std::unordered_map<std::string, std::string>>> &trackInfoVec,
-    std::vector<std::string> expectedCapsFields)
+    std::vector<std::string_view> expectedCapsFields, int32_t index)
 {
     std::unordered_map<std::string, std::string> trackMap;
     std::string mime = gst_structure_get_name(struc);
+
+    (void)trackMap.insert(
+        std::pair<std::string, std::string>(std::string(PlayerKeys::PLAYER_TRACK_INDEX), std::to_string(index)));
     (void)trackMap.insert(std::pair<std::string, std::string>(std::string(PlayerKeys::PLAYER_MIME), mime));
     for (auto &field : expectedCapsFields) {
-        const GValue *val = gst_structure_get_value(struc, field.c_str());
+        auto iterStr = TRACK_FORMAT_STRING_CHANGE.find(field);
+        if (iterStr == TRACK_FORMAT_STRING_CHANGE.end()) {
+            MEDIA_LOGE("not match expected cap, %{public}s", field.data());
+            continue;
+        }
+        const GValue *val = gst_structure_get_value(struc, iterStr->second.c_str());
         if (val == nullptr) {
-            MEDIA_LOGE("get %{public}s filed data value error", field.c_str());
+            MEDIA_LOGE("get %{public}s filed data value error", iterStr->second.c_str());
             continue;
         }
 
         std::string serializedValue = GetSerializedValue(val);
-        MEDIA_LOGD("field %{public}s val %{public}s", field.c_str(), serializedValue.c_str());
-        trackMap.insert(std::pair<std::string, std::string>(field, serializedValue));
+        MEDIA_LOGD("field %{public}s val %{public}s", iterStr->second.c_str(), serializedValue.c_str());
+        trackMap.insert(std::pair<std::string, std::string>(std::string(field), serializedValue));
     }
     std::unordered_map<GstPad *, std::unordered_map<std::string, std::string>> padMap;
     (void)padMap.insert(std::pair<GstPad *, std::unordered_map<std::string, std::string>>((GstPad *)pad, trackMap));
@@ -207,16 +232,19 @@ void GstPlayerTrackParse::ParseStreamStruc(const GstPad *pad, GstPlayerTrackPars
         return;
     }
     if (mime.compare("video") == 0) {
-        std::vector<std::string> expectedCapsFields = {
-            std::string(PlayerKeys::PLAYER_WIDTH), std::string(PlayerKeys::PLAYER_HEIGHT),
-            std::string(PlayerKeys::PLAYER_FRAMERATE)
+        std::vector<std::string_view> expectedCapsFields = {
+            PlayerKeys::PLAYER_WIDTH, PlayerKeys::PLAYER_HEIGHT, PlayerKeys::PLAYER_FRAMERATE
         };
-        ParseSingleCapsStructure(structure, pad, playerTrackInfo->videoTrackInfo_, expectedCapsFields);
+        ParseSingleCapsStructure(structure, pad, playerTrackInfo->videoTrackInfo_,
+            expectedCapsFields, playerTrackInfo->trackIndex_);
+        playerTrackInfo->trackIndex_++;
     } else if (mime.compare("audio") == 0) {
-        std::vector<std::string> expectedCapsFields = {
-            std::string(PlayerKeys::PLAYER_SAMPLE_RATE), std::string(PlayerKeys::PLAYER_CHANNELS)
+        std::vector<std::string_view> expectedCapsFields = {
+            PlayerKeys::PLAYER_SAMPLE_RATE, PlayerKeys::PLAYER_CHANNELS
         };
-        ParseSingleCapsStructure(structure, pad, playerTrackInfo->audioTrackInfo_, expectedCapsFields);
+        ParseSingleCapsStructure(structure, pad, playerTrackInfo->audioTrackInfo_,
+            expectedCapsFields, playerTrackInfo->trackIndex_);
+        playerTrackInfo->trackIndex_++;
     } else {
         MEDIA_LOGE("parse streamType %{public}s's not match", mime.c_str());
         return;
@@ -257,7 +285,7 @@ std::unordered_map<std::string, std::string> *GstPlayerTrackParse::FindTrackInfo
 }
 
 void GstPlayerTrackParse::ParseTag(const GstTagList *tagList, guint tagIndex,
-    std::vector<std::string> expectedTagFields,
+    std::vector<std::string_view> expectedTagFields,
     std::unordered_map<std::string, std::string> *trackInfoMap)
 {
     const gchar *tag = gst_tag_list_nth_tag_name(tagList, tagIndex);
@@ -267,23 +295,27 @@ void GstPlayerTrackParse::ParseTag(const GstTagList *tagList, guint tagIndex,
 
     MEDIA_LOGD("visit tag: %{public}s", tag);
     for (auto iter = expectedTagFields.begin(); iter != expectedTagFields.end(); iter++) {
-        if (iter->compare(tag) == 0) {
+        auto iterStr = TRACK_FORMAT_STRING_CHANGE.find(*iter);
+        if (iterStr == TRACK_FORMAT_STRING_CHANGE.end()) {
+            MEDIA_LOGE("not match expected tag, %{public}s", iter->data());
+            continue;
+        }
+        if (iterStr->second.compare(tag) == 0) {
             const GValue *value = gst_tag_list_get_value_index(tagList, tag, 0);
             if (value == nullptr) {
                 MEDIA_LOGE("gst_tag_list_get_value_index get tag %{public}s fail", tag);
                 return;
             }
             std::string serializedValue = GetSerializedValue(value);
-            std::string key = tag;
-            trackInfoMap->insert(std::pair<std::string, std::string>(key, serializedValue));
-            MEDIA_LOGD("trackInfoMap emplace: %{public}s, %{public}s", iter->c_str(), serializedValue.c_str());
+            trackInfoMap->insert(std::pair<std::string, std::string>(std::string(*iter), serializedValue));
+            MEDIA_LOGD("trackInfoMap: %{public}s, %{public}s", iter->data(), serializedValue.c_str());
             break;
         }
     }
 }
 
 void GstPlayerTrackParse::ParseTagAndSaveTrackInfo(const GstPad *pad, const GstTagList *tagList,
-    std::vector<std::string> expectedTagFields,
+    std::vector<std::string_view> expectedTagFields,
     std::vector<std::unordered_map<GstPad *, std::unordered_map<std::string, std::string>>> &trackInfoVec)
 {
     std::unordered_map<std::string, std::string> *trackInfoMap;
@@ -306,7 +338,7 @@ void GstPlayerTrackParse::ParseTagAndSaveTrackInfo(const GstPad *pad, const GstT
 void GstPlayerTrackParse::ParseTagList(const GstPad *pad, const GstTagList *tagList,
                                        GstPlayerTrackParse *playerTrackInfo)
 {
-    std::vector<std::string> expectedTagFields;
+    std::vector<std::string_view> expectedTagFields;
     GstStructure *structure;
     std::string mime;
 
@@ -319,10 +351,10 @@ void GstPlayerTrackParse::ParseTagList(const GstPad *pad, const GstTagList *tagL
         return;
     }
     if (mime.compare("video") == 0) {
-        expectedTagFields = {std::string(PlayerKeys::PLAYER_BITRATE)};
+        expectedTagFields = {PlayerKeys::PLAYER_BITRATE};
         ParseTagAndSaveTrackInfo(pad, tagList, expectedTagFields, playerTrackInfo->videoTrackInfo_);
     } else if (mime.compare("audio") == 0) {
-        expectedTagFields = {std::string(PlayerKeys::PLAYER_BITRATE), std::string(PlayerKeys::PLAYER_LANGUGAE)};
+        expectedTagFields = {PlayerKeys::PLAYER_BITRATE, PlayerKeys::PLAYER_LANGUGAE};
         ParseTagAndSaveTrackInfo(pad, tagList, expectedTagFields, playerTrackInfo->audioTrackInfo_);
     } else {
         MEDIA_LOGE("parse streamType %{public}s's not match", mime.c_str());
