@@ -22,6 +22,22 @@
 
 namespace OHOS {
 namespace Media {
+struct MediaAsyncContext {
+    explicit MediaAsyncContext(napi_env env) : env(env) {
+        napi_get_undefined(env, &asyncResult);
+    }
+    virtual ~MediaAsyncContext() = default;
+    void SignError(int32_t code, std::string message);
+    napi_env env;
+    napi_async_work work;
+    napi_deferred deferred = nullptr;
+    napi_ref callbackRef = nullptr;
+    napi_value asyncResult;
+    bool errFlag = false;
+    int32_t errCode = 0;
+    std::string errMessage = "";
+};
+
 struct AutoRef {
     AutoRef(napi_env env, napi_ref cb)
         : env_(env), cb_(cb)
@@ -44,6 +60,7 @@ public:
     static std::string GetStringArgument(napi_env env, napi_value value);
     static bool GetPropertyInt32(napi_env env, napi_value configObj, const std::string &type, int32_t &result);
     static napi_status FillErrorArgs(napi_env env, int32_t errCode, const napi_value &args);
+    static napi_status CreateError(napi_env env, int32_t errCode, const std::string &errMsg, napi_value &errVal);
 };
 }
 }

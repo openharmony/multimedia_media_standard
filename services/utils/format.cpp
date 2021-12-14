@@ -24,6 +24,44 @@ constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "Format"};
 
 namespace OHOS {
 namespace Media {
+using FormatDataMap = std::map<std::string, FormatData>;
+
+void CopyFormatDataMap(const FormatDataMap &from, FormatDataMap &to)
+{
+    for (auto it = to.begin(); it != to.end(); ++it) {
+        if (it->second.type == FORMAT_TYPE_ADDR && it->second.addr != nullptr) {
+            free(it->second.addr);
+            it->second.addr = nullptr;
+        }
+    }
+
+    to = from;
+
+    for (auto it = to.begin(); it != to.end();) {
+        if (it->second.type != FORMAT_TYPE_ADDR || it->second.addr == nullptr) {
+            ++it;
+            continue;
+        }
+
+        it->second.addr = reinterpret_cast<uint8_t *>(malloc(it->second.size));
+        if (it->second.addr == nullptr) {
+            MEDIA_LOGE("malloc addr failed. Key: %{public}s", it->first.c_str());
+            it = to.erase(it);
+            continue;
+        }
+
+        errno_t err = memcpy_s(reinterpret_cast<void *>(it->second.addr),
+            it->second.size, reinterpret_cast<const void *>(from.at(it->first).addr), it->second.size);
+        if (err != EOK) {
+            MEDIA_LOGE("memcpy addr failed. Key: %{public}s", it->first.c_str());
+            free(it->second.addr);
+            it = to.erase(it);
+            continue;
+        }
+        ++it;
+    }
+}
+
 Format::~Format()
 {
     for (auto it = formatMap_.begin(); it != formatMap_.end(); ++it) {
@@ -32,6 +70,41 @@ Format::~Format()
             it->second.addr = nullptr;
         }
     }
+}
+
+Format::Format(const Format &rhs)
+{
+    if (&rhs == this) {
+        return;
+    }
+
+    CopyFormatDataMap(rhs.formatMap_, formatMap_);
+}
+
+Format::Format(Format &&rhs)
+{
+    std::swap(formatMap_, rhs.formatMap_);
+}
+
+Format &Format::operator=(const Format &rhs)
+{
+    if (&rhs == this) {
+        return *this;
+    }
+
+    CopyFormatDataMap(rhs.formatMap_, this->formatMap_);
+    return *this;
+}
+
+
+Format &Format::operator=(Format &&rhs)
+{
+    if (&rhs == this) {
+        return *this;
+    }
+
+    std::swap(this->formatMap_, rhs.formatMap_);
+    return *this;
 }
 
 bool Format::PutIntValue(const std::string &key, int32_t value)

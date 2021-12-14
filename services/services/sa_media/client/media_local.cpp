@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace Media {
-IMediaService &MeidaServiceFactory::GetInstance()
+IMediaService &MediaServiceFactory::GetInstance()
 {
     static MediaLocal instance;
     return instance;

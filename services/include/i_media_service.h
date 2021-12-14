@@ -97,7 +97,7 @@ public:
     virtual int32_t DestroyAVMetadataHelperService(std::shared_ptr<IAVMetadataHelperService> avMetadataHelper) = 0;
 };
 
-class __attribute__((visibility("default"))) MeidaServiceFactory {
+class __attribute__((visibility("default"))) MediaServiceFactory {
 public:
     /**
      * @brief IMediaService singleton
@@ -110,8 +110,8 @@ public:
      */
     static IMediaService &GetInstance();
 private:
-    MeidaServiceFactory() = delete;
-    ~MeidaServiceFactory() = delete;
+    MediaServiceFactory() = delete;
+    ~MediaServiceFactory() = delete;
 };
 } // namespace Media
 } // namespace OHOS
