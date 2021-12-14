@@ -13,13 +13,27 @@
  * limitations under the License.
  */
 
-#ifndef NATIVE_MODULE_OHOS_MEDIA_H_
-#define NATIVE_MODULE_OHOS_MEDIA_H_
+#ifndef MEDIA_SURFACE_H
+#define MEDIA_SURFACE_H
 
-#include "napi/native_node_api.h"
-#include "audio_player_napi.h"
-#include "video_player_napi.h"
-#include "audio_recorder_napi.h"
-#include "media_data_source_napi.h"
+#include "surface.h"
 
-#endif /* NATIVE_MODULE_OHOS_MEDIA_H_ */
+namespace OHOS {
+namespace Media {
+class MediaSurface {
+public:
+    virtual ~MediaSurface() = default;
+    virtual std::string GetSurfaceId(const sptr<Surface> &surface) = 0;
+    virtual sptr<Surface> GetSurface() = 0;
+    virtual sptr<Surface> GetSurface(const std::string &id) = 0;
+};
+
+class __attribute__((visibility("default"))) MediaSurfaceFactory {
+public:
+    static std::shared_ptr<MediaSurface> CreateMediaSurface();
+    MediaSurfaceFactory() = delete;
+    ~MediaSurfaceFactory() = delete;
+};
+}
+}
+#endif // MEDIA_SURFACE_H

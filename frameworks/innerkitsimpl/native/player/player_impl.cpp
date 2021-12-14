@@ -56,7 +56,7 @@ std::shared_ptr<Player> PlayerFactory::CreatePlayer()
 
 int32_t PlayerImpl::Init()
 {
-    playerService_ = MeidaServiceFactory::GetInstance().CreatePlayerService();
+    playerService_ = MediaServiceFactory::GetInstance().CreatePlayerService();
     CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_UNKNOWN, "failed to create player service");
     return MSERR_OK;
 }
@@ -69,7 +69,7 @@ PlayerImpl::PlayerImpl()
 PlayerImpl::~PlayerImpl()
 {
     if (playerService_ != nullptr) {
-        (void)MeidaServiceFactory::GetInstance().DestroyPlayerService(playerService_);
+        (void)MediaServiceFactory::GetInstance().DestroyPlayerService(playerService_);
         playerService_ = nullptr;
     }
     MEDIA_LOGD("PlayerImpl:0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
@@ -134,7 +134,7 @@ int32_t PlayerImpl::Release()
 {
     CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
     (void)playerService_->Release();
-    (void)MeidaServiceFactory::GetInstance().DestroyPlayerService(playerService_);
+    (void)MediaServiceFactory::GetInstance().DestroyPlayerService(playerService_);
     playerService_ = nullptr;
     return MSERR_OK;
 }

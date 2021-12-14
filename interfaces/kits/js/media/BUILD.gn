@@ -40,6 +40,7 @@ ohos_shared_library("media") {
 
   sources = [
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/common/common_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/common/media_description.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediadata/callback_warp.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediadata/callback_works.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediadata/jscallback.cpp",
@@ -48,6 +49,8 @@ ohos_shared_library("media") {
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/player/audio_player_napi.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/player/native_module_ohos_media.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/player/player_callback_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/player/video_callback_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/player/video_player_napi.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/recorder/audio_recorder_napi.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/recorder/recorder_callback_napi.cpp",
   ]
@@ -77,6 +80,7 @@ ohos_shared_library("media") {
     "//foundation/ace/napi:ace_napi",
     "//foundation/graphic/standard/frameworks/surface:surface",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_client",
+    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_surface",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//utils/native/base:utils",
     "//utils/native/base:utilsecurec",

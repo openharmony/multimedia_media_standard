@@ -93,5 +93,73 @@ napi_status CommonNapi::FillErrorArgs(napi_env env, int32_t errCode, const napi_
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, napi_invalid_arg, "set error name property fail");
     return napi_ok;
 }
+
+napi_status CommonNapi::CreateError(napi_env env, int32_t errCode, const std::string &errMsg, napi_value &errVal)
+{
+    napi_get_undefined(env, &errVal);
+
+    napi_value msgValStr = nullptr;
+    napi_status nstatus = napi_create_string_utf8(env, errMsg.c_str(), NAPI_AUTO_LENGTH, &msgValStr);
+    if (nstatus != napi_ok || msgValStr == nullptr) {
+        MEDIA_LOGE("create error message str fail");
+        return napi_invalid_arg;
+    }
+
+    nstatus = napi_create_error(env, nullptr, msgValStr, &errVal);
+    if (nstatus != napi_ok || errVal == nullptr) {
+        MEDIA_LOGE("create error fail");
+        return napi_invalid_arg;
+    }
+
+    napi_value codeStr = nullptr;
+    nstatus = napi_create_string_utf8(env, "code", NAPI_AUTO_LENGTH, &codeStr);
+    if (nstatus != napi_ok || codeStr == nullptr) {
+        MEDIA_LOGE("create code str fail");
+        return napi_invalid_arg;
+    }
+
+    napi_value errCodeVal = nullptr;
+    nstatus = napi_create_int32(env, errCode - MS_ERR_OFFSET, &errCodeVal);
+    if (nstatus != napi_ok || errCodeVal == nullptr) {
+        MEDIA_LOGE("create error code number val fail");
+        return napi_invalid_arg;
+    }
+
+    nstatus = napi_set_property(env, errVal, codeStr, errCodeVal);
+    if (nstatus != napi_ok) {
+        MEDIA_LOGE("set error code property fail");
+        return napi_invalid_arg;
+    }
+
+    napi_value nameStr = nullptr;
+    nstatus = napi_create_string_utf8(env, "name", NAPI_AUTO_LENGTH, &nameStr);
+    if (nstatus != napi_ok || nameStr == nullptr) {
+        MEDIA_LOGE("create name str fail");
+        return napi_invalid_arg;
+    }
+
+    napi_value errNameVal = nullptr;
+    nstatus = napi_create_string_utf8(env, "BusinessError", NAPI_AUTO_LENGTH, &errNameVal);
+    if (nstatus != napi_ok || errNameVal == nullptr) {
+        MEDIA_LOGE("create BusinessError str fail");
+        return napi_invalid_arg;
+    }
+
+    nstatus = napi_set_property(env, errVal, nameStr, errNameVal);
+    if (nstatus != napi_ok) {
+        MEDIA_LOGE("set error name property fail");
+        return napi_invalid_arg;
+    }
+
+    return napi_ok;
+}
+
+void MediaAsyncContext::SignError(int32_t code, std::string message)
+{
+    errMessage = message;
+    errCode = code;
+    errFlag = true;
+    MEDIA_LOGE("SignError: %{public}s", message.c_str());
+}
 }
 }

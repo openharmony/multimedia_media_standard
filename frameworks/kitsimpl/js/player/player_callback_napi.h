@@ -28,20 +28,13 @@ class PlayerCallbackNapi : public PlayerCallback {
 public:
     explicit PlayerCallbackNapi(napi_env env);
     virtual ~PlayerCallbackNapi();
-    void SaveCallbackReference(const std::string &callbackName, napi_value callback);
+    virtual void SaveCallbackReference(const std::string &callbackName, napi_value args);
     void SendErrorCallback(MediaServiceExtErrCode errCode, const std::string &info = "unknown");
-    PlayerStates GetCurrentState() const;
+    virtual PlayerStates GetCurrentState() const;
     void OnError(PlayerErrorType errName, int32_t errMsg) override;
     void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody) override;
 
-private:
-    void OnSeekDoneCb(int32_t currentPositon) const;
-    void OnEosCb(int32_t isLooping) const;
-    void OnStateChangeCb(PlayerStates state);
-    void OnPositionUpdateCb(int32_t postion) const;
-    void OnMessageCb(int32_t type) const;
-    void OnVolumeChangeCb();
-    void OnBufferingUpdateCb(const Format &infoBody) const;
+protected:
     struct PlayerJsCallback {
         std::shared_ptr<AutoRef> callback = nullptr;
         std::string callbackName = "unknown";
@@ -53,6 +46,15 @@ private:
     void OnJsCallBackError(PlayerJsCallback *jsCb) const;
     void OnJsCallBackInt(PlayerJsCallback *jsCb) const;
     void OnJsCallBackBufferingUpdate(PlayerJsCallback *jsCb) const;
+
+private:
+    void OnSeekDoneCb(int32_t currentPositon) const;
+    void OnEosCb(int32_t isLooping) const;
+    void OnStateChangeCb(PlayerStates state);
+    void OnPositionUpdateCb(int32_t postion) const;
+    void OnMessageCb(int32_t type) const;
+    void OnVolumeChangeCb();
+    void OnBufferingUpdateCb(const Format &infoBody) const;
     std::mutex mutex_;
     napi_env env_ = nullptr;
     PlayerStates currentState_ = PLAYER_IDLE;

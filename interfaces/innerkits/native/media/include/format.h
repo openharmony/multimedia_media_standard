@@ -55,6 +55,10 @@ class __attribute__((visibility("default"))) Format {
 public:
     Format() = default;
     ~Format();
+    Format(const Format &rhs);
+    Format(Format &&rhs);
+    Format &operator=(const Format &rhs);
+    Format &operator=(Format &&rhs);
     /**
      * @brief Sets metadata of the integer type.
      *
