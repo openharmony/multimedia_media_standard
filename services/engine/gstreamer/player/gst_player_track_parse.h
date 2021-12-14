@@ -41,7 +41,7 @@ private:
     static void ParseStreamStruc(const GstPad *pad, GstPlayerTrackParse *playerTrackInfo);
     static void ParseSingleCapsStructure(const GstStructure *struc, const GstPad *pad,
         std::vector<std::unordered_map<GstPad *, std::unordered_map<std::string, std::string>>> &trackInfoVec,
-        std::vector<std::string> expectedCapsFields);
+        std::vector<std::string_view> expectedCapsFields, int32_t index);
     static int32_t GetStrucFromPad(const GstPad *pad, GstStructure **struc);
     static int32_t GetMimeFromStruc(const GstStructure *struc, std::string &mime);
     static void AddProbeToPad(const GstPad *pad, GstPlayerTrackParse *playerTrackInfo);
@@ -49,13 +49,13 @@ private:
     static void ParseTagList(const GstPad *pad, const GstTagList *tagList, GstPlayerTrackParse *playerTrackInfo);
     static std::unordered_map<std::string, std::string> *FindTrackInfoMap(const GstPad *pad,
         std::vector<std::unordered_map<GstPad *, std::unordered_map<std::string, std::string>>> &trackInfoVec);
-    static void ParseTag(const GstTagList *tagList, guint tagIndex, std::vector<std::string> expectedTagFields,
+    static void ParseTag(const GstTagList *tagList, guint tagIndex, std::vector<std::string_view> expectedTagFields,
         std::unordered_map<std::string, std::string> *trackInfoMap);
     static std::string GetSerializedValue(const GValue *value);
     static void ParseTagAndSaveTrackInfo(const GstPad *pad, const GstTagList *tagList,
-        std::vector<std::string> expectedTagFields,
+        std::vector<std::string_view> expectedTagFields,
         std::vector<std::unordered_map<GstPad *, std::unordered_map<std::string, std::string>>> &trackInfoVec);
-
+    int32_t trackIndex_ = 0;
     bool demuxerElementFind_ = false;
     std::vector<std::unordered_map<GstPad *, std::unordered_map<std::string, std::string>>> videoTrackInfo_;
     std::vector<std::unordered_map<GstPad *, std::unordered_map<std::string, std::string>>> audioTrackInfo_;

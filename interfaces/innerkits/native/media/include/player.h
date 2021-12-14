@@ -25,14 +25,16 @@ namespace OHOS {
 namespace Media {
 class PlayerKeys {
 public:
+    static constexpr std::string_view PLAYER_TRACK_INDEX = "track_index";
+    static constexpr std::string_view PLAYER_TRACK_TYPE = "track_type";
     static constexpr std::string_view PLAYER_WIDTH = "width";
     static constexpr std::string_view PLAYER_HEIGHT = "height";
-    static constexpr std::string_view PLAYER_MIME = "mime";
+    static constexpr std::string_view PLAYER_MIME = "codec_mime";
     static constexpr std::string_view PLAYER_BITRATE = "bitrate";
     static constexpr std::string_view PLAYER_FRAMERATE = "framerate";
-    static constexpr std::string_view PLAYER_LANGUGAE = "language-code";
-    static constexpr std::string_view PLAYER_SAMPLE_RATE = "rate";
-    static constexpr std::string_view PLAYER_CHANNELS = "channels";
+    static constexpr std::string_view PLAYER_LANGUGAE = "language_code";
+    static constexpr std::string_view PLAYER_SAMPLE_RATE = "sample_rate";
+    static constexpr std::string_view PLAYER_CHANNELS = "channel_count";
     static constexpr std::string_view PLAYER_BUFFERING_START = "buffering_start";
     static constexpr std::string_view PLAYER_BUFFERING_END = "buffering_end";
     static constexpr std::string_view PLAYER_BUFFERING_PERCENT = "buffering_percent";
