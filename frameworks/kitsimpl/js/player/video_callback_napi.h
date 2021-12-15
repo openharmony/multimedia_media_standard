@@ -50,13 +50,19 @@ struct VideoPlayerAsyncContext : public MediaAsyncContext {
 class VideoCallbackNapi : public PlayerCallbackNapi {
 public:
     explicit VideoCallbackNapi(napi_env env);
-    virtual ~VideoCallbackNapi();
+    virtual ~VideoCallbackNapi() override;
 
     void SaveCallbackReference(const std::string &callbackName, napi_value callback) override;
     void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody) override;
     PlayerStates GetCurrentState() const override;
-    int32_t GetVideoWidth() const { return width_; }
-    int32_t GetVideoHeight() const { return height_; }
+    int32_t GetVideoWidth() const
+    {
+        return width_;
+    }
+    int32_t GetVideoHeight() const
+    {
+        return height_;
+    }
     void QueueAsyncWork(VideoPlayerAsyncContext *context);
     void ClearAsyncWork();
 

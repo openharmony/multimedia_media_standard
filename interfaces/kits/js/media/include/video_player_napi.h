@@ -111,28 +111,28 @@ private:
     static napi_value GetLoop(napi_env env, napi_callback_info info);
     /**
      * readonly currentTime: number
-     */    
+     */
     static napi_value GetCurrentTime(napi_env env, napi_callback_info info);
     /**
      * readonly duration: number
-     */   
+     */
     static napi_value GetDuration(napi_env env, napi_callback_info info);
     /**
      * readonly state: VideoPlayState
-     */  
+     */
     static napi_value GetState(napi_env env, napi_callback_info info);
     /**
      * readonly width: number
-     */  
+     */
     static napi_value GetWidth(napi_env env, napi_callback_info info);
     /**
      * readonly height: number
-     */ 
+     */
     static napi_value GetHeight(napi_env env, napi_callback_info info);
     /**
      * getTrackDescription(callback:AsyncCallback<Array<MediaDescription>>): void
      * getTrackDescription(): Promise<Array<MediaDescription>>
-     */ 
+     */
     static napi_value GetTrackDescription(napi_env env, napi_callback_info info);
     /**
      * on(type: 'playbackCompleted', callback: Callback<void>): void
@@ -140,7 +140,7 @@ private:
      * on(type: 'startRenderFrame', callback: Callback<void>): void
      * on(type: 'videoSizeChanged', callback: (width: number, height: number)) => void): void
      * on(type: 'error', callback: ErrorCallback): void
-     */ 
+     */
     static napi_value On(napi_env env, napi_callback_info info);
     static void AsyncGetTrackDescription(napi_env env, void *data);
     static void AsyncSetDisplaySurface(napi_env env, void *data);

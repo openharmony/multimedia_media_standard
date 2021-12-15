@@ -21,7 +21,7 @@
 #include "media_errors.h"
 #include "media_data_source_napi.h"
 #include "media_data_source_callback.h"
-#include "media_description.h"
+#include "media_description_napi.h"
 #include "common_napi.h"
 #include "media_surface.h"
 
@@ -338,7 +338,7 @@ void VideoPlayerNapi::AsyncSetDisplaySurface(napi_env env, void *data)
 {
     MEDIA_LOGD("AsyncSetDisplaySurface In");
     auto asyncContext = reinterpret_cast<VideoPlayerAsyncContext *>(data);
-    CHECK_AND_RETURN_LOG(asyncContext != nullptr, "VideoPlayerAsyncContext is nullptr!"); 
+    CHECK_AND_RETURN_LOG(asyncContext != nullptr, "VideoPlayerAsyncContext is nullptr!");
  
     if (asyncContext->jsPlayer == nullptr ||
         asyncContext->jsPlayer->nativePlayer_ == nullptr) {
@@ -405,7 +405,7 @@ void VideoPlayerNapi::AsyncGetDisplaySurface(napi_env env, void *data)
 {
     MEDIA_LOGD("AsyncGetDisplaySurface In");
     auto asyncContext = reinterpret_cast<VideoPlayerAsyncContext *>(data);
-    CHECK_AND_RETURN_LOG(asyncContext != nullptr, "VideoPlayerAsyncContext is nullptr!"); 
+    CHECK_AND_RETURN_LOG(asyncContext != nullptr, "VideoPlayerAsyncContext is nullptr!");
 
     auto mediaSurface = MediaSurfaceFactory::CreateMediaSurface();
     if (mediaSurface == nullptr) {
@@ -512,7 +512,7 @@ napi_value VideoPlayerNapi::Prepare(napi_env env, napi_callback_info info)
     MEDIA_LOGD("Prepare In");
 
     std::unique_ptr<VideoPlayerAsyncContext> asyncContext = std::make_unique<VideoPlayerAsyncContext>(env);
-    asyncContext->asyncWorkType = AsyncWorkType::ASYNC_WORK_PREPARE; 
+    asyncContext->asyncWorkType = AsyncWorkType::ASYNC_WORK_PREPARE;
 
     // get args
     napi_value jsThis = nullptr;
@@ -545,7 +545,7 @@ napi_value VideoPlayerNapi::Play(napi_env env, napi_callback_info info)
     MEDIA_LOGD("Play In");
 
     std::unique_ptr<VideoPlayerAsyncContext> asyncContext = std::make_unique<VideoPlayerAsyncContext>(env);
-    asyncContext->asyncWorkType = AsyncWorkType::ASYNC_WORK_PLAY; 
+    asyncContext->asyncWorkType = AsyncWorkType::ASYNC_WORK_PLAY;
     // get args
     napi_value jsThis = nullptr;
     napi_value args[1] = { nullptr };
@@ -576,7 +576,7 @@ napi_value VideoPlayerNapi::Pause(napi_env env, napi_callback_info info)
 
     MEDIA_LOGD("Pause In");
     std::unique_ptr<VideoPlayerAsyncContext> asyncContext = std::make_unique<VideoPlayerAsyncContext>(env);
-    asyncContext->asyncWorkType = AsyncWorkType::ASYNC_WORK_PAUSE; 
+    asyncContext->asyncWorkType = AsyncWorkType::ASYNC_WORK_PAUSE;
 
     // get args
     napi_value jsThis = nullptr;
@@ -609,7 +609,7 @@ napi_value VideoPlayerNapi::Stop(napi_env env, napi_callback_info info)
 
     MEDIA_LOGD("Stop In");
     std::unique_ptr<VideoPlayerAsyncContext> asyncContext = std::make_unique<VideoPlayerAsyncContext>(env);
-    asyncContext->asyncWorkType = AsyncWorkType::ASYNC_WORK_STOP; 
+    asyncContext->asyncWorkType = AsyncWorkType::ASYNC_WORK_STOP;
 
     // get args
     napi_value jsThis = nullptr;
@@ -641,7 +641,7 @@ napi_value VideoPlayerNapi::Reset(napi_env env, napi_callback_info info)
 
     MEDIA_LOGD("Reset In");
     std::unique_ptr<VideoPlayerAsyncContext> asyncContext = std::make_unique<VideoPlayerAsyncContext>(env);
-    asyncContext->asyncWorkType = AsyncWorkType::ASYNC_WORK_RESET; 
+    asyncContext->asyncWorkType = AsyncWorkType::ASYNC_WORK_RESET;
 
     // get args
     napi_value jsThis = nullptr;
@@ -717,7 +717,7 @@ napi_value VideoPlayerNapi::Seek(napi_env env, napi_callback_info info)
 
     MEDIA_LOGD("Seek In");
     std::unique_ptr<VideoPlayerAsyncContext> asyncContext = std::make_unique<VideoPlayerAsyncContext>(env);
-    asyncContext->asyncWorkType = AsyncWorkType::ASYNC_WORK_SEEK;     
+    asyncContext->asyncWorkType = AsyncWorkType::ASYNC_WORK_SEEK;
 
     // get args
     napi_value jsThis = nullptr;
@@ -728,7 +728,7 @@ napi_value VideoPlayerNapi::Seek(napi_env env, napi_callback_info info)
         asyncContext->SignError(MSERR_EXT_INVALID_VAL, "failed to napi_get_cb_info");
     }
 
-    // get seek time 
+    // get seek time
     napi_valuetype valueType = napi_undefined;
     if (args[0] == nullptr || napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_number) {
         asyncContext->SignError(MSERR_EXT_INVALID_VAL, "failed to get seek time");
@@ -740,7 +740,9 @@ napi_value VideoPlayerNapi::Seek(napi_env env, napi_callback_info info)
     if (args[1] != nullptr && napi_typeof(env, args[1], &valueType) == napi_ok) {
         if (valueType == napi_number) { // get seek mode
             status = napi_get_value_int32(env, args[1], &asyncContext->seekMode);
-            if (status != napi_ok || asyncContext->seekMode < SEEK_PREVIOUS_SYNC || asyncContext->seekMode > SEEK_CLOSEST) {
+            if (status != napi_ok ||
+                asyncContext->seekMode < SEEK_PREVIOUS_SYNC ||
+                asyncContext->seekMode > SEEK_CLOSEST) {
                 asyncContext->SignError(MSERR_EXT_INVALID_VAL, "seek mode invalid");
             }
         } else if (valueType == napi_function) {
@@ -770,7 +772,7 @@ napi_value VideoPlayerNapi::SetSpeed(napi_env env, napi_callback_info info)
 
     MEDIA_LOGD("SetSpeed In");
     std::unique_ptr<VideoPlayerAsyncContext> asyncContext = std::make_unique<VideoPlayerAsyncContext>(env);
-    asyncContext->asyncWorkType = AsyncWorkType::ASYNC_WORK_SPEED; 
+    asyncContext->asyncWorkType = AsyncWorkType::ASYNC_WORK_SPEED;
 
     // get args
     napi_value jsThis = nullptr;
@@ -781,13 +783,15 @@ napi_value VideoPlayerNapi::SetSpeed(napi_env env, napi_callback_info info)
         asyncContext->SignError(MSERR_EXT_INVALID_VAL, "failed to napi_get_cb_info");
     }
 
-    // get speed mode 
+    // get speed mode
     napi_valuetype valueType = napi_undefined;
     if (args[0] == nullptr || napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_number) {
         asyncContext->SignError(MSERR_EXT_INVALID_VAL, "failed get speed mode");
     }
     status = napi_get_value_int32(env, args[0], &asyncContext->speedMode);
-    if (status != napi_ok || asyncContext->speedMode < SPEED_FORWARD_0_75_X || asyncContext->speedMode > SPEED_FORWARD_2_00_X) {
+    if (status != napi_ok ||
+        asyncContext->speedMode < SPEED_FORWARD_0_75_X ||
+        asyncContext->speedMode > SPEED_FORWARD_2_00_X) {
         asyncContext->SignError(MSERR_EXT_INVALID_VAL, "speed mode invalid");
     }
     asyncContext->callbackRef = CommonNapi::CreateReference(env, args[1]);
@@ -808,7 +812,7 @@ napi_value VideoPlayerNapi::SetSpeed(napi_env env, napi_callback_info info)
 void VideoPlayerNapi::AsyncGetTrackDescription(napi_env env, void *data)
 {
     auto asyncContext = reinterpret_cast<VideoPlayerAsyncContext *>(data);
-    CHECK_AND_RETURN_LOG(asyncContext != nullptr, "VideoPlayerAsyncContext is nullptr!");  
+    CHECK_AND_RETURN_LOG(asyncContext != nullptr, "VideoPlayerAsyncContext is nullptr!");
 
     if (asyncContext->jsPlayer == nullptr || asyncContext->jsPlayer->nativePlayer_ == nullptr) {
         asyncContext->SignError(MSERR_EXT_NO_MEMORY, "jsPlayer or nativePlayer is nullptr");
@@ -844,7 +848,7 @@ void VideoPlayerNapi::AsyncGetTrackDescription(napi_env env, void *data)
     }
 
     auto vecSize = videoInfo.size();
-    for (size_t index = 0; index < vecSize; ++index) {        
+    for (size_t index = 0; index < vecSize; ++index) {
         napi_value description = nullptr;
         description = MediaDescriptionNapi::CreateMediaDescription(env, videoInfo[index]);
         if (description == nullptr || napi_set_element(env, videoArray, index, description) != napi_ok) {
@@ -893,7 +897,7 @@ napi_value VideoPlayerNapi::SetVolume(napi_env env, napi_callback_info info)
 
     MEDIA_LOGD("SetVolume In");
     std::unique_ptr<VideoPlayerAsyncContext> asyncContext = std::make_unique<VideoPlayerAsyncContext>(env);
-    asyncContext->asyncWorkType = AsyncWorkType::ASYNC_WORK_VOLUME; 
+    asyncContext->asyncWorkType = AsyncWorkType::ASYNC_WORK_VOLUME;
 
     // get args
     napi_value jsThis = nullptr;
