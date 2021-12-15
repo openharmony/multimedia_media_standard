@@ -206,7 +206,7 @@ bool Format::GetDoubleValue(const std::string_view &key, double &value) const
 
 bool Format::PutBuffer(const std::string_view &key, const uint8_t *addr, size_t size)
 {
-    const size_t sizeMax = 1024;
+    const size_t sizeMax = 1 * 1024 * 1024;
     if (size > sizeMax) {
         MEDIA_LOGE("PutBuffer input size failed. Key: %{public}s", key.data());
         return false;
@@ -220,6 +220,9 @@ bool Format::PutBuffer(const std::string_view &key, const uint8_t *addr, size_t 
         MEDIA_LOGE("PutBuffer memcpy addr failed. Key: %{public}s", key.data());
         return false;
     }
+
+    RemoveKey(key);
+
     data.size = size;
     auto ret = formatMap_.insert(std::make_pair(key, data));
     return ret.second;
@@ -235,6 +238,26 @@ bool Format::GetBuffer(const std::string_view &key, uint8_t **addr, size_t &size
     *addr = iter->second.addr;
     size = iter->second.size;
     return true;
+}
+
+bool Format::ContainKey(const std::string_view &key) const
+{
+    auto iter = formatMap_.find(key);
+    if (iter != formatMap_.end()) {
+        return true;
+    }
+
+    return false;
+}
+
+FormatDataType Format::GetValueType(const std::string_view &key) const
+{
+    auto iter = formatMap_.find(key);
+    if (iter == formatMap_.end()) {
+        return FORMAT_TYPE_NONE;
+    }
+
+    return iter->second.type;
 }
 
 void Format::RemoveKey(const std::string_view &key)

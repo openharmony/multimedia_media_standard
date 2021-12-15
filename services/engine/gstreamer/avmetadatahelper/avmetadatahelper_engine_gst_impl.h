@@ -40,6 +40,7 @@ public:
     std::unordered_map<int32_t, std::string> ResolveMetadata() override;
     std::shared_ptr<AVSharedMemory> FetchFrameAtTime(
         int64_t timeUs, int32_t option, const OutputConfiguration &param) override;
+    std::shared_ptr<AVSharedMemory> FetchArtPicture() override;
 
 private:
     void OnNotifyMessage(const PlayBinMessage &msg);

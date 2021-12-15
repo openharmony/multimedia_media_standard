@@ -135,6 +135,18 @@ std::unordered_map<int32_t, std::string> AVMetadataHelperEngineGstImpl::ResolveM
     return collectedMeta_;
 }
 
+std::shared_ptr<AVSharedMemory> AVMetadataHelperEngineGstImpl::FetchArtPicture()
+{
+    MEDIA_LOGD("enter");
+
+    int32_t ret = ExtractMetadata();
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, nullptr);
+
+    auto result = metaCollector_->FetchArtPicture();
+    MEDIA_LOGD("exit");
+    return result;
+}
+
 std::shared_ptr<AVSharedMemory> AVMetadataHelperEngineGstImpl::FetchFrameAtTime(
     int64_t timeUs, int32_t option, const OutputConfiguration &param)
 {

@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstdio>
+#include <fstream>
 #include "jpeglib.h"
 #include "string_ex.h"
 #include "securec.h"
@@ -306,6 +307,26 @@ void AVMetadataHelperDemo::FetchFrame(std::queue<std::string_view> &options)
     DoFetchFrame(timeUs, queryOption, param);
 }
 
+void AVMetadataHelperDemo::FetchArtPicture(std::queue<std::string_view> &options)
+{
+    (void)options;
+    auto result = avMetadataHelper_->FetchArtPicture();
+    if (result == nullptr) {
+        std::cout << "Fetch art picture failed" << std::endl;
+        return;
+    }
+
+    std::ofstream ofs("/data/media/cover.img");
+    if (!ofs.is_open()) {
+        std::cout << "open /data/media/cover.img failed" << std::endl;
+        return;
+    }
+
+    ofs.write(reinterpret_cast<char *>(result->GetBase()), reinterpret_cast<std::streamsize>(result->GetSize()));
+    ofs.close();
+    std::cout << "save art picture to /data/media/cover.img" << std::endl;
+}
+
 void AVMetadataHelperDemo::DoNext()
 {
     std::string cmd;
@@ -330,6 +351,11 @@ void AVMetadataHelperDemo::DoNext()
 
         if (funcName.compare("fetchframe") == 0) {
             FetchFrame(options);
+            continue;
+        }
+
+        if (funcName.compare("artpicture") == 0) {
+            FetchArtPicture(options);
             continue;
         }
 

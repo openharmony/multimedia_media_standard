@@ -192,6 +192,14 @@ std::unordered_map<int32_t, std::string> AVMetadataHelperImpl::ResolveMetadata()
     return avMetadataHelperService_->ResolveMetadata();
 }
 
+std::shared_ptr<AVSharedMemory> AVMetadataHelperImpl::FetchArtPicture()
+{
+    CHECK_AND_RETURN_RET_LOG(avMetadataHelperService_ != nullptr, nullptr,
+        "avmetadatahelper service does not exist.");
+
+    return avMetadataHelperService_->FetchArtPicture();
+}
+
 std::shared_ptr<PixelMap> AVMetadataHelperImpl::FetchFrameAtTime(
     int64_t timeUs, int32_t option, const PixelMapParams &param)
 {
