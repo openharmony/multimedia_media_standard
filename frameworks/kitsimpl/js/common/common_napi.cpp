@@ -166,12 +166,12 @@ napi_ref CommonNapi::CreateReference(napi_env env, napi_value arg)
     return ref;
 }
 
-napi_deferred CommonNapi::CreatePromise(napi_env env, napi_ref ref, napi_value *result)
+napi_deferred CommonNapi::CreatePromise(napi_env env, napi_ref ref, napi_value &result)
 {
     napi_deferred deferred = nullptr;
     if (ref == nullptr) {
         MEDIA_LOGD("napi_create_promise");
-        napi_create_promise(env, &deferred, result);
+        napi_create_promise(env, &deferred, &result);
     }
     return deferred;
 }
@@ -206,7 +206,7 @@ void MediaAsyncContext::CompleteCallback(napi_env env, napi_status status, void 
     } else {
         MEDIA_LOGD("async callback success");
         if (asyncContext->JsResult != nullptr) {
-            asyncContext->JsResult->GetJsResult(env, &result);
+            asyncContext->JsResult->GetJsResult(env, result);
         }
         args[1] = result;
     }
