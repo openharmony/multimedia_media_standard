@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "media_description.h"
+#include "media_description_napi.h"
 #include <climits>
 #include "media_log.h"
 #include "media_errors.h"

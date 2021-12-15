@@ -219,7 +219,8 @@ void VideoCallbackNapi::OnVolumeDoneCb()
 void VideoCallbackNapi::OnStartRenderFrameCb() const
 {
     MEDIA_LOGD("OnStartRenderFrameCb is called");
-    CHECK_AND_RETURN_LOG(startRenderFrameCallback_ != nullptr, "Cannot find the reference of startRenderFrame callback");
+    CHECK_AND_RETURN_LOG(startRenderFrameCallback_ != nullptr,
+        "Cannot find the reference of startRenderFrame callback");
 
     PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
     CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
@@ -234,7 +235,8 @@ void VideoCallbackNapi::OnVideoSizeChangedCb(const Format &infoBody)
     (void)infoBody.GetIntValue(PlayerKeys::PLAYER_WIDTH, width_);
     (void)infoBody.GetIntValue(PlayerKeys::PLAYER_HEIGHT, height_);
 
-    CHECK_AND_RETURN_LOG(videoSizeChangedCallback_ != nullptr, "Cannot find the reference of videoSizeChanged callback");
+    CHECK_AND_RETURN_LOG(videoSizeChangedCallback_ != nullptr,
+        "Cannot find the reference of videoSizeChanged callback");
     PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
     CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
     cb->callback = videoSizeChangedCallback_;
@@ -247,7 +249,8 @@ void VideoCallbackNapi::OnVideoSizeChangedCb(const Format &infoBody)
 void VideoCallbackNapi::OnPlaybackCompleteCb() const
 {
     MEDIA_LOGD("OnPlaybackCompleteCb is called");
-    CHECK_AND_RETURN_LOG(playbackCompletedCallback_ != nullptr, "Cannot find the reference of startRenderFrame callback");
+    CHECK_AND_RETURN_LOG(playbackCompletedCallback_ != nullptr,
+        "Cannot find the reference of startRenderFrame callback");
 
     PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
     CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
