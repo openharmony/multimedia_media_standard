@@ -200,6 +200,14 @@ public:
     virtual std::unordered_map<int32_t, std::string> ResolveMetadata() = 0;
 
     /**
+     * Fetch the album art picture associated with the data source. If there are
+     * more than one pictures, the cover image will be returned preferably.
+     * @return Returns the a chunk of shared memory containing a picture, which can be
+     * null, if such a picture can not be fetched.
+     */
+    virtual std::shared_ptr<AVSharedMemory> FetchArtPicture() = 0;
+
+    /**
      * Fetch a representative video frame near a given timestamp by considering the given
      * option if possible, and return a pixelmap with given parameters. This method must be
      * called after the SetSource.

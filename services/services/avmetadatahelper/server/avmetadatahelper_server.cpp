@@ -75,6 +75,13 @@ std::unordered_map<int32_t, std::string> AVMetadataHelperServer::ResolveMetadata
     return avMetadataHelperEngine_->ResolveMetadata();
 }
 
+std::shared_ptr<AVSharedMemory> AVMetadataHelperServer::FetchArtPicture()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(avMetadataHelperEngine_ != nullptr, {}, "avMetadataHelperEngine_ is nullptr");
+    return avMetadataHelperEngine_->FetchArtPicture();
+}
+
 std::shared_ptr<AVSharedMemory> AVMetadataHelperServer::FetchFrameAtTime(int64_t timeUs, int32_t option,
     const OutputConfiguration &param)
 {

@@ -56,10 +56,12 @@ class __attribute__((visibility("default"))) Format {
 public:
     Format() = default;
     ~Format();
+
     Format(const Format &rhs);
     Format(Format &&rhs) noexcept;
     Format &operator=(const Format &rhs);
     Format &operator=(Format &&rhs) noexcept;
+
     /**
      * @brief Sets metadata of the integer type.
      *
@@ -195,6 +197,23 @@ public:
      * @version 1.0
      */
     bool GetBuffer(const std::string_view &key, uint8_t **addr, size_t &size) const;
+
+    /**
+     * @brief Query whether the key exists in this Format.
+     *
+     * @param key Indicates the metadata key.
+     * @return true
+     * @return false
+     */
+    bool ContainKey(const std::string_view &key) const;
+
+    /**
+     * @brief Get the value type for the key if the key exists in this Format.
+     *
+     * @param key Indicates the metadata key.
+     * @return FormatDataType. If the key does not exists, return FORMAT_TYPE_NONE.
+     */
+    FormatDataType GetValueType(const std::string_view &key) const;
 
     /**
      * @brief Remove the key from the Format

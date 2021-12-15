@@ -39,13 +39,14 @@ public:
     void Stop(bool unlock = false);
     std::unordered_map<int32_t, std::string> GetMetadata();
     std::string GetMetadata(int32_t key);
+    std::shared_ptr<AVSharedMemory> FetchArtPicture();
 
 private:
     uint8_t ProbeElemType(GstElement &source);
     void AddElemCollector(GstElement &source, uint8_t elemType);
     void AddElemBlocker(GstElement &source, uint8_t elemType);
     void UpdateElemBlocker(GstElement &source, uint8_t elemType);
-    void UpdataMeta(int32_t trackId, const Metadata &metadata);
+    void UpdataMeta(const Metadata &metadata);
     bool CheckCollectCompleted() const;
     void AdjustMimeType();
     void StopBlocker(bool unlock);
@@ -56,14 +57,13 @@ private:
     std::vector<std::unique_ptr<AVMetaElemMetaCollector>> elemCollectors_;
     std::unordered_map<uint8_t, uint8_t> hasSrcType_;
     Metadata allMeta_;
-    std::set<int32_t> trackMetaCollected_;
     bool stopCollecting_ = false;
+
+    class MultiQueueCutOut;
+    std::unique_ptr<MultiQueueCutOut> mqCutOut_;
 
     using BufferBlockerVec = std::vector<std::shared_ptr<AVMetaBufferBlocker>>;
     std::unordered_map<uint8_t, BufferBlockerVec> blockers_;
-    std::vector<std::pair<GstElement *, gulong>> signalIds_;
-    uint8_t currSetupedElemType_;
-    size_t currSetupedElemIdx_ = 0;
 };
 }
 }
