@@ -83,10 +83,10 @@ private:
 struct MediaAsyncContext {
     explicit MediaAsyncContext(napi_env env) : env(env) {}
     virtual ~MediaAsyncContext() = default;
-    static void AsyncCallback(napi_env env, napi_status status, void *data);
+    static void CompleteCallback(napi_env env, napi_status status, void *data);
     void SignError(int32_t code, std::string message);
     napi_env env;
-    napi_async_work work;
+    napi_async_work work = nullptr;
     napi_deferred deferred = nullptr;
     napi_ref callbackRef = nullptr;
     std::unique_ptr<MediaJsResult> JsResult;
@@ -118,6 +118,8 @@ public:
     static bool GetPropertyInt32(napi_env env, napi_value configObj, const std::string &type, int32_t &result);
     static napi_status FillErrorArgs(napi_env env, int32_t errCode, const napi_value &args);
     static napi_status CreateError(napi_env env, int32_t errCode, const std::string &errMsg, napi_value &errVal);
+    static napi_ref CreateReference(napi_env env, napi_value arg);
+    static napi_deferred CreatePromise(napi_env env, napi_ref ref, napi_value *result);
 };
 }
 }
