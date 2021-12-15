@@ -22,17 +22,74 @@
 
 namespace OHOS {
 namespace Media {
-struct MediaAsyncContext {
-    explicit MediaAsyncContext(napi_env env) : env(env) {
-        napi_get_undefined(env, &asyncResult);
+class MediaJsResult {
+public:
+    virtual ~MediaJsResult() = default;
+    virtual napi_status GetJsResult(napi_env env, napi_value *result) = 0;
+};
+
+class MediaJsResultInt : public MediaJsResult {
+public:
+    explicit MediaJsResultInt(const int32_t &value)
+        : value_(value)
+    {
     }
+    ~MediaJsResultInt() = default;
+    napi_status GetJsResult(napi_env env, napi_value *result) override
+    {
+        return napi_create_int32(env, value_, result);
+    }
+private:
+    int32_t value_;
+};
+
+class MediaJsResultString : public MediaJsResult {
+public:
+    explicit MediaJsResultString(const std::string &value)
+        : value_(value)
+    {
+    }
+    ~MediaJsResultString() = default;
+    napi_status GetJsResult(napi_env env, napi_value *result) override
+    {
+        return napi_create_string_utf8(env, value_.c_str(), NAPI_AUTO_LENGTH, result);
+    }
+
+private:
+    std::string value_;
+};
+
+class MediaJsResultInstance : public MediaJsResult {
+public:
+    explicit MediaJsResultInstance(const napi_ref &constructor)
+        : constructor_(constructor)
+    {
+    }
+    ~MediaJsResultInstance() = default;
+    napi_status GetJsResult(napi_env env, napi_value *result) override
+    {
+        napi_value constructor = nullptr;
+        napi_status ret = napi_get_reference_value(env, constructor_, &constructor);
+        if (ret != napi_ok || constructor == nullptr) {
+            return ret;
+        }
+        return napi_new_instance(env, constructor, 0, nullptr, result);
+    }
+
+private:
+    napi_ref constructor_;
+};
+
+struct MediaAsyncContext {
+    explicit MediaAsyncContext(napi_env env) : env(env) {}
     virtual ~MediaAsyncContext() = default;
+    static void AsyncCallback(napi_env env, napi_status status, void *data);
     void SignError(int32_t code, std::string message);
     napi_env env;
     napi_async_work work;
     napi_deferred deferred = nullptr;
     napi_ref callbackRef = nullptr;
-    napi_value asyncResult;
+    std::unique_ptr<MediaJsResult> JsResult;
     bool errFlag = false;
     int32_t errCode = 0;
     std::string errMessage = "";

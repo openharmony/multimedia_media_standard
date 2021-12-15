@@ -43,13 +43,15 @@ MediaSurfaceImpl::~MediaSurfaceImpl()
 std::string MediaSurfaceImpl::GetSurfaceId(const sptr<Surface> &surface)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    for (auto it = surfaceMap_.begin(); it != surfaceMap_.end(); ++it) {
+    auto it = surfaceMap_.begin();
+    while (it != surfaceMap_.end()) {
         if (it->second.promote() == surface) {
             return it->first;
         }
         if (it->second.promote() == nullptr) {
-            surfaceMap_.erase(it);
-            --it;
+            it = surfaceMap_.erase(it);
+        } else {
+            ++it;
         }
     }
     wptr<Surface> wpSurface = surface;
@@ -73,6 +75,7 @@ sptr<Surface> MediaSurfaceImpl::GetSurface(const std::string &id)
 
 sptr<Surface> MediaSurfaceImpl::GetSurface()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     sptr<WindowManager> wmi = WindowManager::GetInstance();
     CHECK_AND_RETURN_RET_LOG(wmi != nullptr, nullptr, "WindowManager is nullptr!");
 
