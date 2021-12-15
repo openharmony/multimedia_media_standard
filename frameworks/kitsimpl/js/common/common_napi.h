@@ -25,7 +25,7 @@ namespace Media {
 class MediaJsResult {
 public:
     virtual ~MediaJsResult() = default;
-    virtual napi_status GetJsResult(napi_env env, napi_value *result) = 0;
+    virtual napi_status GetJsResult(napi_env env, napi_value &result) = 0;
 };
 
 class MediaJsResultInt : public MediaJsResult {
@@ -35,9 +35,9 @@ public:
     {
     }
     ~MediaJsResultInt() = default;
-    napi_status GetJsResult(napi_env env, napi_value *result) override
+    napi_status GetJsResult(napi_env env, napi_value &result) override
     {
-        return napi_create_int32(env, value_, result);
+        return napi_create_int32(env, value_, &result);
     }
 private:
     int32_t value_;
@@ -50,9 +50,9 @@ public:
     {
     }
     ~MediaJsResultString() = default;
-    napi_status GetJsResult(napi_env env, napi_value *result) override
+    napi_status GetJsResult(napi_env env, napi_value &result) override
     {
-        return napi_create_string_utf8(env, value_.c_str(), NAPI_AUTO_LENGTH, result);
+        return napi_create_string_utf8(env, value_.c_str(), NAPI_AUTO_LENGTH, &result);
     }
 
 private:
@@ -66,14 +66,14 @@ public:
     {
     }
     ~MediaJsResultInstance() = default;
-    napi_status GetJsResult(napi_env env, napi_value *result) override
+    napi_status GetJsResult(napi_env env, napi_value &result) override
     {
         napi_value constructor = nullptr;
         napi_status ret = napi_get_reference_value(env, constructor_, &constructor);
         if (ret != napi_ok || constructor == nullptr) {
             return ret;
         }
-        return napi_new_instance(env, constructor, 0, nullptr, result);
+        return napi_new_instance(env, constructor, 0, nullptr, &result);
     }
 
 private:
@@ -119,7 +119,7 @@ public:
     static napi_status FillErrorArgs(napi_env env, int32_t errCode, const napi_value &args);
     static napi_status CreateError(napi_env env, int32_t errCode, const std::string &errMsg, napi_value &errVal);
     static napi_ref CreateReference(napi_env env, napi_value arg);
-    static napi_deferred CreatePromise(napi_env env, napi_ref ref, napi_value *result);
+    static napi_deferred CreatePromise(napi_env env, napi_ref ref, napi_value &result);
 };
 }
 }
