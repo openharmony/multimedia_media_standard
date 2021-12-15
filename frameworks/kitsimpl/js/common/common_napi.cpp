@@ -154,6 +154,28 @@ napi_status CommonNapi::CreateError(napi_env env, int32_t errCode, const std::st
     return napi_ok;
 }
 
+napi_ref CommonNapi::CreateReference(napi_env env, napi_value arg)
+{
+    napi_ref ref = nullptr;
+    napi_valuetype valueType = napi_undefined;
+    if (arg != nullptr && napi_typeof(env, arg, &valueType) == napi_ok && valueType == napi_function) {
+        const size_t refCount = 1;
+        MEDIA_LOGD("napi_create_reference");
+        napi_create_reference(env, arg, refCount, &ref);      
+    }
+    return ref;
+}
+
+napi_deferred CommonNapi::CreatePromise(napi_env env, napi_ref ref, napi_value *result)
+{
+    napi_deferred deferred = nullptr;
+    if (ref == nullptr) {
+        MEDIA_LOGD("napi_create_promise");
+        napi_create_promise(env, &deferred, result);
+    }
+    return deferred;
+}
+
 void MediaAsyncContext::SignError(int32_t code, std::string message)
 {
     errMessage = message;
@@ -162,9 +184,9 @@ void MediaAsyncContext::SignError(int32_t code, std::string message)
     MEDIA_LOGE("SignError: %{public}s", message.c_str());
 }
 
-void MediaAsyncContext::AsyncCallback(napi_env env, napi_status status, void *data)
+void MediaAsyncContext::CompleteCallback(napi_env env, napi_status status, void *data)
 {
-    MEDIA_LOGD("AsyncCallback In");
+    MEDIA_LOGD("CompleteCallback In");
     auto asyncContext = reinterpret_cast<MediaAsyncContext *>(data);
     CHECK_AND_RETURN_LOG(asyncContext != nullptr, "asyncContext is nullptr!");
 

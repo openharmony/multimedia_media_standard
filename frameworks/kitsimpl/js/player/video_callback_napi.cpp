@@ -168,7 +168,7 @@ void VideoCallbackNapi::OnSeekDoneCb(int32_t positon)
     napi_value resource = nullptr;
     (void)napi_create_string_utf8(context->env, "SeekDone", NAPI_AUTO_LENGTH, &resource);
     (void)napi_create_async_work(context->env, nullptr, resource, [](napi_env env, void* data) {},
-        MediaAsyncContext::AsyncCallback, static_cast<void *>(context), &context->work);
+        MediaAsyncContext::CompleteCallback, static_cast<void *>(context), &context->work);
     (void)napi_queue_async_work(context->env, context->work);
 }
 
@@ -193,7 +193,7 @@ void VideoCallbackNapi::OnSpeedDoneCb(int32_t speedMode)
     napi_value resource = nullptr;
     (void)napi_create_string_utf8(context->env, "SpeedDone", NAPI_AUTO_LENGTH, &resource);
     (void)napi_create_async_work(context->env, nullptr, resource, [](napi_env env, void* data) {},
-        MediaAsyncContext::AsyncCallback, static_cast<void *>(context), &context->work);
+        MediaAsyncContext::CompleteCallback, static_cast<void *>(context), &context->work);
     (void)napi_queue_async_work(context->env, context->work);
 }
 
@@ -212,7 +212,7 @@ void VideoCallbackNapi::OnVolumeDoneCb()
     napi_value resource = nullptr;
     (void)napi_create_string_utf8(context->env, "VolumeDone", NAPI_AUTO_LENGTH, &resource);
     (void)napi_create_async_work(context->env, nullptr, resource, [](napi_env env, void* data) {},
-        MediaAsyncContext::AsyncCallback, static_cast<void *>(context), &context->work);
+        MediaAsyncContext::CompleteCallback, static_cast<void *>(context), &context->work);
     (void)napi_queue_async_work(context->env, context->work);
 }
 
@@ -298,7 +298,7 @@ void VideoCallbackNapi::DequeueAsyncWork()
         napi_value resource = nullptr;
         (void)napi_create_string_utf8(context->env, "OnStateChanged", NAPI_AUTO_LENGTH, &resource);
         (void)napi_create_async_work(context->env, nullptr, resource, [](napi_env env, void* data) {},
-            MediaAsyncContext::AsyncCallback, static_cast<void *>(context), &context->work);
+            MediaAsyncContext::CompleteCallback, static_cast<void *>(context), &context->work);
         (void)napi_queue_async_work(context->env, context->work);
     } else {
         MEDIA_LOGD("state:%{public}d is called, But context is empty", currentState_);
