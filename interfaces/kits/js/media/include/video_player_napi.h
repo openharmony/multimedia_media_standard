@@ -142,12 +142,10 @@ private:
      * on(type: 'error', callback: ErrorCallback): void
      */ 
     static napi_value On(napi_env env, napi_callback_info info);
-    static void AsyncCreateVideoPlayer(napi_env env, void *data);
     static void AsyncGetTrackDescription(napi_env env, void *data);
     static void AsyncSetDisplaySurface(napi_env env, void *data);
     static void AsyncGetDisplaySurface(napi_env env, void *data);
-    static void CompleteAsyncFunc(napi_env env, napi_status status, void *data);
-    static void PlayerOperation(napi_env env, void *data);
+    static void CompleteAsyncWork(napi_env env, napi_status status, void *data);
     void OnErrorCallback(MediaServiceExtErrCode errCode);
     void ReleaseDataSource(std::shared_ptr<MediaDataSourceCallback> dataSourceCb);
     VideoPlayerNapi();

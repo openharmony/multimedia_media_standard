@@ -37,7 +37,6 @@ enum class AsyncWorkType : int32_t {
 struct VideoPlayerAsyncContext : public MediaAsyncContext {
     explicit VideoPlayerAsyncContext(napi_env env) : MediaAsyncContext(env) {}
     virtual ~VideoPlayerAsyncContext() = default;
-    static void AsyncCallback(napi_env env, VideoPlayerAsyncContext *&asyncContext);
     VideoPlayerNapi *playerNapi = nullptr;
     VideoPlayerNapi *jsPlayer = nullptr;
     AsyncWorkType asyncWorkType = AsyncWorkType::ASYNC_WORK_INVALID;
@@ -45,7 +44,7 @@ struct VideoPlayerAsyncContext : public MediaAsyncContext {
     int32_t seekPosition = 0;
     int32_t seekMode = SEEK_PREVIOUS_SYNC;
     int32_t speedMode = SPEED_FORWARD_1_00_X;
-    std::string surface = "none";
+    std::string surface = "invalid surface id";
 };
 
 class VideoCallbackNapi : public PlayerCallbackNapi {
@@ -70,7 +69,6 @@ private:
     void OnSpeedDoneCb(int32_t speedMode);
     void OnVolumeDoneCb();
     void DequeueAsyncWork();
-    static void ContextCallback(napi_env env, napi_status status, void *data);
 
     std::mutex mutex_;
     napi_env env_ = nullptr;

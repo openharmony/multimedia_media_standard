@@ -161,5 +161,56 @@ void MediaAsyncContext::SignError(int32_t code, std::string message)
     errFlag = true;
     MEDIA_LOGE("SignError: %{public}s", message.c_str());
 }
+
+void MediaAsyncContext::AsyncCallback(napi_env env, napi_status status, void *data)
+{
+    MEDIA_LOGD("AsyncCallback In");
+    auto asyncContext = reinterpret_cast<MediaAsyncContext *>(data);
+    CHECK_AND_RETURN_LOG(asyncContext != nullptr, "asyncContext is nullptr!");
+
+    if (status != napi_ok) {
+        asyncContext->SignError(MSERR_EXT_UNKNOWN, "napi_create_async_work status != napi_ok");
+    }
+
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_value args[2] = { nullptr };
+    napi_get_undefined(env, &args[0]);
+    napi_get_undefined(env, &args[1]);
+    if (asyncContext->errFlag) {
+        MEDIA_LOGD("async callback failed");
+        (void)CommonNapi::CreateError(env, asyncContext->errCode, asyncContext->errMessage, result);
+        args[0] = result;
+    } else {
+        MEDIA_LOGD("async callback success");
+        if (asyncContext->JsResult != nullptr) {
+            asyncContext->JsResult->GetJsResult(env, &result);
+        }
+        args[1] = result;
+    }
+
+    if (asyncContext->deferred) {
+        if (asyncContext->errFlag) {
+            MEDIA_LOGD("napi_reject_deferred");
+            napi_reject_deferred(env, asyncContext->deferred, args[0]);
+        } else {
+            MEDIA_LOGD("napi_resolve_deferred");
+            napi_resolve_deferred(env, asyncContext->deferred, args[1]);
+        }
+    } else {
+        MEDIA_LOGD("napi_call_function callback");
+        napi_value callback = nullptr;
+        napi_get_reference_value(env, asyncContext->callbackRef, &callback);
+        CHECK_AND_RETURN_LOG(callback != nullptr, "callbackRef is nullptr!"); 
+        const size_t argCount = 2;
+        napi_value retVal;
+        napi_get_undefined(env, &retVal);
+        napi_call_function(env, nullptr, callback, argCount, args, &retVal);
+        napi_delete_reference(env, asyncContext->callbackRef);
+    }
+    napi_delete_async_work(env, asyncContext->work);
+    delete asyncContext;
+    asyncContext = nullptr;
+}
 }
 }
