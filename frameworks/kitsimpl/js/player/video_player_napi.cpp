@@ -752,7 +752,7 @@ napi_value VideoPlayerNapi::Seek(napi_env env, napi_callback_info info)
         }
     }
     if (args[2] != nullptr && napi_typeof(env, args[2], &valueType) == napi_ok && valueType == napi_function) {
-        asyncContext->callbackRef = CommonNapi::CreateReference(env, args[2]);   
+        asyncContext->callbackRef = CommonNapi::CreateReference(env, args[2]);
     }
     asyncContext->deferred = CommonNapi::CreatePromise(env, asyncContext->callbackRef, result);
     // get jsPlayer
@@ -858,7 +858,7 @@ void VideoPlayerNapi::AsyncGetTrackDescription(napi_env env, void *data)
             return;
         }
     }
-    // asyncContext->asyncResult = videoArray;
+    // reture videoArray
 }
 
 napi_value VideoPlayerNapi::GetTrackDescription(napi_env env, napi_callback_info info)
