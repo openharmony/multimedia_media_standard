@@ -161,7 +161,7 @@ napi_ref CommonNapi::CreateReference(napi_env env, napi_value arg)
     if (arg != nullptr && napi_typeof(env, arg, &valueType) == napi_ok && valueType == napi_function) {
         const size_t refCount = 1;
         MEDIA_LOGD("napi_create_reference");
-        napi_create_reference(env, arg, refCount, &ref);      
+        napi_create_reference(env, arg, refCount, &ref);
     }
     return ref;
 }

@@ -36,7 +36,7 @@ enum class AsyncWorkType : int32_t {
 
 struct VideoPlayerAsyncContext : public MediaAsyncContext {
     explicit VideoPlayerAsyncContext(napi_env env) : MediaAsyncContext(env) {}
-    virtual ~VideoPlayerAsyncContext() = default;
+    ~VideoPlayerAsyncContext() = default;
     VideoPlayerNapi *playerNapi = nullptr;
     VideoPlayerNapi *jsPlayer = nullptr;
     AsyncWorkType asyncWorkType = AsyncWorkType::ASYNC_WORK_INVALID;
@@ -50,7 +50,7 @@ struct VideoPlayerAsyncContext : public MediaAsyncContext {
 class VideoCallbackNapi : public PlayerCallbackNapi {
 public:
     explicit VideoCallbackNapi(napi_env env);
-    virtual ~VideoCallbackNapi() override;
+    ~VideoCallbackNapi() override;
 
     void SaveCallbackReference(const std::string &callbackName, napi_value callback) override;
     void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody) override;
