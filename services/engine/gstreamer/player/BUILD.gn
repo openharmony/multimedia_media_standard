@@ -52,8 +52,8 @@ config("media_engine_gst_player_config") {
     "//third_party/glib/glib",
     "//third_party/glib",
     "//third_party/glib/gmodule",
-    "//device/hisilicon/hispark_taurus/sdk_linux/soc/src/mpp/cbb/include",
-    "//device/hisilicon/hispark_taurus/sdk_linux/soc/src/osal/include",
+    "//device/soc/hisilicon/hi3516dv300/sdk_linux/drv/mpp/cbb/include",
+    "//device/soc/hisilicon/hi3516dv300/sdk_linux/drv/osal/include",
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara/include",
   ]
 }
