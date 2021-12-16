@@ -30,7 +30,7 @@ public:
 
 class MediaJsResultInt : public MediaJsResult {
 public:
-    explicit MediaJsResultInt(const int32_t &value)
+    explicit MediaJsResultInt(int32_t value)
         : value_(value)
     {
     }

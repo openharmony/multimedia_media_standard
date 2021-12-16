@@ -185,10 +185,9 @@ void VideoCallbackNapi::OnSpeedDoneCb(int32_t speedMode)
 
     if (speedMode < SPEED_FORWARD_0_75_X || speedMode > SPEED_FORWARD_2_00_X) {
         MEDIA_LOGE("OnSpeedDoneCb mode:%{public}d error", speedMode);
-        context->SignError(MSERR_EXT_UNKNOWN, "speed callback mode error!");
     }
 
-    context->JsResult = std::make_unique<MediaJsResultInt>(speedMode);
+    context->JsResult = std::make_unique<MediaJsResultInt>(context->speedMode);
     // Switch Napi threads
     napi_value resource = nullptr;
     (void)napi_create_string_utf8(context->env, "SpeedDone", NAPI_AUTO_LENGTH, &resource);

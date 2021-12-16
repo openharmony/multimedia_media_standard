@@ -488,6 +488,7 @@ void VideoPlayerNapi::CompleteAsyncWork(napi_env env, napi_status status, void *
         ret = player->SetVolume(volume, volume);
     } else if (asyncContext->asyncWorkType == AsyncWorkType::ASYNC_WORK_SEEK) {
         PlayerSeekMode seekMode = static_cast<PlayerSeekMode>(asyncContext->seekMode);
+        MEDIA_LOGD("seek position %{public}d, seekmode %{public}d", asyncContext->seekPosition, seekMode);
         ret = player->Seek(asyncContext->seekPosition, seekMode);
     } else if (asyncContext->asyncWorkType == AsyncWorkType::ASYNC_WORK_SPEED) {
         PlaybackRateMode speedMode = static_cast<PlaybackRateMode>(asyncContext->speedMode);
@@ -737,6 +738,7 @@ napi_value VideoPlayerNapi::Seek(napi_env env, napi_callback_info info)
     if (status != napi_ok || asyncContext->seekPosition < 0) {
         asyncContext->SignError(MSERR_EXT_INVALID_VAL, "seek position < 0");
     }
+
     if (args[1] != nullptr && napi_typeof(env, args[1], &valueType) == napi_ok) {
         if (valueType == napi_number) { // get seek mode
             status = napi_get_value_int32(env, args[1], &asyncContext->seekMode);
