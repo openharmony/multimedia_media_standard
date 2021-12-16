@@ -223,7 +223,7 @@ void MediaAsyncContext::CompleteCallback(napi_env env, napi_status status, void 
         MEDIA_LOGD("napi_call_function callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, asyncContext->callbackRef, &callback);
-        CHECK_AND_RETURN_LOG(callback != nullptr, "callbackRef is nullptr!"); 
+        CHECK_AND_RETURN_LOG(callback != nullptr, "callbackRef is nullptr!");
         const size_t argCount = 2;
         napi_value retVal;
         napi_get_undefined(env, &retVal);
