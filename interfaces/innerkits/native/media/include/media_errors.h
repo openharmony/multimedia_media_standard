@@ -78,7 +78,7 @@ enum MediaServiceExtErrCode : ErrCode {
     MSERR_EXT_INVALID_VAL = MS_ERR_OFFSET + EINVAL,       // invalid argument.
     MSERR_EXT_IO = MS_ERR_OFFSET + EIO,                   // IO error.
     MSERR_EXT_TIMEOUT = MS_ERR_OFFSET + ETIMEDOUT,        // network timeout.
-    MSERR_EXT_UNKNOWN = MS_ERR_OFFSET + 0x200,            // unkown error.
+    MSERR_EXT_UNKNOWN = MS_ERR_OFFSET + 0x200,            // unknown error.
     MSERR_EXT_SERVICE_DIED,                               // meida service died.
     MSERR_EXT_INVALID_STATE,                              // the state is not support this operation.
     MSERR_EXT_UNSUPPORT,                                  // unsupport interface.

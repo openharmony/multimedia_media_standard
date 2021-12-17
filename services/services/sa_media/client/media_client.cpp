@@ -30,7 +30,7 @@ constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaClien
 
 namespace OHOS {
 namespace Media {
-IMediaService &MeidaServiceFactory::GetInstance()
+IMediaService &MediaServiceFactory::GetInstance()
 {
     static MediaClient instance;
     return instance;

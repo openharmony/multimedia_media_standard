@@ -24,6 +24,42 @@ constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "Format"};
 
 namespace OHOS {
 namespace Media {
+void CopyFormatDataMap(const Format::FormatDataMap &from, Format::FormatDataMap &to)
+{
+    for (auto it = to.begin(); it != to.end(); ++it) {
+        if (it->second.type == FORMAT_TYPE_ADDR && it->second.addr != nullptr) {
+            free(it->second.addr);
+            it->second.addr = nullptr;
+        }
+    }
+
+    to = from;
+
+    for (auto it = to.begin(); it != to.end();) {
+        if (it->second.type != FORMAT_TYPE_ADDR || it->second.addr == nullptr) {
+            ++it;
+            continue;
+        }
+
+        it->second.addr = reinterpret_cast<uint8_t *>(malloc(it->second.size));
+        if (it->second.addr == nullptr) {
+            MEDIA_LOGE("malloc addr failed. Key: %{public}s", it->first.c_str());
+            it = to.erase(it);
+            continue;
+        }
+
+        errno_t err = memcpy_s(reinterpret_cast<void *>(it->second.addr),
+            it->second.size, reinterpret_cast<const void *>(from.at(it->first).addr), it->second.size);
+        if (err != EOK) {
+            MEDIA_LOGE("memcpy addr failed. Key: %{public}s", it->first.c_str());
+            free(it->second.addr);
+            it = to.erase(it);
+            continue;
+        }
+        ++it;
+    }
+}
+
 Format::~Format()
 {
     for (auto it = formatMap_.begin(); it != formatMap_.end(); ++it) {
@@ -34,7 +70,41 @@ Format::~Format()
     }
 }
 
-bool Format::PutIntValue(const std::string &key, int32_t value)
+Format::Format(const Format &rhs)
+{
+    if (&rhs == this) {
+        return;
+    }
+
+    CopyFormatDataMap(rhs.formatMap_, formatMap_);
+}
+
+Format::Format(Format &&rhs) noexcept
+{
+    std::swap(formatMap_, rhs.formatMap_);
+}
+
+Format &Format::operator=(const Format &rhs)
+{
+    if (&rhs == this) {
+        return *this;
+    }
+
+    CopyFormatDataMap(rhs.formatMap_, this->formatMap_);
+    return *this;
+}
+
+Format &Format::operator=(Format &&rhs) noexcept
+{
+    if (&rhs == this) {
+        return *this;
+    }
+
+    std::swap(this->formatMap_, rhs.formatMap_);
+    return *this;
+}
+
+bool Format::PutIntValue(const std::string_view &key, int32_t value)
 {
     FormatData data;
     data.type = FORMAT_TYPE_INT32;
@@ -43,7 +113,7 @@ bool Format::PutIntValue(const std::string &key, int32_t value)
     return ret.second;
 }
 
-bool Format::PutLongValue(const std::string &key, int64_t value)
+bool Format::PutLongValue(const std::string_view &key, int64_t value)
 {
     FormatData data;
     data.type = FORMAT_TYPE_INT64;
@@ -52,7 +122,7 @@ bool Format::PutLongValue(const std::string &key, int64_t value)
     return ret.second;
 }
 
-bool Format::PutFloatValue(const std::string &key, float value)
+bool Format::PutFloatValue(const std::string_view &key, float value)
 {
     FormatData data;
     data.type = FORMAT_TYPE_FLOAT;
@@ -61,7 +131,7 @@ bool Format::PutFloatValue(const std::string &key, float value)
     return ret.second;
 }
 
-bool Format::PutDoubleValue(const std::string &key, double value)
+bool Format::PutDoubleValue(const std::string_view &key, double value)
 {
     FormatData data;
     data.type = FORMAT_TYPE_DOUBLE;
@@ -70,7 +140,7 @@ bool Format::PutDoubleValue(const std::string &key, double value)
     return ret.second;
 }
 
-bool Format::PutStringValue(const std::string &key, const std::string &value)
+bool Format::PutStringValue(const std::string_view &key, const std::string_view &value)
 {
     FormatData data;
     data.type = FORMAT_TYPE_STRING;
@@ -79,66 +149,66 @@ bool Format::PutStringValue(const std::string &key, const std::string &value)
     return ret.second;
 }
 
-bool Format::GetStringValue(const std::string &key, std::string &value) const
+bool Format::GetStringValue(const std::string_view &key, std::string &value) const
 {
     auto iter = formatMap_.find(key);
     if (iter == formatMap_.end() || iter->second.type != FORMAT_TYPE_STRING) {
-        MEDIA_LOGE("Format::GetFormat failed. Key: %{public}s", key.c_str());
+        MEDIA_LOGE("Format::GetFormat failed. Key: %{public}s", key.data());
         return false;
     }
     value = iter->second.stringVal;
     return true;
 }
 
-bool Format::GetIntValue(const std::string &key, int32_t &value) const
+bool Format::GetIntValue(const std::string_view &key, int32_t &value) const
 {
     auto iter = formatMap_.find(key);
     if (iter == formatMap_.end() || iter->second.type != FORMAT_TYPE_INT32) {
-        MEDIA_LOGE("Format::GetFormat failed. Key: %{public}s", key.c_str());
+        MEDIA_LOGE("Format::GetFormat failed. Key: %{public}s", key.data());
         return false;
     }
     value = iter->second.val.int32Val;
     return true;
 }
 
-bool Format::GetLongValue(const std::string &key, int64_t &value) const
+bool Format::GetLongValue(const std::string_view &key, int64_t &value) const
 {
     auto iter = formatMap_.find(key);
     if (iter == formatMap_.end() || iter->second.type != FORMAT_TYPE_INT64) {
-        MEDIA_LOGE("Format::GetFormat failed. Key: %{public}s", key.c_str());
+        MEDIA_LOGE("Format::GetFormat failed. Key: %{public}s", key.data());
         return false;
     }
     value = iter->second.val.int64Val;
     return true;
 }
 
-bool Format::GetFloatValue(const std::string &key, float &value) const
+bool Format::GetFloatValue(const std::string_view &key, float &value) const
 {
     auto iter = formatMap_.find(key);
     if (iter == formatMap_.end() || iter->second.type != FORMAT_TYPE_FLOAT) {
-        MEDIA_LOGE("Format::GetFormat failed. Key: %{public}s", key.c_str());
+        MEDIA_LOGE("Format::GetFormat failed. Key: %{public}s", key.data());
         return false;
     }
     value = iter->second.val.floatVal;
     return true;
 }
 
-bool Format::GetDoubleValue(const std::string &key, double &value) const
+bool Format::GetDoubleValue(const std::string_view &key, double &value) const
 {
     auto iter = formatMap_.find(key);
     if (iter == formatMap_.end() || iter->second.type != FORMAT_TYPE_DOUBLE) {
-        MEDIA_LOGE("Format::GetFormat failed. Key: %{public}s", key.c_str());
+        MEDIA_LOGE("Format::GetFormat failed. Key: %{public}s", key.data());
         return false;
     }
     value = iter->second.val.doubleVal;
     return true;
 }
 
-bool Format::PutBuffer(const std::string &key, const uint8_t *addr, size_t size)
+bool Format::PutBuffer(const std::string_view &key, const uint8_t *addr, size_t size)
 {
     const size_t sizeMax = 1024;
     if (size > sizeMax) {
-        MEDIA_LOGE("PutBuffer input size failed. Key: %{public}s", key.c_str());
+        MEDIA_LOGE("PutBuffer input size failed. Key: %{public}s", key.data());
         return false;
     }
 
@@ -147,7 +217,7 @@ bool Format::PutBuffer(const std::string &key, const uint8_t *addr, size_t size)
     data.addr = reinterpret_cast<uint8_t *>(malloc(size));
     errno_t err = memcpy_s(reinterpret_cast<void *>(data.addr), size, reinterpret_cast<const void *>(addr), size);
     if (err != EOK) {
-        MEDIA_LOGE("PutBuffer memcpy addr failed. Key: %{public}s", key.c_str());
+        MEDIA_LOGE("PutBuffer memcpy addr failed. Key: %{public}s", key.data());
         return false;
     }
     data.size = size;
@@ -155,11 +225,11 @@ bool Format::PutBuffer(const std::string &key, const uint8_t *addr, size_t size)
     return ret.second;
 }
 
-bool Format::GetBuffer(const std::string &key, uint8_t **addr, size_t &size) const
+bool Format::GetBuffer(const std::string_view &key, uint8_t **addr, size_t &size) const
 {
     auto iter = formatMap_.find(key);
     if (iter == formatMap_.end() || iter->second.type != FORMAT_TYPE_ADDR) {
-        MEDIA_LOGE("Format::GetFormat failed. Key: %{public}s", key.c_str());
+        MEDIA_LOGE("Format::GetBuffer failed. Key: %{public}s", key.data());
         return false;
     }
     *addr = iter->second.addr;
@@ -167,7 +237,19 @@ bool Format::GetBuffer(const std::string &key, uint8_t **addr, size_t &size) con
     return true;
 }
 
-const std::map<std::string, FormatData> &Format::GetFormatMap() const
+void Format::RemoveKey(const std::string_view &key)
+{
+    auto iter = formatMap_.find(key);
+    if (iter != formatMap_.end()) {
+        if (iter->second.type == FORMAT_TYPE_ADDR && iter->second.addr != nullptr) {
+            free(iter->second.addr);
+            iter->second.addr = nullptr;
+        }
+        formatMap_.erase(iter);
+    }
+}
+
+const Format::FormatDataMap &Format::GetFormatMap() const
 {
     return formatMap_;
 }

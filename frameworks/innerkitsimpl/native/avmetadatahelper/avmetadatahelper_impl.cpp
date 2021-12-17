@@ -147,7 +147,7 @@ std::shared_ptr<AVMetadataHelper> AVMetadataHelperFactory::CreateAVMetadataHelpe
 
 int32_t AVMetadataHelperImpl::Init()
 {
-    avMetadataHelperService_ = MeidaServiceFactory::GetInstance().CreateAVMetadataHelperService();
+    avMetadataHelperService_ = MediaServiceFactory::GetInstance().CreateAVMetadataHelperService();
     CHECK_AND_RETURN_RET_LOG(avMetadataHelperService_ != nullptr, MSERR_NO_MEMORY,
         "failed to create avmetadatahelper service");
     return MSERR_OK;
@@ -161,7 +161,7 @@ AVMetadataHelperImpl::AVMetadataHelperImpl()
 AVMetadataHelperImpl::~AVMetadataHelperImpl()
 {
     if (avMetadataHelperService_ != nullptr) {
-        (void)MeidaServiceFactory::GetInstance().DestroyAVMetadataHelperService(avMetadataHelperService_);
+        (void)MediaServiceFactory::GetInstance().DestroyAVMetadataHelperService(avMetadataHelperService_);
         avMetadataHelperService_ = nullptr;
     }
     MEDIA_LOGD("AVMetadataHelperImpl:0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
@@ -211,7 +211,7 @@ void AVMetadataHelperImpl::Release()
 {
     CHECK_AND_RETURN_LOG(avMetadataHelperService_ != nullptr, "avmetadatahelper service does not exist.");
     avMetadataHelperService_->Release();
-    (void)MeidaServiceFactory::GetInstance().DestroyAVMetadataHelperService(avMetadataHelperService_);
+    (void)MediaServiceFactory::GetInstance().DestroyAVMetadataHelperService(avMetadataHelperService_);
     avMetadataHelperService_ = nullptr;
 }
 } // nmamespace Media

@@ -55,7 +55,7 @@ std::shared_ptr<Recorder> RecorderFactory::CreateRecorder()
 
 int32_t RecorderImpl::Init()
 {
-    recorderService_ = MeidaServiceFactory::GetInstance().CreateRecorderService();
+    recorderService_ = MediaServiceFactory::GetInstance().CreateRecorderService();
     CHECK_AND_RETURN_RET_LOG(recorderService_ != nullptr, MSERR_NO_MEMORY, "failed to create recorder service");
     return MSERR_OK;
 }
@@ -68,7 +68,7 @@ RecorderImpl::RecorderImpl()
 RecorderImpl::~RecorderImpl()
 {
     if (recorderService_ != nullptr) {
-        (void)MeidaServiceFactory::GetInstance().DestroyRecorderService(recorderService_);
+        (void)MediaServiceFactory::GetInstance().DestroyRecorderService(recorderService_);
         recorderService_ = nullptr;
     }
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
@@ -249,7 +249,7 @@ int32_t RecorderImpl::Release()
 {
     CHECK_AND_RETURN_RET_LOG(recorderService_ != nullptr, MSERR_INVALID_OPERATION, "recorder service does not exist..");
     (void)recorderService_->Release();
-    (void)MeidaServiceFactory::GetInstance().DestroyRecorderService(recorderService_);
+    (void)MediaServiceFactory::GetInstance().DestroyRecorderService(recorderService_);
     recorderService_ = nullptr;
     return MSERR_OK;
 }
