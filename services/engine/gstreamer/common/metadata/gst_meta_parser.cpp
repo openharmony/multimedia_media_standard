@@ -44,6 +44,7 @@ static const std::unordered_map<int32_t, std::string_view> INNER_META_KEY_TO_STR
     INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_TITLE),
     INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_VIDEO_HEIGHT),
     INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_VIDEO_WIDTH),
+    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_ROTATION),
 };
 
 static const std::unordered_map<std::string_view, int32_t> GST_TAG_TO_KEY_MAPPING = {
@@ -54,7 +55,8 @@ static const std::unordered_map<std::string_view, int32_t> GST_TAG_TO_KEY_MAPPIN
     { GST_TAG_GENRE, INNER_META_KEY_GENRE },
     { GST_TAG_TRACK_COUNT, INNER_META_KEY_NUM_TRACKS },
     { GST_TAG_TITLE, INNER_META_KEY_TITLE },
-    { GST_TAG_AUTHOR, INNER_META_KEY_AUTHOR }
+    { GST_TAG_AUTHOR, INNER_META_KEY_AUTHOR },
+    { GST_TAG_IMAGE_ORIENTATION, INNER_META_KEY_ROTATION },
 };
 
 static const std::unordered_map<std::string_view, int32_t> GST_CAPS_FIELD_TO_KEY_MAPPING = {

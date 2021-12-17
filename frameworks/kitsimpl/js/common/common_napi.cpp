@@ -93,5 +93,146 @@ napi_status CommonNapi::FillErrorArgs(napi_env env, int32_t errCode, const napi_
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, napi_invalid_arg, "set error name property fail");
     return napi_ok;
 }
+
+napi_status CommonNapi::CreateError(napi_env env, int32_t errCode, const std::string &errMsg, napi_value &errVal)
+{
+    napi_get_undefined(env, &errVal);
+
+    napi_value msgValStr = nullptr;
+    napi_status nstatus = napi_create_string_utf8(env, errMsg.c_str(), NAPI_AUTO_LENGTH, &msgValStr);
+    if (nstatus != napi_ok || msgValStr == nullptr) {
+        MEDIA_LOGE("create error message str fail");
+        return napi_invalid_arg;
+    }
+
+    nstatus = napi_create_error(env, nullptr, msgValStr, &errVal);
+    if (nstatus != napi_ok || errVal == nullptr) {
+        MEDIA_LOGE("create error fail");
+        return napi_invalid_arg;
+    }
+
+    napi_value codeStr = nullptr;
+    nstatus = napi_create_string_utf8(env, "code", NAPI_AUTO_LENGTH, &codeStr);
+    if (nstatus != napi_ok || codeStr == nullptr) {
+        MEDIA_LOGE("create code str fail");
+        return napi_invalid_arg;
+    }
+
+    napi_value errCodeVal = nullptr;
+    nstatus = napi_create_int32(env, errCode - MS_ERR_OFFSET, &errCodeVal);
+    if (nstatus != napi_ok || errCodeVal == nullptr) {
+        MEDIA_LOGE("create error code number val fail");
+        return napi_invalid_arg;
+    }
+
+    nstatus = napi_set_property(env, errVal, codeStr, errCodeVal);
+    if (nstatus != napi_ok) {
+        MEDIA_LOGE("set error code property fail");
+        return napi_invalid_arg;
+    }
+
+    napi_value nameStr = nullptr;
+    nstatus = napi_create_string_utf8(env, "name", NAPI_AUTO_LENGTH, &nameStr);
+    if (nstatus != napi_ok || nameStr == nullptr) {
+        MEDIA_LOGE("create name str fail");
+        return napi_invalid_arg;
+    }
+
+    napi_value errNameVal = nullptr;
+    nstatus = napi_create_string_utf8(env, "BusinessError", NAPI_AUTO_LENGTH, &errNameVal);
+    if (nstatus != napi_ok || errNameVal == nullptr) {
+        MEDIA_LOGE("create BusinessError str fail");
+        return napi_invalid_arg;
+    }
+
+    nstatus = napi_set_property(env, errVal, nameStr, errNameVal);
+    if (nstatus != napi_ok) {
+        MEDIA_LOGE("set error name property fail");
+        return napi_invalid_arg;
+    }
+
+    return napi_ok;
+}
+
+napi_ref CommonNapi::CreateReference(napi_env env, napi_value arg)
+{
+    napi_ref ref = nullptr;
+    napi_valuetype valueType = napi_undefined;
+    if (arg != nullptr && napi_typeof(env, arg, &valueType) == napi_ok && valueType == napi_function) {
+        const size_t refCount = 1;
+        MEDIA_LOGD("napi_create_reference");
+        napi_create_reference(env, arg, refCount, &ref);
+    }
+    return ref;
+}
+
+napi_deferred CommonNapi::CreatePromise(napi_env env, napi_ref ref, napi_value &result)
+{
+    napi_deferred deferred = nullptr;
+    if (ref == nullptr) {
+        MEDIA_LOGD("napi_create_promise");
+        napi_create_promise(env, &deferred, &result);
+    }
+    return deferred;
+}
+
+void MediaAsyncContext::SignError(int32_t code, std::string message)
+{
+    errMessage = message;
+    errCode = code;
+    errFlag = true;
+    MEDIA_LOGE("SignError: %{public}s", message.c_str());
+}
+
+void MediaAsyncContext::CompleteCallback(napi_env env, napi_status status, void *data)
+{
+    MEDIA_LOGD("CompleteCallback In");
+    auto asyncContext = reinterpret_cast<MediaAsyncContext *>(data);
+    CHECK_AND_RETURN_LOG(asyncContext != nullptr, "asyncContext is nullptr!");
+
+    if (status != napi_ok) {
+        asyncContext->SignError(MSERR_EXT_UNKNOWN, "napi_create_async_work status != napi_ok");
+    }
+
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_value args[2] = { nullptr };
+    napi_get_undefined(env, &args[0]);
+    napi_get_undefined(env, &args[1]);
+    if (asyncContext->errFlag) {
+        MEDIA_LOGD("async callback failed");
+        (void)CommonNapi::CreateError(env, asyncContext->errCode, asyncContext->errMessage, result);
+        args[0] = result;
+    } else {
+        MEDIA_LOGD("async callback success");
+        if (asyncContext->JsResult != nullptr) {
+            asyncContext->JsResult->GetJsResult(env, result);
+        }
+        args[1] = result;
+    }
+
+    if (asyncContext->deferred) {
+        if (asyncContext->errFlag) {
+            MEDIA_LOGD("napi_reject_deferred");
+            napi_reject_deferred(env, asyncContext->deferred, args[0]);
+        } else {
+            MEDIA_LOGD("napi_resolve_deferred");
+            napi_resolve_deferred(env, asyncContext->deferred, args[1]);
+        }
+    } else {
+        MEDIA_LOGD("napi_call_function callback");
+        napi_value callback = nullptr;
+        napi_get_reference_value(env, asyncContext->callbackRef, &callback);
+        CHECK_AND_RETURN_LOG(callback != nullptr, "callbackRef is nullptr!");
+        const size_t argCount = 2;
+        napi_value retVal;
+        napi_get_undefined(env, &retVal);
+        napi_call_function(env, nullptr, callback, argCount, args, &retVal);
+        napi_delete_reference(env, asyncContext->callbackRef);
+    }
+    napi_delete_async_work(env, asyncContext->work);
+    delete asyncContext;
+    asyncContext = nullptr;
+}
 }
 }

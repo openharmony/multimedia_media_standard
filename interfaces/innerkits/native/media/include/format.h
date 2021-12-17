@@ -16,8 +16,9 @@
 #ifndef FORMAT_H
 #define FORMAT_H
 
-#include <map>
 #include <string>
+#include <map>
+#include <vector>
 
 namespace OHOS {
 namespace Media {
@@ -55,6 +56,10 @@ class __attribute__((visibility("default"))) Format {
 public:
     Format() = default;
     ~Format();
+    Format(const Format &rhs);
+    Format(Format &&rhs) noexcept;
+    Format &operator=(const Format &rhs);
+    Format &operator=(Format &&rhs) noexcept;
     /**
      * @brief Sets metadata of the integer type.
      *
@@ -64,7 +69,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    bool PutIntValue(const std::string &key, int32_t value);
+    bool PutIntValue(const std::string_view &key, int32_t value);
 
     /**
      * @brief Sets metadata of the long integer type.
@@ -75,7 +80,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    bool PutLongValue(const std::string &key, int64_t value);
+    bool PutLongValue(const std::string_view &key, int64_t value);
 
     /**
      * @brief Sets metadata of the single-precision floating-point type.
@@ -86,7 +91,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    bool PutFloatValue(const std::string &key, float value);
+    bool PutFloatValue(const std::string_view &key, float value);
 
     /**
      * @brief Sets metadata of the double-precision floating-point type.
@@ -97,7 +102,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    bool PutDoubleValue(const std::string &key, double value);
+    bool PutDoubleValue(const std::string_view &key, double value);
 
     /**
      * @brief Sets metadata of the string type.
@@ -108,7 +113,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    bool PutStringValue(const std::string &key, const std::string &value);
+    bool PutStringValue(const std::string_view &key, const std::string_view &value);
 
     /**
      * @brief Sets metadata of the string type.
@@ -120,7 +125,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    bool PutBuffer(const std::string &key, const uint8_t *addr, size_t size);
+    bool PutBuffer(const std::string_view &key, const uint8_t *addr, size_t size);
 
     /**
      * @brief Obtains the metadata value of the integer type.
@@ -131,7 +136,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    bool GetIntValue(const std::string &key, int32_t &value) const;
+    bool GetIntValue(const std::string_view &key, int32_t &value) const;
 
     /**
      * @brief Obtains the metadata value of the long integer type.
@@ -142,7 +147,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    bool GetLongValue(const std::string &key, int64_t &value) const;
+    bool GetLongValue(const std::string_view &key, int64_t &value) const;
 
     /**
      * @brief Obtains the metadata value of the single-precision floating-point type.
@@ -154,7 +159,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    bool GetFloatValue(const std::string &key, float &value) const;
+    bool GetFloatValue(const std::string_view &key, float &value) const;
 
     /**
      * @brief Obtains the metadata value of the double-precision floating-point type.
@@ -166,7 +171,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    bool GetDoubleValue(const std::string &key, double &value) const;
+    bool GetDoubleValue(const std::string_view &key, double &value) const;
 
     /**
      * @brief Obtains the metadata value of the string type.
@@ -177,7 +182,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    bool GetStringValue(const std::string &key, std::string &value) const;
+    bool GetStringValue(const std::string_view &key, std::string &value) const;
 
     /**
      * @brief Obtains the metadata value of the string type.
@@ -189,7 +194,21 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    bool GetBuffer(const std::string &key, uint8_t **addr, size_t &size) const;
+    bool GetBuffer(const std::string_view &key, uint8_t **addr, size_t &size) const;
+
+    /**
+     * @brief Remove the key from the Format
+     *
+     * @param keys the key will be removed.
+     */
+    void RemoveKey(const std::string_view &key);
+
+    /**
+     * @brief A trick to enable the comparision between the std::string and std::string_view for
+     * std::map, the trick called Transparent Comparator.
+     *
+     */
+    using FormatDataMap = std::map<std::string, FormatData, std::less<>>;
 
     /**
      * @brief Obtains the metadata map.
@@ -198,10 +217,10 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    const std::map<std::string, FormatData> &GetFormatMap() const;
+    const FormatDataMap &GetFormatMap() const;
 
 private:
-    std::map<std::string, FormatData> formatMap_;
+    FormatDataMap formatMap_;
 };
 } // namespace Media
 } // namespace OHOS
