@@ -241,7 +241,7 @@ int32_t PlayerDemo::ChangeSpeedToMode(const double &rate, PlaybackRateMode &mode
     return  0;
 }
 
-int32_t PlayerDemo::GetTrackInfo()
+int32_t PlayerDemo::GetVideoTrackInfo()
 {
     std::vector<Format> videoTrack;
     int32_t ret = player_->GetVideoTrackInfo(videoTrack);
@@ -252,25 +252,34 @@ int32_t PlayerDemo::GetTrackInfo()
         int32_t width = -1;
         int32_t height = -1;
         int32_t framerate = -1;
+        int32_t type = -1;
+        int32_t index = -1;
         for (auto iter = videoTrack.begin(); iter != videoTrack.end(); iter++) {
             iter->GetStringValue(std::string(PlayerKeys::PLAYER_MIME), mime);
             iter->GetIntValue(std::string(PlayerKeys::PLAYER_BITRATE), bitrate);
             iter->GetIntValue(std::string(PlayerKeys::PLAYER_WIDTH), width);
             iter->GetIntValue(std::string(PlayerKeys::PLAYER_HEIGHT), height);
             iter->GetIntValue(std::string(PlayerKeys::PLAYER_FRAMERATE), framerate);
-            cout << "mime: " << mime.c_str() << ", bitrate: " << bitrate <<
-                ", width: " << width << ", height: " << height << ", framerate: " << framerate << endl;
+            iter->GetIntValue(std::string(PlayerKeys::PLAYER_TRACK_TYPE), type);
+            iter->GetIntValue(std::string(PlayerKeys::PLAYER_TRACK_INDEX), index);
+            cout << "mime: " << mime.c_str() << ", bitrate: " << bitrate << ", width: " << width << ", height: " <<
+                height << ", framerate: " << framerate << ", type: " << type << ", index: " << index << endl;
         }
     }
-
+    return 0;
+}
+int32_t PlayerDemo::GetAudioTrackInfo()
+{
     std::vector<Format> audioTrack;
-    ret = player_->GetAudioTrackInfo(audioTrack);
+    int32_t ret = player_->GetAudioTrackInfo(audioTrack);
     if (ret == 0) {
         cout << "Audio Track cnt: " << audioTrack.size() << endl;
         std::string mime = "";
         int32_t bitrate = -1;
         int32_t sampleRate = -1;
         int32_t channels = -1;
+        int32_t type = -1;
+        int32_t index = -1;
         std::string language = "";
         for (auto iter = audioTrack.begin(); iter != audioTrack.end(); iter++) {
             iter->GetStringValue(std::string(PlayerKeys::PLAYER_MIME), mime);
@@ -278,10 +287,19 @@ int32_t PlayerDemo::GetTrackInfo()
             iter->GetIntValue(std::string(PlayerKeys::PLAYER_SAMPLE_RATE), sampleRate);
             iter->GetIntValue(std::string(PlayerKeys::PLAYER_CHANNELS), channels);
             iter->GetStringValue(std::string(PlayerKeys::PLAYER_LANGUGAE), language);
+            iter->GetIntValue(std::string(PlayerKeys::PLAYER_TRACK_TYPE), type);
+            iter->GetIntValue(std::string(PlayerKeys::PLAYER_TRACK_INDEX), index);
             cout << "mime: " << mime.c_str() << ", bitrate: " << bitrate << ", samplerate: " << sampleRate <<
-                ", channels: " << channels << ", language: " << language.c_str() << endl;
+                ", channels: " << channels << ", language: " << language.c_str()  << ", type: " << type <<
+                ", index: " << index << endl;
         }
     }
+    return 0;
+}
+int32_t PlayerDemo::GetTrackInfo()
+{
+    GetVideoTrackInfo();
+    GetAudioTrackInfo();
     return 0;
 }
 
