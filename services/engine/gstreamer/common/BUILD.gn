@@ -77,8 +77,8 @@ ohos_static_library("media_engine_gst_common") {
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gobject",
-    "//third_party/gstreamer/gstreamer:gstreamer",
     "//third_party/gstreamer/gstplugins_base:gsttag",
+    "//third_party/gstreamer/gstreamer:gstreamer",
     "//utils/native/base:utils",
   ]
 
