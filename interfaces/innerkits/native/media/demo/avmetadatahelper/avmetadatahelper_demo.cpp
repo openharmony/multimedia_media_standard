@@ -322,7 +322,7 @@ void AVMetadataHelperDemo::FetchArtPicture(std::queue<std::string_view> &options
         return;
     }
 
-    ofs.write(reinterpret_cast<char *>(result->GetBase()), reinterpret_cast<std::streamsize>(result->GetSize()));
+    ofs.write(reinterpret_cast<char *>(result->GetBase()), result->GetSize());
     ofs.close();
     std::cout << "save art picture to /data/media/cover.img" << std::endl;
 }
