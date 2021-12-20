@@ -97,7 +97,7 @@ bool VideoCaps::IsSizeSupported(int32_t width, int32_t height)
     if (data_.width.minVal > width || data_.width.maxVal < width ||
         data_.height.minVal > height || data_.height.maxVal < height) {
             return false;
-        }
+    }
     return true;
 }
 
@@ -113,7 +113,7 @@ Range VideoCaps::GetSupportedFrameRatesFor(int32_t width, int32_t height)
         MEDIA_LOGD("The %{public}s can not support of:%{public}d * %{public}d", data_.codecName.c_str(), width, height);
         return range;
     }
-
+    // get supported frame rate range for the specified width and height
     return range;
 }
 
@@ -133,6 +133,11 @@ bool VideoCaps::IsSizeAndRateSupported(int32_t width, int32_t height, double fra
 Range VideoCaps::GetPreferredFrameRate(int32_t width, int32_t height)
 {
     Range range;
+    if (!IsSizeSupported(width, height)) {
+        MEDIA_LOGD("The %{public}s can not support of:%{public}d * %{public}d", data_.codecName.c_str(), width, height);
+        return range;
+    }
+    // get preferred frame rate range for the specified width and height
     return range;
 }
 
@@ -253,13 +258,13 @@ std::string AVCodecInfo::GetMimeType()
 
 bool AVCodecInfo::IsHardwareAccelerated()
 {
-    // get form hdi
+    // get from hdi plugin
     return false;
 }
 
 bool AVCodecInfo::IsSoftwareOnly()
 {
-    // get form hdi
+    // get from hdi plugin
     return true;
 }
 

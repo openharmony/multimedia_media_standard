@@ -46,8 +46,6 @@ const std::unordered_map<std::string, int> VIDEO_PROFILE_MAP = {
     // H265
     {"HEVCMain", HEVC_PROFILE_MAIN},
     {"HEVCMain10", HEVC_PROFILE_MAIN_10},
-    {"HEVCMain10HDR10", HEVC_PROFILE_MAIN_10_HDR10},
-    {"HEVCMain10HDR10Plus", HEVC_PROFILE_MAIN_10_HDR10_PLUS},
     {"HEVCMainStill", HEVC_PROFILE_MAIN_STILL},
     // MPEG2
     {"MPEG2_422", MPEG2_PROFILE_422},
