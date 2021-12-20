@@ -31,48 +31,48 @@ public:
     /**
      * @brief Get name of this codec, used to create the codec instance.
      * @return Returns codec name.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     std::string GetName();
 
     /**
      * @brief Get type of this codec
      * @return Returns codec type, see {@link AVCodecType}
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     AVCodecType GetType();
 
     /**
      * @brief Get mime type of this codec
      * @return Returns codec mime type, see {@link CodecMimeType}
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     std::string GetMimeType();
 
     /**
      * @brief Check whether the codec is accelerated by hardware.
      * @return Returns true if the codec is hardware accelerated; false otherwise.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     bool IsHardwareAccelerated(); 
 
     /**
      * @brief Check whether the codec is software implemented only.
      * @return Returns true if the codec is software implemented only; false otherwise.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     bool IsSoftwareOnly();
 
     /**
      * @brief Check whether the codec is provided by vendor.
      * @return Returns true if the codec is provided by vendor; false otherwise.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     bool IsVendor();
 
@@ -89,58 +89,58 @@ public:
      * whether hardware acceleration is supported, whether only software is supported, 
      * and whether the codec is provided by the vendor.
      * @return Returns the pointer of {@link AVCodecInfo}.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     std::shared_ptr<AVCodecInfo> GetCodecInfo();
 
     /**
      * @brief Get supported bitrate range.
      * @return Returns the range of supported bitrates.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     Range GetSupportedBitrate(); 
 
     /**
      * @brief Get supported video raw formats.
      * @return Returns an array of supported formats. For Details, see {@link VideoPixelformat}.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     std::vector<int32_t> GetSupportedFormats();
 
     /**
      * @brief Get supported alignment of video height, only used for video codecs.
      * @return Returns the supported alignment of video height (in pixels).
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     int32_t GetSupportedHeightAlignment();
 
     /**
      * @brief Get supported alignment of video width, only used for video codecs.
      * @return Returns the supported alignment of video width (in pixels).
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     int32_t GetSupportedWidthAlignment();
 
     /**
      * @brief Get supported width range of video.
      * @return Returns the supported width range of video.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
-    Range GetSupportedWidth(); 
+    Range GetSupportedWidth();
 
     /**
      * @brief Get supported height range of video.
      * @return Returns the supported height range of video.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
-    Range GetSupportedHeight();  
+    Range GetSupportedHeight();
 
     /**
      * @brief Get supported profiles of this codec.
@@ -151,24 +151,24 @@ public:
      * returns {@link MPEG2Profile} array if codec is mpeg2,
      * returns {@link MPEG4Profile} array if codec is mpeg4,
      * returns {@link VP8Profile} array if codec is vp8.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     std::vector<int32_t> GetSupportedProfiles();
 
     /**
      * @brief Get supported codec level array.
      * @return Returns an array of supported codec level number.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     std::vector<int32_t> GetSupportedLevels();
 
     /**
      * @brief Get supported video encode quality Range.
      * @return Returns an array of supported video encode quality Range.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     Range GetSupportedEncodeQuality();
 
@@ -177,16 +177,16 @@ public:
      * @param width Indicates the specified video width (in pixels).
      * @param height Indicates the specified video height (in pixels).
      * @return Returns true if the codec supports {@link width} * {@link height} size video, false otherwise.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
-    bool IsSizeSupported(int32_t width, int32_t height); 
+    bool IsSizeSupported(int32_t width, int32_t height);
 
     /**
      * @brief Get supported frameRate.
      * @return Returns the supported frameRate range of video.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     Range GetSupportedFrameRate();
 
@@ -195,8 +195,8 @@ public:
      * @param width Indicates the specified video width (in pixels).
      * @param height Indicates the specified video height (in pixels).
      * @return Returns the supported frameRate range for the specified width and height.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     Range GetSupportedFrameRatesFor(int32_t width, int32_t height);
 
@@ -206,8 +206,8 @@ public:
      * @param height Indicates the specified video height (in pixels).
      * @param frameRate Indicates the specified video frameRate.
      * @return Returns true if the codec supports the specified size and frameRate; false otherwise.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     bool IsSizeAndRateSupported(int32_t width, int32_t height, double frameRate);
 
@@ -217,40 +217,40 @@ public:
      * @param width Indicates the specified video width (in pixels).
      * @param height Indicates the specified video height (in pixels).
      * @return Returns preferred frameRate range for the specified width and height.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     Range GetPreferredFrameRate(int32_t width, int32_t height);
 
     /**
      * @brief Get supported encode bitrate mode.
      * @return Returns an array of supported encode bitrate mode. For details, see {@link VideoEncodeBitrateMode}.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
-    std::vector<int32_t> GetSupportedBitrateMode(); 
+    std::vector<int32_t> GetSupportedBitrateMode();
 
     /**
      * @brief Get supported encode qualit range.
      * @return Returns supported encode qualit range.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     Range GetSupportedQuality();
 
     /**
      * @brief Get supported encode complexity range.
      * @return Returns supported encode complexity range.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     Range GetSupportedComplexity();
 
     /**
      * @brief Check video encoder wether support request key frame dynamicly. 
      * @return Returns true if support, false not support.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     bool IsSupportDynamicIframe();
 
@@ -268,64 +268,64 @@ public:
      * whether hardware acceleration is supported, whether only software is supported, 
      * and whether the codec is provided by the vendor.
      * @return Returns the pointer of {@link AVCodecInfo}
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     std::shared_ptr<AVCodecInfo> GetCodecInfo();
 
     /**
      * @brief Get supported bitrate range.
      * @return Returns the range of supported bitrates.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
-    Range GetSupportedBitrate(); 
+    Range GetSupportedBitrate();
 
     /**
      * @brief Get supported channel range.
      * @return Returns the range of supported channel.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     Range GetSupportedChannel();
 
     /**
      * @brief Get supported audio raw format range.
      * @return Returns the range of supported audio raw format. For details, see {@link AudioRawFormat}.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
-    std::vector<int32_t> GetSupportedFormats(); 
+    std::vector<int32_t> GetSupportedFormats();
 
     /**
      * @brief Get supported audio samplerates.
      * @return Returns an array of supported samplerates.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     std::vector<int32_t> GetSupportedSampleRates();
 
     /**
      * @brief Get supported codec profile number.
      * @return Returns an array of supported codec profile number. For details, see {@link AACProfile}.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     std::vector<int32_t> GetSupportedProfiles();
 
     /**
      * @brief Get supported codec level array.
      * @return Returns an array of supported codec level number.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     std::vector<int32_t> GetSupportedLevels();
 
     /**
      * @brief Get supported encode complexity range.
      * @return Returns supported encode complexity range.
-     * @since 1.0
-     * @version 1.0
+     * @since 3.1
+     * @version 3.1
      */
     Range GetSupportedComplexity();
 
@@ -336,8 +336,8 @@ private:
 /**
  * @brief 
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 enum AVCodecErrorType : int32_t {
     AVCODEC_ERROR_INTERNAL,
