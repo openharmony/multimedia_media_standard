@@ -208,7 +208,7 @@ bool AVCodecParser::TransStrAsRange(const std::string &str, Range &range)
     return true;
 }
 
-std::vector<int32_t>  AVCodecParser::TransStrAsIntegerArray(std::vector<std::string> &spilt)
+std::vector<int32_t> AVCodecParser::TransStrAsIntegerArray(std::vector<std::string> &spilt)
 {
     std::vector<int32_t> array;
     for (auto iter = spilt.begin(); iter != spilt.end(); iter++) {
@@ -242,9 +242,9 @@ bool AVCodecParser::SpiltKeyList(const std::string &str, const std::string &deli
     if (str.back() != delim.back()) {
         strAddDelim = str + delim;
     }
-    size_t pos;
+    size_t pos = 0;
     size_t size = strAddDelim.size();
-    for (int i = 0; i < size; ++i) {
+    for (size_t i = 0; i < size; ++i) {
         pos = strAddDelim.find(delim, i);
         if (pos != strAddDelim.npos) {
             std::string s = strAddDelim.substr(i, pos - i);
@@ -256,14 +256,14 @@ bool AVCodecParser::SpiltKeyList(const std::string &str, const std::string &deli
 }
 
 bool AVCodecParser::SetCapabilityStringData(std::unordered_map<std::string, std::string&> dataMap,
-                                            const std::string &capabilityKey, std::string capabilityValue)
+                                            const std::string &capabilityKey, const std::string &capabilityValue)
 {
     dataMap.at(capabilityKey) = capabilityValue;
     return true;
 }
 
 bool AVCodecParser::SetCapabilityIntData(std::unordered_map<std::string, int32_t&> dataMap,
-                                         const std::string &capabilityKey, std::string capabilityValue)
+                                         const std::string &capabilityKey, const std::string &capabilityValue)
 {
     if (CODEC_TYPE_MAP.find(capabilityValue) != CODEC_TYPE_MAP.end()) {
         dataMap.at(capabilityKey) = CODEC_TYPE_MAP.at(capabilityValue);
@@ -275,7 +275,7 @@ bool AVCodecParser::SetCapabilityIntData(std::unordered_map<std::string, int32_t
 }
 
 bool AVCodecParser::SetCapabilityBoolData(std::unordered_map<std::string, bool&> dataMap,
-                                          const std::string &capabilityKey, std::string capabilityValue)
+                                          const std::string &capabilityKey, const std::string &capabilityValue)
 {
     if (capabilityValue == "true") {
         dataMap.at(capabilityKey) = true;
@@ -289,7 +289,7 @@ bool AVCodecParser::SetCapabilityBoolData(std::unordered_map<std::string, bool&>
 }
 
 bool AVCodecParser::SetCapabilityRangeData(std::unordered_map<std::string, Range&> dataMap,
-                                           const std::string &capabilityKey, std::string capabilityValue)
+                                           const std::string &capabilityKey, const std::string &capabilityValue)
 {
     Range range;
     bool ret = TransStrAsRange(capabilityValue, range);
@@ -298,7 +298,7 @@ bool AVCodecParser::SetCapabilityRangeData(std::unordered_map<std::string, Range
     return true;
 }
 
-bool AVCodecParser::IsNumberArray(const std::vector<std::string> strArray)
+bool AVCodecParser::IsNumberArray(const std::vector<std::string> &strArray)
 {
     for (auto iter = strArray.begin(); iter != strArray.end(); iter++) {
         for (char const &c : *iter) {
@@ -311,7 +311,7 @@ bool AVCodecParser::IsNumberArray(const std::vector<std::string> strArray)
 }
 
 bool AVCodecParser::SetCapabilityVectorData(std::unordered_map<std::string, std::vector<int32_t>&> dataMap,
-                                            const std::string &capabilityKey, std::string capabilityValue)
+                                            const std::string &capabilityKey, const std::string &capabilityValue)
 {
     std::vector<std::string> spilt;
     std::vector<int32_t> array;
@@ -341,7 +341,7 @@ bool AVCodecParser::SetCapabilityVectorData(std::unordered_map<std::string, std:
 }
 
 bool AVCodecParser::SetCapabilityData(CapabilityData &data, const std::string &capabilityKey,
-                                      const std::string capabilityValue)
+                                      const std::string &capabilityValue)
 {
     std::unordered_map<std::string, std::string&> capabilityStringMap = {
         {"codecName", data.codecName},

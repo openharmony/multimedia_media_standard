@@ -153,7 +153,6 @@ bool AVCodecListEngineGstImpl::IsSupportMediaType(const Format &format, const Ca
     return true;
 }
 
-
 std::string AVCodecListEngineGstImpl::FindTargetCodec(const Format &format,
     const std::vector<CapabilityData> &capabilityDataArray, const AVCodecType &codecType)
 {
@@ -193,7 +192,6 @@ std::string AVCodecListEngineGstImpl::FindAudioEncoder(const Format &format)
     std::vector<CapabilityData> capabilityDataArray = GetCodecCapabilityInfos();
     return FindTargetCodec(format, capabilityDataArray, AVCODEC_TYPE_AUDIO_ENCODER);
 }
-
 
 std::vector<CapabilityData> AVCodecListEngineGstImpl::GetCodecCapabilityInfos()
 {

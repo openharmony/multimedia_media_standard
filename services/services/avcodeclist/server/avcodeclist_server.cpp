@@ -56,7 +56,6 @@ int32_t AVCodecListServer::Init()
     return MSERR_OK;
 }
 
-
 std::string AVCodecListServer::FindVideoDecoder(const Format &format)
 {
     std::lock_guard<std::mutex> lock(mutex_);

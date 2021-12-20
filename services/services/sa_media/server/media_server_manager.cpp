@@ -130,7 +130,6 @@ sptr<IRemoteObject> MediaServerManager::CreateAVMetadataHelperStubObject()
     return object;
 }
 
-
 sptr<IRemoteObject> MediaServerManager::CreateAVCodecListStubObject()
 {
     if (avCodecListStubMap_.size() >= SERVER_MAX_NUMBER) {
@@ -151,7 +150,6 @@ sptr<IRemoteObject> MediaServerManager::CreateAVCodecListStubObject()
     }
     return object;
 }
-
 
 void MediaServerManager::DestroyStubObject(StubType type, sptr<IRemoteObject> object)
 {

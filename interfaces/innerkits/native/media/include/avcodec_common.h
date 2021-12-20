@@ -22,17 +22,6 @@
 
 namespace OHOS {
 namespace Media {
-/**
- * @brief 
- *
- * @since 1.0
- * @version 1.0
- */
-enum AVCodecErrorType : int32_t {
-    AVCODEC_ERROR_INTERNAL,
-    AVCODEC_ERROR_EXTEND_START = 0X10000,
-};
-
 
 /**
  * @brief 

@@ -169,7 +169,6 @@ AudioCaps::~AudioCaps()
     MEDIA_LOGD("AudioCaps:0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-
 std::shared_ptr<AVCodecInfo> AudioCaps::GetCodecInfo() 
 {
     std::shared_ptr<AVCodecInfo> codecInfo = std::make_shared<AVCodecInfo>((data_));
@@ -219,7 +218,6 @@ Range AudioCaps::GetSupportedComplexity()
 {
     return data_.complexity;
 }
-
 
 AVCodecInfo::AVCodecInfo(CapabilityData &capabilityData)
     : data_(capabilityData)

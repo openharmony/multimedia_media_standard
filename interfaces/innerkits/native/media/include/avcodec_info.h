@@ -21,7 +21,6 @@
 #include "av_common.h"
 #include "nocopyable.h"
 
-
 namespace OHOS {
 namespace Media {
 class __attribute__((visibility("default"))) AVCodecInfo {
