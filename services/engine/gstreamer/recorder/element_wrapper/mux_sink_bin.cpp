@@ -260,9 +260,28 @@ int32_t MuxSinkBin::Prepare()
     return MSERR_OK;
 }
 
+int32_t MuxSinkBin::SetFdToFdsink(const std::string &path)
+{
+    outFd_ = open(path.c_str(), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+    if (outFd_ < 0) {
+        MEDIA_LOGE("Open file failed! filePath: %{public}s", path.c_str());
+        return MSERR_INVALID_OPERATION;
+    }
+
+    g_object_set(gstSink_, "fd", outFd_, nullptr);
+    return MSERR_OK;
+}
+
 int32_t MuxSinkBin::SetOutFilePath()
 {
-    if (outPath_.empty() || CheckParameter(RecorderPublicParamType::OUT_FD) || isReg_) {
+    if (outPath_.empty() || CheckParameter(RecorderPublicParamType::OUT_FD)) {
+        MEDIA_LOGI("fd mode or empty path");
+        return MSERR_OK;
+    }
+
+    if (isReg_) {
+        int32_t ret = SetFdToFdsink(outFilePath);
+        CHECK_AND_RETURN_LOG(ret == MSERR_OK, "set fd to fdsink failed");
         return MSERR_OK;
     }
 
@@ -292,13 +311,8 @@ int32_t MuxSinkBin::SetOutFilePath()
     outFilePath += suffix;
     MEDIA_LOGI("out file path: %{public}s", outFilePath.c_str());
 
-    outFd_ = open(outFilePath.c_str(), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-    if (outFd_ < 0) {
-        MEDIA_LOGE("Open file failed! filePath: %{public}s", outFilePath.c_str());
-        return MSERR_INVALID_OPERATION;
-    }
-
-    g_object_set(gstSink_, "fd", outFd_, nullptr);
+    int32_t ret = SetFdToFdsink(outFilePath);
+    CHECK_AND_RETURN_LOG(ret == MSERR_OK, "set fd to fdsink failed");
 
     return MSERR_OK;
 }

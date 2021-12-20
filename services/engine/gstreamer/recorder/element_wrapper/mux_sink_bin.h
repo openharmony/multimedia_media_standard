@@ -44,6 +44,7 @@ private:
     int32_t ConfigureRotationAngle(const RecorderParam &recParm);
     int32_t SetOutFilePath();
     int32_t CreateMuxerElement(const std::string &name);
+    int32_t SetFdToFdsink(const std::string &path);
 
     GstElement *gstMuxer_ = nullptr;
     GstElement *gstSink_ = nullptr;
