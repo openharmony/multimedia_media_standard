@@ -19,7 +19,6 @@
 #include "system_ability_definition.h"
 #include "media_server_manager.h"
 
-
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaServer"};
 }

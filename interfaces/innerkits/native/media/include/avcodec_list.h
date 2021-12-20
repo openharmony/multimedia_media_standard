@@ -16,7 +16,6 @@
 #ifndef AVCODEC_LIST_H
 #define AVCODEC_LIST_H
 
-
 #include <cstdint>
 #include <memory>
 #include "avcodec_info.h"

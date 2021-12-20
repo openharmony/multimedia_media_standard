@@ -23,8 +23,8 @@ namespace Media {
 class AVCodecAbilitySingleton {
 public:
     ~AVCodecAbilitySingleton();
-    AVCodecAbilitySingleton(const AVCodecAbilitySingleton&)=delete;
-    AVCodecAbilitySingleton& operator=(const AVCodecAbilitySingleton&)=delete;
+    AVCodecAbilitySingleton(const AVCodecAbilitySingleton&) = delete;
+    AVCodecAbilitySingleton& operator=(const AVCodecAbilitySingleton&) = delete;
     static AVCodecAbilitySingleton& GetInstance();
     bool ParseCodecXml();
     Format codecXmlFormat;
