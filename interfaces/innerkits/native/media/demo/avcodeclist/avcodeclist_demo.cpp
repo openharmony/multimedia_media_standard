@@ -25,7 +25,7 @@ void AVCodecListDemo::DoNext()
 {
     cout << "Enter your step:" << endl;
     std::string cmd;
-    Format format; // TODO：The content of format should be optional
+    Format format; // The content of format should be optional
     std::string codecName;
     while (std::getline(std::cin, cmd)) {
         if (cmd.find("fvd") != std::string::npos) {
