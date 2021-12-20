@@ -19,6 +19,7 @@
 #include "system_ability_definition.h"
 #include "media_server_manager.h"
 
+
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaServer"};
 }
@@ -67,6 +68,9 @@ sptr<IRemoteObject> MediaServer::GetSubSystemAbility(IStandardMediaService::Medi
         }
         case MediaSystemAbility::MEDIA_AVMETADATAHELPER: {
             return MediaServerManager::GetInstance().CreateStubObject(MediaServerManager::AVMETADATAHELPER);
+        }
+        case MediaSystemAbility::MEDIA_CODECLIST: {
+            return MediaServerManager::GetInstance().CreateStubObject(MediaServerManager::AVCODECLIST);
         }
         default: {
             MEDIA_LOGE("default case, media client need check subSystemId");

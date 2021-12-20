@@ -20,7 +20,8 @@
           "header": {
             "header_files": [
                 "player.h",
-                "recorder.h"
+                "recorder.h",
+                "avcodec_list.h"
             ],
             "header_base": "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include"
           }

@@ -33,6 +33,7 @@ public:
         MEDIA_RECORDER = 1,
         MEDIA_CODEC = 2,
         MEDIA_AVMETADATAHELPER = 3,
+        MEDIA_CODECLIST = 4,
     };
 
     /**
