@@ -280,8 +280,8 @@ int32_t MuxSinkBin::SetOutFilePath()
     }
 
     if (isReg_) {
-        int32_t ret = SetFdToFdsink(outFilePath);
-        CHECK_AND_RETURN_LOG(ret == MSERR_OK, "set fd to fdsink failed");
+        int32_t ret = SetFdToFdsink(outPath_);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "set fd to fdsink failed");
         return MSERR_OK;
     }
 
@@ -312,7 +312,7 @@ int32_t MuxSinkBin::SetOutFilePath()
     MEDIA_LOGI("out file path: %{public}s", outFilePath.c_str());
 
     int32_t ret = SetFdToFdsink(outFilePath);
-    CHECK_AND_RETURN_LOG(ret == MSERR_OK, "set fd to fdsink failed");
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "set fd to fdsink failed");
 
     return MSERR_OK;
 }
