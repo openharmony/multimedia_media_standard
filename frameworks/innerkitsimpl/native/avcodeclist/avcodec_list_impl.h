@@ -31,7 +31,7 @@ public:
     std::string FindVideoEncoder(const Format &format) override;
     std::string FindAudioDecoder(const Format &format) override;
     std::string FindAudioEncoder(const Format &format) override;
-    std::vector<std::shared_ptr<VideoCaps>> GetVideoDecoderCaps() override; 
+    std::vector<std::shared_ptr<VideoCaps>> GetVideoDecoderCaps() override;
     std::vector<std::shared_ptr<VideoCaps>> GetVideoEncoderCaps() override;
     std::vector<std::shared_ptr<AudioCaps>> GetAudioDecoderCaps() override;
     std::vector<std::shared_ptr<AudioCaps>> GetAudioEncoderCaps() override;

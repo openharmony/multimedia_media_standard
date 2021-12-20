@@ -31,7 +31,7 @@ public:
      * @param format Indicates a media description which contains required video decoder capability.
      * @return  Returns video decoder name, if not find, return empty string.
      * @since 1.0
-     * @version 1.0
+     * @version 3.1
      */
     virtual std::string FindVideoDecoder(const Format &format) = 0;
 
@@ -40,7 +40,7 @@ public:
      * @param format Indicates a media description which contains required video encoder capability.
      * @return  Returns video encoder name, if not find, return empty string.
      * @since 1.0
-     * @version 1.0
+     * @version 3.1
      */
     virtual std::string FindVideoEncoder(const Format &format) = 0;
     
@@ -49,7 +49,7 @@ public:
      * @param format Indicates a media description which contains required audio decoder capability.
      * @return  Returns audio decoder name, if not find, return empty string.
      * @since 1.0
-     * @version 1.0
+     * @version 3.1
      */
     virtual std::string FindAudioDecoder(const Format &format) = 0;
     
@@ -58,7 +58,7 @@ public:
      * @param format Indicates a media description which contains required audio encoder capability.
      * @return  Returns audio encoder name, if not find, return empty string.
      * @since 1.0
-     * @version 1.0
+     * @version 3.1
      */
     virtual std::string FindAudioEncoder(const Format &format) = 0;
 
@@ -66,7 +66,7 @@ public:
      * @brief Get the supported video decoder capabilities.
      * @return Returns an array of supported video decoder capability.
      * @since 1.0
-     * @version 1.0
+     * @version 3.1
      */
     virtual std::vector<std::shared_ptr<VideoCaps>> GetVideoDecoderCaps() = 0;
 
@@ -74,7 +74,7 @@ public:
      * @brief Get the supported video encoder capabilities.
      * @return Returns an array of supported video encoder capability.
      * @since 1.0
-     * @version 1.0
+     * @version 3.1
      */
     virtual std::vector<std::shared_ptr<VideoCaps>> GetVideoEncoderCaps() = 0;
 
@@ -82,7 +82,7 @@ public:
      * @brief Get the supported audio decoder capabilities.
      * @return Returns an array of supported audio decoder capability.
      * @since 1.0
-     * @version 1.0
+     * @version 3.1
      */
     virtual std::vector<std::shared_ptr<AudioCaps>> GetAudioDecoderCaps() = 0;
 
@@ -90,7 +90,7 @@ public:
      * @brief Get the supported audio encoder capabilities.
      * @return Returns an array of supported audio encoder capability.
      * @since 1.0
-     * @version 1.0
+     * @version 3.1
      */
     virtual std::vector<std::shared_ptr<AudioCaps>> GetAudioEncoderCaps() = 0;
 };
