@@ -40,7 +40,6 @@ ohos_shared_library("media") {
 
   sources = [
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/common/common_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/common/media_description_napi.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediadata/callback_warp.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediadata/callback_works.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediadata/jscallback.cpp",
