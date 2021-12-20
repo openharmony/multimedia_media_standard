@@ -31,7 +31,6 @@ public:
 
     // IStandardMediaService override
     sptr<IRemoteObject> GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId) override;
-
 protected:
     // SystemAbility override
     void OnDump() override;

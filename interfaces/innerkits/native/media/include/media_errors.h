@@ -32,7 +32,7 @@ enum MediaServiceErrCode : ErrCode {
     MSERR_INVALID_OPERATION = MS_ERR_OFFSET + ENOSYS, // opertation not be permitted
     MSERR_INVALID_VAL       = MS_ERR_OFFSET + EINVAL, // invalid argument
     MSERR_UNKNOWN           = MS_ERR_OFFSET + 0x200,  // unkown error.
-    MSERR_SERVICE_DIED,                               // meida service died
+    MSERR_SERVICE_DIED,                               // media service died
     MSERR_CREATE_REC_ENGINE_FAILED,                   // create recorder engine failed.
     MSERR_CREATE_PLAYER_ENGINE_FAILED,                // create player engine failed.
     MSERR_CREATE_AVMETADATAHELPER_ENGINE_FAILED,      // create avmetadatahelper engine failed.
@@ -79,7 +79,7 @@ enum MediaServiceExtErrCode : ErrCode {
     MSERR_EXT_IO = MS_ERR_OFFSET + EIO,                   // IO error.
     MSERR_EXT_TIMEOUT = MS_ERR_OFFSET + ETIMEDOUT,        // network timeout.
     MSERR_EXT_UNKNOWN = MS_ERR_OFFSET + 0x200,            // unknown error.
-    MSERR_EXT_SERVICE_DIED,                               // meida service died.
+    MSERR_EXT_SERVICE_DIED,                               // media service died.
     MSERR_EXT_INVALID_STATE,                              // the state is not support this operation.
     MSERR_EXT_UNSUPPORT,                                  // unsupport interface.
     MSERR_EXT_EXTEND_START = MS_ERR_OFFSET + 0xF000,      // extend err start.
