@@ -31,7 +31,7 @@ public:
     static constexpr std::string_view PLAYER_HEIGHT = "height";
     static constexpr std::string_view PLAYER_MIME = "codec_mime";
     static constexpr std::string_view PLAYER_BITRATE = "bitrate";
-    static constexpr std::string_view PLAYER_FRAMERATE = "framerate";
+    static constexpr std::string_view PLAYER_FRAMERATE = "frame_rate";
     static constexpr std::string_view PLAYER_LANGUGAE = "language_code";
     static constexpr std::string_view PLAYER_SAMPLE_RATE = "sample_rate";
     static constexpr std::string_view PLAYER_CHANNELS = "channel_count";

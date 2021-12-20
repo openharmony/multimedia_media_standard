@@ -176,6 +176,89 @@ napi_deferred CommonNapi::CreatePromise(napi_env env, napi_ref ref, napi_value &
     return deferred;
 }
 
+bool CommonNapi::SetPropertyInt32(napi_env env, napi_value &obj, const std::string &key, int32_t value)
+{
+    CHECK_AND_RETURN_RET(obj != nullptr, false);
+
+    napi_value keyNapi = nullptr;
+    napi_status status = napi_create_string_utf8(env, key.c_str(), NAPI_AUTO_LENGTH, &keyNapi);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    napi_value valueNapi = nullptr;
+    status = napi_create_int32(env, value, &valueNapi);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    status = napi_set_property(env, obj, keyNapi, valueNapi);
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, false, "faile to set property");
+
+    return true;
+}
+
+bool CommonNapi::SetPropertyString(napi_env env, napi_value &obj, const std::string &key, const std::string &value)
+{
+    CHECK_AND_RETURN_RET(obj != nullptr, false);
+
+    napi_value keyNapi = nullptr;
+    napi_status status = napi_create_string_utf8(env, key.c_str(), NAPI_AUTO_LENGTH, &keyNapi);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    napi_value valueNapi = nullptr;
+    status = napi_create_string_utf8(env, value.c_str(), NAPI_AUTO_LENGTH, &valueNapi);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    status = napi_set_property(env, obj, keyNapi, valueNapi);
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, false, "faile to set property");
+
+    return true;
+}
+
+napi_value CommonNapi::CreateFormatBuffer(napi_env env, Format &format)
+{
+    napi_value buffer = nullptr;
+    napi_status status = napi_create_object(env, &buffer);
+    CHECK_AND_RETURN_RET(status == napi_ok, nullptr);
+
+    for (auto &iter : FORMAT_DATA) {
+        if (iter.second == FORMAT_TYPE_INT32) {
+            int32_t value = 0;
+            bool ret = format.GetIntValue(iter.first, value);
+            if (ret == true) {
+                CHECK_AND_RETURN_RET(SetPropertyInt32(env, buffer, iter.first, value) == true, nullptr);
+            }
+        } else if (iter.second == FORMAT_TYPE_STRING) {
+            std::string value;
+            bool ret = format.GetStringValue(iter.first, value);
+            if (ret == true) {
+                CHECK_AND_RETURN_RET(SetPropertyString(env, buffer, iter.first, value) == true, nullptr);
+            }
+        } else if (iter.second == FORMAT_TYPE_ADDR) {
+            /* no processing */
+        } else {
+            MEDIA_LOGE("format type: %{public}d", iter.second);
+        }
+    }
+    return buffer;
+}
+
+napi_status MediaJsResultArray::GetJsResult(napi_env env, napi_value &result)
+{
+    // create Description
+    napi_status status = napi_create_array(env, &result);
+    if (status != napi_ok) {
+        return napi_cancelled;
+    }
+
+    auto vecSize = value_.size();
+    for (size_t index = 0; index < vecSize; ++index) {
+        napi_value description = nullptr;
+        description = CommonNapi::CreateFormatBuffer(env, value_[index]);
+        if (description == nullptr || napi_set_element(env, result, index, description) != napi_ok) {
+            return napi_cancelled;
+        }
+    }
+    return napi_ok;
+}
+
 void MediaAsyncContext::SignError(int32_t code, std::string message)
 {
     errMessage = message;
