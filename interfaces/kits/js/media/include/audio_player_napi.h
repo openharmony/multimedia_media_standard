@@ -49,6 +49,8 @@ private:
     static napi_value GetCurrentTime(napi_env env, napi_callback_info info);
     static napi_value GetDuration(napi_env env, napi_callback_info info);
     static napi_value GetState(napi_env env, napi_callback_info info);
+    static napi_value GetTrackDescription(napi_env env, napi_callback_info info);
+    static void AsyncGetTrackDescription(napi_env env, void *data);
     void ErrorCallback(MediaServiceExtErrCode errCode);
     AudioPlayerNapi();
     ~AudioPlayerNapi();
@@ -60,6 +62,7 @@ private:
     std::shared_ptr<Player> nativePlayer_ = nullptr;
     std::shared_ptr<PlayerCallback> callbackNapi_ = nullptr;
     std::string uri_ = "";
+    std::vector<Format> audioTrackInfoVec_;
 };
 } // namespace Media
 } // namespace OHOS

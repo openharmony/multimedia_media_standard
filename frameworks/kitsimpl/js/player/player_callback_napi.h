@@ -24,6 +24,12 @@
 
 namespace OHOS {
 namespace Media {
+struct AudioPlayerAsyncContext : public MediaAsyncContext {
+    explicit AudioPlayerAsyncContext(napi_env env) : MediaAsyncContext(env) {}
+    ~AudioPlayerAsyncContext() = default;
+    AudioPlayerNapi *jsPlayer = nullptr;
+};
+
 class PlayerCallbackNapi : public PlayerCallback {
 public:
     explicit PlayerCallbackNapi(napi_env env);

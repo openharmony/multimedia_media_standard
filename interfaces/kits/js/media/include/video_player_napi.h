@@ -158,7 +158,7 @@ private:
     std::shared_ptr<PlayerCallback> jsCallback_ = nullptr;
     std::shared_ptr<MediaDataSourceCallback> dataSrcCallBack_ = nullptr;
     std::string url_ = "";
-    std::vector<Format> videoTranckInfoVec_;
+    std::vector<Format> videoTrackInfoVec_;
 };
 } // namespace Media
 } // namespace OHOS
