@@ -20,6 +20,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecListEngineGstImpl"};
+    constexpr int32_t FRAME_RATE_TIMES = 100;
 }
 
 namespace OHOS {
@@ -98,8 +99,8 @@ bool AVCodecListEngineGstImpl::IsSupportFrameRate(const Format &format, const Ca
         MEDIA_LOGD("The frame_rate of the format are not specified");
         return true;
     }
-    if (data.frameRate.minVal * 100 > targetFrameRate ||
-        data.frameRate.maxVal * 100 < targetFrameRate) { // 100 is for unit conversion
+    if (data.frameRate.minVal * FRAME_RATE_TIMES > targetFrameRate ||
+        data.frameRate.maxVal * FRAME_RATE_TIMES < targetFrameRate) {
         return false;
     }
     return true;

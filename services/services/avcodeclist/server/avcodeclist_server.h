@@ -30,7 +30,7 @@ public:
     virtual ~AVCodecListServer();
     DISALLOW_COPY_AND_MOVE(AVCodecListServer);
 
-    enum AVCodecListStatus {
+    enum AVCodecListStatus : int32_t {
         AVCODECLIST_UNINITIALIZED = 0,
         AVCODECLIST_INITIALIZED,
         AVCODECLIST_END_OF_STREAM,

@@ -38,7 +38,7 @@ public:
     /**
      * IPC code ID
      */
-    enum AVCodecListServiceMsg {
+    enum AVCodecListServiceMsg : int32_t {
         SET_LISTENER_OBJ = 0,
         FIND_VIDEO_DECODER,
         FIND_VIDEO_ENCODER,
