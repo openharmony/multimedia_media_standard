@@ -122,36 +122,6 @@ int32_t GstPlayerTrackParse::GetAudioTrackInfo(std::vector<Format> &audioTrack)
     return MSERR_OK;
 }
 
-int32_t GstPlayerTrackParse::GetVideoWidth()
-{
-    for (auto iter = videoTrackInfo_.begin(); iter != videoTrackInfo_.end(); iter++) {
-        auto trackInfoMap = iter->begin()->second;
-        if (trackInfoMap.count(std::string(PlayerKeys::PLAYER_WIDTH)) > 0) {
-            return std::stoi(trackInfoMap.at(std::string(PlayerKeys::PLAYER_WIDTH)));
-        }
-
-        MEDIA_LOGE("not find video width");
-        break;
-    }
-    MEDIA_LOGE("videoTrackInfo_ is null");
-    return 0;
-}
-
-int32_t GstPlayerTrackParse::GetVideoHeight()
-{
-    for (auto iter = videoTrackInfo_.begin(); iter != videoTrackInfo_.end(); iter++) {
-        auto trackInfoMap = iter->begin()->second;
-        if (trackInfoMap.count(std::string(PlayerKeys::PLAYER_HEIGHT)) > 0) {
-            return std::stoi(trackInfoMap.at((std::string(PlayerKeys::PLAYER_HEIGHT))));
-        }
-
-        MEDIA_LOGE("not find video width");
-        break;
-    }
-    MEDIA_LOGE("videoTrackInfo_ is null");
-    return 0;
-}
-
 std::string GstPlayerTrackParse::GetSerializedValue(const GValue *value)
 {
     if (G_VALUE_HOLDS_STRING(value)) {
