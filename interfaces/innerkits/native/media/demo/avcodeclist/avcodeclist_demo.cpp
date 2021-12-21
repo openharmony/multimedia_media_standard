@@ -28,28 +28,28 @@ void AVCodecListDemo::DoNext()
     Format format; // The content of format should be optional
     std::string codecName;
     while (std::getline(std::cin, cmd)) {
-        if (cmd.find("fvd") != std::string::npos) {
+        if (cmd.find("fvd") != std::string::npos || cmd.find("FindVideoDecoder") != std::string::npos) {
             codecName = avCodecList_->FindVideoDecoder(format);
             cout << "FindVideoDecoder : " << codecName << endl;
-        } else if (cmd.find("fve") != std::string::npos) {
+        } else if (cmd.find("fve") != std::string::npos || cmd.find("FindVideoEncoder") != std::string::npos) {
             codecName = avCodecList_->FindVideoEncoder(format);
             cout << "FindVideoEncoder : " << codecName << endl;
-        } else if (cmd.find("fad") != std::string::npos) {
+        } else if (cmd.find("fad") != std::string::npos || cmd.find("FindAudioDecoder") != std::string::npos) {
             codecName = avCodecList_->FindAudioDecoder(format);
             cout << "FindAudioDecoder : " << codecName << endl;
-        } else if (cmd.find("fae") != std::string::npos) {
+        } else if (cmd.find("fae") != std::string::npos || cmd.find("FindAudioEncoder") != std::string::npos) {
             codecName = avCodecList_->FindAudioEncoder(format);
             cout << "FindAudioEncoder : " << codecName << endl;
-        } else if (cmd.find("gvd") != std::string::npos) {
+        } else if (cmd.find("gvd") != std::string::npos || cmd.find("GetVideoDecoderCaps") != std::string::npos) {
             std::vector<std::shared_ptr<VideoCaps>> videoDecoderArray = avCodecList_->GetVideoDecoderCaps();
             PrintVideoCapsArray(videoDecoderArray);          
-        } else if (cmd.find("gve") != std::string::npos) {
+        } else if (cmd.find("gve") != std::string::npos || cmd.find("GetVideoEncoderCaps") != std::string::npos) {
             std::vector<std::shared_ptr<VideoCaps>> videoEncoderArray = avCodecList_->GetVideoEncoderCaps();
             PrintVideoCapsArray(videoEncoderArray);
-        } else if (cmd.find("gad") != std::string::npos) {
+        } else if (cmd.find("gad") != std::string::npos || cmd.find("GetAudioDecoderCaps") != std::string::npos) {
             std::vector<std::shared_ptr<AudioCaps>> audioDecoderArray = avCodecList_->GetAudioDecoderCaps();
             PrintAudioCapsArray(audioDecoderArray);
-        } else if (cmd.find("gae") != std::string::npos) {
+        } else if (cmd.find("gae") != std::string::npos || cmd.find("GetAudioEncoderCaps") != std::string::npos) {
             std::vector<std::shared_ptr<AudioCaps>> audioEncoderArray = avCodecList_->GetAudioEncoderCaps();
             PrintAudioCapsArray(audioEncoderArray);
         }
@@ -77,8 +77,8 @@ void AVCodecListDemo::PrintVideoCapsArray(const std::vector<std::shared_ptr<Vide
                 " - " << pVideoCaps->GetSupportedWidth().maxVal << endl;
         cout << "GetSupportedHeight = "<< pVideoCaps->GetSupportedHeight().minVal <<\
                 " - " << pVideoCaps->GetSupportedHeight().maxVal << endl;
-        cout << "GetSupportedFramerate = "<< pVideoCaps->GetSupportedFramerate().minVal <<\
-                " - " << pVideoCaps->GetSupportedFramerate().maxVal << endl;
+        cout << "GetSupportedFrameRate = "<< pVideoCaps->GetSupportedFrameRate().minVal <<\
+                " - " << pVideoCaps->GetSupportedFrameRate().maxVal << endl;
         cout << "GetSupportedEncodeQuality = "<< pVideoCaps->GetSupportedEncodeQuality().minVal <<\
                 " - " << pVideoCaps->GetSupportedEncodeQuality().maxVal << endl;
         cout << "GetSupportedQuality = "<< pVideoCaps->GetSupportedQuality().minVal <<\
