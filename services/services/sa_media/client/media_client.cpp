@@ -159,6 +159,28 @@ std::shared_ptr<IAVMetadataHelperService> MediaClient::CreateAVMetadataHelperSer
     return avMetadataHelper;
 }
 
+std::shared_ptr<IAVCodecService> MediaClient::CreateAVCodecService()
+{
+    if (!IsAlived()) {
+        MEDIA_LOGE("media service does not exist.");
+        return nullptr;
+    }
+
+    sptr<IRemoteObject> object = mediaProxy_->GetSubSystemAbility(
+        IStandardMediaService::MediaSystemAbility::MEDIA_AVCODEC);
+    CHECK_AND_RETURN_RET_LOG(object != nullptr, nullptr, "avcodec proxy object is nullptr.");
+
+    sptr<IStandardAVCodecService> avCodecProxy = iface_cast<IStandardAVCodecService>(object);
+    CHECK_AND_RETURN_RET_LOG(avCodecProxy != nullptr, nullptr, "avcodec proxy is nullptr.");
+
+    std::shared_ptr<AVCodecClient> avCodec = AVCodecClient::Create(avCodecProxy);
+    CHECK_AND_RETURN_RET_LOG(avCodec != nullptr, nullptr, "failed to create avcodec client.");
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    avCodecClientList_.push_back(avCodec);
+    return avCodec;
+}
+
 int32_t MediaClient::DestroyRecorderService(std::shared_ptr<IRecorderService> recorder)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -181,6 +203,14 @@ int32_t MediaClient::DestroyAVMetadataHelperService(std::shared_ptr<IAVMetadataH
     CHECK_AND_RETURN_RET_LOG(avMetadataHelper != nullptr, MSERR_NO_MEMORY,
         "input avmetadatahelper is nullptr.");
     avMetadataHelperClientList_.remove(avMetadataHelper);
+    return MSERR_OK;
+}
+
+int32_t MediaClient::DestroyAVCodecService(std::shared_ptr<IAVCodecService> avCodec)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(avCodec != nullptr, MSERR_NO_MEMORY, "input avcodec is nullptr.");
+    avCodecClientList_.remove(avCodec);
     return MSERR_OK;
 }
 

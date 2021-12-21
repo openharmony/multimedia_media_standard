@@ -1,0 +1,104 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+config("media_engine_gst_avcodec_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-std=c++17",
+    "-fno-rtti",
+    "-fno-exceptions",
+    "-Wall",
+    "-fno-common",
+    "-fstack-protector-strong",
+    "-Wshadow",
+    "-FPIC",
+    "-FS",
+    "-O2",
+    "-D_FORTIFY_SOURCE=2",
+    "-fvisibility=hidden",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wdate-time",
+  ]
+
+  include_dirs = [
+    ".",
+    "format_processor",
+    "sink_wrapper",
+    "src_wrapper",
+    "//drivers/peripheral/display/interfaces/include",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/avcodec",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
+    "//foundation/multimedia/media_standard/services/utils/include",
+    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/media_standard/services/services/engine_intf",
+    "//utils/native/base/include",
+    "//third_party/gstreamer/gstreamer",
+    "//third_party/gstreamer/gstreamer/libs",
+    "//third_party/gstreamer/gstplugins_base",
+    "//third_party/gstreamer/gstplugins_base/gst-libs",
+    "//third_party/gstreamer/gstplugins_bad/gst-libs",
+    "//third_party/glib/glib",
+    "//third_party/glib",
+    "//third_party/glib/gmodule",
+  ]
+}
+
+ohos_static_library("media_engine_gst_avcodec") {
+  sources = [
+    "codec_common.cpp",
+    "format_processor/processor_base.cpp",
+    "format_processor/processor_adec_impl.cpp",
+    "format_processor/processor_aenc_impl.cpp",
+    "format_processor/processor_vdec_impl.cpp",
+    "format_processor/processor_venc_impl.cpp",
+    "sink_wrapper/sink_bytebuffer_impl.cpp",
+    "sink_wrapper/sink_surface_impl.cpp",
+    "src_wrapper/src_bytebuffer_impl.cpp",
+    "src_wrapper/src_surface_impl.cpp",
+    "avcodec_engine_ctrl.cpp",
+    "avcodec_engine_factory.cpp",
+    "avcodec_engine_gst_impl.cpp",
+  ]
+
+  configs = [
+    ":media_engine_gst_avcodec_config",
+    "//foundation/graphic/standard/frameworks/surface:surface_public_config",
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils_public_config",
+  ]
+
+  deps = [
+    "//foundation/graphic/standard/frameworks/surface:surface",
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_client",
+    "//third_party/glib:glib",
+    "//third_party/glib:gmodule",
+    "//third_party/glib:gobject",
+    "//third_party/gstreamer/gstreamer:gstbase",
+    "//third_party/gstreamer/gstreamer:gstreamer",
+    "//third_party/gstreamer/gstplugins_bad:gstplayer",
+    "//third_party/gstreamer/gstplugins_base:gstaudio",
+    "//third_party/gstreamer/gstplugins_base:gstvideo",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
+
+  subsystem_name = "multimedia"
+  part_name = "multimedia_media_standard"
+}
