@@ -58,30 +58,30 @@ AVCodecListImpl::~AVCodecListImpl()
 std::string AVCodecListImpl::FindVideoDecoder(const Format &format)
 {
     CHECK_AND_RETURN_RET_LOG(codecListService_ != nullptr, "", "AvCodecList service does not exist..");
-    return codecListService_->FindVideoDecoder(format); 
+    return codecListService_->FindVideoDecoder(format);
 }
 
 std::string AVCodecListImpl::FindVideoEncoder(const Format &format)
 {
     CHECK_AND_RETURN_RET_LOG(codecListService_ != nullptr, "", "AvCodecList service does not exist..");
-    return codecListService_->FindVideoEncoder(format); 
+    return codecListService_->FindVideoEncoder(format);
 }
 
 std::string AVCodecListImpl::FindAudioDecoder(const Format &format)
 {
     CHECK_AND_RETURN_RET_LOG(codecListService_ != nullptr, "", "AvCodecList service does not exist..");
-    return codecListService_->FindAudioDecoder(format); 
+    return codecListService_->FindAudioDecoder(format);
 }
 
 std::string AVCodecListImpl::FindAudioEncoder(const Format &format)
 {
     CHECK_AND_RETURN_RET_LOG(codecListService_ != nullptr, "", "AvCodecList service does not exist..");
-    return codecListService_->FindAudioEncoder(format); 
+    return codecListService_->FindAudioEncoder(format);
 }
 
 std::vector<CapabilityData> AVCodecListImpl::GetCodecCapabilityInfos()
 {
-    return codecListService_->GetCodecCapabilityInfos(); 
+    return codecListService_->GetCodecCapabilityInfos();
 }
 
 std::vector<std::shared_ptr<VideoCaps>> AVCodecListImpl::GetVideoDecoderCaps()
@@ -138,7 +138,7 @@ std::vector<std::shared_ptr<AudioCaps>> AVCodecListImpl::GetAudioEncoderCaps()
 }
 
 void AVCodecListImpl::SelectTargetCapabilityDataArray(std::vector<CapabilityData> &capabilityArray,
-                                                    const AVCodecType &codecType)
+                                                      const AVCodecType &codecType)
 {
     for (auto iter = capabilityArray.begin(); iter != capabilityArray.end();) {
         if (iter->codecType == codecType) {

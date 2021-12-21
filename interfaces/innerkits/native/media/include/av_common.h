@@ -15,17 +15,16 @@
 #ifndef AV_COMMOM_H
 #define AV_COMMOM_H
 
-#include <cstdint>
 #include <vector>
 #include "format.h"
 
 namespace OHOS {
 namespace Media {
 /**
- * @brief 
+ * @brief AVCodec Type
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 enum AVCodecType : int32_t {
     AVCODEC_TYPE_NONE = -1,
@@ -35,10 +34,10 @@ enum AVCodecType : int32_t {
     AVCODEC_TYPE_AUDIO_DECODER,
 };
 /**
- * @brief 
+ * @brief Range contain min and max value
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 struct Range {
     int32_t minVal = 0;
@@ -46,10 +45,10 @@ struct Range {
 };
 
 /**
- * @brief 
+ * @brief Capability Data struct of Codec, parser from config file
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 struct CapabilityData {
     std::string codecName = "";
@@ -73,10 +72,10 @@ struct CapabilityData {
 };
 
 /**
- * @brief 
+ * @brief Media type
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 enum MediaType : int32_t {
     /**
@@ -94,10 +93,10 @@ enum MediaType : int32_t {
 };
 
 /**
- * @brief 
+ * @brief AVC Profile
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 enum AVCProfile {
     AVC_PROFILE_BASELINE = 0,
@@ -112,10 +111,10 @@ enum AVCProfile {
 };
 
 /**
- * @brief 
+ * @brief HEVC Profile
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 enum HEVCProfile {
     HEVC_PROFILE_MAIN = 0,
@@ -124,10 +123,10 @@ enum HEVCProfile {
 };
 
 /**
- * @brief 
+ * @brief MPEG2 Profile
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 enum MPEG2Profile {
     MPEG2_PROFILE_422 = 0,
@@ -139,10 +138,10 @@ enum MPEG2Profile {
 };
 
 /**
- * @brief 
+ * @brief MPEG4 Profile
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 enum MPEG4Profile {
     MPEG4_PROFILE_ADVANCED_CODING = 0,
@@ -164,10 +163,10 @@ enum MPEG4Profile {
 };
 
 /**
- * @brief 
+ * @brief H263 Profile
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 enum H263Profile {
     H263_PROFILE_BACKWARD_COMPATIBLE = 0,
@@ -176,26 +175,26 @@ enum H263Profile {
     H263_PROFILE_HIGH_COMPRESSION = 3,
     H263_PROFILE_HIGH_LATENCY = 4,
     H263_PROFILE_ISW_V2 = 5,
-    H263_PROFILE_ISW_V3 = 6, 
+    H263_PROFILE_ISW_V3 = 6,
     H263_PROFILE_INTERLACE = 7,
     H263_PROFILE_INTERNET = 8,
 };
 
 /**
- * @brief 
+ * @brief
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 enum VP8Profile {
     VP8_PROFILE_MAIN = 0,
 };
 
 /**
- * @brief 
+ * @brief
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 enum AACProfile {
     AAC_PROFILE_LC = 0,
@@ -208,10 +207,10 @@ enum AACProfile {
 };
 
 /**
- * @brief 
+ * @brief
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 enum VideoPixelformat {
     /**
@@ -233,10 +232,10 @@ enum VideoPixelformat {
 };
 
 /**
- * @brief 
+ * @brief
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 enum AudioRawFormat {
     /**
@@ -306,10 +305,10 @@ enum AudioRawFormat {
 };
 
 /**
- * @brief 
+ * @brief
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 enum VideoEncodeBitrateMode {
     /**
@@ -324,17 +323,6 @@ enum VideoEncodeBitrateMode {
      * constant quality mode.
     */
     CQ = 2,
-};
-
-/**
- * @brief 
- *
- * @since 1.0
- * @version 1.0
- */
-enum AVCodecListErrorType : int32_t {
-    AVCODECLIST_ERROR_INTERNAL,
-    AVCODECLIST_ERROR_EXTEND_START = 0X10000,
 };
 }
 }

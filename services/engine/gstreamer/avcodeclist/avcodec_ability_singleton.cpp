@@ -42,7 +42,7 @@ AVCodecAbilitySingleton::~AVCodecAbilitySingleton()
 
 bool AVCodecAbilitySingleton::ParseCodecXml()
 {
-    AVCodecParser xmlParser;
+    AVCodecXmlParser xmlParser;
     bool ret = xmlParser.LoadConfiguration();
     CHECK_AND_RETURN_RET_LOG(ret != false, false, "AVCodecList LoadConfiguration failed.");
     ret = xmlParser.Parse();

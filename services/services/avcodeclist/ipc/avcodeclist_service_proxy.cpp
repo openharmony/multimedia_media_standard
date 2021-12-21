@@ -78,7 +78,7 @@ std::string AVCodecListServiceProxy::FindAudioEncoder(const Format &format)
 }
 
 std::vector<CapabilityData> AVCodecListServiceProxy::GetCodecCapabilityInfos()
-{ 
+{
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;

@@ -41,7 +41,7 @@ std::shared_ptr<AVCodecInfo> VideoCaps::GetCodecInfo()
     return codecInfo;
 }
 
-Range VideoCaps::GetSupportedBitrate() 
+Range VideoCaps::GetSupportedBitrate()
 {
     return data_.bitrate;
 }
@@ -63,12 +63,12 @@ int32_t VideoCaps::GetSupportedWidthAlignment()
     return data_.alignment.minVal;
 }
 
-Range VideoCaps::GetSupportedWidth() 
+Range VideoCaps::GetSupportedWidth()
 {
     return data_.width;
 }
 
-Range VideoCaps::GetSupportedHeight()  
+Range VideoCaps::GetSupportedHeight()
 {
     return data_.height;
 }
@@ -92,7 +92,7 @@ Range VideoCaps::GetSupportedEncodeQuality()
     return data_.encodeQuality;
 }
 
-bool VideoCaps::IsSizeSupported(int32_t width, int32_t height) 
+bool VideoCaps::IsSizeSupported(int32_t width, int32_t height)
 {
     if (data_.width.minVal > width || data_.width.maxVal < width ||
         data_.height.minVal > height || data_.height.maxVal < height) {
@@ -141,7 +141,7 @@ Range VideoCaps::GetPreferredFrameRate(int32_t width, int32_t height)
     return range;
 }
 
-std::vector<int32_t> VideoCaps::GetSupportedBitrateMode() 
+std::vector<int32_t> VideoCaps::GetSupportedBitrateMode()
 {
     std::vector<int32_t> bitrateMode = data_.bitrateMode;
     CHECK_AND_RETURN_RET_LOG(bitrateMode.size() != 0, bitrateMode, "GetSupportedBitrateMode failed: get null");
@@ -174,14 +174,14 @@ AudioCaps::~AudioCaps()
     MEDIA_LOGD("AudioCaps:0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-std::shared_ptr<AVCodecInfo> AudioCaps::GetCodecInfo() 
+std::shared_ptr<AVCodecInfo> AudioCaps::GetCodecInfo()
 {
     std::shared_ptr<AVCodecInfo> codecInfo = std::make_shared<AVCodecInfo>((data_));
     CHECK_AND_RETURN_RET_LOG(codecInfo != nullptr, nullptr, "create codecInfo failed");
     return codecInfo;
 }
 
-Range AudioCaps::GetSupportedBitrate() 
+Range AudioCaps::GetSupportedBitrate()
 {
     return data_.bitrate;
 }

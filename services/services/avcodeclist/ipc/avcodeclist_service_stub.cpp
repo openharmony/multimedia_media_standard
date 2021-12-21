@@ -54,7 +54,7 @@ int32_t AVCodecListServiceStub::Init()
     codecListFuncs_[FIND_VIDEO_ENCODER] = &AVCodecListServiceStub::FindVideoEncoder;
     codecListFuncs_[FIND_AUDIO_DECODER] = &AVCodecListServiceStub::FindAudioDecoder;
     codecListFuncs_[FIND_AUDIO_ENCODER] = &AVCodecListServiceStub::FindAudioEncoder;
-    codecListFuncs_[GET_CAPABILITY_INFOS] = &AVCodecListServiceStub::GetCodecCapabilityInfos;     
+    codecListFuncs_[GET_CAPABILITY_INFOS] = &AVCodecListServiceStub::GetCodecCapabilityInfos;
     codecListFuncs_[DESTROY] = &AVCodecListServiceStub::DestroyStub;
     return MSERR_OK;
 }
