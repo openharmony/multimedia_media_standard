@@ -29,8 +29,6 @@ public:
     static std::shared_ptr<GstPlayerTrackParse> Create();
     int32_t GetVideoTrackInfo(std::vector<Format> &videoTrack);
     int32_t GetAudioTrackInfo(std::vector<Format> &audioTrack);
-    int32_t GetVideoWidth();
-    int32_t GetVideoHeight();
     void SetDemuxerElementFind(bool isFind);
     bool GetDemuxerElementFind();
     static void OnPadAddedCb(const GstElement *element, const GstPad *pad, GstPlayerTrackParse *playerTrackInfo);
