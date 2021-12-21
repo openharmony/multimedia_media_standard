@@ -114,6 +114,21 @@ std::unordered_map<int32_t, std::string> AVMetadataHelperServiceProxy::ResolveMe
     return metadata;
 }
 
+std::shared_ptr<AVSharedMemory> AVMetadataHelperServiceProxy::FetchArtPicture()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    int error = Remote()->SendRequest(FETCH_ART_PICTURE, data, reply, option);
+    if (error != MSERR_OK) {
+        MEDIA_LOGE("Fetch art picture failed, error: %{public}d", error);
+        return nullptr;
+    }
+
+    return ReadAVSharedMemoryFromParcel(reply);
+}
+
 std::shared_ptr<AVSharedMemory> AVMetadataHelperServiceProxy::FetchFrameAtTime(int64_t timeUs,
     int32_t option, const OutputConfiguration &param)
 {

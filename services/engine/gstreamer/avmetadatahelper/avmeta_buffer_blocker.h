@@ -37,17 +37,10 @@ public:
     ~AVMetaBufferBlocker();
 
     void Init();
-    bool CheckBufferRecieved();
-
-    // the subtitle streams are not counted.
-    uint32_t GetStreamCount();
-
-    // index = -1 will cancel all block
-    void CancelBlock(int32_t index);
-
-    // Just clear all block, not cancel. Be carefully, after clear, the block can not be
-    // cancelled until the element is destroyed.
-    void Clear();
+    bool IsRemoved();
+    bool IsBufferDetected();
+    void Remove();
+    void Hide();
 
     DISALLOW_COPY_AND_MOVE(AVMetaBufferBlocker);
 private:
@@ -55,14 +48,20 @@ private:
     static void PadAdded(GstElement *elem, GstPad *pad, gpointer userdata);
     GstPadProbeReturn OnBlockCallback(GstPad &pad, GstPadProbeInfo &info);
     void OnPadAdded(GstElement &elem, GstPad &pad);
+    bool CheckUpStreamBlocking(GstPad &pad);
+    void AddPadProbe(GstPad &pad, GstPadProbeType type);
 
     struct PadInfo {
         GstPad *pad;
         gulong probeId;
         bool hasBuffer;
+        bool blocked;
     };
 
     std::mutex mutex_;
+    bool isHidden_ = false;
+    bool isRemoved_ = false;
+    GstPadProbeReturn probeRet_ = GST_PAD_PROBE_PASS;
     std::vector<PadInfo> padInfos_;
     GstElement &elem_;
     gulong signalId_ = 0;

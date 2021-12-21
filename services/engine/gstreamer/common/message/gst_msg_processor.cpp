@@ -83,10 +83,7 @@ int32_t GstMsgProcessor::Init()
 
 int32_t GstMsgProcessor::DoInit()
 {
-    ON_SCOPE_EXIT(0) {
-        auto mainLoopExit = std::make_shared<TaskHandler<void>>([this]() { DoReset(); });
-        (void)guardTask_.EnqueueTask(mainLoopExit);
-    };
+    ON_SCOPE_EXIT(0) { DoReset(); };
 
     context_ = g_main_context_new();
     CHECK_AND_RETURN_RET(context_ != nullptr, MSERR_NO_MEMORY);
@@ -111,11 +108,13 @@ int32_t GstMsgProcessor::DoInit()
         MEDIA_LOGI("start msg main loop...");
         g_main_loop_run(mainLoop_);
         MEDIA_LOGI("stop msg main loop...");
+        DoReset();
     });
 
     int32_t ret1 = guardTask_.EnqueueTask(mainLoopRun);
     CHECK_AND_RETURN_RET(ret1 == MSERR_OK, ret1);
 
+    CANCEL_SCOPE_EXIT_GUARD(0);
     return MSERR_OK;
 }
 
@@ -160,7 +159,7 @@ void GstMsgProcessor::DoReset()
     if (busSource_ != nullptr) {
         g_source_destroy(busSource_);
         g_source_unref(busSource_);
-        gst_object_unref(gstBus_);
+        busSource_ = nullptr;
     }
 
     if (mainLoop_ != nullptr) {

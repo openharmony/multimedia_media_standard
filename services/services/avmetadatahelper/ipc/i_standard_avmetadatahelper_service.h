@@ -46,6 +46,7 @@ public:
     virtual int32_t SetSource(const std::string &uri, int32_t usage) = 0;
     virtual std::string ResolveMetadata(int32_t key) = 0;
     virtual std::unordered_map<int32_t, std::string> ResolveMetadataMap() = 0;
+    virtual std::shared_ptr<AVSharedMemory> FetchArtPicture() = 0;
     virtual std::shared_ptr<AVSharedMemory> FetchFrameAtTime(
         int64_t timeUs, int32_t option, const OutputConfiguration &param) = 0;
     virtual void Release() = 0;
@@ -58,6 +59,7 @@ public:
         SET_SOURCE = 0,
         RESOLVE_METADATA,
         RESOLVE_METADATA_MAP,
+        FETCH_ART_PICTURE,
         FETCH_FRAME_AT_TIME,
         RELEASE,
         DESTROY,
