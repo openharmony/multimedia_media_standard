@@ -27,9 +27,14 @@ namespace {
 static napi_value Export(napi_env env, napi_value exports)
 {
     MEDIA_LOGD("Export() is called");
-    OHOS::Media::AudioRecorderNapi::Init(env, exports);
+    OHOS::Media::AudioDecoderNapi::Init(env, exports);
+    OHOS::Media::AudioEncoderNapi::Init(env, exports);
     OHOS::Media::AudioPlayerNapi::Init(env, exports);
+    OHOS::Media::AudioRecorderNapi::Init(env, exports);
+    OHOS::Media::MediaCapsNapi::Init(env, exports);
     OHOS::Media::MediaDataSourceNapi::Init(env, exports);
+    OHOS::Media::VideoDecoderNapi::Init(env, exports);
+    OHOS::Media::VideoEncoderNapi::Init(env, exports);
     OHOS::Media::VideoPlayerNapi::Init(env, exports);
     return exports;
 }

@@ -20,6 +20,7 @@
 #include "player_engine_gst_impl.h"
 #include "recorder_engine_gst_impl.h"
 #include "avmetadatahelper_engine_gst_impl.h"
+#include "avcodec_engine_gst_impl.h"
 #include "avcodeclist_engine_gst_impl.h"
 #include "gst_loader.h"
 
@@ -38,6 +39,7 @@ public:
     std::unique_ptr<IPlayerEngine> CreatePlayerEngine() override;
     std::unique_ptr<IRecorderEngine> CreateRecorderEngine() override;
     std::unique_ptr<IAVMetadataHelperEngine> CreateAVMetadataHelperEngine() override;
+    std::unique_ptr<IAVCodecEngine> CreateAVCodecEngine() override;
     std::unique_ptr<IAVCodecListEngine> CreateAVCodecListEngine() override;
 
     DISALLOW_COPY_AND_MOVE(GstEngineFactory);
@@ -72,6 +74,12 @@ std::unique_ptr<IRecorderEngine> GstEngineFactory::CreateRecorderEngine()
         return nullptr;
     }
     return engine;
+}
+
+std::unique_ptr<IAVCodecEngine> GstEngineFactory::CreateAVCodecEngine()
+{
+    GstLoader::Instance().UpdateLogLevel();
+    return std::make_unique<AVCodecEngineGstImpl>();
 }
 
 std::unique_ptr<IAVCodecListEngine> GstEngineFactory::CreateAVCodecListEngine()
