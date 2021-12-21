@@ -62,6 +62,7 @@ private:
     std::condition_variable cond_;
     bool startConverting_ = false;
     std::vector<GstBuffer *> allResults_;
+    bool eosDone_ = false;
 };
 }
 }

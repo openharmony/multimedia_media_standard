@@ -19,7 +19,7 @@
 #include "avmetadatahelper.h"
 #include "media_errors.h"
 #include "media_log.h"
-#include "media_defs.h"
+#include "av_common.h"
 #include "gst_meta_parser.h"
 #include "gst_utils.h"
 #include "securec.h"
@@ -320,9 +320,9 @@ bool AVMetaElemMetaCollector::EnsureTrackValid(TrackInfo &trackInfo)
         return false;
     }
 
-    if (trackType == MediaTrackType::MEDIA_TYPE_VIDEO) {
+    if (trackType == MediaType::MEDIA_TYPE_VID) {
         trackInfo.uploadMeta.SetMeta(AV_KEY_HAS_VIDEO, "yes");
-    } else if (trackType == MediaTrackType::MEDIA_TYPE_AUDIO) {
+    } else if (trackType == MediaType::MEDIA_TYPE_AUD) {
         trackInfo.uploadMeta.SetMeta(AV_KEY_HAS_AUDIO, "yes");
     }
 
