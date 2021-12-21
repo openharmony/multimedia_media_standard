@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 
-config("media_engine_gst_factory_config") {
+config("media_engine_gst_avcodec_config") {
   visibility = [ ":*" ]
 
   cflags = [
@@ -23,6 +23,7 @@ config("media_engine_gst_factory_config") {
     "-Wall",
     "-fno-common",
     "-fstack-protector-strong",
+    "-Wshadow",
     "-FPIC",
     "-FS",
     "-O2",
@@ -34,41 +35,40 @@ config("media_engine_gst_factory_config") {
   ]
 
   include_dirs = [
-    "//utils/native/base/include",
-    "//foundation/multimedia/media_standard/services/include",
-    "//foundation/multimedia/media_standard/services/services/engine_intf",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/player",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/recorder",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/avmetadatahelper",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/avcodeclist",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/loader",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/playbin_adapter",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/message",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/metadata",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
-    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
-    "//third_party/glib/glib",
-    "//third_party/glib",
+    "//foundation/multimedia/media_standard/services/services/engine_intf",
+    "//utils/native/base/include",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
-    "//third_party/gstreamer/gstplugins_base/gst-libs",
-    "//third_party/gstreamer/gstplugins_bad/gst-libs",
+    "//third_party/glib/glib",
+    "//third_party/glib",
+    "//third_party/glib/gmodule",
+    "//third_party/libxml2/include",
   ]
 }
 
-ohos_static_library("media_engine_gst_factory") {
-  sources = [ "engine_factory.cpp" ]
+ohos_static_library("media_engine_gst_avcodeclist") {
+  sources = [
+    "avcodec_ability_singleton.cpp",
+    "avcodec_xml_parser.cpp",
+    "avcodeclist_engine_gst_impl.cpp",
+  ]
 
   configs = [
-    ":media_engine_gst_factory_config",
+    ":media_engine_gst_avcodec_config",
     "//foundation/graphic/standard/frameworks/surface:surface_public_config",
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils_public_config",
   ]
 
   deps = [
     "//foundation/graphic/standard/frameworks/surface:surface",
-    "//utils/native/base:utils",
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//third_party/glib:glib",
+    "//third_party/glib:gobject",
+    "//third_party/gstreamer/gstreamer:gstreamer",
+    "//third_party/libxml2:xml2",
   ]
 
   external_deps = [

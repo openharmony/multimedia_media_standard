@@ -17,6 +17,7 @@
 #include "recorder_service_stub.h"
 #include "player_service_stub.h"
 #include "avmetadatahelper_service_stub.h"
+#include "avcodeclist_service_stub.h"
 #include "media_log.h"
 
 namespace {
@@ -54,6 +55,9 @@ sptr<IRemoteObject> MediaServerManager::CreateStubObject(StubType type)
         }
         case AVMETADATAHELPER: {
             return CreateAVMetadataHelperStubObject();
+        }
+        case AVCODECLIST: {
+            return CreateAVCodecListStubObject();
         }
         default: {
             MEDIA_LOGE("default case, media server manager failed");
@@ -122,6 +126,27 @@ sptr<IRemoteObject> MediaServerManager::CreateAVMetadataHelperStubObject()
         pid_t pid = IPCSkeleton::GetCallingPid();
         avMetadataHelperStubMap_[object] = pid;
         MEDIA_LOGD("The number of avmetadatahelper services(%{public}zu).", avMetadataHelperStubMap_.size());
+    }
+    return object;
+}
+
+sptr<IRemoteObject> MediaServerManager::CreateAVCodecListStubObject()
+{
+    if (avCodecListStubMap_.size() >= SERVER_MAX_NUMBER) {
+        MEDIA_LOGE("The number of codeclist services(%{public}zu) has reached the upper limit."
+            "Please release the applied resources.", avCodecListStubMap_.size());
+        return nullptr;
+    }
+    sptr<AVCodecListServiceStub> avCodecListStub = AVCodecListServiceStub::Create();
+    if (avCodecListStub == nullptr) {
+        MEDIA_LOGE("failed to create AVCodecListServiceStub");
+        return nullptr;
+    }
+    sptr<IRemoteObject> object = avCodecListStub->AsObject();
+    if (object != nullptr) {
+        pid_t pid = IPCSkeleton::GetCallingPid();
+        avCodecListStubMap_[object] = pid;
+        MEDIA_LOGD("The number of codeclist services(%{public}zu).", avCodecListStubMap_.size());
     }
     return object;
 }

@@ -15,8 +15,17 @@ import("//build/ohos.gni")
 
 group("media_services_package") {
   deps = [
+    ":codec_caps",
     "engine:media_engine_package",
     "etc:media_service.rc",
     "services:media_service",
   ]
+}
+
+ohos_prebuilt_etc("codec_caps") {
+  source = "etc/codec_caps.xml"
+
+  subsystem_name = "multimedia"
+  module_install_dir = "etc/codec"
+  part_name = "multimedia_media_standard"
 }
