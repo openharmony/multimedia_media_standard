@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace Media {
-enum NodeName {
+enum NodeName : int32_t {
     CODECS,
     AUDIO_CODECS,
     VIDEO_CODECS,
