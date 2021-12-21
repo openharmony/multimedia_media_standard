@@ -30,11 +30,6 @@
 
 namespace OHOS {
 namespace Media {
-struct ArtPicture {
-    int32_t size;
-    uint8_t data[];
-} __attribute__((packed));
-
 struct Metadata {
     Metadata() = default;
     ~Metadata() = default;

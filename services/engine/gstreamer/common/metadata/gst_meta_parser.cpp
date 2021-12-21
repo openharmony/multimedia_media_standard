@@ -16,7 +16,7 @@
 #include "gst_meta_parser.h"
 #include <functional>
 #include <vector>
-#include "media_defs.h"
+#include "av_common.h"
 #include "media_errors.h"
 #include "media_log.h"
 #include "gst/tag/tag.h"
@@ -185,11 +185,11 @@ void GstMetaParser::ParseStreamCaps(const GstCaps &caps, Format &metadata)
         }
 
         if (streamType.compare("video") == 0) {
-            metadata.PutIntValue(INNER_META_KEY_TRACK_TYPE, MediaTrackType::MEDIA_TYPE_VIDEO);
+            metadata.PutIntValue(INNER_META_KEY_TRACK_TYPE, MediaType::MEDIA_TYPE_VID);
         } else if (streamType.compare("audio") == 0) {
-            metadata.PutIntValue(INNER_META_KEY_TRACK_TYPE, MediaTrackType::MEDIA_TYPE_AUDIO);
+            metadata.PutIntValue(INNER_META_KEY_TRACK_TYPE, MediaType::MEDIA_TYPE_AUD);
         } else if (streamType.compare("text") == 0) {
-            metadata.PutIntValue(INNER_META_KEY_TRACK_TYPE, MediaTrackType::MEDIA_TYPE_SUBTITLE);
+            metadata.PutIntValue(INNER_META_KEY_TRACK_TYPE, MediaType::MEDIA_TYPE_SUBTITLE);
         }
 
         metadata.PutStringValue(INNER_META_KEY_MIME_TYPE, mimeType);

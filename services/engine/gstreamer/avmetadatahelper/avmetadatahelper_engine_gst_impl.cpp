@@ -323,7 +323,6 @@ void AVMetadataHelperEngineGstImpl::Reset()
     status_ = PLAYBIN_STATE_IDLE;
 
     firstFetch_ = true;
-    decoderPerf_ = nullptr;
 
     lock.unlock();
     lock.lock();
@@ -367,13 +366,6 @@ void AVMetadataHelperEngineGstImpl::OnNotifyElemSetup(GstElement &elem)
     std::unique_lock<std::mutex> lock(mutex_);
     if (metaCollector_ != nullptr) {
         metaCollector_->AddMetaSource(elem);
-    }
-
-    if (decoderPerf_ == nullptr) {
-        if (MatchElementByMeta(elem, GST_ELEMENT_METADATA_KLASS, { "Video", "Decoder", "Codec"})) {
-            decoderPerf_ = std::make_unique<DecoderPerf>(elem);
-            decoderPerf_->Init();
-        }
     }
 }
 }
