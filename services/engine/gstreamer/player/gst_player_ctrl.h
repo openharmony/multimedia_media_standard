@@ -72,7 +72,7 @@ public:
     static void OnSourceSetupCb(const GstPlayer *player, GstElement *src, GstPlayerCtrl *playerGst);
     static void OnElementSetupCb(const GstPlayer *player, GstElement *src, GstPlayerCtrl *playerGst);
     static void OnResolutionChanegdCb(const GstPlayer *player,
-        int32_t width, int32_t height, const GstPlayerCtrl *playerGst);
+        int32_t width, int32_t height, GstPlayerCtrl *playerGst);
     static void OnCachedPercentCb(const GstPlayer *player, guint percent, GstPlayerCtrl *playerGst);
     static void OnBufferingTimeCb(const GstPlayer *player, guint64 bufferingTime, guint mqNumId,
         GstPlayerCtrl *playerGst);
@@ -91,7 +91,7 @@ private:
     void OnEndOfStream();
     void OnMessage(int32_t extra) const;
     void OnBufferingUpdate(const std::string Message) const;
-    void OnResolutionChange(int32_t width, int32_t height) const;
+    void OnResolutionChange(int32_t width, int32_t height);
     void InitDuration();
     void PlaySync();
     void SeekSync(uint64_t position, const PlayerSeekMode mode);
@@ -143,6 +143,8 @@ private:
     bool seeking_ = false;
     std::map<guint, guint64> mqBufferingTime_;
     std::shared_ptr<GstPlayerTrackParse> trackParse_ = nullptr;
+    int32_t videoWidth_ = 0;
+    int32_t videoHeight_ = 0;
 };
 } // Media
 } // OHOS

@@ -481,17 +481,13 @@ int32_t GstPlayerCtrl::GetAudioTrackInfo(std::vector<Format> &audioTrack)
 int32_t GstPlayerCtrl::GetVideoWidth()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(trackParse_ != nullptr, 0, "trackParse_ is nullptr");
-
-    return trackParse_->GetVideoWidth();
+    return videoWidth_;
 }
 
 int32_t GstPlayerCtrl::GetVideoHeight()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(trackParse_ != nullptr, 0, "trackParse_ is nullptr");
-
-    return trackParse_->GetVideoHeight();
+    return videoHeight_;
 }
 
 int32_t GstPlayerCtrl::SetRate(double rate)
@@ -759,7 +755,7 @@ void GstPlayerCtrl::OnErrorCb(const GstPlayer *player, const GstMessage *msg, Gs
 }
 
 void GstPlayerCtrl::OnResolutionChanegdCb(const GstPlayer *player,
-    int32_t width, int32_t height, const GstPlayerCtrl *playerGst)
+    int32_t width, int32_t height, GstPlayerCtrl *playerGst)
 {
     CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
     CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
@@ -767,7 +763,7 @@ void GstPlayerCtrl::OnResolutionChanegdCb(const GstPlayer *player,
     playerGst->OnResolutionChange(width, height);
 }
 
-void GstPlayerCtrl::OnResolutionChange(int32_t width, int32_t height) const
+void GstPlayerCtrl::OnResolutionChange(int32_t width, int32_t height)
 {
     Format format;
     (void)format.PutIntValue(std::string(PlayerKeys::PLAYER_WIDTH), width);
@@ -777,6 +773,8 @@ void GstPlayerCtrl::OnResolutionChange(int32_t width, int32_t height) const
         MEDIA_LOGD("OnResolutionChange width:%{public}d, height:%{public}d", width, height);
         tempObs->OnInfo(INFO_TYPE_RESOLUTION_CHANGE, 0, format);
     }
+    videoWidth_ = width;
+    videoHeight_ = height;
 }
 
 void GstPlayerCtrl::OnSeekDoneCb(const GstPlayer *player, guint64 position, GstPlayerCtrl *playerGst)
