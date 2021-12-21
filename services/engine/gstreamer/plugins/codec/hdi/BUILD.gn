@@ -15,10 +15,10 @@ import("//build/ohos.gni")
 SDK_LIB_DIR = rebase_path("//device/soc/hisilicon/hi3516dv300/sdk_linux/out/lib",
                           root_build_dir)
 CODEC_LIB_DIR = rebase_path(
-        "//device/soc/hisilicon/common/hi35xx_hal/media/codec/hi3516dv300/linux_standard/libs",
+        "//device/soc/hisilicon/common/hal/media/codec/hi3516dv300/linux_standard/libs",
         root_build_dir)
 CAMERA_LIB_PLATFORM_DIR =
-    rebase_path("//device/soc/hisilicon/common/hi35xx_hal/media/camera/hi3516dv300/linux_standard/libs",
+    rebase_path("//device/soc/hisilicon/common/hal/media/camera/hi3516dv300/linux_standard/libs",
                 root_build_dir)
 group("hdi_plugins") {
   deps = [ ":gst_hdi_codec" ]
