@@ -76,6 +76,8 @@ PlayBinCtrlerBase::~PlayBinCtrlerBase()
 {
     MEDIA_LOGD("enter dtor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
     Reset();
+    sinkProvider_ = nullptr;
+    notifier_ = nullptr;
 }
 
 int32_t PlayBinCtrlerBase::Init()
@@ -223,13 +225,13 @@ int32_t PlayBinCtrlerBase::Seek(int64_t timeUs, int32_t seekOption)
 
 int32_t PlayBinCtrlerBase::StopInternel()
 {
+    taskMgr_.ClearAllTask();
+
     auto state = GetCurrState();
-    if (state == idleState_ || state == stoppedState_ || state == initializedState_) {
+    if (state == idleState_ || state == stoppedState_ || state == initializedState_ || state == preparingState_) {
         MEDIA_LOGI("curr state is %{public}s, skip", state->GetStateName().c_str());
         return MSERR_OK;
     }
-
-    taskMgr_.ClearAllTask();
 
     auto stopTask = std::make_shared<TaskHandler<void>>([this]() {
         auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
@@ -351,6 +353,7 @@ void PlayBinCtrlerBase::ExitInitializedState()
 
     MEDIA_LOGD("unref playbin start");
     if (playbin_ != nullptr) {
+        (void)gst_element_set_state(GST_ELEMENT_CAST(playbin_), GST_STATE_NULL);
         gst_object_unref(playbin_);
         playbin_ = nullptr;
     }
@@ -409,10 +412,12 @@ void PlayBinCtrlerBase::SetupCustomElement()
         PlayBinSinkProvider::SinkPtr audSink = sinkProvider_->CreateAudioSink();
         if (audSink != nullptr) {
             g_object_set(playbin_, "audio-sink", audSink, nullptr);
+            gst_object_unref(audSink);
         }
         PlayBinSinkProvider::SinkPtr vidSink = sinkProvider_->CreateVideoSink();
         if (vidSink != nullptr) {
             g_object_set(playbin_, "video-sink", vidSink, nullptr);
+            gst_object_unref(vidSink);
         }
     } else {
         MEDIA_LOGD("no sinkprovider, delay the sink selection until the playbin enters pause state.");

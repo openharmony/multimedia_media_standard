@@ -40,6 +40,7 @@ public:
     std::unordered_map<int32_t, std::string> ResolveMetadata() override;
     std::shared_ptr<AVSharedMemory> FetchFrameAtTime(
         int64_t timeUs, int32_t option, const OutputConfiguration &param) override;
+    std::shared_ptr<AVSharedMemory> FetchArtPicture() override;
 
 private:
     void OnNotifyMessage(const PlayBinMessage &msg);
@@ -64,9 +65,7 @@ private:
     std::condition_variable cond_;
     bool errHappened_ = false;
     int32_t status_ = PLAYBIN_STATE_IDLE;
-
     bool firstFetch_ = true;
-    std::unique_ptr<DecoderPerf> decoderPerf_;
 };
 }
 }

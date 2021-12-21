@@ -17,6 +17,7 @@
 #include "avmetadatahelper.h"
 #include "media_errors.h"
 #include "media_log.h"
+#include "gst_meta_parser.h"
 #include "gst_utils.h"
 
 namespace {
@@ -30,6 +31,7 @@ enum GstElemType : uint8_t {
     DEMUXER,
     PARSER,
     DECODER,
+    DECODEBIN,
     UNKNOWN,
 };
 
@@ -43,10 +45,56 @@ static const std::unordered_map<GstElemType, GstElemMetaMatchDesc> GST_ELEM_META
     { GstElemType::DEMUXER, { GST_ELEMENT_METADATA_KLASS, { "Codec", "Demuxer" } } },
     { GstElemType::PARSER, { GST_ELEMENT_METADATA_KLASS, { "Codec", "Parser" } } },
     { GstElemType::DECODER, { GST_ELEMENT_METADATA_KLASS, { "Codec", "Decoder" } } },
+    { GstElemType::DECODEBIN, { GST_ELEMENT_METADATA_LONGNAME, { "Decoder Bin" } } },
+};
+
+/**
+ * @brief limit the multiqueue's cache limit to avoid the waste of memory.
+ * For metadata and thubnail scene, there is no need to cache too much
+ * buffer in the queue.
+ */
+class AVMetaMetaCollector::MultiQueueCutOut {
+public:
+    MultiQueueCutOut(GstElement &mq) : mq_(GST_ELEMENT_CAST(gst_object_ref(&mq)))
+    {
+        g_object_get(mq_, "max-size-bytes", &maxBytes_, "max-size-buffers",
+            &maxBuffers_, "max-size-time", &maxTimes_, nullptr);
+        MEDIA_LOGI("mq curr maxBytes: %{public}u, maxBuffers: %{public}u, maxTimes: %{public}" PRIu64,
+            maxBytes_, maxBytes_, maxTimes_);
+
+        static const uint32_t maxBytes = 20 * 1024;
+        static const uint32_t maxBuffers = 5;
+        static const uint64_t maxTimes = 200 * GST_MSECOND;
+        g_object_set(mq_, "max-size-bytes", maxBytes, "max-size-buffers",
+            maxBuffers, "max-size-time", maxTimes, nullptr);
+    }
+
+    ~MultiQueueCutOut()
+    {
+        if (isHiden_) {
+            gst_object_unref(mq_);
+            return;
+        }
+
+        g_object_set(mq_, "max-size-bytes", maxBytes_, "max-size-buffers",
+            maxBuffers_, "max-size-time", maxTimes_, nullptr);
+        gst_object_unref(mq_);
+    }
+
+    void Hide()
+    {
+        isHiden_ = true;
+    }
+
+private:
+    GstElement *mq_;
+    uint32_t maxBuffers_ = 0;
+    uint32_t maxBytes_ = 0;
+    uint64_t maxTimes_ = 0;
+    bool isHiden_ = false;
 };
 
 AVMetaMetaCollector::AVMetaMetaCollector()
-    : currSetupedElemType_(GstElemType::UNKNOWN)
 {
     MEDIA_LOGD("enter ctor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
 }
@@ -102,15 +150,6 @@ void AVMetaMetaCollector::Stop(bool unlock) /* false */
     for (auto &elemCollector : elemCollectors_) {
         elemCollector->Stop();
     }
-
-    {
-        decltype(signalIds_) temp;
-        temp.swap(signalIds_);
-
-        for (auto &[elem, signalId] : temp) {
-            g_signal_handler_disconnect(elem, signalId);
-        }
-    }
 }
 
 std::unordered_map<int32_t, std::string> AVMetaMetaCollector::GetMetadata()
@@ -138,6 +177,24 @@ std::string AVMetaMetaCollector::GetMetadata(int32_t key)
     return result;
 }
 
+std::shared_ptr<AVSharedMemory> AVMetaMetaCollector::FetchArtPicture()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    cond_.wait(lock, [this]() { return CheckCollectCompleted() || stopCollecting_; });
+
+    std::shared_ptr<AVSharedMemory> result = nullptr;
+    for (auto &elemCollector : elemCollectors_) {
+        if (elemCollector != nullptr) {
+            result = elemCollector->FetchArtPicture();
+        }
+        if (result != nullptr) {
+            break;
+        }
+    }
+
+    return result;
+}
+
 bool AVMetaMetaCollector::CheckCollectCompleted() const
 {
     if (elemCollectors_.size() == 0 || blockers_.size() == 0) {
@@ -149,22 +206,8 @@ bool AVMetaMetaCollector::CheckCollectCompleted() const
             continue;
         }
 
-        if (collector->GetType() == AVMetaSourceType::TYPEFIND) {
-            if (trackMetaCollected_.count(AVMETA_TRACK_NUMBER_FILE) == 0) {
-                return false;
-            }
-            continue;
-        }
-
-        int32_t trackCount = collector->GetTrackCount();
-        if (trackCount == 0) {
+        if (!collector->IsMetaCollected()) {
             return false;
-        }
-
-        for (auto trackId = 0; trackId < trackCount; trackId++) {
-            if (trackMetaCollected_.count(trackId) == 0) {
-                return false;
-            }
         }
     }
 
@@ -173,7 +216,7 @@ bool AVMetaMetaCollector::CheckCollectCompleted() const
             if (blocker == nullptr) {
                 continue;
             }
-            if (blocker->GetStreamCount() == 0 || !blocker->CheckBufferRecieved()) {
+            if (!blocker->IsRemoved() && !blocker->IsBufferDetected()) {
                 return false;
             }
         }
@@ -230,9 +273,8 @@ void AVMetaMetaCollector::AdjustMimeType()
     }
 }
 
-void AVMetaMetaCollector::UpdataMeta(int32_t trackId, const Metadata &metadata)
+void AVMetaMetaCollector::UpdataMeta(const Metadata &metadata)
 {
-    MEDIA_LOGD("trackId = %{public}d", trackId);
     std::unique_lock<std::mutex> lock(mutex_);
     if (stopCollecting_) {
         return;
@@ -242,12 +284,16 @@ void AVMetaMetaCollector::UpdataMeta(int32_t trackId, const Metadata &metadata)
         allMeta_.SetMeta(key, value);
     }
 
-    (void)trackMetaCollected_.emplace(trackId);
     cond_.notify_all();
 }
 
 void AVMetaMetaCollector::AddElemCollector(GstElement &source, uint8_t type)
 {
+    if (type == GstElemType::DECODEBIN) {
+        mqCutOut_ = std::make_unique<MultiQueueCutOut>(source);
+        return;
+    }
+
     if (type != GstElemType::TYPEFIND && type != GstElemType::DEMUXER && type != GstElemType::PARSER) {
         return;
     }
@@ -266,8 +312,7 @@ void AVMetaMetaCollector::AddElemCollector(GstElement &source, uint8_t type)
         return;
     }
 
-    auto metaUpdateCb = std::bind(&AVMetaMetaCollector::UpdataMeta,
-                                  this, std::placeholders::_1, std::placeholders::_2);
+    auto metaUpdateCb = std::bind(&AVMetaMetaCollector::UpdataMeta, this, std::placeholders::_1);
     auto result = AVMetaElemMetaCollector::Create(static_cast<AVMetaSourceType>(type), metaUpdateCb);
     CHECK_AND_RETURN(result != nullptr);
     result->AddMetaSource(source);
@@ -280,7 +325,7 @@ void AVMetaMetaCollector::AddElemBlocker(GstElement &source, uint8_t type)
      * After the demuxer or parser plugin of gstreamer complete the metadata resolve work,
      * them will send one frame buffer to downstream. If there is decoder at the downstream,
      * the decode will happened, which is unneccesary and wastefully for metadata resolving.
-     * We can block the demuxer or parser's sinkpads to prevent the decode process happened.
+     * We can block the downstream pads of demuxer to prevent the decode process happened.
      *
      * One kind of possible sequence of element setuped to the pipeline is :
      * Demuxer1 --> Demuxer2 ---> Parser1 --> Decoder1
@@ -307,22 +352,7 @@ void AVMetaMetaCollector::AddElemBlocker(GstElement &source, uint8_t type)
         (void)typeBlockersIter->second.emplace_back(blocker);      \
     } while (0)
 
-    if (type == GstElemType::TYPEFIND || type == GstElemType::UNKNOWN) {
-        return;
-    }
-
-    /**
-     * We only move the blocker to downstream if the lastest blocker comes from the demuxer, for
-     * avoiding delete the blocker incorrectly, because we can not figure out the direct upstream
-     * element if the lastest blocker does not come from the demuxer. The playbin's auto-pluggging
-     * mechanism always guarantees the fact that when the demuxer's new pad added, the first downstream
-     * element for this new pad will be found and connected immediately. Then, based on this fact, we
-     * can properly move the lastest blocker to the current setuped element when the lastest blocker
-     * comes from the demuxer.
-     *
-     * Considering this element setuped order: demuxer, audio parser, video decoder, audio decoder.
-     */
-    if (currSetupedElemType_ != GstElemType::UNKNOWN && currSetupedElemType_ != GstElemType::DEMUXER) {
+    if (type == GstElemType::TYPEFIND || type == GstElemType::DECODEBIN || type == GstElemType::UNKNOWN) {
         return;
     }
 
@@ -332,87 +362,17 @@ void AVMetaMetaCollector::AddElemBlocker(GstElement &source, uint8_t type)
         cond_.notify_all();
     };
 
-    if (type == GstElemType::DEMUXER || type == GstElemType::PARSER) {
+    if (type == GstElemType::PARSER || type == GstElemType::DEMUXER) {
         auto blocker = std::make_shared<AVMetaBufferBlocker>(source, true, notifier);
         PUSH_NEW_BLOCK(type, blocker);
-        UpdateElemBlocker(source, type);
         return;
     }
 
     if (type == GstElemType::DECODER) {
         auto blocker = std::make_shared<AVMetaBufferBlocker>(source, false, notifier);
         PUSH_NEW_BLOCK(type, blocker);
-        UpdateElemBlocker(source, type);
+        return;
     }
-}
-
-void AVMetaMetaCollector::UpdateElemBlocker(GstElement &source, uint8_t elemType)
-{
-    /**
-     * When the new element is setuped, we need to update the block. The update
-     * strategy is: cancel the upstream block. Because a block has been added to
-     * the current element, after an upstream block is canceled, the block is
-     * successfully moved downstream.
-     *
-     * When the demuxer is setuped, we always need to set the pad-added listener to
-     * the demuxer so that we can figure out which element is upstream of the element
-     * currently installed.
-     */
-    if (elemType == GstElemType::DEMUXER) {
-        auto signalId = g_signal_connect(&source, "pad-added", G_CALLBACK(PadAdded), this);
-        if (signalId == 0) {
-            MEDIA_LOGE("add pad-added signal to %{public}s failed", ELEM_NAME(&source));
-            return;
-        }
-        (void)signalIds_.emplace_back(std::pair<GstElement *, gulong>{&source, signalId});
-    }
-
-    MEDIA_LOGD("update blocker when elem %{public}s setup, elemType: %{public}hhu",
-               ELEM_NAME(&source), elemType);
-
-    do {
-        /* We don't need to cancel the lastest blocker if the current setuped element is the first one. */
-        if (currSetupedElemType_ == GstElemType::UNKNOWN) {
-            break;
-        }
-        auto typeBlockersIter = blockers_.find(currSetupedElemType_);
-        if (typeBlockersIter == blockers_.end() || typeBlockersIter->second.size() <= currSetupedElemIdx_) {
-            break;
-        }
-        auto &currBlocker = typeBlockersIter->second[currSetupedElemIdx_];
-        if (currBlocker == nullptr) {
-            break;
-        }
-        if (currBlocker->GetStreamCount() == 0) {
-            break;
-        }
-        currBlocker->CancelBlock(currBlocker->GetStreamCount() - 1);
-        if (currSetupedElemType_ != GstElemType::DEMUXER) {
-            currBlocker = nullptr;
-        }
-    } while (0);
-
-    currSetupedElemType_ = elemType;
-    // when this function invoked, the blocker had already been setuped for curr element.
-    currSetupedElemIdx_ = blockers_.at(elemType).size() - 1;
-    MEDIA_LOGD("currType = %{public}hhu, currIdx = %{public}zu", currSetupedElemType_, currSetupedElemIdx_);
-
-    /**
-     * Is there any such situation: there is no parser or decoder at the downstream of
-     * a certain outstream of the demuxer.
-     */
-}
-
-void AVMetaMetaCollector::PadAdded(GstElement *elem, GstPad *pad, gpointer userdata)
-{
-    (void)elem;
-    (void)pad;
-    CHECK_AND_RETURN_LOG(userdata != nullptr, "userdata is nullptr");
-    auto collector = reinterpret_cast<AVMetaMetaCollector *>(userdata);
-    std::unique_lock<std::mutex> lock(collector->mutex_);
-    collector->currSetupedElemType_ = GstElemType::DEMUXER;
-    // when padadded notify, the demuxer had already been setup blocker
-    collector->currSetupedElemIdx_ = collector->blockers_.at(GstElemType::DEMUXER).size() - 1;
 }
 
 void AVMetaMetaCollector::StopBlocker(bool unlock)
@@ -424,12 +384,17 @@ void AVMetaMetaCollector::StopBlocker(bool unlock)
             }
             // place the if-else at the for-loop for cyclomatic complexity
             if (unlock) {
-                blocker->CancelBlock(-1);
+                blocker->Remove();
             } else {
-                blocker->Clear();
+                blocker->Hide();
             }
         }
     }
+
+    if (mqCutOut_ != nullptr && !unlock) {
+        mqCutOut_->Hide();
+    }
+    mqCutOut_ = nullptr; // restore the mq's cache limit
 }
 }
 }

@@ -14,67 +14,58 @@
  */
 
 #include "gst_meta_parser.h"
-#include <string_view>
+#include <functional>
 #include <vector>
+#include "av_common.h"
 #include "media_errors.h"
 #include "media_log.h"
+#include "gst/tag/tag.h"
 #include "gst_utils.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "GstMetaParser"};
+    static GType GST_SAMPLE_TYPE = gst_sample_get_type();
 }
 
 namespace OHOS {
 namespace Media {
-#define INNER_META_KEY_TO_STRING_ITEM(key) { key, #key }
-static const std::unordered_map<int32_t, std::string_view> INNER_META_KEY_TO_STRING_MAP = {
-    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_ALBUM),
-    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_ALBUM_ARTIST),
-    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_ARTIST),
-    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_AUTHOR),
-    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_COMPOSER),
-    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_GENRE),
-    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_HAS_AUDIO),
-    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_HAS_VIDEO),
-    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_HAS_IMAGE),
-    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_HAS_TEXT),
-    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_MIME_TYPE),
-    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_NUM_TRACKS),
-    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_SAMPLE_RATE),
-    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_TITLE),
-    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_VIDEO_HEIGHT),
-    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_VIDEO_WIDTH),
-    INNER_META_KEY_TO_STRING_ITEM(INNER_META_KEY_ROTATION),
+using MetaSetter = std::function<bool(const GValue &gval, const std::string_view &key, Format &metadata)>;
+
+struct MetaParseItem {
+    std::string_view toKey;
+    GType valGType;
+    MetaSetter setter;
 };
 
-static const std::unordered_map<std::string_view, int32_t> GST_TAG_TO_KEY_MAPPING = {
-    { GST_TAG_ALBUM, INNER_META_KEY_ALBUM },
-    { GST_TAG_ALBUM_ARTIST, INNER_META_KEY_ALBUM_ARTIST },
-    { GST_TAG_ARTIST, INNER_META_KEY_ARTIST },
-    { GST_TAG_COMPOSER, INNER_META_KEY_COMPOSER },
-    { GST_TAG_GENRE, INNER_META_KEY_GENRE },
-    { GST_TAG_TRACK_COUNT, INNER_META_KEY_NUM_TRACKS },
-    { GST_TAG_TITLE, INNER_META_KEY_TITLE },
-    { GST_TAG_AUTHOR, INNER_META_KEY_AUTHOR },
-    { GST_TAG_IMAGE_ORIENTATION, INNER_META_KEY_ROTATION },
+static bool ParseGValueSimple(const GValue &value, const MetaParseItem &item, Format &metadata);
+static bool FractionMetaSetter(const GValue &gval, const std::string_view &key, Format &metadata);
+static bool ImageMetaSetter(const GValue &gval, const std::string_view &key, Format &metadata);
+
+static const std::unordered_map<std::string_view, MetaParseItem> GST_TAG_PARSE_ITEMS = {
+    { GST_TAG_ALBUM, { INNER_META_KEY_ALBUM, G_TYPE_STRING } },
+    { GST_TAG_ALBUM_ARTIST, { INNER_META_KEY_ALBUM_ARTIST, G_TYPE_STRING } },
+    { GST_TAG_ARTIST, { INNER_META_KEY_ARTIST, G_TYPE_STRING } },
+    { GST_TAG_COMPOSER, { INNER_META_KEY_COMPOSER, G_TYPE_STRING } },
+    { GST_TAG_GENRE, { INNER_META_KEY_GENRE, G_TYPE_STRING } },
+    { GST_TAG_TITLE, { INNER_META_KEY_TITLE, G_TYPE_STRING } },
+    { GST_TAG_AUTHOR, { INNER_META_KEY_AUTHOR, G_TYPE_STRING } },
+    { GST_TAG_DURATION, { INNER_META_KEY_DURATION, G_TYPE_UINT64 } },
+    { GST_TAG_BITRATE, { INNER_META_KEY_BITRATE, G_TYPE_UINT } },
+    { GST_TAG_IMAGE, { INNER_META_KEY_IMAGE, GST_SAMPLE_TYPE, ImageMetaSetter } },
 };
 
-static const std::unordered_map<std::string_view, int32_t> GST_CAPS_FIELD_TO_KEY_MAPPING = {
-    { "width", INNER_META_KEY_VIDEO_WIDTH },
-    { "height", INNER_META_KEY_VIDEO_HEIGHT },
-    { "rate", INNER_META_KEY_SAMPLE_RATE },
+static const std::unordered_map<std::string_view, MetaParseItem> GST_CAPS_PARSE_ITEMS = {
+    { "width", { INNER_META_KEY_VIDEO_WIDTH, G_TYPE_INT, nullptr } },
+    { "height", { INNER_META_KEY_VIDEO_HEIGHT, G_TYPE_INT } },
+    { "rate", { INNER_META_KEY_SAMPLE_RATE, G_TYPE_INT } },
+    { "framerate", { INNER_META_KEY_FRAMERATE, GST_TYPE_FRACTION, FractionMetaSetter } },
+    { "channels", { INNER_META_KEY_CHANNEL_COUNT, G_TYPE_INT } },
 };
 
-struct StreamMetaParseTarget {
-    std::vector<std::string_view> expectedCapsFields;
-    int32_t indicatedExistMetaKey;
-};
-
-static const std::unordered_map<std::string_view, StreamMetaParseTarget> STREAM_TO_META_PARSE_TARGET_MAPPING = {
-    { "video", { { "width", "height" }, INNER_META_KEY_HAS_VIDEO} },
-    { "audio", { { "rate" }, INNER_META_KEY_HAS_AUDIO} },
-    { "image", { { "width", "height" }, INNER_META_KEY_HAS_IMAGE} },
-    { "text", { { "format" }, INNER_META_KEY_HAS_TEXT} },
+static const std::unordered_map<std::string_view, std::vector<std::string_view>> STREAM_CAPS_FIELDS = {
+    { "video", { "width", "height", "framrate", "format" } },
+    { "audio", { "rate", "channels" } },
+    { "text", { "format" } },
 };
 
 static const std::unordered_map<std::string_view, std::string_view> FILE_MIME_TYPE_MAPPING = {
@@ -93,24 +84,28 @@ static const std::unordered_map<std::string_view, std::string_view> FILE_MIME_TY
     { "audio/x-wav", FILE_MIMETYPE_AUDIO_WAV } // wav
 };
 
-static std::string GetSerializedValue(const GValue &value)
+static void ParseGValue(const GValue &value, const MetaParseItem &item, Format &metadata)
 {
-    if (G_VALUE_HOLDS_STRING(&value)) {
-        const gchar *str = g_value_get_string(&value);
-        CHECK_AND_RETURN_RET_LOG(str != nullptr, "", "gvalue has no null value");
-        MEDIA_LOGI("value: %{public}s", str);
-        return std::string(str);
+    if (G_VALUE_TYPE(&value) != item.valGType) {
+        MEDIA_LOGE("value type for key %{public}s is expected, curr is %{public}s, but expect %{public}s",
+            item.toKey.data(), g_type_name(G_VALUE_TYPE(&value)), g_type_name(item.valGType));
+        return;
     }
 
-    gchar *str = gst_value_serialize(&value);
-    CHECK_AND_RETURN_RET_LOG(str != nullptr, "", "serialize value failed");
-    std::string serializedValue = str;
-    g_free(str);
+    bool ret = true;
+    if (item.setter != nullptr) {
+        ret = item.setter(value, item.toKey, metadata);
+    } else {
+        ret = ParseGValueSimple(value, item, metadata);
+    }
 
-    return serializedValue;
+    if (!ret) {
+        MEDIA_LOGE("parse gvalue failed for type: %{public}s, toKey: %{public}s",
+            g_type_name(item.valGType), item.toKey.data());
+    }
 }
 
-static void ParseTag(const GstTagList &tagList, guint tagIndex, Metadata &metadata)
+static void ParseTag(const GstTagList &tagList, guint tagIndex, Format &metadata)
 {
     const gchar *tag = gst_tag_list_nth_tag_name(&tagList, tagIndex);
     if (tag == nullptr) {
@@ -118,35 +113,40 @@ static void ParseTag(const GstTagList &tagList, guint tagIndex, Metadata &metada
     }
 
     MEDIA_LOGD("visit tag: %{public}s", tag);
-    auto tagToKeyIt = GST_TAG_TO_KEY_MAPPING.find(tag);
-    if (tagToKeyIt == GST_TAG_TO_KEY_MAPPING.end()) {
+    auto tagItemIt = GST_TAG_PARSE_ITEMS.find(tag);
+    if (tagItemIt == GST_TAG_PARSE_ITEMS.end()) {
         return;
     }
 
-    int32_t metaKey = tagToKeyIt->second;
-    const GValue *value = gst_tag_list_get_value_index(&tagList, tag, 0);
-    CHECK_AND_RETURN_LOG(value != nullptr, "get value for tag: %{public}s failed", tag);
+    guint tagValSize = gst_tag_list_get_tag_size(&tagList, tag);
+    for (guint i = 0; i < tagValSize; i++) {
+        const GValue *value = gst_tag_list_get_value_index(&tagList, tag, i);
+        if (value == nullptr) {
+            MEDIA_LOGW("get value index %{public}d from tag %{public}s failed", i, tag);
+            continue;
+        }
 
-    if (GST_VALUE_HOLDS_SAMPLE(value) || GST_VALUE_HOLDS_BUFFER(value)) {
-        return; // not considering the sample and bufer currently.
+        ParseGValue(*value, tagItemIt->second, metadata);
     }
+}
 
-    std::string result = GetSerializedValue(*value);
-    if (result.empty()) {
+void GstMetaParser::ParseTagList(const GstTagList &tagList, Format &metadata)
+{
+    gint tagCnt = gst_tag_list_n_tags(&tagList);
+    if (tagCnt <= 0) {
         return;
     }
 
-    metadata.SetMeta(metaKey, result);
-    MEDIA_LOGI("got meta %{public}s : %{public}s", INNER_META_KEY_TO_STRING_MAP.at(metaKey).data(), result.c_str());
+    for (guint tagIndex = 0; tagIndex < static_cast<guint>(tagCnt); tagIndex++) {
+        ParseTag(tagList, tagIndex, metadata);
+    }
 }
 
 static void ParseSingleCapsStructure(const GstStructure &structure,
-                                     const StreamMetaParseTarget &target,
-                                     Metadata &metadata)
+                                     const std::vector<std::string_view> &target,
+                                     Format &metadata)
 {
-    metadata.SetMeta(target.indicatedExistMetaKey, "yes");
-
-    for (auto &field : target.expectedCapsFields) {
+    for (auto &field : target) {
         if (!gst_structure_has_field(&structure, field.data())) {
             continue;
         }
@@ -155,33 +155,15 @@ static void ParseSingleCapsStructure(const GstStructure &structure,
             MEDIA_LOGE("get %{public}s filed's value failed", field.data());
             continue;
         }
-        std::string str = GetSerializedValue(*val);
-        if (str.empty()) {
-            MEDIA_LOGE("serialize value for field %{public}s failed", field.data());
-            continue;
-        }
 
-        MEDIA_LOGI("field %{public}s is %{public}s", field.data(), str.c_str());
-        if (GST_CAPS_FIELD_TO_KEY_MAPPING.count(field) != 0) {
-            metadata.SetMeta(GST_CAPS_FIELD_TO_KEY_MAPPING.at(field), str);
+        auto it = GST_CAPS_PARSE_ITEMS.find(field);
+        if (it != GST_CAPS_PARSE_ITEMS.end()) {
+            ParseGValue(*val, it->second, metadata);
         }
     }
 }
 
-void GstMetaParser::ParseTagList(const GstTagList &tagList, Metadata &metadata)
-{
-    gint tagCnt = gst_tag_list_n_tags(&tagList);
-    if (tagCnt < 0) {
-        return;
-    }
-    for (guint tagIndex = 0; tagIndex < static_cast<guint>(tagCnt); tagIndex++) {
-        ParseTag(tagList, tagIndex, metadata);
-    }
-
-    return;
-}
-
-void GstMetaParser::ParseStreamCaps(const GstCaps &caps, Metadata &metadata)
+void GstMetaParser::ParseStreamCaps(const GstCaps &caps, Format &metadata)
 {
     guint capsSize = gst_caps_get_size(&caps);
     for (guint index = 0; index < capsSize; index++) {
@@ -197,15 +179,25 @@ void GstMetaParser::ParseStreamCaps(const GstCaps &caps, Metadata &metadata)
         MEDIA_LOGI("parse mimetype %{public}s's caps", mimeType.data());
 
         std::string_view streamType = mimeType.substr(0, delimPos);
-        auto it = STREAM_TO_META_PARSE_TARGET_MAPPING.find(streamType);
-        if (it == STREAM_TO_META_PARSE_TARGET_MAPPING.end()) {
+        auto it = STREAM_CAPS_FIELDS.find(streamType);
+        if (it == STREAM_CAPS_FIELDS.end()) {
             continue;
         }
+
+        if (streamType.compare("video") == 0) {
+            metadata.PutIntValue(INNER_META_KEY_TRACK_TYPE, MediaType::MEDIA_TYPE_VID);
+        } else if (streamType.compare("audio") == 0) {
+            metadata.PutIntValue(INNER_META_KEY_TRACK_TYPE, MediaType::MEDIA_TYPE_AUD);
+        } else if (streamType.compare("text") == 0) {
+            metadata.PutIntValue(INNER_META_KEY_TRACK_TYPE, MediaType::MEDIA_TYPE_SUBTITLE);
+        }
+
+        metadata.PutStringValue(INNER_META_KEY_MIME_TYPE, mimeType);
         ParseSingleCapsStructure(*struc, it->second, metadata);
     }
 }
 
-void GstMetaParser::ParseFileMimeType(const GstCaps &caps, Metadata &metadata)
+void GstMetaParser::ParseFileMimeType(const GstCaps &caps, Format &metadata)
 {
     const GstStructure *struc = gst_caps_get_structure(&caps, 0); // ignore the caps size
     CHECK_AND_RETURN_LOG(struc != nullptr, "caps invalid");
@@ -219,7 +211,122 @@ void GstMetaParser::ParseFileMimeType(const GstCaps &caps, Metadata &metadata)
     }
 
     MEDIA_LOGI("file caps mime type: %{public}s, mapping to %{public}s", mimeType, it->second.data());
-    metadata.SetMeta(INNER_META_KEY_MIME_TYPE, it->second.data());
+    metadata.PutStringValue(INNER_META_KEY_MIME_TYPE, it->second);
+}
+
+static bool ParseGValueSimple(const GValue &value, const MetaParseItem &item, Format &metadata)
+{
+    bool ret = true;
+    switch (item.valGType) {
+        case G_TYPE_UINT: {
+            guint num = g_value_get_uint(&value);
+            ret = metadata.PutIntValue(item.toKey, static_cast<int32_t>(num));
+            MEDIA_LOGD("toKey: %{public}s, value: %{public}u", item.toKey.data(), num);
+            break;
+        }
+        case G_TYPE_INT: {
+            gint num = g_value_get_int(&value);
+            ret = metadata.PutIntValue(item.toKey, num);
+            MEDIA_LOGD("toKey: %{public}s, value: %{public}d", item.toKey.data(), num);
+            break;
+        }
+        case G_TYPE_UINT64: {
+            guint64 num = g_value_get_uint64(&value);
+            ret = metadata.PutLongValue(item.toKey, static_cast<int64_t>(num));
+            MEDIA_LOGD("toKey: %{public}s, value: %{public}" PRIu64, item.toKey.data(), num);
+            break;
+        }
+        case G_TYPE_INT64: {
+            gint64 num = g_value_get_int64(&value);
+            ret = metadata.PutLongValue(item.toKey, num);
+            MEDIA_LOGD("toKey: %{public}s, value: %{public}" PRIi64, item.toKey.data(), num);
+            break;
+        }
+        case G_TYPE_STRING: {
+            std::string_view str = g_value_get_string(&value);
+            CHECK_AND_RETURN_RET_LOG(!str.empty(), false, "Parse key %{public}s failed", item.toKey.data());
+            ret = metadata.PutStringValue(item.toKey, str);
+            MEDIA_LOGD("toKey: %{public}s, value: %{public}s", item.toKey.data(), str.data());
+            break;
+        }
+        default:
+            break;
+    }
+    return true;
+}
+
+static bool FractionMetaSetter(const GValue &gval, const std::string_view &key, Format &metadata)
+{
+    gint numerator = gst_value_get_fraction_numerator(&gval);
+    gint denominator = gst_value_get_fraction_denominator(&gval);
+    CHECK_AND_RETURN_RET(denominator != 0, false);
+
+    float val = static_cast<float>(numerator) / denominator;
+    static constexpr int32_t FACTOR = 100;
+    bool ret = metadata.PutIntValue(key, static_cast<int32_t>(val * FACTOR));
+    if (!ret) {
+        MEDIA_LOGE("Parse gvalue for %{public}s failed, num = %{public}d, den = %{public}d",
+            key.data(), numerator, denominator);
+    } else {
+        MEDIA_LOGD("Parse gvalue for %{public}s ok, value = %{public}f", key.data(), val);
+    }
+    return ret;
+}
+
+static bool ImageMetaSetter(const GValue &gval, const std::string_view &key, Format &metadata)
+{
+    GstSample *sample = gst_value_get_sample(&gval);
+    CHECK_AND_RETURN_RET(sample != nullptr, false);
+
+    GstCaps *caps = gst_sample_get_caps(sample);
+    CHECK_AND_RETURN_RET(caps != nullptr, false);
+
+    GstStructure *structure = gst_caps_get_structure(caps, 0);
+    CHECK_AND_RETURN_RET(structure != nullptr, false);
+
+    const gchar *mime = gst_structure_get_name(structure);
+    CHECK_AND_RETURN_RET(mime != nullptr, false);
+
+    if (g_str_has_prefix(mime, "text")) {
+        MEDIA_LOGI("image is uri, ignored, %{public}s", mime);
+        return true;
+    }
+
+    GstBuffer *imageBuf = gst_sample_get_buffer(sample);
+    CHECK_AND_RETURN_RET(imageBuf != nullptr, false);
+
+    GstMapInfo mapInfo = { 0 };
+    if (!gst_buffer_map(imageBuf, &mapInfo, GST_MAP_READ)) {
+        MEDIA_LOGE("get buffer data failed");
+        return false;
+    }
+
+    static const gsize minImageSize = 32;
+    CHECK_AND_RETURN_RET(mapInfo.data != nullptr && mapInfo.size > minImageSize, false);
+
+    bool ret = true;
+    if (metadata.ContainKey(key)) {
+        const GstStructure *imageInfo = gst_sample_get_info(sample);
+        gint type = GST_TAG_IMAGE_TYPE_NONE;
+        if (imageInfo != nullptr) {
+            gst_structure_get_enum(imageInfo, "image-type", GST_TYPE_TAG_IMAGE_TYPE, &type);
+        }
+        if (type != GST_TAG_IMAGE_TYPE_FRONT_COVER) {
+            MEDIA_LOGI("ignore the image type: %{public}d", type);
+        } else {
+            MEDIA_LOGI("got front cover image");
+            ret = metadata.PutBuffer(key, mapInfo.data, mapInfo.size);
+        }
+    } else {
+        ret = metadata.PutBuffer(key, mapInfo.data, mapInfo.size);
+    }
+
+    MEDIA_LOGD("Parse gvalue for %{public}s finish, ret = %{public}d, mime: %{public}s, "
+               "size: %{public}" G_GSIZE_FORMAT,
+               key.data(), ret, mime, mapInfo.size);
+
+    gst_buffer_unmap(imageBuf, &mapInfo);
+    return ret;
 }
 }
 }

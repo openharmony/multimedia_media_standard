@@ -19,30 +19,38 @@
 #include <gst/gst.h>
 #include <unordered_map>
 #include <string>
+#include "format.h"
 
 namespace OHOS {
 namespace Media {
-enum InnerMetaKey : int32_t {
-    INNER_META_KEY_ALBUM = 0,
-    INNER_META_KEY_ALBUM_ARTIST,
-    INNER_META_KEY_ARTIST,
-    INNER_META_KEY_AUTHOR,
-    INNER_META_KEY_COMPOSER,
-    INNER_META_KEY_GENRE,
-    INNER_META_KEY_HAS_AUDIO,
-    INNER_META_KEY_HAS_VIDEO,
-    INNER_META_KEY_HAS_IMAGE,
-    INNER_META_KEY_HAS_TEXT,
-    INNER_META_KEY_MIME_TYPE,
-    INNER_META_KEY_NUM_TRACKS,
-    INNER_META_KEY_SAMPLE_RATE,
-    INNER_META_KEY_TITLE,
-    INNER_META_KEY_VIDEO_HEIGHT,
-    INNER_META_KEY_VIDEO_WIDTH,
-    INNER_META_KEY_ROTATION,
-    INNER_META_KEY_BUTT,
-};
+// meta key, sorted by alphabetical order.
+inline constexpr std::string_view INNER_META_KEY_ALBUM = "album";
+inline constexpr std::string_view INNER_META_KEY_ALBUM_ARTIST = "albumartist";
+inline constexpr std::string_view INNER_META_KEY_ARTIST = "artist";
+inline constexpr std::string_view INNER_META_KEY_AUTHOR = "author";
+inline constexpr std::string_view INNER_META_KEY_BITRATE = "bitrate";
+inline constexpr std::string_view INNER_META_KEY_CHANNEL_COUNT = "channel-count";
+inline constexpr std::string_view INNER_META_KEY_COMPOSER = "composer";
+inline constexpr std::string_view INNER_META_KEY_DURATION = "duration";
+inline constexpr std::string_view INNER_META_KEY_FRAMERATE = "frame-rate";
+inline constexpr std::string_view INNER_META_KEY_GENRE = "genre";
+inline constexpr std::string_view INNER_META_KEY_VIDEO_HEIGHT = "height";
+inline constexpr std::string_view INNER_META_KEY_IMAGE = "image";
+inline constexpr std::string_view INNER_META_KEY_MIME_TYPE = "mime";
+inline constexpr std::string_view INNER_META_KEY_SAMPLE_RATE = "samplerate";
+inline constexpr std::string_view INNER_META_KEY_TITLE = "title";
+inline constexpr std::string_view INNER_META_KEY_TRACK_TYPE = "track-type";
+inline constexpr std::string_view INNER_META_KEY_VIDEO_WIDTH = "width";
 
+// video codec mime
+inline constexpr std::string_view VIDEO_MIMETYPE_AVC = "video/avc";
+inline constexpr std::string_view VIDEO_MIMETYPE_MPEG4 = "video/mp4v-es";
+
+// audio codec mime
+inline constexpr std::string_view AUDIO_MIMETYPE_AAC = "audio/mp4a-latm";
+inline constexpr std::string_view AUDIO_MIMETYPE_MPEG = "audio/mpeg";
+
+// container mime
 inline constexpr std::string_view FILE_MIMETYPE_VIDEO_MP4 = "video/mp4";
 inline constexpr std::string_view FILE_MIMETYPE_AUDIO_MP4 = "audio/mp4";
 inline constexpr std::string_view FILE_MIMETYPE_AUDIO_AAC = "audio/aac-adts";
@@ -51,52 +59,16 @@ inline constexpr std::string_view FILE_MIMETYPE_AUDIO_FLAC = "audio/flac";
 inline constexpr std::string_view FILE_MIMETYPE_AUDIO_WAV = "audio/wav";
 inline constexpr std::string_view FILE_MIMETYPE_AUDIO_MP3 = "audio/mpeg";
 
-struct Metadata;
-
+// parse meta from GstTagList, GstCaps
 class GstMetaParser {
 public:
-    static void ParseTagList(const GstTagList &tagList, Metadata &metadata);
-    static void ParseStreamCaps(const GstCaps &caps, Metadata &metadata);
-    static void ParseFileMimeType(const GstCaps &caps, Metadata &metadata);
+    static void ParseTagList(const GstTagList &tagList, Format &metadata);
+    static void ParseStreamCaps(const GstCaps &caps, Format &metadata);
+    static void ParseFileMimeType(const GstCaps &caps, Format &metadata);
 
 private:
     GstMetaParser() = default;
     ~GstMetaParser() = default;
-};
-
-struct Metadata {
-    Metadata() = default;
-    ~Metadata() = default;
-
-    void SetMeta(int32_t key, const std::string &value)
-    {
-        tbl_[key] = value;
-    }
-
-    bool TryGetMeta(int32_t key, std::string &value) const
-    {
-        auto it = tbl_.find(key);
-        if (it == tbl_.end()) {
-            return false;
-        }
-        value = it->second;
-        return true;
-    }
-
-    bool HasMeta(int32_t key) const
-    {
-        return tbl_.count(key) != 0;
-    }
-
-    std::string GetMeta(int32_t key) const
-    {
-        if (tbl_.count(key) != 0) {
-            return tbl_.at(key);
-        }
-        return "";
-    }
-
-    std::unordered_map<int32_t, std::string> tbl_;
 };
 }
 }

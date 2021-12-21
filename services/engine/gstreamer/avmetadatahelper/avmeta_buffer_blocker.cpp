@@ -65,34 +65,41 @@ AVMetaBufferBlocker::~AVMetaBufferBlocker()
 
 void AVMetaBufferBlocker::Init()
 {
-    MEDIA_LOGD("Buffer Blocker for elem: %{public}s", ELEM_NAME(&elem_));
-
+    MEDIA_LOGD("elem: %{public}s", ELEM_NAME(&elem_));
     auto padList = direction_ ? elem_.srcpads : elem_.sinkpads;
-    for (GList *padNode = g_list_first(padList); padNode != nullptr; padNode = padNode->next) {
-        if (padNode->data == nullptr) {
-            continue;
-        }
-        GstPad *pad = reinterpret_cast<GstPad *>(padNode->data);
-        std::string_view name = PAD_NAME(pad);
-        if (name.find("subtitle") != std::string_view::npos) { // the subtitle stream is ignore
-            return;
-        }
 
-        AVMetaBufferBlockerWrapper *wrapper = new(std::nothrow) AVMetaBufferBlockerWrapper(shared_from_this());
-        CHECK_AND_RETURN_LOG(wrapper != nullptr, "can not create this wrapper");
-
-        gulong probeId = gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM, BlockCallback, wrapper,
-            &AVMetaBufferBlockerWrapper::OnDestory);
-        if (probeId == 0) {
-            MEDIA_LOGW("add probe for %{public}s's pad %{public}s failed",
-                       PAD_PARENT_NAME(&pad), PAD_NAME(&pad));
-            delete wrapper;
-            continue;
-        }
-        (void)padInfos_.emplace_back(PadInfo {pad, probeId, false});
+    /**
+     * Defaultly, the probe type is blocking. If the pads count is greater than 1,
+     * we can only setup detecting probe, because the element maybe not start individual
+     * thread for each pad, all pad maybe drived by just one thread. If one pad is
+     * blocked, then all other pads can not detect any buffer.
+     */
+    GstPadProbeType type = GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM;
+    if (g_list_length(padList) > 1) {
+        MEDIA_LOGI("%{public}s's pads count is not 1, direction: %{public}d, only detect buffer, no blocking",
+                   ELEM_NAME(&elem_), direction_);
+        type = static_cast<GstPadProbeType>(type & ~GST_PAD_PROBE_TYPE_BLOCK);
+        probeRet_ = GST_PAD_PROBE_OK;
     }
 
-    AVMetaBufferBlockerWrapper *wrapper = new(std::nothrow) AVMetaBufferBlockerWrapper(shared_from_this());
+    // Add pad probe for all pads. If the pads count is greater than 1, we just detect buffer.
+    for (GList *node = g_list_first(padList); node != nullptr; node = node->next) {
+        if (node->data == nullptr) {
+            continue;
+        }
+        GstPad *pad = reinterpret_cast<GstPad *>(node->data);
+
+        // the subtitle stream must be ignored, currently we dont support it.
+        std::string_view name = PAD_NAME(pad);
+        if (name.find("subtitle") != std::string_view::npos) {
+            continue;
+        }
+
+        AddPadProbe(*pad, type);
+    }
+
+    // listen to the "pad-added" signal to figure out whether the pads count is greater than 1.
+    AVMetaBufferBlockerWrapper *wrapper = new (std::nothrow) AVMetaBufferBlockerWrapper(shared_from_this());
     CHECK_AND_RETURN_LOG(wrapper != nullptr, "can not create this wrapper");
 
     signalId_ = g_signal_connect_data(&elem_, "pad-added", GCallback(&AVMetaBufferBlocker::PadAdded), wrapper,
@@ -103,64 +110,93 @@ void AVMetaBufferBlocker::Init()
     }
 }
 
-bool AVMetaBufferBlocker::CheckBufferRecieved()
+bool AVMetaBufferBlocker::CheckUpStreamBlocking(GstPad &pad)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
-    for (const auto &item : padInfos_) {
-        if ((item.probeId != 0) && !item.hasBuffer) {
-            MEDIA_LOGD("buffer not arrived for %{public}s's %{public}s",
-                       ELEM_NAME(&elem_), PAD_NAME(item.pad));
+    GstPad *upstreamPad = nullptr;
+    GstElement *elem = gst_pad_get_parent_element(&pad);
+
+    if (GST_PAD_DIRECTION(&pad) == GST_PAD_SINK) {
+        upstreamPad = gst_pad_get_peer(&pad);
+    } else {
+        /**
+         * This is a multi-srcpads element, means that we meet the demuxer or multiqueue.
+         * There is no need to figure out whether the demuxer or multiqueue's sinkpads are
+         * blocking, because we guarante it will never happen.
+         */
+        if (g_list_length(elem->srcpads) > 1) {
             return false;
         }
+
+        GList *node = g_list_first(elem->sinkpads);
+        if (node != nullptr && node->data != nullptr) {
+            upstreamPad = gst_pad_get_peer(GST_PAD_CAST(node->data));
+        }
+    }
+
+    if (upstreamPad == nullptr) {
+        return false;
+    }
+
+    if (gst_pad_is_blocking(upstreamPad)) {
+        return true;
+    }
+
+    return CheckUpStreamBlocking(*upstreamPad);
+}
+
+/**
+ * Call it after IsRemoved, this function maybe return false if there
+ * are no any probe setuped.
+ */
+bool AVMetaBufferBlocker::IsBufferDetected()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    for (auto &item : padInfos_) {
+        if (item.hasBuffer) {
+            continue;
+        }
+
+        MEDIA_LOGD("buffer not arrived for %{public}s's %{public}s",
+                ELEM_NAME(&elem_), PAD_NAME(item.pad));
+
+        /**
+         * if the upstream is blocking, we can not wait buffer arriving at this pad.
+         * Thus, we just remove the probe at this pad and set the hasBuffer to true.
+         */
+        if (CheckUpStreamBlocking(*item.pad) && item.probeId != 0) {
+            MEDIA_LOGD("%{public}s's %{public}s upstream is blocking, dont need this blocker",
+                        ELEM_NAME(&elem_), PAD_NAME(item.pad));
+            gst_pad_remove_probe(item.pad, item.probeId);
+            item.probeId = 0;
+            item.hasBuffer = true;
+            continue;
+        }
+
+        // not detect buffer and the upstream of this pad is not blocking.
+        return false;
     }
 
     return true;
 }
 
-uint32_t AVMetaBufferBlocker::GetStreamCount()
+bool AVMetaBufferBlocker::IsRemoved()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    return static_cast<uint32_t>(padInfos_.size());
+    return isRemoved_;
 }
 
-void AVMetaBufferBlocker::CancelBlock(int32_t index)
+void AVMetaBufferBlocker::Remove()
 {
-    MEDIA_LOGD("cancel block at %{public}s's block id : %{public}d", ELEM_NAME(&elem_), index);
-
     std::unique_lock<std::mutex> lock(mutex_);
-    if (index == -1) {
-        for (auto &padInfo : padInfos_) {
-            if (padInfo.probeId != 0) {
-                gst_pad_remove_probe(padInfo.pad, padInfo.probeId);
-                padInfo.probeId = 0;
-            }
-        }
-
-        if (signalId_ != 0) {
-            g_signal_handler_disconnect(&elem_, signalId_);
-            signalId_ = 0;
-        }
+    if (isHidden_) {
         return;
     }
 
-    uint32_t uIndex = static_cast<size_t>(index);
-    if (uIndex >= padInfos_.size()) {
-        return;
-    }
-    if (padInfos_[uIndex].probeId != 0) {
-        gst_pad_remove_probe(padInfos_[uIndex].pad, padInfos_[uIndex].probeId);
-        padInfos_[uIndex].probeId = 0;
-    }
-
-    lock.unlock();
-    lock.lock();
-}
-
-void AVMetaBufferBlocker::Clear()
-{
-    std::unique_lock<std::mutex> lock(mutex_);
     for (auto &padInfo : padInfos_) {
         if (padInfo.probeId != 0) {
+            MEDIA_LOGD("cancel block at %{public}s's %{public}s", ELEM_NAME(&elem_), PAD_NAME(padInfo.pad));
+            gst_pad_remove_probe(padInfo.pad, padInfo.probeId);
             padInfo.probeId = 0;
         }
     }
@@ -169,18 +205,26 @@ void AVMetaBufferBlocker::Clear()
         g_signal_handler_disconnect(&elem_, signalId_);
         signalId_ = 0;
     }
+
+    isRemoved_ = true;
+}
+
+void AVMetaBufferBlocker::Hide()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    isHidden_ = true;
 }
 
 GstPadProbeReturn AVMetaBufferBlocker::OnBlockCallback(GstPad &pad, GstPadProbeInfo &info)
 {
     auto type = static_cast<unsigned int>(info.type);
     if ((type & (GST_PAD_PROBE_TYPE_BUFFER | GST_PAD_PROBE_TYPE_BUFFER_LIST)) == 0) {
-        return GST_PAD_PROBE_PASS;
+        return probeRet_;
     }
 
     std::unique_lock<std::mutex> lock(mutex_);
     for (auto &padInfo : padInfos_) {
-        if (padInfo.pad != &pad) {
+        if (&pad != padInfo.pad) {
             continue;
         }
 
@@ -191,50 +235,96 @@ GstPadProbeReturn AVMetaBufferBlocker::OnBlockCallback(GstPad &pad, GstPadProbeI
 
         padInfo.hasBuffer = true;
         MEDIA_LOGD("buffer arrived at %{public}s's pad %{public}s", PAD_PARENT_NAME(&pad), PAD_NAME(&pad));
-        lock.unlock();
+        lock.unlock(); // ???
+
         if (notifier_ != nullptr) {
             notifier_();
         }
-        MEDIA_LOGD("buffer arrived at %{public}s's pad %{public}s exit", PAD_PARENT_NAME(&pad), PAD_NAME(&pad));
         return GST_PAD_PROBE_OK;
     }
 
-    return GST_PAD_PROBE_PASS;
+    return probeRet_;
 }
 
 void AVMetaBufferBlocker::OnPadAdded(GstElement &elem, GstPad &pad)
 {
-    MEDIA_LOGD("demuxer %{public}s sinkpad %{public}s added", ELEM_NAME(&elem), PAD_NAME(&pad));
+    MEDIA_LOGD("demux %{public}s sinkpad %{public}s added", ELEM_NAME(&elem), PAD_NAME(&pad));
 
     std::unique_lock<std::mutex> lock(mutex_);
 
-    if (signalId_ == 0) {
-        MEDIA_LOGI("block already be canceled, exit");
+    /**
+     * if it've already been required to remove all probes, we need to
+     * reject to add probe to new pad.
+     */
+    if (isRemoved_) {
+        MEDIA_LOGI("block already be removed, exit");
         return;
     }
 
-    GstPadDirection gstDirection = (direction_) ? GST_PAD_SRC : GST_PAD_SINK;
-    if (GST_PAD_DIRECTION(&pad) != gstDirection) {
+    GstPadDirection currDirection = direction_ ? GST_PAD_SRC : GST_PAD_SINK;
+    if (GST_PAD_DIRECTION(&pad) != currDirection) {
         return;
     }
 
+    GstPadProbeType type = GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM;
+
+    /**
+     * If it has one pad before, we must change the blocking probe to
+     * detecting probe, or no buffer can arrive at this new pad if the
+     * previous pad has been blocked, because the element maybe not
+     * start individual thread for each pad, all pad maybe drived by
+     * just one thread.
+     */
+    if (padInfos_.size() != 0) {
+        MEDIA_LOGI("%{public}s's pads count is not 1, direction: %{public}d, only detect buffer, no blocking",
+                   ELEM_NAME(&elem_), direction_);
+        type = static_cast<GstPadProbeType>(type & ~GST_PAD_PROBE_TYPE_BLOCK);
+        probeRet_ = GST_PAD_PROBE_OK;
+
+        std::vector<PadInfo> temp;
+        temp.swap(padInfos_);
+
+        for (auto &padInfo : temp) {
+            /**
+             * if the blocking probe setuped at this pad, we add detecting probe
+             * at it firstly, then remove the blocing probe, for avoiding to miss
+             * the first buffer passing through this pad.
+             */
+            if (padInfo.blocked && padInfo.probeId != 0) {
+                AddPadProbe(*padInfo.pad, type);
+                gst_pad_remove_probe(padInfo.pad, padInfo.probeId);
+            } else {
+                // not blocking probe, just move to new container.
+                padInfos_.push_back(padInfo);
+            }
+        }
+    }
+
+    // the subtitle stream must be ignored, currently we dont support it.
     std::string_view name = PAD_NAME(&pad);
-    if (name.find("subtitle") != std::string_view::npos) { // the subtitle stream is ignore
+    if (name.find("subtitle") != std::string_view::npos) {
         return;
     }
 
+    // now, we can add the probe for new pad.
+    AddPadProbe(pad, type);
+}
+
+void AVMetaBufferBlocker::AddPadProbe(GstPad &pad, GstPadProbeType type)
+{
     AVMetaBufferBlockerWrapper *wrapper = new(std::nothrow) AVMetaBufferBlockerWrapper(shared_from_this());
     CHECK_AND_RETURN_LOG(wrapper != nullptr, "can not create this wrapper");
 
-    gulong probeId = gst_pad_add_probe(&pad, GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM, BlockCallback, wrapper,
-        &AVMetaBufferBlockerWrapper::OnDestory);
+    bool blocked = type & GST_PAD_PROBE_TYPE_BLOCK;
+    gulong probeId = gst_pad_add_probe(&pad, type, BlockCallback,
+        wrapper, &AVMetaBufferBlockerWrapper::OnDestory);
     if (probeId == 0) {
-        MEDIA_LOGW("add probe for %{public}s's pad %{public}s failed", PAD_PARENT_NAME(&pad), PAD_NAME(&pad));
+        MEDIA_LOGW("add probe for %{public}s's pad %{public}s failed",
+                    PAD_PARENT_NAME(&pad), PAD_NAME(&pad));
         delete wrapper;
-        return;
+    } else {
+        (void)padInfos_.emplace_back(PadInfo { &pad, probeId, false, blocked });
     }
-
-    (void)padInfos_.emplace_back(PadInfo {&pad, probeId, false});
 }
 }
 }

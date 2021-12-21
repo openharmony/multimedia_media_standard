@@ -225,8 +225,10 @@ void MediaClient::MediaServerDied(pid_t pid)
 {
     MEDIA_LOGE("media server is died, pid:%{public}d!", pid);
     std::lock_guard<std::mutex> lock(mutex_);
-    (void)mediaProxy_->AsObject()->RemoveDeathRecipient(deathRecipient_);
-    mediaProxy_ = nullptr;
+    if (mediaProxy_ != nullptr) {
+        (void)mediaProxy_->AsObject()->RemoveDeathRecipient(deathRecipient_);
+        mediaProxy_ = nullptr;
+    }
     listenerStub_ = nullptr;
     deathRecipient_ = nullptr;
 

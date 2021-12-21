@@ -113,7 +113,6 @@ void PlayBinCtrlerBase::BaseState::OnMessageReceived(const InnerMessage &msg)
     if (msg.type == INNER_MSG_ERROR) {
         PlayBinMessage playbinMsg { PLAYBIN_MSG_ERROR, 0, msg.detail1 };
         ctrler_.ReportMessage(playbinMsg);
-        (void)ctrler_.StopInternel();
     }
 }
 

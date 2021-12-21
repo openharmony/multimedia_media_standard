@@ -19,7 +19,10 @@
 #include "avmetadatahelper.h"
 #include "media_errors.h"
 #include "media_log.h"
+#include "av_common.h"
+#include "gst_meta_parser.h"
 #include "gst_utils.h"
+#include "securec.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVMetaElemCollector"};
@@ -27,13 +30,9 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-struct KeyToXMap {
-    std::string_view keyName;
-    int32_t innerKey;
-};
+#define AVMETA_KEY_TO_X_MAP_ITEM(key, innerKey) { key, innerKey }
 
-#define AVMETA_KEY_TO_X_MAP_ITEM(key, innerKey) { key, { #key, innerKey }}
-static const std::unordered_map<int32_t, KeyToXMap> AVMETA_KEY_TO_X_MAP = {
+static const std::unordered_map<int32_t, std::string_view> AVMETA_KEY_TO_X_MAP = {
     AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_ALBUM, INNER_META_KEY_ALBUM),
     AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_ALBUM_ARTIST, INNER_META_KEY_ALBUM_ARTIST),
     AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_ARTIST, INNER_META_KEY_ARTIST),
@@ -43,16 +42,16 @@ static const std::unordered_map<int32_t, KeyToXMap> AVMETA_KEY_TO_X_MAP = {
      * The most of gst plugins don't send the GST_TAG_DURATION, we obtain this
      * infomation from duration query.
      */
-    AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_DURATION, INNER_META_KEY_BUTT),
+    AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_DURATION, ""),
     AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_GENRE, INNER_META_KEY_GENRE),
-    AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_HAS_AUDIO, INNER_META_KEY_HAS_AUDIO),
-    AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_HAS_VIDEO, INNER_META_KEY_HAS_VIDEO),
+    AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_HAS_AUDIO, ""),
+    AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_HAS_VIDEO, ""),
     AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_MIME_TYPE, INNER_META_KEY_MIME_TYPE),
     /**
      * The GST_TAG_TRACK_COUNT does not means the actual track count, we obtain
      * this information from pads count.
      */
-    AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_NUM_TRACKS, INNER_META_KEY_BUTT),
+    AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_NUM_TRACKS, ""),
     AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_SAMPLE_RATE, INNER_META_KEY_SAMPLE_RATE),
     AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_TITLE, INNER_META_KEY_TITLE),
     AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_VIDEO_HEIGHT, INNER_META_KEY_VIDEO_HEIGHT),
@@ -69,8 +68,9 @@ void PopulateMeta(Metadata &meta)
 }
 
 struct AVMetaElemMetaCollector::TrackInfo {
-    int32_t tracknumber;
-    Metadata metadata;
+    bool valid = true;
+    Metadata uploadMeta;
+    Format innerMeta;
 };
 
 std::unique_ptr<AVMetaElemMetaCollector> AVMetaElemMetaCollector::Create(AVMetaSourceType type, const MetaResCb &resCb)
@@ -118,10 +118,71 @@ void AVMetaElemMetaCollector::Stop()
     lock.lock();
 }
 
-int32_t AVMetaElemMetaCollector::GetTrackCount()
+bool AVMetaElemMetaCollector::IsMetaCollected()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    return static_cast<int32_t>(trackInfos_.size());
+    for (auto &[dummy, trackInfo] : trackInfos_) {
+        if (!trackInfo.valid) {
+            continue;
+        }
+        if (trackInfo.innerMeta.GetFormatMap().empty()) {
+            return false;
+        }
+    }
+
+    // at least the duration meta and track count or container mime.
+    if (fileUploadMeta_.tbl_.empty()) {
+        return false;
+    }
+
+    return true;
+}
+
+std::shared_ptr<AVSharedMemory> AVMetaElemMetaCollector::FetchArtPicture()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    auto artPicMem = DoFetchArtPicture(fileInnerMeta_);
+    if (artPicMem != nullptr) {
+        return artPicMem;
+    }
+
+    for (auto &[dummy, trackInnerMeta] : trackInfos_) {
+        artPicMem = DoFetchArtPicture(trackInnerMeta.innerMeta);
+        if (artPicMem != nullptr) {
+            return artPicMem;
+        }
+    }
+
+    return artPicMem;
+}
+
+std::shared_ptr<AVSharedMemory> AVMetaElemMetaCollector::DoFetchArtPicture(const Format &innerMeta)
+{
+    if (!innerMeta.ContainKey(INNER_META_KEY_IMAGE)) {
+        return nullptr;
+    }
+
+    MEDIA_LOGD("has art picture");
+
+    uint8_t *addr = nullptr;
+    size_t size = 0;
+    (void)innerMeta.GetBuffer(INNER_META_KEY_IMAGE, &addr, size);
+
+    static const size_t maxImageSize = 1 * 1024 * 1024;
+    if (addr == nullptr || size == 0 || size > maxImageSize) {
+        MEDIA_LOGW("invalid param, size = %{public}zu", size);
+        return nullptr;
+    }
+
+    auto artPicMem = AVSharedMemory::Create(
+        static_cast<int32_t>(size), AVSharedMemory::FLAGS_READ_ONLY, "artpic");
+    CHECK_AND_RETURN_RET_LOG(artPicMem != nullptr, nullptr, "create art pic failed");
+
+    errno_t rc = memcpy_s(artPicMem->GetBase(), static_cast<size_t>(artPicMem->GetSize()), addr, size);
+    CHECK_AND_RETURN_RET_LOG(rc == EOK, nullptr, "memcpy_s failed");
+
+    return artPicMem;
 }
 
 bool AVMetaElemMetaCollector::AddProbeToPadList(GList &list)
@@ -155,12 +216,10 @@ bool AVMetaElemMetaCollector::AddProbeToPad(GstPad &pad)
     }
 
     (void)padProbes_.emplace(&pad, probeId);
+    (void)trackInfos_.emplace(&pad, TrackInfo {});
 
-    int32_t tracknumber = static_cast<int32_t>(trackInfos_.size());
-    (void)trackInfos_.emplace(&pad, TrackInfo {tracknumber, Metadata {}});
-
-    fileMeta_.SetMeta(AV_KEY_NUM_TRACKS, std::to_string(trackInfos_.size()));
-    fileMetaUpdated_ = true;
+    // report the track count change when caps arrived.
+    trackcount_ += 1;
     MEDIA_LOGD("add probe to pad %{public}s of %{public}s", PAD_NAME(&pad), PAD_PARENT_NAME(&pad));
     return true;
 }
@@ -202,6 +261,10 @@ GstPadProbeReturn AVMetaElemMetaCollector::ProbeCallback(GstPad *pad, GstPadProb
 
 void AVMetaElemMetaCollector::ParseTagList(const GstTagList &tagList, TrackInfo &trackInfo)
 {
+    if (!trackInfo.valid) {
+        return;
+    }
+
     GstTagScope scope = gst_tag_list_get_scope(&tagList);
     MEDIA_LOGI("catch tag %{public}s event", scope == GST_TAG_SCOPE_GLOBAL ? "global" : "stream");
 
@@ -212,27 +275,58 @@ void AVMetaElemMetaCollector::ParseTagList(const GstTagList &tagList, TrackInfo 
         globalTagCatched_ = true;
     }
 
-    Metadata innerMeta;
-    GstMetaParser::ParseTagList(tagList, innerMeta);
-    if (innerMeta.tbl_.empty()) {
-        return;
-    }
-
     if (scope == GST_TAG_SCOPE_GLOBAL) {
-        ConvertToAVMeta(innerMeta, fileMeta_);
-        ReportMeta(AVMETA_TRACK_NUMBER_FILE, fileMeta_);
+        GstMetaParser::ParseTagList(tagList, fileInnerMeta_);
+        ConvertToAVMeta(fileInnerMeta_, fileUploadMeta_);
+        ReportMeta(fileUploadMeta_);
     } else {
-        ConvertToAVMeta(innerMeta, trackInfo.metadata);
-        ReportMeta(trackInfo.tracknumber, trackInfo.metadata);
+        GstMetaParser::ParseTagList(tagList, trackInfo.innerMeta);
+        ConvertToAVMeta(trackInfo.innerMeta, trackInfo.uploadMeta);
+        ReportMeta(trackInfo.uploadMeta);
     }
 }
 
 void AVMetaElemMetaCollector::ParseCaps(const GstCaps &caps, TrackInfo &trackInfo)
 {
-    Metadata innerMeta;
-    GstMetaParser::ParseStreamCaps(caps, innerMeta);
-    ConvertToAVMeta(innerMeta, trackInfo.metadata);
-    ReportMeta(trackInfo.tracknumber, trackInfo.metadata);
+    GstMetaParser::ParseStreamCaps(caps, trackInfo.innerMeta);
+
+    if (!EnsureTrackValid(trackInfo)) {
+        return;
+    }
+
+    fileUploadMeta_.SetMeta(AV_KEY_NUM_TRACKS, std::to_string(trackcount_));
+    ReportMeta(fileUploadMeta_);
+
+    ConvertToAVMeta(trackInfo.innerMeta, trackInfo.uploadMeta);
+    ReportMeta(trackInfo.uploadMeta);
+}
+
+bool AVMetaElemMetaCollector::EnsureTrackValid(TrackInfo &trackInfo)
+{
+    /**
+     * If the track can not supported, it would not be taken account into the
+     * total track counts. The ffmpeg will generate one track for one image of
+     * the metadata, the track's caps is image/png or image/jpeg, etc. For such
+     * tracks, them should be considered as invalid tracks.
+     */
+    int32_t trackType;
+    std::string mimeType;
+    if (!trackInfo.innerMeta.GetIntValue(INNER_META_KEY_TRACK_TYPE, trackType) ||
+        !trackInfo.innerMeta.GetStringValue(INNER_META_KEY_MIME_TYPE, mimeType)) {
+        trackInfo.valid = false;
+        trackcount_ -= 1;
+        fileUploadMeta_.SetMeta(AV_KEY_NUM_TRACKS, std::to_string(trackcount_));
+        ReportMeta(fileUploadMeta_);
+        return false;
+    }
+
+    if (trackType == MediaType::MEDIA_TYPE_VID) {
+        trackInfo.uploadMeta.SetMeta(AV_KEY_HAS_VIDEO, "yes");
+    } else if (trackType == MediaType::MEDIA_TYPE_AUD) {
+        trackInfo.uploadMeta.SetMeta(AV_KEY_HAS_AUDIO, "yes");
+    }
+
+    return true;
 }
 
 void AVMetaElemMetaCollector::OnEventProbe(GstPad &pad, GstEvent &event)
@@ -294,39 +388,51 @@ void AVMetaElemMetaCollector::QueryDuration(GstPad &pad)
             milliSecond = (duration_ + NASEC_PER_HALF_MILLISEC) / NASEC_PER_MILLISEC; // ns -> ms, round up.
         }
 
-        fileMeta_.SetMeta(AV_KEY_DURATION, std::to_string(milliSecond));
-        ReportMeta(AVMETA_TRACK_NUMBER_FILE, fileMeta_);
+        fileUploadMeta_.SetMeta(AV_KEY_DURATION, std::to_string(milliSecond));
+        ReportMeta(fileUploadMeta_);
     }
 }
 
-void AVMetaElemMetaCollector::ReportMeta(int32_t trackId, const Metadata &metadata)
+void AVMetaElemMetaCollector::ReportMeta(const Metadata &uploadMeta)
 {
     if (resCb_ == nullptr) {
         return;
     }
 
     mutex_.unlock();
-
-    if (fileMetaUpdated_ && trackId != AVMETA_TRACK_NUMBER_FILE) {
-        resCb_(AVMETA_TRACK_NUMBER_FILE, fileMeta_);
-        fileMetaUpdated_ = false;
-    }
-
-    resCb_(trackId, metadata);
-
+    resCb_(uploadMeta);
     mutex_.lock();
 }
 
-void AVMetaElemMetaCollector::ConvertToAVMeta(const Metadata &innerMeta, Metadata &avmeta) const
+void AVMetaElemMetaCollector::ConvertToAVMeta(const Format &innerMeta, Metadata &avmeta) const
 {
-    for (const auto &[avKey, keyToXItem] : AVMETA_KEY_TO_X_MAP) {
-        if (keyToXItem.innerKey == INNER_META_KEY_BUTT) {
+    for (const auto &[avKey, innerKey] : AVMETA_KEY_TO_X_MAP) {
+        if (innerKey.compare("") == 0) {
             continue;
         }
 
-        std::string value;
-        if (innerMeta.TryGetMeta(keyToXItem.innerKey, value)) {
-            avmeta.SetMeta(avKey, value);
+        if (innerKey.compare(INNER_META_KEY_MIME_TYPE) == 0) { // only need the file mime type
+            continue;
+        }
+
+        if (!innerMeta.ContainKey(innerKey)) {
+            continue;
+        }
+
+        std::string strVal;
+        int32_t intVal;
+        FormatDataType type = innerMeta.GetValueType(innerKey);
+        switch (type) {
+            case FORMAT_TYPE_STRING:
+                innerMeta.GetStringValue(innerKey, strVal);
+                avmeta.SetMeta(avKey, strVal);
+                break;
+            case FORMAT_TYPE_INT32:
+                innerMeta.GetIntValue(innerKey, intVal);
+                avmeta.SetMeta(avKey, std::to_string(intVal));
+                break;
+            default:
+                break;
         }
     }
 }
@@ -355,15 +461,13 @@ void TypeFindMetaCollector::OnHaveType(const GstElement &elem, const GstCaps &ca
         return;
     }
 
-    Metadata meta;
-    GstMetaParser::ParseFileMimeType(caps, meta);
+    GstMetaParser::ParseFileMimeType(caps, fileInnerMeta_);
 
-    Metadata avmeta;
     std::string mimeType;
-    (void)meta.TryGetMeta(INNER_META_KEY_MIME_TYPE, mimeType);
-    avmeta.SetMeta(AV_KEY_MIME_TYPE, mimeType);
+    (void)fileInnerMeta_.GetStringValue(INNER_META_KEY_MIME_TYPE, mimeType);
+    fileUploadMeta_.SetMeta(AV_KEY_MIME_TYPE, mimeType);
 
-    ReportMeta(AVMETA_TRACK_NUMBER_FILE, avmeta);
+    ReportMeta(fileUploadMeta_);
 }
 
 void TypeFindMetaCollector::AddMetaSource(GstElement &elem)
