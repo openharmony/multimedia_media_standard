@@ -59,19 +59,19 @@ config("media_engine_gst_avcodec_config") {
 
 ohos_static_library("media_engine_gst_avcodec") {
   sources = [
+    "avcodec_engine_ctrl.cpp",
+    "avcodec_engine_factory.cpp",
+    "avcodec_engine_gst_impl.cpp",
     "codec_common.cpp",
-    "format_processor/processor_base.cpp",
     "format_processor/processor_adec_impl.cpp",
     "format_processor/processor_aenc_impl.cpp",
+    "format_processor/processor_base.cpp",
     "format_processor/processor_vdec_impl.cpp",
     "format_processor/processor_venc_impl.cpp",
     "sink_wrapper/sink_bytebuffer_impl.cpp",
     "sink_wrapper/sink_surface_impl.cpp",
     "src_wrapper/src_bytebuffer_impl.cpp",
     "src_wrapper/src_surface_impl.cpp",
-    "avcodec_engine_ctrl.cpp",
-    "avcodec_engine_factory.cpp",
-    "avcodec_engine_gst_impl.cpp",
   ]
 
   configs = [
@@ -82,16 +82,16 @@ ohos_static_library("media_engine_gst_avcodec") {
 
   deps = [
     "//foundation/graphic/standard/frameworks/surface:surface",
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_client",
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",
-    "//third_party/gstreamer/gstreamer:gstbase",
-    "//third_party/gstreamer/gstreamer:gstreamer",
     "//third_party/gstreamer/gstplugins_bad:gstplayer",
     "//third_party/gstreamer/gstplugins_base:gstaudio",
     "//third_party/gstreamer/gstplugins_base:gstvideo",
+    "//third_party/gstreamer/gstreamer:gstbase",
+    "//third_party/gstreamer/gstreamer:gstreamer",
   ]
 
   external_deps = [

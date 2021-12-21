@@ -71,6 +71,9 @@ ohos_shared_library("media_service") {
 
   sources = [
     "//foundation/multimedia/media_standard/services/utils/avsharedmemorybase.cpp",
+    "avcodec/ipc/avcodec_listener_proxy.cpp",
+    "avcodec/ipc/avcodec_service_stub.cpp",
+    "avcodec/server/avcodec_server.cpp",
     "avcodeclist/ipc/avcodeclist_service_stub.cpp",
     "avcodeclist/server/avcodeclist_server.cpp",
     "avmetadatahelper/ipc/avmetadatahelper_service_stub.cpp",
@@ -84,9 +87,6 @@ ohos_shared_library("media_service") {
     "recorder/ipc/recorder_listener_proxy.cpp",
     "recorder/ipc/recorder_service_stub.cpp",
     "recorder/server/recorder_server.cpp",
-    "avcodec/ipc/avcodec_listener_proxy.cpp",
-    "avcodec/ipc/avcodec_service_stub.cpp",
-    "avcodec/server/avcodec_server.cpp",
     "sa_media/ipc/avcodeclist_parcel.cpp",
     "sa_media/ipc/media_listener_proxy.cpp",
     "sa_media/ipc/media_parcel.cpp",
