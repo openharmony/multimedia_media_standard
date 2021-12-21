@@ -18,6 +18,7 @@
 #include "player_demo.h"
 #include "recorder_demo.h"
 #include "avmetadatahelper_demo.h"
+#include "avcodeclist_demo.h"
 
 using namespace OHOS;
 using namespace OHOS::Media;
@@ -35,7 +36,17 @@ static int RunPlayer(const string &path)
     cout << "demo player end" << endl;
     return 0;
 }
-
+static int RunCodecList(const string &path)
+{
+    auto avCodecList = std::make_unique<AVCodecListDemo>();
+    if (avCodecList == nullptr) {
+        cout << "avCodecList is null" << endl;
+        return 0;
+    }
+    avCodecList->RunCase(path);
+    cout << "demo avCodecList end" << endl;
+    return 0;
+}
 static int RunRecorder()
 {
     auto recorder = std::make_unique<RecorderDemo>();
@@ -71,6 +82,7 @@ int main(int argc, char *argv[])
     cout << "0:player" << endl;
     cout << "1:recorder" << endl;
     cout << "2:avmetadatahelper" << endl;
+    cout << "3:codeclist" << endl;
     string mode;
     (void)getline(cin, mode);
     if (mode == "" || mode == "0") {
@@ -79,6 +91,8 @@ int main(int argc, char *argv[])
         (void)RunRecorder();
     } else if (mode == "2") {
         (void)RunAVMetadataHelper(path);
+    } else if (mode == "3") {
+        (void)RunCodecList(path);
     } else {
         cout << "no that selection" << endl;
     }
