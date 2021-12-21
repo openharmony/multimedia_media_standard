@@ -66,7 +66,7 @@ napi_value AudioPlayerNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getTrackDescription", GetTrackDescription),
 
         DECLARE_NAPI_GETTER_SETTER("src", GetSrc, SetSrc),
-        DECLARE_NAPI_GETTER_SETTER("mediaDataSrc", GetMediaDataSrc, SetMediaDataSrc),
+        DECLARE_NAPI_GETTER_SETTER("dataSrc", GetMediaDataSrc, SetMediaDataSrc),
         DECLARE_NAPI_GETTER_SETTER("loop", GetLoop, SetLoop),
 
         DECLARE_NAPI_GETTER("currentTime", GetCurrentTime),
@@ -76,6 +76,7 @@ napi_value AudioPlayerNapi::Init(napi_env env, napi_value exports)
 
     napi_property_descriptor staticProperty[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createAudioPlayer", CreateAudioPlayer),
+        DECLARE_NAPI_STATIC_FUNCTION("createAudioPlayerAsync", CreateAudioPlayerAsync),
     };
 
     napi_value constructor = nullptr;
@@ -162,6 +163,36 @@ napi_value AudioPlayerNapi::CreateAudioPlayer(napi_env env, napi_callback_info i
     }
 
     MEDIA_LOGD("CreateAudioPlayer success");
+    return result;
+}
+
+napi_value AudioPlayerNapi::CreateAudioPlayerAsync(napi_env env, napi_callback_info info)
+{
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    MEDIA_LOGD("CreateAudioPlayer In");
+
+    std::unique_ptr<MediaAsyncContext> asyncContext = std::make_unique<MediaAsyncContext>(env);
+
+    // get args
+    napi_value jsThis = nullptr;
+    napi_value args[1] = { nullptr };
+    size_t argCount = 1;
+    napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
+    if (status != napi_ok) {
+        asyncContext->SignError(MSERR_EXT_INVALID_VAL, "failed to napi_get_cb_info");
+    }
+
+    asyncContext->callbackRef = CommonNapi::CreateReference(env, args[0]);
+    asyncContext->deferred = CommonNapi::CreatePromise(env, asyncContext->callbackRef, result);
+    asyncContext->JsResult = std::make_unique<MediaJsResultInstance>(constructor_);
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "CreateAudioPlayer", NAPI_AUTO_LENGTH, &resource);
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, [](napi_env env, void* data) {},
+        MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncContext.get()), &asyncContext->work));
+    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    asyncContext.release();
+
     return result;
 }
 
