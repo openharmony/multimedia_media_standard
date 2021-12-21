@@ -20,6 +20,7 @@ group("media_engine_gst_plugins_package") {
 ohos_shared_library("media_engine_gst") {
   deps = [
     ":media_engine_gst_plugins_package",
+    "avcodec:media_engine_gst_avcodec",
     "avcodeclist:media_engine_gst_avcodeclist",
     "avmetadatahelper:media_engine_gst_avmeta",
     "common:media_engine_gst_common",
@@ -27,7 +28,6 @@ ohos_shared_library("media_engine_gst") {
     "loader:media_engine_gst_loader",
     "player:media_engine_gst_player",
     "recorder:media_engine_gst_recorder",
-    "avcodec:media_engine_gst_avcodec",
     "//third_party/glib:glib_packages",
     "//third_party/gstreamer/gst_libav:gst_libav_packages",
     "//third_party/gstreamer/gstplugins_bad:gstplugins_bad_packages",
