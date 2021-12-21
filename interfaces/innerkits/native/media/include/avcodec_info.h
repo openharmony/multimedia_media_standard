@@ -58,7 +58,7 @@ public:
      * @since 3.1
      * @version 3.1
      */
-    bool IsHardwareAccelerated(); 
+    bool IsHardwareAccelerated();
 
     /**
      * @brief Check whether the codec is software implemented only.
@@ -86,7 +86,7 @@ public:
 
     /**
      * @brief Get codec information,  such as the codec name, codec type,
-     * whether hardware acceleration is supported, whether only software is supported, 
+     * whether hardware acceleration is supported, whether only software is supported,
      * and whether the codec is provided by the vendor.
      * @return Returns the pointer of {@link AVCodecInfo}.
      * @since 3.1
@@ -100,7 +100,7 @@ public:
      * @since 3.1
      * @version 3.1
      */
-    Range GetSupportedBitrate(); 
+    Range GetSupportedBitrate();
 
     /**
      * @brief Get supported video raw formats.
@@ -247,7 +247,7 @@ public:
     Range GetSupportedComplexity();
 
     /**
-     * @brief Check video encoder wether support request key frame dynamicly. 
+     * @brief Check video encoder wether support request key frame dynamicly.
      * @return Returns true if support, false not support.
      * @since 3.1
      * @version 3.1
@@ -265,7 +265,7 @@ public:
 
     /**
      * @brief Get codec information,  such as the codec name, codec type,
-     * whether hardware acceleration is supported, whether only software is supported, 
+     * whether hardware acceleration is supported, whether only software is supported,
      * and whether the codec is provided by the vendor.
      * @return Returns the pointer of {@link AVCodecInfo}
      * @since 3.1
@@ -334,7 +334,7 @@ private:
 };
 
 /**
- * @brief 
+ * @brief Error type of AVCodec
  *
  * @since 3.1
  * @version 3.1

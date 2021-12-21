@@ -22,7 +22,6 @@
 #include "iremote_stub.h"
 #include "av_common.h"
 #include "avsharedmemory.h"
-#include "surface.h"
 
 namespace OHOS {
 namespace Media {

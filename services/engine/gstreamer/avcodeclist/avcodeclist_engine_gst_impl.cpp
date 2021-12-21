@@ -51,7 +51,7 @@ bool AVCodecListEngineGstImpl::IsSupportBitrate(const Format &format, const Capa
 {
     int32_t targetBitrate;
     if (!format.GetIntValue("bitrate", targetBitrate)) {
-        MEDIA_LOGD("The bitrate of the format are not specified"); 
+        MEDIA_LOGD("The bitrate of the format are not specified");
         return true;
     }
     if (data.bitrate.minVal > targetBitrate || data.bitrate.maxVal < targetBitrate) {
@@ -95,10 +95,10 @@ bool AVCodecListEngineGstImpl::IsSupportFrameRate(const Format &format, const Ca
 {
     int32_t targetFrameRate;
     if (!format.GetIntValue("frame_rate", targetFrameRate)) {
-        MEDIA_LOGD("The frame_rate of the format are not specified"); 
+        MEDIA_LOGD("The frame_rate of the format are not specified");
         return true;
     }
-    if (data.frameRate.minVal * 100 > targetFrameRate || data.frameRate.maxVal * 100 < targetFrameRate) {
+    if (data.frameRate.minVal * 100 > targetFrameRate || data.frameRate.maxVal * 100 < targetFrameRate) { // 100 is for unit conversion
         return false;
     }
     return true;
@@ -111,7 +111,7 @@ bool AVCodecListEngineGstImpl::IsSupportChannel(const Format &format, const Capa
     }
     int32_t targetChannel;
     if (!format.GetIntValue("channel_count", targetChannel)) {
-        MEDIA_LOGD("The channel_count of the format are not specified"); 
+        MEDIA_LOGD("The channel_count of the format are not specified");
         return true;
     }
     if (data.channels.minVal > targetChannel || data.channels.maxVal < targetChannel) {
@@ -127,7 +127,7 @@ bool AVCodecListEngineGstImpl::IsSupportSampleRate(const Format &format, const C
     }
     int32_t targetSampleRate;
     if (!format.GetIntValue("samplerate", targetSampleRate)) {
-        MEDIA_LOGD("The samplerate of the format are not specified"); 
+        MEDIA_LOGD("The samplerate of the format are not specified");
         return true;
     }
 

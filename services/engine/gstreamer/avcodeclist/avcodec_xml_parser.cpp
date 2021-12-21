@@ -17,7 +17,7 @@
 #include "media_log.h"
 
 namespace {
-    constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecParser"};
+    constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecXmlParser"};
 }
 
 namespace OHOS {
@@ -123,18 +123,18 @@ const std::unordered_map<std::string, AVCodecType> CODEC_TYPE_MAP = {
     {"AUDIO_DECODER", AVCODEC_TYPE_AUDIO_DECODER},
 };
 
-AVCodecParser::AVCodecParser()
+AVCodecXmlParser::AVCodecXmlParser()
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
 }
 
-AVCodecParser::~AVCodecParser()
+AVCodecXmlParser::~AVCodecXmlParser()
 {
     Destroy();
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-bool AVCodecParser::LoadConfiguration()
+bool AVCodecXmlParser::LoadConfiguration()
 {
     mDoc_ = xmlReadFile(AVCODEC_CONFIG_FILE, NULL, 0);
     if (mDoc_ == NULL) {
@@ -144,7 +144,7 @@ bool AVCodecParser::LoadConfiguration()
     return true;
 }
 
-bool AVCodecParser::Parse()
+bool AVCodecXmlParser::Parse()
 {
     xmlNode *root = xmlDocGetRootElement(mDoc_);
     if (root == NULL) {
@@ -157,7 +157,7 @@ bool AVCodecParser::Parse()
     return true;
 }
 
-void AVCodecParser::Destroy()
+void AVCodecXmlParser::Destroy()
 {
     if (mDoc_ != NULL) {
         xmlFreeDoc(mDoc_);
@@ -165,7 +165,7 @@ void AVCodecParser::Destroy()
     return;
 }
 
-bool AVCodecParser::ParseInternal(xmlNode *node)
+bool AVCodecXmlParser::ParseInternal(xmlNode *node)
 {
     xmlNode *currNode = node;
     for (; currNode; currNode = currNode->next) {
@@ -187,7 +187,7 @@ bool AVCodecParser::ParseInternal(xmlNode *node)
     return true;
 }
 
-bool AVCodecParser::TransStrAsRange(const std::string &str, Range &range)
+bool AVCodecXmlParser::TransStrAsRange(const std::string &str, Range &range)
 {
     if (str == "null" || str == "") {
         MEDIA_LOGD("str is null");
@@ -206,7 +206,7 @@ bool AVCodecParser::TransStrAsRange(const std::string &str, Range &range)
     return true;
 }
 
-std::vector<int32_t> AVCodecParser::TransStrAsIntegerArray(std::vector<std::string> &spilt)
+std::vector<int32_t> AVCodecXmlParser::TransStrAsIntegerArray(std::vector<std::string> &spilt)
 {
     std::vector<int32_t> array;
     for (auto iter = spilt.begin(); iter != spilt.end(); iter++) {
@@ -216,7 +216,7 @@ std::vector<int32_t> AVCodecParser::TransStrAsIntegerArray(std::vector<std::stri
     return array;
 }
 
-std::vector<int32_t> AVCodecParser::TransMapAsIntegerArray(
+std::vector<int32_t> AVCodecXmlParser::TransMapAsIntegerArray(
     const std::unordered_map<std::string, int> &capabilityMap,
     std::vector<std::string> &spilt)
 {
@@ -231,7 +231,7 @@ std::vector<int32_t> AVCodecParser::TransMapAsIntegerArray(
     return res;
 }
 
-bool AVCodecParser::SpiltKeyList(const std::string &str, const std::string &delim, std::vector<std::string> &spilt)
+bool AVCodecXmlParser::SpiltKeyList(const std::string &str, const std::string &delim, std::vector<std::string> &spilt)
 {
     if (str == "") {
         return false;
@@ -253,15 +253,15 @@ bool AVCodecParser::SpiltKeyList(const std::string &str, const std::string &deli
     return true;
 }
 
-bool AVCodecParser::SetCapabilityStringData(std::unordered_map<std::string, std::string&> dataMap,
-                                            const std::string &capabilityKey, const std::string &capabilityValue)
+bool AVCodecXmlParser::SetCapabilityStringData(std::unordered_map<std::string, std::string&> dataMap,
+                                               const std::string &capabilityKey, const std::string &capabilityValue)
 {
     dataMap.at(capabilityKey) = capabilityValue;
     return true;
 }
 
-bool AVCodecParser::SetCapabilityIntData(std::unordered_map<std::string, int32_t&> dataMap,
-                                         const std::string &capabilityKey, const std::string &capabilityValue)
+bool AVCodecXmlParser::SetCapabilityIntData(std::unordered_map<std::string, int32_t&> dataMap,
+                                            const std::string &capabilityKey, const std::string &capabilityValue)
 {
     if (CODEC_TYPE_MAP.find(capabilityValue) != CODEC_TYPE_MAP.end()) {
         dataMap.at(capabilityKey) = CODEC_TYPE_MAP.at(capabilityValue);
@@ -272,8 +272,8 @@ bool AVCodecParser::SetCapabilityIntData(std::unordered_map<std::string, int32_t
     return true;
 }
 
-bool AVCodecParser::SetCapabilityBoolData(std::unordered_map<std::string, bool&> dataMap,
-                                          const std::string &capabilityKey, const std::string &capabilityValue)
+bool AVCodecXmlParser::SetCapabilityBoolData(std::unordered_map<std::string, bool&> dataMap,
+                                             const std::string &capabilityKey, const std::string &capabilityValue)
 {
     if (capabilityValue == "true") {
         dataMap.at(capabilityKey) = true;
@@ -286,8 +286,8 @@ bool AVCodecParser::SetCapabilityBoolData(std::unordered_map<std::string, bool&>
     return true;
 }
 
-bool AVCodecParser::SetCapabilityRangeData(std::unordered_map<std::string, Range&> dataMap,
-                                           const std::string &capabilityKey, const std::string &capabilityValue)
+bool AVCodecXmlParser::SetCapabilityRangeData(std::unordered_map<std::string, Range&> dataMap,
+                                              const std::string &capabilityKey, const std::string &capabilityValue)
 {
     Range range;
     bool ret = TransStrAsRange(capabilityValue, range);
@@ -296,7 +296,7 @@ bool AVCodecParser::SetCapabilityRangeData(std::unordered_map<std::string, Range
     return true;
 }
 
-bool AVCodecParser::IsNumberArray(const std::vector<std::string> &strArray)
+bool AVCodecXmlParser::IsNumberArray(const std::vector<std::string> &strArray)
 {
     for (auto iter = strArray.begin(); iter != strArray.end(); iter++) {
         for (char const &c : *iter) {
@@ -308,8 +308,8 @@ bool AVCodecParser::IsNumberArray(const std::vector<std::string> &strArray)
     return true;
 }
 
-bool AVCodecParser::SetCapabilityVectorData(std::unordered_map<std::string, std::vector<int32_t>&> dataMap,
-                                            const std::string &capabilityKey, const std::string &capabilityValue)
+bool AVCodecXmlParser::SetCapabilityVectorData(std::unordered_map<std::string, std::vector<int32_t>&> dataMap,
+                                               const std::string &capabilityKey, const std::string &capabilityValue)
 {
     std::vector<std::string> spilt;
     std::vector<int32_t> array;
@@ -338,8 +338,8 @@ bool AVCodecParser::SetCapabilityVectorData(std::unordered_map<std::string, std:
     return true;
 }
 
-bool AVCodecParser::SetCapabilityData(CapabilityData &data, const std::string &capabilityKey,
-                                      const std::string &capabilityValue)
+bool AVCodecXmlParser::SetCapabilityData(CapabilityData &data, const std::string &capabilityKey,
+                                         const std::string &capabilityValue)
 {
     std::unordered_map<std::string, std::string&> capabilityStringMap = {
         {"codecName", data.codecName},
@@ -396,7 +396,7 @@ bool AVCodecParser::SetCapabilityData(CapabilityData &data, const std::string &c
     return true;
 }
 
-bool AVCodecParser::ParseData(xmlNode *node)
+bool AVCodecXmlParser::ParseData(xmlNode *node)
 {
     xmlNode *child = node->xmlChildrenNode;
     std::string capabilityValue;
@@ -421,7 +421,7 @@ bool AVCodecParser::ParseData(xmlNode *node)
     return true;
 }
 
-NodeName AVCodecParser::GetNodeNameAsInt(xmlNode *node)
+NodeName AVCodecXmlParser::GetNodeNameAsInt(xmlNode *node)
 {
     if (!xmlStrcmp(node->name, reinterpret_cast<const xmlChar*>("Codecs"))) {
         return CODECS;
@@ -442,7 +442,7 @@ NodeName AVCodecParser::GetNodeNameAsInt(xmlNode *node)
     }
 }
 
-std::vector<CapabilityData> AVCodecParser::GetCapabilityDataArray()
+std::vector<CapabilityData> AVCodecXmlParser::GetCapabilityDataArray()
 {
     return this->capabilityDataArray_;
 }

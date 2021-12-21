@@ -16,18 +16,16 @@
 #ifndef AVCODEC_COMMOM_H
 #define AVCODEC_COMMOM_H
 
-#include <cstdint>
 #include <string>
 #include "format.h"
 
 namespace OHOS {
 namespace Media {
-
 /**
- * @brief 
+ * @brief Buffer type of AVCodec
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 enum AVCodecBufferType : int32_t {
     AVCODEC_BUFFER_TYPE_NONE = 0,
@@ -36,10 +34,10 @@ enum AVCodecBufferType : int32_t {
 };
 
 /**
- * @brief 
+ * @brief Buffer flag of AVCodec
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 enum AVCodecBufferFlag : int32_t {
     AVCODEC_BUFFER_FLAG_NONE = 0,
@@ -47,10 +45,10 @@ enum AVCodecBufferFlag : int32_t {
 };
 
 /**
- * @brief 
+ * @brief Buffer info AVCodec
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 struct AVCodecBufferInfo {
     int64_t presentationTimeUs = 0;
@@ -59,52 +57,52 @@ struct AVCodecBufferInfo {
 };
 
 /**
- * @brief 
+ * @brief Callback of AVCodec
  *
- * @since 1.0
- * @version 1.0
+ * @since 3.1
+ * @version 3.1
  */
 class AVCodecCallback {
 public:
     virtual ~AVCodecCallback() = default;
 
     /**
-     * @brief 
+     * @brief
      *
-     * @param errorType 
-     * @param errorCode 
-     * @since 1.0
-     * @version 1.0
+     * @param errorType
+     * @param errorCode
+     * @since 3.1
+     * @version 3.1
      */
     virtual void OnError(AVCodecErrorType errorType, int32_t errorCode) = 0;
 
     /**
-     * @brief 
+     * @brief
      *
-     * @param format 
-     * @since 1.0
-     * @version 1.0
+     * @param format
+     * @since 3.1
+     * @version 3.1
      */
     virtual void OnOutputFormatChanged(const Format &format) = 0;
 
     /**
-     * @brief 
+     * @brief
      *
-     * @param index 
-     * @since 1.0
-     * @version 1.0
+     * @param index
+     * @since 3.1
+     * @version 3.1
      */
     virtual void OnInputBufferAvailable(uint32_t index) = 0;
 
     /**
-     * @brief 
+     * @brief
      *
-     * @param index 
-     * @param info 
-     * @param type 
-     * @param flag 
-     * @since 1.0
-     * @version 1.0
+     * @param index
+     * @param info
+     * @param type
+     * @param flag
+     * @since 3.1
+     * @version 3.1
      */
     virtual void OnOutputBufferAvailable(uint32_t index, AVCodecBufferInfo info,
                                          AVCodecBufferType type, AVCodecBufferFlag flag) = 0;

@@ -52,9 +52,6 @@ private:
     std::map<sptr<IRemoteObject>, pid_t> playerStubMap_;
     std::map<sptr<IRemoteObject>, pid_t> avMetadataHelperStubMap_;
     std::map<sptr<IRemoteObject>, pid_t> avCodecListStubMap_;
-
-    
-
     std::mutex mutex_;
 };
 } // namespace Media

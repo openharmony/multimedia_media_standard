@@ -19,14 +19,8 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include <libxml/parser.h>
 #include <libxml/tree.h>
-#ifdef __cplusplus
-}
-#endif
 #include "av_common.h"
 
 namespace OHOS {
@@ -42,16 +36,16 @@ enum NodeName {
     UNKNOWN
 };
 
-class AVCodecParser {
+class AVCodecXmlParser {
 public:
     const char *AVCODEC_CONFIG_FILE = "/etc/codec/codec_caps.xml";
-    AVCodecParser();
-    ~AVCodecParser();
+    AVCodecXmlParser();
+    ~AVCodecXmlParser();
     bool LoadConfiguration();
     bool Parse();
     void Destroy();
     std::vector<CapabilityData> GetCapabilityDataArray();
-    
+
 private:
     bool IsNumberArray(const std::vector<std::string> &strArray);
     bool TransStrAsRange(const std::string &str, Range &range);

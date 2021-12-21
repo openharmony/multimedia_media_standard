@@ -42,7 +42,7 @@ void AVCodecListDemo::DoNext()
             cout << "FindAudioEncoder : " << codecName << endl;
         } else if (cmd.find("gvd") != std::string::npos || cmd.find("GetVideoDecoderCaps") != std::string::npos) {
             std::vector<std::shared_ptr<VideoCaps>> videoDecoderArray = avCodecList_->GetVideoDecoderCaps();
-            PrintVideoCapsArray(videoDecoderArray);          
+            PrintVideoCapsArray(videoDecoderArray);
         } else if (cmd.find("gve") != std::string::npos || cmd.find("GetVideoEncoderCaps") != std::string::npos) {
             std::vector<std::shared_ptr<VideoCaps>> videoEncoderArray = avCodecList_->GetVideoEncoderCaps();
             PrintVideoCapsArray(videoEncoderArray);

@@ -49,8 +49,8 @@ bool AVCodecListParcel::Marshalling(MessageParcel &parcel, const std::vector<Cap
         (void)parcel.WriteInt32(it->quality.minVal);
         (void)parcel.WriteInt32(it->quality.maxVal);
         (void)parcel.WriteInt32Vector(it->sampleRate);
-        (void)parcel.WriteInt32Vector(it->format);        
-        (void)parcel.WriteInt32Vector(it->profiles);        
+        (void)parcel.WriteInt32Vector(it->format);
+        (void)parcel.WriteInt32Vector(it->profiles);
         (void)parcel.WriteInt32Vector(it->bitrateMode);
         (void)parcel.WriteInt32Vector(it->levels);
     }

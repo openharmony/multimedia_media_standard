@@ -27,8 +27,6 @@
 #include "format.h"
 
 namespace OHOS {
-class Surface;
-
 namespace Media {
 class IAVCodecListEngine {
 public:
