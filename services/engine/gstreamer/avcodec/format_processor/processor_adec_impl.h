@@ -24,7 +24,7 @@ namespace Media {
 class ProcessorAdecImpl : public ProcessorBase {
 public:
     ProcessorAdecImpl();
-    ~ProcessorAdecImpl();
+    ~ProcessorAdecImpl() override;
     DISALLOW_COPY_AND_MOVE(ProcessorAdecImpl);
 
     std::shared_ptr<ProcessorConfig> GetInputPortConfig() override;

@@ -27,7 +27,7 @@ namespace Media {
 class SinkBytebufferImpl : public SinkBase {
 public:
     SinkBytebufferImpl();
-    ~SinkBytebufferImpl();
+    ~SinkBytebufferImpl() override;
     DISALLOW_COPY_AND_MOVE(SinkBytebufferImpl);
 
     int32_t Init() override;

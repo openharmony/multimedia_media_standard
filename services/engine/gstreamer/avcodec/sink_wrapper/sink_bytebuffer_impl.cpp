@@ -185,8 +185,6 @@ int32_t SinkBytebufferImpl::HandleOutputCb()
     } else {
         obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
     }
-
-    obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
     MEDIA_LOGD("OutputBuffer available, index:%{public}d", index);
 
     return MSERR_OK;

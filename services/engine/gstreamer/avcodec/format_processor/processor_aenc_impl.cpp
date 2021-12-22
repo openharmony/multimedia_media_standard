@@ -87,7 +87,7 @@ std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetOutputPortConfig()
                 "rate", G_TYPE_INT, sampleRate_,
                 "channels", G_TYPE_INT, channels_,
                 "mpegversion", G_TYPE_INT, 4,
-                "stream-format", G_TYPE_STRING, "raw",
+                "stream-format", G_TYPE_STRING, "adts",
                 "base-profile", G_TYPE_STRING, "lc", nullptr);
             break;
         default:

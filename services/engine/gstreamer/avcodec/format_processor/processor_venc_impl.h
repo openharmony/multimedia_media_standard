@@ -24,7 +24,7 @@ namespace Media {
 class ProcessorVencImpl : public ProcessorBase {
 public:
     ProcessorVencImpl();
-    ~ProcessorVencImpl();
+    ~ProcessorVencImpl() override;
     DISALLOW_COPY_AND_MOVE(ProcessorVencImpl);
 
     std::shared_ptr<ProcessorConfig> GetInputPortConfig() override;

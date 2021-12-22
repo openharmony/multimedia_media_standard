@@ -25,7 +25,7 @@ namespace Media {
 class SinkSurfaceImpl : public SinkBase {
 public:
     SinkSurfaceImpl();
-    ~SinkSurfaceImpl();
+    ~SinkSurfaceImpl() override;
     DISALLOW_COPY_AND_MOVE(SinkSurfaceImpl);
 
     int32_t Init() override;
