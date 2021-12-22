@@ -138,10 +138,11 @@ int32_t SrcBytebufferImpl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo in
     gst_buffer_unref(buffer);
     bufferList_[index]->owner_ = BufferWrapper::SERVER;
 
-    auto obs = obs_.lock();
-    CHECK_AND_RETURN_RET(obs != nullptr, MSERR_UNKNOWN);
-    obs->OnInputBufferAvailable(index);
-
+    if (flag != AVCODEC_BUFFER_FLAG_EOS) {
+        auto obs = obs_.lock();
+        CHECK_AND_RETURN_RET(obs != nullptr, MSERR_UNKNOWN);
+        obs->OnInputBufferAvailable(index);
+    }
     return MSERR_OK;
 }
 

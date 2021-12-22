@@ -18,11 +18,10 @@
 
 #include <string>
 #include <vector>
-#include "format.h"
 #include <unordered_map>
+#include "format.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-#include "format.h"
 
 namespace OHOS {
 namespace Media {

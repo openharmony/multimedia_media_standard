@@ -17,10 +17,10 @@
 #define CODEC_COMMON_H
 
 #include <string>
-#include "av_common.h"
-#include "avsharedmemory.h"
 #include <gst/audio/audio.h>
 #include <gst/gst.h>
+#include "av_common.h"
+#include "avsharedmemory.h"
 
 namespace OHOS {
 namespace Media {
@@ -112,7 +112,7 @@ struct BufferWrapper {
 };
 
 struct ProcessorConfig {
-    ProcessorConfig(GstCaps *caps)
+    explicit ProcessorConfig(GstCaps *caps)
         : caps_(caps)
     {
     }

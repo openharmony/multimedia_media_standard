@@ -119,7 +119,6 @@ int32_t AVCodecServer::Flush()
 int32_t AVCodecServer::Reset()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(status_ != AVCODEC_INITIALIZED, MSERR_INVALID_OPERATION, "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = codecEngine_->Reset();
     status_ = (ret == MSERR_OK ? AVCODEC_INITIALIZED : AVCODEC_ERROR);
@@ -146,9 +145,7 @@ int32_t AVCodecServer::SetOutputSurface(sptr<Surface> surface)
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_CONFIGURED, MSERR_INVALID_OPERATION, "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
-    int32_t ret = codecEngine_->SetOutputSurface(surface);
-    status_ = (ret == MSERR_OK ? AVCODEC_CONFIGURED : AVCODEC_ERROR);
-    return ret;
+    return codecEngine_->SetOutputSurface(surface);
 }
 
 std::shared_ptr<AVSharedMemory> AVCodecServer::GetInputBuffer(uint32_t index)
@@ -166,9 +163,10 @@ int32_t AVCodecServer::QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, 
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = codecEngine_->QueueInputBuffer(index, info, flag);
     if (static_cast<int32_t>(flag) & static_cast<int32_t>(AVCODEC_BUFFER_FLAG_EOS)) {
-        status_ = (ret == MSERR_OK ? AVCODEC_END_OF_STREAM : AVCODEC_ERROR);
-    } else {
-        status_ = (ret == MSERR_OK ? AVCODEC_RUNNING : AVCODEC_ERROR);
+        if (ret == MSERR_OK) {
+            status_ = AVCODEC_END_OF_STREAM;
+            MEDIA_LOGI("EOS state");
+        }
     }
     return ret;
 }
@@ -176,7 +174,8 @@ int32_t AVCodecServer::QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, 
 std::shared_ptr<AVSharedMemory> AVCodecServer::GetOutputBuffer(uint32_t index)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_RUNNING, nullptr, "invalid state");
+    CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_RUNNING || status_ == AVCODEC_END_OF_STREAM,
+        nullptr, "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, nullptr, "engine is nullptr");
     return codecEngine_->GetOutputBuffer(index);
 }
@@ -184,23 +183,19 @@ std::shared_ptr<AVSharedMemory> AVCodecServer::GetOutputBuffer(uint32_t index)
 int32_t AVCodecServer::GetOutputFormat(Format &format)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_RUNNING, MSERR_INVALID_OPERATION, "invalid state");
+    CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_RUNNING || status_ == AVCODEC_END_OF_STREAM,
+        MSERR_INVALID_OPERATION, "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
-    int32_t ret = codecEngine_->GetOutputFormat(format);
-    if (ret != MSERR_OK) {
-        status_ = AVCODEC_ERROR;
-    }
-    return ret;
+    return codecEngine_->GetOutputFormat(format);
 }
 
 int32_t AVCodecServer::ReleaseOutputBuffer(uint32_t index, bool render)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_RUNNING, MSERR_INVALID_OPERATION, "invalid state");
+    CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_RUNNING || status_ == AVCODEC_END_OF_STREAM,
+        MSERR_INVALID_OPERATION, "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
-    int32_t ret = codecEngine_->ReleaseOutputBuffer(index, render);
-    status_ = (ret == MSERR_OK ? AVCODEC_RUNNING : AVCODEC_ERROR);
-    return ret;
+    return codecEngine_->ReleaseOutputBuffer(index, render);
 }
 
 int32_t AVCodecServer::SetParameter(const Format &format)
@@ -208,9 +203,7 @@ int32_t AVCodecServer::SetParameter(const Format &format)
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_RUNNING, MSERR_INVALID_OPERATION, "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
-    int32_t ret = codecEngine_->SetParameter(format);
-    status_ = (ret == MSERR_OK ? AVCODEC_RUNNING : AVCODEC_ERROR);
-    return ret;
+    return codecEngine_->SetParameter(format);
 }
 
 int32_t AVCodecServer::SetCallback(const std::shared_ptr<AVCodecCallback> &callback)

@@ -134,6 +134,12 @@ int32_t SinkSurfaceImpl::SetCallback(const std::weak_ptr<IAVCodecEngineObs> &obs
     return MSERR_OK;
 }
 
+void SinkSurfaceImpl::SetEOS(uint32_t count)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    finishCount_ = count;
+}
+
 GstFlowReturn SinkSurfaceImpl::OutputAvailableCb(GstElement *sink, gpointer userData)
 {
     (void)sink;
@@ -174,6 +180,8 @@ int32_t SinkSurfaceImpl::HandleOutputCb()
         return MSERR_INVALID_OPERATION;
     }
 
+    bufferCount_++;
+
     auto obs = obs_.lock();
     if (obs == nullptr) {
         MEDIA_LOGE("obs is nullptr");
@@ -182,7 +190,12 @@ int32_t SinkSurfaceImpl::HandleOutputCb()
     }
     AVCodecBufferInfo info;
     info.presentationTimeUs = GST_BUFFER_PTS(buf);
-    obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
+    if (bufferCount_ == finishCount_) {
+        MEDIA_LOGD("EOS reach");
+        obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_EOS);
+    } else {
+        obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
+    }
     MEDIA_LOGD("OutputBuffer available, index:%{public}d", index);
 
     return MSERR_OK;

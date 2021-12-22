@@ -24,7 +24,7 @@ namespace Media {
 class ProcessorVdecImpl : public ProcessorBase {
 public:
     ProcessorVdecImpl();
-    virtual ~ProcessorVdecImpl();
+    ~ProcessorVdecImpl();
     DISALLOW_COPY_AND_MOVE(ProcessorVdecImpl);
 
     std::shared_ptr<ProcessorConfig> GetInputPortConfig() override;

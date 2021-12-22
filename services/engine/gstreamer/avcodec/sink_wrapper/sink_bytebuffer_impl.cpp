@@ -110,6 +110,12 @@ int32_t SinkBytebufferImpl::SetCallback(const std::weak_ptr<IAVCodecEngineObs> &
     return MSERR_OK;
 }
 
+void SinkBytebufferImpl::SetEOS(uint32_t count)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    finishCount_ = count;
+}
+
 GstFlowReturn SinkBytebufferImpl::OutputAvailableCb(GstElement *sink, gpointer userData)
 {
     (void)sink;
@@ -158,7 +164,9 @@ int32_t SinkBytebufferImpl::HandleOutputCb()
         index++;
     }
 
+    bufferCount_++;
     gst_sample_unref(sample);
+
     if (index == bufferCount_ || index == bufferList_.size()) {
         MEDIA_LOGW("The output buffer queue is full, discard this buffer");
         return MSERR_INVALID_OPERATION;
@@ -170,6 +178,14 @@ int32_t SinkBytebufferImpl::HandleOutputCb()
     info.offset = 0;
     info.size = bufSize;
     info.presentationTimeUs = GST_BUFFER_PTS(buf);
+
+    if (bufferCount_ == finishCount_) {
+        MEDIA_LOGD("EOS reach");
+        obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_EOS);
+    } else {
+        obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
+    }
+
     obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
     MEDIA_LOGD("OutputBuffer available, index:%{public}d", index);
 

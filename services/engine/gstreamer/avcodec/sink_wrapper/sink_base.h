@@ -17,12 +17,12 @@
 #define SINK_BASE_H
 
 #include <cstdint>
+#include <gst/gst.h>
 #include "avcodec_common.h"
 #include "avsharedmemory.h"
 #include "codec_common.h"
 #include "format.h"
 #include "i_avcodec_engine.h"
-#include <gst/gst.h>
 #include "media_errors.h"
 #include "surface.h"
 
@@ -63,9 +63,11 @@ public:
     }
 
     virtual int32_t SetCallback(const std::weak_ptr<IAVCodecEngineObs> &obs) = 0;
+    virtual void SetEOS(uint32_t count) = 0;
 
 protected:
     GstElement *element_ = nullptr;
+    uint32_t bufferCount_ = 0;
 };
 } // Media
 } // OHOS
