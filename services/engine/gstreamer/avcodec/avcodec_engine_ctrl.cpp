@@ -251,7 +251,15 @@ int32_t AVCodecEngineCtrl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo in
 {
     MEDIA_LOGD("Enter QueueInputBuffer, index:%{public}d", index);
     CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
-    return src_->QueueInputBuffer(index, info, flag);
+    int32_t ret = src_->QueueInputBuffer(index, info, flag);
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
+    bufferCount_++;
+    if (flag == AVCODEC_BUFFER_FLAG_EOS) {
+        CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);
+        MEDIA_LOGI("EOS frame, index:%{public}d", bufferCount_);
+        sink_->SetEOS(bufferCount_);
+    }
+    return MSERR_OK;
 }
 
 std::shared_ptr<AVSharedMemory> AVCodecEngineCtrl::GetOutputBuffer(uint32_t index)

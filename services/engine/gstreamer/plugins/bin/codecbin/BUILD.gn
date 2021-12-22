@@ -49,9 +49,7 @@ config("gst_codec_bin_config") {
 ohos_shared_library("gst_codec_bin") {
   install_enable = true
 
-  sources = [
-    "src/gst_codec_bin.cpp",
-  ]
+  sources = [ "src/gst_codec_bin.cpp" ]
 
   configs = [ ":gst_codec_bin_config" ]
 

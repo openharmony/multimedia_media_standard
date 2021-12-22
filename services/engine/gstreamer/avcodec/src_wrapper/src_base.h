@@ -17,12 +17,12 @@
 #define SRC_BASE_H
 
 #include <cstdint>
+#include <gst/gst.h>
 #include "avcodec_common.h"
 #include "avsharedmemory.h"
 #include "codec_common.h"
 #include "format.h"
 #include "i_avcodec_engine.h"
-#include <gst/gst.h>
 #include "media_errors.h"
 #include "surface.h"
 

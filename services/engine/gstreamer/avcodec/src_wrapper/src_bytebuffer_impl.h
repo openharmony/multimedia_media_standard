@@ -24,7 +24,7 @@ namespace Media {
 class SrcBytebufferImpl : public SrcBase {
 public:
     SrcBytebufferImpl();
-    virtual ~SrcBytebufferImpl();
+    ~SrcBytebufferImpl();
     DISALLOW_COPY_AND_MOVE(SrcBytebufferImpl);
 
     int32_t Init() override;

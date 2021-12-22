@@ -25,7 +25,7 @@ namespace Media {
 class SinkSurfaceImpl : public SinkBase {
 public:
     SinkSurfaceImpl();
-    virtual ~SinkSurfaceImpl();
+    ~SinkSurfaceImpl();
     DISALLOW_COPY_AND_MOVE(SinkSurfaceImpl);
 
     int32_t Init() override;
@@ -35,6 +35,7 @@ public:
     int32_t SetParameter(const Format &format) override;
     int32_t ReleaseOutputBuffer(uint32_t index, bool render) override;
     int32_t SetCallback(const std::weak_ptr<IAVCodecEngineObs> &obs) override;
+    void SetEOS(uint32_t count) override;
 
 private:
     static GstFlowReturn OutputAvailableCb(GstElement *sink, gpointer userData);
@@ -48,6 +49,7 @@ private:
     sptr<Surface> producerSurface_ = nullptr;
     std::vector<std::shared_ptr<BufferWrapper>> bufferList_;
     std::weak_ptr<IAVCodecEngineObs> obs_;
+    uint32_t finishCount_ = 0;
 };
 } // Media
 } // OHOS

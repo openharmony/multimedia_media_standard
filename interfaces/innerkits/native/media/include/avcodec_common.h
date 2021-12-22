@@ -15,7 +15,6 @@
 #ifndef AVCODEC_COMMOM_H
 #define AVCODEC_COMMOM_H
 
-#include <cstdint>
 #include <string>
 #include "av_common.h"
 #include "format.h"

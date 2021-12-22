@@ -56,9 +56,9 @@ int32_t AVCodecEngineGstImpl::Init(AVCodecType type, bool isMimeType, const std:
     ctrl_->SetObs(obs_);
 
     if (isMimeType) {
-        CHECK_AND_RETURN_RET(HandleMimeType(type, name) == MSERR_OK, MSERR_UNKNOWN);
+        CHECK_AND_RETURN_RET(HandleMimeTypeStub(type, name) == MSERR_OK, MSERR_UNKNOWN);
     } else {
-        CHECK_AND_RETURN_RET(HandlePluginName(type, name) == MSERR_OK, MSERR_UNKNOWN);
+        CHECK_AND_RETURN_RET(HandlePluginNameStub(type, name) == MSERR_OK, MSERR_UNKNOWN);
     }
     return MSERR_OK;
 }
@@ -183,6 +183,58 @@ int32_t AVCodecEngineGstImpl::SetObs(const std::weak_ptr<IAVCodecEngineObs> &obs
 {
     std::unique_lock<std::mutex> lock(mutex_);
     obs_ = obs;
+    return MSERR_OK;
+}
+
+int32_t AVCodecEngineGstImpl::HandleMimeTypeStub(AVCodecType type, const std::string &name)
+{
+    int32_t ret = MSERR_OK;
+    std::string pluginName = "";
+    switch (type) {
+        case AVCODEC_TYPE_VIDEO_ENCODER:
+            pluginName = "open264";
+            break;
+        case AVCODEC_TYPE_VIDEO_DECODER:
+            pluginName = "avdec_h264";
+            break;
+        case AVCODEC_TYPE_AUDIO_ENCODER:
+            pluginName = "avenc_aac";
+            break;
+        case AVCODEC_TYPE_AUDIO_DECODER:
+            pluginName = "avdec_aac";
+            break;
+        default:
+            ret = MSERR_INVALID_VAL;
+            MEDIA_LOGE("Unknown type");
+            break;
+    }
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, MSERR_UNKNOWN);
+
+    bool isSoftware = true;
+    (void)QueryIsSoftPluginStub(type, name, isSoftware);
+
+    uswSoftWare_ = isSoftware;
+    pluginName_ = pluginName;
+
+    CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_UNKNOWN);
+    return ctrl_->Init(type, isSoftware, pluginName);
+}
+
+int32_t AVCodecEngineGstImpl::HandlePluginNameStub(AVCodecType type, const std::string &name)
+{
+    bool isSoftware = true;
+    (void)QueryIsSoftPluginStub(type, name, isSoftware);
+
+    uswSoftWare_ = isSoftware;
+    pluginName_ = name;
+
+    CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_UNKNOWN);
+    return ctrl_->Init(type, isSoftware, name);
+}
+
+int32_t AVCodecEngineGstImpl::QueryIsSoftPluginStub(AVCodecType type, const std::string &name, bool &isSoftware)
+{
+    isSoftware = true;
     return MSERR_OK;
 }
 

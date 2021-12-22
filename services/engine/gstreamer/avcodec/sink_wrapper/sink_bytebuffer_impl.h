@@ -27,7 +27,7 @@ namespace Media {
 class SinkBytebufferImpl : public SinkBase {
 public:
     SinkBytebufferImpl();
-    virtual ~SinkBytebufferImpl();
+    ~SinkBytebufferImpl();
     DISALLOW_COPY_AND_MOVE(SinkBytebufferImpl);
 
     int32_t Init() override;
@@ -36,6 +36,7 @@ public:
     std::shared_ptr<AVSharedMemory> GetOutputBuffer(uint32_t index) override;
     int32_t ReleaseOutputBuffer(uint32_t index, bool render = false) override;
     int32_t SetCallback(const std::weak_ptr<IAVCodecEngineObs> &obs) override;
+    void SetEOS(uint32_t count) override;
 
 private:
     static GstFlowReturn OutputAvailableCb(GstElement *sink, gpointer userData);
@@ -47,6 +48,7 @@ private:
     uint32_t bufferSize_ = 0;
     std::vector<std::shared_ptr<BufferWrapper>> bufferList_;
     std::weak_ptr<IAVCodecEngineObs> obs_;
+    uint32_t finishCount_ = 0;
 };
 } // Media
 } // OHOS
