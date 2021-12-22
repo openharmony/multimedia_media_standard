@@ -197,8 +197,9 @@ int32_t SinkSurfaceImpl::HandleOutputCb()
 
     AVCodecBufferInfo info;
     info.presentationTimeUs = GST_BUFFER_PTS(buf);
-    if (bufferCount_ == finishCount_) {
+    if (bufferCount_ >= finishCount_ && isEos == false) {
         MEDIA_LOGD("EOS reach");
+        isEos = true;
         obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_EOS);
     } else {
         obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);

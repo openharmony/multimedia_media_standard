@@ -49,7 +49,8 @@ private:
     sptr<Surface> producerSurface_ = nullptr;
     std::vector<std::shared_ptr<BufferWrapper>> bufferList_;
     std::weak_ptr<IAVCodecEngineObs> obs_;
-    uint32_t finishCount_ = 0;
+    bool isEos = false;
+    uint32_t finishCount_ = UINT_MAX;
     bool isFirstFrame_ = true;
     Format format_;
 };

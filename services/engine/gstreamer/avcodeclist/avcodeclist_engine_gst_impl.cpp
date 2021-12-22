@@ -79,7 +79,7 @@ bool AVCodecListEngineGstImpl::IsSupportSize(const Format &format, const Capabil
 bool AVCodecListEngineGstImpl::IsSupportPixelFormat(const Format &format, const CapabilityData &data)
 {
     if (data.codecType == AVCODEC_TYPE_AUDIO_ENCODER || data.codecType == AVCODEC_TYPE_AUDIO_DECODER) {
-        return false;
+        return true;
     }
     int32_t targetPixelFormat;
     if (!format.GetIntValue("pixel_format", targetPixelFormat)) {
@@ -109,7 +109,7 @@ bool AVCodecListEngineGstImpl::IsSupportFrameRate(const Format &format, const Ca
 bool AVCodecListEngineGstImpl::IsSupportChannel(const Format &format, const CapabilityData &data)
 {
     if (data.codecType == AVCODEC_TYPE_VIDEO_ENCODER || data.codecType == AVCODEC_TYPE_VIDEO_DECODER) {
-        return false;
+        return true;
     }
     int32_t targetChannel;
     if (!format.GetIntValue("channel_count", targetChannel)) {
@@ -125,7 +125,7 @@ bool AVCodecListEngineGstImpl::IsSupportChannel(const Format &format, const Capa
 bool AVCodecListEngineGstImpl::IsSupportSampleRate(const Format &format, const CapabilityData &data)
 {
     if (data.codecType == AVCODEC_TYPE_VIDEO_ENCODER || data.codecType == AVCODEC_TYPE_VIDEO_DECODER) {
-        return false;
+        return true;
     }
     int32_t targetSampleRate;
     if (!format.GetIntValue("samplerate", targetSampleRate)) {
@@ -139,22 +139,6 @@ bool AVCodecListEngineGstImpl::IsSupportSampleRate(const Format &format, const C
     return true;
 }
 
-bool AVCodecListEngineGstImpl::IsSupportMediaType(const Format &format, const CapabilityData &data)
-{
-    int32_t targetMediaType;
-    format.GetIntValue("track_type", targetMediaType);
-    if ((data.codecType == AVCODEC_TYPE_VIDEO_ENCODER || data.codecType == AVCODEC_TYPE_VIDEO_DECODER)
-        && targetMediaType != MEDIA_TYPE_VID) {
-        return false;
-    }
-
-    if ((data.codecType == AVCODEC_TYPE_AUDIO_ENCODER || data.codecType == AVCODEC_TYPE_AUDIO_DECODER)
-        && targetMediaType != MEDIA_TYPE_AUD) {
-        return false;
-    }
-    return true;
-}
-
 std::string AVCodecListEngineGstImpl::FindTargetCodec(const Format &format,
     const std::vector<CapabilityData> &capabilityDataArray, const AVCodecType &codecType)
 {
@@ -162,8 +146,7 @@ std::string AVCodecListEngineGstImpl::FindTargetCodec(const Format &format,
         if ((*iter).codecType != codecType || !IsSupportMimeType(format, *iter) ||
             !IsSupportBitrate(format, *iter) || !IsSupportSize(format, *iter) ||
             !IsSupportPixelFormat(format, *iter) || !IsSupportFrameRate(format, *iter)  ||
-            !IsSupportSampleRate(format, *iter) || !IsSupportChannel(format, *iter) ||
-            !IsSupportMediaType(format, *iter)) {
+            !IsSupportSampleRate(format, *iter) || !IsSupportChannel(format, *iter)) {
             continue;
         }
         return (*iter).codecName;
@@ -198,7 +181,7 @@ std::string AVCodecListEngineGstImpl::FindAudioEncoder(const Format &format)
 std::vector<CapabilityData> AVCodecListEngineGstImpl::GetCodecCapabilityInfos()
 {
     AVCodecAbilitySingleton& codecAbilityInstance = AVCodecAbilitySingleton::GetInstance();
-    
+
     bool ret = codecAbilityInstance.ParseCodecXml();
     if (!ret) {
         MEDIA_LOGD("ParseCodecXml failed");
