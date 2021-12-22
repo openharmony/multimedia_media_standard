@@ -159,5 +159,29 @@ int32_t MapProfile(int32_t number, AVCProfile &profile)
     }
     return MSERR_INVALID_VAL;
 }
+
+int32_t ParseCaps(GstCaps *caps, Format &format)
+{
+    GstStructure *structure = gst_caps_get_structure(caps, 0);
+    if (structure == nullptr) {
+        return MSERR_UNKNOWN;
+    }
+    auto mediaType = gst_structure_get_name(structure);
+    bool isVideo = g_str_has_prefix(mediaType, "video/");
+
+    gint ret = 0;
+    if (isVideo) {
+        (void)gst_structure_get(structure, "width", G_TYPE_INT, &ret, nullptr);
+        (void)format.PutIntValue("width", ret);
+        (void)gst_structure_get(structure, "height", G_TYPE_INT, &ret, nullptr);
+        (void)format.PutIntValue("height", ret);
+    } else {
+        (void)gst_structure_get(structure, "rate", G_TYPE_INT, &ret, nullptr);
+        (void)format.PutIntValue("sample_rate", ret);
+        (void)gst_structure_get(structure, "channels", G_TYPE_INT, &ret, nullptr);
+        (void)format.PutIntValue("channel_count", ret);
+    }
+    return MSERR_OK;
+}
 } // namespace Media
 } // namespace OHOS

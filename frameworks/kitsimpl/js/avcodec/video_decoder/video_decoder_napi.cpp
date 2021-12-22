@@ -101,10 +101,10 @@ napi_value VideoDecoderNapi::Constructor(napi_env env, napi_callback_info info)
     vdecNapi->env_ = env;
     std::string name = CommonNapi::GetStringArgument(env, args[0]);
 
-    bool useMime = false;
-    status = napi_get_value_bool(env, args[1], &useMime);
+    int32_t useMime = 0;
+    status = napi_get_value_int32(env, args[1], &useMime);
     CHECK_AND_RETURN_RET(status == napi_ok, result);
-    if (useMime) {
+    if (useMime == 1) {
         vdecNapi->vdec_ = VideoDecoderFactory::CreateByMime(name);
     } else {
         vdecNapi->vdec_ = VideoDecoderFactory::CreateByName(name);

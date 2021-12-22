@@ -54,8 +54,9 @@ int32_t SinkSurfaceImpl::Init()
 
 int32_t SinkSurfaceImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 {
-    CHECK_AND_RETURN_RET(element_ != nullptr, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(element_ != nullptr && config->caps_ != nullptr, MSERR_UNKNOWN);
     g_object_set(G_OBJECT(element_), "caps", config->caps_, nullptr);
+    (void)ParseCaps(config->caps_, format_);
 
     for (uint32_t i = 0; i < bufferCount_; i++) {
         auto bufWrap = std::make_shared<BufferWrapper>(nullptr, nullptr, bufferList_.size(), BufferWrapper::DOWNSTREAM);
@@ -188,6 +189,12 @@ int32_t SinkSurfaceImpl::HandleOutputCb()
         gst_sample_unref(sample);
         return MSERR_UNKNOWN;
     }
+
+    if (isFirstFrame_ == true) {
+        isFirstFrame_ = false;
+        obs->OnOutputFormatChanged(format_);
+    }
+
     AVCodecBufferInfo info;
     info.presentationTimeUs = GST_BUFFER_PTS(buf);
     if (bufferCount_ == finishCount_) {

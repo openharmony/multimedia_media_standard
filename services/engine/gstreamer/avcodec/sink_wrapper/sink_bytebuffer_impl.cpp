@@ -53,8 +53,9 @@ int32_t SinkBytebufferImpl::Init()
 
 int32_t SinkBytebufferImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 {
-    CHECK_AND_RETURN_RET(element_ != nullptr, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(element_ != nullptr && config->caps_ != nullptr, MSERR_UNKNOWN);
     g_object_set(G_OBJECT(element_), "caps", config->caps_, nullptr);
+    (void)ParseCaps(config->caps_, format_);
 
     for (uint32_t i = 0; i < bufferCount_; i++) {
         auto mem = AVSharedMemory::Create(bufferSize_, AVSharedMemory::Flags::FLAGS_READ_WRITE, "output");
@@ -141,12 +142,47 @@ int32_t SinkBytebufferImpl::HandleOutputCb()
 
     uint32_t bufSize = 0;
     uint32_t index = 0;
+    HandleOutputBuffer(bufSize, index, buf);
+
+    bufferCount_++;
+    gst_sample_unref(sample);
+
+    if (index == bufferCount_ || index == bufferList_.size()) {
+        MEDIA_LOGW("The output buffer queue is full, discard this buffer");
+        return MSERR_OK;
+    }
+
+    CHECK_AND_RETURN_RET(isEos == false, MSERR_OK);
+
+    auto obs = obs_.lock();
+    CHECK_AND_RETURN_RET_LOG(obs != nullptr, MSERR_UNKNOWN, "obs is nullptr");
+
+    if (isFirstFrame_ == true) {
+        isFirstFrame_ = false;
+        obs->OnOutputFormatChanged(format_);
+    }
+
+    AVCodecBufferInfo info;
+    info.offset = 0;
+    info.size = bufSize;
+    info.presentationTimeUs = GST_BUFFER_PTS(buf);
+
+    if (bufferCount_ >= finishCount_ && isEos == false) {
+        MEDIA_LOGD("EOS reach");
+        isEos = true;
+        obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_EOS);
+    } else {
+        obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
+    }
+    MEDIA_LOGD("OutputBuffer available, index:%{public}d, bufferCount:%{public}d", index, bufferCount_);
+
+    return MSERR_OK;
+}
+
+void SinkBytebufferImpl::HandleOutputBuffer(uint32_t &bufSize, uint32_t &index, GstBuffer *buf)
+{
     for (auto it = bufferList_.begin(); it != bufferList_.end(); it++) {
-        if ((*it)->owner_ == BufferWrapper::DOWNSTREAM) {
-            if ((*it)->mem_ == nullptr) {
-                index++;
-                continue;
-            }
+        if ((*it)->owner_ == BufferWrapper::DOWNSTREAM && (*it)->mem_ != nullptr) {
             GstMapInfo map = GST_MAP_INFO_INIT;
             if (gst_buffer_map(buf, &map, GST_MAP_READ) != TRUE) {
                 index++;
@@ -163,31 +199,6 @@ int32_t SinkBytebufferImpl::HandleOutputCb()
         }
         index++;
     }
-
-    bufferCount_++;
-    gst_sample_unref(sample);
-
-    if (index == bufferCount_ || index == bufferList_.size()) {
-        MEDIA_LOGW("The output buffer queue is full, discard this buffer");
-        return MSERR_INVALID_OPERATION;
-    }
-
-    auto obs = obs_.lock();
-    CHECK_AND_RETURN_RET_LOG(obs != nullptr, MSERR_UNKNOWN, "obs is nullptr");
-    AVCodecBufferInfo info;
-    info.offset = 0;
-    info.size = bufSize;
-    info.presentationTimeUs = GST_BUFFER_PTS(buf);
-
-    if (bufferCount_ == finishCount_) {
-        MEDIA_LOGD("EOS reach");
-        obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_EOS);
-    } else {
-        obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
-    }
-    MEDIA_LOGD("OutputBuffer available, index:%{public}d", index);
-
-    return MSERR_OK;
 }
 } // Media
 } // OHOS

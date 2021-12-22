@@ -50,6 +50,8 @@ private:
     std::vector<std::shared_ptr<BufferWrapper>> bufferList_;
     std::weak_ptr<IAVCodecEngineObs> obs_;
     uint32_t finishCount_ = 0;
+    bool isFirstFrame_ = true;
+    Format format_;
 };
 } // Media
 } // OHOS

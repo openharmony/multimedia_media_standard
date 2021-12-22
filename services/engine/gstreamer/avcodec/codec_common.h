@@ -21,45 +21,10 @@
 #include <gst/gst.h>
 #include "av_common.h"
 #include "avsharedmemory.h"
+#include "format.h"
 
 namespace OHOS {
 namespace Media {
-static const GstAudioChannelPosition CHANNEL_POSITION[6][6] = {
-    {
-        GST_AUDIO_CHANNEL_POSITION_MONO
-    },
-    {
-        GST_AUDIO_CHANNEL_POSITION_FRONT_LEFT,
-        GST_AUDIO_CHANNEL_POSITION_FRONT_RIGHT
-    },
-    {
-        GST_AUDIO_CHANNEL_POSITION_FRONT_CENTER,
-        GST_AUDIO_CHANNEL_POSITION_FRONT_LEFT,
-        GST_AUDIO_CHANNEL_POSITION_FRONT_RIGHT
-    },
-    {
-        GST_AUDIO_CHANNEL_POSITION_FRONT_CENTER,
-        GST_AUDIO_CHANNEL_POSITION_FRONT_LEFT,
-        GST_AUDIO_CHANNEL_POSITION_FRONT_RIGHT,
-        GST_AUDIO_CHANNEL_POSITION_REAR_CENTER
-    },
-    {
-        GST_AUDIO_CHANNEL_POSITION_FRONT_CENTER,
-        GST_AUDIO_CHANNEL_POSITION_FRONT_LEFT,
-        GST_AUDIO_CHANNEL_POSITION_FRONT_RIGHT,
-        GST_AUDIO_CHANNEL_POSITION_REAR_LEFT,
-        GST_AUDIO_CHANNEL_POSITION_REAR_RIGHT
-    },
-    {
-        GST_AUDIO_CHANNEL_POSITION_FRONT_CENTER,
-        GST_AUDIO_CHANNEL_POSITION_FRONT_LEFT,
-        GST_AUDIO_CHANNEL_POSITION_FRONT_RIGHT,
-        GST_AUDIO_CHANNEL_POSITION_REAR_LEFT,
-        GST_AUDIO_CHANNEL_POSITION_REAR_RIGHT,
-        GST_AUDIO_CHANNEL_POSITION_LFE1
-    },
-};
-
 enum CodecMimeType : int32_t {
     CODEC_MIMIE_TYPE_VIDEO_H263 = 0,
     CODEC_MIMIE_TYPE_VIDEO_AVC,
@@ -133,6 +98,7 @@ __attribute__((visibility("default"))) std::string PCMFormatToString(AudioRawFor
 __attribute__((visibility("default"))) int32_t MapBitrateMode(int32_t number, VideoEncoderBitrateMode &mode);
 __attribute__((visibility("default"))) int32_t MapCodecMime(const std::string &mime, CodecMimeType &name);
 __attribute__((visibility("default"))) int32_t MapProfile(int32_t number, AVCProfile &profile);
+__attribute__((visibility("default"))) int32_t ParseCaps(GstCaps *caps, Format &format);
 } // Media
 } // OHOS
 #endif // CODEC_COMMON_H
