@@ -101,14 +101,11 @@ std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetInputPortConfig()
 
     auto config = std::make_shared<ProcessorConfig>(caps);
     if (config == nullptr) {
-        MEDIA_LOGE("No memory");
         gst_caps_unref(caps);
         return nullptr;
     }
 
-    if (codecName_ == CODEC_MIMIE_TYPE_VIDEO_AVC) {
-        config->needCodecData_ = true;
-    }
+    config->needCodecData_ = (codecName_ == CODEC_MIMIE_TYPE_VIDEO_AVC) ? true : false;
     return config;
 }
 

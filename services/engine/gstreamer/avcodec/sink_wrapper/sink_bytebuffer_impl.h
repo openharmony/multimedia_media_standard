@@ -41,6 +41,7 @@ public:
 private:
     static GstFlowReturn OutputAvailableCb(GstElement *sink, gpointer userData);
     int32_t HandleOutputCb();
+    void HandleOutputBuffer(uint32_t &bufSize, uint32_t &index, GstBuffer *buf);
 
     std::mutex mutex_;
     gulong signalId_ = 0;
@@ -48,7 +49,10 @@ private:
     uint32_t bufferSize_ = 0;
     std::vector<std::shared_ptr<BufferWrapper>> bufferList_;
     std::weak_ptr<IAVCodecEngineObs> obs_;
-    uint32_t finishCount_ = 0;
+    uint32_t finishCount_ = UINT_MAX;
+    bool isEos = false;
+    bool isFirstFrame_ = true;
+    Format format_;
 };
 } // Media
 } // OHOS
