@@ -24,7 +24,7 @@ namespace Media {
 class SrcSurfaceImpl : public SrcBase {
 public:
     SrcSurfaceImpl();
-    ~SrcSurfaceImpl();
+    ~SrcSurfaceImpl() override;
     DISALLOW_COPY_AND_MOVE(SrcSurfaceImpl);
 
     int32_t Init() override;
