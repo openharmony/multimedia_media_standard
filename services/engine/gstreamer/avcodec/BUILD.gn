@@ -41,6 +41,7 @@ config("media_engine_gst_avcodec_config") {
     "src_wrapper",
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/avcodec",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/avcodeclist",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
@@ -82,6 +83,7 @@ ohos_static_library("media_engine_gst_avcodec") {
 
   deps = [
     "//foundation/graphic/standard/frameworks/surface:surface",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/avcodeclist:media_engine_gst_avcodeclist",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",

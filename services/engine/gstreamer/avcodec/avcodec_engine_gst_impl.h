@@ -49,12 +49,9 @@ public:
     DISALLOW_COPY_AND_MOVE(AVCodecEngineGstImpl);
 
 private:
-    int32_t HandleMimeTypeStub(AVCodecType type, const std::string &name);
-    int32_t HandlePluginNameStub(AVCodecType type, const std::string &name);
-    int32_t QueryIsSoftPluginStub(AVCodecType type, const std::string &name, bool &isSoftware);
     int32_t HandleMimeType(AVCodecType type, const std::string &name);
     int32_t HandlePluginName(AVCodecType type, const std::string &name);
-    int32_t QueryIsSoftPlugin(AVCodecType type, const std::string &name, bool &isSoftware);
+    int32_t QueryIsSoftPlugin(const std::string &name, bool &isSoftware);
 
     AVCodecType type_ = AVCODEC_TYPE_VIDEO_ENCODER;
     bool uswSoftWare_ = false;
