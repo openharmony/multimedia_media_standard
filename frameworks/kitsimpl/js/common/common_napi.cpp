@@ -15,11 +15,12 @@
 
 #include "common_napi.h"
 #include <climits>
+#include "avcodec_list.h"
 #include "media_log.h"
 #include "media_errors.h"
 
 namespace {
-constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "CommonNapi"};
+    constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "CommonNapi"};
 }
 
 namespace OHOS {
@@ -63,6 +64,25 @@ bool CommonNapi::GetPropertyInt32(napi_env env, napi_value configObj, const std:
         return false;
     }
     return true;
+}
+
+std::string CommonNapi::GetPropertyString(napi_env env, napi_value configObj, const std::string &type)
+{
+    std::string invalid = "";
+    bool exist = false;
+    napi_status status = napi_has_named_property(env, configObj, type.c_str(), &exist);
+    if (status != napi_ok || !exist) {
+        MEDIA_LOGE("can not find %{public}s property", type.c_str());
+        return invalid;
+    }
+
+    napi_value item = nullptr;
+    if (napi_get_named_property(env, configObj, type.c_str(), &item) != napi_ok) {
+        MEDIA_LOGE("get %{public}s property fail", type.c_str());
+        return invalid;
+    }
+
+    return GetStringArgument(env, item);
 }
 
 napi_status CommonNapi::FillErrorArgs(napi_env env, int32_t errCode, const napi_value &args)
@@ -174,6 +194,45 @@ napi_deferred CommonNapi::CreatePromise(napi_env env, napi_ref ref, napi_value &
         napi_create_promise(env, &deferred, &result);
     }
     return deferred;
+}
+
+bool CommonNapi::AddRangeProperty(napi_env env, napi_value obj, const std::string &name, int32_t min, int32_t max)
+{
+    CHECK_AND_RETURN_RET(obj != nullptr, false);
+
+    napi_value range = nullptr;
+    napi_status status = napi_create_object(env, &range);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    CHECK_AND_RETURN_RET(SetPropertyInt32(env, range, "min", min) == true, false);
+    CHECK_AND_RETURN_RET(SetPropertyInt32(env, range, "max", max) == true, false);
+
+    napi_value nameStr = nullptr;
+    status = napi_create_string_utf8(env, name.c_str(), NAPI_AUTO_LENGTH, &nameStr);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    status = napi_set_property(env, obj, nameStr, range);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    return true;
+}
+
+bool CommonNapi::AddArrayProperty(napi_env env, napi_value obj, const std::string &name,
+    const std::vector<int32_t> &vec)
+{
+    CHECK_AND_RETURN_RET(obj != nullptr, false);
+
+    napi_value array = nullptr;
+    napi_status status = napi_create_array_with_length(env, vec.size(), &array);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    for (uint32_t i = 0; i < vec.size(); i++) {
+        napi_value number = nullptr;
+        (void)napi_create_int32(env, vec.at(i), &number);
+        (void)napi_set_element(env, array, i, number);
+    }
+
+    return true;
 }
 
 bool CommonNapi::SetPropertyInt32(napi_env env, napi_value &obj, const std::string &key, int32_t value)
@@ -316,6 +375,82 @@ void MediaAsyncContext::CompleteCallback(napi_env env, napi_status status, void 
     napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
     asyncContext = nullptr;
+}
+
+napi_status AddCodecInfo(napi_env env, napi_value &result, std::shared_ptr<AVCodecInfo> info)
+{
+    CHECK_AND_RETURN_RET(info != nullptr, napi_generic_failure);
+
+    napi_value obj = nullptr;
+    napi_status status = napi_create_object(env, &obj);
+    CHECK_AND_RETURN_RET(status == napi_ok, status);
+
+    (void)CommonNapi::SetPropertyString(env, obj, "name", info->GetName());
+    (void)CommonNapi::SetPropertyInt32(env, obj, "type", static_cast<int32_t>(info->GetType()));
+    (void)CommonNapi::SetPropertyString(env, obj, "mimeType", info->GetMimeType());
+    (void)CommonNapi::SetPropertyInt32(env, obj, "isHardwareAccelerated",
+        static_cast<int32_t>(info->IsHardwareAccelerated()));
+    (void)CommonNapi::SetPropertyInt32(env, obj, "isSoftwareOnly", static_cast<int32_t>(info->IsSoftwareOnly()));
+    (void)CommonNapi::SetPropertyInt32(env, obj, "isVendor", static_cast<int32_t>(info->IsVendor()));
+
+    return napi_ok;
+}
+
+napi_status MediaCapsJsResultAudio::GetJsResult(napi_env env, napi_value &result)
+{
+    auto codecList = AVCodecListFactory::CreateAVCodecList();
+    CHECK_AND_RETURN_RET(codecList != nullptr, napi_generic_failure);
+
+    std::vector<std::shared_ptr<AudioCaps>> audioCaps;
+    if (isDecoder_) {
+        audioCaps = codecList->GetAudioDecoderCaps();
+    } else {
+        audioCaps = codecList->GetAudioEncoderCaps();
+    }
+
+    napi_status status = napi_create_array_with_length(env, audioCaps.size(), &result);
+    CHECK_AND_RETURN_RET(status == napi_ok, status);
+
+    int32_t index = 0;
+
+    for (auto it = audioCaps.begin(); it != audioCaps.end(); it++) {
+        CHECK_AND_CONTINUE((*it) != nullptr);
+
+        napi_value obj = nullptr;
+        status = napi_create_object(env, &obj);
+        CHECK_AND_CONTINUE(status == napi_ok);
+
+        Range range = (*it)->GetSupportedBitrate();
+        (void)CommonNapi::AddRangeProperty(env, obj, "supportedBitrate", range.minVal, range.maxVal);
+
+        range = (*it)->GetSupportedChannel();
+        (void)CommonNapi::AddRangeProperty(env, obj, "supportedChannel", range.minVal, range.maxVal);
+
+        range = (*it)->GetSupportedComplexity();
+        (void)CommonNapi::AddRangeProperty(env, obj, "supportedComplexity", range.minVal, range.maxVal);
+
+        std::vector<int32_t> vec = (*it)->GetSupportedFormats();
+        (void)CommonNapi::AddArrayProperty(env, obj, "supportedFormats", vec);
+
+        vec = (*it)->GetSupportedSampleRates();
+        (void)CommonNapi::AddArrayProperty(env, obj, "supportedSampleRates", vec);
+
+        vec = (*it)->GetSupportedProfiles();
+        (void)CommonNapi::AddArrayProperty(env, obj, "supportedProfiles", vec);
+
+        vec = (*it)->GetSupportedLevels();
+        (void)CommonNapi::AddArrayProperty(env, obj, "supportedLevels", vec);
+
+        auto codecInfo = (*it)->GetCodecInfo();
+        if (codecInfo != nullptr) {
+            (void)AddCodecInfo(env, obj, codecInfo);
+        }
+
+        (void)napi_set_element(env, result, index, obj);
+        index++;
+    }
+
+    return napi_ok;
 }
 }
 }

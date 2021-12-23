@@ -41,6 +41,14 @@ enum VideoStreamType {
     VIDEO_STREAM_TYPE_YUV_420,
 };
 
+enum CodecBinType {
+    CODEC_BIN_TYPE_UNKNOWN = -1,
+    CODEC_BIN_TYPE_VIDEO_ENCODER = 0,
+    CODEC_BIN_TYPE_VIDEO_DECODER,
+    CODEC_BIN_TYPE_AUDIO_ENCODER,
+    CODEC_BIN_TYPE_AUDIO_DECODER,
+};
+
 struct AudioBuffer {
     uint64_t timestamp;
     uint32_t dataSeq;
