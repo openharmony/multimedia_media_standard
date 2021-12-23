@@ -20,6 +20,7 @@ group("media_engine_gst_plugins_package") {
 ohos_shared_library("media_engine_gst") {
   deps = [
     ":media_engine_gst_plugins_package",
+    "avcodec:media_engine_gst_avcodec",
     "avcodeclist:media_engine_gst_avcodeclist",
     "avmetadatahelper:media_engine_gst_avmeta",
     "common:media_engine_gst_common",

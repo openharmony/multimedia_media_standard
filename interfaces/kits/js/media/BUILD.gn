@@ -29,17 +29,33 @@ ohos_copy("media_declaration") {
 ohos_shared_library("media") {
   include_dirs = [
     "//foundation/multimedia/media_standard/interfaces/kits/js/media/include",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/avcodec/audio_decoder",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/avcodec/audio_encoder",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/avcodec/utils",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/avcodec/video_decoder",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/avcodec/video_encoder",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/player",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediadata",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/recorder",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/avmetadatahelper",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediacapability",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/common",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//third_party/libuv/include",
   ]
 
   sources = [
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/avcodec/audio_decoder/audio_decoder_callback_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/avcodec/audio_decoder/audio_decoder_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/avcodec/audio_encoder/audio_encoder_callback_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/avcodec/audio_encoder/audio_encoder_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/avcodec/utils/avcodec_napi_utils.cpp",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/avcodec/video_decoder/video_decoder_callback_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/avcodec/video_decoder/video_decoder_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/avcodec/video_encoder/video_encoder_callback_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/avcodec/video_encoder/video_encoder_napi.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/common/common_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediacapability/media_capability_napi.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediadata/callback_warp.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediadata/callback_works.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediadata/jscallback.cpp",

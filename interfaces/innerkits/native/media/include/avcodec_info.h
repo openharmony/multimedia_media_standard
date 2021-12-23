@@ -212,7 +212,7 @@ public:
     bool IsSizeAndRateSupported(int32_t width, int32_t height, double frameRate);
 
     /**
-     * @brief Get preferred frameRate range for the specified width and height, 
+     * @brief Get preferred frameRate range for the specified width and height,
      * these framerates can be reach the performance.
      * @param width Indicates the specified video width (in pixels).
      * @param height Indicates the specified video height (in pixels).
@@ -331,17 +331,6 @@ public:
 
 private:
     CapabilityData data_;
-};
-
-/**
- * @brief Error type of AVCodec
- *
- * @since 3.1
- * @version 3.1
- */
-enum AVCodecErrorType : int32_t {
-    AVCODEC_ERROR_INTERNAL,
-    AVCODEC_ERROR_EXTEND_START = 0X10000,
 };
 } // namespace Media
 } // namespace OHOS

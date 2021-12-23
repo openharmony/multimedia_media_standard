@@ -17,10 +17,15 @@
 #define NATIVE_MODULE_OHOS_MEDIA_H_
 
 #include "napi/native_node_api.h"
+#include "audio_decoder_napi.h"
+#include "audio_encoder_napi.h"
 #include "audio_player_napi.h"
-#include "video_player_napi.h"
 #include "audio_recorder_napi.h"
 #include "video_recorder_napi.h"
+#include "media_capability_napi.h"
 #include "media_data_source_napi.h"
+#include "video_encoder_napi.h"
+#include "video_decoder_napi.h"
+#include "video_player_napi.h"
 
 #endif /* NATIVE_MODULE_OHOS_MEDIA_H_ */
