@@ -125,7 +125,9 @@ void AudioEncoderCallbackNapi::OnOutputBufferAvailable(uint32_t index, AVCodecBu
     CHECK_AND_RETURN(aenc != nullptr);
 
     auto buffer = aenc->GetOutputBuffer(index);
-    CHECK_AND_RETURN(buffer != nullptr);
+    if (buffer == nullptr && flag != AVCODEC_BUFFER_FLAG_EOS) {
+        return;
+    }
 
     AudioEncoderJsCallback *cb = new(std::nothrow) AudioEncoderJsCallback();
     CHECK_AND_RETURN(cb != nullptr);

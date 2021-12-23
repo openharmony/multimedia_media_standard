@@ -39,6 +39,7 @@ public:
     int32_t QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag) override;
     std::shared_ptr<AVSharedMemory> GetOutputBuffer(uint32_t index) override;
     int32_t GetOutputFormat(Format &format) override;
+    std::shared_ptr<VideoCaps> GetVideoEncoderCaps() override;
     int32_t ReleaseOutputBuffer(uint32_t index) override;
     int32_t SetParameter(const Format &format) override;
     int32_t SetCallback(const std::shared_ptr<AVCodecCallback> &callback) override;
