@@ -61,11 +61,6 @@ constexpr int32_t DEFAULT_FRAME_HEIGHT = -1;
 constexpr int32_t DEFAULT_FRAME_WIDTH = -1;
 constexpr int32_t DEFAULT_FRAME_RATE = 30;
 
-// struct Location {
-//     float latitude = 0;
-//     float longitude = 0;
-// };
-
 class VideoRecorderNapi {
 public:
     static napi_value Init(napi_env env, napi_value exports);
@@ -82,11 +77,9 @@ private:
     static napi_value Stop(napi_env env, napi_callback_info info);
     static napi_value Release(napi_env env, napi_callback_info info);
     static napi_value Reset(napi_env env, napi_callback_info info);
-    // static napi_value SetNextOutputFile(napi_env env, napi_callback_info info); // not supported yet
     static napi_value On(napi_env env, napi_callback_info info);
     static napi_value GetState(napi_env env, napi_callback_info info);
     void ErrorCallback(MediaServiceExtErrCode errCode);
-    // void StateCallback(const std::string &callbackName); // 指的是 on 监听
     VideoRecorderNapi();
     ~VideoRecorderNapi();
 
@@ -105,20 +98,13 @@ private:
     };
 
     struct VideoRecorderProperties {
-        AudioSourceType audioSourceType; //source type;
+        AudioSourceType audioSourceType; // source type;
         VideoSourceType videoSourceType;
         VideoRecorderProfile profile;
         int32_t orientationHint = 0; // 可选
         Location location; // 可选
         std::string url;
-        // int32_t maxSize;
-        // int32_t maxDuration;
     };
-
-    // static void SyncCallback(napi_env env, VideoRecorderAsyncContext *asyncCtx);
-    // static void CompleteAsyncFunc(napi_env env, napi_status status, void *data);
-    // static void AsyncCreator(napi_env env, void *data);
-    // static void CompleteAsyncWork(napi_env env, napi_status status, void *data);
 
     int32_t GetVideoRecorderProperties(napi_env env, napi_value args, VideoRecorderProperties &properties);
     int32_t SetVideoRecorderProperties(std::unique_ptr<VideoRecorderAsyncContext> &ctx,

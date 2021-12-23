@@ -27,6 +27,7 @@ GST_STATIC_PAD_TEMPLATE("src",
 
 namespace {
     constexpr VideoStreamType DEFAULT_STREAM_TYPE = VIDEO_STREAM_TYPE_UNKNOWN;
+    constexpr gint DEFAULT_FRAME_RATE = 30;
 }
 
 enum {
@@ -103,7 +104,7 @@ static void gst_surface_video_src_class_init(GstSurfaceVideoSrcClass *klass)
 
     g_object_class_install_property(gobject_class, PROP_FRAME_RATE,
         g_param_spec_uint("frame-rate", "Frame rate",
-            "recorder frame rate", 0, G_MAXUINT32, 30,
+            "recorder frame rate", 0, G_MAXUINT32, DEFAULT_FRAME_RATE,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
     gst_element_class_set_static_metadata(gstelement_class,
@@ -129,7 +130,7 @@ static void gst_surface_video_src_init(GstSurfaceVideoSrc *src)
     src->src_caps = nullptr;
     src->video_width = 0;
     src->video_height = 0;
-    src->video_frame_rate = 30;
+    src->video_frame_rate = DEFAULT_FRAME_RATE;
     src->is_start = FALSE;
     src->need_codec_data = TRUE;
     src->is_eos = FALSE;
