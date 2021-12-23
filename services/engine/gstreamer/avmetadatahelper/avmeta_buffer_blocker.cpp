@@ -124,6 +124,7 @@ bool AVMetaBufferBlocker::CheckUpStreamBlocking(GstPad &pad)
          * blocking, because we guarante it will never happen.
          */
         if (g_list_length(elem->srcpads) > 1) {
+            gst_object_unref(elem);
             return false;
         }
 
@@ -131,6 +132,8 @@ bool AVMetaBufferBlocker::CheckUpStreamBlocking(GstPad &pad)
         if (node != nullptr && node->data != nullptr) {
             upstreamPad = gst_pad_get_peer(GST_PAD_CAST(node->data));
         }
+
+        gst_object_unref(elem);
     }
 
     if (upstreamPad == nullptr) {
@@ -138,10 +141,14 @@ bool AVMetaBufferBlocker::CheckUpStreamBlocking(GstPad &pad)
     }
 
     if (gst_pad_is_blocking(upstreamPad)) {
+        gst_object_unref(upstreamPad);
         return true;
     }
 
-    return CheckUpStreamBlocking(*upstreamPad);
+    bool ret = CheckUpStreamBlocking(*upstreamPad);
+    gst_object_unref(upstreamPad);
+
+    return ret;
 }
 
 /**

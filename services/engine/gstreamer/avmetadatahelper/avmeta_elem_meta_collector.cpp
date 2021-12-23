@@ -109,10 +109,12 @@ void AVMetaElemMetaCollector::Stop()
     for (auto &[elem, signalId] : signalIds_) {
         g_signal_handler_disconnect(elem, signalId);
     }
+    signalIds_.clear();
 
     for (auto &[pad, probeId] : padProbes_) {
         gst_pad_remove_probe(pad, probeId);
     }
+    padProbes_.clear();
 
     lock.unlock();
     lock.lock();
