@@ -113,7 +113,6 @@ void AVMetaBufferBlocker::Init()
 bool AVMetaBufferBlocker::CheckUpStreamBlocking(GstPad &pad)
 {
     GstPad *upstreamPad = nullptr;
-    GstElement *elem = gst_pad_get_parent_element(&pad);
 
     if (GST_PAD_DIRECTION(&pad) == GST_PAD_SINK) {
         upstreamPad = gst_pad_get_peer(&pad);
@@ -123,6 +122,12 @@ bool AVMetaBufferBlocker::CheckUpStreamBlocking(GstPad &pad)
          * There is no need to figure out whether the demuxer or multiqueue's sinkpads are
          * blocking, because we guarante it will never happen.
          */
+        GstElement *elem = gst_pad_get_parent_element(&pad);
+        if (elem == nullptr) {
+            MEDIA_LOGE("unexpected, avoid lock, return true");
+            return true;
+        }
+
         if (g_list_length(elem->srcpads) > 1) {
             gst_object_unref(elem);
             return false;
