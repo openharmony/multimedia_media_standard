@@ -82,7 +82,7 @@ const std::map<std::string, CodecMimeType> MIME_TO_CODEC_NAME = {
     {"video/mpeg2", CODEC_MIMIE_TYPE_VIDEO_MPEG2},
     {"video/mp4v-es", CODEC_MIMIE_TYPE_VIDEO_MPEG4},
     {"audio/vorbis", CODEC_MIMIE_TYPE_AUDIO_VORBIS},
-    {"audio/mpeg", CODEC_MIMIE_TYPE_AUDIO_MP3},
+    {"audio/mpeg", CODEC_MIMIE_TYPE_AUDIO_MPEG},
     {"audio/mp4a-latm", CODEC_MIMIE_TYPE_AUDIO_AAC},
     {"audio/flac", CODEC_MIMIE_TYPE_AUDIO_FLAC},
 };
