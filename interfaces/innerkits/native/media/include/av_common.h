@@ -423,11 +423,14 @@ enum AudioCodecFormat : int32_t {
 };
 
 __attribute__((visibility("default"))) int32_t MapStringToCodecMime(const std::string &mime, CodecMimeType &name);
-__attribute__((visibility("default"))) int32_t MapStringToContainerFormat(const std::string &format, ContainerFormatType &cft);
+__attribute__((visibility("default"))) int32_t MapStringToContainerFormat(const std::string &format,
+    ContainerFormatType &cft);
 __attribute__((visibility("default"))) int32_t MapContainerFormatToOutputFormat(const ContainerFormatType &cft,
     OutputFormatType &opf);
-__attribute__((visibility("default"))) int32_t MapCodecMimeToAudioCodec(const CodecMimeType &mime, AudioCodecFormat &audio);
-__attribute__((visibility("default"))) int32_t MapCodecMimeToVideoCodec(const CodecMimeType &mime, VideoCodecFormat &video);
+__attribute__((visibility("default"))) int32_t MapCodecMimeToAudioCodec(const CodecMimeType &mime,
+    AudioCodecFormat &audio);
+__attribute__((visibility("default"))) int32_t MapCodecMimeToVideoCodec(const CodecMimeType &mime,
+    VideoCodecFormat &video);
 } // namespace Media
 } // namespace OHOS
 #endif // AV_COMMOM_H
