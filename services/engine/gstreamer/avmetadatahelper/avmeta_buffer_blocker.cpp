@@ -165,7 +165,7 @@ bool AVMetaBufferBlocker::IsBufferDetected()
         }
 
         MEDIA_LOGD("buffer not arrived for %{public}s's %{public}s",
-                ELEM_NAME(&elem_), PAD_NAME(item.pad));
+                   ELEM_NAME(&elem_), PAD_NAME(item.pad));
 
         /**
          * if the upstream is blocking, we can not wait buffer arriving at this pad.
@@ -173,7 +173,7 @@ bool AVMetaBufferBlocker::IsBufferDetected()
          */
         if (CheckUpStreamBlocking(*item.pad) && item.probeId != 0) {
             MEDIA_LOGD("%{public}s's %{public}s upstream is blocking, dont need this blocker",
-                        ELEM_NAME(&elem_), PAD_NAME(item.pad));
+                       ELEM_NAME(&elem_), PAD_NAME(item.pad));
             gst_pad_remove_probe(item.pad, item.probeId);
             item.probeId = 0;
             item.hasBuffer = true;
