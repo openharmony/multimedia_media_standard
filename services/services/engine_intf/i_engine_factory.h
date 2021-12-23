@@ -21,6 +21,7 @@
 #include "i_player_engine.h"
 #include "i_recorder_engine.h"
 #include "i_avmetadatahelper_engine.h"
+#include "i_avcodec_engine.h"
 #include "i_avcodeclist_engine.h"
 
 namespace OHOS {
@@ -31,6 +32,7 @@ public:
         SCENE_PLAYBACK,
         SCENE_AVMETADATA,
         SCENE_RECORDER,
+        SCENE_AVCODEC,
         SCENE_AVCODECLIST,
     };
 
@@ -39,6 +41,7 @@ public:
     virtual std::unique_ptr<IPlayerEngine> CreatePlayerEngine() = 0;
     virtual std::unique_ptr<IRecorderEngine> CreateRecorderEngine() = 0;
     virtual std::unique_ptr<IAVMetadataHelperEngine> CreateAVMetadataHelperEngine() = 0;
+    virtual std::unique_ptr<IAVCodecEngine> CreateAVCodecEngine() = 0;
     virtual std::unique_ptr<IAVCodecListEngine> CreateAVCodecListEngine() = 0;
 
 protected:

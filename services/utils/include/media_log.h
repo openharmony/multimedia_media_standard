@@ -76,6 +76,22 @@ namespace OHOS {
         }                                              \
     } else void (0)
 
+#define CHECK_AND_BREAK(cond)                          \
+    if (1) {                                           \
+        if (!(cond)) {                                 \
+            MEDIA_LOGE("%{public}s, check failed!", #cond); \
+            break;                                     \
+        }                                              \
+    } else void (0)
+
+#define CHECK_AND_CONTINUE(cond)                          \
+    if (1) {                                           \
+        if (!(cond)) {                                 \
+            MEDIA_LOGE("%{public}s, check failed!", #cond); \
+            continue;                                     \
+        }                                              \
+    } else void (0)
+
 #define POINTER_MASK 0x00FFFFFF
 #define FAKE_POINTER(addr) (POINTER_MASK & reinterpret_cast<uintptr_t>(addr))
 } // OHOS

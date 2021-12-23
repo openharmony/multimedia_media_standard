@@ -24,6 +24,7 @@
 #include "player_client.h"
 #include "avcodeclist_client.h"
 #include "avmetadatahelper_client.h"
+#include "avcodec_client.h"
 #include "nocopyable.h"
 
 namespace OHOS {
@@ -36,10 +37,12 @@ public:
     std::shared_ptr<IRecorderService> CreateRecorderService() override;
     std::shared_ptr<IPlayerService> CreatePlayerService() override;
     std::shared_ptr<IAVMetadataHelperService> CreateAVMetadataHelperService() override;
+    std::shared_ptr<IAVCodecService> CreateAVCodecService() override;
     std::shared_ptr<IAVCodecListService> CreateAVCodecListService() override;
     int32_t DestroyRecorderService(std::shared_ptr<IRecorderService> recorder) override;
     int32_t DestroyPlayerService(std::shared_ptr<IPlayerService> player) override;
     int32_t DestroyAVMetadataHelperService(std::shared_ptr<IAVMetadataHelperService> avMetadataHelper) override;
+    int32_t DestroyAVCodecService(std::shared_ptr<IAVCodecService> avCodec) override;
     int32_t DestroyAVCodecListService(std::shared_ptr<IAVCodecListService> avCodecList) override;
 
 private:
@@ -54,6 +57,7 @@ private:
     std::list<std::shared_ptr<IRecorderService>> recorderClientList_;
     std::list<std::shared_ptr<IPlayerService>> playerClientList_;
     std::list<std::shared_ptr<IAVMetadataHelperService>> avMetadataHelperClientList_;
+    std::list<std::shared_ptr<IAVCodecService>> avCodecClientList_;
     std::list<std::shared_ptr<IAVCodecListService>> avCodecListClientList_;
     std::mutex mutex_;
 };

@@ -71,6 +71,9 @@ sptr<IRemoteObject> MediaServer::GetSubSystemAbility(IStandardMediaService::Medi
         case MediaSystemAbility::MEDIA_CODECLIST: {
             return MediaServerManager::GetInstance().CreateStubObject(MediaServerManager::AVCODECLIST);
         }
+        case MediaSystemAbility::MEDIA_AVCODEC: {
+            return MediaServerManager::GetInstance().CreateStubObject(MediaServerManager::AVCODEC);
+        }
         default: {
             MEDIA_LOGE("default case, media client need check subSystemId");
             return nullptr;
