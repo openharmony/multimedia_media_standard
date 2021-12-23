@@ -132,10 +132,8 @@ std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetInputPortConfig()
         return nullptr;
     }
 
-    if (codecName_ == CODEC_MIMIE_TYPE_AUDIO_FLAC) {
-        config->needParser_ = true;
-    }
-
+    config->needParser_ = (codecName_ == CODEC_MIMIE_TYPE_AUDIO_FLAC) ? true : false;
+    config->needCodecData_ = (codecName_ == CODEC_MIMIE_TYPE_AUDIO_VORBIS) ? true : false;
     return config;
 }
 
