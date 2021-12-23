@@ -126,6 +126,7 @@ ohos_shared_library("media_client") {
       "$MEDIA_ROOT_DIR/frameworks/innerkitsimpl/native/avcodeclist/avcodec_info.cpp",
       "$MEDIA_ROOT_DIR/frameworks/innerkitsimpl/native/avcodeclist/avcodec_list_impl.cpp",
       "$MEDIA_ROOT_DIR/frameworks/innerkitsimpl/native/avmetadatahelper/avmetadatahelper_impl.cpp",
+      "$MEDIA_ROOT_DIR/frameworks/innerkitsimpl/native/common/av_common.cpp",
       "$MEDIA_ROOT_DIR/frameworks/innerkitsimpl/native/common/media_errors.cpp",
       "$MEDIA_ROOT_DIR/frameworks/innerkitsimpl/native/player/player_impl.cpp",
       "$MEDIA_ROOT_DIR/frameworks/innerkitsimpl/native/recorder/recorder_impl.cpp",

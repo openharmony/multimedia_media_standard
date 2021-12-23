@@ -16,6 +16,7 @@
 #define AV_COMMOM_H
 
 #include <vector>
+#include <string>
 #include "format.h"
 
 namespace OHOS {
@@ -324,6 +325,109 @@ enum VideoEncodeBitrateMode {
     */
     CQ = 2,
 };
-}
-}
+
+enum ContainerFormatType : int32_t {
+    CFT_MPEG_4 = 0,
+    CFT_MPEG_TS,
+    CFT_MKV,
+    CFT_WEBM,
+    CFT_MPEG_4A,
+    CFT_OGG,
+    CFT_WAV,
+    CFT_AAC,
+    CFT_FLAC,
+};
+
+struct Location {
+    float latitude = 0;
+    float longitude = 0;
+};
+
+enum CodecMimeType : int32_t {
+    CODEC_MIMIE_TYPE_DEFAULT = -1,
+    CODEC_MIMIE_TYPE_VIDEO_H263 = 0,
+    CODEC_MIMIE_TYPE_VIDEO_AVC,
+    CODEC_MIMIE_TYPE_VIDEO_MPEG2,
+    CODEC_MIMIE_TYPE_VIDEO_HEVC,
+    CODEC_MIMIE_TYPE_VIDEO_MPEG4,
+    CODEC_MIMIE_TYPE_VIDEO_VP8,
+    CODEC_MIMIE_TYPE_VIDEO_VP9,
+    CODEC_MIMIE_TYPE_AUDIO_AMR_NB,
+    CODEC_MIMIE_TYPE_AUDIO_AMR_WB,
+    CODEC_MIMIE_TYPE_AUDIO_MPEG,
+    CODEC_MIMIE_TYPE_AUDIO_AAC,
+    CODEC_MIMIE_TYPE_AUDIO_VORBIS,
+    CODEC_MIMIE_TYPE_AUDIO_OPUS,
+    CODEC_MIMIE_TYPE_AUDIO_FLAC,
+    CODEC_MIMIE_TYPE_AUDIO_RAW,
+};
+
+/**
+ * @brief Enumerates output format types.
+ *
+ * @since 1.0
+ * @version 1.0
+ */
+enum OutputFormatType : int32_t {
+    /** Default format */
+    FORMAT_DEFAULT = 0,
+    /** MPEG4 format */
+    FORMAT_MPEG_4,
+    /** M4A format */
+    FORMAT_M4A,
+    /** BUTT */
+    FORMAT_BUTT,
+};
+
+/**
+ * @brief Enumerates video codec formats.
+ *
+ * @since 1.0
+ * @version 1.0
+ */
+enum VideoCodecFormat : int32_t {
+    /** Default format */
+    VIDEO_DEFAULT = 0,
+    /** H.264 */
+    H264 = 2,
+    /** Unsupported App Usage. */
+    /** High Efficiency Video Coding (HEVC) */
+    HEVC = 5,
+    /** MPEG4 */
+    MPEG4 = 6,
+    VIDEO_CODEC_FORMAT_BUTT,
+};
+
+/**
+ * @brief Enumerates audio codec formats.
+ *
+ * @since 1.0
+ * @version 1.0
+ */
+enum AudioCodecFormat : int32_t {
+    /** Default format */
+    AUDIO_DEFAULT = 0,
+    /** Advanced Audio Coding Low Complexity (AAC-LC) */
+    AAC_LC      =   1,
+    /** The following app usages are not supported. */
+    /** High-Efficiency Advanced Audio Coding (AAC-HE), previously known as AAC+ or aacPlus v1 */
+    AAC_HE_V1   =   2,
+    /** AAC++ or aacPlus v2 */
+    AAC_HE_V2   =   3,
+    /** Advanced Audio Coding Low Delay (AAC-LD) */
+    AAC_LD      =   4,
+    /** Advanced Audio Coding Enhanced Low Delay (AAC-ELD) */
+    AAC_ELD     =   5,
+    /** Invalid value */
+    AUDIO_CODEC_FORMAT_BUTT,
+};
+
+__attribute__((visibility("default"))) int32_t MapStringToCodecMime(const std::string &mime, CodecMimeType &name);
+__attribute__((visibility("default"))) int32_t MapStringToContainerFormat(const std::string &format, ContainerFormatType &cft);
+__attribute__((visibility("default"))) int32_t MapContainerFormatToOutputFormat(const ContainerFormatType &cft,
+    OutputFormatType &opf);
+__attribute__((visibility("default"))) int32_t MapCodecMimeToAudioCodec(const CodecMimeType &mime, AudioCodecFormat &audio);
+__attribute__((visibility("default"))) int32_t MapCodecMimeToVideoCodec(const CodecMimeType &mime, VideoCodecFormat &video);
+} // namespace Media
+} // namespace OHOS
 #endif // AV_COMMOM_H
