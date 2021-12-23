@@ -220,6 +220,7 @@ int32_t AVMetaFrameConverter::Reset()
     lock.unlock();
     tempMsgProc->FlushBegin();
     tempMsgProc->Reset();
+    tempMsgProc = nullptr;
     lock.lock();
 
     UninstallPipeline();

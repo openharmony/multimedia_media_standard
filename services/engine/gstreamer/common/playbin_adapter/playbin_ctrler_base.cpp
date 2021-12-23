@@ -205,11 +205,6 @@ int32_t PlayBinCtrlerBase::Seek(int64_t timeUs, int32_t seekOption)
         return MSERR_INVALID_VAL;
     }
 
-    if (timeUs < 0) {
-        MEDIA_LOGE("negative seek position is invalid");
-        return MSERR_INVALID_VAL;
-    }
-
     std::unique_lock<std::mutex> lock(mutex_);
 
     auto seekTask = std::make_shared<TaskHandler<void>>([this, timeUs, seekOption]() {
@@ -391,6 +386,7 @@ int32_t PlayBinCtrlerBase::SeekInternel(int64_t timeUs, int32_t seekOption)
 
     int32_t seekFlags = SEEK_OPTION_TO_GST_SEEK_FLAGS.at(seekOption);
     timeUs = timeUs > duration_ ? duration_ : timeUs;
+    timeUs = timeUs < 0 ? 0 : timeUs;
 
     constexpr int32_t usecToNanoSec = 1000;
     int64_t timeNs = timeUs * usecToNanoSec;
@@ -412,12 +408,10 @@ void PlayBinCtrlerBase::SetupCustomElement()
         PlayBinSinkProvider::SinkPtr audSink = sinkProvider_->CreateAudioSink();
         if (audSink != nullptr) {
             g_object_set(playbin_, "audio-sink", audSink, nullptr);
-            gst_object_unref(audSink);
         }
         PlayBinSinkProvider::SinkPtr vidSink = sinkProvider_->CreateVideoSink();
         if (vidSink != nullptr) {
             g_object_set(playbin_, "video-sink", vidSink, nullptr);
-            gst_object_unref(vidSink);
         }
     } else {
         MEDIA_LOGD("no sinkprovider, delay the sink selection until the playbin enters pause state.");
