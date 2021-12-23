@@ -49,6 +49,7 @@ struct _GstSurfaceVideoSrc {
     GstCaps *src_caps;
     guint video_width;
     guint video_height;
+    guint video_frame_rate;
     gboolean is_start;
     gboolean need_codec_data;
     gboolean is_eos;

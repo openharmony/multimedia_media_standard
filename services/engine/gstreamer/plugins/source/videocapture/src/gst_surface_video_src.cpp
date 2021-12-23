@@ -27,7 +27,6 @@ GST_STATIC_PAD_TEMPLATE("src",
 
 namespace {
     constexpr VideoStreamType DEFAULT_STREAM_TYPE = VIDEO_STREAM_TYPE_UNKNOWN;
-    constexpr gint DEFAULT_FRAME_RATE = 30;
 }
 
 enum {
@@ -36,6 +35,7 @@ enum {
     PROP_SURFACE_WIDTH,
     PROP_SURFACE_HEIGHT,
     PROP_SURFACE,
+    PROP_FRAME_RATE,
 };
 
 using namespace OHOS::Media;
@@ -89,17 +89,22 @@ static void gst_surface_video_src_class_init(GstSurfaceVideoSrcClass *klass)
 
     g_object_class_install_property(gobject_class, PROP_SURFACE_WIDTH,
         g_param_spec_uint("surface-width", "Surface width",
-            "Surface width", 0, G_MAXINT32, 0,
+            "Surface width", 0, G_MAXUINT32, 0,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
     g_object_class_install_property(gobject_class, PROP_SURFACE_HEIGHT,
         g_param_spec_uint("surface-height", "Surface height",
-            "Surface width", 0, G_MAXINT32, 0,
+            "Surface width", 0, G_MAXUINT32, 0,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
     g_object_class_install_property(gobject_class, PROP_SURFACE,
         g_param_spec_pointer("surface", "Surface", "Surface for recording",
             (GParamFlags)(G_PARAM_READABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_FRAME_RATE,
+        g_param_spec_uint("frame-rate", "Frame rate",
+            "recorder frame rate", 0, G_MAXUINT32, 30,
+            (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
     gst_element_class_set_static_metadata(gstelement_class,
         "Surface video source", "Source/Video",
@@ -124,6 +129,7 @@ static void gst_surface_video_src_init(GstSurfaceVideoSrc *src)
     src->src_caps = nullptr;
     src->video_width = 0;
     src->video_height = 0;
+    src->video_frame_rate = 30;
     src->is_start = FALSE;
     src->need_codec_data = TRUE;
     src->is_eos = FALSE;
@@ -160,6 +166,9 @@ static void gst_surface_video_src_set_property(GObject *object, guint prop_id,
             break;
         case PROP_SURFACE_HEIGHT:
             src->video_height = g_value_get_uint(value);
+            break;
+        case PROP_FRAME_RATE:
+            src->video_frame_rate = g_value_get_uint(value);
             break;
         default:
             break;
@@ -200,6 +209,9 @@ static void gst_surface_video_src_get_property(GObject *object, guint prop_id, G
         case PROP_SURFACE_HEIGHT:
             g_value_set_uint(value, src->video_height);
             break;
+        case PROP_FRAME_RATE:
+            g_value_set_uint(value, src->video_frame_rate);
+            break;
         case PROP_SURFACE:
             g_return_if_fail(src->capture != nullptr);
             g_value_set_pointer(value, src->capture->GetSurface().GetRefPtr());
@@ -228,7 +240,7 @@ static gboolean process_codec_data(GstSurfaceVideoSrc *src)
     src->src_caps = gst_caps_new_simple("video/x-h264",
         "width", G_TYPE_INT, codec_buffer->width,
         "height", G_TYPE_INT, codec_buffer->height,
-        "framerate", GST_TYPE_FRACTION, DEFAULT_FRAME_RATE, 1,
+        "framerate", GST_TYPE_FRACTION, src->video_frame_rate, 1,
         "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1,
         "level", G_TYPE_STRING, "2",
         "profile", G_TYPE_STRING, "high",
@@ -253,7 +265,7 @@ static gboolean set_fix_caps(GstSurfaceVideoSrc *src)
 
     src->src_caps = gst_caps_new_simple("video/x-raw",
         "format", G_TYPE_STRING, "I420",
-        "framerate", GST_TYPE_FRACTION, DEFAULT_FRAME_RATE, 1,
+        "framerate", GST_TYPE_FRACTION, src->video_frame_rate, 1,
         "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1,
         "width", G_TYPE_INT, src->video_width,
         "height", G_TYPE_INT, src->video_height,
@@ -351,7 +363,7 @@ static gboolean gst_surface_video_src_negotiate(GstBaseSrc *basesrc)
     g_return_val_if_fail(basesrc != nullptr, FALSE);
     GstSurfaceVideoSrc *src = GST_SURFACE_VIDEO_SRC(basesrc);
     g_return_val_if_fail(src != nullptr, FALSE);
-    
+
     // no need to wait playing when yuv source
     if (src->need_codec_data) {
         (void)gst_base_src_wait_playing(basesrc);
