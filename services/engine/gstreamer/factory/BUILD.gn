@@ -40,6 +40,7 @@ config("media_engine_gst_factory_config") {
     "//foundation/multimedia/media_standard/services/engine/gstreamer/player",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/recorder",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/avmetadatahelper",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/avcodec",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/avcodeclist",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/loader",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/playbin_adapter",

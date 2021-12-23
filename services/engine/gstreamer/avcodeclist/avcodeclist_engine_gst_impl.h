@@ -43,7 +43,6 @@ private:
     bool IsSupportFrameRate(const Format &format, const CapabilityData &data);
     bool IsSupportSampleRate(const Format &format, const CapabilityData &data);
     bool IsSupportChannel(const Format &format, const CapabilityData &data);
-    bool IsSupportMediaType(const Format &format, const CapabilityData &data);
     std::mutex mutex_;
 };
 } // Medias

@@ -54,7 +54,7 @@ public:
      * @version 3.1
      */
     virtual std::string FindVideoEncoder(const Format &format) = 0;
-    
+
     /**
      * @brief Find the supported audio decoder name by format(usually contains audio decoder MIME).
      * @param format Indicates a media description which contains required audio decoder capability.
@@ -63,7 +63,7 @@ public:
      * @version 3.1
      */
     virtual std::string FindAudioDecoder(const Format &format) = 0;
-    
+
     /**
      * @brief Find the supported audio encoder name by format(usually contains audio encoder MIME).
      * @param format Indicates a media description which contains required audio encoder capability.

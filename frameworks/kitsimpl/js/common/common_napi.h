@@ -17,10 +17,11 @@
 #define COMMON_NAPI_H
 
 #include <string>
+#include <vector>
 #include <unordered_map>
+#include "format.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-#include "format.h"
 
 namespace OHOS {
 namespace Media {
@@ -70,6 +71,9 @@ public:
     static bool SetPropertyInt32(napi_env env, napi_value &obj, const std::string &key, int32_t value);
     static bool SetPropertyString(napi_env env, napi_value &obj, const std::string &key, const std::string &value);
     static napi_value CreateFormatBuffer(napi_env env, Format &format);
+    static bool AddRangeProperty(napi_env env, napi_value obj, const std::string &name, int32_t min, int32_t max);
+    static bool AddArrayProperty(napi_env env, napi_value obj, const std::string &name,
+        const std::vector<int32_t> &vec);
 };
 
 class MediaJsResult {
@@ -141,6 +145,75 @@ public:
 
 private:
     napi_ref constructor_;
+};
+
+class AVCodecJsResultCtor : public MediaJsResult {
+public:
+    explicit AVCodecJsResultCtor(const napi_ref &constructor, int32_t isMimeType, const std::string &name)
+        : constructor_(constructor),
+          isMimeType_(isMimeType),
+          name_(name)
+    {
+    }
+    ~AVCodecJsResultCtor() = default;
+    napi_status GetJsResult(napi_env env, napi_value &result) override
+    {
+        napi_value constructor = nullptr;
+        napi_status ret = napi_get_reference_value(env, constructor_, &constructor);
+        if (ret != napi_ok || constructor == nullptr) {
+            return ret;
+        }
+
+        napi_value args[2] = { nullptr };
+        ret = napi_create_string_utf8(env, name_.c_str(), NAPI_AUTO_LENGTH, &args[0]);
+        if (ret != napi_ok) {
+            return ret;
+        }
+
+        ret = napi_create_int32(env, isMimeType_, &args[1]);
+        if (ret != napi_ok) {
+            return ret;
+        }
+
+        return napi_new_instance(env, constructor, 2, args, &result);
+    }
+
+private:
+    napi_ref constructor_;
+    int32_t isMimeType_ = 0;
+    std::string name_ = "";
+};
+
+class AVCodecJsResultFormat : public MediaJsResult {
+public:
+    explicit AVCodecJsResultFormat(const Format &format)
+        : format_(format)
+    {
+    }
+    ~AVCodecJsResultFormat() = default;
+    napi_status GetJsResult(napi_env env, napi_value &result) override
+    {
+        (void)format_;
+        (void)env;
+        (void)result;
+        return napi_ok;
+    }
+
+private:
+    Format format_;
+};
+
+class MediaCapsJsResultAudio : public MediaJsResult {
+public:
+    explicit MediaCapsJsResultAudio(bool isDecoder)
+        : isDecoder_(isDecoder)
+    {
+    }
+    ~MediaCapsJsResultAudio() = default;
+    napi_status GetJsResult(napi_env env, napi_value &result) override;
+
+private:
+    bool isDecoder_;
 };
 
 struct MediaAsyncContext {

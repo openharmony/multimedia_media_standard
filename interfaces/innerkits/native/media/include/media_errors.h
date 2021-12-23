@@ -36,6 +36,7 @@ enum MediaServiceErrCode : ErrCode {
     MSERR_CREATE_REC_ENGINE_FAILED,                   // create recorder engine failed.
     MSERR_CREATE_PLAYER_ENGINE_FAILED,                // create player engine failed.
     MSERR_CREATE_AVMETADATAHELPER_ENGINE_FAILED,      // create avmetadatahelper engine failed.
+    MSERR_CREATE_AVCODEC_ENGINE_FAILED,               // create avcodec engine failed.
     MSERR_INVALID_STATE,                              // the state is not support this operation.
     MSERR_UNSUPPORT,                                  // unsupport interface.
     MSERR_UNSUPPORT_AUD_SRC_TYPE,                     // unsupport audio source type.
