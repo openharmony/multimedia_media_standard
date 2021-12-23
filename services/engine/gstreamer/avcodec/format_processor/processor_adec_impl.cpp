@@ -131,6 +131,11 @@ std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetInputPortConfig()
         gst_caps_unref(caps);
         return nullptr;
     }
+
+    if (codecName_ == CODEC_MIMIE_TYPE_AUDIO_FLAC) {
+        config->needParser_ = true;
+    }
+
     return config;
 }
 

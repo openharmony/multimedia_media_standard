@@ -17,6 +17,7 @@
 #define SINK_SURFACE_IMPL_H
 
 #include "sink_base.h"
+#include <thread>
 #include <gst/player/player.h>
 #include "nocopyable.h"
 
@@ -42,8 +43,10 @@ private:
     int32_t HandleOutputCb();
     int32_t UpdateSurfaceBuffer(const GstBuffer &buffer);
     sptr<SurfaceBuffer> RequestBuffer(GstVideoMeta *videoMeta);
+    void EosFunc();
 
     std::mutex mutex_;
+    std::unique_ptr<std::thread> eosThread_;
     gulong signalId_ = 0;
     uint32_t bufferCount_ = 0;
     sptr<Surface> producerSurface_ = nullptr;
@@ -53,6 +56,7 @@ private:
     uint32_t finishCount_ = UINT_MAX;
     bool isFirstFrame_ = true;
     Format format_;
+    bool forceEOS_ = true;
 };
 } // Media
 } // OHOS

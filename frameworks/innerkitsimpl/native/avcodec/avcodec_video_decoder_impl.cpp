@@ -140,6 +140,12 @@ int32_t VideoDecoderImpl::GetOutputFormat(Format &format)
     return codecService_->GetOutputFormat(format);
 }
 
+std::shared_ptr<VideoCaps> VideoDecoderImpl::GetVideoDecoderCaps()
+{
+    CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, nullptr, "service died");
+    return codecService_->GetVideoCaps();
+}
+
 int32_t VideoDecoderImpl::ReleaseOutputBuffer(uint32_t index, bool render)
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");
