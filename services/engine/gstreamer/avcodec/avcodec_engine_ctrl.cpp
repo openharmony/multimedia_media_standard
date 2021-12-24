@@ -70,8 +70,8 @@ int32_t AVCodecEngineCtrl::Init(AVCodecType type, bool useSoftware, const std::s
     g_object_set(codecBin_, "type", static_cast<int32_t>(type), nullptr);
     g_object_set(codecBin_, "coder-name", name.c_str(), nullptr);
 
-    bool isEncoder = (type == AVCODEC_TYPE_VIDEO_ENCODER) || (type == AVCODEC_TYPE_AUDIO_ENCODER);
-    if (isEncoder) {
+    isEncoder_ = (type == AVCODEC_TYPE_VIDEO_ENCODER) || (type == AVCODEC_TYPE_AUDIO_ENCODER);
+    if (isEncoder_) {
         g_object_set(codecBin_, "src-convert", static_cast<gboolean>(true), nullptr);
     } else {
         g_object_set(codecBin_, "sink-convert", static_cast<gboolean>(true), nullptr);

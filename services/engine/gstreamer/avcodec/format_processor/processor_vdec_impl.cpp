@@ -99,7 +99,7 @@ std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetInputPortConfig()
     }
     CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "Unsupported format");
 
-    auto config = std::make_shared<ProcessorConfig>(caps);
+    auto config = std::make_shared<ProcessorConfig>(caps, false);
     if (config == nullptr) {
         gst_caps_unref(caps);
         return nullptr;
@@ -117,7 +117,7 @@ std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetOutputPortConfig()
         "format", G_TYPE_STRING, pixelFormat_.c_str(), nullptr);
     CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "No memory");
 
-    auto config = std::make_shared<ProcessorConfig>(caps);
+    auto config = std::make_shared<ProcessorConfig>(caps, false);
     if (config == nullptr) {
         MEDIA_LOGE("No memory");
         gst_caps_unref(caps);
