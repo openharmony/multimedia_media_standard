@@ -72,7 +72,7 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetInputPortConfig()
         "framerate", G_TYPE_INT, frameRate_, nullptr);
     CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "No memory");
 
-    auto config = std::make_shared<ProcessorConfig>(caps);
+    auto config = std::make_shared<ProcessorConfig>(caps, true);
     if (config == nullptr) {
         MEDIA_LOGE("No memory");
         gst_caps_unref(caps);
@@ -108,7 +108,7 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetOutputPortConfig()
     }
     CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "Unsupported format");
 
-    auto config = std::make_shared<ProcessorConfig>(caps);
+    auto config = std::make_shared<ProcessorConfig>(caps, true);
     if (config == nullptr) {
         MEDIA_LOGE("No memory");
         gst_caps_unref(caps);

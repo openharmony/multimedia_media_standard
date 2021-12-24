@@ -91,7 +91,8 @@ int32_t ProcessorAencImpl::ProcessOptional(const Format &format)
 std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetInputPortConfig()
 {
     guint64 channelMask = 0;
-    if (!gst_audio_channel_positions_to_mask(CHANNEL_POSITION[channels_], channels_, FALSE, &channelMask)) {
+    CHECK_AND_RETURN_RET(channels_ > 0, nullptr);
+    if (!gst_audio_channel_positions_to_mask(CHANNEL_POSITION[channels_ - 1], channels_, FALSE, &channelMask)) {
         MEDIA_LOGE("Invalid channel positions");
         return nullptr;
     }
@@ -102,9 +103,9 @@ std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetInputPortConfig()
         "format", G_TYPE_STRING, audioRawFormat_.c_str(),
         "channel-mask", GST_TYPE_BITMASK, channelMask,
         "layout", G_TYPE_STRING, "interleaved", nullptr);
-    CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "No memory");
+    CHECK_AND_RETURN_RET(caps != nullptr, nullptr);
 
-    auto config = std::make_shared<ProcessorConfig>(caps);
+    auto config = std::make_shared<ProcessorConfig>(caps, true);
     if (config == nullptr) {
         MEDIA_LOGE("No memory");
         gst_caps_unref(caps);
@@ -130,7 +131,7 @@ std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetOutputPortConfig()
     }
     CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "Unsupported format");
 
-    auto config = std::make_shared<ProcessorConfig>(caps);
+    auto config = std::make_shared<ProcessorConfig>(caps, true);
     if (config == nullptr) {
         MEDIA_LOGE("No memory");
         gst_caps_unref(caps);
