@@ -199,7 +199,6 @@ napi_value VideoRecorderNapi::Prepare(napi_env env, napi_callback_info info)
     if (asyncCtx->napi->SetVideoRecorderProperties(asyncCtx, videoProperties) != MSERR_OK) {
         asyncCtx->SignError(MSERR_EXT_UNKNOWN, "set properties failed!");
     }
-    MEDIA_LOGE("FLZ Prepare value of videoSourceID is %{public}d", asyncCtx->napi->videoSourceID);
     if (asyncCtx->napi->SetUrl(urlPath) != MSERR_OK) {
         asyncCtx->SignError(MSERR_EXT_UNKNOWN, "set URL failed!");
     }
@@ -228,12 +227,10 @@ napi_value VideoRecorderNapi::Prepare(napi_env env, napi_callback_info info)
 
 napi_value VideoRecorderNapi::GetInputSurface(napi_env env, napi_callback_info info)
 {
-    MEDIA_LOGE("FLZ GetInputSurface 1111");
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
 
     auto asyncCtx = std::make_unique<VideoRecorderAsyncContext>(env);
-    MEDIA_LOGE("FLZ GetInputSurface 2222");
     // get args
     napi_value jsThis = nullptr;
     napi_value args[1] = {nullptr};
@@ -246,7 +243,6 @@ napi_value VideoRecorderNapi::GetInputSurface(napi_env env, napi_callback_info i
     // get recordernapi
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
 
-    MEDIA_LOGE("FLZ GetInputSurface 3333");
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
@@ -255,7 +251,6 @@ napi_value VideoRecorderNapi::GetInputSurface(napi_env env, napi_callback_info i
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, [](napi_env env, void* data) {
         auto threadCtx = reinterpret_cast<VideoRecorderAsyncContext *>(data);
         if (threadCtx == nullptr || threadCtx->napi == nullptr || threadCtx->napi->recorder_ == nullptr) {
-            MEDIA_LOGE("FLZ GetInputSurface 4444");
             threadCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
             return;
         }
