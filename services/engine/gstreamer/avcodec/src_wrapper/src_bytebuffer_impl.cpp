@@ -58,6 +58,7 @@ int32_t SrcBytebufferImpl::Configure(std::shared_ptr<ProcessorConfig> config)
     CHECK_AND_RETURN_RET(element_ != nullptr, MSERR_UNKNOWN);
     g_object_set(G_OBJECT(element_), "caps", config->caps_, nullptr);
     g_object_set(G_OBJECT(element_), "format", GST_FORMAT_TIME, nullptr);
+    g_object_set(G_OBJECT(element_), "is-live", TRUE, nullptr);
 
     for (uint32_t i = 0; i < bufferCount_; i++) {
         auto mem = AVSharedMemory::Create(bufferSize_, AVSharedMemory::Flags::FLAGS_READ_WRITE, "input");
@@ -128,7 +129,8 @@ int32_t SrcBytebufferImpl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo in
     gsize size = gst_buffer_fill(buffer, 0, (char *)address + info.offset, info.size);
     CHECK_AND_RETURN_RET(size == static_cast<gsize>(info.size), MSERR_UNKNOWN);
 
-    GST_BUFFER_PTS(buffer) = info.presentationTimeUs;
+    const int32_t usToNs = 1000;
+    GST_BUFFER_PTS(buffer) = info.presentationTimeUs * usToNs;
     GST_BUFFER_OFFSET(buffer) = 0;
     GST_BUFFER_OFFSET_END(buffer) = info.size;
 
