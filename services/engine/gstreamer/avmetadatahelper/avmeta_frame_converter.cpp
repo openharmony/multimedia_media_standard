@@ -194,24 +194,6 @@ int32_t AVMetaFrameConverter::Reset()
 {
     std::unique_lock<std::mutex> lock(mutex_);
 
-    startConverting_ = true;
-    if (currState_ == GST_STATE_PAUSED) {
-        cond_.wait(lock, [&]() { return currState_ == GST_STATE_PLAYING || !startConverting_; });
-    }
-
-    if (currState_ == GST_STATE_PLAYING) {
-        MEDIA_LOGD("send eos");
-        GstEvent *event = gst_event_new_eos();
-        (void)gst_element_send_event(appSrc_, event);
-        cond_.wait(lock, [&]() { return eosDone_ || !startConverting_; });
-    }
-
-    if (currState_ >= GST_STATE_PAUSED) {
-        MEDIA_LOGD("change to state ready");
-        ChangeState(GST_STATE_READY);
-        cond_.wait(lock, [&]() { return currState_ == GST_STATE_READY || !startConverting_; });
-    }
-
     /**
      * Must flush before change state and delete the msgProcessor, otherwise deadlock will
      * happend when try to destory the msgprocessor.
@@ -220,6 +202,7 @@ int32_t AVMetaFrameConverter::Reset()
     lock.unlock();
     tempMsgProc->FlushBegin();
     tempMsgProc->Reset();
+    tempMsgProc = nullptr;
     lock.lock();
 
     UninstallPipeline();
@@ -241,7 +224,6 @@ int32_t AVMetaFrameConverter::Reset()
 
     startConverting_ = false;
     cond_.notify_all();
-    eosDone_ = false;
 
     return MSERR_OK;
 }
@@ -370,12 +352,6 @@ void AVMetaFrameConverter::OnNotifyMessage(const InnerMessage &msg)
         case InnerMsgType::INNER_MSG_ERROR: {
             startConverting_ = false;
             MEDIA_LOGE("error happened");
-            cond_.notify_all();
-            break;
-        }
-        case InnerMsgType::INNER_MSG_EOS: {
-            eosDone_ = true;
-            MEDIA_LOGD("eos done");
             cond_.notify_all();
             break;
         }
