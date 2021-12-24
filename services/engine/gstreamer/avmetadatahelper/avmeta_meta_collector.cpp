@@ -55,7 +55,7 @@ static const std::unordered_map<GstElemType, GstElemMetaMatchDesc> GST_ELEM_META
  */
 class AVMetaMetaCollector::MultiQueueCutOut {
 public:
-    MultiQueueCutOut(GstElement &mq) : mq_(GST_ELEMENT_CAST(gst_object_ref(&mq)))
+    explicit MultiQueueCutOut(GstElement &mq) : mq_(GST_ELEMENT_CAST(gst_object_ref(&mq)))
     {
         g_object_get(mq_, "max-size-bytes", &maxBytes_, "max-size-buffers",
             &maxBuffers_, "max-size-time", &maxTimes_, nullptr);

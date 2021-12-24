@@ -113,7 +113,6 @@ void AVMetaBufferBlocker::Init()
 bool AVMetaBufferBlocker::CheckUpStreamBlocking(GstPad &pad)
 {
     GstPad *upstreamPad = nullptr;
-    GstElement *elem = gst_pad_get_parent_element(&pad);
 
     if (GST_PAD_DIRECTION(&pad) == GST_PAD_SINK) {
         upstreamPad = gst_pad_get_peer(&pad);
@@ -123,7 +122,14 @@ bool AVMetaBufferBlocker::CheckUpStreamBlocking(GstPad &pad)
          * There is no need to figure out whether the demuxer or multiqueue's sinkpads are
          * blocking, because we guarante it will never happen.
          */
+        GstElement *elem = gst_pad_get_parent_element(&pad);
+        if (elem == nullptr) {
+            MEDIA_LOGE("unexpected, avoid lock, return true");
+            return true;
+        }
+
         if (g_list_length(elem->srcpads) > 1) {
+            gst_object_unref(elem);
             return false;
         }
 
@@ -131,6 +137,8 @@ bool AVMetaBufferBlocker::CheckUpStreamBlocking(GstPad &pad)
         if (node != nullptr && node->data != nullptr) {
             upstreamPad = gst_pad_get_peer(GST_PAD_CAST(node->data));
         }
+
+        gst_object_unref(elem);
     }
 
     if (upstreamPad == nullptr) {
@@ -138,10 +146,14 @@ bool AVMetaBufferBlocker::CheckUpStreamBlocking(GstPad &pad)
     }
 
     if (gst_pad_is_blocking(upstreamPad)) {
+        gst_object_unref(upstreamPad);
         return true;
     }
 
-    return CheckUpStreamBlocking(*upstreamPad);
+    bool ret = CheckUpStreamBlocking(*upstreamPad);
+    gst_object_unref(upstreamPad);
+
+    return ret;
 }
 
 /**
@@ -158,7 +170,7 @@ bool AVMetaBufferBlocker::IsBufferDetected()
         }
 
         MEDIA_LOGD("buffer not arrived for %{public}s's %{public}s",
-                ELEM_NAME(&elem_), PAD_NAME(item.pad));
+                   ELEM_NAME(&elem_), PAD_NAME(item.pad));
 
         /**
          * if the upstream is blocking, we can not wait buffer arriving at this pad.
@@ -166,7 +178,7 @@ bool AVMetaBufferBlocker::IsBufferDetected()
          */
         if (CheckUpStreamBlocking(*item.pad) && item.probeId != 0) {
             MEDIA_LOGD("%{public}s's %{public}s upstream is blocking, dont need this blocker",
-                        ELEM_NAME(&elem_), PAD_NAME(item.pad));
+                       ELEM_NAME(&elem_), PAD_NAME(item.pad));
             gst_pad_remove_probe(item.pad, item.probeId);
             item.probeId = 0;
             item.hasBuffer = true;

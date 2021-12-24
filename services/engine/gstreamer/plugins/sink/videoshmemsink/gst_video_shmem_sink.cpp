@@ -802,11 +802,20 @@ static gboolean gst_video_shmem_sink_propose_allocation(GstBaseSink *bsink, GstQ
 
     GstVideoInfo info;
     gboolean ret = gst_video_info_from_caps(&info, caps);
-    g_return_val_if_fail(ret, FALSE);
+    if (!ret) {
+        gst_object_unref(pool);
+        GST_ERROR_OBJECT(vidShMemSink, "get video info from caps failed");
+        return ret;
+    }
+
     gst_query_add_allocation_pool(query, pool, info.size, 0, vidShMemSink->priv->maxPoolCapacity);
 
     GstAllocator *alloc = gst_shmem_allocator_new();
-    g_return_val_if_fail(alloc != nullptr, FALSE);
+    if (alloc == nullptr) {
+        gst_object_unref(pool);
+        GST_ERROR_OBJECT(vidShMemSink, "create shmem allocator failed");
+        return FALSE;
+    }
 
     GstAllocationParams allocParams {};
     allocParams.prefix = vidShMemSink->priv->memPrefix;
@@ -819,8 +828,10 @@ static gboolean gst_video_shmem_sink_propose_allocation(GstBaseSink *bsink, GstQ
     gst_buffer_pool_config_add_option(config, GST_BUFFER_POOL_OPTION_VIDEO_META);
     gst_buffer_pool_config_set_allocator(config, alloc, &allocParams);
     ret = gst_buffer_pool_set_config(pool, config);
-    g_return_val_if_fail(ret, FALSE);
+    gst_object_unref(pool);
+    gst_object_unref(alloc);
 
+    g_return_val_if_fail(ret, FALSE);
     return TRUE;
 }
 
