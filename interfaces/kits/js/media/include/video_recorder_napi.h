@@ -35,18 +35,6 @@ const std::string STATE_STOPPED = "stopped";
 const std::string STATE_ERROR = "error";
 };
 
-enum class AsyncWorkType : int32_t {
-    ASYNC_WORK_PREPARE = 0,
-    ASYNC_WORK_GET_SURFACE,
-    ASYNC_WORK_START,
-    ASYNC_WORK_PAUSE,
-    ASYNC_WORK_RESUME,
-    ASYNC_WORK_STOP,
-    ASYNC_WORK_RESET,
-    ASYNC_WORK_RELEASE,
-    ASYNC_WORK_SET_NEXT_FILE,
-    ASYNC_WORK_INVALID,
-};
 struct VideoRecorderAsyncContext;
 
 constexpr int32_t DEFAULT_AUDIO_BIT_RATE = 48000;
@@ -128,8 +116,7 @@ struct VideoRecorderAsyncContext : public MediaAsyncContext {
     ~VideoRecorderAsyncContext() = default;
 
     VideoRecorderNapi *napi = nullptr;
-    AsyncWorkType asyncWorkType = AsyncWorkType::ASYNC_WORK_INVALID;
-
+ 
     sptr<Surface> surface;
 };
 } // namespace Media
