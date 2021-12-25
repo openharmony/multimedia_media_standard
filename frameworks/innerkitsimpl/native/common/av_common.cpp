@@ -21,7 +21,10 @@
 namespace OHOS {
 namespace Media {
 const std::map<std::string, CodecMimeType> STRING_TO_CODECMIME = {
+    {"video/h263", CODEC_MIMIE_TYPE_VIDEO_H263},
     {"video/avc", CODEC_MIMIE_TYPE_VIDEO_AVC},
+    {"video/mpeg2", CODEC_MIMIE_TYPE_VIDEO_MPEG2},
+    {"video/hevc", CODEC_MIMIE_TYPE_VIDEO_HEVC},
     {"video/mp4v-es", CODEC_MIMIE_TYPE_VIDEO_MPEG4},
     {"audio/mpeg", CODEC_MIMIE_TYPE_AUDIO_MPEG},
     {"audio/mp4a-latm", CODEC_MIMIE_TYPE_AUDIO_AAC},
