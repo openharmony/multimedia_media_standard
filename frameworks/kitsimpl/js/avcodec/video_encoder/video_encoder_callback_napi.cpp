@@ -125,7 +125,9 @@ void VideoEncoderCallbackNapi::OnOutputBufferAvailable(uint32_t index, AVCodecBu
     CHECK_AND_RETURN(adec != nullptr);
 
     auto buffer = adec->GetOutputBuffer(index);
-    CHECK_AND_RETURN(buffer != nullptr);
+    if (buffer == nullptr && flag != AVCODEC_BUFFER_FLAG_EOS) {
+        return;
+    }
 
     VideoEncoderJsCallback *cb = new(std::nothrow) VideoEncoderJsCallback();
     CHECK_AND_RETURN(cb != nullptr);

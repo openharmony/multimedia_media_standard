@@ -68,15 +68,21 @@ int32_t AVCodecEngineCtrl::Init(AVCodecType type, bool useSoftware, const std::s
 
     g_object_set(codecBin_, "use-software", static_cast<gboolean>(useSoftware), nullptr);
     g_object_set(codecBin_, "type", static_cast<int32_t>(type), nullptr);
-    g_object_set(codecBin_, "sink-convert", static_cast<gboolean>(true), nullptr);
     g_object_set(codecBin_, "coder-name", name.c_str(), nullptr);
+
+    isEncoder_ = (type == AVCODEC_TYPE_VIDEO_ENCODER) || (type == AVCODEC_TYPE_AUDIO_ENCODER);
+    if (isEncoder_) {
+        g_object_set(codecBin_, "src-convert", static_cast<gboolean>(true), nullptr);
+    } else {
+        g_object_set(codecBin_, "sink-convert", static_cast<gboolean>(true), nullptr);
+    }
+
     return MSERR_OK;
 }
 
 int32_t AVCodecEngineCtrl::Prepare(std::shared_ptr<ProcessorConfig> inputConfig,
     std::shared_ptr<ProcessorConfig> outputConfig)
 {
-    MEDIA_LOGD("Enter Prepare");
     if (src_ == nullptr) {
         MEDIA_LOGD("Use buffer src");
         src_ = AVCodecEngineFactory::CreateSrc(SrcType::SRC_TYPE_BYTEBUFFER);
@@ -94,6 +100,9 @@ int32_t AVCodecEngineCtrl::Prepare(std::shared_ptr<ProcessorConfig> inputConfig,
     }
 
     CHECK_AND_RETURN_RET(codecBin_ != nullptr, MSERR_UNKNOWN);
+    if (inputConfig->needParser_) {
+        g_object_set(codecBin_, "parser", static_cast<gboolean>(true), nullptr);
+    }
     g_object_set(codecBin_, "src", static_cast<gpointer>(src_->GetElement()), nullptr);
     CHECK_AND_RETURN_RET(src_->Configure(inputConfig) == MSERR_OK, MSERR_UNKNOWN);
 
@@ -119,13 +128,13 @@ int32_t AVCodecEngineCtrl::Prepare(std::shared_ptr<ProcessorConfig> inputConfig,
         std::unique_lock<std::mutex> lock(gstPipeMutex_);
         gstPipeCond_.wait(lock);
     }
+
     MEDIA_LOGD("Prepare success");
     return MSERR_OK;
 }
 
 int32_t AVCodecEngineCtrl::Start()
 {
-    MEDIA_LOGD("Enter Start");
     CHECK_AND_RETURN_RET(gstPipeline_ != nullptr, MSERR_UNKNOWN);
     GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(gstPipeline_), GST_STATE_PLAYING);
     CHECK_AND_RETURN_RET(ret != GST_STATE_CHANGE_FAILURE, MSERR_UNKNOWN);
@@ -143,26 +152,26 @@ int32_t AVCodecEngineCtrl::Start()
             obs->OnInputBufferAvailable(i);
         }
     }
+
     MEDIA_LOGD("Start success");
     return MSERR_OK;
 }
 
 int32_t AVCodecEngineCtrl::Stop()
 {
-    MEDIA_LOGD("Enter Stop");
     GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(gstPipeline_), GST_STATE_PAUSED);
     CHECK_AND_RETURN_RET(ret != GST_STATE_CHANGE_FAILURE, MSERR_UNKNOWN);
     if (ret == GST_STATE_CHANGE_ASYNC) {
         std::unique_lock<std::mutex> lock(gstPipeMutex_);
         gstPipeCond_.wait(lock);
     }
+
     MEDIA_LOGD("Stop success");
     return MSERR_OK;
 }
 
 int32_t AVCodecEngineCtrl::Flush()
 {
-    MEDIA_LOGD("Enter Flush");
     CHECK_AND_RETURN_RET(gstPipeline_ != nullptr, MSERR_UNKNOWN);
 
     CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
@@ -188,6 +197,8 @@ int32_t AVCodecEngineCtrl::Flush()
             obs->OnInputBufferAvailable(i);
         }
     }
+
+    MEDIA_LOGD("Flush success");
     return MSERR_OK;
 }
 
@@ -206,7 +217,6 @@ void AVCodecEngineCtrl::SetObs(const std::weak_ptr<IAVCodecEngineObs> &obs)
 
 sptr<Surface> AVCodecEngineCtrl::CreateInputSurface(std::shared_ptr<ProcessorConfig> inputConfig)
 {
-    MEDIA_LOGD("Enter CreateInputSurface");
     CHECK_AND_RETURN_RET(codecType_ == AVCODEC_TYPE_VIDEO_ENCODER, nullptr);
     if (src_ == nullptr) {
         MEDIA_LOGD("Use surface src");
@@ -218,12 +228,13 @@ sptr<Surface> AVCodecEngineCtrl::CreateInputSurface(std::shared_ptr<ProcessorCon
     CHECK_AND_RETURN_RET(surface != nullptr, nullptr);
     needInputCallback_ = false;
     useSurfaceInput_ = true;
+
+    MEDIA_LOGD("CreateInputSurface success");
     return surface;
 }
 
 int32_t AVCodecEngineCtrl::SetOutputSurface(sptr<Surface> surface)
 {
-    MEDIA_LOGD("Enter SetOutputSurface");
     CHECK_AND_RETURN_RET(codecType_ == AVCODEC_TYPE_VIDEO_DECODER, MSERR_INVALID_OPERATION);
     if (sink_ == nullptr) {
         MEDIA_LOGD("Use surface sink");
@@ -237,19 +248,19 @@ int32_t AVCodecEngineCtrl::SetOutputSurface(sptr<Surface> surface)
     } else {
         return MSERR_UNKNOWN;
     }
+
+    MEDIA_LOGD("SetOutputSurface success");
     return MSERR_OK;
 }
 
 std::shared_ptr<AVSharedMemory> AVCodecEngineCtrl::GetInputBuffer(uint32_t index)
 {
-    MEDIA_LOGD("Enter GetInputBuffer, index:%{public}d", index);
     CHECK_AND_RETURN_RET(src_ != nullptr, nullptr);
     return src_->GetInputBuffer(index);
 }
 
 int32_t AVCodecEngineCtrl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
 {
-    MEDIA_LOGD("Enter QueueInputBuffer, index:%{public}d", index);
     CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
     int32_t ret = src_->QueueInputBuffer(index, info, flag);
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
@@ -264,14 +275,12 @@ int32_t AVCodecEngineCtrl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo in
 
 std::shared_ptr<AVSharedMemory> AVCodecEngineCtrl::GetOutputBuffer(uint32_t index)
 {
-    MEDIA_LOGD("Enter GetOutputBuffer, index:%{public}d", index);
     CHECK_AND_RETURN_RET(sink_ != nullptr, nullptr);
     return sink_->GetOutputBuffer(index);
 }
 
 int32_t AVCodecEngineCtrl::ReleaseOutputBuffer(uint32_t index, bool render)
 {
-    MEDIA_LOGD("Enter ReleaseOutputBuffer, index:%{public}d", index);
     CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);
     return sink_->ReleaseOutputBuffer(index, render);
 }
@@ -290,6 +299,7 @@ int32_t AVCodecEngineCtrl::SetParameter(const Format &format)
         g_object_set(codecBin_, "req-i-frame", value, nullptr);
     }
 
+    MEDIA_LOGD("SetParameter success");
     return MSERR_OK;
 }
 

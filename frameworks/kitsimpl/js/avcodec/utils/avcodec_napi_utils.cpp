@@ -103,7 +103,9 @@ napi_value AVCodecNapiUtil::CreateInputCodecBuffer(napi_env env, uint32_t index,
 napi_value AVCodecNapiUtil::CreateOutputCodecBuffer(napi_env env, uint32_t index,
     std::shared_ptr<AVSharedMemory> memory, const AVCodecBufferInfo &info, AVCodecBufferFlag flag)
 {
-    CHECK_AND_RETURN_RET(memory != nullptr, nullptr);
+    if (memory == nullptr && flag == AVCODEC_BUFFER_FLAG_EOS) {
+        return CreateEmptyEOSBuffer(env);
+    }
 
     napi_value buffer = nullptr;
     napi_status status = napi_create_object(env, &buffer);
@@ -135,6 +137,24 @@ napi_value AVCodecNapiUtil::CreateOutputCodecBuffer(napi_env env, uint32_t index
 
     status = napi_set_property(env, buffer, dataStr, dataVal);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "Failed to set property");
+
+    return buffer;
+}
+
+napi_value AVCodecNapiUtil::CreateEmptyEOSBuffer(napi_env env)
+{
+    napi_value buffer = nullptr;
+    napi_status status = napi_create_object(env, &buffer);
+    CHECK_AND_RETURN_RET(status == napi_ok, nullptr);
+
+    (void)AddNumberProp(env, buffer, "timeMs", -1);
+    (void)AddNumberProp(env, buffer, "index", -1);
+    (void)AddNumberProp(env, buffer, "offset", 0);
+    (void)AddNumberProp(env, buffer, "length", 0);
+    if (AddNumberProp(env, buffer, "flags", static_cast<int32_t>(AVCODEC_BUFFER_FLAG_EOS)) != true) {
+        MEDIA_LOGE("Failed to add eos flag for empty buffer");
+        return nullptr;
+    }
 
     return buffer;
 }

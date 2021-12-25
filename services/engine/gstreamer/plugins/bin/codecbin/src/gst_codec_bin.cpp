@@ -26,6 +26,7 @@ enum {
     PROP_SINK,
     PROP_SRC_CONVERT,
     PROP_SINK_CONVERT,
+    PROP_PARSER,
     PROP_FORCE_I_FRAME
 };
 
@@ -96,6 +97,10 @@ static void gst_codec_bin_class_init(GstCodecBinClass *klass)
         g_param_spec_boolean("sink-convert", "Need sink convert", "Need convert for output data",
             FALSE, (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
+    g_object_class_install_property(gobject_class, PROP_PARSER,
+        g_param_spec_boolean("parser", "Need parser", "Need parser",
+            FALSE, (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+
     g_object_class_install_property(gobject_class, PROP_FORCE_I_FRAME,
         g_param_spec_int("req-i-frame", "Request I frame", "Request I frame for video encoder",
             -1, 1, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
@@ -112,6 +117,7 @@ static void gst_codec_bin_init(GstCodecBin *bin)
     g_return_if_fail(bin != nullptr);
     GST_INFO_OBJECT(bin, "gst_codec_bin_init");
     bin->src = nullptr;
+    bin->parser = nullptr;
     bin->src_convert = nullptr;
     bin->coder = nullptr;
     bin->sink_convert = nullptr;
@@ -121,6 +127,7 @@ static void gst_codec_bin_init(GstCodecBin *bin)
     bin->coder_name = nullptr;
     bin->need_src_convert = FALSE;
     bin->need_sink_convert = FALSE;
+    bin->need_parser = FALSE;
 }
 
 static void gst_codec_bin_finalize(GObject *object)
@@ -160,6 +167,9 @@ static void gst_codec_bin_set_property(GObject *object, guint prop_id,
             break;
         case PROP_SINK_CONVERT:
             bin->need_sink_convert = g_value_get_boolean(value);
+            break;
+        case PROP_PARSER:
+            bin->need_parser = g_value_get_boolean(value);
             break;
         case PROP_FORCE_I_FRAME:
             if (bin->coder != nullptr) {
@@ -257,6 +267,11 @@ static gboolean connect_element(GstCodecBin *bin)
         g_return_val_if_fail(ret == TRUE, FALSE);
         ret = gst_element_link_pads_full(bin->src_convert, "src", bin->coder, "sink", GST_PAD_LINK_CHECK_NOTHING);
         g_return_val_if_fail(ret == TRUE, FALSE);
+    } else if (bin->parser != nullptr) {
+        ret = gst_element_link_pads_full(bin->src, "src", bin->parser, "sink", GST_PAD_LINK_CHECK_NOTHING);
+        g_return_val_if_fail(ret == TRUE, FALSE);
+        ret = gst_element_link_pads_full(bin->parser, "src", bin->coder, "sink", GST_PAD_LINK_CHECK_NOTHING);
+        g_return_val_if_fail(ret == TRUE, FALSE);
     } else {
         ret = gst_element_link_pads_full(bin->src, "src", bin->coder, "sink", GST_PAD_LINK_CHECK_NOTHING);
         g_return_val_if_fail(ret == TRUE, FALSE);
@@ -273,6 +288,14 @@ static gboolean connect_element(GstCodecBin *bin)
     }
     GST_INFO_OBJECT(bin, "connect_element success");
     return TRUE;
+}
+
+static gboolean add_parser(GstCodecBin *bin)
+{
+    g_return_val_if_fail(bin != nullptr, FALSE);
+    bin->parser = gst_element_factory_make("flacparse", "parser");
+    g_return_val_if_fail(bin->parser != nullptr, FALSE);
+    return gst_bin_add(GST_BIN_CAST(bin), bin->parser);
 }
 
 static gboolean add_src_convert(GstCodecBin *bin)
@@ -303,6 +326,16 @@ static gboolean add_sink_convert(GstCodecBin *bin)
     return gst_bin_add(GST_BIN_CAST(bin), bin->sink_convert);
 }
 
+static gboolean add_parser_if_necessary(GstCodecBin *bin)
+{
+    g_return_val_if_fail(bin != nullptr, FALSE);
+    if (bin->need_parser && add_parser(bin) == FALSE) {
+        GST_ERROR_OBJECT(bin, "Failed to add_parser");
+        return FALSE;
+    }
+    return TRUE;
+}
+
 static gboolean add_convert_if_necessary(GstCodecBin *bin)
 {
     g_return_val_if_fail(bin != nullptr, FALSE);
@@ -323,6 +356,9 @@ static gboolean add_element_to_bin(GstCodecBin *bin)
     g_return_val_if_fail(bin->src != nullptr && bin->coder != nullptr && bin->sink != nullptr, FALSE);
 
     gboolean ret = gst_bin_add(GST_BIN_CAST(bin), bin->src);
+    g_return_val_if_fail(ret == TRUE, FALSE);
+
+    ret = add_parser_if_necessary(bin);
     g_return_val_if_fail(ret == TRUE, FALSE);
 
     ret = add_convert_if_necessary(bin);

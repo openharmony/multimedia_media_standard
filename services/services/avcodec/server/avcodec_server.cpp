@@ -189,6 +189,19 @@ int32_t AVCodecServer::GetOutputFormat(Format &format)
     return codecEngine_->GetOutputFormat(format);
 }
 
+std::shared_ptr<AudioCaps> AVCodecServer::GetAudioCaps()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, nullptr, "engine is nullptr");
+    return codecEngine_->GetAudioCaps();
+}
+std::shared_ptr<VideoCaps> AVCodecServer::GetVideoCaps()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, nullptr, "engine is nullptr");
+    return codecEngine_->GetVideoCaps();
+}
+
 int32_t AVCodecServer::ReleaseOutputBuffer(uint32_t index, bool render)
 {
     std::lock_guard<std::mutex> lock(mutex_);

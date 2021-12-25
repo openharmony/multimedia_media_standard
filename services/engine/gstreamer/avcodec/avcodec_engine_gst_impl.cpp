@@ -66,17 +66,22 @@ int32_t AVCodecEngineGstImpl::Init(AVCodecType type, bool isMimeType, const std:
 
 int32_t AVCodecEngineGstImpl::Configure(const Format &format)
 {
+    MEDIA_LOGD("Enter Configure");
     std::unique_lock<std::mutex> lock(mutex_);
+
     CHECK_AND_RETURN_RET(processor_ != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(processor_->DoProcess(format) == MSERR_OK, MSERR_UNKNOWN);
+
+    MEDIA_LOGD("Configure success");
     return MSERR_OK;
 }
 
 int32_t AVCodecEngineGstImpl::Prepare()
 {
+    MEDIA_LOGD("Enter Prepare");
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET(processor_ != nullptr, MSERR_UNKNOWN);
 
+    CHECK_AND_RETURN_RET(processor_ != nullptr, MSERR_UNKNOWN);
     auto inputConfig = processor_->GetInputPortConfig();
     CHECK_AND_RETURN_RET(inputConfig != nullptr, MSERR_NO_MEMORY);
 
@@ -89,27 +94,34 @@ int32_t AVCodecEngineGstImpl::Prepare()
 
 int32_t AVCodecEngineGstImpl::Start()
 {
+    MEDIA_LOGD("Enter Start");
     std::unique_lock<std::mutex> lock(mutex_);
+
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_UNKNOWN);
     return ctrl_->Start();
 }
 
 int32_t AVCodecEngineGstImpl::Stop()
 {
+    MEDIA_LOGD("Enter Stop");
     std::unique_lock<std::mutex> lock(mutex_);
+
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_UNKNOWN);
     return ctrl_->Stop();
 }
 
 int32_t AVCodecEngineGstImpl::Flush()
 {
+    MEDIA_LOGD("Enter Flush");
     std::unique_lock<std::mutex> lock(mutex_);
+
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_UNKNOWN);
     return ctrl_->Flush();
 }
 
 int32_t AVCodecEngineGstImpl::Reset()
 {
+    MEDIA_LOGD("Enter Reset");
     std::unique_lock<std::mutex> lock(mutex_);
     if (ctrl_ != nullptr) {
         (void)ctrl_->Release();
@@ -118,14 +130,17 @@ int32_t AVCodecEngineGstImpl::Reset()
     ctrl_ = std::make_unique<AVCodecEngineCtrl>();
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_NO_MEMORY);
     CHECK_AND_RETURN_RET(ctrl_->Init(type_, uswSoftWare_, pluginName_) == MSERR_OK, MSERR_UNKNOWN);
+
+    MEDIA_LOGD("Reset success");
     return MSERR_OK;
 }
 
 sptr<Surface> AVCodecEngineGstImpl::CreateInputSurface()
 {
+    MEDIA_LOGD("Enter CreateInputSurface");
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET(processor_ != nullptr, nullptr);
 
+    CHECK_AND_RETURN_RET(processor_ != nullptr, nullptr);
     auto inputConfig = processor_->GetInputPortConfig();
     CHECK_AND_RETURN_RET(inputConfig != nullptr, nullptr);
 
@@ -135,28 +150,36 @@ sptr<Surface> AVCodecEngineGstImpl::CreateInputSurface()
 
 int32_t AVCodecEngineGstImpl::SetOutputSurface(sptr<Surface> surface)
 {
+    MEDIA_LOGD("Enter SetOutputSurface");
     std::unique_lock<std::mutex> lock(mutex_);
+
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_NO_MEMORY);
     return ctrl_->SetOutputSurface(surface);
 }
 
 std::shared_ptr<AVSharedMemory> AVCodecEngineGstImpl::GetInputBuffer(uint32_t index)
 {
+    MEDIA_LOGD("Enter GetInputBuffer, index:%{public}d", index);
     std::unique_lock<std::mutex> lock(mutex_);
+
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, nullptr);
     return ctrl_->GetInputBuffer(index);
 }
 
 int32_t AVCodecEngineGstImpl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
 {
+    MEDIA_LOGD("Enter QueueInputBuffer, index:%{public}d", index);
     std::unique_lock<std::mutex> lock(mutex_);
+
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_NO_MEMORY);
     return ctrl_->QueueInputBuffer(index, info, flag);
 }
 
 std::shared_ptr<AVSharedMemory> AVCodecEngineGstImpl::GetOutputBuffer(uint32_t index)
 {
+    MEDIA_LOGD("Enter GetOutputBuffer, index:%{public}d", index);
     std::unique_lock<std::mutex> lock(mutex_);
+
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, nullptr);
     return ctrl_->GetOutputBuffer(index);
 }
@@ -166,16 +189,30 @@ int32_t AVCodecEngineGstImpl::GetOutputFormat(Format &format)
     return MSERR_OK;
 }
 
+std::shared_ptr<AudioCaps> AVCodecEngineGstImpl::GetAudioCaps()
+{
+    return nullptr;
+}
+
+std::shared_ptr<VideoCaps> AVCodecEngineGstImpl::GetVideoCaps()
+{
+    return nullptr;
+}
+
 int32_t AVCodecEngineGstImpl::ReleaseOutputBuffer(uint32_t index, bool render)
 {
+    MEDIA_LOGD("Enter ReleaseOutputBuffer, index:%{public}d", index);
     std::unique_lock<std::mutex> lock(mutex_);
+
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_NO_MEMORY);
     return ctrl_->ReleaseOutputBuffer(index, render);
 }
 
 int32_t AVCodecEngineGstImpl::SetParameter(const Format &format)
 {
+    MEDIA_LOGD("Enter SetParameter");
     std::unique_lock<std::mutex> lock(mutex_);
+
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_NO_MEMORY);
     return ctrl_->SetParameter(format);
 }
@@ -218,7 +255,7 @@ int32_t AVCodecEngineGstImpl::HandleMimeType(AVCodecType type, const std::string
     MEDIA_LOGD("Found plugin name:%{public}s", pluginName.c_str());
 
     bool isSoftware = true;
-    (void)QueryIsSoftPlugin(name, isSoftware);
+    (void)QueryIsSoftPlugin(pluginName, isSoftware);
 
     uswSoftWare_ = isSoftware;
     pluginName_ = pluginName;
@@ -249,7 +286,7 @@ int32_t AVCodecEngineGstImpl::QueryIsSoftPlugin(const std::string &name, bool &i
 
     for (auto it = data.begin(); it != data.end(); it++) {
         if ((*it).codecName == name) {
-            isSoftware = (*it).isVendor;
+            isSoftware = !(*it).isVendor;
             pluginExist = true;
         }
     }
