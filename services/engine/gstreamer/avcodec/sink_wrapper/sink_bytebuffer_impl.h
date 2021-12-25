@@ -18,6 +18,7 @@
 
 #include "sink_base.h"
 #include <mutex>
+#include <thread>
 #include <vector>
 #include "avsharedmemory.h"
 #include "nocopyable.h"
@@ -42,8 +43,10 @@ private:
     static GstFlowReturn OutputAvailableCb(GstElement *sink, gpointer userData);
     int32_t HandleOutputCb();
     void HandleOutputBuffer(uint32_t &bufSize, uint32_t &index, GstBuffer *buf);
+    void EosFunc();
 
     std::mutex mutex_;
+    std::unique_ptr<std::thread> eosThread_;
     gulong signalId_ = 0;
     uint32_t bufferCount_ = 0;
     uint32_t bufferSize_ = 0;
@@ -53,6 +56,8 @@ private:
     bool isEos = false;
     bool isFirstFrame_ = true;
     Format format_;
+    bool forceEOS_ = true;
+    uint32_t frameCount_ = 0;
 };
 } // Media
 } // OHOS

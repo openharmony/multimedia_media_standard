@@ -89,8 +89,15 @@ int32_t ProcessorAdecImpl::ProcessOptional(const Format &format)
 
 std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetInputPortConfig()
 {
-    GstCaps *caps = nullptr;
+    CHECK_AND_RETURN_RET(channels_ > 0 && sampleRate_ > 0, nullptr);
+
     guint64 channelMask = 0;
+    if (!gst_audio_channel_positions_to_mask(CHANNEL_POSITION[channels_ - 1], channels_, FALSE, &channelMask)) {
+        MEDIA_LOGE("Invalid channel positions");
+        return nullptr;
+    }
+
+    GstCaps *caps = nullptr;
     switch (codecName_) {
         case CODEC_MIMIE_TYPE_AUDIO_VORBIS:
             caps = gst_caps_new_simple("audio/x-vorbis",
@@ -98,7 +105,6 @@ std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetInputPortConfig()
                 "channels", G_TYPE_INT, channels_, nullptr);
             break;
         case CODEC_MIMIE_TYPE_AUDIO_MPEG:
-            (void)gst_audio_channel_positions_to_mask(CHANNEL_POSITION[channels_], channels_, FALSE, &channelMask);
             caps = gst_caps_new_simple("audio/mpeg",
                 "rate", G_TYPE_INT, sampleRate_,
                 "channels", G_TYPE_INT, channels_,
@@ -125,17 +131,22 @@ std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetInputPortConfig()
     }
     CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "Unsupported format");
 
-    auto config = std::make_shared<ProcessorConfig>(caps);
+    auto config = std::make_shared<ProcessorConfig>(caps, false);
     if (config == nullptr) {
         MEDIA_LOGE("No memory");
         gst_caps_unref(caps);
         return nullptr;
     }
+
+    config->needParser_ = (codecName_ == CODEC_MIMIE_TYPE_AUDIO_FLAC) ? true : false;
+    config->needCodecData_ = (codecName_ == CODEC_MIMIE_TYPE_AUDIO_VORBIS) ? true : false;
     return config;
 }
 
 std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetOutputPortConfig()
 {
+    CHECK_AND_RETURN_RET(channels_ > 0 && sampleRate_ > 0, nullptr);
+
     GstCaps *caps = gst_caps_new_simple("audio/x-raw",
         "rate", G_TYPE_INT, sampleRate_,
         "channels", G_TYPE_INT, channels_,
@@ -143,7 +154,7 @@ std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetOutputPortConfig()
         "layout", G_TYPE_STRING, "interleaved", nullptr);
     CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "No memory");
 
-    auto config = std::make_shared<ProcessorConfig>(caps);
+    auto config = std::make_shared<ProcessorConfig>(caps, false);
     if (config == nullptr) {
         MEDIA_LOGE("No memory");
         gst_caps_unref(caps);

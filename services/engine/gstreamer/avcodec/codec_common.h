@@ -64,8 +64,9 @@ struct BufferWrapper {
 };
 
 struct ProcessorConfig {
-    explicit ProcessorConfig(GstCaps *caps)
-        : caps_(caps)
+    explicit ProcessorConfig(GstCaps *caps, bool isEncoder)
+        : caps_(caps),
+          isEncoder_(isEncoder)
     {
     }
     ~ProcessorConfig()
@@ -76,6 +77,8 @@ struct ProcessorConfig {
     }
     GstCaps *caps_ = nullptr;
     bool needCodecData_ = false;
+    bool needParser_ = false;
+    bool isEncoder_ = false;
 };
 
 __attribute__((visibility("default"))) int32_t MapVideoPixelFormat(int32_t number, VideoPixelFormat &pixel);

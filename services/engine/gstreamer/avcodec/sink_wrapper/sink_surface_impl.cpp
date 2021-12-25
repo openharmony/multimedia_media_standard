@@ -33,6 +33,15 @@ SinkSurfaceImpl::SinkSurfaceImpl()
 
 SinkSurfaceImpl::~SinkSurfaceImpl()
 {
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (eosThread_ != nullptr) {
+        if (eosThread_->joinable()) {
+            mutex_.unlock();
+            eosThread_->join();
+            mutex_.lock();
+        }
+        eosThread_.reset();
+    }
     g_signal_handler_disconnect(G_OBJECT(element_), signalId_);
     bufferList_.clear();
     if (element_ != nullptr) {
@@ -73,9 +82,22 @@ int32_t SinkSurfaceImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 int32_t SinkSurfaceImpl::Flush()
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    if (eosThread_ != nullptr) {
+        if (eosThread_->joinable()) {
+            lock.unlock();
+            eosThread_->join();
+            lock.lock();
+        }
+        eosThread_.reset();
+    }
     for (auto it = bufferList_.begin(); it != bufferList_.end(); it++) {
         (*it)->owner_ = BufferWrapper::DOWNSTREAM;
     }
+    finishCount_ = UINT_MAX;
+    isEos = false;
+    isFirstFrame_ = true;
+    forceEOS_ = true;
+
     return MSERR_OK;
 }
 
@@ -139,6 +161,7 @@ void SinkSurfaceImpl::SetEOS(uint32_t count)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     finishCount_ = count;
+    eosThread_ = std::make_unique<std::thread>(&SinkSurfaceImpl::EosFunc, this);
 }
 
 GstFlowReturn SinkSurfaceImpl::OutputAvailableCb(GstElement *sink, gpointer userData)
@@ -181,7 +204,7 @@ int32_t SinkSurfaceImpl::HandleOutputCb()
         return MSERR_INVALID_OPERATION;
     }
 
-    bufferCount_++;
+    frameCount_++;
 
     auto obs = obs_.lock();
     if (obs == nullptr) {
@@ -197,14 +220,15 @@ int32_t SinkSurfaceImpl::HandleOutputCb()
 
     AVCodecBufferInfo info;
     info.presentationTimeUs = GST_BUFFER_PTS(buf);
-    if (bufferCount_ >= finishCount_ && isEos == false) {
+    if (frameCount_ >= finishCount_ && isEos == false) {
         MEDIA_LOGD("EOS reach");
         isEos = true;
+        forceEOS_ = false;
         obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_EOS);
     } else {
         obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
     }
-    MEDIA_LOGD("OutputBuffer available, index:%{public}d", index);
+    MEDIA_LOGD("OutputBuffer available, index:%{public}d, bufferCount:%{public}d", index, frameCount_);
 
     return MSERR_OK;
 }
@@ -276,6 +300,21 @@ sptr<SurfaceBuffer> SinkSurfaceImpl::RequestBuffer(GstVideoMeta *videoMeta)
     } while (ret == SURFACE_ERROR_NO_BUFFER && count < MAX_DEFAULT_TRY_TIMES);
     CHECK_AND_RETURN_RET(ret == SURFACE_ERROR_OK, nullptr);
     return surfaceBuffer;
+}
+
+void SinkSurfaceImpl::EosFunc()
+{
+    const uint32_t timeout = 1000;
+    std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (forceEOS_ == true) {
+        auto obs = obs_.lock();
+        CHECK_AND_RETURN(obs != nullptr);
+        isEos = true;
+        AVCodecBufferInfo info;
+        MEDIA_LOGI("Signal EOS with empty buffer");
+        obs->OnOutputBufferAvailable(0, info, AVCODEC_BUFFER_FLAG_EOS);
+    }
 }
 } // Media
 } // OHOS

@@ -56,6 +56,8 @@ int32_t ProcessorVdecImpl::ProcessOptional(const Format &format)
 
 std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetInputPortConfig()
 {
+    CHECK_AND_RETURN_RET(width_ > 0 && height_ > 0, nullptr);
+
     GstCaps *caps = nullptr;
     switch (codecName_) {
         case CODEC_MIMIE_TYPE_VIDEO_MPEG2:
@@ -99,7 +101,7 @@ std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetInputPortConfig()
     }
     CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "Unsupported format");
 
-    auto config = std::make_shared<ProcessorConfig>(caps);
+    auto config = std::make_shared<ProcessorConfig>(caps, false);
     if (config == nullptr) {
         gst_caps_unref(caps);
         return nullptr;
@@ -111,13 +113,15 @@ std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetInputPortConfig()
 
 std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetOutputPortConfig()
 {
+    CHECK_AND_RETURN_RET(width_ > 0 && height_ > 0, nullptr);
+
     GstCaps *caps = gst_caps_new_simple("video/x-raw",
         "width", G_TYPE_INT, width_,
         "height", G_TYPE_INT, height_,
         "format", G_TYPE_STRING, pixelFormat_.c_str(), nullptr);
     CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "No memory");
 
-    auto config = std::make_shared<ProcessorConfig>(caps);
+    auto config = std::make_shared<ProcessorConfig>(caps, false);
     if (config == nullptr) {
         MEDIA_LOGE("No memory");
         gst_caps_unref(caps);

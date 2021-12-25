@@ -31,6 +31,15 @@ SinkBytebufferImpl::SinkBytebufferImpl()
 
 SinkBytebufferImpl::~SinkBytebufferImpl()
 {
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (eosThread_ != nullptr) {
+        if (eosThread_->joinable()) {
+            mutex_.unlock();
+            eosThread_->join();
+            mutex_.lock();
+        }
+        eosThread_.reset();
+    }
     g_signal_handler_disconnect(G_OBJECT(element_), signalId_);
     bufferList_.clear();
     if (element_ != nullptr) {
@@ -55,7 +64,6 @@ int32_t SinkBytebufferImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 {
     CHECK_AND_RETURN_RET(element_ != nullptr && config->caps_ != nullptr, MSERR_UNKNOWN);
     g_object_set(G_OBJECT(element_), "caps", config->caps_, nullptr);
-    (void)ParseCaps(config->caps_, format_);
 
     for (uint32_t i = 0; i < bufferCount_; i++) {
         auto mem = AVSharedMemory::Create(bufferSize_, AVSharedMemory::Flags::FLAGS_READ_WRITE, "output");
@@ -78,9 +86,24 @@ int32_t SinkBytebufferImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 int32_t SinkBytebufferImpl::Flush()
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    if (eosThread_ != nullptr) {
+        if (eosThread_->joinable()) {
+            lock.unlock();
+            eosThread_->join();
+            lock.lock();
+        }
+        eosThread_.reset();
+    }
+
     for (auto it = bufferList_.begin(); it != bufferList_.end(); it++) {
         (*it)->owner_ = BufferWrapper::DOWNSTREAM;
     }
+    finishCount_ = UINT_MAX;
+    isEos = false;
+    isFirstFrame_ = true;
+    forceEOS_ = true;
+    frameCount_ = 0;
+
     return MSERR_OK;
 }
 
@@ -115,6 +138,7 @@ void SinkBytebufferImpl::SetEOS(uint32_t count)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     finishCount_ = count;
+    eosThread_ = std::make_unique<std::thread>(&SinkBytebufferImpl::EosFunc, this);
 }
 
 GstFlowReturn SinkBytebufferImpl::OutputAvailableCb(GstElement *sink, gpointer userData)
@@ -144,7 +168,7 @@ int32_t SinkBytebufferImpl::HandleOutputCb()
     uint32_t index = 0;
     HandleOutputBuffer(bufSize, index, buf);
 
-    bufferCount_++;
+    frameCount_++;
     gst_sample_unref(sample);
 
     if (index == bufferCount_ || index == bufferList_.size()) {
@@ -167,14 +191,15 @@ int32_t SinkBytebufferImpl::HandleOutputCb()
     info.size = bufSize;
     info.presentationTimeUs = GST_BUFFER_PTS(buf);
 
-    if (bufferCount_ >= finishCount_ && isEos == false) {
+    if (frameCount_ >= finishCount_ && isEos == false) {
         MEDIA_LOGD("EOS reach");
         isEos = true;
+        forceEOS_ = false;
         obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_EOS);
     } else {
         obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
     }
-    MEDIA_LOGD("OutputBuffer available, index:%{public}d, bufferCount:%{public}d", index, bufferCount_);
+    MEDIA_LOGD("OutputBuffer available, index:%{public}d, bufferCount:%{public}d", index, frameCount_);
 
     return MSERR_OK;
 }
@@ -198,6 +223,21 @@ void SinkBytebufferImpl::HandleOutputBuffer(uint32_t &bufSize, uint32_t &index, 
             break;
         }
         index++;
+    }
+}
+
+void SinkBytebufferImpl::EosFunc()
+{
+    const uint32_t timeout = 1000;
+    std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (forceEOS_ == true) {
+        auto obs = obs_.lock();
+        CHECK_AND_RETURN(obs != nullptr);
+        isEos = true;
+        AVCodecBufferInfo info;
+        MEDIA_LOGI("Signal EOS with empty buffer");
+        obs->OnOutputBufferAvailable(0, info, AVCODEC_BUFFER_FLAG_EOS);
     }
 }
 } // Media

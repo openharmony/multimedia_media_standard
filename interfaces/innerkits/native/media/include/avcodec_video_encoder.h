@@ -17,6 +17,7 @@
 #define AVCODEC_VIDEO_ENCODER_H
 
 #include "avcodec_common.h"
+#include "avcodec_info.h"
 #include "avsharedmemory.h"
 #include "format.h"
 #include "surface.h"
@@ -157,6 +158,15 @@ public:
     virtual int32_t GetOutputFormat(Format &format) = 0;
 
     /**
+     * @brief Gets the video encoder capability.
+     *
+     * @return Returns {@link VideoCaps}.
+     * @since 3.1
+     * @version 3.1
+     */
+    virtual std::shared_ptr<VideoCaps> GetVideoEncoderCaps() = 0;
+
+    /**
      * @brief Returns the output buffer to the encoder.
      *
      * This function must be called during running
@@ -187,7 +197,7 @@ public:
      *
      * @param callback Indicates the encoder listener to register. For details, see {@link AVCodecCallback}.
      * @return Returns {@link MSERR_OK} if success; returns an error code otherwise.
-     * @since 1.0
+     * @since 3.1
      * @version 3.1
      */
     virtual int32_t SetCallback(const std::shared_ptr<AVCodecCallback> &callback) = 0;
