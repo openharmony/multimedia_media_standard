@@ -204,7 +204,7 @@ int32_t SinkSurfaceImpl::HandleOutputCb()
         return MSERR_INVALID_OPERATION;
     }
 
-    bufferCount_++;
+    frameCount_++;
 
     auto obs = obs_.lock();
     if (obs == nullptr) {
@@ -220,7 +220,7 @@ int32_t SinkSurfaceImpl::HandleOutputCb()
 
     AVCodecBufferInfo info;
     info.presentationTimeUs = GST_BUFFER_PTS(buf);
-    if (bufferCount_ >= finishCount_ && isEos == false) {
+    if (frameCount_ >= finishCount_ && isEos == false) {
         MEDIA_LOGD("EOS reach");
         isEos = true;
         forceEOS_ = false;
@@ -228,7 +228,7 @@ int32_t SinkSurfaceImpl::HandleOutputCb()
     } else {
         obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
     }
-    MEDIA_LOGD("OutputBuffer available, index:%{public}d", index);
+    MEDIA_LOGD("OutputBuffer available, index:%{public}d, bufferCount:%{public}d", index, frameCount_);
 
     return MSERR_OK;
 }
