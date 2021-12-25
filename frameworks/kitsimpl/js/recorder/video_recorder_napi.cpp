@@ -57,7 +57,6 @@ napi_value VideoRecorderNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("stop", Stop),
         DECLARE_NAPI_FUNCTION("reset", Reset),
         DECLARE_NAPI_FUNCTION("release", Release),
-        // DECLARE_NAPI_FUNCTION("setNextOutputFile", SetNextOutputFile),
         DECLARE_NAPI_FUNCTION("on", On),
 
         DECLARE_NAPI_GETTER("state", GetState),
@@ -168,7 +167,6 @@ napi_value VideoRecorderNapi::Prepare(napi_env env, napi_callback_info info)
     napi_value args[2] = { nullptr };
 
     auto asyncCtx = std::make_unique<VideoRecorderAsyncContext>(env);
-    asyncCtx->asyncWorkType = AsyncWorkType::ASYNC_WORK_PREPARE;
 
     // get args
     size_t argCount = 2;
