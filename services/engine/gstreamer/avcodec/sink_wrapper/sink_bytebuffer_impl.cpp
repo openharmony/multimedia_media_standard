@@ -63,10 +63,7 @@ int32_t SinkBytebufferImpl::Init()
 int32_t SinkBytebufferImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 {
     CHECK_AND_RETURN_RET(element_ != nullptr && config->caps_ != nullptr, MSERR_UNKNOWN);
-    if (!config->isEncoder_) {
-        g_object_set(G_OBJECT(element_), "caps", config->caps_, nullptr);
-    }
-    (void)ParseCaps(config->caps_, format_);
+    g_object_set(G_OBJECT(element_), "caps", config->caps_, nullptr);
 
     for (uint32_t i = 0; i < bufferCount_; i++) {
         auto mem = AVSharedMemory::Create(bufferSize_, AVSharedMemory::Flags::FLAGS_READ_WRITE, "output");

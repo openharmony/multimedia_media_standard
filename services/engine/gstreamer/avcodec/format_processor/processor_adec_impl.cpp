@@ -89,8 +89,15 @@ int32_t ProcessorAdecImpl::ProcessOptional(const Format &format)
 
 std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetInputPortConfig()
 {
-    GstCaps *caps = nullptr;
+    CHECK_AND_RETURN_RET(channels_ > 0 && sampleRate_ > 0, nullptr);
+
     guint64 channelMask = 0;
+    if (!gst_audio_channel_positions_to_mask(CHANNEL_POSITION[channels_ - 1], channels_, FALSE, &channelMask)) {
+        MEDIA_LOGE("Invalid channel positions");
+        return nullptr;
+    }
+
+    GstCaps *caps = nullptr;
     switch (codecName_) {
         case CODEC_MIMIE_TYPE_AUDIO_VORBIS:
             caps = gst_caps_new_simple("audio/x-vorbis",
@@ -98,7 +105,6 @@ std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetInputPortConfig()
                 "channels", G_TYPE_INT, channels_, nullptr);
             break;
         case CODEC_MIMIE_TYPE_AUDIO_MP3:
-            (void)gst_audio_channel_positions_to_mask(CHANNEL_POSITION[channels_], channels_, FALSE, &channelMask);
             caps = gst_caps_new_simple("audio/mpeg",
                 "rate", G_TYPE_INT, sampleRate_,
                 "channels", G_TYPE_INT, channels_,
@@ -139,6 +145,8 @@ std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetInputPortConfig()
 
 std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetOutputPortConfig()
 {
+    CHECK_AND_RETURN_RET(channels_ > 0 && sampleRate_ > 0, nullptr);
+
     GstCaps *caps = gst_caps_new_simple("audio/x-raw",
         "rate", G_TYPE_INT, sampleRate_,
         "channels", G_TYPE_INT, channels_,
