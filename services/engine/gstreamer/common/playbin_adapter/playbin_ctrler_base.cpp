@@ -76,6 +76,8 @@ PlayBinCtrlerBase::~PlayBinCtrlerBase()
 {
     MEDIA_LOGD("enter dtor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
     Reset();
+    sinkProvider_ = nullptr;
+    notifier_ = nullptr;
 }
 
 int32_t PlayBinCtrlerBase::Init()
@@ -203,11 +205,6 @@ int32_t PlayBinCtrlerBase::Seek(int64_t timeUs, int32_t seekOption)
         return MSERR_INVALID_VAL;
     }
 
-    if (timeUs < 0) {
-        MEDIA_LOGE("negative seek position is invalid");
-        return MSERR_INVALID_VAL;
-    }
-
     std::unique_lock<std::mutex> lock(mutex_);
 
     auto seekTask = std::make_shared<TaskHandler<void>>([this, timeUs, seekOption]() {
@@ -223,13 +220,13 @@ int32_t PlayBinCtrlerBase::Seek(int64_t timeUs, int32_t seekOption)
 
 int32_t PlayBinCtrlerBase::StopInternel()
 {
+    taskMgr_.ClearAllTask();
+
     auto state = GetCurrState();
-    if (state == idleState_ || state == stoppedState_ || state == initializedState_) {
+    if (state == idleState_ || state == stoppedState_ || state == initializedState_ || state == preparingState_) {
         MEDIA_LOGI("curr state is %{public}s, skip", state->GetStateName().c_str());
         return MSERR_OK;
     }
-
-    taskMgr_.ClearAllTask();
 
     auto stopTask = std::make_shared<TaskHandler<void>>([this]() {
         auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
@@ -351,6 +348,7 @@ void PlayBinCtrlerBase::ExitInitializedState()
 
     MEDIA_LOGD("unref playbin start");
     if (playbin_ != nullptr) {
+        (void)gst_element_set_state(GST_ELEMENT_CAST(playbin_), GST_STATE_NULL);
         gst_object_unref(playbin_);
         playbin_ = nullptr;
     }
@@ -388,6 +386,7 @@ int32_t PlayBinCtrlerBase::SeekInternel(int64_t timeUs, int32_t seekOption)
 
     int32_t seekFlags = SEEK_OPTION_TO_GST_SEEK_FLAGS.at(seekOption);
     timeUs = timeUs > duration_ ? duration_ : timeUs;
+    timeUs = timeUs < 0 ? 0 : timeUs;
 
     constexpr int32_t usecToNanoSec = 1000;
     int64_t timeNs = timeUs * usecToNanoSec;

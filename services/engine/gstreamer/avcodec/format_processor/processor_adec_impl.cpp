@@ -104,7 +104,7 @@ std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetInputPortConfig()
                 "rate", G_TYPE_INT, sampleRate_,
                 "channels", G_TYPE_INT, channels_, nullptr);
             break;
-        case CODEC_MIMIE_TYPE_AUDIO_MP3:
+        case CODEC_MIMIE_TYPE_AUDIO_MPEG:
             caps = gst_caps_new_simple("audio/mpeg",
                 "rate", G_TYPE_INT, sampleRate_,
                 "channels", G_TYPE_INT, channels_,

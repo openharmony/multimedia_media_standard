@@ -37,7 +37,6 @@ enum class AsyncWorkType : int32_t {
 struct VideoPlayerAsyncContext : public MediaAsyncContext {
     explicit VideoPlayerAsyncContext(napi_env env) : MediaAsyncContext(env) {}
     ~VideoPlayerAsyncContext() = default;
-    VideoPlayerNapi *playerNapi = nullptr;
     VideoPlayerNapi *jsPlayer = nullptr;
     AsyncWorkType asyncWorkType = AsyncWorkType::ASYNC_WORK_INVALID;
     double volume = 1.0f; // default volume level

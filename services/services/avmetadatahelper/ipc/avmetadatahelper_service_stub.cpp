@@ -54,6 +54,7 @@ int32_t AVMetadataHelperServiceStub::Init()
     avMetadataHelperFuncs_[SET_SOURCE] = &AVMetadataHelperServiceStub::SetSource;
     avMetadataHelperFuncs_[RESOLVE_METADATA] = &AVMetadataHelperServiceStub::ResolveMetadata;
     avMetadataHelperFuncs_[RESOLVE_METADATA_MAP] = &AVMetadataHelperServiceStub::ResolveMetadataMap;
+    avMetadataHelperFuncs_[FETCH_ART_PICTURE] = &AVMetadataHelperServiceStub::FetchArtPicture;
     avMetadataHelperFuncs_[FETCH_FRAME_AT_TIME] = &AVMetadataHelperServiceStub::FetchFrameAtTime;
     avMetadataHelperFuncs_[RELEASE] = &AVMetadataHelperServiceStub::Release;
     avMetadataHelperFuncs_[DESTROY] = &AVMetadataHelperServiceStub::DestroyStub;
@@ -106,6 +107,12 @@ std::unordered_map<int32_t, std::string> AVMetadataHelperServiceStub::ResolveMet
     return avMetadateHelperServer_->ResolveMetadata();
 }
 
+std::shared_ptr<AVSharedMemory> AVMetadataHelperServiceStub::FetchArtPicture()
+{
+    CHECK_AND_RETURN_RET_LOG(avMetadateHelperServer_ != nullptr, nullptr, "avmetadatahelper server is nullptr");
+    return avMetadateHelperServer_->FetchArtPicture();
+}
+
 std::shared_ptr<AVSharedMemory> AVMetadataHelperServiceStub::FetchFrameAtTime(int64_t timeUs,
     int32_t option, const OutputConfiguration &param)
 {
@@ -149,6 +156,16 @@ int32_t AVMetadataHelperServiceStub::ResolveMetadataMap(MessageParcel &data, Mes
     reply.WriteInt32Vector(key);
     reply.WriteStringVector(dataStr);
     return MSERR_OK;
+}
+
+int32_t AVMetadataHelperServiceStub::FetchArtPicture(MessageParcel &data, MessageParcel &reply)
+{
+    auto result = FetchArtPicture();
+    if (result == nullptr) {
+        return MSERR_INVALID_OPERATION;
+    }
+
+    return WriteAVSharedMemoryToParcel(result, reply);
 }
 
 int32_t AVMetadataHelperServiceStub::FetchFrameAtTime(MessageParcel &data, MessageParcel &reply)

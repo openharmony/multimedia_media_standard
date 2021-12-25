@@ -32,6 +32,7 @@ private:
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
     static napi_value CreateAudioPlayer(napi_env env, napi_callback_info info);
+    static napi_value CreateAudioPlayerAsync(napi_env env, napi_callback_info info);
     static napi_value Play(napi_env env, napi_callback_info info);
     static napi_value Pause(napi_env env, napi_callback_info info);
     static napi_value Stop(napi_env env, napi_callback_info info);

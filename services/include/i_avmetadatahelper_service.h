@@ -81,6 +81,14 @@ public:
     virtual std::string ResolveMetadata(int32_t key) = 0;
 
     /**
+     * Fetch the album art picture associated with the data source. If there are
+     * more than one pictures, the cover image will be returned preferably.
+     * @return Returns the a chunk of shared memory containing a picture, which can be
+     * null, if such a picture can not be fetched.
+     */
+    virtual std::shared_ptr<AVSharedMemory> FetchArtPicture() = 0;
+
+    /**
      * Retrieve all meta data within the listed above at the definition of {@link AVMetadataCode}.
      * This method must be called after the SetSource.
      * @return Returns the meta data values on success; empty hash map on failure.

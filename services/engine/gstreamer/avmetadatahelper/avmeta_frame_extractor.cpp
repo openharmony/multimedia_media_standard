@@ -25,6 +25,13 @@ namespace {
 
 namespace OHOS {
 namespace Media {
+static const std::unordered_map<int32_t, IPlayBinCtrler::PlayBinSeekMode> SEEK_OPTION_MAPPING = {
+    { AV_META_QUERY_NEXT_SYNC, IPlayBinCtrler::PlayBinSeekMode::NEXT_SYNC },
+    { AV_META_QUERY_PREVIOUS_SYNC, IPlayBinCtrler::PlayBinSeekMode::PREV_SYNC },
+    { AV_META_QUERY_CLOSEST_SYNC, IPlayBinCtrler::PlayBinSeekMode::CLOSET_SYNC },
+    { AV_META_QUERY_CLOSEST, IPlayBinCtrler::PlayBinSeekMode::CLOSET },
+};
+
 AVMetaFrameExtractor::AVMetaFrameExtractor()
 {
     MEDIA_LOGD("enter ctor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
@@ -110,6 +117,7 @@ std::vector<std::shared_ptr<AVSharedMemory>> AVMetaFrameExtractor::ExtractIntern
         CHECK_AND_BREAK_LOG(startExtracting_, "cancelled, exit frame extract");
 
         auto item = originalFrames_.front();
+        originalFrames_.pop();
         lock.unlock();
 
         auto outFrame = frameConverter->Convert(*item.second, *item.first);
@@ -122,7 +130,6 @@ std::vector<std::shared_ptr<AVSharedMemory>> AVMetaFrameExtractor::ExtractIntern
         gst_caps_unref(item.second);
 
         lock.lock();
-        originalFrames_.pop();
     } while (outFrames.size() < static_cast<size_t>(maxFrames_));
 
     MEDIA_LOGD("extract frame finished");
@@ -141,7 +148,18 @@ int32_t AVMetaFrameExtractor::StartExtract(
     startExtracting_ = true;
     maxFrames_ = numFrames;
 
-    int32_t ret = playbin_->Seek(timeUs, option);
+    int64_t duration = playbin_->GetDuration();
+    MEDIA_LOGD("duration: %{public}" PRIi64, duration);
+    if (timeUs > duration && option == AV_META_QUERY_NEXT_SYNC) {
+        option = AV_META_QUERY_PREVIOUS_SYNC;
+    }
+
+    IPlayBinCtrler::PlayBinSeekMode mode = IPlayBinCtrler::PlayBinSeekMode::PREV_SYNC;
+    if (SEEK_OPTION_MAPPING.find(option) != SEEK_OPTION_MAPPING.end()) {
+        mode = SEEK_OPTION_MAPPING.at(option);
+    }
+
+    int32_t ret = playbin_->Seek(timeUs, mode);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "seek failed, cancel extract frames");
 
     frameConverter_ = std::make_unique<AVMetaFrameConverter>();

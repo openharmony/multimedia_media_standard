@@ -166,8 +166,10 @@ std::shared_ptr<AVSharedMemory> AVMetaFrameConverter::GetConvertResult()
 
 void AVMetaFrameConverter::UninstallPipeline()
 {
-    if (currState_ > GST_STATE_READY) {
-        (void)ChangeState(GST_STATE_READY);
+    if (pipeline_ != nullptr) {
+        ChangeState(GST_STATE_NULL);
+        gst_object_unref(pipeline_);
+        pipeline_ = nullptr;
     }
 
     if (pipeline_ != nullptr) {
@@ -200,6 +202,7 @@ int32_t AVMetaFrameConverter::Reset()
     lock.unlock();
     tempMsgProc->FlushBegin();
     tempMsgProc->Reset();
+    tempMsgProc = nullptr;
     lock.lock();
 
     UninstallPipeline();
@@ -341,6 +344,7 @@ void AVMetaFrameConverter::OnNotifyMessage(const InnerMessage &msg)
 
     switch (msg.type) {
         case InnerMsgType::INNER_MSG_STATE_CHANGED: {
+            MEDIA_LOGD("state is %{public}s", gst_element_state_get_name(currState_));
             currState_ = static_cast<GstState>(msg.detail2);
             cond_.notify_all();
             break;

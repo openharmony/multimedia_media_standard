@@ -89,7 +89,7 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetOutputPortConfig()
 
     GstCaps *caps = nullptr;
     switch (codecName_) {
-        case CODEC_MIMIE_TYPE_VIDEO_MPEG:
+        case CODEC_MIMIE_TYPE_VIDEO_MPEG4:
             caps = gst_caps_new_simple("video/mpeg",
                 "width", G_TYPE_INT, width_,
                 "height", G_TYPE_INT, height_,
