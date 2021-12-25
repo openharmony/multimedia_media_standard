@@ -17,6 +17,7 @@
 #define AUDIO_RECORDER_NAPI_H_
 
 #include "recorder.h"
+#include "av_common.h"
 #include "media_errors.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
@@ -63,6 +64,7 @@ private:
         int32_t encodeBitRate;
         int32_t audioSampleRate;
         int32_t numberOfChannels;
+        Location location;
     };
     int32_t GetAudioProperties(napi_env env, napi_value args, AudioRecorderProperties &properties);
     int32_t GetAudioUriPath(napi_env env, napi_value args, std::string &uriPath);

@@ -20,6 +20,7 @@
 #include <string>
 #include "format.h"
 #include "surface.h"
+#include "av_common.h"
 
 namespace OHOS {
 namespace Media {
@@ -33,9 +34,6 @@ enum VideoSourceType : int32_t {
     /** Unsupported App Usage. */
     /** YUV video data provided through {@link Surface} */
     VIDEO_SOURCE_SURFACE_YUV = 0,
-    /** Unsupported App Usage. */
-    /** RGB video data provided through {@link Surface} */
-    VIDEO_SOURCE_SURFACE_RGB,
     /** Raw encoded data provided through {@link Surface} */
     VIDEO_SOURCE_SURFACE_ES,
     /** Invalid value */
@@ -67,66 +65,6 @@ enum AudioSourceType : int32_t {
 enum DataSourceType : int32_t {
     /** meta data source */
     METADATA = 0
-};
-
-/**
- * @brief Enumerates output format types.
- *
- * @since 1.0
- * @version 1.0
- */
-enum OutputFormatType : int32_t {
-    /** Default format */
-    FORMAT_DEFAULT = 0,
-    /** MPEG4 format */
-    FORMAT_MPEG_4,
-    /** M4A format */
-    FORMAT_M4A,
-    /** BUTT */
-    FORMAT_BUTT,
-};
-
-/**
- * @brief Enumerates video codec formats.
- *
- * @since 1.0
- * @version 1.0
- */
-enum VideoCodecFormat : int32_t {
-    /** Default format */
-    VIDEO_DEFAULT = 0,
-    /** H.264 */
-    H264 = 2,
-    /** Unsupported App Usage. */
-    /** High Efficiency Video Coding (HEVC) */
-    HEVC = 5,
-    /** MPEG4 */
-    MPEG4 = 6,
-    VIDEO_CODEC_FORMAT_BUTT,
-};
-
-/**
- * @brief Enumerates audio codec formats.
- *
- * @since 1.0
- * @version 1.0
- */
-enum AudioCodecFormat : int32_t {
-    /** Default format */
-    AUDIO_DEFAULT = 0,
-    /** Advanced Audio Coding Low Complexity (AAC-LC) */
-    AAC_LC      =   1,
-    /** The following app usages are not supported. */
-    /** High-Efficiency Advanced Audio Coding (AAC-HE), previously known as AAC+ or aacPlus v1 */
-    AAC_HE_V1   =   2,
-    /** AAC++ or aacPlus v2 */
-    AAC_HE_V2   =   3,
-    /** Advanced Audio Coding Low Delay (AAC-LD) */
-    AAC_LD      =   4,
-    /** Advanced Audio Coding Enhanced Low Delay (AAC-ELD) */
-    AAC_ELD     =   5,
-    /** Invalid value */
-    AUDIO_CODEC_FORMAT_BUTT,
 };
 
 /**
@@ -523,7 +461,7 @@ public:
      *
      * @param latitude float: latitude in degrees. Its value must be in the range [-90, 90].
      * @param longitude float: longitude in degrees. Its value must be in the range [-180, 180].
-     * @since 1openharmony 3.1
+     * @since openharmony 3.1
      * @version 1.0
      */
     virtual void SetLocation(float latitude, float longitude) = 0;
@@ -533,7 +471,7 @@ public:
      * the range of orientation should be {0, 90, 180, 270}, default is 0.
      *
      * @param rotation int32_t: should be {0, 90, 180, 270}, default is 0.
-     * @since 1openharmony 3.1
+     * @since openharmony 3.1
      * @version 1.0
      */
     virtual void SetOrientationHint(int32_t rotation) = 0;
