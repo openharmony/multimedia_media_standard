@@ -65,6 +65,8 @@ int32_t ProcessorVencImpl::ProcessOptional(const Format &format)
 
 std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetInputPortConfig()
 {
+    CHECK_AND_RETURN_RET(width_ > 0 && height_ > 0, nullptr);
+
     GstCaps *caps = gst_caps_new_simple("video/x-raw",
         "width", G_TYPE_INT, width_,
         "height", G_TYPE_INT, height_,
@@ -83,6 +85,8 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetInputPortConfig()
 
 std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetOutputPortConfig()
 {
+    CHECK_AND_RETURN_RET(width_ > 0 && height_ > 0, nullptr);
+
     GstCaps *caps = nullptr;
     switch (codecName_) {
         case CODEC_MIMIE_TYPE_VIDEO_MPEG:

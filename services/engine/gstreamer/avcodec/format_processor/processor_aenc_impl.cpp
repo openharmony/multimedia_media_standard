@@ -90,8 +90,9 @@ int32_t ProcessorAencImpl::ProcessOptional(const Format &format)
 
 std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetInputPortConfig()
 {
+    CHECK_AND_RETURN_RET(channels_ > 0 && sampleRate_ > 0, nullptr);
+
     guint64 channelMask = 0;
-    CHECK_AND_RETURN_RET(channels_ > 0, nullptr);
     if (!gst_audio_channel_positions_to_mask(CHANNEL_POSITION[channels_ - 1], channels_, FALSE, &channelMask)) {
         MEDIA_LOGE("Invalid channel positions");
         return nullptr;
@@ -116,6 +117,8 @@ std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetInputPortConfig()
 
 std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetOutputPortConfig()
 {
+    CHECK_AND_RETURN_RET(channels_ > 0 && sampleRate_ > 0, nullptr);
+
     GstCaps *caps = nullptr;
     switch (codecName_) {
         case CODEC_MIMIE_TYPE_AUDIO_AAC:
@@ -123,7 +126,7 @@ std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetOutputPortConfig()
                 "rate", G_TYPE_INT, sampleRate_,
                 "channels", G_TYPE_INT, channels_,
                 "mpegversion", G_TYPE_INT, 4,
-                "stream-format", G_TYPE_STRING, "adts",
+                "stream-format", G_TYPE_STRING, "raw",
                 "base-profile", G_TYPE_STRING, "lc", nullptr);
             break;
         default:
