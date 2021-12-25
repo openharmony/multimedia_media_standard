@@ -57,6 +57,7 @@ private:
     bool isFirstFrame_ = true;
     Format format_;
     bool forceEOS_ = true;
+    uint32_t frameCount_ = 0;
 };
 } // Media
 } // OHOS

@@ -105,6 +105,7 @@ int32_t SinkBytebufferImpl::Flush()
     isEos = false;
     isFirstFrame_ = true;
     forceEOS_ = true;
+    frameCount_ = 0;
 
     return MSERR_OK;
 }
@@ -170,7 +171,7 @@ int32_t SinkBytebufferImpl::HandleOutputCb()
     uint32_t index = 0;
     HandleOutputBuffer(bufSize, index, buf);
 
-    bufferCount_++;
+    frameCount_++;
     gst_sample_unref(sample);
 
     if (index == bufferCount_ || index == bufferList_.size()) {
@@ -193,7 +194,7 @@ int32_t SinkBytebufferImpl::HandleOutputCb()
     info.size = bufSize;
     info.presentationTimeUs = GST_BUFFER_PTS(buf);
 
-    if (bufferCount_ >= finishCount_ && isEos == false) {
+    if (frameCount_ >= finishCount_ && isEos == false) {
         MEDIA_LOGD("EOS reach");
         isEos = true;
         forceEOS_ = false;
@@ -201,7 +202,7 @@ int32_t SinkBytebufferImpl::HandleOutputCb()
     } else {
         obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
     }
-    MEDIA_LOGD("OutputBuffer available, index:%{public}d, bufferCount:%{public}d", index, bufferCount_);
+    MEDIA_LOGD("OutputBuffer available, index:%{public}d, bufferCount:%{public}d", index, frameCount_);
 
     return MSERR_OK;
 }
