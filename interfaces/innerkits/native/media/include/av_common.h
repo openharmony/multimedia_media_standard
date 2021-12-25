@@ -329,22 +329,8 @@ enum VideoEncodeBitrateMode {
 enum ContainerFormatType : int32_t {
     /** MP4 */
     CFT_MPEG_4 = 0,
-    /** Unsupported */
-    CFT_MPEG_TS,
-    /** Unsupported */
-    CFT_MKV,
-    /** Unsupported */
-    CFT_WEBM,
     /** M4A */
     CFT_MPEG_4A,
-    /** Unsupported */
-    CFT_OGG,
-    /** Unsupported */
-    CFT_WAV,
-    /** Unsupported */
-    CFT_AAC,
-    /** Unsupported */
-    CFT_FLAC,
 };
 
 /**
@@ -362,36 +348,18 @@ struct Location {
 
 enum CodecMimeType : int32_t {
     CODEC_MIMIE_TYPE_DEFAULT = -1,
-    /** Unsupported */
-    CODEC_MIMIE_TYPE_VIDEO_H263 = 0,
     /** H264 */
     CODEC_MIMIE_TYPE_VIDEO_AVC,
-    /** Unsupported */
-    CODEC_MIMIE_TYPE_VIDEO_MPEG2,
-    /** Unsupported */
-    CODEC_MIMIE_TYPE_VIDEO_HEVC,
     /** MPEG4 */
     CODEC_MIMIE_TYPE_VIDEO_MPEG4,
-    /** Unsupported */
-    CODEC_MIMIE_TYPE_VIDEO_VP8,
-    /** Unsupported */
-    CODEC_MIMIE_TYPE_VIDEO_VP9,
-    /** Unsupported */
-    CODEC_MIMIE_TYPE_AUDIO_AMR_NB,
-    /** Unsupported */
-    CODEC_MIMIE_TYPE_AUDIO_AMR_WB,
     /** MP3 */
     CODEC_MIMIE_TYPE_AUDIO_MPEG,
     /** AAC */
     CODEC_MIMIE_TYPE_AUDIO_AAC,
     /** VORBIS */
     CODEC_MIMIE_TYPE_AUDIO_VORBIS,
-    /** Unsupported */
-    CODEC_MIMIE_TYPE_AUDIO_OPUS,
     /** FLAC */
     CODEC_MIMIE_TYPE_AUDIO_FLAC,
-    /** Unsupported */
-    CODEC_MIMIE_TYPE_AUDIO_RAW,
 };
 
 /**
@@ -422,9 +390,6 @@ enum VideoCodecFormat : int32_t {
     VIDEO_DEFAULT = 0,
     /** H.264 */
     H264 = 2,
-    /** Unsupported */
-    /** High Efficiency Video Coding (HEVC) */
-    HEVC = 5,
     /** MPEG4 */
     MPEG4 = 6,
     VIDEO_CODEC_FORMAT_BUTT,

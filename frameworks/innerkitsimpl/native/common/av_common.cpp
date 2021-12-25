@@ -21,67 +21,35 @@
 namespace OHOS {
 namespace Media {
 const std::map<std::string, CodecMimeType> STRING_TO_CODECMIME = {
-    {"video/h263", CODEC_MIMIE_TYPE_VIDEO_H263},
     {"video/avc", CODEC_MIMIE_TYPE_VIDEO_AVC},
-    {"video/mpeg2", CODEC_MIMIE_TYPE_VIDEO_MPEG2},
-    {"video/hevc", CODEC_MIMIE_TYPE_VIDEO_HEVC},
     {"video/mp4v-es", CODEC_MIMIE_TYPE_VIDEO_MPEG4},
-    {"video/x-vnd.on2.vp8", CODEC_MIMIE_TYPE_VIDEO_VP8},
-    {"video/x-vnd.on2.vp9", CODEC_MIMIE_TYPE_VIDEO_VP9},
-    {"audio/3gpp", CODEC_MIMIE_TYPE_AUDIO_AMR_NB},
-    {"audio/amr-wb", CODEC_MIMIE_TYPE_AUDIO_AMR_WB},
     {"audio/mpeg", CODEC_MIMIE_TYPE_AUDIO_MPEG},
     {"audio/mp4a-latm", CODEC_MIMIE_TYPE_AUDIO_AAC},
     {"audio/vorbis", CODEC_MIMIE_TYPE_AUDIO_VORBIS},
-    {"audio/opus", CODEC_MIMIE_TYPE_AUDIO_OPUS},
     {"audio/flac", CODEC_MIMIE_TYPE_AUDIO_FLAC},
-    {"audio/raw", CODEC_MIMIE_TYPE_AUDIO_RAW},
 };
 
 const std::map<std::string, ContainerFormatType> STRING_TO_CFT = {
     {"mp4", CFT_MPEG_4},
-    {"mpeg-ts", CFT_MPEG_TS},
-    {"mkv", CFT_MKV},
-    {"webm", CFT_WEBM},
     {"m4a", CFT_MPEG_4A},
-    {"ogg", CFT_OGG},
-    {"wav", CFT_WAV},
-    {"aac", CFT_AAC},
-    {"flac", CFT_FLAC},
 };
 
 const std::map<ContainerFormatType, OutputFormatType> CTF_TO_OUTFORMAT = {
     {CFT_MPEG_4, FORMAT_MPEG_4},
-    {CFT_MPEG_TS, FORMAT_BUTT},
-    {CFT_MKV, FORMAT_BUTT},
-    {CFT_WEBM, FORMAT_BUTT},
     {CFT_MPEG_4A, FORMAT_M4A},
-    {CFT_OGG, FORMAT_BUTT},
-    {CFT_WAV, FORMAT_BUTT},
-    {CFT_AAC, FORMAT_BUTT},
-    {CFT_FLAC, FORMAT_BUTT},
 };
 
 const std::map<CodecMimeType, AudioCodecFormat> CMT_TO_AUDIO_CODEC = {
     {CODEC_MIMIE_TYPE_DEFAULT, AUDIO_DEFAULT},
-    {CODEC_MIMIE_TYPE_AUDIO_AMR_NB, AUDIO_CODEC_FORMAT_BUTT},
-    {CODEC_MIMIE_TYPE_AUDIO_AMR_WB, AUDIO_CODEC_FORMAT_BUTT},
     {CODEC_MIMIE_TYPE_AUDIO_MPEG, AUDIO_CODEC_FORMAT_BUTT},
     {CODEC_MIMIE_TYPE_AUDIO_AAC, AAC_LC},
     {CODEC_MIMIE_TYPE_AUDIO_VORBIS, AUDIO_CODEC_FORMAT_BUTT},
-    {CODEC_MIMIE_TYPE_AUDIO_OPUS, AUDIO_CODEC_FORMAT_BUTT},
     {CODEC_MIMIE_TYPE_AUDIO_FLAC, AUDIO_CODEC_FORMAT_BUTT},
-    {CODEC_MIMIE_TYPE_AUDIO_RAW, AUDIO_CODEC_FORMAT_BUTT},
 };
 
 const std::map<CodecMimeType, VideoCodecFormat> CMT_TO_VIDEO_CODEC = {
-    {CODEC_MIMIE_TYPE_VIDEO_H263, VIDEO_CODEC_FORMAT_BUTT},
     {CODEC_MIMIE_TYPE_VIDEO_AVC, H264},
-    {CODEC_MIMIE_TYPE_VIDEO_MPEG2, VIDEO_CODEC_FORMAT_BUTT},
-    {CODEC_MIMIE_TYPE_VIDEO_HEVC, HEVC},
     {CODEC_MIMIE_TYPE_VIDEO_MPEG4, MPEG4},
-    {CODEC_MIMIE_TYPE_VIDEO_VP8, VIDEO_CODEC_FORMAT_BUTT},
-    {CODEC_MIMIE_TYPE_VIDEO_VP9, VIDEO_CODEC_FORMAT_BUTT},
 };
 
 int32_t MapStringToCodecMime(const std::string &mime, CodecMimeType &name)
