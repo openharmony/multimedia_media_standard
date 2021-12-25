@@ -348,8 +348,14 @@ struct Location {
 
 enum CodecMimeType : int32_t {
     CODEC_MIMIE_TYPE_DEFAULT = -1,
+    /** H263 */
+    CODEC_MIMIE_TYPE_VIDEO_H263,    
     /** H264 */
     CODEC_MIMIE_TYPE_VIDEO_AVC,
+    /** MPEG2 */
+    CODEC_MIMIE_TYPE_VIDEO_MPEG2,
+    /** HEVC */
+    CODEC_MIMIE_TYPE_VIDEO_HEVC,
     /** MPEG4 */
     CODEC_MIMIE_TYPE_VIDEO_MPEG4,
     /** MP3 */
