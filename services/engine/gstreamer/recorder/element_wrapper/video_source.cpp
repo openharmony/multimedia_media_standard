@@ -98,6 +98,7 @@ int32_t VideoSource::ConfigureVideoFrameRate(const RecorderParam &recParam)
         return MSERR_INVALID_VAL;
     }
     MarkParameter(RecorderPublicParamType::VID_FRAMERATE);
+    g_object_set(gstElem_, "frame-rate", param.frameRate, nullptr);
     frameRate_ = param.frameRate;
     return MSERR_OK;
 }

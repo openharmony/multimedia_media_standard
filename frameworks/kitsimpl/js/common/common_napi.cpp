@@ -66,6 +66,28 @@ bool CommonNapi::GetPropertyInt32(napi_env env, napi_value configObj, const std:
     return true;
 }
 
+bool CommonNapi::GetPropertyDouble(napi_env env, napi_value configObj, const std::string &type, double &result)
+{
+    napi_value item = nullptr;
+    bool exist = false;
+    napi_status status = napi_has_named_property(env, configObj, type.c_str(), &exist);
+    if (status != napi_ok || !exist) {
+        MEDIA_LOGE("can not find %{public}s property", type.c_str());
+        return false;
+    }
+
+    if (napi_get_named_property(env, configObj, type.c_str(), &item) != napi_ok) {
+        MEDIA_LOGE("get %{public}s property fail", type.c_str());
+        return false;
+    }
+
+    if (napi_get_value_double(env, item, &result) != napi_ok) {
+        MEDIA_LOGE("get %{public}s property value fail", type.c_str());
+        return false;
+    }
+    return true;
+}
+
 std::string CommonNapi::GetPropertyString(napi_env env, napi_value configObj, const std::string &type)
 {
     std::string invalid = "";

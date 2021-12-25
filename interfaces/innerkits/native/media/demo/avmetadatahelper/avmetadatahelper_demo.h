@@ -33,6 +33,7 @@ public:
 private:
     void GetMetadata(std::queue<std::string_view> &options);
     void FetchFrame(std::queue<std::string_view> &options);
+    void FetchArtPicture(std::queue<std::string_view> &option);
     void DoFetchFrame(int64_t timeUs, int32_t queryOption, const PixelMapParams &param);
     void DoNext();
     std::shared_ptr<AVMetadataHelper> avMetadataHelper_;

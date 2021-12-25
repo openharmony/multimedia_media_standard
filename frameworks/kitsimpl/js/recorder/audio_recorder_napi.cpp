@@ -257,6 +257,14 @@ int32_t AudioRecorderNapi::GetAudioProperties(napi_env env, napi_value args, Aud
             return MSERR_INVALID_VAL;
     }
 
+    napi_value geoLocation = nullptr;
+    napi_get_named_property(env, args, "location", &geoLocation);
+    double tempLatitude, tempLongitude;
+    (void)CommonNapi::GetPropertyDouble(env, geoLocation, "latitude", tempLatitude);
+    (void)CommonNapi::GetPropertyDouble(env, geoLocation, "longitude", tempLongitude);
+    properties.location.latitude = static_cast<float>(tempLatitude);
+    properties.location.longitude = static_cast<float>(tempLongitude);
+
     ret = CommonNapi::GetPropertyInt32(env, args, "audioEncodeBitRate", properties.encodeBitRate);
     CHECK_AND_RETURN_RET_LOG(ret, MSERR_INVALID_VAL, "get audioEncodeBitRate failed");
     ret = CommonNapi::GetPropertyInt32(env, args, "audioSampleRate", properties.audioSampleRate);
@@ -307,6 +315,8 @@ int32_t AudioRecorderNapi::OnPrepare(const std::string &uriPath, const AudioReco
     ret = recorderImpl_->SetAudioChannels(sourceId, properties.numberOfChannels);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to SetAudioChannels");
 
+    recorderImpl_->SetLocation(properties.location.latitude, properties.location.longitude);
+    
     ret = SetUri(uriPath);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to SetUri");
 

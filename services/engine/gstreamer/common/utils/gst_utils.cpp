@@ -52,47 +52,5 @@ bool MatchElementByMeta(
 
     return false;
 }
-
-DecoderPerf::~DecoderPerf()
-{
-    for (auto &item : probes_) {
-        gst_pad_remove_probe(item.first, item.second);
-    }
-    CLEAN_PERF_RECORD(this);
-}
-
-void DecoderPerf::Init()
-{
-    if (g_list_length(decoder_.srcpads) == 0) {
-        MEDIA_LOGE("%{public}s no srcpads, ignore", ELEM_NAME(&decoder_));
-        return;
-    }
-
-    GList *padNode = g_list_first(decoder_.srcpads);
-    CHECK_AND_RETURN(padNode != nullptr && padNode->data != nullptr);
-    GstPad *pad = reinterpret_cast<GstPad *>(padNode->data);
-    gulong probeId = gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_DATA_DOWNSTREAM, OnOutputArrived, this, nullptr);
-    if (probeId == 0) {
-        MEDIA_LOGW("add probe for %{public}s's pad %{public}s failed", ELEM_NAME(&decoder_), PAD_NAME(&pad));
-        return;
-    }
-    probes_.push_back({pad, probeId});
-}
-
-GstPadProbeReturn DecoderPerf::OnOutputArrived(GstPad *pad, GstPadProbeInfo *info, gpointer thiz)
-{
-    (void)pad;
-    CHECK_AND_RETURN_RET(info != nullptr, GST_PAD_PROBE_OK);
-    CHECK_AND_RETURN_RET(thiz != nullptr, GST_PAD_PROBE_OK);
-
-    auto type = static_cast<unsigned int>(info->type);
-    if ((type & (GST_PAD_PROBE_TYPE_BUFFER | GST_PAD_PROBE_TYPE_BUFFER_LIST)) == 0) {
-        return GST_PAD_PROBE_OK;
-    }
-
-    ASYNC_PERF_STOP(thiz, "DecodeFrame");
-    ASYNC_PERF_START(thiz, "DecodeFrame");
-    return GST_PAD_PROBE_OK;
-}
 }
 }
