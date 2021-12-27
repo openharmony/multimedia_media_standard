@@ -143,7 +143,7 @@ int32_t AVCodecEngineCtrl::Start()
         std::unique_lock<std::mutex> lock(gstPipeMutex_);
         gstPipeCond_.wait(lock);
     }
-    if (needInputCallback_) {
+    if (needInputCallback_ && isFirstStart) {
         auto obs = obs_.lock();
         CHECK_AND_RETURN_RET(obs != nullptr, MSERR_UNKNOWN);
         CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
@@ -151,6 +151,7 @@ int32_t AVCodecEngineCtrl::Start()
         for (uint32_t i = 0; i < bufferCount; i++) {
             obs->OnInputBufferAvailable(i);
         }
+        isFirstStart = false;
     }
 
     MEDIA_LOGD("Start success");

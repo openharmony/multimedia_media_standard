@@ -199,7 +199,6 @@ int32_t SinkBytebufferImpl::HandleOutputCb()
     } else {
         obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
     }
-    MEDIA_LOGD("OutputBuffer available, index:%{public}d, bufferCount:%{public}d", index, frameCount_);
 
     return MSERR_OK;
 }
