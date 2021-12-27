@@ -1101,10 +1101,10 @@ static std::string GetJSState(PlayerStates currentState)
             result = VideoPlayState::STATE_PLAYING;
             break;
         case PLAYER_PAUSED:
-        case PLAYER_PLAYBACK_COMPLETE:
             result = VideoPlayState::STATE_PAUSED;
             break;
         case PLAYER_STOPPED:
+        case PLAYER_PLAYBACK_COMPLETE:
             result = VideoPlayState::STATE_STOPPED;
             break;
         default:
