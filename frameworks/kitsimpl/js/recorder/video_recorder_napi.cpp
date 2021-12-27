@@ -290,8 +290,6 @@ napi_value VideoRecorderNapi::Start(napi_env env, napi_callback_info info)
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
-    asyncCtx->napi->currentStates_ = VideoRecorderState::STATE_PLAYING;
-
     // async work
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Start", NAPI_AUTO_LENGTH, &resource);
@@ -304,6 +302,7 @@ napi_value VideoRecorderNapi::Start(napi_env env, napi_callback_info info)
         if (threadCtx->napi->recorder_->Start() != MSERR_OK) {
             threadCtx->SignError(MSERR_UNKNOWN, "Failed to Start");
         }
+        threadCtx->napi->currentStates_ = VideoRecorderState::STATE_PLAYING;
     }, MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
     NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
     asyncCtx.release();
@@ -331,8 +330,6 @@ napi_value VideoRecorderNapi::Pause(napi_env env, napi_callback_info info)
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
-    asyncCtx->napi->currentStates_ = VideoRecorderState::STATE_PAUSED;
-
     // async work
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Pause", NAPI_AUTO_LENGTH, &resource);
@@ -345,6 +342,7 @@ napi_value VideoRecorderNapi::Pause(napi_env env, napi_callback_info info)
         if (threadCtx->napi->recorder_->Pause() != MSERR_OK) {
             threadCtx->SignError(MSERR_UNKNOWN, "Failed to Pause");
         }
+        threadCtx->napi->currentStates_ = VideoRecorderState::STATE_PAUSED;
     }, MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
     NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
     asyncCtx.release();
@@ -372,8 +370,6 @@ napi_value VideoRecorderNapi::Resume(napi_env env, napi_callback_info info)
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
-    asyncCtx->napi->currentStates_ = VideoRecorderState::STATE_PLAYING;
-
     // async work
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Resume", NAPI_AUTO_LENGTH, &resource);
@@ -386,6 +382,7 @@ napi_value VideoRecorderNapi::Resume(napi_env env, napi_callback_info info)
         if (threadCtx->napi->recorder_->Resume() != MSERR_OK) {
             threadCtx->SignError(MSERR_UNKNOWN, "Failed to Resume");
         }
+        threadCtx->napi->currentStates_ = VideoRecorderState::STATE_PLAYING;
     }, MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
     NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
     asyncCtx.release();
@@ -413,8 +410,6 @@ napi_value VideoRecorderNapi::Stop(napi_env env, napi_callback_info info)
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
-    asyncCtx->napi->currentStates_ = VideoRecorderState::STATE_STOPPED;
-
     // async work
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Stop", NAPI_AUTO_LENGTH, &resource);
@@ -427,6 +422,7 @@ napi_value VideoRecorderNapi::Stop(napi_env env, napi_callback_info info)
         if (threadCtx->napi->recorder_->Stop(false) != MSERR_OK) {
             threadCtx->SignError(MSERR_UNKNOWN, "Failed to Stop");
         }
+        threadCtx->napi->currentStates_ = VideoRecorderState::STATE_STOPPED;
     }, MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
     NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
     asyncCtx.release();
@@ -454,8 +450,6 @@ napi_value VideoRecorderNapi::Reset(napi_env env, napi_callback_info info)
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
-    asyncCtx->napi->currentStates_ = VideoRecorderState::STATE_IDLE;
-
     // async work
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Reset", NAPI_AUTO_LENGTH, &resource);
@@ -468,6 +462,7 @@ napi_value VideoRecorderNapi::Reset(napi_env env, napi_callback_info info)
         if (threadCtx->napi->recorder_->Reset() != MSERR_OK) {
             threadCtx->SignError(MSERR_UNKNOWN, "Failed to Reset");
         }
+        threadCtx->napi->currentStates_ = VideoRecorderState::STATE_IDLE;
     }, MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
     NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
     asyncCtx.release();
@@ -495,8 +490,6 @@ napi_value VideoRecorderNapi::Release(napi_env env, napi_callback_info info)
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
-    asyncCtx->napi->currentStates_ = VideoRecorderState::STATE_IDLE;
-
     // async work
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Release", NAPI_AUTO_LENGTH, &resource);
@@ -509,6 +502,7 @@ napi_value VideoRecorderNapi::Release(napi_env env, napi_callback_info info)
         if (threadCtx->napi->recorder_->Release() != MSERR_OK) {
             threadCtx->SignError(MSERR_UNKNOWN, "Failed to Release");
         }
+        threadCtx->napi->currentStates_ = VideoRecorderState::STATE_IDLE;
     }, MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
     NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
     asyncCtx.release();
