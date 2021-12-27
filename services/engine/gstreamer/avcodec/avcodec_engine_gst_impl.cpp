@@ -159,7 +159,6 @@ int32_t AVCodecEngineGstImpl::SetOutputSurface(sptr<Surface> surface)
 
 std::shared_ptr<AVSharedMemory> AVCodecEngineGstImpl::GetInputBuffer(uint32_t index)
 {
-    MEDIA_LOGD("Enter GetInputBuffer, index:%{public}d", index);
     std::unique_lock<std::mutex> lock(mutex_);
 
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, nullptr);
@@ -168,7 +167,6 @@ std::shared_ptr<AVSharedMemory> AVCodecEngineGstImpl::GetInputBuffer(uint32_t in
 
 int32_t AVCodecEngineGstImpl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
 {
-    MEDIA_LOGD("Enter QueueInputBuffer, index:%{public}d", index);
     std::unique_lock<std::mutex> lock(mutex_);
 
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_NO_MEMORY);
@@ -177,7 +175,6 @@ int32_t AVCodecEngineGstImpl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo
 
 std::shared_ptr<AVSharedMemory> AVCodecEngineGstImpl::GetOutputBuffer(uint32_t index)
 {
-    MEDIA_LOGD("Enter GetOutputBuffer, index:%{public}d", index);
     std::unique_lock<std::mutex> lock(mutex_);
 
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, nullptr);
@@ -201,7 +198,6 @@ std::shared_ptr<VideoCaps> AVCodecEngineGstImpl::GetVideoCaps()
 
 int32_t AVCodecEngineGstImpl::ReleaseOutputBuffer(uint32_t index, bool render)
 {
-    MEDIA_LOGD("Enter ReleaseOutputBuffer, index:%{public}d", index);
     std::unique_lock<std::mutex> lock(mutex_);
 
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_NO_MEMORY);

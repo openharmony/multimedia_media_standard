@@ -87,8 +87,6 @@ int32_t AVCodecServiceStub::DestroyStub()
 int AVCodecServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
-    MEDIA_LOGI("Stub: OnRemoteRequest of code: %{public}d is received", code);
-
     auto itFunc = recFuncs_.find(code);
     if (itFunc != recFuncs_.end()) {
         auto memberFunc = itFunc->second;
