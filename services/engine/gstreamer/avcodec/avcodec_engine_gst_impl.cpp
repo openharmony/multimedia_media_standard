@@ -130,6 +130,7 @@ int32_t AVCodecEngineGstImpl::Reset()
     ctrl_ = std::make_unique<AVCodecEngineCtrl>();
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_NO_MEMORY);
     CHECK_AND_RETURN_RET(ctrl_->Init(type_, uswSoftWare_, pluginName_) == MSERR_OK, MSERR_UNKNOWN);
+    ctrl_->SetObs(obs_);
 
     MEDIA_LOGD("Reset success");
     return MSERR_OK;
