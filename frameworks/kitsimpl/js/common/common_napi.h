@@ -215,6 +215,21 @@ private:
     bool isDecoder_;
 };
 
+class MediaCapsJsResultAudioDynamic : public MediaJsResult {
+public:
+    explicit MediaCapsJsResultAudioDynamic(std::string name, bool isDecoder)
+        : name_(name),
+          isDecoder_(isDecoder)
+    {
+    }
+    ~MediaCapsJsResultAudioDynamic() = default;
+    napi_status GetJsResult(napi_env env, napi_value &result) override;
+
+private:
+    std::string name_;
+    bool isDecoder_;
+};
+
 struct MediaAsyncContext {
     explicit MediaAsyncContext(napi_env env) : env(env) {}
     virtual ~MediaAsyncContext() = default;

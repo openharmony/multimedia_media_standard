@@ -452,5 +452,54 @@ napi_status MediaCapsJsResultAudio::GetJsResult(napi_env env, napi_value &result
 
     return napi_ok;
 }
+
+napi_status MediaCapsJsResultAudioDynamic::GetJsResult(napi_env env, napi_value &result)
+{
+    auto codecList = AVCodecListFactory::CreateAVCodecList();
+    CHECK_AND_RETURN_RET(codecList != nullptr, napi_generic_failure);
+
+    std::vector<std::shared_ptr<AudioCaps>> audioCaps;
+    if (isDecoder_) {
+        audioCaps = codecList->GetAudioDecoderCaps();
+    } else {
+        audioCaps = codecList->GetAudioEncoderCaps();
+    }
+
+    napi_status status = napi_create_object(env, &result);
+    CHECK_AND_RETURN_RET(status == napi_ok, napi_generic_failure);
+
+    for (auto it = audioCaps.begin(); it != audioCaps.end(); it++) {
+        CHECK_AND_CONTINUE((*it) != nullptr);
+
+        auto info = (*it)->GetCodecInfo();
+        CHECK_AND_CONTINUE(info != nullptr);
+        CHECK_AND_CONTINUE(info->GetName() == name_);
+
+        (void)AddCodecInfo(env, result, info);
+
+        Range range = (*it)->GetSupportedBitrate();
+        (void)CommonNapi::AddRangeProperty(env, result, "supportedBitrate", range.minVal, range.maxVal);
+
+        range = (*it)->GetSupportedChannel();
+        (void)CommonNapi::AddRangeProperty(env, result, "supportedChannel", range.minVal, range.maxVal);
+
+        range = (*it)->GetSupportedComplexity();
+        (void)CommonNapi::AddRangeProperty(env, result, "supportedComplexity", range.minVal, range.maxVal);
+
+        std::vector<int32_t> vec = (*it)->GetSupportedFormats();
+        (void)CommonNapi::AddArrayProperty(env, result, "supportedFormats", vec);
+
+        vec = (*it)->GetSupportedSampleRates();
+        (void)CommonNapi::AddArrayProperty(env, result, "supportedSampleRates", vec);
+
+        vec = (*it)->GetSupportedProfiles();
+        (void)CommonNapi::AddArrayProperty(env, result, "supportedProfiles", vec);
+
+        vec = (*it)->GetSupportedLevels();
+        (void)CommonNapi::AddArrayProperty(env, result, "supportedLevels", vec);
+    }
+
+    return napi_ok;
+}
 }
 }

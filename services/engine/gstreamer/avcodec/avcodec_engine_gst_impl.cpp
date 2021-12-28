@@ -73,6 +73,8 @@ int32_t AVCodecEngineGstImpl::Configure(const Format &format)
     CHECK_AND_RETURN_RET(processor_->DoProcess(format) == MSERR_OK, MSERR_UNKNOWN);
 
     MEDIA_LOGD("Configure success");
+    format_ = format;
+
     return MSERR_OK;
 }
 
@@ -184,6 +186,8 @@ std::shared_ptr<AVSharedMemory> AVCodecEngineGstImpl::GetOutputBuffer(uint32_t i
 
 int32_t AVCodecEngineGstImpl::GetOutputFormat(Format &format)
 {
+    format_.PutStringValue("plugin_name", pluginName_);
+    format = format_;
     return MSERR_OK;
 }
 
