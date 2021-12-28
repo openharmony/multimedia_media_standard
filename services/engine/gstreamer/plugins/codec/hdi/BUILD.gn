@@ -12,14 +12,15 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-SDK_LIB_DIR = rebase_path("//device/hisilicon/hispark_taurus/sdk_linux/soc/lib",
-                          root_build_dir)
-CODEC_LIB_DIR = rebase_path(
-        "//device/hisilicon/hardware/media/hal/codec/hi3516dv300/llvm/linux_standard/libs",
-        root_build_dir)
-CAMERA_LIB_PLATFORM_DIR =
-    rebase_path("//device/hisilicon/hardware/media/hal/camera/hi3516dv300/libs",
+SDK_LIB_DIR =
+    rebase_path("//device/soc/hisilicon/hi3516dv300/sdk_linux/out/lib",
                 root_build_dir)
+CODEC_LIB_DIR = rebase_path(
+        "//device/soc/hisilicon/common/hal/media/codec/hi3516dv300/linux_standard/libs",
+        root_build_dir)
+CAMERA_LIB_PLATFORM_DIR = rebase_path(
+        "//device/soc/hisilicon/common/hal/media/camera/hi3516dv300/linux_standard/libs",
+        root_build_dir)
 group("hdi_plugins") {
   deps = [ ":gst_hdi_codec" ]
 }
@@ -40,10 +41,10 @@ config("gst_hdi_config") {
     "//third_party/glib/gmodule",
     "//third_party/zlib/",
     "//drivers/peripheral/codec/interfaces/include",
-    "//device/hisilicon/hispark_taurus/sdk_linux/soc/src/mpp/cbb/include",
-    "//device/hisilicon/hispark_taurus/sdk_linux/soc/src/osal/include",
-    "//device/hisilicon/hispark_taurus/sdk_linux/soc/src/mpp/cbb/init/include/linux",
-    "//device/hisilicon/hispark_taurus/sdk_linux/soc/src/mpp/cbb/based/arch/hi3516cv500/include/hi3516cv500",
+    "//device/soc/hisilicon/hi3516dv300/sdk_linux/drv/mpp/cbb/include",
+    "//device/soc/hisilicon/hi3516dv300/sdk_linux/drv/osal/include",
+    "//device/soc/hisilicon/hi3516dv300/sdk_linux/drv/mpp/cbb/init/include/linux",
+    "//device/soc/hisilicon/hi3516dv300/sdk_linux/drv/mpp/cbb/based/arch/hi3516cv500/include/hi3516cv500",
     "//device/hisilicon/hispark_taurus/sdk_linux/huawei_proprietary/include",
     "//utils/native/base/include",
     "//foundation/graphic/standard/utils/include",
