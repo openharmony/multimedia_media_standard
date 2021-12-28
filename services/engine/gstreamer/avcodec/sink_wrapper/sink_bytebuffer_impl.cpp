@@ -227,17 +227,26 @@ void SinkBytebufferImpl::HandleOutputBuffer(uint32_t &bufSize, uint32_t &index, 
 
 void SinkBytebufferImpl::EosFunc()
 {
-    const uint32_t timeout = 1000;
-    std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (forceEOS_ == true) {
-        auto obs = obs_.lock();
-        CHECK_AND_RETURN(obs != nullptr);
-        isEos = true;
-        AVCodecBufferInfo info;
-        MEDIA_LOGI("Signal EOS with empty buffer");
-        obs->OnOutputBufferAvailable(0, info, AVCODEC_BUFFER_FLAG_EOS);
-    }
+    do {
+        const uint32_t timeout = 1000;
+        std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
+        std::unique_lock<std::mutex> lock(mutex_);
+        const uint32_t jitter = 5;
+        bool closeEos = (frameCount_ >= finishCount_ || frameCount_ >= (finishCount_ - jitter));
+        if (forceEOS_ && closeEos) {
+            auto obs = obs_.lock();
+            CHECK_AND_RETURN(obs != nullptr);
+            isEos = true;
+            AVCodecBufferInfo info;
+            MEDIA_LOGI("Signal EOS with empty buffer");
+            obs->OnOutputBufferAvailable(0, info, AVCODEC_BUFFER_FLAG_EOS);
+            break;
+        }
+        if (!forceEOS_) {
+            break;
+        }
+        lock.unlock();
+    } while (1);
 }
 } // Media
 } // OHOS
