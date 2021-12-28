@@ -52,7 +52,7 @@ public:
 
     virtual GstElement *GetElement()
     {
-        return element_;
+        return src_;
     }
 
     virtual std::shared_ptr<AVSharedMemory> GetInputBuffer(uint32_t index)
@@ -81,7 +81,7 @@ public:
     }
 
 protected:
-    GstElement *element_ = nullptr;
+    GstElement *src_ = nullptr;
 };
 } // Media
 } // OHOS

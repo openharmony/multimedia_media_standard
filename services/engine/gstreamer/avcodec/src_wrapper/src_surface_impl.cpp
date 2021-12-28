@@ -29,23 +29,23 @@ SrcSurfaceImpl::SrcSurfaceImpl()
 
 SrcSurfaceImpl::~SrcSurfaceImpl()
 {
-    if (element_ != nullptr) {
-        gst_object_unref(element_);
-        element_ = nullptr;
+    if (src_ != nullptr) {
+        gst_object_unref(src_);
+        src_ = nullptr;
     }
 }
 
 int32_t SrcSurfaceImpl::Init()
 {
-    element_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("surfacevideosrc", "src")));
-    CHECK_AND_RETURN_RET_LOG(element_ != nullptr, MSERR_UNKNOWN, "Failed to make gstsurfacevideosrc");
+    src_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("surfacevideosrc", "src")));
+    CHECK_AND_RETURN_RET_LOG(src_ != nullptr, MSERR_UNKNOWN, "Failed to make gstsurfacevideosrc");
     return MSERR_OK;
 }
 
 int32_t SrcSurfaceImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 {
-    CHECK_AND_RETURN_RET(element_ != nullptr, MSERR_UNKNOWN);
-    g_object_set(element_, "stream-type", VideoStreamType::VIDEO_STREAM_TYPE_YUV_420, nullptr);
+    CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
+    g_object_set(src_, "stream-type", VideoStreamType::VIDEO_STREAM_TYPE_YUV_420, nullptr);
     return MSERR_OK;
 }
 
@@ -65,11 +65,11 @@ sptr<Surface> SrcSurfaceImpl::CreateInputSurface(std::shared_ptr<ProcessorConfig
     CHECK_AND_RETURN_RET(gst_structure_get(structure, "height", G_TYPE_INT, &height, nullptr) == TRUE, nullptr);
     CHECK_AND_RETURN_RET(height > 0, nullptr);
 
-    g_object_set(element_, "surface-width", width, nullptr);
-    g_object_set(element_, "surface-height", height, nullptr);
+    g_object_set(src_, "surface-width", width, nullptr);
+    g_object_set(src_, "surface-height", height, nullptr);
 
     GValue val = G_VALUE_INIT;
-    g_object_get_property((GObject *)element_, "surface", &val);
+    g_object_get_property((GObject *)src_, "surface", &val);
     gpointer surfaceObj = g_value_get_pointer(&val);
     CHECK_AND_RETURN_RET_LOG(surfaceObj != nullptr, nullptr, "Failed to get surface");
     sptr<Surface> surface = (Surface *)surfaceObj;
@@ -80,11 +80,11 @@ int32_t SrcSurfaceImpl::SetParameter(const Format &format)
 {
     int32_t value = 0;
     if (format.GetIntValue("repeat_frame_after", value) == true) {
-        g_object_set(element_, "repeat-frame-after", value, nullptr);
+        g_object_set(src_, "repeat-frame-after", value, nullptr);
     }
 
     if (format.GetIntValue("suspend_input_surface", value) == true) {
-        g_object_set(element_, "suspend-input-surface", value, nullptr);
+        g_object_set(src_, "suspend-input-surface", value, nullptr);
     }
 
     return MSERR_OK;
