@@ -265,11 +265,10 @@ int32_t AVCodecEngineCtrl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo in
     CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
     int32_t ret = src_->QueueInputBuffer(index, info, flag);
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
-    bufferCount_++;
     if (flag == AVCODEC_BUFFER_FLAG_EOS) {
-        CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);
-        MEDIA_LOGI("EOS frame, index:%{public}d", bufferCount_);
-        sink_->SetEOS(bufferCount_);
+        GstEvent *event = gst_event_new_eos();
+        CHECK_AND_RETURN_RET(event != nullptr, MSERR_NO_MEMORY);
+        (void)gst_element_send_event(codecBin_, event);
     }
     return MSERR_OK;
 }

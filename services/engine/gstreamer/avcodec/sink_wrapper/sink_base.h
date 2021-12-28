@@ -52,7 +52,7 @@ public:
 
     virtual GstElement *GetElement()
     {
-        return element_;
+        return sink_;
     }
 
     virtual int32_t ReleaseOutputBuffer(uint32_t index, bool render) = 0;
@@ -63,11 +63,9 @@ public:
     }
 
     virtual int32_t SetCallback(const std::weak_ptr<IAVCodecEngineObs> &obs) = 0;
-    virtual void SetEOS(uint32_t count) = 0;
 
 protected:
-    GstElement *element_ = nullptr;
-    uint32_t bufferCount_ = 0;
+    GstElement *sink_ = nullptr;
 };
 } // Media
 } // OHOS

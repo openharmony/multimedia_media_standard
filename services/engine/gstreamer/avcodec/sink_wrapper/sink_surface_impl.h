@@ -17,7 +17,6 @@
 #define SINK_SURFACE_IMPL_H
 
 #include "sink_base.h"
-#include <thread>
 #include <gst/player/player.h>
 #include "nocopyable.h"
 
@@ -36,28 +35,24 @@ public:
     int32_t SetParameter(const Format &format) override;
     int32_t ReleaseOutputBuffer(uint32_t index, bool render) override;
     int32_t SetCallback(const std::weak_ptr<IAVCodecEngineObs> &obs) override;
-    void SetEOS(uint32_t count) override;
 
 private:
     static GstFlowReturn OutputAvailableCb(GstElement *sink, gpointer userData);
+    static void EosCb(GstElement *sink, gpointer userData);
+
     int32_t HandleOutputCb();
     int32_t UpdateSurfaceBuffer(const GstBuffer &buffer);
     sptr<SurfaceBuffer> RequestBuffer(GstVideoMeta *videoMeta);
-    void EosFunc();
 
     std::mutex mutex_;
-    std::unique_ptr<std::thread> eosThread_;
-    gulong signalId_ = 0;
+    gulong signalSample_ = 0;
+    gulong signalEOS_ = 0;
     uint32_t bufferCount_ = 0;
     sptr<Surface> producerSurface_ = nullptr;
     std::vector<std::shared_ptr<BufferWrapper>> bufferList_;
     std::weak_ptr<IAVCodecEngineObs> obs_;
-    bool isEos = false;
-    uint32_t finishCount_ = UINT_MAX;
     bool isFirstFrame_ = true;
-    Format format_;
-    bool forceEOS_ = true;
-    uint32_t frameCount_ = 0;
+    Format bufferFormat_;
 };
 } // Media
 } // OHOS
