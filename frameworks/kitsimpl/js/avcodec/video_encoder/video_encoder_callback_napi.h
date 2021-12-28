@@ -54,9 +54,11 @@ private:
         AVCodecBufferFlag flag;
         std::shared_ptr<AVSharedMemory> memory = nullptr;
         bool isInput = false;
+        Format format;
     };
     void OnJsErrorCallBack(VideoEncoderJsCallback *jsCb) const;
     void OnJsBufferCallBack(VideoEncoderJsCallback *jsCb, bool isInput) const;
+    void OnJsFormatCallBack(VideoEncoderJsCallback *jsCb) const;
 
     std::mutex mutex_;
     napi_env env_ = nullptr;

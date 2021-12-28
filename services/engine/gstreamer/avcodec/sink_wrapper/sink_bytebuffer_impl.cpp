@@ -138,7 +138,8 @@ void SinkBytebufferImpl::EosCb(GstElement *sink, gpointer userData)
     CHECK_AND_RETURN(obs != nullptr);
 
     AVCodecBufferInfo info;
-    obs->OnOutputBufferAvailable(1000, info, AVCODEC_BUFFER_FLAG_EOS);
+    const uint32_t invalidIndex = 1000;
+    obs->OnOutputBufferAvailable(invalidIndex, info, AVCODEC_BUFFER_FLAG_EOS);
 }
 
 int32_t SinkBytebufferImpl::HandleOutputCb()
