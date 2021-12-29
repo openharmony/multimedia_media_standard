@@ -1,0 +1,60 @@
+{
+    "name": "@ohos/multimedia_media_standard",
+    "version": "",
+    "description": "提供播放、录制、解析、解码等接口能力，以及通用的媒体源、媒体格式、元数据解析、媒体路由、媒体事件的功能，并提供媒体播放录制引擎服务化能力；",
+    "homePage": "https://gitee.com/openharmony",
+    "license": "Apache V2",
+    "repository": "https://gitee.com/openharmony/multimedia_media_standard",
+    "domain": "os",
+    "language": "",
+    "publishAs": "code-segment",
+    "private": false,
+    "scripts": {},
+    "tags": [
+        "foundation"
+    ],
+    "keywords": [
+        "multimedia",
+        "media",
+        "standard"
+    ],
+    "envs": [],
+    "dirs": [],
+    "author": {
+        "name": "",
+        "email": "",
+        "url": ""
+    },
+    "contributors": [
+        {
+            "name": "",
+            "email": "",
+            "url": ""
+        }
+    ],
+    "segment": {
+        "destPath": "foundation/multimedia/media_standard"
+    },
+    "component": {
+        "name": "media",
+        "subsystem": "multimedia",
+        "syscap": [
+            "SystemCapability.Multimedia.Media"
+        ],
+        "features": [],
+        "adapted_system_type": [
+            "standard"
+        ],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [],
+            "third_party": []
+        },
+        "build": {
+            "sub_component": [],
+            "inner_kits": [],
+            "test": []
+        }
+    }
+}
