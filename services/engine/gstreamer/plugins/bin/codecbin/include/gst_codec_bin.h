@@ -46,6 +46,7 @@ struct _GstCodecBin {
     GstElement *sink;
 
     CodecBinType type;
+    gboolean is_start;
     gboolean use_software;
     gchar *coder_name;
     gboolean need_src_convert;

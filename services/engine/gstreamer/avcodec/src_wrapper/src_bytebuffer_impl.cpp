@@ -32,9 +32,9 @@ SrcBytebufferImpl::SrcBytebufferImpl()
 SrcBytebufferImpl::~SrcBytebufferImpl()
 {
     bufferList_.clear();
-    if (element_ != nullptr) {
-        gst_object_unref(element_);
-        element_ = nullptr;
+    if (src_ != nullptr) {
+        gst_object_unref(src_);
+        src_ = nullptr;
     }
     if (caps_ != nullptr) {
         gst_caps_unref(caps_);
@@ -44,8 +44,8 @@ SrcBytebufferImpl::~SrcBytebufferImpl()
 
 int32_t SrcBytebufferImpl::Init()
 {
-    element_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("appsrc", "src")));
-    CHECK_AND_RETURN_RET_LOG(element_ != nullptr, MSERR_UNKNOWN, "Failed to gst_element_factory_make");
+    src_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("appsrc", "src")));
+    CHECK_AND_RETURN_RET_LOG(src_ != nullptr, MSERR_UNKNOWN, "Failed to gst_element_factory_make");
 
     bufferCount_ = DEFAULT_BUFFER_COUNT;
     bufferSize_ = DEFAULT_BUFFER_SIZE;
@@ -55,10 +55,11 @@ int32_t SrcBytebufferImpl::Init()
 
 int32_t SrcBytebufferImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 {
-    CHECK_AND_RETURN_RET(element_ != nullptr, MSERR_UNKNOWN);
-    g_object_set(G_OBJECT(element_), "caps", config->caps_, nullptr);
-    g_object_set(G_OBJECT(element_), "format", GST_FORMAT_TIME, nullptr);
-    g_object_set(G_OBJECT(element_), "is-live", TRUE, nullptr);
+    CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
+    g_object_set(G_OBJECT(src_), "caps", config->caps_, nullptr);
+    g_object_set(G_OBJECT(src_), "format", GST_FORMAT_TIME, nullptr);
+    g_object_set(G_OBJECT(src_), "is-live", TRUE, nullptr);
+    g_object_set(G_OBJECT(src_), "block", TRUE, nullptr);
 
     for (uint32_t i = 0; i < bufferCount_; i++) {
         auto mem = AVSharedMemory::Create(bufferSize_, AVSharedMemory::Flags::FLAGS_READ_WRITE, "input");
@@ -114,6 +115,7 @@ int32_t SrcBytebufferImpl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo in
             auto obs = obs_.lock();
             CHECK_AND_RETURN_RET(obs != nullptr, MSERR_UNKNOWN);
             obs->OnInputBufferAvailable(index);
+            MEDIA_LOGD("OnInputBufferAvailable, index:%{public}d", index);
             return MSERR_OK;
         }
         return MSERR_UNKNOWN;
@@ -131,20 +133,18 @@ int32_t SrcBytebufferImpl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo in
 
     const int32_t usToNs = 1000;
     GST_BUFFER_PTS(buffer) = info.presentationTimeUs * usToNs;
-    GST_BUFFER_OFFSET(buffer) = 0;
-    GST_BUFFER_OFFSET_END(buffer) = info.size;
 
     int32_t ret = GST_FLOW_OK;
-    CHECK_AND_RETURN_RET(element_ != nullptr, MSERR_UNKNOWN);
-    g_signal_emit_by_name(element_, "push-buffer", buffer, &ret);
+    CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
+    g_signal_emit_by_name(src_, "push-buffer", buffer, &ret);
     gst_buffer_unref(buffer);
     bufferList_[index]->owner_ = BufferWrapper::SERVER;
 
-    if (flag != AVCODEC_BUFFER_FLAG_EOS) {
-        auto obs = obs_.lock();
-        CHECK_AND_RETURN_RET(obs != nullptr, MSERR_UNKNOWN);
-        obs->OnInputBufferAvailable(index);
-    }
+    auto obs = obs_.lock();
+    CHECK_AND_RETURN_RET(obs != nullptr, MSERR_UNKNOWN);
+    obs->OnInputBufferAvailable(index);
+    MEDIA_LOGD("OnInputBufferAvailable, index:%{public}d", index);
+
     return MSERR_OK;
 }
 
@@ -159,7 +159,7 @@ int32_t SrcBytebufferImpl::SetParameter(const Format &format)
 {
     int32_t value = 0;
     if (format.GetIntValue("repeat_frame_after", value) == true) {
-        g_object_set(element_, "repeat-frame-after", value, nullptr);
+        g_object_set(src_, "repeat-frame-after", value, nullptr);
     }
 
     return MSERR_OK;
@@ -185,10 +185,10 @@ int32_t SrcBytebufferImpl::HandleCodecBuffer(uint32_t index, AVCodecBufferInfo i
     CHECK_AND_RETURN_RET(caps_ != nullptr, MSERR_UNKNOWN);
     gst_caps_set_simple(caps_, "codec_data", GST_TYPE_BUFFER, codecBuffer, nullptr);
 
-    CHECK_AND_RETURN_RET(element_ != nullptr, MSERR_UNKNOWN);
-    g_object_set(G_OBJECT(element_), "caps", caps_, nullptr);
+    CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
+    g_object_set(G_OBJECT(src_), "caps", caps_, nullptr);
 
-    CHECK_AND_RETURN_RET(gst_base_src_set_caps(GST_BASE_SRC(element_), caps_) == TRUE, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(gst_base_src_set_caps(GST_BASE_SRC(src_), caps_) == TRUE, MSERR_UNKNOWN);
     return MSERR_OK;
 }
 } // Media

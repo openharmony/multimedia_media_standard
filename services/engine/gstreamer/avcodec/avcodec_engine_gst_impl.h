@@ -62,6 +62,7 @@ private:
     std::unique_ptr<ProcessorBase> processor_ = nullptr;
     std::mutex mutex_;
     std::weak_ptr<IAVCodecEngineObs> obs_;
+    Format format_;
 };
 } // Media
 } // OHOS

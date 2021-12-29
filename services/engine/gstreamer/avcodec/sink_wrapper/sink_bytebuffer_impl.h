@@ -18,7 +18,6 @@
 
 #include "sink_base.h"
 #include <mutex>
-#include <thread>
 #include <vector>
 #include "avsharedmemory.h"
 #include "nocopyable.h"
@@ -37,27 +36,23 @@ public:
     std::shared_ptr<AVSharedMemory> GetOutputBuffer(uint32_t index) override;
     int32_t ReleaseOutputBuffer(uint32_t index, bool render = false) override;
     int32_t SetCallback(const std::weak_ptr<IAVCodecEngineObs> &obs) override;
-    void SetEOS(uint32_t count) override;
 
 private:
     static GstFlowReturn OutputAvailableCb(GstElement *sink, gpointer userData);
+    static void EosCb(GstElement *sink, gpointer userData);
+
     int32_t HandleOutputCb();
     void HandleOutputBuffer(uint32_t &bufSize, uint32_t &index, GstBuffer *buf);
-    void EosFunc();
 
     std::mutex mutex_;
-    std::unique_ptr<std::thread> eosThread_;
-    gulong signalId_ = 0;
+    gulong signalSample_ = 0;
+    gulong signalEOS_ = 0;
     uint32_t bufferCount_ = 0;
     uint32_t bufferSize_ = 0;
     std::vector<std::shared_ptr<BufferWrapper>> bufferList_;
     std::weak_ptr<IAVCodecEngineObs> obs_;
-    uint32_t finishCount_ = UINT_MAX;
-    bool isEos = false;
     bool isFirstFrame_ = true;
-    Format format_;
-    bool forceEOS_ = true;
-    uint32_t frameCount_ = 0;
+    Format bufferFormat_;
 };
 } // Media
 } // OHOS

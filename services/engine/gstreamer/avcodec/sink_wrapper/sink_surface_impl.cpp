@@ -34,28 +34,21 @@ SinkSurfaceImpl::SinkSurfaceImpl()
 SinkSurfaceImpl::~SinkSurfaceImpl()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (eosThread_ != nullptr) {
-        if (eosThread_->joinable()) {
-            mutex_.unlock();
-            eosThread_->join();
-            mutex_.lock();
-        }
-        eosThread_.reset();
-    }
-    g_signal_handler_disconnect(G_OBJECT(element_), signalId_);
+    g_signal_handler_disconnect(G_OBJECT(sink_), signalSample_);
+    g_signal_handler_disconnect(G_OBJECT(sink_), signalEOS_);
     bufferList_.clear();
-    if (element_ != nullptr) {
-        gst_object_unref(element_);
-        element_ = nullptr;
+    if (sink_ != nullptr) {
+        gst_object_unref(sink_);
+        sink_ = nullptr;
     }
     producerSurface_ = nullptr;
 }
 
 int32_t SinkSurfaceImpl::Init()
 {
-    element_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("appsink", "sink")));
-    CHECK_AND_RETURN_RET(element_ != nullptr, MSERR_UNKNOWN);
-    gst_base_sink_set_async_enabled(GST_BASE_SINK(element_), FALSE);
+    sink_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("appsink", "sink")));
+    CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);
+    gst_base_sink_set_async_enabled(GST_BASE_SINK(sink_), FALSE);
 
     bufferCount_ = DEFAULT_BUFFER_COUNT;
     return MSERR_OK;
@@ -63,9 +56,9 @@ int32_t SinkSurfaceImpl::Init()
 
 int32_t SinkSurfaceImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 {
-    CHECK_AND_RETURN_RET(element_ != nullptr && config->caps_ != nullptr, MSERR_UNKNOWN);
-    g_object_set(G_OBJECT(element_), "caps", config->caps_, nullptr);
-    (void)ParseCaps(config->caps_, format_);
+    CHECK_AND_RETURN_RET(sink_ != nullptr && config->caps_ != nullptr, MSERR_UNKNOWN);
+    g_object_set(G_OBJECT(sink_), "caps", config->caps_, nullptr);
+    (void)CapsToFormat(config->caps_, bufferFormat_);
 
     for (uint32_t i = 0; i < bufferCount_; i++) {
         auto bufWrap = std::make_shared<BufferWrapper>(nullptr, nullptr, bufferList_.size(), BufferWrapper::DOWNSTREAM);
@@ -73,40 +66,30 @@ int32_t SinkSurfaceImpl::Configure(std::shared_ptr<ProcessorConfig> config)
         bufferList_.push_back(bufWrap);
     }
 
-    signalId_ = g_signal_connect(G_OBJECT(element_), "new_sample",
-                                 G_CALLBACK(OutputAvailableCb), reinterpret_cast<gpointer>(this));
-    g_object_set(G_OBJECT(element_), "emit-signals", TRUE, nullptr);
+    signalSample_ = g_signal_connect(G_OBJECT(sink_), "new_sample",
+        G_CALLBACK(OutputAvailableCb), reinterpret_cast<gpointer>(this));
+    signalEOS_ = g_signal_connect(G_OBJECT(sink_), "eos", G_CALLBACK(EosCb), reinterpret_cast<gpointer>(this));
+    g_object_set(G_OBJECT(sink_), "emit-signals", TRUE, nullptr);
+
     return MSERR_OK;
 }
 
 int32_t SinkSurfaceImpl::Flush()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (eosThread_ != nullptr) {
-        if (eosThread_->joinable()) {
-            lock.unlock();
-            eosThread_->join();
-            lock.lock();
-        }
-        eosThread_.reset();
-    }
     for (auto it = bufferList_.begin(); it != bufferList_.end(); it++) {
         (*it)->owner_ = BufferWrapper::DOWNSTREAM;
     }
-    finishCount_ = UINT_MAX;
-    isEos = false;
     isFirstFrame_ = true;
-    forceEOS_ = true;
-
     return MSERR_OK;
 }
 
 int32_t SinkSurfaceImpl::SetOutputSurface(sptr<Surface> surface)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET(element_ != nullptr, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);
     CHECK_AND_RETURN_RET(surface != nullptr, MSERR_INVALID_VAL);
-    g_object_set(G_OBJECT(element_), "surface", static_cast<gpointer>(surface), nullptr);
+    g_object_set(G_OBJECT(sink_), "surface", static_cast<gpointer>(surface), nullptr);
     producerSurface_ = surface;
     producerSurface_->SetQueueSize(DEFAULT_QUEUE_BUFFER_NUM);
     return MSERR_OK;
@@ -116,19 +99,19 @@ int32_t SinkSurfaceImpl::SetParameter(const Format &format)
 {
     int32_t value = 0;
     if (format.GetIntValue("rect_top", value) == true) {
-        g_object_set(element_, "rect-top", value, nullptr);
+        g_object_set(sink_, "rect-top", value, nullptr);
     }
 
     if (format.GetIntValue("rect_bottom", value) == true) {
-        g_object_set(element_, "rect-top", value, nullptr);
+        g_object_set(sink_, "rect-top", value, nullptr);
     }
 
     if (format.GetIntValue("rect_left", value) == true) {
-        g_object_set(element_, "rect-top", value, nullptr);
+        g_object_set(sink_, "rect-top", value, nullptr);
     }
 
     if (format.GetIntValue("rect_right", value) == true) {
-        g_object_set(element_, "rect-top", value, nullptr);
+        g_object_set(sink_, "rect-top", value, nullptr);
     }
     return MSERR_OK;
 }
@@ -157,13 +140,6 @@ int32_t SinkSurfaceImpl::SetCallback(const std::weak_ptr<IAVCodecEngineObs> &obs
     return MSERR_OK;
 }
 
-void SinkSurfaceImpl::SetEOS(uint32_t count)
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    finishCount_ = count;
-    eosThread_ = std::make_unique<std::thread>(&SinkSurfaceImpl::EosFunc, this);
-}
-
 GstFlowReturn SinkSurfaceImpl::OutputAvailableCb(GstElement *sink, gpointer userData)
 {
     (void)sink;
@@ -174,10 +150,26 @@ GstFlowReturn SinkSurfaceImpl::OutputAvailableCb(GstElement *sink, gpointer user
     return GST_FLOW_OK;
 }
 
+void SinkSurfaceImpl::EosCb(GstElement *sink, gpointer userData)
+{
+    (void)sink;
+    MEDIA_LOGI("EOS reached");
+    auto impl = static_cast<SinkSurfaceImpl *>(userData);
+    CHECK_AND_RETURN(impl != nullptr);
+    std::unique_lock<std::mutex> lock(impl->mutex_);
+
+    auto obs = impl->obs_.lock();
+    CHECK_AND_RETURN(obs != nullptr);
+
+    AVCodecBufferInfo info;
+    const uint32_t invalidIndex = 1000;
+    obs->OnOutputBufferAvailable(invalidIndex, info, AVCODEC_BUFFER_FLAG_EOS);
+}
+
 int32_t SinkSurfaceImpl::HandleOutputCb()
 {
     GstSample *sample = nullptr;
-    g_signal_emit_by_name(G_OBJECT(element_), "pull-sample", &sample);
+    g_signal_emit_by_name(G_OBJECT(sink_), "pull-sample", &sample);
     CHECK_AND_RETURN_RET(sample != nullptr, MSERR_UNKNOWN);
 
     GstBuffer *buf = gst_sample_get_buffer(sample);
@@ -204,8 +196,6 @@ int32_t SinkSurfaceImpl::HandleOutputCb()
         return MSERR_INVALID_OPERATION;
     }
 
-    frameCount_++;
-
     auto obs = obs_.lock();
     if (obs == nullptr) {
         MEDIA_LOGE("obs is nullptr");
@@ -213,21 +203,14 @@ int32_t SinkSurfaceImpl::HandleOutputCb()
         return MSERR_UNKNOWN;
     }
 
-    if (isFirstFrame_ == true) {
+    if (isFirstFrame_) {
         isFirstFrame_ = false;
-        obs->OnOutputFormatChanged(format_);
+        obs->OnOutputFormatChanged(bufferFormat_);
     }
 
     AVCodecBufferInfo info;
     info.presentationTimeUs = GST_BUFFER_PTS(buf);
-    if (frameCount_ >= finishCount_ && isEos == false) {
-        MEDIA_LOGD("EOS reach");
-        isEos = true;
-        forceEOS_ = false;
-        obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_EOS);
-    } else {
-        obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
-    }
+    obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
 
     return MSERR_OK;
 }
@@ -299,21 +282,6 @@ sptr<SurfaceBuffer> SinkSurfaceImpl::RequestBuffer(GstVideoMeta *videoMeta)
     } while (ret == SURFACE_ERROR_NO_BUFFER && count < MAX_DEFAULT_TRY_TIMES);
     CHECK_AND_RETURN_RET(ret == SURFACE_ERROR_OK, nullptr);
     return surfaceBuffer;
-}
-
-void SinkSurfaceImpl::EosFunc()
-{
-    const uint32_t timeout = 1000;
-    std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (forceEOS_ == true) {
-        auto obs = obs_.lock();
-        CHECK_AND_RETURN(obs != nullptr);
-        isEos = true;
-        AVCodecBufferInfo info;
-        MEDIA_LOGI("Signal EOS with empty buffer");
-        obs->OnOutputBufferAvailable(0, info, AVCODEC_BUFFER_FLAG_EOS);
-    }
 }
 } // Media
 } // OHOS
