@@ -70,6 +70,7 @@ public:
     static bool SetPropertyInt32(napi_env env, napi_value &obj, const std::string &key, int32_t value);
     static bool SetPropertyString(napi_env env, napi_value &obj, const std::string &key, const std::string &value);
     static napi_value CreateFormatBuffer(napi_env env, Format &format);
+    static bool CreateFormatBufferByRef(napi_env env, Format &format, napi_value &result);
     static bool AddRangeProperty(napi_env env, napi_value obj, const std::string &name, int32_t min, int32_t max);
     static bool AddArrayProperty(napi_env env, napi_value obj, const std::string &name,
         const std::vector<int32_t> &vec);
@@ -192,9 +193,7 @@ public:
     ~AVCodecJsResultFormat() = default;
     napi_status GetJsResult(napi_env env, napi_value &result) override
     {
-        (void)format_;
-        (void)env;
-        (void)result;
+        (void)CommonNapi::CreateFormatBufferByRef(env, format_, result);
         return napi_ok;
     }
 
