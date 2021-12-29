@@ -143,15 +143,15 @@ int32_t AVCodecEngineCtrl::Start()
         std::unique_lock<std::mutex> lock(gstPipeMutex_);
         gstPipeCond_.wait(lock);
     }
-    if (needInputCallback_ && isFirstStart) {
+    if (needInputCallback_) {
         auto obs = obs_.lock();
         CHECK_AND_RETURN_RET(obs != nullptr, MSERR_UNKNOWN);
         CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
         uint32_t bufferCount = src_->GetBufferCount();
         for (uint32_t i = 0; i < bufferCount; i++) {
+            MEDIA_LOGD("OnInputBufferAvailable, index:%{public}d", i);
             obs->OnInputBufferAvailable(i);
         }
-        isFirstStart = false;
     }
 
     MEDIA_LOGD("Start success");
@@ -160,12 +160,18 @@ int32_t AVCodecEngineCtrl::Start()
 
 int32_t AVCodecEngineCtrl::Stop()
 {
-    GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(gstPipeline_), GST_STATE_PAUSED);
+    GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(gstPipeline_), GST_STATE_READY);
     CHECK_AND_RETURN_RET(ret != GST_STATE_CHANGE_FAILURE, MSERR_UNKNOWN);
     if (ret == GST_STATE_CHANGE_ASYNC) {
         std::unique_lock<std::mutex> lock(gstPipeMutex_);
         gstPipeCond_.wait(lock);
     }
+
+    CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(src_->Flush() == MSERR_OK, MSERR_UNKNOWN);
+
+    CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(sink_->Flush() == MSERR_OK, MSERR_UNKNOWN);
 
     MEDIA_LOGD("Stop success");
     return MSERR_OK;
@@ -195,6 +201,7 @@ int32_t AVCodecEngineCtrl::Flush()
         CHECK_AND_RETURN_RET(obs != nullptr, MSERR_UNKNOWN);
         uint32_t bufferCount = src_->GetBufferCount();
         for (uint32_t i = 0; i < bufferCount; i++) {
+            MEDIA_LOGD("OnInputBufferAvailable, index:%{public}d", i);
             obs->OnInputBufferAvailable(i);
         }
     }
@@ -262,6 +269,7 @@ std::shared_ptr<AVSharedMemory> AVCodecEngineCtrl::GetInputBuffer(uint32_t index
 
 int32_t AVCodecEngineCtrl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
 {
+    MEDIA_LOGD("QueueInputBuffer, index:%{public}d", index);
     CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
     int32_t ret = src_->QueueInputBuffer(index, info, flag);
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);

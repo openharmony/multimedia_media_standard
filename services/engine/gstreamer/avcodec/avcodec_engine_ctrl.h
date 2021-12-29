@@ -57,7 +57,6 @@ private:
     bool useSurfaceInput_ = false;
     bool useSurfaceRender_ = false;
     bool needInputCallback_ = true;
-    bool isFirstStart = true;
     std::condition_variable gstPipeCond_;
     std::mutex gstPipeMutex_;
     std::weak_ptr<IAVCodecEngineObs> obs_;

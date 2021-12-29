@@ -180,6 +180,8 @@ int32_t SinkBytebufferImpl::HandleOutputCb()
     info.presentationTimeUs = GST_BUFFER_PTS(buf);
     obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
 
+    MEDIA_LOGD("OutputBufferAvailable, index:%{public}d", index);
+
     return MSERR_OK;
 }
 

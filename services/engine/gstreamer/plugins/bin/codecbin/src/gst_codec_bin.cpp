@@ -123,6 +123,7 @@ static void gst_codec_bin_init(GstCodecBin *bin)
     bin->sink_convert = nullptr;
     bin->sink = nullptr;
     bin->type = CODEC_BIN_TYPE_UNKNOWN;
+    bin->is_start = FALSE;
     bin->use_software = FALSE;
     bin->coder_name = nullptr;
     bin->need_src_convert = FALSE;
@@ -383,13 +384,16 @@ static GstStateChangeReturn gst_codec_bin_change_state(GstElement *element, GstS
             }
             break;
         case GST_STATE_CHANGE_READY_TO_PAUSED:
-            if (add_element_to_bin(bin) == FALSE) {
-                GST_ERROR_OBJECT(bin, "Failed to add_element_to_bin");
-                return GST_STATE_CHANGE_FAILURE;
-            }
-            if (connect_element(bin) == FALSE) {
-                GST_ERROR_OBJECT(bin, "Failed to connect_element");
-                return GST_STATE_CHANGE_FAILURE;
+            if (bin->is_start == FALSE) {
+                if (add_element_to_bin(bin) == FALSE) {
+                    GST_ERROR_OBJECT(bin, "Failed to add_element_to_bin");
+                    return GST_STATE_CHANGE_FAILURE;
+                }
+                if (connect_element(bin) == FALSE) {
+                    GST_ERROR_OBJECT(bin, "Failed to connect_element");
+                    return GST_STATE_CHANGE_FAILURE;
+                }
+                bin->is_start = TRUE;
             }
             break;
         default:

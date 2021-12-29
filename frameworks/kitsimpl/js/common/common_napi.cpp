@@ -299,6 +299,27 @@ napi_value CommonNapi::CreateFormatBuffer(napi_env env, Format &format)
     return buffer;
 }
 
+bool CommonNapi::CreateFormatBufferByRef(napi_env env, Format &format, napi_value &result)
+{
+    napi_status status = napi_create_object(env, &result);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    for (auto &iter : FORMAT_DATA) {
+        if (iter.second == FORMAT_TYPE_INT32) {
+            int32_t value = 0;
+            if (format.GetIntValue(iter.first, value)) {
+                (void)SetPropertyInt32(env, result, iter.first, value);
+            }
+        } else if (iter.second == FORMAT_TYPE_STRING) {
+            std::string value = "";
+            if (format.GetStringValue(iter.first, value)) {
+                (void)SetPropertyString(env, result, iter.first, value);
+            }
+        }
+    }
+    return true;
+}
+
 napi_status MediaJsResultArray::GetJsResult(napi_env env, napi_value &result)
 {
     // create Description
