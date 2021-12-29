@@ -104,6 +104,7 @@ napi_value AVCodecNapiUtil::CreateOutputCodecBuffer(napi_env env, uint32_t index
     std::shared_ptr<AVSharedMemory> memory, const AVCodecBufferInfo &info, AVCodecBufferFlag flag)
 {
     if (memory == nullptr && flag == AVCODEC_BUFFER_FLAG_EOS) {
+        MEDIA_LOGI("Return empty buffer with eos flag");
         return CreateEmptyEOSBuffer(env);
     }
 

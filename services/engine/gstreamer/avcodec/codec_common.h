@@ -88,7 +88,7 @@ __attribute__((visibility("default"))) std::string PCMFormatToString(AudioRawFor
 __attribute__((visibility("default"))) int32_t MapBitrateMode(int32_t number, VideoEncoderBitrateMode &mode);
 __attribute__((visibility("default"))) int32_t MapCodecMime(const std::string &mime, CodecMimeType &name);
 __attribute__((visibility("default"))) int32_t MapProfile(int32_t number, AVCProfile &profile);
-__attribute__((visibility("default"))) int32_t ParseCaps(GstCaps *caps, Format &format);
+__attribute__((visibility("default"))) int32_t CapsToFormat(GstCaps *caps, Format &format);
 } // Media
 } // OHOS
 #endif // CODEC_COMMON_H

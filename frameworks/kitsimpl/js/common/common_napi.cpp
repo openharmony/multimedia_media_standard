@@ -321,6 +321,27 @@ napi_value CommonNapi::CreateFormatBuffer(napi_env env, Format &format)
     return buffer;
 }
 
+bool CommonNapi::CreateFormatBufferByRef(napi_env env, Format &format, napi_value &result)
+{
+    napi_status status = napi_create_object(env, &result);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    for (auto &iter : FORMAT_DATA) {
+        if (iter.second == FORMAT_TYPE_INT32) {
+            int32_t value = 0;
+            if (format.GetIntValue(iter.first, value)) {
+                (void)SetPropertyInt32(env, result, iter.first, value);
+            }
+        } else if (iter.second == FORMAT_TYPE_STRING) {
+            std::string value = "";
+            if (format.GetStringValue(iter.first, value)) {
+                (void)SetPropertyString(env, result, iter.first, value);
+            }
+        }
+    }
+    return true;
+}
+
 napi_status MediaJsResultArray::GetJsResult(napi_env env, napi_value &result)
 {
     // create Description
@@ -470,6 +491,55 @@ napi_status MediaCapsJsResultAudio::GetJsResult(napi_env env, napi_value &result
 
         (void)napi_set_element(env, result, index, obj);
         index++;
+    }
+
+    return napi_ok;
+}
+
+napi_status MediaCapsJsResultAudioDynamic::GetJsResult(napi_env env, napi_value &result)
+{
+    auto codecList = AVCodecListFactory::CreateAVCodecList();
+    CHECK_AND_RETURN_RET(codecList != nullptr, napi_generic_failure);
+
+    std::vector<std::shared_ptr<AudioCaps>> audioCaps;
+    if (isDecoder_) {
+        audioCaps = codecList->GetAudioDecoderCaps();
+    } else {
+        audioCaps = codecList->GetAudioEncoderCaps();
+    }
+
+    napi_status status = napi_create_object(env, &result);
+    CHECK_AND_RETURN_RET(status == napi_ok, napi_generic_failure);
+
+    for (auto it = audioCaps.begin(); it != audioCaps.end(); it++) {
+        CHECK_AND_CONTINUE((*it) != nullptr);
+
+        auto info = (*it)->GetCodecInfo();
+        CHECK_AND_CONTINUE(info != nullptr);
+        CHECK_AND_CONTINUE(info->GetName() == name_);
+
+        (void)AddCodecInfo(env, result, info);
+
+        Range range = (*it)->GetSupportedBitrate();
+        (void)CommonNapi::AddRangeProperty(env, result, "supportedBitrate", range.minVal, range.maxVal);
+
+        range = (*it)->GetSupportedChannel();
+        (void)CommonNapi::AddRangeProperty(env, result, "supportedChannel", range.minVal, range.maxVal);
+
+        range = (*it)->GetSupportedComplexity();
+        (void)CommonNapi::AddRangeProperty(env, result, "supportedComplexity", range.minVal, range.maxVal);
+
+        std::vector<int32_t> vec = (*it)->GetSupportedFormats();
+        (void)CommonNapi::AddArrayProperty(env, result, "supportedFormats", vec);
+
+        vec = (*it)->GetSupportedSampleRates();
+        (void)CommonNapi::AddArrayProperty(env, result, "supportedSampleRates", vec);
+
+        vec = (*it)->GetSupportedProfiles();
+        (void)CommonNapi::AddArrayProperty(env, result, "supportedProfiles", vec);
+
+        vec = (*it)->GetSupportedLevels();
+        (void)CommonNapi::AddArrayProperty(env, result, "supportedLevels", vec);
     }
 
     return napi_ok;

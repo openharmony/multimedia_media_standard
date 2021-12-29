@@ -57,13 +57,11 @@ private:
     bool useSurfaceInput_ = false;
     bool useSurfaceRender_ = false;
     bool needInputCallback_ = true;
-    bool isFirstStart = true;
     std::condition_variable gstPipeCond_;
     std::mutex gstPipeMutex_;
     std::weak_ptr<IAVCodecEngineObs> obs_;
     std::unique_ptr<SrcBase> src_;
     std::unique_ptr<SinkBase> sink_;
-    uint32_t bufferCount_ = 0;
     bool isEncoder_ = false;
 };
 } // Media

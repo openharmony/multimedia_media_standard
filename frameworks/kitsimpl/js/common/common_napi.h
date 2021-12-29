@@ -71,6 +71,7 @@ public:
     static bool SetPropertyInt32(napi_env env, napi_value &obj, const std::string &key, int32_t value);
     static bool SetPropertyString(napi_env env, napi_value &obj, const std::string &key, const std::string &value);
     static napi_value CreateFormatBuffer(napi_env env, Format &format);
+    static bool CreateFormatBufferByRef(napi_env env, Format &format, napi_value &result);
     static bool AddRangeProperty(napi_env env, napi_value obj, const std::string &name, int32_t min, int32_t max);
     static bool AddArrayProperty(napi_env env, napi_value obj, const std::string &name,
         const std::vector<int32_t> &vec);
@@ -193,9 +194,7 @@ public:
     ~AVCodecJsResultFormat() = default;
     napi_status GetJsResult(napi_env env, napi_value &result) override
     {
-        (void)format_;
-        (void)env;
-        (void)result;
+        (void)CommonNapi::CreateFormatBufferByRef(env, format_, result);
         return napi_ok;
     }
 
@@ -213,6 +212,21 @@ public:
     napi_status GetJsResult(napi_env env, napi_value &result) override;
 
 private:
+    bool isDecoder_;
+};
+
+class MediaCapsJsResultAudioDynamic : public MediaJsResult {
+public:
+    explicit MediaCapsJsResultAudioDynamic(std::string name, bool isDecoder)
+        : name_(name),
+          isDecoder_(isDecoder)
+    {
+    }
+    ~MediaCapsJsResultAudioDynamic() = default;
+    napi_status GetJsResult(napi_env env, napi_value &result) override;
+
+private:
+    std::string name_;
     bool isDecoder_;
 };
 

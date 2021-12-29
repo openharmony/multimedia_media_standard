@@ -159,7 +159,7 @@ int32_t MapProfile(int32_t number, AVCProfile &profile)
     return MSERR_INVALID_VAL;
 }
 
-int32_t ParseCaps(GstCaps *caps, Format &format)
+int32_t CapsToFormat(GstCaps *caps, Format &format)
 {
     GstStructure *structure = gst_caps_get_structure(caps, 0);
     if (structure == nullptr) {

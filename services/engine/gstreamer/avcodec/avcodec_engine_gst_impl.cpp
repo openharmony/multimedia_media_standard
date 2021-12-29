@@ -73,6 +73,8 @@ int32_t AVCodecEngineGstImpl::Configure(const Format &format)
     CHECK_AND_RETURN_RET(processor_->DoProcess(format) == MSERR_OK, MSERR_UNKNOWN);
 
     MEDIA_LOGD("Configure success");
+    format_ = format;
+
     return MSERR_OK;
 }
 
@@ -130,6 +132,7 @@ int32_t AVCodecEngineGstImpl::Reset()
     ctrl_ = std::make_unique<AVCodecEngineCtrl>();
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_NO_MEMORY);
     CHECK_AND_RETURN_RET(ctrl_->Init(type_, uswSoftWare_, pluginName_) == MSERR_OK, MSERR_UNKNOWN);
+    ctrl_->SetObs(obs_);
 
     MEDIA_LOGD("Reset success");
     return MSERR_OK;
@@ -183,6 +186,8 @@ std::shared_ptr<AVSharedMemory> AVCodecEngineGstImpl::GetOutputBuffer(uint32_t i
 
 int32_t AVCodecEngineGstImpl::GetOutputFormat(Format &format)
 {
+    format_.PutStringValue("plugin_name", pluginName_);
+    format = format_;
     return MSERR_OK;
 }
 

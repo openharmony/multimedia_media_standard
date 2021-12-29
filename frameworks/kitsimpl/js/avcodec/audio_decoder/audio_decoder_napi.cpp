@@ -622,6 +622,7 @@ napi_value AudioDecoderNapi::SetParameter(napi_env env, napi_callback_info info)
 
 napi_value AudioDecoderNapi::GetOutputMediaDescription(napi_env env, napi_callback_info info)
 {
+    MEDIA_LOGD("Enter GetOutputMediaDescription");
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
 
@@ -630,34 +631,29 @@ napi_value AudioDecoderNapi::GetOutputMediaDescription(napi_env env, napi_callba
     napi_value jsThis = nullptr;
     napi_value args[1] = {nullptr};
     size_t argCount = 1;
+
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
         asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to napi_get_cb_info");
     }
 
+    AudioDecoderNapi *napi = nullptr;
+    (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&napi));
+    Format format;
+    if (napi->adec_ != nullptr) {
+        (void)napi->adec_->GetOutputFormat(format);
+    } else {
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to unwrap");
+    }
+
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
-
-    (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
+    asyncCtx->JsResult = std::make_unique<AVCodecJsResultFormat>(format);
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "GetOutputMediaDescription", NAPI_AUTO_LENGTH, &resource);
-    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
-        [](napi_env env, void* data) {
-            auto asyncCtx = reinterpret_cast<AudioDecoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
-                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
-                return;
-            }
-            Format format;
-            if (asyncCtx->napi->adec_->GetOutputFormat(format) != MSERR_OK) {
-                asyncCtx->SignError(MSERR_UNKNOWN, "Failed to GetOutputMediaDescription");
-                return;
-            }
-            asyncCtx->JsResult = std::make_unique<AVCodecJsResultFormat>(format);
-        },
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, [](napi_env env, void* data) {},
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
-
     NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
     asyncCtx.release();
 
@@ -675,28 +671,31 @@ napi_value AudioDecoderNapi::GetAudioDecoderCaps(napi_env env, napi_callback_inf
     napi_value jsThis = nullptr;
     napi_value args[1] = {nullptr};
     size_t argCount = 1;
+
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
         asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to napi_get_cb_info");
     }
 
+    AudioDecoderNapi *napi = nullptr;
+    (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&napi));
+    std::string name = "";
+    if (napi->adec_ != nullptr) {
+        Format format;
+        (void)napi->adec_->GetOutputFormat(format);
+        (void)format.GetStringValue("plugin_name", name);
+    } else {
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to unwrap");
+    }
+
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
-
-    (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
+    asyncCtx->JsResult = std::make_unique<MediaCapsJsResultAudioDynamic>(name, true);
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "GetAudioDecoderCaps", NAPI_AUTO_LENGTH, &resource);
-    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
-        [](napi_env env, void* data) {
-            auto asyncCtx = reinterpret_cast<AudioDecoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
-                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
-                return;
-            }
-        },
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, [](napi_env env, void* data) {},
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
-
     NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
     asyncCtx.release();
 
