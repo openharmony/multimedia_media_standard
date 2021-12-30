@@ -184,11 +184,12 @@ napi_value VideoRecorderNapi::Prepare(napi_env env, napi_callback_info info)
         asyncCtx->SignError(MSERR_EXT_UNKNOWN, "set properties failed!");
     }
 
-    std::string urlPath = "invalid url";
+    std::string urlPath = CommonNapi::GetPropertyString(env, args[0], "url");
 
     VideoRecorderProperties videoProperties;
-    urlPath = CommonNapi::GetPropertyString(env, args[0], "url");
-    asyncCtx->napi->GetConfig(env, args[0], videoProperties);
+
+    asyncCtx->napi->GetConfig(env, args[0], asyncCtx, videoProperties);
+
     if (asyncCtx->napi->GetVideoRecorderProperties(env, args[0], videoProperties) != MSERR_OK) {
         asyncCtx->SignError(MSERR_EXT_UNKNOWN, "get properties failed!");
     }
@@ -546,13 +547,24 @@ napi_value VideoRecorderNapi::On(napi_env env, napi_callback_info info)
 }
 
 
-void VideoRecorderNapi::GetConfig(napi_env env, napi_value args, VideoRecorderProperties &properties)
+void VideoRecorderNapi::GetConfig(napi_env env, napi_value args,
+    std::unique_ptr<VideoRecorderAsyncContext> &ctx, VideoRecorderProperties &properties)
 {
     int32_t audioSource, videoSource;
-    (void)CommonNapi::GetPropertyInt32(env, args, "audioSourceType", audioSource);
+
+    bool ret = CommonNapi::GetPropertyInt32(env, args, "audioSourceType", audioSource);
+    if (ret == true) {
+        // audio + video
+        properties.audioSourceType = static_cast<AudioSourceType>(audioSource);
+    } else {
+        // pure video
+        ctx->napi->isPureVideo = true;
+        MEDIA_LOGI("No audioSource Type input!");
+    }
+
     (void)CommonNapi::GetPropertyInt32(env, args, "videoSourceType", videoSource);
-    properties.audioSourceType = static_cast<AudioSourceType>(audioSource);
     properties.videoSourceType = static_cast<VideoSourceType>(videoSource);
+
     (void)CommonNapi::GetPropertyInt32(env, args, "orientationHint", properties.orientationHint);
 
     napi_value geoLocation = nullptr;
@@ -591,19 +603,43 @@ int32_t VideoRecorderNapi::GetVideoRecorderProperties(napi_env env, napi_value a
 int32_t VideoRecorderNapi::SetVideoRecorderProperties(std::unique_ptr<VideoRecorderAsyncContext> &ctx,
     const VideoRecorderProperties &properties)
 {
+    int32_t ret;
     CHECK_AND_RETURN_RET(recorder_ != nullptr, MSERR_INVALID_OPERATION);
+    if (ctx->napi->isPureVideo != true) {
+        // audio + video
+        ret = recorder_->SetAudioSource(properties.audioSourceType, ctx->napi->audioSourceID);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set AudioSource");
 
-    int32_t ret = recorder_->SetVideoSource(properties.videoSourceType, ctx->napi->videoSourceID);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set VideoSource");
+        ret = recorder_->SetVideoSource(properties.videoSourceType, ctx->napi->videoSourceID);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set VideoSource");
 
-    ret = recorder_->SetAudioSource(properties.audioSourceType, ctx->napi->audioSourceID);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set AudioSource");
+        OutputFormatType outputFile;
+        MapContainerFormatToOutputFormat(properties.profile.fileFormat, outputFile);
+        ret = recorder_->SetOutputFormat(outputFile);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set OutputFormat");
 
-    OutputFormatType outputFile;
-    MapContainerFormatToOutputFormat(properties.profile.fileFormat, outputFile);
-    ret = recorder_->SetOutputFormat(outputFile);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set OutputFormat");
+        AudioCodecFormat audioCodec;
+        MapCodecMimeToAudioCodec(properties.profile.audioCodec, audioCodec);
+        ret = recorder_->SetAudioEncoder(ctx->napi->audioSourceID, audioCodec);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set audioCodec");
 
+        ret = recorder_->SetAudioSampleRate(ctx->napi->audioSourceID, properties.profile.auidoSampleRate);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set auidoSampleRate");
+
+        ret = recorder_->SetAudioChannels(ctx->napi->audioSourceID, properties.profile.audioChannels);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set audioChannels");
+
+        ret = recorder_->SetAudioEncodingBitRate(ctx->napi->audioSourceID, properties.profile.audioBitrate);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set audioBitrate");
+    } else {
+        ret = recorder_->SetVideoSource(properties.videoSourceType, ctx->napi->videoSourceID);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set VideoSource");
+
+        OutputFormatType outputFile;
+        MapContainerFormatToOutputFormat(properties.profile.fileFormat, outputFile);
+        ret = recorder_->SetOutputFormat(outputFile);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set OutputFormat");
+    }
     VideoCodecFormat videoCodec;
     MapCodecMimeToVideoCodec(properties.profile.videoCodec, videoCodec);
     ret = recorder_->SetVideoEncoder(ctx->napi->videoSourceID, videoCodec);
@@ -618,20 +654,6 @@ int32_t VideoRecorderNapi::SetVideoRecorderProperties(std::unique_ptr<VideoRecor
 
     ret = recorder_->SetVideoEncodingBitRate(ctx->napi->videoSourceID, properties.profile.videoBitrate);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set videoBitrate");
-
-    AudioCodecFormat audioCodec;
-    MapCodecMimeToAudioCodec(properties.profile.audioCodec, audioCodec);
-    ret = recorder_->SetAudioEncoder(ctx->napi->audioSourceID, audioCodec);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set audioCodec");
-
-    ret = recorder_->SetAudioSampleRate(ctx->napi->audioSourceID, properties.profile.auidoSampleRate);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set auidoSampleRate");
-
-    ret = recorder_->SetAudioChannels(ctx->napi->audioSourceID, properties.profile.audioChannels);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set audioChannels");
-
-    ret = recorder_->SetAudioEncodingBitRate(ctx->napi->audioSourceID, properties.profile.audioBitrate);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set audioBitrate");
 
     recorder_->SetLocation(properties.location.latitude, properties.location.longitude);
     recorder_->SetOrientationHint(properties.orientationHint);
@@ -690,7 +712,7 @@ napi_value VideoRecorderNapi::GetState(napi_env env, napi_callback_info info)
     return jsResult;
 }
 
-// 同步的 不带 promise callback 的属性接口 可以通过这个上报，比如getstates
+// Synchronous interface can use this to report error
 void VideoRecorderNapi::ErrorCallback(MediaServiceExtErrCode errCode)
 {
     if (callbackNapi_ != nullptr) {
