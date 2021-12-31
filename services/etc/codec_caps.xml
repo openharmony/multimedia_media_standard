@@ -16,24 +16,25 @@
 <Codecs>
     <AudioCodecs>
             <AudioDecoder>
-                <Item codecName="avdec_mp3" />
-                <Item codecType="AUDIO_DECODER" />
-                <Item mimeType="audio/mpeg" />
-                <Item isVendor="false" />
+                <Item codecName="avdec_mp3"/>
+                <Item codecType="AUDIO_DECODER"/>
+                <Item mimeType="audio/mpeg"/>
+                <Item isVendor="false"/>
                 <Item audioBandWidth="0"/>
                 <Item bitrate="1-384000"/>
                 <Item channels="1-2"/>
                 <Item channelMode="0-0x7FFFFFFF"/>
                 <Item layer="3"/>
-                <Item mpegVersion="1,2,3"/>
+                <Item mpegVersion="1"/>
                 <Item mpegAudioVersion="1,2,3"/>
                 <Item sampleRate="8000,11025,12000,16000,22050,24000,32000,44100,48000,64000,88200,96000"/>
+                <Item format="S16LE"/>
             </AudioDecoder>
             <AudioDecoder>
-                <Item codecName="avdec_aac" />
-                <Item codecType="AUDIO_DECODER" />
-                <Item mimeType="audio/mp4a-latm" />
-                <Item isVendor="false" />
+                <Item codecName="avdec_aac"/>
+                <Item codecType="AUDIO_DECODER"/>
+                <Item mimeType="audio/mp4a-latm"/>
+                <Item isVendor="false"/>
                 <Item audioBandWidth="0"/>
                 <Item bitrate="1-384000"/>
                 <Item channels="1-2"/>
@@ -44,6 +45,7 @@
                 <Item streamFormat="adts,adif,raw"/>
                 <Item profiles="AAC_LC,AAC_HE,AAC_HE_V2,AAC_LD,AAC_ELD"/>
                 <Item complexity="0-3"/>
+                <Item layout="non-interleaved"/>
             </AudioDecoder>
             <AudioDecoder>
                 <Item codecName="avdec_vorbis" />
@@ -56,116 +58,116 @@
                 <Item sampleRate="8000,11025,12000,16000,22050,24000,32000,44100,48000,64000,88200,96000,176400,192000"/>
             </AudioDecoder>
             <AudioDecoder>
-                <Item codecName="avdec_flac" />
-                <Item codecType="AUDIO_DECODER" />
-                <Item mimeType="audio/flac" />
-                <Item isVendor="false" />
+                <Item codecName="avdec_flac"/>
+                <Item codecType="AUDIO_DECODER"/>
+                <Item mimeType="audio/flac"/>
+                <Item isVendor="false"/>
                 <Item bitrate="1-384000"/>
                 <Item channels="1-2"/>
                 <Item framed="true"/>
-                <Item format="S8,S16LE,S32LE,S16BE,S32BE"/>
-                <Item layout="interleaved"/>
+                <Item format="S16LE,S32LE"/>
+                <Item layout="interleaved,non-interleaved"/>
                 <Item sampleRate="8000,11025,12000,16000,22050,24000,32000,44100,48000,64000,88200,96000"/>
             </AudioDecoder>
             <AudioEncoder>
-                <Item codecName="avenc_aac" />
-                <Item codecType="AUDIO_ENCODER" />
-                <Item mimeType="audio/mp4a-latm" />
-                <Item isVendor="false" />
+                <Item codecName="avenc_aac"/>
+                <Item codecType="AUDIO_ENCODER"/>
+                <Item mimeType="audio/mp4a-latm"/>
+                <Item isVendor="false"/>
                 <Item audioBandWidth="0"/>
                 <Item bitrate="1-384000"/>
                 <Item channels="1-2"/>
                 <Item frameLength="0,480,512,960,1024,2048"/>
                 <Item format="F32LE"/>
-                <Item mpegVersion="4" />
-                <Item sampleRate="8000,11025,12000,16000,22050,24000,32000,44100,48000,64000,88200,96000" />
-                <Item streamFormat="adts,adif,raw" />
+                <Item mpegVersion="4"/>
+                <Item sampleRate="8000,11025,12000,16000,22050,24000,32000,44100,48000,64000,88200,96000"/>
+                <Item streamFormat="adts,adif,raw"/>
             </AudioEncoder>
     </AudioCodecs>
     <VideoCodecs>
             <VideoDecoder>
-                <Item codecName="avdec_h264" />
-                <Item codecType="VIDEO_DECODER" />
-                <Item mimeType="video/avc" />
-                <Item isVendor="false" />
-                <Item alignment="0-0" />
+                <Item codecName="avdec_h264"/>
+                <Item codecType="VIDEO_DECODER"/>
+                <Item mimeType="video/avc"/>
+                <Item isVendor="false"/>
+                <Item alignment="0-0"/>
                 <Item bitrateMode="VBR,CBR"/>
-                <Item width="2-1920" />
-                <Item height="2-1080" />
-                <Item bitrate="1-3000000" />
+                <Item width="2-1920"/>
+                <Item height="2-1080"/>
+                <Item bitrate="1-3000000"/>
                 <Item frameRate="1-30"/>
                 <Item format="YUVI420,NV12,NV21"/>
-                <Item profiles="AVCBaseline,AVCMain,AVCHigh" />
+                <Item profiles="AVCBaseline,AVCMain,AVCHigh"/>
             </VideoDecoder>
             <VideoDecoder>
-                <Item codecName="avdec_h263" />
-                <Item codecType="VIDEO_DECODER" />
-                <Item mimeType="video/h263" />
-                <Item isVendor="false" />
+                <Item codecName="avdec_h263"/>
+                <Item codecType="VIDEO_DECODER"/>
+                <Item mimeType="video/h263"/>
+                <Item isVendor="false"/>
                 <Item alignment="0-0" />
                 <Item bitrateMode="VBR,CBR"/>
-                <Item width="2-1920" />
-                <Item height="2-1080" />
-                <Item bitrate="1-3000000" />
+                <Item width="2-1920"/>
+                <Item height="2-1080"/>
+                <Item bitrate="1-3000000"/>
                 <Item frameRate="1-30"/>
                 <Item format="YUVI420"/>
-                <Item profiles="H263Baseline,H263ISWV2,H263HighCompression," />
+                <Item profiles="H263Baseline,H263ISWV2,H263HighCompression"/>
             </VideoDecoder>
             <VideoDecoder>
-                <Item codecName="avdec_mpeg2video" />
-                <Item codecType="VIDEO_DECODER" />
-                <Item mimeType="video/mpeg2" />
-                <Item isVendor="false" />
-                <Item alignment="0-0" />
+                <Item codecName="avdec_mpeg2video"/>
+                <Item codecType="VIDEO_DECODER"/>
+                <Item mimeType="video/mpeg2"/>
+                <Item isVendor="false"/>
+                <Item alignment="0-0"/>
                 <Item bitrateMode="VBR,CBR"/>
-                <Item width="2-1920" />
-                <Item height="2-1080" />
-                <Item bitrate="1-3000000" />
+                <Item width="2-1920"/>
+                <Item height="2-1080"/>
+                <Item bitrate="1-3000000"/>
                 <Item frameRate="1-30"/>
                 <Item format="YUVI420,NV12,NV21"/>
-                <Item profiles="MPEG2Main,MPEG2Simple" />
+                <Item profiles="MPEG2Main,MPEG2Simple"/>
             </VideoDecoder>
             <VideoDecoder>
-                <Item codecName="avdec_mpeg4" />
-                <Item codecType="VIDEO_DECODER" />
-                <Item mimeType="video/mp4v-es" />
-                <Item isVendor="false" />
-                <Item alignment="0-0" />
+                <Item codecName="avdec_mpeg4"/>
+                <Item codecType="VIDEO_DECODER"/>
+                <Item mimeType="video/mp4v-es"/>
+                <Item isVendor="false"/>
+                <Item alignment="0-0"/>
                 <Item bitrateMode="VBR,CBR"/>
-                <Item width="2-1920" />
-                <Item height="2-1080" />
-                <Item bitrate="1-3000000" />
+                <Item width="2-1920"/>
+                <Item height="2-1080"/>
+                <Item bitrate="1-3000000"/>
                 <Item frameRate="1-30"/>
                 <Item format="YUVI420"/>
-                <Item profiles="MPEG4Simple,MPEG4AdvancedSimple" />
+                <Item profiles="MPEG4Simple,MPEG4AdvancedSimple"/>
             </VideoDecoder>
             <VideoDecoder>
-                <Item codecName="avdec_vp8" />
-                <Item codecType="VIDEO_DECODER" />
-                <Item mimeType="video/x-vnd.on2.vp8" />
-                <Item isVendor="false" />
-                <Item alignment="0-0" />
+                <Item codecName="avdec_vp8"/>
+                <Item codecType="VIDEO_DECODER"/>
+                <Item mimeType="video/x-vnd.on2.vp8"/>
+                <Item isVendor="false"/>
+                <Item alignment="0-0"/>
                 <Item bitrateMode="VBR,CBR"/>
-                <Item width="2-1920" />
-                <Item height="2-1080" />
-                <Item bitrate="1-3000000" />
+                <Item width="2-1920"/>
+                <Item height="2-1080"/>
+                <Item bitrate="1-3000000"/>
                 <Item frameRate="1-30"/>
                 <Item format="YUVI420,NV12,NV21"/>
-                <Item profiles="VP8Main" />
+                <Item profiles="VP8Main"/>
             </VideoDecoder>
             <VideoEncoder>
-                <Item codecName="avenc_mpeg4" />
-                <Item codecType="VIDEO_ENCODER" />
-                <Item mimeType="video/mp4v-es" />
-                <Item isVendor="false" />
-                <Item alignment="0-0" />
+                <Item codecName="avenc_mpeg4"/>
+                <Item codecType="VIDEO_ENCODER"/>
+                <Item mimeType="video/mp4v-es"/>
+                <Item isVendor="false"/>
+                <Item alignment="0-0"/>
                 <Item bitrateMode="VBR,CBR"/>
-                <Item width="2-1920" />
-                <Item height="2-1080" />
-                <Item bitrate="1-3000000" />
+                <Item width="2-1920"/>
+                <Item height="2-1080"/>
+                <Item bitrate="1-3000000"/>
                 <Item frameRate="1-30"/>
                 <Item format="YUVI420"/>
-                <Item profiles="MPEG4Simple,MPEG4AdvancedSimple" />
+                <Item profiles="MPEG4Simple,MPEG4AdvancedSimple"/>
             </VideoEncoder>
     </VideoCodecs>
 </Codecs>
