@@ -216,6 +216,30 @@ void MediaServerManager::DestroyStubObject(StubType type, sptr<IRemoteObject> ob
             MEDIA_LOGE("find avmetadatahelper object failed, pid(%{public}d).", pid);
             break;
         }
+        case AVCODEC: {
+            for (auto it = avCodecStubMap_.begin(); it != avCodecStubMap_.end(); it++) {
+                if (it->first == object) {
+                    MEDIA_LOGD("destory avcodec stub services(%{public}zu) pid(%{public}d).",
+                        avCodecStubMap_.size(), pid);
+                    (void)avCodecStubMap_.erase(it);
+                    return;
+                }
+            }
+            MEDIA_LOGE("find avcodec object failed, pid(%{public}d).", pid);
+            break;
+        }
+        case AVCODECLIST: {
+            for (auto it = avCodecListStubMap_.begin(); it != avCodecListStubMap_.end(); it++) {
+                if (it->first == object) {
+                    MEDIA_LOGD("destory avcodeclist stub services(%{public}zu) pid(%{public}d).",
+                        avCodecListStubMap_.size(), pid);
+                    (void)avCodecListStubMap_.erase(it);
+                    return;
+                }
+            }
+            MEDIA_LOGE("find avcodeclist object failed, pid(%{public}d).", pid);
+            break;
+        }
         default: {
             MEDIA_LOGE("default case, media server manager failed, pid(%{public}d).", pid);
             break;
@@ -255,6 +279,26 @@ void MediaServerManager::DestroyStubObjectForPid(pid_t pid)
         }
     }
     MEDIA_LOGD("avmetadatahelper stub services(%{public}zu).", avMetadataHelperStubMap_.size());
+    
+    MEDIA_LOGD("avcodec stub services(%{public}zu) pid(%{public}d).", avCodecStubMap_.size(), pid);
+    for (auto itAvCodec = avCodecStubMap_.begin(); itAvCodec != avCodecStubMap_.end();) {
+        if (itAvCodec->second == pid) {
+            itAvCodec = avCodecStubMap_.erase(itAvCodec);
+        } else {
+            itAvCodec++;
+        }
+    }
+    MEDIA_LOGD("avcodec stub services(%{public}zu).", avCodecStubMap_.size());
+
+    MEDIA_LOGD("avcodeclist stub services(%{public}zu) pid(%{public}d).", avCodecListStubMap_.size(), pid);
+    for (auto itAvCodecList = avCodecListStubMap_.begin(); itAvCodecList != avCodecListStubMap_.end();) {
+        if (itAvCodecList->second == pid) {
+            itAvCodecList = avCodecListStubMap_.erase(itAvCodecList);
+        } else {
+            itAvCodecList++;
+        }
+    }
+    MEDIA_LOGD("avcodeclist stub services(%{public}zu).", avCodecListStubMap_.size());
 }
 } // Media
 } // OHOS
