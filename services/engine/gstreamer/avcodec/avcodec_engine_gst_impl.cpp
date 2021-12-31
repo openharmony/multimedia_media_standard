@@ -44,7 +44,7 @@ int32_t AVCodecEngineGstImpl::Init(AVCodecType type, bool isMimeType, const std:
 
     type_ = type;
 
-    CodecMimeType codecName = CODEC_MIMIE_TYPE_VIDEO_H263;
+    CodecMimeType codecName = CODEC_MIMIE_TYPE_DEFAULT;
     CHECK_AND_RETURN_RET(MapCodecMime(name, codecName) == MSERR_OK, MSERR_UNKNOWN);
 
     processor_ = AVCodecEngineFactory::CreateProcessor(type);
