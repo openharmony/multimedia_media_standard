@@ -80,7 +80,7 @@ int32_t AVCodecServiceStub::DestroyStub()
 {
     codecServer_ = nullptr;
 
-    MediaServerManager::GetInstance().DestroyStubObject(MediaServerManager::RECORDER, AsObject());
+    MediaServerManager::GetInstance().DestroyStubObject(MediaServerManager::AVCODEC, AsObject());
     return MSERR_OK;
 }
 
