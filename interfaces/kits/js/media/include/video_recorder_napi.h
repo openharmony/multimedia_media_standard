@@ -89,15 +89,16 @@ private:
         AudioSourceType audioSourceType; // source type;
         VideoSourceType videoSourceType;
         VideoRecorderProfile profile;
-        int32_t orientationHint = 0; // 可选
-        Location location; // 可选
+        int32_t orientationHint = 0; // Optional
+        Location location; // Optional
         std::string url;
     };
 
     int32_t GetVideoRecorderProperties(napi_env env, napi_value args, VideoRecorderProperties &properties);
     int32_t SetVideoRecorderProperties(std::unique_ptr<VideoRecorderAsyncContext> &ctx,
         const VideoRecorderProperties &properties);
-    void GetConfig(napi_env env, napi_value args, VideoRecorderProperties &properties);
+    void GetConfig(napi_env env, napi_value args, std::unique_ptr<VideoRecorderAsyncContext> &ctx,
+        VideoRecorderProperties &properties);
     int32_t SetUrl(const std::string &UrlPath);
     int32_t CheckValidPath(const std::string &filePath, std::string &realPath);
 
@@ -107,6 +108,7 @@ private:
     std::shared_ptr<Recorder> recorder_ = nullptr;
     std::shared_ptr<RecorderCallback> callbackNapi_ = nullptr;
     std::string currentStates_ = VideoRecorderState::STATE_IDLE;
+    bool isPureVideo = false;
     int32_t videoSourceID;
     int32_t audioSourceID;
 };
@@ -116,7 +118,7 @@ struct VideoRecorderAsyncContext : public MediaAsyncContext {
     ~VideoRecorderAsyncContext() = default;
 
     VideoRecorderNapi *napi = nullptr;
- 
+
     sptr<Surface> surface;
 };
 } // namespace Media
