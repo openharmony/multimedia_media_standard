@@ -105,7 +105,7 @@ napi_value VideoRecorderNapi::Constructor(napi_env env, napi_callback_info info)
     CHECK_AND_RETURN_RET_LOG(recorderNapi->recorder_ != nullptr, result, "No memory!");
 
     if (recorderNapi->callbackNapi_ == nullptr) {
-        recorderNapi->callbackNapi_ = std::make_shared<RecorderCallbackNapi>(env); // jhp1
+        recorderNapi->callbackNapi_ = std::make_shared<RecorderCallbackNapi>(env);
         (void)recorderNapi->recorder_->SetRecorderCallback(recorderNapi->callbackNapi_);
     }
 
@@ -569,7 +569,8 @@ void VideoRecorderNapi::GetConfig(napi_env env, napi_value args,
 
     napi_value geoLocation = nullptr;
     napi_get_named_property(env, args, "location", &geoLocation);
-    double tempLatitude, tempLongitude;
+    double tempLatitude = 0;
+    double tempLongitude = 0;
     (void)CommonNapi::GetPropertyDouble(env, geoLocation, "latitude", tempLatitude);
     (void)CommonNapi::GetPropertyDouble(env, geoLocation, "longitude", tempLongitude);
     properties.location.latitude = static_cast<float>(tempLatitude);
