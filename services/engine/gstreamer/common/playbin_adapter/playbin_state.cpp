@@ -91,14 +91,6 @@ void PlayBinCtrlerBase::BaseState::OnMessageReceived(const InnerMessage &msg)
         ctrler_.stateCond_.notify_one();
 
         Dumper::DumpDotGraph(*ctrler_.playbin_, msg.detail1, msg.detail2);
-
-        if ((msg.detail1 == GST_STATE_PAUSED) && (msg.detail2 == GST_STATE_PAUSED) &&
-            (ctrler_.taskMgr_.GetCurrTaskType() == PlayBinTaskType::SEEKING)) {
-            PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, 0 };
-            ctrler_.ReportMessage(playBinMsg);
-            (void)ctrler_.taskMgr_.MarkSecondPhase();
-        }
-        return;
     }
 
     if (msg.type == INNER_MSG_DURATION_CHANGED) {
@@ -148,7 +140,15 @@ void PlayBinCtrlerBase::PreparingState::ProcessMessage(const InnerMessage &msg)
 {
     if (msg.type == INNER_MSG_STATE_CHANGED) {
         if ((msg.detail1 == GST_STATE_READY) && (msg.detail2 == GST_STATE_PAUSED)) {
+            stateChanged_ = true;
+            return;
+        }
+    }
+
+    if (msg.type == INNER_MSG_ASYNC_DONE) {
+        if (stateChanged_) {
             ctrler_.ChangeState(ctrler_.preparedState_);
+            stateChanged_ = false;
             return;
         }
     }
@@ -201,6 +201,15 @@ void PlayBinCtrlerBase::PreparedState::ProcessMessage(const InnerMessage &msg)
             return;
         }
     }
+
+    if (msg.type == INNER_MSG_ASYNC_DONE) {
+        if (ctrler_.taskMgr_.GetCurrTaskType() == PlayBinTaskType::SEEKING) {
+            MEDIA_LOGI("seek done");
+            PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, 0 };
+            ctrler_.ReportMessage(playBinMsg);
+            (void)ctrler_.taskMgr_.MarkSecondPhase();
+        }
+    }
 }
 
 void PlayBinCtrlerBase::PlayingState::StateEnter()
@@ -228,26 +237,7 @@ int32_t PlayBinCtrlerBase::PlayingState::Pause()
 
 int32_t PlayBinCtrlerBase::PlayingState::Seek(int64_t timeUs, int32_t option)
 {
-    seekPending_ = true;
-
-    int32_t ret = ChangePlayBinState(GST_STATE_PAUSED);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Pause failed");
-
-    auto seekTask = std::make_shared<TaskHandler<int32_t>>([this, timeUs, option]() {
-        return ctrler_.SeekInternel(timeUs, option);
-    });
-
-    ret = ctrler_.taskMgr_.LaunchTask(seekTask, PlayBinTaskType::SEEKING);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "launch seek task failed");
-
-    auto playTask = std::make_shared<TaskHandler<int32_t>>([this]()  {
-        return ChangePlayBinState(GST_STATE_PLAYING);
-    });
-
-    ret = ctrler_.taskMgr_.LaunchTask(playTask, PlayBinTaskType::STATE_CHANGE);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "launch play task failed");
-
-    return MSERR_OK;
+    return ctrler_.SeekInternel(timeUs, option);
 }
 
 int32_t PlayBinCtrlerBase::PlayingState::Stop()
@@ -261,18 +251,15 @@ void PlayBinCtrlerBase::PlayingState::ProcessMessage(const InnerMessage &msg)
 {
     if (msg.type == INNER_MSG_STATE_CHANGED) {
         if ((msg.detail1 == GST_STATE_PLAYING) && (msg.detail2 == GST_STATE_PAUSED)) {
-            if (!seekPending_) {
-                ctrler_.ChangeState(ctrler_.pausedState_);
-            }
+            ctrler_.ChangeState(ctrler_.pausedState_);
             (void)ctrler_.taskMgr_.MarkSecondPhase();
             return;
         }
-        if ((msg.detail1 == GST_STATE_PAUSED) && (msg.detail2 == GST_STATE_PAUSED)) {
-            if (!seekPending_) {
-                ctrler_.ChangeState(ctrler_.pausedState_);
-                (void)ctrler_.taskMgr_.MarkSecondPhase();
-            }
-            seekPending_ = false; // mark the seek task's second phase on the Parent Class
+        if ((msg.detail1 == GST_STATE_PAUSED) && (msg.detail2 == GST_STATE_PLAYING)) {
+            MEDIA_LOGI("seek done");
+            PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, 0 };
+            ctrler_.ReportMessage(playBinMsg);
+            (void)ctrler_.taskMgr_.MarkSecondPhase();
             return;
         }
     }

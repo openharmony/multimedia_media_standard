@@ -35,6 +35,7 @@ static const std::set<PixelFormat> SUPPORTED_PIXELFORMAT = { PixelFormat::RGB_56
 
 static bool CheckFrameFetchParam(int64_t timeUsOrIndex, int32_t option, const OutputConfiguration &param)
 {
+    (void)timeUsOrIndex;
     if ((option != AV_META_QUERY_CLOSEST) && (option != AV_META_QUERY_CLOSEST_SYNC) &&
         (option != AV_META_QUERY_NEXT_SYNC) && (option != AV_META_QUERY_PREVIOUS_SYNC)) {
         MEDIA_LOGE("Invalid query option: %{public}d", option);
@@ -217,7 +218,7 @@ int32_t AVMetadataHelperEngineGstImpl::PrepareInternel(bool async)
     CHECK_AND_RETURN_RET_LOG(playBinCtrler_ != nullptr, MSERR_INVALID_OPERATION, "set source firstly");
 
     std::unique_lock<std::mutex> lock(mutex_);
-    if (status_ == PLAYBIN_STATE_PREPARED) {
+    if (status_ == PLAYBIN_STATE_PREPARED || status_ == PLAYBIN_STATE_PLAYING || status_ == PLAYBIN_STATE_PAUSED) {
         return MSERR_OK;
     }
 
@@ -349,6 +350,13 @@ void AVMetadataHelperEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
             }
             cond_.notify_all();
             MEDIA_LOGE("error happended, cancel inprocessing job");
+            break;
+        }
+        case PLAYBIN_MSG_SEEKDONE: {
+            std::unique_lock<std::mutex> lock(mutex_);
+            if (frameExtractor_ != nullptr) {
+                frameExtractor_->NotifyPlayBinMsg(msg);
+            }
             break;
         }
         default:
