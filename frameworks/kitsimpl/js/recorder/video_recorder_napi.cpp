@@ -30,6 +30,8 @@ namespace OHOS {
 namespace Media {
 napi_ref VideoRecorderNapi::constructor_ = nullptr;
 const std::string CLASS_NAME = "VideoRecorder";
+const double DEFAULT_LATITUDE = 0;
+const double DEFAULT_LONGITUTE = 0;
 
 VideoRecorderNapi::VideoRecorderNapi()
 {
@@ -105,7 +107,7 @@ napi_value VideoRecorderNapi::Constructor(napi_env env, napi_callback_info info)
     CHECK_AND_RETURN_RET_LOG(recorderNapi->recorder_ != nullptr, result, "No memory!");
 
     if (recorderNapi->callbackNapi_ == nullptr) {
-        recorderNapi->callbackNapi_ = std::make_shared<RecorderCallbackNapi>(env); // jhp1
+        recorderNapi->callbackNapi_ = std::make_shared<RecorderCallbackNapi>(env);
         (void)recorderNapi->recorder_->SetRecorderCallback(recorderNapi->callbackNapi_);
     }
 
@@ -569,7 +571,8 @@ void VideoRecorderNapi::GetConfig(napi_env env, napi_value args,
 
     napi_value geoLocation = nullptr;
     napi_get_named_property(env, args, "location", &geoLocation);
-    double tempLatitude, tempLongitude;
+    double tempLatitude = DEFAULT_LATITUDE;
+    double tempLongitude = DEFAULT_LONGITUTE;
     (void)CommonNapi::GetPropertyDouble(env, geoLocation, "latitude", tempLatitude);
     (void)CommonNapi::GetPropertyDouble(env, geoLocation, "longitude", tempLongitude);
     properties.location.latitude = static_cast<float>(tempLatitude);
