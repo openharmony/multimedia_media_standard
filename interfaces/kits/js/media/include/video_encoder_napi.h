@@ -67,12 +67,12 @@ struct VideoEncoderAsyncContext : public MediaAsyncContext {
     // general variable
     VideoEncoderNapi *napi = nullptr;
     // used by constructor
-    std::string pluginName = "";
+    std::string pluginName;
     int32_t createByMime = 1;
     // used by buffer function
     int32_t index = 0;
     AVCodecBufferInfo info;
-    AVCodecBufferFlag flag;
+    AVCodecBufferFlag flag = AVCODEC_BUFFER_FLAG_NONE;
     // used by format
     Format format;
 };

@@ -133,7 +133,9 @@ void VideoDecoderCallbackNapi::OnOutputBufferAvailable(uint32_t index, AVCodecBu
     CHECK_AND_RETURN(vdec != nullptr);
 
     auto buffer = vdec->GetOutputBuffer(index);
-    if (buffer == nullptr && flag != AVCODEC_BUFFER_FLAG_EOS) {
+    bool isEos = flag & AVCODEC_BUFFER_FLAG_EOS;
+    if (buffer == nullptr && !isEos) {
+        MEDIA_LOGW("Failed to get output buffer");
         return;
     }
 
