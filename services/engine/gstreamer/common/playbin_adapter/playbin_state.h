@@ -70,6 +70,8 @@ protected:
     void ProcessMessage(const InnerMessage &msg) override;
     void StateEnter() override;
     void StateExit() override;
+
+    bool stateChanged_ = false;
 };
 
 class PlayBinCtrlerBase::PreparedState : public PlayBinCtrlerBase::BaseState {

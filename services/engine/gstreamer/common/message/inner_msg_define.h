@@ -30,6 +30,7 @@ enum InnerMsgType : int32_t {
     INNER_MSG_EOS,
     INNER_MSG_STATE_CHANGED,
     INNER_MSG_DURATION_CHANGED,
+    INNER_MSG_ASYNC_DONE,
 };
 
 struct InnerMessage {

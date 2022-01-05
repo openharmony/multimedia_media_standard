@@ -362,7 +362,7 @@ void AVMetaMetaCollector::AddElemBlocker(GstElement &source, uint8_t type)
         cond_.notify_all();
     };
 
-    if (type == GstElemType::PARSER || type == GstElemType::DEMUXER) {
+    if (type == GstElemType::DEMUXER) {
         auto blocker = std::make_shared<AVMetaBufferBlocker>(source, true, notifier);
         PUSH_NEW_BLOCK(type, blocker);
         return;
@@ -371,6 +371,24 @@ void AVMetaMetaCollector::AddElemBlocker(GstElement &source, uint8_t type)
     if (type == GstElemType::DECODER) {
         auto blocker = std::make_shared<AVMetaBufferBlocker>(source, false, notifier);
         PUSH_NEW_BLOCK(type, blocker);
+        return;
+    }
+
+    if (type == GstElemType::PARSER) {
+        /**
+         * If there is a demuxer, we can not add blocker at the parser's srcpad, the parser
+         * maybe need to wait serveral packets of buffer to autoplug the decoder, which will
+         * leads to no buffer can arrived at the srcpad of parser due to the MultiQueueCutOut.
+         * Insteadly, we add the blocker at the parser's sinkpad to fix this issue.
+         *
+         */
+        if (hasSrcType_.count(GstElemType::DEMUXER) != 0) {
+            auto blocker = std::make_shared<AVMetaBufferBlocker>(source, false, notifier);
+            PUSH_NEW_BLOCK(type, blocker);
+        } else {
+            auto blocker = std::make_shared<AVMetaBufferBlocker>(source, true, notifier);
+            PUSH_NEW_BLOCK(type, blocker);
+        }
         return;
     }
 }
