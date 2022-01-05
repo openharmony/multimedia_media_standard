@@ -201,7 +201,6 @@ gboolean GstMsgProcessor::BusCallback(const GstBus *bus, GstMessage *msg, GstMsg
     }
     CHECK_AND_RETURN_RET(msg != nullptr, FALSE);
     thiz->ProcessGstMessage(*msg);
-    gst_message_unref(msg);
     return TRUE;
 }
 

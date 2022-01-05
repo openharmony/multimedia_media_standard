@@ -117,18 +117,21 @@ bool AVMetaBufferBlocker::CheckUpStreamBlocking(GstPad &pad)
     if (GST_PAD_DIRECTION(&pad) == GST_PAD_SINK) {
         upstreamPad = gst_pad_get_peer(&pad);
     } else {
+        GstElement *elem = gst_pad_get_parent_element(&pad);
+        if (elem == nullptr) {
+            if (GST_IS_PROXY_PAD(&pad)) { // find the proxy sinkpad for decodebin
+                return false;
+            }
+            MEDIA_LOGE("unexpected, avoid lock, return true");
+            return true;
+        }
+
         /**
          * This is a multi-srcpads element, means that we meet the demuxer or multiqueue.
          * There is no need to figure out whether the demuxer or multiqueue's sinkpads are
          * blocking, because we guarante it will never happen.
          */
-        GstElement *elem = gst_pad_get_parent_element(&pad);
-        if (elem == nullptr) {
-            MEDIA_LOGE("unexpected, avoid lock, return true");
-            return true;
-        }
-
-        if (g_list_length(elem->srcpads) > 1) {
+        if (g_list_length(elem->srcpads) > 1 || g_list_length(elem->sinkpads) == 0) {
             gst_object_unref(elem);
             return false;
         }
