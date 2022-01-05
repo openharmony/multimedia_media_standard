@@ -30,8 +30,6 @@ namespace OHOS {
 namespace Media {
 napi_ref VideoRecorderNapi::constructor_ = nullptr;
 const std::string CLASS_NAME = "VideoRecorder";
-const double DEFAULT_LATITUDE = 0;
-const double DEFAULT_LONGITUTE = 0;
 
 VideoRecorderNapi::VideoRecorderNapi()
 {
@@ -571,8 +569,8 @@ void VideoRecorderNapi::GetConfig(napi_env env, napi_value args,
 
     napi_value geoLocation = nullptr;
     napi_get_named_property(env, args, "location", &geoLocation);
-    double tempLatitude = DEFAULT_LATITUDE;
-    double tempLongitude = DEFAULT_LONGITUTE;
+    double tempLatitude = 0;
+    double tempLongitude = 0;
     (void)CommonNapi::GetPropertyDouble(env, geoLocation, "latitude", tempLatitude);
     (void)CommonNapi::GetPropertyDouble(env, geoLocation, "longitude", tempLongitude);
     properties.location.latitude = static_cast<float>(tempLatitude);
