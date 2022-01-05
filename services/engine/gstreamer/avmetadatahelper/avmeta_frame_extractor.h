@@ -34,6 +34,7 @@ public:
     int32_t Init(const std::shared_ptr<IPlayBinCtrler> &playbin, GstElement &vidAppSink);
     std::shared_ptr<AVSharedMemory> ExtractFrame(int64_t timeUs, int32_t option, const OutputConfiguration &param);
     void Reset();
+    void NotifyPlayBinMsg(const PlayBinMessage &msg);
 
     DISALLOW_COPY_AND_MOVE(AVMetaFrameExtractor);
 
@@ -45,15 +46,13 @@ private:
     void ClearCache();
 
     static GstFlowReturn OnNewPrerollArrived(GstElement *sink, AVMetaFrameExtractor *thiz);
-    static GstFlowReturn OnNewSampleArrived(GstElement *sink, AVMetaFrameExtractor *thiz);
 
     std::shared_ptr<IPlayBinCtrler> playbin_;
     GstElement *vidAppSink_ = nullptr;
     std::queue<std::pair<GstBuffer *, GstCaps *>> originalFrames_;
-    int32_t currOriginalFrameCount_ = 0;
-    int32_t maxFrames_ = 0;
     std::mutex mutex_;
     std::condition_variable cond_;
+    bool seekDone_ = false;
     bool startExtracting_ = false;
     std::unique_ptr<AVMetaFrameConverter> frameConverter_;
     std::vector<gulong> signalIds_;

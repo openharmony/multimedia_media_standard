@@ -101,6 +101,7 @@ static int32_t ConvertStateChangedMessage(GstMessage &gstMsg, InnerMessage &inne
 static const std::unordered_map<GstMessageType, InnerMsgType> SIMPLE_MSG_TYPE_MAPPING = {
     { GST_MESSAGE_DURATION_CHANGED, INNER_MSG_DURATION_CHANGED },
     { GST_MESSAGE_EOS, INNER_MSG_EOS },
+    { GST_MESSAGE_ASYNC_DONE, INNER_MSG_ASYNC_DONE },
 };
 
 using MsgConvFunc = std::function<int32_t(GstMessage&, InnerMessage&)>;

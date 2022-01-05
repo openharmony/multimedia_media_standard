@@ -67,8 +67,9 @@ std::shared_ptr<AVSharedMemory> AVMetaFrameExtractor::ExtractFrame(
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "start extract failed");
 
     auto outFrames = ExtractInternel();
-    CHECK_AND_RETURN_RET_LOG(!outFrames.empty(), nullptr, "extract failed");
+    StopExtract();
 
+    CHECK_AND_RETURN_RET_LOG(!outFrames.empty(), nullptr, "extract failed");
     return outFrames[0];
 }
 
@@ -80,7 +81,7 @@ void AVMetaFrameExtractor::ClearCache()
         gst_buffer_unref(item.first);
         gst_caps_unref(item.second);
     }
-    currOriginalFrameCount_ = 0;
+    seekDone_ = false;
 }
 
 void AVMetaFrameExtractor::Reset()
@@ -110,30 +111,27 @@ std::vector<std::shared_ptr<AVSharedMemory>> AVMetaFrameExtractor::ExtractIntern
     std::vector<std::shared_ptr<AVSharedMemory>> outFrames;
 
     std::unique_lock<std::mutex> lock(mutex_);
+    cond_.wait(lock, [this]() { return !originalFrames_.empty() || !startExtracting_; });
+    CHECK_AND_RETURN_RET_LOG(startExtracting_, outFrames, "cancelled, exit frame extract");
+    CHECK_AND_RETURN_RET_LOG(!originalFrames_.empty(), outFrames, "no more frames");
+
+    auto item = originalFrames_.front();
+    originalFrames_.pop();
     auto frameConverter = std::move(frameConverter_);
+    lock.unlock();
 
-    do {
-        cond_.wait(lock, [this]() { return !originalFrames_.empty() || !startExtracting_; });
-        CHECK_AND_BREAK_LOG(startExtracting_, "cancelled, exit frame extract");
-
-        auto item = originalFrames_.front();
-        originalFrames_.pop();
-        lock.unlock();
-
-        auto outFrame = frameConverter->Convert(*item.second, *item.first);
-        CHECK_AND_BREAK_LOG(outFrame != nullptr, "convert frame failed");
-
-        outFrames.push_back(outFrame);
-        MEDIA_LOGD("extract frame success, frame number: %{public}zu", outFrames.size());
-
+    auto outFrame = frameConverter->Convert(*item.second, *item.first);
+    if (outFrame == nullptr) {
         gst_buffer_unref(item.first);
         gst_caps_unref(item.second);
+        MEDIA_LOGE("convert frame failed");
+        return outFrames;
+    }
+    gst_buffer_unref(item.first);
+    gst_caps_unref(item.second);
 
-        lock.lock();
-    } while (outFrames.size() < static_cast<size_t>(maxFrames_));
-
-    MEDIA_LOGD("extract frame finished");
-    StopExtract();
+    outFrames.push_back(outFrame);
+    MEDIA_LOGD("extract frame success, frame number: %{public}zu", outFrames.size());
     return outFrames;
 }
 
@@ -146,13 +144,6 @@ int32_t AVMetaFrameExtractor::StartExtract(
 
     ClearCache();
     startExtracting_ = true;
-    maxFrames_ = numFrames;
-
-    int64_t duration = playbin_->GetDuration();
-    MEDIA_LOGD("duration: %{public}" PRIi64, duration);
-    if (timeUs > duration && option == AV_META_QUERY_NEXT_SYNC) {
-        option = AV_META_QUERY_PREVIOUS_SYNC;
-    }
 
     IPlayBinCtrler::PlayBinSeekMode mode = IPlayBinCtrler::PlayBinSeekMode::PREV_SYNC;
     if (SEEK_OPTION_MAPPING.find(option) != SEEK_OPTION_MAPPING.end()) {
@@ -166,9 +157,15 @@ int32_t AVMetaFrameExtractor::StartExtract(
     ret = frameConverter_->Init(param);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "init failed, cancel extract frames");
 
-    if (numFrames > 1) {
-        ret = playbin_->Play(); // play to generate more frames
-        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "play the pipeline failed");
+    cond_.wait(lock, [this]() { return seekDone_ || !startExtracting_; });
+    CHECK_AND_RETURN_RET(startExtracting_, MSERR_INVALID_OPERATION);
+
+    // no next sync frame, change to find the prev sync frame
+    if (originalFrames_.empty() && option == AVMetadataQueryOption::AV_META_QUERY_NEXT_SYNC) {
+        ClearCache();
+        mode = IPlayBinCtrler::PlayBinSeekMode::PREV_SYNC;
+        ret = playbin_->Seek(timeUs, mode);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "sek failed, cancel extract frames");
     }
 
     CANCEL_SCOPE_EXIT_GUARD(0);
@@ -183,6 +180,21 @@ void AVMetaFrameExtractor::StopExtract()
     frameConverter_ = nullptr;
 }
 
+void AVMetaFrameExtractor::NotifyPlayBinMsg(const PlayBinMessage &msg)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    switch (msg.type) {
+        case PlayBinMsgType::PLAYBIN_MSG_SEEKDONE: {
+            seekDone_ = true;
+            cond_.notify_all();
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 int32_t AVMetaFrameExtractor::SetupVideoSink()
 {
     g_object_set(G_OBJECT(vidAppSink_), "emit-signals", TRUE, nullptr);
@@ -192,15 +204,10 @@ int32_t AVMetaFrameExtractor::SetupVideoSink()
     CHECK_AND_RETURN_RET_LOG(signalId != 0, MSERR_INVALID_OPERATION, "listen to new-preroll failed");
     signalIds_.push_back(signalId);
 
-    signalId = g_signal_connect(G_OBJECT(vidAppSink_), "new-sample", G_CALLBACK(OnNewSampleArrived), this);
-    CHECK_AND_RETURN_RET_LOG(signalId != 0, MSERR_INVALID_OPERATION, "listen to new-sample failed");
-    signalIds_.push_back(signalId);
-
     return MSERR_OK;
 }
 
-GstFlowReturn AVMetaFrameExtractor::OnNewPrerollArrived(
-    GstElement *sink, AVMetaFrameExtractor *thiz)
+GstFlowReturn AVMetaFrameExtractor::OnNewPrerollArrived(GstElement *sink, AVMetaFrameExtractor *thiz)
 {
     CHECK_AND_RETURN_RET(thiz != nullptr, GST_FLOW_ERROR);
     CHECK_AND_RETURN_RET(sink != nullptr, GST_FLOW_ERROR);
@@ -225,43 +232,6 @@ GstFlowReturn AVMetaFrameExtractor::OnNewPrerollArrived(
     GstCaps *caps = gst_sample_get_caps(sample);
     CHECK_AND_RETURN_RET(caps != nullptr, GST_FLOW_ERROR);
     thiz->originalFrames_.push({ gst_buffer_ref(buffer), gst_caps_ref(caps) });
-    thiz->currOriginalFrameCount_ += 1;
-
-    thiz->cond_.notify_all();
-    return GST_FLOW_OK;
-}
-
-GstFlowReturn AVMetaFrameExtractor::OnNewSampleArrived(
-    GstElement *sink, AVMetaFrameExtractor *thiz)
-{
-    CHECK_AND_RETURN_RET(thiz != nullptr, GST_FLOW_ERROR);
-    CHECK_AND_RETURN_RET(sink != nullptr, GST_FLOW_ERROR);
-
-    std::unique_lock<std::mutex> lock(thiz->mutex_);
-
-    GstSample *sample = nullptr;
-    g_signal_emit_by_name(sink, "pull-sample", &sample);
-    CHECK_AND_RETURN_RET(sample != nullptr, GST_FLOW_ERROR);
-
-    ON_SCOPE_EXIT(0) { gst_sample_unref(sample); };
-
-    GstBuffer *buffer =  gst_sample_get_buffer(sample);
-    CHECK_AND_RETURN_RET(buffer != nullptr, GST_FLOW_ERROR);
-    MEDIA_LOGI("sample buffer arrived, pts: %{public}" PRIu64 "", GST_BUFFER_PTS(buffer));
-
-    if (thiz->currOriginalFrameCount_ == 1) {
-        MEDIA_LOGE("first sample, ignored"); // first sample is same with the preroll buffer
-        return GST_FLOW_OK;
-    }
-
-    GstCaps *caps = gst_sample_get_caps(sample);
-    CHECK_AND_RETURN_RET(caps != nullptr, GST_FLOW_ERROR);
-    thiz->originalFrames_.push({ gst_buffer_ref(buffer), gst_caps_ref(caps) });
-    thiz->currOriginalFrameCount_ += 1;
-
-    if (thiz->currOriginalFrameCount_ >= thiz->maxFrames_) {
-        (void)thiz->playbin_->Pause();
-    }
 
     thiz->cond_.notify_all();
     return GST_FLOW_OK;
