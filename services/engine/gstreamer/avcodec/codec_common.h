@@ -81,13 +81,9 @@ struct ProcessorConfig {
     bool isEncoder_ = false;
 };
 
-__attribute__((visibility("default"))) int32_t MapVideoPixelFormat(int32_t number, VideoPixelFormat &pixel);
-__attribute__((visibility("default"))) std::string PixelFormatToString(VideoPixelFormat pixel);
-__attribute__((visibility("default"))) int32_t MapPCMFormat(int32_t number, AudioRawFormat &format);
-__attribute__((visibility("default"))) std::string PCMFormatToString(AudioRawFormat format);
-__attribute__((visibility("default"))) int32_t MapBitrateMode(int32_t number, VideoEncoderBitrateMode &mode);
+__attribute__((visibility("default"))) std::string PixelFormatToGst(VideoPixelFormat pixel);
+__attribute__((visibility("default"))) std::string RawAudioFormatToGst(AudioRawFormat format);
 __attribute__((visibility("default"))) int32_t MapCodecMime(const std::string &mime, CodecMimeType &name);
-__attribute__((visibility("default"))) int32_t MapProfile(int32_t number, AVCProfile &profile);
 __attribute__((visibility("default"))) int32_t CapsToFormat(GstCaps *caps, Format &format);
 } // Media
 } // OHOS

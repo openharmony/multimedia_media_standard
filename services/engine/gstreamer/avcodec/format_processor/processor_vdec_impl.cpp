@@ -35,16 +35,12 @@ int32_t ProcessorVdecImpl::ProcessMandatory(const Format &format)
 {
     CHECK_AND_RETURN_RET(format.GetIntValue("width", width_) == true, MSERR_INVALID_VAL);
     CHECK_AND_RETURN_RET(format.GetIntValue("height", height_) == true, MSERR_INVALID_VAL);
-    int32_t pixel = 0;
-    CHECK_AND_RETURN_RET(format.GetIntValue("pixel_format", pixel) == true, MSERR_INVALID_VAL);
+    CHECK_AND_RETURN_RET(format.GetIntValue("pixel_format", pixelFormat_) == true, MSERR_INVALID_VAL);
     CHECK_AND_RETURN_RET(format.GetIntValue("frame_rate", frameRate_) == true, MSERR_INVALID_VAL);
-
     MEDIA_LOGD("width:%{public}d, height:%{public}d, pixel:%{public}d, frameRate:%{public}d",
-        width_, height_, pixel, frameRate_);
+        width_, height_, pixelFormat_, frameRate_);
 
-    VideoPixelFormat pixelFormat = VIDEO_PIXEL_FORMAT_YUVI420;
-    CHECK_AND_RETURN_RET(MapVideoPixelFormat(pixel, pixelFormat) == MSERR_OK, MSERR_INVALID_VAL);
-    pixelFormat_ = PixelFormatToString(pixelFormat);
+    gstPixelFormat_ = PixelFormatToGst(static_cast<VideoPixelFormat>(pixelFormat_));
 
     return MSERR_OK;
 }
@@ -118,7 +114,7 @@ std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetOutputPortConfig()
     GstCaps *caps = gst_caps_new_simple("video/x-raw",
         "width", G_TYPE_INT, width_,
         "height", G_TYPE_INT, height_,
-        "format", G_TYPE_STRING, pixelFormat_.c_str(), nullptr);
+        "format", G_TYPE_STRING, gstPixelFormat_.c_str(), nullptr);
     CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "No memory");
 
     auto config = std::make_shared<ProcessorConfig>(caps, false);
