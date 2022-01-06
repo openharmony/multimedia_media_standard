@@ -35,31 +35,21 @@ int32_t ProcessorVencImpl::ProcessMandatory(const Format &format)
 {
     CHECK_AND_RETURN_RET(format.GetIntValue("width", width_) == true, MSERR_INVALID_VAL);
     CHECK_AND_RETURN_RET(format.GetIntValue("height", height_) == true, MSERR_INVALID_VAL);
-    int32_t pixel = 0;
-    CHECK_AND_RETURN_RET(format.GetIntValue("pixel_format", pixel) == true, MSERR_INVALID_VAL);
+    CHECK_AND_RETURN_RET(format.GetIntValue("pixel_format", pixelFormat_) == true, MSERR_INVALID_VAL);
     CHECK_AND_RETURN_RET(format.GetIntValue("frame_rate", frameRate_) == true, MSERR_INVALID_VAL);
-
     MEDIA_LOGD("width:%{public}d, height:%{public}d, pixel:%{public}d, framerate:%{public}d",
-        width_, height_, pixel, frameRate_);
+        width_, height_, pixelFormat_, frameRate_);
 
-    VideoPixelFormat pixelFormat = VIDEO_PIXEL_FORMAT_YUVI420;
-    CHECK_AND_RETURN_RET(MapVideoPixelFormat(pixel, pixelFormat) == MSERR_OK, MSERR_INVALID_VAL);
-    pixelFormat_ = PixelFormatToString(pixelFormat);
+    gstPixelFormat_ = PixelFormatToGst(static_cast<VideoPixelFormat>(pixelFormat_));
 
     return MSERR_OK;
 }
 
 int32_t ProcessorVencImpl::ProcessOptional(const Format &format)
 {
-    int32_t bitrateMode = 0; // default is CBR
-    (void)format.GetIntValue("video_encode_bitrate_mode", bitrateMode);
-    VideoEncoderBitrateMode mode = VIDEO_ENCODER_BITRATE_MODE_CBR;
-    CHECK_AND_RETURN_RET_LOG(MapBitrateMode(bitrateMode, mode) == MSERR_OK, MSERR_INVALID_VAL, "Invalid bitrate mode");
+    (void)format.GetIntValue("video_encode_bitrate_mode", bitrateMode_);
+    (void)format.GetIntValue("codec_profile", profile_);
 
-    int32_t profile = 0;
-    (void)format.GetIntValue("codec_profile", profile);
-    AVCProfile avcProfile = AVC_PROFILE_BASELINE;
-    CHECK_AND_RETURN_RET_LOG(MapProfile(profile, avcProfile) == MSERR_OK, MSERR_INVALID_VAL, "Invalid profile");
     return MSERR_OK;
 }
 
@@ -70,7 +60,7 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetInputPortConfig()
     GstCaps *caps = gst_caps_new_simple("video/x-raw",
         "width", G_TYPE_INT, width_,
         "height", G_TYPE_INT, height_,
-        "format", G_TYPE_STRING, pixelFormat_.c_str(),
+        "format", G_TYPE_STRING, gstPixelFormat_.c_str(),
         "framerate", G_TYPE_INT, frameRate_, nullptr);
     CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "No memory");
 

@@ -18,35 +18,10 @@
 
 namespace OHOS {
 namespace Media {
-const std::map<int32_t, VideoPixelFormat> NUMBER_TO_PIEXEL = {
-    {0, VIDEO_PIXEL_FORMAT_YUVI420},
-    {1, VIDEO_PIXEL_FORMAT_NV12},
-    {2, VIDEO_PIXEL_FORMAT_NV21},
-};
-
 const std::map<VideoPixelFormat, std::string> PIEXEL_TO_STRING = {
     {VIDEO_PIXEL_FORMAT_YUVI420, "I420"},
     {VIDEO_PIXEL_FORMAT_NV12, "NV12"},
     {VIDEO_PIXEL_FORMAT_NV21, "NV21"},
-};
-
-const std::map<int32_t, AudioRawFormat> NUMBER_TO_PCM = {
-    {1, AUDIO_PCM_S8},
-    {2, AUDIO_PCM_8},
-    {3, AUDIO_PCM_S16_BE},
-    {4, AUDIO_PCM_S16_LE},
-    {5, AUDIO_PCM_16_BE},
-    {6, AUDIO_PCM_16_LE},
-    {7, AUDIO_PCM_S24_BE},
-    {8, AUDIO_PCM_S24_LE},
-    {9, AUDIO_PCM_24_BE},
-    {10, AUDIO_PCM_24_LE},
-    {11, AUDIO_PCM_S32_BE},
-    {12, AUDIO_PCM_S32_LE},
-    {13, AUDIO_PCM_32_BE},
-    {14, AUDIO_PCM_32_LE},
-    {15, AUDIO_PCM_F32_BE},
-    {16, AUDIO_PCM_F32_LE},
 };
 
 const std::map<AudioRawFormat, std::string> PCM_TO_STRING = {
@@ -68,12 +43,6 @@ const std::map<AudioRawFormat, std::string> PCM_TO_STRING = {
     {AUDIO_PCM_F32_LE, "F32LE"},
 };
 
-const std::map<int32_t, VideoEncoderBitrateMode> NUMBER_TO_BITRATE_MODE = {
-    {0, VIDEO_ENCODER_BITRATE_MODE_CBR},
-    {1, VIDEO_ENCODER_BITRATE_MODE_VBR},
-    {2, VIDEO_ENCODER_BITRATE_MODE_CQ},
-};
-
 const std::map<std::string, CodecMimeType> MIME_TO_CODEC_NAME = {
     {"video/3gpp", CODEC_MIMIE_TYPE_VIDEO_H263},
     {"video/avc", CODEC_MIMIE_TYPE_VIDEO_AVC},
@@ -86,28 +55,7 @@ const std::map<std::string, CodecMimeType> MIME_TO_CODEC_NAME = {
     {"audio/flac", CODEC_MIMIE_TYPE_AUDIO_FLAC},
 };
 
-const std::map<int32_t, AVCProfile> NUMBER_TO_PROFILE = {
-    {0, AVC_PROFILE_BASELINE},
-    {1, AVC_PROFILE_CONSTRAINED_BASELINE},
-    {2, AVC_PROFILE_CONSTRAINED_HIGH},
-    {3, AVC_PROFILE_EXTENDED},
-    {4, AVC_PROFILE_HIGH},
-    {5, AVC_PROFILE_HIGH_10},
-    {6, AVC_PROFILE_HIGH_422},
-    {7, AVC_PROFILE_HIGH_444},
-    {8, AVC_PROFILE_MAIN},
-};
-
-int32_t MapVideoPixelFormat(int32_t number, VideoPixelFormat &pixel)
-{
-    if (NUMBER_TO_PIEXEL.count(number) != 0) {
-        pixel =  NUMBER_TO_PIEXEL.at(number);
-        return MSERR_OK;
-    }
-    return MSERR_INVALID_VAL;
-}
-
-std::string PixelFormatToString(VideoPixelFormat pixel)
+std::string PixelFormatToGst(VideoPixelFormat pixel)
 {
     if (PIEXEL_TO_STRING.count(pixel) != 0) {
         return PIEXEL_TO_STRING.at(pixel);
@@ -115,16 +63,7 @@ std::string PixelFormatToString(VideoPixelFormat pixel)
     return "Invalid";
 }
 
-int32_t MapPCMFormat(int32_t number, AudioRawFormat &format)
-{
-    if (NUMBER_TO_PCM.count(number) != 0) {
-        format =  NUMBER_TO_PCM.at(number);
-        return MSERR_OK;
-    }
-    return MSERR_INVALID_VAL;
-}
-
-std::string PCMFormatToString(AudioRawFormat format)
+std::string RawAudioFormatToGst(AudioRawFormat format)
 {
     if (PCM_TO_STRING.count(format) != 0) {
         return PCM_TO_STRING.at(format);
@@ -132,28 +71,10 @@ std::string PCMFormatToString(AudioRawFormat format)
     return "Invalid";
 }
 
-int32_t MapBitrateMode(int32_t number, VideoEncoderBitrateMode &mode)
-{
-    if (NUMBER_TO_BITRATE_MODE.count(number) != 0) {
-        mode =  NUMBER_TO_BITRATE_MODE.at(number);
-        return MSERR_OK;
-    }
-    return MSERR_INVALID_VAL;
-}
-
 int32_t MapCodecMime(const std::string &mime, CodecMimeType &name)
 {
     if (MIME_TO_CODEC_NAME.count(mime) != 0) {
         name =  MIME_TO_CODEC_NAME.at(mime);
-        return MSERR_OK;
-    }
-    return MSERR_INVALID_VAL;
-}
-
-int32_t MapProfile(int32_t number, AVCProfile &profile)
-{
-    if (NUMBER_TO_PROFILE.count(number) != 0) {
-        profile =  NUMBER_TO_PROFILE.at(number);
         return MSERR_OK;
     }
     return MSERR_INVALID_VAL;

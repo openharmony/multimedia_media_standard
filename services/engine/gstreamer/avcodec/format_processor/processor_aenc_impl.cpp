@@ -70,14 +70,10 @@ int32_t ProcessorAencImpl::ProcessMandatory(const Format &format)
 {
     CHECK_AND_RETURN_RET(format.GetIntValue("channel_count", channels_) == true, MSERR_INVALID_VAL);
     CHECK_AND_RETURN_RET(format.GetIntValue("sample_rate", sampleRate_) == true, MSERR_INVALID_VAL);
-    int32_t audioRawFormat = 0;
-    CHECK_AND_RETURN_RET(format.GetIntValue("audio_raw_format", audioRawFormat) == true, MSERR_INVALID_VAL);
+    CHECK_AND_RETURN_RET(format.GetIntValue("audio_raw_format", audioRawFormat_) == true, MSERR_INVALID_VAL);
+    MEDIA_LOGD("channels:%{public}d, sampleRate:%{public}d, pcm:%{public}d", channels_, sampleRate_, audioRawFormat_);
 
-    MEDIA_LOGD("channels:%{public}d, sampleRate:%{public}d, pcm:%{public}d", channels_, sampleRate_, audioRawFormat);
-
-    AudioRawFormat rawFormat = AUDIO_PCM_S8;
-    CHECK_AND_RETURN_RET(MapPCMFormat(audioRawFormat, rawFormat) == MSERR_OK, MSERR_INVALID_VAL);
-    audioRawFormat_ = PCMFormatToString(rawFormat);
+    gstRawFormat_ = RawAudioFormatToGst(static_cast<AudioRawFormat>(audioRawFormat_));
 
     return MSERR_OK;
 }
@@ -101,7 +97,7 @@ std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetInputPortConfig()
     GstCaps *caps = gst_caps_new_simple("audio/x-raw",
         "rate", G_TYPE_INT, sampleRate_,
         "channels", G_TYPE_INT, channels_,
-        "format", G_TYPE_STRING, audioRawFormat_.c_str(),
+        "format", G_TYPE_STRING, gstRawFormat_.c_str(),
         "channel-mask", GST_TYPE_BITMASK, channelMask,
         "layout", G_TYPE_STRING, "interleaved", nullptr);
     CHECK_AND_RETURN_RET(caps != nullptr, nullptr);

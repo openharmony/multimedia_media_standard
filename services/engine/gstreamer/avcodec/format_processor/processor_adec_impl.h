@@ -37,7 +37,8 @@ protected:
 private:
     int32_t channels_ = 0;
     int32_t sampleRate_ = 0;
-    std::string audioRawFormat_ = "";
+    int32_t audioRawFormat_ = 0;
+    std::string gstRawFormat_;
 };
 } // Media
 } // OHOS
