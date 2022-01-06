@@ -25,37 +25,6 @@
 
 namespace OHOS {
 namespace Media {
-const std::unordered_map<std::string, FormatDataType> FORMAT_DATA = {
-    {"track_index", FORMAT_TYPE_INT32},
-    {"track_type", FORMAT_TYPE_INT32},
-    {"codec_mime", FORMAT_TYPE_STRING},
-    {"duration", FORMAT_TYPE_INT32},
-    {"bitrate", FORMAT_TYPE_INT32},
-    {"max_input_size", FORMAT_TYPE_INT32},
-    {"max_encoder_fps", FORMAT_TYPE_INT32},
-    {"width", FORMAT_TYPE_INT32},
-    {"height", FORMAT_TYPE_INT32},
-    {"pixel_format", FORMAT_TYPE_INT32},
-    {"audio_raw_format", FORMAT_TYPE_INT32},
-    {"frame_rate", FORMAT_TYPE_INT32},
-    {"capture_rate", FORMAT_TYPE_INT32},
-    {"i_frame_interval", FORMAT_TYPE_INT32},
-    {"req_i_frame", FORMAT_TYPE_INT32},
-    {"repeat_frame_after", FORMAT_TYPE_INT32},
-    {"suspend_input_surface", FORMAT_TYPE_INT32},
-    {"video_encode_bitrate_mode", FORMAT_TYPE_INT32},
-    {"codec_profile", FORMAT_TYPE_INT32},
-    {"codec_quality", FORMAT_TYPE_INT32},
-    {"rect_top", FORMAT_TYPE_INT32},
-    {"rect_bottom", FORMAT_TYPE_INT32},
-    {"rect_left", FORMAT_TYPE_INT32},
-    {"rect_right", FORMAT_TYPE_INT32},
-    {"color_standard", FORMAT_TYPE_INT32},
-    {"channel_count", FORMAT_TYPE_INT32},
-    {"sample_rate", FORMAT_TYPE_INT32},
-    {"vendor.custom", FORMAT_TYPE_ADDR},
-};
-
 class CommonNapi {
 public:
     CommonNapi() = delete;
