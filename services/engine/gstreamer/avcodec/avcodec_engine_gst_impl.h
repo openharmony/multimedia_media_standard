@@ -51,6 +51,7 @@ public:
     DISALLOW_COPY_AND_MOVE(AVCodecEngineGstImpl);
 
 private:
+    std::string FindMimeTypeByName(AVCodecType type, const std::string &name);
     int32_t HandleMimeType(AVCodecType type, const std::string &name);
     int32_t HandlePluginName(AVCodecType type, const std::string &name);
     int32_t QueryIsSoftPlugin(const std::string &name, bool &isSoftware);

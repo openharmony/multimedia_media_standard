@@ -50,7 +50,7 @@ public:
         return nullptr;
     }
 
-    virtual GstElement *GetElement()
+    virtual const GstElement *GetElement()
     {
         return sink_;
     }
