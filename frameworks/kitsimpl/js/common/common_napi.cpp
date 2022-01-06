@@ -296,49 +296,57 @@ bool CommonNapi::SetPropertyString(napi_env env, napi_value &obj, const std::str
 napi_value CommonNapi::CreateFormatBuffer(napi_env env, Format &format)
 {
     napi_value buffer = nullptr;
+    int32_t intValue = 0;
+    std::string strValue;
     napi_status status = napi_create_object(env, &buffer);
     CHECK_AND_RETURN_RET(status == napi_ok, nullptr);
 
-    for (auto &iter : FORMAT_DATA) {
-        if (iter.second == FORMAT_TYPE_INT32) {
-            int32_t value = 0;
-            bool ret = format.GetIntValue(iter.first, value);
-            if (ret == true) {
-                CHECK_AND_RETURN_RET(SetPropertyInt32(env, buffer, iter.first, value) == true, nullptr);
-            }
-        } else if (iter.second == FORMAT_TYPE_STRING) {
-            std::string value;
-            bool ret = format.GetStringValue(iter.first, value);
-            if (ret == true) {
-                CHECK_AND_RETURN_RET(SetPropertyString(env, buffer, iter.first, value) == true, nullptr);
-            }
-        } else if (iter.second == FORMAT_TYPE_ADDR) {
-            /* no processing */
-        } else {
-            MEDIA_LOGE("format type: %{public}d", iter.second);
+    for (auto &iter : format.GetFormatMap()) {
+        switch (format.GetValueType(std::string_view(iter.first))) {
+            case FORMAT_TYPE_INT32:
+                if (format.GetIntValue(iter.first, intValue) == true) {
+                    CHECK_AND_RETURN_RET(SetPropertyInt32(env, buffer, iter.first, intValue) == true, nullptr);
+                }
+                break;
+            case FORMAT_TYPE_STRING:
+                if (format.GetStringValue(iter.first, strValue) == true) {
+                    CHECK_AND_RETURN_RET(SetPropertyString(env, buffer, iter.first, strValue) == true, nullptr);
+                }
+                break;
+            default:
+                MEDIA_LOGE("format key: %{public}s", iter.first.c_str());
+                break;
         }
     }
+
     return buffer;
 }
 
 bool CommonNapi::CreateFormatBufferByRef(napi_env env, Format &format, napi_value &result)
 {
+    int32_t intValue = 0;
+    std::string strValue = "";
     napi_status status = napi_create_object(env, &result);
     CHECK_AND_RETURN_RET(status == napi_ok, false);
 
-    for (auto &iter : FORMAT_DATA) {
-        if (iter.second == FORMAT_TYPE_INT32) {
-            int32_t value = 0;
-            if (format.GetIntValue(iter.first, value)) {
-                (void)SetPropertyInt32(env, result, iter.first, value);
-            }
-        } else if (iter.second == FORMAT_TYPE_STRING) {
-            std::string value = "";
-            if (format.GetStringValue(iter.first, value)) {
-                (void)SetPropertyString(env, result, iter.first, value);
-            }
+    for (auto &iter : format.GetFormatMap()) {
+        switch (format.GetValueType(std::string_view(iter.first))) {
+            case FORMAT_TYPE_INT32:
+                if (format.GetIntValue(iter.first, intValue)) {
+                    (void)SetPropertyInt32(env, result, iter.first, intValue);
+                }
+                break;
+            case FORMAT_TYPE_STRING:
+                if (format.GetStringValue(iter.first, strValue)) {
+                    (void)SetPropertyString(env, result, iter.first, strValue);
+                }
+                break;
+            default:
+                MEDIA_LOGE("format key: %{public}s", iter.first.c_str());
+                break;
         }
     }
+
     return true;
 }
 
