@@ -103,7 +103,7 @@ int32_t AVCodecEngineCtrl::Prepare(std::shared_ptr<ProcessorConfig> inputConfig,
     if (inputConfig->needParser_) {
         g_object_set(codecBin_, "parser", static_cast<gboolean>(true), nullptr);
     }
-    g_object_set(codecBin_, "src", static_cast<gpointer>(src_->GetElement()), nullptr);
+    g_object_set(codecBin_, "src", static_cast<gpointer>(const_cast<GstElement *>(src_->GetElement())), nullptr);
     CHECK_AND_RETURN_RET(src_->Configure(inputConfig) == MSERR_OK, MSERR_UNKNOWN);
 
     if (useSurfaceRender_) {
@@ -117,7 +117,7 @@ int32_t AVCodecEngineCtrl::Prepare(std::shared_ptr<ProcessorConfig> inputConfig,
         g_value_unset(&value);
     }
 
-    g_object_set(codecBin_, "sink", static_cast<gpointer>(sink_->GetElement()), nullptr);
+    g_object_set(codecBin_, "sink", static_cast<gpointer>(const_cast<GstElement *>(sink_->GetElement())), nullptr);
     CHECK_AND_RETURN_RET(sink_->Configure(outputConfig) == MSERR_OK, MSERR_UNKNOWN);
 
     CHECK_AND_RETURN_RET(gstPipeline_ != nullptr, MSERR_UNKNOWN);
@@ -273,7 +273,7 @@ int32_t AVCodecEngineCtrl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo in
     CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
     int32_t ret = src_->QueueInputBuffer(index, info, flag);
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
-    if (flag == AVCODEC_BUFFER_FLAG_EOS) {
+    if (flag & AVCODEC_BUFFER_FLAG_EOS) {
         GstEvent *event = gst_event_new_eos();
         CHECK_AND_RETURN_RET(event != nullptr, MSERR_NO_MEMORY);
         (void)gst_element_send_event(codecBin_, event);

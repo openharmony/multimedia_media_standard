@@ -50,7 +50,7 @@ public:
         return MSERR_OK;
     }
 
-    virtual GstElement *GetElement()
+    virtual const GstElement *GetElement()
     {
         return src_;
     }
