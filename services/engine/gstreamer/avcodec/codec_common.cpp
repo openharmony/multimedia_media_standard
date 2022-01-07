@@ -114,6 +114,9 @@ uint32_t PixelBufferSize(VideoPixelFormat pixel, uint32_t width, uint32_t height
             // fall-through
         case NV21:
             size = width * height * 3 / 2;
+            if (alignment > 1) {
+                size += (alignment - (size % alignment));
+            }
             break;
         default:
             break;
