@@ -39,6 +39,7 @@ struct PixelFormatInfo {
 static const std::unordered_map<PixelFormat, PixelFormatInfo> PIXELFORMAT_INFO = {
     { PixelFormat::RGB_565, { PixelFormat::RGB_565, "RGB16", 2 } },
     { PixelFormat::RGB_888, { PixelFormat::RGB_888, "RGB", 3 } },
+    { PixelFormat::RGBA_8888, { PixelFormat::RGBA_8888, "RGBA", 4 } },
 };
 
 AVMetaFrameConverter::AVMetaFrameConverter()

@@ -28,15 +28,21 @@
 
 namespace OHOS {
 namespace Media {
+static const int RGBA8888_PIXEL_BYTES = 4;
 static const int RGB888_PIXEL_BYTES = 3;
 static const int RGB565_PIXEL_BYTES = 2;
 static const unsigned short RGB565_MASK_RED = 0x001F;
 static const unsigned short RGB565_MASK_GREEN = 0x07E0;
 static const unsigned short RGB565_MASK_BLUE = 0xF800;
+static const unsigned int RGBA8888_MASK_RED = 0x00FF0000;
+static const unsigned int RGBA8888_MASK_GREEN = 0x0000FF00;
+static const unsigned int RGBA8888_MASK_BLUE = 0x000000FF;
 static const unsigned char SHIFT_2_BIT = 2;
 static const unsigned char SHITF_3_BIT = 3;
 static const unsigned char SHIFT_5_BIT = 5;
+static const unsigned char SHIFT_8_BIT = 8;
 static const unsigned char SHIFT_11_BIT = 11;
+static const unsigned char SHIFT_16_BIT = 16;
 static const unsigned char R_INDEX = 2;
 static const unsigned char G_INDEX = 1;
 static const unsigned char B_INDEX = 0;
@@ -125,6 +131,25 @@ static int RGB565ToRGB888(const unsigned short *rgb565Buf, int rgb565Size, unsig
     return 0;
 }
 
+static int RGBA8888ToRGB888(const unsigned int *rgba8888Buf, int rgba8888Size, unsigned char *rgb888Buf, int rgb888Size)
+{
+    if (rgba8888Buf == nullptr || rgba8888Size <= 0 || rgb888Buf == nullptr || rgb888Size <= 0) {
+        return -1;
+    }
+
+    if (rgb888Size < rgba8888Size * RGB888_PIXEL_BYTES) {
+        return -1;
+    }
+
+    for (int i = 0; i < rgba8888Size; i++) {
+        rgb888Buf[i * RGB888_PIXEL_BYTES + R_INDEX] = (rgba8888Buf[i] & RGBA8888_MASK_RED) >> SHIFT_16_BIT;
+        rgb888Buf[i * RGB888_PIXEL_BYTES + G_INDEX] = (rgba8888Buf[i] & RGBA8888_MASK_GREEN) >> SHIFT_8_BIT;
+        rgb888Buf[i * RGB888_PIXEL_BYTES + B_INDEX] = rgba8888Buf[i] & RGBA8888_MASK_BLUE;
+    }
+
+    return 0;
+}
+
 bool StrToInt64(const std::string &str, int64_t &value)
 {
     if (str.empty() || (!isdigit(str.front()) && (str.front() != '-'))) {
@@ -203,6 +228,50 @@ void AVMetadataHelperDemo::GetMetadata(std::queue<std::string_view> &options)
     }
 }
 
+static int SaveRGB565Image(const std::shared_ptr<PixelMap> &frame, const std::string_view &filepath)
+{
+    int32_t rgb888Size = (frame->GetByteCount() / RGB565_PIXEL_BYTES) * RGB888_PIXEL_BYTES;
+    uint8_t *rgb888 = new (std::nothrow) uint8_t[rgb888Size];
+    if (rgb888 == nullptr) {
+        std::cout << "alloc mem failed" << std::endl;
+        return -1;
+    }
+    const uint16_t *rgb565Data = reinterpret_cast<const uint16_t *>(frame->GetPixels());
+    int ret = RGB565ToRGB888(rgb565Data, frame->GetByteCount() / RGB565_PIXEL_BYTES, rgb888, rgb888Size);
+    if (ret != 0) {
+        std::cout << "convert rgb565 to rgb888 failed" << std::endl;
+        delete [] rgb888;
+        return ret;
+    }
+
+    ret = Rgb888ToJpeg(filepath, rgb888, frame->GetWidth(), frame->GetHeight());
+    delete [] rgb888;
+
+    return ret;
+}
+
+static int SaveRGBA8888Image(const std::shared_ptr<PixelMap> &frame, const std::string_view &filepath)
+{
+    int32_t rgb888Size = (frame->GetByteCount() / RGBA8888_PIXEL_BYTES) * RGB888_PIXEL_BYTES;
+    uint8_t *rgb888 = new (std::nothrow) uint8_t[rgb888Size];
+    if (rgb888 == nullptr) {
+        std::cout << "alloc mem failed" << std::endl;
+        return -1;
+    }
+    const uint32_t *rgba8888Data = reinterpret_cast<const uint32_t *>(frame->GetPixels());
+    int ret = RGBA8888ToRGB888(rgba8888Data, frame->GetByteCount() / RGBA8888_PIXEL_BYTES, rgb888, rgb888Size);
+    if (ret != 0) {
+        std::cout << "convert rgba8888 to rgb888 failed" << std::endl;
+        delete [] rgb888;
+        return ret;
+    }
+
+    ret = Rgb888ToJpeg(filepath, rgb888, frame->GetWidth(), frame->GetHeight());
+    delete [] rgb888;
+
+    return ret;
+}
+
 void AVMetadataHelperDemo::DoFetchFrame(int64_t timeUs, int32_t queryOption, const PixelMapParams &param)
 {
     std::shared_ptr<PixelMap> frame = avMetadataHelper_->FetchFrameAtTime(timeUs, queryOption, param);
@@ -222,21 +291,9 @@ void AVMetadataHelperDemo::DoFetchFrame(int64_t timeUs, int32_t queryOption, con
     }
 
     if (param.colorFormat == PixelFormat::RGB_565) {
-        int32_t rgb888Size = (frame->GetByteCount() / RGB565_PIXEL_BYTES) * RGB888_PIXEL_BYTES;
-        uint8_t *rgb888 = new (std::nothrow) uint8_t[rgb888Size];
-        if (rgb888 == nullptr) {
-            std::cout << "alloc mem failed" << std::endl;
-            return;
-        }
-        const uint16_t *rgb565Data = reinterpret_cast<const uint16_t *>(frame->GetPixels());
-        ret = RGB565ToRGB888(rgb565Data, frame->GetByteCount() / RGB565_PIXEL_BYTES, rgb888, rgb888Size);
-        if (ret != 0) {
-            std::cout << "convert rgb565 to rgb888 failed" << std::endl;
-            delete [] rgb888;
-            return;
-        }
-        ret = Rgb888ToJpeg(filePath, rgb888, frame->GetWidth(), frame->GetHeight());
-        delete [] rgb888;
+        ret = SaveRGB565Image(frame, filePath);
+    } else if (param.colorFormat == PixelFormat::RGBA_8888) {
+        ret = SaveRGBA8888Image(frame, filePath);
     } else if (param.colorFormat == PixelFormat::RGB_888) {
         ret = Rgb888ToJpeg(filePath, frame->GetPixels(), frame->GetWidth(), frame->GetHeight());
     } else {
@@ -297,6 +354,9 @@ void AVMetadataHelperDemo::FetchFrame(std::queue<std::string_view> &options)
             }
             if (val.compare("rgb888") == 0) {
                 param.colorFormat = PixelFormat::RGB_888;
+            }
+            if (val.compare("rgba8888") == 0) {
+                param.colorFormat = PixelFormat::RGBA_8888;
             }
             continue;
         }

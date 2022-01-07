@@ -48,7 +48,7 @@ private:
     static void PadAdded(GstElement *elem, GstPad *pad, gpointer userdata);
     GstPadProbeReturn OnBlockCallback(GstPad &pad, GstPadProbeInfo &info);
     void OnPadAdded(GstElement &elem, GstPad &pad);
-    bool CheckUpStreamBlocking(GstPad &pad);
+    bool CheckUpStreamBlocked(GstPad &pad);
     void AddPadProbe(GstPad &pad, GstPadProbeType type);
 
     struct PadInfo {

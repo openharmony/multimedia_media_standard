@@ -69,14 +69,14 @@ void AVMetaBufferBlocker::Init()
     auto padList = direction_ ? elem_.srcpads : elem_.sinkpads;
 
     /**
-     * Defaultly, the probe type is blocking. If the pads count is greater than 1,
+     * Defaultly, the probe type is blocked. If the pads count is greater than 1,
      * we can only setup detecting probe, because the element maybe not start individual
      * thread for each pad, all pad maybe drived by just one thread. If one pad is
      * blocked, then all other pads can not detect any buffer.
      */
     GstPadProbeType type = GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM;
     if (g_list_length(padList) > 1) {
-        MEDIA_LOGI("%{public}s's pads count is not 1, direction: %{public}d, only detect buffer, no blocking",
+        MEDIA_LOGI("%{public}s's pads count is not 1, direction: %{public}d, only detect buffer, no blocked",
                    ELEM_NAME(&elem_), direction_);
         type = static_cast<GstPadProbeType>(type & ~GST_PAD_PROBE_TYPE_BLOCK);
         probeRet_ = GST_PAD_PROBE_OK;
@@ -110,7 +110,7 @@ void AVMetaBufferBlocker::Init()
     }
 }
 
-bool AVMetaBufferBlocker::CheckUpStreamBlocking(GstPad &pad)
+bool AVMetaBufferBlocker::CheckUpStreamBlocked(GstPad &pad)
 {
     GstPad *upstreamPad = nullptr;
 
@@ -129,7 +129,7 @@ bool AVMetaBufferBlocker::CheckUpStreamBlocking(GstPad &pad)
         /**
          * This is a multi-srcpads element, means that we meet the demuxer or multiqueue.
          * There is no need to figure out whether the demuxer or multiqueue's sinkpads are
-         * blocking, because we guarante it will never happen.
+         * blocked, because we guarante it will never happen.
          */
         if (g_list_length(elem->srcpads) > 1 || g_list_length(elem->sinkpads) == 0) {
             gst_object_unref(elem);
@@ -148,12 +148,12 @@ bool AVMetaBufferBlocker::CheckUpStreamBlocking(GstPad &pad)
         return false;
     }
 
-    if (gst_pad_is_blocking(upstreamPad)) {
+    if (gst_pad_is_blocked(upstreamPad)) {
         gst_object_unref(upstreamPad);
         return true;
     }
 
-    bool ret = CheckUpStreamBlocking(*upstreamPad);
+    bool ret = CheckUpStreamBlocked(*upstreamPad);
     gst_object_unref(upstreamPad);
 
     return ret;
@@ -176,11 +176,14 @@ bool AVMetaBufferBlocker::IsBufferDetected()
                    ELEM_NAME(&elem_), PAD_NAME(item.pad));
 
         /**
-         * if the upstream is blocking, we can not wait buffer arriving at this pad.
+         * if the upstream is blocked, we can not wait buffer arriving at this pad.
          * Thus, we just remove the probe at this pad and set the hasBuffer to true.
+         * This operation maybe remove this block probe too early, but the upstream's
+         * blocker will guarantee at least receiving one frame of buffer to finish the meta
+         * extracting process.
          */
-        if (CheckUpStreamBlocking(*item.pad) && item.probeId != 0) {
-            MEDIA_LOGD("%{public}s's %{public}s upstream is blocking, dont need this blocker",
+        if (item.probeId != 0 && CheckUpStreamBlocked(*item.pad)) {
+            MEDIA_LOGD("%{public}s's %{public}s upstream is blocked, dont need this blocker",
                        ELEM_NAME(&elem_), PAD_NAME(item.pad));
             gst_pad_remove_probe(item.pad, item.probeId);
             item.probeId = 0;
@@ -188,7 +191,7 @@ bool AVMetaBufferBlocker::IsBufferDetected()
             continue;
         }
 
-        // not detect buffer and the upstream of this pad is not blocking.
+        // not detect buffer and the upstream of this pad is not blocked.
         return false;
     }
 
@@ -284,14 +287,14 @@ void AVMetaBufferBlocker::OnPadAdded(GstElement &elem, GstPad &pad)
     GstPadProbeType type = GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM;
 
     /**
-     * If it has one pad before, we must change the blocking probe to
+     * If it has one pad before, we must change the blocked probe to
      * detecting probe, or no buffer can arrive at this new pad if the
      * previous pad has been blocked, because the element maybe not
      * start individual thread for each pad, all pad maybe drived by
      * just one thread.
      */
     if (padInfos_.size() != 0) {
-        MEDIA_LOGI("%{public}s's pads count is not 1, direction: %{public}d, only detect buffer, no blocking",
+        MEDIA_LOGI("%{public}s's pads count is not 1, direction: %{public}d, only detect buffer, no blocked",
                    ELEM_NAME(&elem_), direction_);
         type = static_cast<GstPadProbeType>(type & ~GST_PAD_PROBE_TYPE_BLOCK);
         probeRet_ = GST_PAD_PROBE_OK;
@@ -301,7 +304,7 @@ void AVMetaBufferBlocker::OnPadAdded(GstElement &elem, GstPad &pad)
 
         for (auto &padInfo : temp) {
             /**
-             * if the blocking probe setuped at this pad, we add detecting probe
+             * if the blocked probe setuped at this pad, we add detecting probe
              * at it firstly, then remove the blocing probe, for avoiding to miss
              * the first buffer passing through this pad.
              */
@@ -309,7 +312,7 @@ void AVMetaBufferBlocker::OnPadAdded(GstElement &elem, GstPad &pad)
                 AddPadProbe(*padInfo.pad, type);
                 gst_pad_remove_probe(padInfo.pad, padInfo.probeId);
             } else {
-                // not blocking probe, just move to new container.
+                // not blocked probe, just move to new container.
                 padInfos_.push_back(padInfo);
             }
         }
