@@ -19,9 +19,9 @@
 namespace OHOS {
 namespace Media {
 const std::map<VideoPixelFormat, std::string> PIEXEL_TO_STRING = {
-    {VIDEO_PIXEL_FORMAT_YUVI420, "I420"},
-    {VIDEO_PIXEL_FORMAT_NV12, "NV12"},
-    {VIDEO_PIXEL_FORMAT_NV21, "NV21"},
+    {YUVI420, "I420"},
+    {NV12, "NV12"},
+    {NV21, "NV21"},
 };
 
 const std::map<AudioRawFormat, std::string> PCM_TO_STRING = {
@@ -102,6 +102,23 @@ int32_t CapsToFormat(GstCaps *caps, Format &format)
         (void)format.PutIntValue("channel_count", ret);
     }
     return MSERR_OK;
+}
+
+uint32_t PixelBufferSize(VideoPixelFormat pixel, uint32_t width, uint32_t height, uint32_t alignment)
+{
+    uint32_t size = 0;
+    switch (pixel) {
+        case YUVI420:
+            // fall-through
+        case NV12:
+            // fall-through
+        case NV21:
+            size = width * height * 3 / 2;
+            break;
+        default:
+            break;
+    }
+    return size;
 }
 } // namespace Media
 } // namespace OHOS

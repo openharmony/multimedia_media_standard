@@ -19,6 +19,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "ProcessorAencImpl"};
+    const uint32_t DEFAULT_BUFFER_SIZE = 30000;
     static const GstAudioChannelPosition CHANNEL_POSITION[6][6] = {
     {
         GST_AUDIO_CHANNEL_POSITION_MONO
@@ -108,6 +109,9 @@ std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetInputPortConfig()
         gst_caps_unref(caps);
         return nullptr;
     }
+
+    config->bufferSize_ = DEFAULT_BUFFER_SIZE;
+
     return config;
 }
 
@@ -136,6 +140,9 @@ std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetOutputPortConfig()
         gst_caps_unref(caps);
         return nullptr;
     }
+
+    config->bufferSize_ = DEFAULT_BUFFER_SIZE;
+
     return config;
 }
 } // Media

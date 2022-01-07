@@ -213,7 +213,7 @@ enum AACProfile {
  * @since 3.1
  * @version 3.1
  */
-enum VideoPixelformat {
+enum VideoPixelFormat {
     /**
      * yuv 420 planar.
     */

@@ -19,6 +19,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "ProcessorAdecImpl"};
+    const uint32_t DEFAULT_BUFFER_SIZE = 30000;
     static const GstAudioChannelPosition CHANNEL_POSITION[6][6] = {
     {
         GST_AUDIO_CHANNEL_POSITION_MONO
@@ -97,29 +98,23 @@ std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetInputPortConfig()
     switch (codecName_) {
         case CODEC_MIMIE_TYPE_AUDIO_VORBIS:
             caps = gst_caps_new_simple("audio/x-vorbis",
-                "rate", G_TYPE_INT, sampleRate_,
-                "channels", G_TYPE_INT, channels_, nullptr);
+                "rate", G_TYPE_INT, sampleRate_, "channels", G_TYPE_INT, channels_, nullptr);
             break;
         case CODEC_MIMIE_TYPE_AUDIO_MPEG:
             caps = gst_caps_new_simple("audio/mpeg",
-                "rate", G_TYPE_INT, sampleRate_,
-                "channels", G_TYPE_INT, channels_,
-                "channel-mask", GST_TYPE_BITMASK, channelMask,
-                "mpegversion", G_TYPE_INT, 1,
+                "rate", G_TYPE_INT, sampleRate_, "channels", G_TYPE_INT, channels_,
+                "channel-mask", GST_TYPE_BITMASK, channelMask, "mpegversion", G_TYPE_INT, 1,
                 "layer", G_TYPE_INT, 3, nullptr);
             break;
         case CODEC_MIMIE_TYPE_AUDIO_AAC:
             caps = gst_caps_new_simple("audio/mpeg",
-                "rate", G_TYPE_INT, sampleRate_,
-                "channels", G_TYPE_INT, channels_,
-                "mpegversion", G_TYPE_INT, 4,
-                "stream-format", G_TYPE_STRING, "adts",
+                "rate", G_TYPE_INT, sampleRate_, "channels", G_TYPE_INT, channels_,
+                "mpegversion", G_TYPE_INT, 4, "stream-format", G_TYPE_STRING, "adts",
                 "base-profile", G_TYPE_STRING, "lc", nullptr);
             break;
         case CODEC_MIMIE_TYPE_AUDIO_FLAC:
             caps = gst_caps_new_simple("audio/x-flac",
-                "rate", G_TYPE_INT, sampleRate_,
-                "channels", G_TYPE_INT, channels_,
+                "rate", G_TYPE_INT, sampleRate_, "channels", G_TYPE_INT, channels_,
                 "framed", G_TYPE_BOOLEAN, TRUE, nullptr);
             break;
         default:
@@ -136,6 +131,8 @@ std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetInputPortConfig()
 
     config->needParser_ = (codecName_ == CODEC_MIMIE_TYPE_AUDIO_FLAC) ? true : false;
     config->needCodecData_ = (codecName_ == CODEC_MIMIE_TYPE_AUDIO_VORBIS) ? true : false;
+    config->bufferSize_ = DEFAULT_BUFFER_SIZE;
+
     return config;
 }
 
@@ -156,6 +153,9 @@ std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetOutputPortConfig()
         gst_caps_unref(caps);
         return nullptr;
     }
+
+    config->bufferSize_ = DEFAULT_BUFFER_SIZE;
+
     return config;
 }
 } // Media

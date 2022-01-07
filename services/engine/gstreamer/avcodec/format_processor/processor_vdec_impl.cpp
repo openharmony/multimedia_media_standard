@@ -19,6 +19,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "ProcessorVdecImpl"};
+    const uint32_t DEFAULT_BUFFER_SIZE = 30000;
 }
 
 namespace OHOS {
@@ -47,6 +48,7 @@ int32_t ProcessorVdecImpl::ProcessMandatory(const Format &format)
 
 int32_t ProcessorVdecImpl::ProcessOptional(const Format &format)
 {
+    (void)format.GetIntValue("max_input_size", maxInputSize_);
     return MSERR_OK;
 }
 
@@ -58,38 +60,29 @@ std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetInputPortConfig()
     switch (codecName_) {
         case CODEC_MIMIE_TYPE_VIDEO_MPEG2:
             caps = gst_caps_new_simple("video/mpeg",
-                "width", G_TYPE_INT, width_,
-                "height", G_TYPE_INT, height_,
-                "mpegversion", G_TYPE_INT, 2,
-                "systemstream", G_TYPE_BOOLEAN, FALSE, nullptr);
+                "width", G_TYPE_INT, width_, "height", G_TYPE_INT, height_,
+                "mpegversion", G_TYPE_INT, 2, "systemstream", G_TYPE_BOOLEAN, FALSE, nullptr);
             break;
         case CODEC_MIMIE_TYPE_VIDEO_MPEG4:
             caps = gst_caps_new_simple("video/mpeg",
-                "width", G_TYPE_INT, width_,
-                "height", G_TYPE_INT, height_,
-                "mpegversion", G_TYPE_INT, 4,
-                "systemstream", G_TYPE_BOOLEAN, FALSE, nullptr);
+                "width", G_TYPE_INT, width_, "height", G_TYPE_INT, height_,
+                "mpegversion", G_TYPE_INT, 4, "systemstream", G_TYPE_BOOLEAN, FALSE, nullptr);
             break;
         case CODEC_MIMIE_TYPE_VIDEO_H263:
             caps = gst_caps_new_simple("video/x-h263",
-                "width", G_TYPE_INT, width_,
-                "height", G_TYPE_INT, height_,
+                "width", G_TYPE_INT, width_, "height", G_TYPE_INT, height_,
                 "variant", G_TYPE_STRING, "itu", nullptr);
             break;
         case CODEC_MIMIE_TYPE_VIDEO_AVC:
             caps = gst_caps_new_simple("video/x-h264",
-                "width", G_TYPE_INT, width_,
-                "height", G_TYPE_INT, height_,
-                "alignment", G_TYPE_STRING, "nal",
-                "stream-format", G_TYPE_STRING, "byte-stream",
+                "width", G_TYPE_INT, width_, "height", G_TYPE_INT, height_,
+                "alignment", G_TYPE_STRING, "nal", "stream-format", G_TYPE_STRING, "byte-stream",
                 "systemstream", G_TYPE_BOOLEAN, FALSE, nullptr);
             break;
         case CODEC_MIMIE_TYPE_VIDEO_HEVC:
             caps = gst_caps_new_simple("video/x-h265",
-                "width", G_TYPE_INT, width_,
-                "height", G_TYPE_INT, height_,
-                "alignment", G_TYPE_STRING, "nal",
-                "stream-format", G_TYPE_STRING, "byte-stream",
+                "width", G_TYPE_INT, width_, "height", G_TYPE_INT, height_,
+                "alignment", G_TYPE_STRING, "nal", "stream-format", G_TYPE_STRING, "byte-stream",
                 "systemstream", G_TYPE_BOOLEAN, FALSE, nullptr);
             break;
         default:
@@ -104,6 +97,8 @@ std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetInputPortConfig()
     }
 
     config->needCodecData_ = (codecName_ == CODEC_MIMIE_TYPE_VIDEO_AVC) ? true : false;
+    config->bufferSize_ = (maxInputSize_ > 0) ? static_cast<uint32_t>(maxInputSize_) : DEFAULT_BUFFER_SIZE;
+
     return config;
 }
 
@@ -123,6 +118,10 @@ std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetOutputPortConfig()
         gst_caps_unref(caps);
         return nullptr;
     }
+
+    config->bufferSize_ = PixelBufferSize(static_cast<VideoPixelFormat>(pixelFormat_),
+        static_cast<uint32_t>(width_), static_cast<uint32_t>(height_), 1);
+
     return config;
 }
 } // Media
