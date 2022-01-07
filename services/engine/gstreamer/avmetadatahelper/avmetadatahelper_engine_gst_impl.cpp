@@ -31,7 +31,9 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-static const std::set<PixelFormat> SUPPORTED_PIXELFORMAT = { PixelFormat::RGB_565, PixelFormat::RGB_888 };
+static const std::set<PixelFormat> SUPPORTED_PIXELFORMAT = {
+    PixelFormat::RGB_565, PixelFormat::RGB_888, PixelFormat::RGBA_8888
+};
 
 static bool CheckFrameFetchParam(int64_t timeUsOrIndex, int32_t option, const OutputConfiguration &param)
 {
