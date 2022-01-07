@@ -104,7 +104,7 @@ public:
 
     /**
      * @brief Get supported video raw formats.
-     * @return Returns an array of supported formats. For Details, see {@link VideoPixelformat}.
+     * @return Returns an array of supported formats. For Details, see {@link VideoPixelFormat}.
      * @since 3.1
      * @version 3.1
      */

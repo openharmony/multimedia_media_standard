@@ -19,6 +19,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "ProcessorVencImpl"};
+    const uint32_t DEFAULT_BUFFER_SIZE = 30000;
 }
 
 namespace OHOS {
@@ -70,6 +71,10 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetInputPortConfig()
         gst_caps_unref(caps);
         return nullptr;
     }
+
+    config->bufferSize_ = PixelBufferSize(static_cast<VideoPixelFormat>(pixelFormat_),
+        static_cast<uint32_t>(width_), static_cast<uint32_t>(height_), 1);
+
     return config;
 }
 
@@ -108,6 +113,9 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetOutputPortConfig()
         gst_caps_unref(caps);
         return nullptr;
     }
+
+    config->bufferSize_ = DEFAULT_BUFFER_SIZE;
+
     return config;
 }
 } // Media
