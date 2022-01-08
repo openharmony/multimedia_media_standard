@@ -62,7 +62,7 @@ int64_t TimeMonitor::Timeval2Sec(const timeval &tv, TimeValType valType) const
             (static_cast<int64_t>(tv.tv_usec) <= TIME_VAL_US)) {
             return static_cast<int64_t>(tv.tv_sec) * valType + static_cast<int64_t>(tv.tv_usec) * valType / TIME_VAL_US;
         } else {
-            MEDIA_LOGW("timestamp overflow! sec:%{public}" PRId64 ", usec:%{public}" PRId64, tv.tv_sec, tv.tv_usec);
+            MEDIA_LOGW("time overflow");
         }
     }
     return -1;
