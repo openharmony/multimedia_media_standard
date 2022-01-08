@@ -244,5 +244,11 @@ int32_t PlayerImpl::SetPlayerCallback(const std::shared_ptr<PlayerCallback> &cal
     CHECK_AND_RETURN_RET_LOG(callback != nullptr, MSERR_INVALID_VAL, "callback is nullptr");
     return playerService_->SetPlayerCallback(callback);
 }
+
+int32_t PlayerImpl::SetParameter(const Format &param)
+{
+    (void)param;
+    return MSERR_OK;
+}
 } // nmamespace Media
 } // namespace OHOS
