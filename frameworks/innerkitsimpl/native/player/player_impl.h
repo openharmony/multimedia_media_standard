@@ -51,6 +51,7 @@ public:
     bool IsLooping() override;
     int32_t SetLooping(bool loop) override;
     int32_t SetPlayerCallback(const std::shared_ptr<PlayerCallback> &callback) override;
+    int32_t SetParameter(const Format &param) override;
     int32_t Init();
 private:
     std::shared_ptr<IPlayerService> playerService_ = nullptr;

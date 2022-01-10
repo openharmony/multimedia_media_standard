@@ -39,6 +39,8 @@ public:
     static constexpr std::string_view PLAYER_BUFFERING_END = "buffering_end";
     static constexpr std::string_view PLAYER_BUFFERING_PERCENT = "buffering_percent";
     static constexpr std::string_view PLAYER_CACHED_DURATION = "cached_duration";
+    static constexpr std::string_view CONTENT_TYPE = "content_type";
+    static constexpr std::string_view STREAM_USAGE = "stream_usage";
 };
 
 enum BufferingInfoType : int32_t {
@@ -436,6 +438,17 @@ public:
      * @version 1.0
      */
     virtual int32_t SetPlayerCallback(const std::shared_ptr<PlayerCallback> &callback) = 0;
+
+    /**
+     * @brief Sets an extended parameter for player
+     *
+     * @param format Indicates the string key and value. For details, see {@link Format} and
+     * {@link RECORDER_PRE_CACHE_DURATION}.
+     * @return Returns {@link MSERR_OK} if the recording is stopped; returns an error code otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    virtual int32_t SetParameter(const Format &param) = 0;
 };
 
 class __attribute__((visibility("default"))) PlayerFactory {
