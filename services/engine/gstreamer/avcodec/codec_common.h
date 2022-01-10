@@ -76,12 +76,11 @@ struct ProcessorConfig {
     uint32_t bufferSize_ = 0;
 };
 
-__attribute__((visibility("default"))) std::string PixelFormatToGst(VideoPixelFormat pixel);
-__attribute__((visibility("default"))) std::string RawAudioFormatToGst(AudioRawFormat format);
-__attribute__((visibility("default"))) int32_t MapCodecMime(const std::string &mime, CodecMimeType &name);
-__attribute__((visibility("default"))) int32_t CapsToFormat(GstCaps *caps, Format &format);
-__attribute__((visibility("default"))) uint32_t PixelBufferSize(VideoPixelFormat pixel,
-    uint32_t width, uint32_t height, uint32_t alignment);
+std::string PixelFormatToGst(VideoPixelFormat pixel);
+std::string RawAudioFormatToGst(AudioRawFormat format);
+int32_t MapCodecMime(const std::string &mime, CodecMimeType &name);
+int32_t CapsToFormat(GstCaps *caps, Format &format);
+uint32_t PixelBufferSize(VideoPixelFormat pixel, uint32_t width, uint32_t height, uint32_t alignment);
 } // Media
 } // OHOS
 #endif // CODEC_COMMON_H
