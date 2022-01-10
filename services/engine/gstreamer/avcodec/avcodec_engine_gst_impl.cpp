@@ -192,7 +192,7 @@ int32_t AVCodecEngineGstImpl::GetOutputFormat(Format &format)
 {
     format_.PutStringValue("plugin_name", pluginName_);
     format = format_;
-    return MSERR_OK;       
+    return MSERR_OK;
 }
 
 std::shared_ptr<AudioCaps> AVCodecEngineGstImpl::GetAudioCaps()
