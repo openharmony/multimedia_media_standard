@@ -39,7 +39,6 @@ int32_t ProcessorBase::DoProcess(const Format &format)
 
 int32_t ProcessorBase::ProcessVendor(const Format &format)
 {
-    // todo hdi interface dertermine
     return MSERR_OK;
 }
 } // Media

@@ -20,7 +20,6 @@
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "SrcBytebufferImpl"};
     const uint32_t DEFAULT_BUFFER_COUNT = 5;
-    const uint32_t DEFAULT_BUFFER_SIZE = 30000;
 }
 
 namespace OHOS {
@@ -46,16 +45,16 @@ int32_t SrcBytebufferImpl::Init()
 {
     src_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("appsrc", "src")));
     CHECK_AND_RETURN_RET_LOG(src_ != nullptr, MSERR_UNKNOWN, "Failed to gst_element_factory_make");
-
-    bufferCount_ = DEFAULT_BUFFER_COUNT;
-    bufferSize_ = DEFAULT_BUFFER_SIZE;
-
     return MSERR_OK;
 }
 
 int32_t SrcBytebufferImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 {
     CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
+
+    bufferSize_ = config->bufferSize_;
+    bufferCount_ = DEFAULT_BUFFER_COUNT;
+
     g_object_set(G_OBJECT(src_), "caps", config->caps_, nullptr);
     g_object_set(G_OBJECT(src_), "format", GST_FORMAT_TIME, nullptr);
     g_object_set(G_OBJECT(src_), "is-live", TRUE, nullptr);

@@ -20,7 +20,6 @@
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "SinkBytebufferImpl"};
     const uint32_t DEFAULT_BUFFER_COUNT = 5;
-    const uint32_t DEFAULT_BUFFER_SIZE = 30000;
 }
 
 namespace OHOS {
@@ -46,16 +45,16 @@ int32_t SinkBytebufferImpl::Init()
     sink_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("appsink", "sink")));
     CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);
     gst_base_sink_set_async_enabled(GST_BASE_SINK(sink_), FALSE);
-
-    bufferCount_ = DEFAULT_BUFFER_COUNT;
-    bufferSize_ = DEFAULT_BUFFER_SIZE;
-
     return MSERR_OK;
 }
 
 int32_t SinkBytebufferImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 {
     CHECK_AND_RETURN_RET(sink_ != nullptr && config->caps_ != nullptr, MSERR_UNKNOWN);
+
+    bufferSize_ = config->bufferSize_;
+    bufferCount_ = DEFAULT_BUFFER_COUNT;
+
     g_object_set(G_OBJECT(sink_), "caps", config->caps_, nullptr);
     (void)CapsToFormat(config->caps_, bufferFormat_);
 
