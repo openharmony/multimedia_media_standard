@@ -213,7 +213,7 @@ enum AACProfile {
  * @since 3.1
  * @version 3.1
  */
-enum VideoPixelformat {
+enum VideoPixelFormat {
     /**
      * yuv 420 planar.
     */
@@ -349,7 +349,7 @@ struct Location {
 enum CodecMimeType : int32_t {
     CODEC_MIMIE_TYPE_DEFAULT = -1,
     /** H263 */
-    CODEC_MIMIE_TYPE_VIDEO_H263,    
+    CODEC_MIMIE_TYPE_VIDEO_H263,
     /** H264 */
     CODEC_MIMIE_TYPE_VIDEO_AVC,
     /** MPEG2 */

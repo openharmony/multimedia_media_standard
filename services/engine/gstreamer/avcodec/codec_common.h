@@ -31,12 +31,6 @@ enum VideoEncoderBitrateMode : int32_t {
     VIDEO_ENCODER_BITRATE_MODE_CQ,
 };
 
-enum VideoPixelFormat : int32_t {
-    VIDEO_PIXEL_FORMAT_YUVI420 = 0,
-    VIDEO_PIXEL_FORMAT_NV12 = 1,
-    VIDEO_PIXEL_FORMAT_NV21 = 2,
-};
-
 struct BufferWrapper {
     enum Owner : int32_t {
         APP = 0,
@@ -79,16 +73,14 @@ struct ProcessorConfig {
     bool needCodecData_ = false;
     bool needParser_ = false;
     bool isEncoder_ = false;
+    uint32_t bufferSize_ = 0;
 };
 
-__attribute__((visibility("default"))) int32_t MapVideoPixelFormat(int32_t number, VideoPixelFormat &pixel);
-__attribute__((visibility("default"))) std::string PixelFormatToString(VideoPixelFormat pixel);
-__attribute__((visibility("default"))) int32_t MapPCMFormat(int32_t number, AudioRawFormat &format);
-__attribute__((visibility("default"))) std::string PCMFormatToString(AudioRawFormat format);
-__attribute__((visibility("default"))) int32_t MapBitrateMode(int32_t number, VideoEncoderBitrateMode &mode);
-__attribute__((visibility("default"))) int32_t MapCodecMime(const std::string &mime, CodecMimeType &name);
-__attribute__((visibility("default"))) int32_t MapProfile(int32_t number, AVCProfile &profile);
-__attribute__((visibility("default"))) int32_t CapsToFormat(GstCaps *caps, Format &format);
+std::string PixelFormatToGst(VideoPixelFormat pixel);
+std::string RawAudioFormatToGst(AudioRawFormat format);
+int32_t MapCodecMime(const std::string &mime, CodecMimeType &name);
+int32_t CapsToFormat(GstCaps *caps, Format &format);
+uint32_t PixelBufferSize(VideoPixelFormat pixel, uint32_t width, uint32_t height, uint32_t alignment);
 } // Media
 } // OHOS
 #endif // CODEC_COMMON_H
