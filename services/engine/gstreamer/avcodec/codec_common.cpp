@@ -107,6 +107,10 @@ int32_t CapsToFormat(GstCaps *caps, Format &format)
 uint32_t PixelBufferSize(VideoPixelFormat pixel, uint32_t width, uint32_t height, uint32_t alignment)
 {
     uint32_t size = 0;
+    if (width == 0 || height == 0 || alignment == 0) {
+        return size;
+    }
+
     switch (pixel) {
         case YUVI420:
             // fall-through
@@ -114,9 +118,7 @@ uint32_t PixelBufferSize(VideoPixelFormat pixel, uint32_t width, uint32_t height
             // fall-through
         case NV21:
             size = width * height * 3 / 2;
-            if (alignment > 1) {
-                size += (alignment - (size % alignment));
-            }
+            size = (size + alignment - 1) & ~(alignment - 1);
             break;
         default:
             break;
