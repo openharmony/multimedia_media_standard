@@ -465,10 +465,10 @@ napi_value VideoRecorderNapi::Reset(napi_env env, napi_callback_info info)
         }
         if (threadCtx->surface != nullptr) {
             auto id = threadCtx->surface->GetUniqueId();
-            if (threadCtx->napi->isSurfaceIdValid(id)) {
+            if (threadCtx->napi->isSurfaceIdVaild(id)) {
                 (void)SurfaceUtils::GetInstance()->Remove(id);
             } else {
-                threadCtx->SignError(MSERR_UNKNOW, "remove surface id failed");
+                threadCtx->SignError(MSERR_UNKNOWN, "remove surface id failed");
             }
         }
         if (threadCtx->napi->recorder_->Reset() != MSERR_OK) {
@@ -513,10 +513,10 @@ napi_value VideoRecorderNapi::Release(napi_env env, napi_callback_info info)
         }
         if (threadCtx->surface != nullptr) {
             auto id = threadCtx->surface->GetUniqueId();
-            if (threadCtx->napi->isSurfaceIdValid(id)) {
+            if (threadCtx->napi->isSurfaceIdVaild(id)) {
                 (void)SurfaceUtils::GetInstance()->Remove(id);
             } else {
-                threadCtx->SignError(MSERR_UNKNOW, "remove surface id failed");
+                threadCtx->SignError(MSERR_UNKNOWN, "remove surface id failed");
             }
         }
         if (threadCtx->napi->recorder_->Release() != MSERR_OK) {
