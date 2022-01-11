@@ -42,6 +42,22 @@ declare namespace media {
   function createAudioRecorder(): AudioRecorder;
 
   /**
+  /**
+   * Creates an VideoRecorder instance.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @param callback Callback used to return AudioPlayer instance if the operation is successful; returns null otherwise.
+   */
+   function createVideoRecorder(callback: AsyncCallback<VideoRecorder>): void;
+   /**
+    * Creates an VideoRecorder instance.
+    * @since 8
+    * @SysCap SystemCapability.Multimedia.Media
+    * @import import media from '@ohos.multimedia.media'
+    * @return A Promise instance used to return VideoRecorder instance if the operation is successful; returns null otherwise.
+    */
+  function createVideoRecorder() : Promise<VideoRecorder>;
    * Creates an audio decoder instance by name.
    * @since 8
    * @SysCap SystemCapability.Multimedia.Media
@@ -572,7 +588,7 @@ declare namespace media {
   }
 
   /**
-   * Enumerates audio encoding formats.
+   * Enumerates audio encoding formats,it will be deprecated after API8, use @CodecMimeType to instead of.
    * @since 6
    * @SysCap SystemCapability.Multimedia.Media
    * @import import media from '@ohos.multimedia.media'
@@ -586,7 +602,7 @@ declare namespace media {
   }
 
   /**
-   * Enumerates audio output formats.
+   * Enumerates audio output formats,it will be deprecated after API8, use @ContainerFormatType to instead of.
    * @since 6
    * @SysCap SystemCapability.Multimedia.Media
    * @import import media from '@ohos.multimedia.media'
@@ -624,7 +640,8 @@ declare namespace media {
 
   interface AudioRecorderConfig {
     /**
-     * Audio encoding format. The default value is DEFAULT.
+     * Audio encoding format. The default value is DEFAULT, it will be decpreted after API8.
+     * use "audioEncoderMime" instead.
      * @devices phone, tablet, tv, wearable
      * @since 6
      * @SysCap SystemCapability.Multimedia.Media
@@ -637,7 +654,7 @@ declare namespace media {
      * @since 6
      * @SysCap SystemCapability.Multimedia.Media
      */
-    audioEncodeBitRate?: number;
+    audioEncodeBitrate?: number;
 
     /**
      * Audio sampling rate.
@@ -656,7 +673,8 @@ declare namespace media {
     numberOfChannels?: number;
 
     /**
-     * Audio output format. The default value is DEFAULT.
+     * Audio output format. The default value is DEFAULT, it will be deprecated after API8.
+     * it will be use "fileFormat" to instead of.
      * @devices phone, tablet, tv, wearable
      * @since 6
      * @SysCap SystemCapability.Multimedia.Media
@@ -681,6 +699,21 @@ declare namespace media {
      * @SysCap SystemCapability.Multimedia.Media
      */
     location?: Location;
+    /**
+     * audio encoding format MIME. it used to instead of audioEncoder.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    audioEncoderMime?: CodecMimeType;
+    /**
+     * output file format. see @ContainerFormatType , it used to instead of "format".
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    fileFormat?: ContainerFormatType;
+  }
   }
 
   interface AudioRecorder {
@@ -735,7 +768,8 @@ declare namespace media {
 
     /**
      * Resets audio recording.
-     * Before resetting audio recording, you must call stop() to stop recording. After audio recording is reset, you must call prepare() to set the recording configurations for another recording.
+     * Before resetting audio recording, you must call stop() to stop recording. After audio recording is reset,
+     * you must call prepare() to set the recording configurations for another recording.
      * @devices phone, tablet, tv, wearable
      * @since 6
      * @SysCap SystemCapability.Multimedia.Media
@@ -761,6 +795,169 @@ declare namespace media {
      * @param callback Callback used to listen for the audio recording error event.
      */
     on(type: 'error', callback: ErrorCallback): void;
+  /**
+  * Describes video recorder states.
+  */
+  type VideoRecordState = 'idle' | 'prepared' | 'playing' | 'paused' | 'stopped' | 'error';
+  interface VideoRecorder {
+    /**
+     * Prepares for recording.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param config Recording parameters.
+     * @param callback A callback instance used to return when prepare completed.
+     */
+    prepare(config: VideoRecorderConfig, callback: AsyncCallback<void>): void;
+    /**
+     * Prepares for recording.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param config Recording parameters.
+     * @return A Promise instance used to return when prepare completed.
+     */
+    prepare(config: VideoRecorderConfig): Promise<void>;
+    /**
+     * get input surface.it must be called between prepare completed and start.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback Callback used to return the input surface id in string.
+     */
+    getInputSurface(callback: AsyncCallback<string>): void;
+    /**
+     * get input surface. it must be called between prepare completed and start.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return the input surface id in string.
+     */
+    getInputSurface(): Promise<string>;
+    /**
+     * Starts video recording.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when start completed.
+     */
+    start(callback: AsyncCallback<void>): void;
+    /**
+     * Starts video recording.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when start completed.
+     */
+    start(): Promise<void>;
+    /**
+     * Pauses video recording.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when pause completed.
+     */
+    pause(callback: AsyncCallback<void>): void;
+    /**
+     * Pauses video recording.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when pause completed.
+     */
+    pause(): Promise<void>;
+    /**
+     * Resumes video recording.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when resume completed.
+     */
+    resume(callback: AsyncCallback<void>): void;
+    /**
+     * Resumes video recording.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when resume completed.
+     */
+    resume(): Promise<void>;
+    /**
+     * Stops video recording.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when stop completed.
+     */
+    stop(callback: AsyncCallback<void>): void;
+    /**
+     * Stops video recording.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when stop completed.
+     */
+    stop(): Promise<void>;
+    /**
+     * Releases resources used for video recording.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when release completed.
+     */
+    release(callback: AsyncCallback<void>): void;
+    /**
+      * Releases resources used for video recording.
+      * @devices phone, tablet, tv, wearable
+      * @since 8
+      * @SysCap SystemCapability.Multimedia.Media
+      * @return A Promise instance used to return when release completed.
+      */
+    release(): Promise<void>;
+    /**
+     * Resets video recording.
+     * Before resetting video recording, you must call stop() to stop recording. After video recording is reset,
+     * you must call prepare() to set the recording configurations for another recording.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when reset completed.
+     */
+    reset(callback: AsyncCallback<void>): void;
+     /**
+      * Resets video recording.
+      * Before resetting video recording, you must call stop() to stop recording. After video recording is reset,
+      * you must call prepare() to set the recording configurations for another recording.
+      * @devices phone, tablet, tv, wearable
+      * @since 8
+      * @SysCap SystemCapability.Multimedia.Media
+      * @return A Promise instance used to return when reset completed.
+      */
+    reset(): Promise<void>;
+    /**
+     * Listens for video recording error events.
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the video recording error event to listen for.
+     * @param callback Callback used to listen for the video recording error event.
+     */
+    on(type: 'error', callback: ErrorCallback): void;
+    /**
+    * set next output url when receive INFO_MAX_SIZE_APPROCHING info.
+    * @devices phone, tablet, tv, wearable, car
+    * @since 8
+    * @SysCap SystemCapability.Multimedia.Media
+    * @param callback async callback return when set completed.
+    */
+    /**
+     * video recorder state.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+     readonly state: VideoRecordState;
+  }
   }
 
   /**
