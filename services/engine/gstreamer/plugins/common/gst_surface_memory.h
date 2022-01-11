@@ -13,24 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef GST_SHMEM_MEMORY_H
-#define GST_SHMEM_MEMORY_H
+#ifndef GST_SURFACE_MEMORY_H
+#define GST_SURFACE_MEMORY_H
 
 #include <gst/gst.h>
-#include "avsharedmemory.h"
+#include "surface.h"
 
-typedef struct _GstShMemMemory GstShMemMemory;
+typedef struct _GstSurfaceMemory GstSurfaceMemory;
 
-struct _GstShMemMemory {
+struct _GstSurfaceMemory {
     GstMemory parent;
-    std::shared_ptr<OHOS::Media::AVSharedMemory> mem;
+    OHOS::sptr<OHOS::SurfaceBuffer> buf;
+    gint fence;
+    gboolean needRender;
 };
 
-static const char GST_SHMEM_MEMORY_TYPE[] = "SharedMemory";
+static const char GST_SURFACE_MEMORY_TYPE[] = "SurfaceMemory";
 
-static inline gboolean gst_is_shmem_memory(GstMemory *mem)
+static inline gboolean gst_is_surface_memory(GstMemory *mem)
 {
-    return gst_memory_is_type(mem, GST_SHMEM_MEMORY_TYPE);
+    return gst_memory_is_type(mem, GST_SURFACE_MEMORY_TYPE);
 }
 
 #endif

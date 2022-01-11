@@ -1,0 +1,94 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+config("gst_codec_plugins_common_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-fno-exceptions",
+    "-Wall",
+    "-fno-common",
+    "-fstack-protector-strong",
+    "-FPIC",
+    "-FS",
+    "-O2",
+    "-D_FORTIFY_SOURCE=2",
+    "-fvisibility=hidden",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wdate-time",
+  ]
+  cflags_cc = [
+    "-frtti",
+  ]
+
+  include_dirs = [
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common/vdec",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common/venc",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common/video",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common",
+    "//base/hiviewdfx/interfaces/innerkits/libhilog/include",
+
+    "//utils/native/base/include",
+    "//foundation/multimedia/media_standard/services/utils/include",
+    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
+    "//third_party/gstreamer/gstreamer",
+    "//third_party/gstreamer/gstreamer/libs",
+    "//third_party/gstreamer/gstplugins_base",
+    "//third_party/gstreamer/gstplugins_base/gst-libs",
+    "//third_party/glib/glib",
+    "//third_party/glib",
+    "//third_party/glib/gmodule",
+  ]
+}
+
+ohos_static_library("gst_codec_plugins_common") {
+
+  sources = [
+    "vdec/gst_vdec_base.cpp",
+    "vdec/gst_vdec_h264.cpp",
+    "vdec/gst_vdec_h265.cpp",
+    "vdec/gst_vdec_mpeg2.cpp",
+    "vdec/gst_vdec_mpeg4.cpp",
+    "venc/gst_venc_base.cpp",
+    "venc/gst_venc_h264.cpp",
+    "venc/gst_venc_h265.cpp",
+    "venc/gst_venc_mpeg4.cpp",
+  ]
+
+  configs = [ ":gst_codec_plugins_common_config" ]
+
+  deps = [
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_plugins_common",
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//drivers/peripheral/hidl_adapter/gralloc/src/adapter:libgralloc_adapter",
+    "//foundation/graphic/standard:libsurface",
+    "//third_party/glib:glib",
+    "//third_party/glib:gmodule",
+    "//third_party/glib:gobject",
+    "//third_party/gstreamer/gstplugins_base:gstvideo",
+    "//third_party/gstreamer/gstreamer:gstbase",
+    "//third_party/gstreamer/gstreamer:gstreamer",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
+
+  subsystem_name = "multimedia"
+  part_name = "multimedia_media_standard"
+}
