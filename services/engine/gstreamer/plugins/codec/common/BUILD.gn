@@ -69,7 +69,6 @@ ohos_static_library("gst_codec_plugins_common") {
   configs = [ ":gst_codec_plugins_common_config" ]
 
   deps = [
-    "//drivers/peripheral/hidl_adapter/gralloc/src/adapter:libgralloc_adapter",
     "//foundation/graphic/standard:libsurface",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_plugins_common",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",

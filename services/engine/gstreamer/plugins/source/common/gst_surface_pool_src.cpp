@@ -20,6 +20,7 @@
 #include "media_errors.h"
 #include "surface_buffer.h"
 #include "scope_guard.h"
+#include "display_type.h"
 
 #define gst_surface_pool_src_parent_class parent_class
 using namespace OHOS;
@@ -29,6 +30,7 @@ namespace {
     constexpr int32_t DEFAULT_SURFACE_SIZE = 1024 * 1024;
     constexpr int32_t DEFAULT_VIDEO_WIDTH = 1920;
     constexpr int32_t DEFAULT_VIDEO_HEIGHT = 1080;
+    constexpr uint32_t STRIDE_ALIGN = 8;
 }
 
 GST_DEBUG_CATEGORY_STATIC(gst_surface_pool_src_debug_category);
@@ -43,11 +45,13 @@ GST_STATIC_PAD_TEMPLATE("src",
 enum {
     PROP_0,
     PROP_SURFACE,
+    PROP_SURFACE_STRIDE,
 };
 
 G_DEFINE_TYPE(GstSurfacePoolSrc, gst_surface_pool_src, GST_TYPE_MEM_POOL_SRC);
 
 static void gst_surface_pool_src_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec);
+static void gst_surface_pool_src_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec);
 static GstStateChangeReturn gst_surface_pool_src_change_state(GstElement *element, GstStateChange transition);
 static gboolean gst_surface_pool_src_create_surface(GstSurfacePoolSrc *src);
 static gboolean gst_surface_pool_src_create_pool(GstSurfacePoolSrc *src);
@@ -65,10 +69,16 @@ static void gst_surface_pool_src_class_init(GstSurfacePoolSrcClass *klass)
     GstBaseSrcClass *gstbasesrc_class = reinterpret_cast<GstBaseSrcClass*>(klass);
     GST_DEBUG_CATEGORY_INIT(gst_surface_pool_src_debug_category, "surfacepoolsrc", 0, "surface pool src base class");
     gobject_class->get_property = gst_surface_pool_src_get_property;
+    gobject_class->set_property = gst_surface_pool_src_set_property;
 
     g_object_class_install_property(gobject_class, PROP_SURFACE,
         g_param_spec_pointer("surface", "Surface", "Surface for buffer",
             (GParamFlags)(G_PARAM_READABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_SURFACE_STRIDE,
+        g_param_spec_uint("surface-stride", "surface stride",
+            "surface buffer stride", 0, G_MAXINT32, STRIDE_ALIGN,
+            (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
     gstelement_class->change_state = gst_surface_pool_src_change_state;
     gstbasesrc_class->fill = gst_surface_pool_src_fill;
@@ -84,16 +94,36 @@ static void gst_surface_pool_src_init(GstSurfacePoolSrc *surfacesrc)
 {
     g_return_if_fail(surfacesrc != nullptr);
     surfacesrc->pool = nullptr;
+    surfacesrc->stride = STRIDE_ALIGN;
 }
 
 static void gst_surface_pool_src_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
     GstSurfacePoolSrc *src = GST_SURFACE_POOL_SRC(object);
     g_return_if_fail(src != nullptr);
+    g_return_if_fail(value != nullptr);
     (void)pspec;
     switch (prop_id) {
         case PROP_SURFACE:
             g_value_set_pointer(value, src->producerSurface.GetRefPtr());
+            break;
+        case PROP_SURFACE_STRIDE:
+            g_value_set_uint(value, src->stride);
+            break;
+        default:
+            break;
+    }
+}
+
+static void gst_surface_pool_src_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
+{
+    GstSurfacePoolSrc *src = GST_SURFACE_POOL_SRC(object);
+    g_return_if_fail(src != nullptr);
+    g_return_if_fail(value != nullptr);
+    (void)pspec;
+    switch (prop_id) {
+        case PROP_SURFACE_STRIDE:
+            src->stride = g_value_get_uint(value);
             break;
         default:
             break;
@@ -211,10 +241,6 @@ static void gst_surface_pool_src_init_surface(GstSurfacePoolSrc *src)
     if (ret != SURFACE_ERROR_OK) {
         GST_WARNING_OBJECT(src, "Set video height fail");
     }
-    ret = surface->SetQueueSize(DEFAULT_SURFACE_QUEUE_SIZE);
-    if (ret != SURFACE_ERROR_OK) {
-        GST_WARNING_OBJECT(src, "Set queue size fail");
-    }
     ret = surface->SetUserData("surface_size", std::to_string(DEFAULT_SURFACE_SIZE));
     if (ret != SURFACE_ERROR_OK) {
         GST_WARNING_OBJECT(src, "Set surface size fail");
@@ -222,6 +248,60 @@ static void gst_surface_pool_src_init_surface(GstSurfacePoolSrc *src)
     ret = surface->SetDefaultWidthAndHeight(width, height);
     if (ret != SURFACE_ERROR_OK) {
         GST_WARNING_OBJECT(src, "Set surface width and height fail");
+    }
+}
+
+static int32_t gst_surface_pool_src_gstformat_to_surfaceformat(GstSurfacePoolSrc *surfacesrc, GstVideoInfo *format)
+{
+    g_return_val_if_fail(surfacesrc != nullptr, -1);
+    g_return_val_if_fail(format != nullptr, -1);
+    g_return_val_if_fail(format->finfo != nullptr, -1);
+    switch (format->finfo->format) {
+        case GST_VIDEO_FORMAT_NV21:
+            return PIXEL_FMT_YCRCB_420_SP;
+        case GST_VIDEO_FORMAT_NV12:
+            return PIXEL_FMT_YCBCR_420_SP;
+        default:
+            GST_ERROR_OBJECT(surfacesrc, "Unknow format");
+            break;
+    }
+    return -1;
+}
+
+// The buffer of the graphics is dynamically expanded.
+// In order to make the number of buffers used by the graphics correspond to the number of encoders one to one.
+// It is necessary to apply for the buffers first.
+static void gst_surface_pool_src_init_surface_buffer(GstSurfacePoolSrc *surfacesrc)
+{
+    g_return_if_fail(surfacesrc != nullptr);
+    g_return_if_fail(surfacesrc->producerSurface != nullptr);
+    GstMemPoolSrc *memsrc = GST_MEM_POOL_SRC(surfacesrc);
+    g_return_if_fail(memsrc->caps != nullptr);
+    guint width = DEFAULT_VIDEO_WIDTH;
+    guint height = DEFAULT_VIDEO_HEIGHT;
+    gint format = -1;
+    GstVideoInfo info;
+    gst_video_info_init(&info);
+    gst_video_info_from_caps(&info, memsrc->caps);
+    width = info.width;
+    height = info.height;
+    format = gst_surface_pool_src_gstformat_to_surfaceformat(surfacesrc, &info);
+    std::vector<OHOS::sptr<OHOS::SurfaceBuffer>> buffers;
+    OHOS::BufferRequestConfig g_requestConfig;
+    g_requestConfig.width = width;
+    g_requestConfig.height = height;
+    g_requestConfig.strideAlignment = surfacesrc->stride;
+    g_requestConfig.format = format;
+    g_requestConfig.usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
+    g_requestConfig.timeout = 0;
+    for (guint i = 0; i < surfacesrc->producerSurface->GetQueueSize(); ++i) {
+        OHOS::sptr<OHOS::SurfaceBuffer> buffer;
+        gint releaseFence;
+        (void)surfacesrc->producerSurface->RequestBuffer(buffer, releaseFence, g_requestConfig);
+        buffers.push_back(buffer);
+    }
+    for (guint i = 0; i < buffers.size(); ++i) {
+        surfacesrc->producerSurface->CancelBuffer(buffers[i]);
     }
 }
 
@@ -247,6 +327,7 @@ static gboolean gst_surface_pool_src_get_pool(GstSurfacePoolSrc *surfacesrc, Gst
     if (ret != SURFACE_ERROR_OK) {
         GST_WARNING_OBJECT(surfacesrc, "set queue size fail");
     }
+    gst_surface_pool_src_init_surface_buffer(surfacesrc);
     GstStructure *config = gst_buffer_pool_get_config(surfacesrc->pool);
     if (is_video) {
         gst_buffer_pool_config_add_option(config, GST_BUFFER_POOL_OPTION_VIDEO_META);

@@ -65,6 +65,7 @@ static GstMemory *gst_consumer_surface_allocator_alloc(GstAllocator *allocator, 
     gboolean is_key_frame = FALSE;
     Rect damage = {0, 0, 0, 0};
     if (surface->AcquireBuffer(surface_buffer, fencefd, timestamp, damage) != SURFACE_ERROR_OK) {
+        GST_WARNING_OBJECT(allocator, "AcquireBuffer failed");
         return nullptr;
     }
     g_return_val_if_fail(surface_buffer != nullptr, nullptr);

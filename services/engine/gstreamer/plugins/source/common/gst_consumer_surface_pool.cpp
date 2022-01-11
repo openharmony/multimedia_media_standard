@@ -232,6 +232,7 @@ static void gst_consumer_surface_pool_buffer_available(GstConsumerSurfacePool *p
         g_cond_signal(&priv->buffer_available_con);
     }
     pool->priv->available_buf_count++;
+    GST_DEBUG_OBJECT(pool, "Available buffer count %u", pool->priv->available_buf_count);
     g_mutex_unlock(&priv->pool_lock);
 }
 

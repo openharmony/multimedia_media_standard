@@ -40,6 +40,7 @@ struct _GstSurfacePoolSrc {
     OHOS::sptr<OHOS::Surface> consumerSurface;
     OHOS::sptr<OHOS::Surface> producerSurface;
     GstBufferPool *pool;
+    guint stride;
 };
 
 struct _GstSurfacePoolSrcClass {
