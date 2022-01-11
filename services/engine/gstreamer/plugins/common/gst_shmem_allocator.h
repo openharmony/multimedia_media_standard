@@ -57,7 +57,7 @@ GstShMemAllocator *gst_shmem_allocator_new();
 
 GST_API_EXPORT
 void gst_shmem_allocator_set_pool(GstShMemAllocator *allocator,
-                                  std::shared_ptr<OHOS::Media::AVSharedMemoryPool> pool);
+                                  std::shared_ptr<OHOS::Media::AVSharedMemoryPool>& pool);
 
 G_END_DECLS
 

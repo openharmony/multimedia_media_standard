@@ -30,9 +30,7 @@ config("gst_codec_plugins_common_config") {
     "-Wfloat-equal",
     "-Wdate-time",
   ]
-  cflags_cc = [
-    "-frtti",
-  ]
+  cflags_cc = [ "-frtti" ]
 
   include_dirs = [
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common/vdec",
@@ -56,7 +54,6 @@ config("gst_codec_plugins_common_config") {
 }
 
 ohos_static_library("gst_codec_plugins_common") {
-
   sources = [
     "vdec/gst_vdec_base.cpp",
     "vdec/gst_vdec_h264.cpp",
@@ -72,10 +69,10 @@ ohos_static_library("gst_codec_plugins_common") {
   configs = [ ":gst_codec_plugins_common_config" ]
 
   deps = [
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_plugins_common",
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//drivers/peripheral/hidl_adapter/gralloc/src/adapter:libgralloc_adapter",
     "//foundation/graphic/standard:libsurface",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_plugins_common",
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",

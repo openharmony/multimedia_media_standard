@@ -1,4 +1,4 @@
-/*
+    /*
  * Copyright (C) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,7 +113,7 @@ static const gchar **gst_shmem_pool_get_options (GstBufferPool *pool)
 }
 
 gboolean gst_shmem_pool_set_avshmempool(GstShMemPool *pool,
-                                        std::shared_ptr<OHOS::Media::AVSharedMemoryPool> avshmempool)
+                                        std::shared_ptr<OHOS::Media::AVSharedMemoryPool>& avshmempool)
 {
     g_return_val_if_fail(pool != nullptr && avshmempool != nullptr, FALSE);
 
@@ -244,7 +244,6 @@ static gboolean gst_shmem_pool_stop(GstBufferPool *pool)
     if (spool->end) {
         return TRUE;
     }
-    g_return_val_if_fail(spool != nullptr, FALSE);
 
     GST_DEBUG("pool stop");
     GST_BUFFER_POOL_LOCK(spool);

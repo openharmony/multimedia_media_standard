@@ -74,6 +74,7 @@ AVSharedMemory *AVSharedMemoryPool::AllocMemory(int32_t size)
     if (memory->Init() != MSERR_OK) {
         delete memory;
         MEDIA_LOGE("init avsharedmemorybase failed");
+        return nullptr;
     }
 
     return memory;
