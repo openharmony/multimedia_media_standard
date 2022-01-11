@@ -53,6 +53,7 @@ public:
     bool IsPlaying() override;
     bool IsLooping() override;
     int32_t SetLooping(bool loop) override;
+    int32_t SetParameter(const Format &param) override;
     int32_t SetPlayerCallback(const std::shared_ptr<PlayerCallback> &callback) override;
 
     // IPlayerEngineObs override

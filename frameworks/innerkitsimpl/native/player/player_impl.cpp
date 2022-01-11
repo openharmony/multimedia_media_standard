@@ -247,8 +247,8 @@ int32_t PlayerImpl::SetPlayerCallback(const std::shared_ptr<PlayerCallback> &cal
 
 int32_t PlayerImpl::SetParameter(const Format &param)
 {
-    (void)param;
-    return MSERR_OK;
+    CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
+    return playerService_->SetParameter(param);
 }
 } // nmamespace Media
 } // namespace OHOS

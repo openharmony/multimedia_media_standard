@@ -72,6 +72,7 @@ int32_t PlayerServiceStub::Init()
     playerFuncs_[IS_PLAYING] = &PlayerServiceStub::IsPlaying;
     playerFuncs_[IS_LOOPING] = &PlayerServiceStub::IsLooping;
     playerFuncs_[SET_LOOPING] = &PlayerServiceStub::SetLooping;
+    playerFuncs_[SET_RENDERER_DESC] = &PlayerServiceStub::SetParameter;
     playerFuncs_[DESTROY] = &PlayerServiceStub::DestroyStub;
     playerFuncs_[SET_CALLBACK] = &PlayerServiceStub::SetPlayerCallback;
     playerFuncs_[GET_VIDEO_TRACK_INFO] = &PlayerServiceStub::GetVideoTrackInfo;
@@ -270,6 +271,12 @@ int32_t PlayerServiceStub::SetLooping(bool loop)
 {
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->SetLooping(loop);
+}
+
+int32_t PlayerServiceStub::SetParameter(const Format &param)
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->SetParameter(param);
 }
 
 int32_t PlayerServiceStub::SetPlayerCallback()
@@ -483,6 +490,16 @@ int32_t PlayerServiceStub::SetLooping(MessageParcel &data, MessageParcel &reply)
 {
     bool loop = data.ReadBool();
     reply.WriteInt32(SetLooping(loop));
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::SetParameter(MessageParcel &data, MessageParcel &reply)
+{
+    Format param;
+    (void)MediaParcel::Unmarshalling(data, param);
+
+    reply.WriteInt32(SetParameter(param));
+
     return MSERR_OK;
 }
 

@@ -555,6 +555,22 @@ int32_t PlayerServer::SetLooping(bool loop)
     return MSERR_OK;
 }
 
+int32_t PlayerServer::SetParameter(const Format &param)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (status_ == PLAYER_STATE_ERROR) {
+        MEDIA_LOGE("Can not SetParameter, currentState is PLAYER_STATE_ERROR");
+        return MSERR_INVALID_OPERATION;
+    }
+
+    if (playerEngine_ != nullptr) {
+        int32_t ret = playerEngine_->SetParameter(param);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetParameter Failed!");
+    }
+
+    return MSERR_OK;
+}
+
 int32_t PlayerServer::SetPlayerCallback(const std::shared_ptr<PlayerCallback> &callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);
