@@ -21,10 +21,10 @@
 #include "buffer_type_meta.h"
 #include "avsharedmemorybase.h"
 
-#define GST_BUFFER_POOL_LOCK(pool) (g_mutex_lock(&pool->lock))
-#define GST_BUFFER_POOL_UNLOCK(pool) (g_mutex_unlock(&pool->lock))
-#define GST_BUFFER_POOL_WAIT(pool) (g_cond_wait(&pool->cond, &pool->lock))
-#define GST_BUFFER_POOL_NOTIFY(pool) (g_cond_signal(&pool->cond))
+#define GST_BUFFER_POOL_LOCK(pool) (g_mutex_lock(&(pool)->lock))
+#define GST_BUFFER_POOL_UNLOCK(pool) (g_mutex_unlock(&(pool)->lock))
+#define GST_BUFFER_POOL_WAIT(pool) (g_cond_wait(&(pool)->cond, &(pool)->lock))
+#define GST_BUFFER_POOL_NOTIFY(pool) (g_cond_signal(&(pool)->cond))
 
 #define gst_shmem_pool_parent_class parent_class
 G_DEFINE_TYPE (GstShMemPool, gst_shmem_pool, GST_TYPE_BUFFER_POOL);

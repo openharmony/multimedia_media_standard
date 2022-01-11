@@ -456,29 +456,28 @@ static gboolean gst_venc_base_prepare(GstVencBase *self)
 static GstFlowReturn gst_venc_base_handle_frame(GstVideoEncoder *encoder, GstVideoCodecFrame *frame)
 {
     GST_DEBUG_OBJECT(encoder, "Handle frame");
+    ON_SCOPE_EXIT(0) { gst_video_codec_frame_unref(frame); };
     g_return_val_if_fail(encoder != nullptr, GST_FLOW_ERROR);
     g_return_val_if_fail(frame != nullptr, GST_FLOW_ERROR);
     GstVencBase *self = GST_VENC_BASE(encoder);
     g_return_val_if_fail(self->encoder != nullptr, GST_FLOW_ERROR);
     if (gst_venc_base_is_flushing(self)) {
-        gst_video_codec_frame_unref(frame);
         return GST_FLOW_FLUSHING;
     }
     if (!self->prepared) {
         if (!gst_venc_base_prepare(self)) {
             GST_WARNING_OBJECT(self, "hdi video dec enable failed");
-            gst_video_codec_frame_unref(frame);
             return GST_FLOW_ERROR;
         }
         self->prepared = TRUE;
     }
     GstPad *pad = GST_VIDEO_ENCODER_SRC_PAD(self);
     if (gst_pad_get_task_state(pad) != GST_TASK_STARTED) {
+        gint ret = self->encoder->Start();
+        g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "start", TRUE), GST_FLOW_ERROR);
         if (gst_pad_start_task(pad, (GstTaskFunction)gst_venc_base_loop, encoder, nullptr) != TRUE) {
-            gst_video_codec_frame_unref(frame);
-            return GST_FLOW_ERROR;            
+            return GST_FLOW_ERROR;
         }
-        self->encoder->Start();
     }
     GST_VIDEO_ENCODER_STREAM_UNLOCK(self);
     gint codec_ret = self->encoder->PushInputBuffer(frame->input_buffer);
@@ -497,7 +496,6 @@ static GstFlowReturn gst_venc_base_handle_frame(GstVideoEncoder *encoder, GstVid
     }
     gst_buffer_unref(frame->input_buffer);
     frame->input_buffer = nullptr;
-    gst_video_codec_frame_unref(frame);
     return ret;
 }
 

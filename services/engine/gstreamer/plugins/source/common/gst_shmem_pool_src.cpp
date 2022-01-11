@@ -66,7 +66,7 @@ static gboolean gst_shmem_pool_src_pause_task(GstShmemPoolSrc *shmemsrc);
 static gboolean gst_shmem_pool_src_stop_task(GstShmemPoolSrc *shmemsrc);
 static void gst_mem_pool_src_dispose(GObject *object);
 static void gst_shmem_pool_src_finalize(GObject * object);
-static void gst_shmem_pool_src_flush_queue(GstShmemPoolSrc *src);
+static void gst_shmem_pool_src_flush_queue(GstShmemPoolSrc *shmemsrc);
 static gboolean gst_shmem_pool_src_send_event(GstElement *element, GstEvent *event);
 GstBuffer *gst_shmem_pool_src_pull_buffer(GstMemPoolSrc *memsrc);
 GstFlowReturn gst_shmem_pool_src_push_buffer(GstMemPoolSrc *memsrc, GstBuffer *buffer);
