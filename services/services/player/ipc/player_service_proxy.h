@@ -17,6 +17,7 @@
 #define PLAYER_SERVICE_PROXY_H
 
 #include "i_standard_player_service.h"
+#include "media_parcel.h"
 
 namespace OHOS {
 namespace Media {
@@ -48,6 +49,7 @@ public:
     bool IsPlaying() override;
     bool IsLooping() override;
     int32_t SetLooping(bool loop) override;
+    int32_t SetParameter(const Format &param) override;
     int32_t DestroyStub() override;
     int32_t SetPlayerCallback() override;
 

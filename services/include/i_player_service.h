@@ -281,6 +281,16 @@ public:
     virtual int32_t SetLooping(bool loop) = 0;
 
     /**
+     * @brief Enables setting the renderer descriptor for the current media
+     *
+     * @return Returns {@link MSERR_OK} if the renderer descriptor is set; returns an error code defined
+     * in {@link media_errors.h} otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    virtual int32_t SetParameter(const Format &param) = 0;
+
+    /**
      * @brief Method to set player callback.
      *
      * @param callback object pointer.
