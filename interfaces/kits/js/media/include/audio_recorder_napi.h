@@ -44,6 +44,7 @@ private:
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
     static napi_value CreateAudioRecorder(napi_env env, napi_callback_info info);
+    static napi_value CreateAudioRecorderAsync(napi_env env, napi_callback_info info);
     static napi_value Prepare(napi_env env, napi_callback_info info);
     static napi_value Start(napi_env env, napi_callback_info info);
     static napi_value Pause(napi_env env, napi_callback_info info);

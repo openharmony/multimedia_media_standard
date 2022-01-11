@@ -170,7 +170,7 @@ napi_value AudioPlayerNapi::CreateAudioPlayerAsync(napi_env env, napi_callback_i
 {
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
-    MEDIA_LOGD("CreateAudioPlayer In");
+    MEDIA_LOGD("CreateAudioPlayerAsync In");
 
     std::unique_ptr<MediaAsyncContext> asyncContext = std::make_unique<MediaAsyncContext>(env);
 
@@ -187,7 +187,7 @@ napi_value AudioPlayerNapi::CreateAudioPlayerAsync(napi_env env, napi_callback_i
     asyncContext->deferred = CommonNapi::CreatePromise(env, asyncContext->callbackRef, result);
     asyncContext->JsResult = std::make_unique<MediaJsResultInstance>(constructor_);
     napi_value resource = nullptr;
-    napi_create_string_utf8(env, "CreateAudioPlayer", NAPI_AUTO_LENGTH, &resource);
+    napi_create_string_utf8(env, "CreateAudioPlayerAsync", NAPI_AUTO_LENGTH, &resource);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, [](napi_env env, void* data) {},
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncContext.get()), &asyncContext->work));
     NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
