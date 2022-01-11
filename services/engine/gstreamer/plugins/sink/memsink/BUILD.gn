@@ -52,15 +52,13 @@ config("gst_mem_sink_config") {
 ohos_shared_library("gst_mem_sink") {
   install_enable = true
 
-  sources = [
-    "gst_mem_sink_plugins.cpp",
-  ]
+  sources = [ "gst_mem_sink_plugins.cpp" ]
 
   configs = [ ":gst_mem_sink_config" ]
 
   deps = [
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_media_common",
     "//foundation/graphic/standard:libsurface",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_media_common",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",

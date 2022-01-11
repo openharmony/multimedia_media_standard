@@ -31,7 +31,7 @@ GstShMemAllocator *gst_shmem_allocator_new()
 }
 
 void gst_shmem_allocator_set_pool(GstShMemAllocator *allocator,
-                                  std::shared_ptr<OHOS::Media::AVSharedMemoryPool> pool)
+                                  std::shared_ptr<OHOS::Media::AVSharedMemoryPool>& pool)
 {
     g_return_if_fail(allocator != nullptr && pool != nullptr);
     allocator->avShmemPool = pool;

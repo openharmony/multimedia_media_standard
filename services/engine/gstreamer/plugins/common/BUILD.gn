@@ -48,12 +48,11 @@ config("gst_plugins_common_config") {
 }
 
 ohos_static_library("gst_plugins_common") {
-
   sources = [
-    "gst_shmem_allocator_old.cpp",
+    "buffer_type_meta.c",
     "gst_shmem_allocator.cpp",
+    "gst_shmem_allocator_old.cpp",
     "gst_shmem_pool.cpp",
-    "buffer_type_meta.c"
   ]
 
   configs = [ ":gst_plugins_common_config" ]
@@ -114,10 +113,10 @@ ohos_shared_library("gst_media_common") {
   configs = [ ":gst_media_common_config" ]
 
   deps = [
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common:gst_codec_plugins_common",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_plugins_common",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/sink/common:gst_mem_sink_plugins_common",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/source/common:gst_mem_source_plugins_common",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common:gst_codec_plugins_common",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
