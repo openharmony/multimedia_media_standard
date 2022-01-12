@@ -51,7 +51,7 @@ struct _GstShMemAllocatorClass {
 
 GST_API_EXPORT GType gst_shmem_allocator_get_type(void);
 
-GST_API_EXPORT GstShMemAllocator *gst_shmem_allocator_new();
+GST_API_EXPORT GstShMemAllocator *gst_shmem_allocator_new(void);
 
 GST_API_EXPORT void gst_shmem_allocator_set_pool(GstShMemAllocator *allocator,
     std::shared_ptr<OHOS::Media::AVSharedMemoryPool>& pool);

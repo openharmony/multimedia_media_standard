@@ -309,7 +309,7 @@ static gboolean gst_surface_pool_src_get_pool(GstSurfacePoolSrc *surfacesrc, Gst
     guint min_buf, guint max_buf)
 {
     g_return_val_if_fail(surfacesrc != nullptr && query != nullptr && surfacesrc->consumerSurface != nullptr, FALSE);
-    if(surfacesrc->pool == nullptr) {
+    if (surfacesrc->pool == nullptr) {
         return FALSE;
     }
     GstMemPoolSrc *memsrc = GST_MEM_POOL_SRC(surfacesrc);

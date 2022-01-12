@@ -812,7 +812,7 @@ static GstBufferPool *gst_vdec_base_new_out_shmem_pool(GstVdecBase *self, GstCap
     ON_SCOPE_EXIT(0) { gst_object_unref(pool); };
     GstStructure *config = gst_buffer_pool_get_config(GST_BUFFER_POOL_CAST(pool));
     g_return_val_if_fail(config != nullptr, nullptr);
-    if(self->output.allocator == nullptr) {
+    if (self->output.allocator == nullptr) {
         GST_ERROR_OBJECT(self, "Allocator is null");
     }
     gst_buffer_pool_config_set_allocator(config, GST_ALLOCATOR_CAST(self->output.allocator),
@@ -836,14 +836,14 @@ static GstBufferPool *gst_vdec_base_new_in_shmem_pool(GstVdecBase *self, GstCaps
     ON_SCOPE_EXIT(0) { gst_object_unref(pool); };
     GstStructure *config = gst_buffer_pool_get_config(GST_BUFFER_POOL_CAST(pool));
     g_return_val_if_fail(config != nullptr, nullptr);
-    if(self->input.allocator == nullptr) {
+    if (self->input.allocator == nullptr) {
         GST_ERROR_OBJECT(self, "Allocator is null");
     }
     gst_buffer_pool_config_set_allocator(config, GST_ALLOCATOR_CAST(self->input.allocator), &self->input.allocParams);
     gst_buffer_pool_config_set_params(config, outcaps, size, min_buffer_cnt, max_buffer_cnt);
     g_return_val_if_fail(gst_buffer_pool_set_config(GST_BUFFER_POOL_CAST(pool), config), nullptr);
     CANCEL_SCOPE_EXIT_GUARD(0);
-    return GST_BUFFER_POOL(pool);    
+    return GST_BUFFER_POOL(pool);
 }
 
 static void gst_vdec_base_update_pool(GstVdecBase *self, GstBufferPool **pool, GstCaps *outcaps,

@@ -109,7 +109,7 @@ static void gst_surface_pool_finalize(GObject *obj)
     G_OBJECT_CLASS(parent_class)->finalize(obj);
 }
 
-GstSurfacePool *gst_surface_pool_new()
+GstSurfacePool *gst_surface_pool_new(void)
 {
     GstSurfacePool *pool = GST_SURFACE_POOL(g_object_new(
         GST_TYPE_SURFACE_POOL, "name", "SurfacePool", nullptr));
