@@ -33,7 +33,6 @@ G_BEGIN_DECLS
     (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_SURFACE_POOL))
 #define GST_IS_SURFACE_POOL_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_SURFACE_POOL))
-#define GST_SURFACE_POOL_CAST(obj) ((GstSurfacePool*)(obj))
 
 typedef struct _GstSurfacePool GstSurfacePool;
 typedef struct _GstSurfacePoolClass GstSurfacePoolClass;

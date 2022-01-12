@@ -37,7 +37,7 @@ static void gst_venc_h265_class_init(GstVencH265Class *klass)
         "width=(int) [1,MAX], " "height=(int) [1,MAX]";
     GstCaps *src_caps = gst_caps_from_string(src_caps_string);
 
-    if (src_caps != NULL) {
+    if (src_caps != nullptr) {
         GstPadTemplate *src_templ = gst_pad_template_new("src", GST_PAD_SRC, GST_PAD_ALWAYS, src_caps);
         gst_element_class_add_pad_template(element_class, src_templ);
         gst_caps_unref(src_caps);
@@ -54,6 +54,6 @@ static GstCaps *gst_venc_h265_get_caps(GstVencBase *self, GstVideoCodecState *st
     GstCaps *caps = gst_caps_new_simple("video/x-h265",
         "stream-format", G_TYPE_STRING, "byte-stream",
         "width", G_TYPE_INT, self->width,
-        "height", G_TYPE_INT, self->height, NULL);
+        "height", G_TYPE_INT, self->height, nullptr);
     return caps;
 }

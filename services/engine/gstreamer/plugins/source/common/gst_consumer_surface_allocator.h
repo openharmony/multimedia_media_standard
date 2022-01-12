@@ -52,7 +52,7 @@ GType gst_consumer_surface_allocator_get_type(void);
 GstAllocator *gst_consumer_surface_allocator_new();
 
 void gst_consumer_surface_allocator_set_surface(GstAllocator *allocator,
-                                                OHOS::sptr<OHOS::Surface> &consumerSurface);
+    OHOS::sptr<OHOS::Surface> &consumerSurface);
 
 G_END_DECLS
 

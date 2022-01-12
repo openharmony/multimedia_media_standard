@@ -38,8 +38,7 @@ GST_STATIC_PAD_TEMPLATE("src",
     GST_PAD_ALWAYS,
     GST_STATIC_CAPS_ANY);
 
-struct _GstShmemPoolSrcPrivate
-{
+struct _GstShmemPoolSrcPrivate {
     GRecMutex shmem_lock;
     GstTask *shmem_task;
     gboolean task_start;
@@ -65,7 +64,7 @@ static gboolean gst_shmem_pool_src_start_task(GstShmemPoolSrc *shmemsrc);
 static gboolean gst_shmem_pool_src_pause_task(GstShmemPoolSrc *shmemsrc);
 static gboolean gst_shmem_pool_src_stop_task(GstShmemPoolSrc *shmemsrc);
 static void gst_mem_pool_src_dispose(GObject *object);
-static void gst_shmem_pool_src_finalize(GObject * object);
+static void gst_shmem_pool_src_finalize(GObject *object);
 static void gst_shmem_pool_src_flush_queue(GstShmemPoolSrc *shmemsrc);
 static gboolean gst_shmem_pool_src_send_event(GstElement *element, GstEvent *event);
 GstBuffer *gst_shmem_pool_src_pull_buffer(GstMemPoolSrc *memsrc);
@@ -342,7 +341,7 @@ static gboolean gst_shmem_pool_src_send_event(GstElement *element, GstEvent *eve
             priv->eos = TRUE;
             g_cond_signal(&priv->queue_condition);
             g_mutex_unlock(&priv->queue_lock);
-            break;            
+            break;
         default:
             break;
     }
@@ -386,7 +385,7 @@ static GstFlowReturn gst_shmem_pool_src_create(GstBaseSrc *src, guint64 offset, 
 }
 
 static GstBufferPool *gst_shmem_pool_src_new_shmem_pool(GstShmemPoolSrc *shmemsrc, GstCaps *caps,
-        guint size, guint buffer_cnt, gboolean is_video)
+    guint size, guint buffer_cnt, gboolean is_video)
 {
     g_return_val_if_fail(shmemsrc != nullptr, nullptr);
     g_return_val_if_fail(shmemsrc->priv != nullptr, nullptr);
@@ -411,11 +410,11 @@ static GstBufferPool *gst_shmem_pool_src_new_shmem_pool(GstShmemPoolSrc *shmemsr
     gst_buffer_pool_config_set_params(config, caps, size, buffer_cnt, buffer_cnt);
     g_return_val_if_fail(gst_buffer_pool_set_config(GST_BUFFER_POOL_CAST(pool), config), nullptr);
     CANCEL_SCOPE_EXIT_GUARD(0);
-    return GST_BUFFER_POOL(pool);    
+    return GST_BUFFER_POOL(pool);
 }
 
 static gboolean gst_shmem_pool_src_set_shmem_pool(GstShmemPoolSrc *shmemsrc, GstBufferPool *pool,
-        GstQuery *query, guint buffer_cnt)
+    GstQuery *query, guint buffer_cnt)
 {
     g_return_val_if_fail(shmemsrc != nullptr && shmemsrc->priv != nullptr, FALSE);
     g_return_val_if_fail(query != nullptr, FALSE);

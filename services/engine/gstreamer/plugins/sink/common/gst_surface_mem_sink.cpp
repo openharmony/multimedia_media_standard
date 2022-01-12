@@ -83,7 +83,7 @@ static void gst_surface_mem_sink_init(GstSurfaceMemSink *sink)
     g_return_if_fail(priv != nullptr);
     sink->priv = priv;
     sink->priv->surface = nullptr;
-    sink->priv->pool = GST_SURFACE_POOL_CAST(gst_surface_pool_new());
+    sink->priv->pool = GST_SURFACE_POOL(gst_surface_pool_new());
 }
 
 static void gst_surface_mem_sink_dispose(GObject *obj)

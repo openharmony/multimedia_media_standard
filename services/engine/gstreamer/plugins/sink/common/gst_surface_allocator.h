@@ -47,7 +47,7 @@ struct _GstSurfaceAllocatorClass {
 
 GType gst_surface_allocator_get_type(void);
 
-GstSurfaceAllocator *gst_surface_allocator_new();
+GstSurfaceAllocator *gst_surface_allocator_new(void);
 
 gboolean gst_surface_allocator_set_surface(GstSurfaceAllocator *allocator, OHOS::sptr<OHOS::Surface> surface);
 

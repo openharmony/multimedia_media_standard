@@ -224,7 +224,7 @@ static void gst_mem_sink_get_property(GObject *object, guint propId, GValue *val
             }
             break;
         }
-        case PROP_MAX_POOL_CAPACITY:{
+        case PROP_MAX_POOL_CAPACITY: {
             GST_OBJECT_LOCK(memSink);
             g_value_set_uint(value, memSink->maxPoolCapacity);
             GST_OBJECT_UNLOCK(memSink);
@@ -475,7 +475,7 @@ static GstFlowReturn gst_mem_sink_stream_render(GstBaseSink *bsink, GstBuffer *b
     GstFlowReturn ret = GST_FLOW_OK;
     if (memSinkClass->do_stream_render != nullptr) {
         ret = memSinkClass->do_stream_render(memSink, &buffer);
-		g_return_val_if_fail(ret == GST_FLOW_OK, ret);
+        g_return_val_if_fail(ret == GST_FLOW_OK, ret);
     }
 
     if (priv->callbacks.new_sample != nullptr) {

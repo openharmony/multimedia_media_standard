@@ -18,7 +18,7 @@
 #include "gst/base/gstqueuearray.h"
 #include "gst/video/video-info.h"
 #include "gst_video_shmem_pool.h"
-#include "gst_shmem_allocator.h"
+#include "gst_shmem_allocator_old.h"
 #include "media_log.h"
 
 namespace {
@@ -810,7 +810,7 @@ static gboolean gst_video_shmem_sink_propose_allocation(GstBaseSink *bsink, GstQ
 
     gst_query_add_allocation_pool(query, pool, info.size, 0, vidShMemSink->priv->maxPoolCapacity);
 
-    GstAllocator *alloc = gst_shmem_allocator_new();
+    GstAllocator *alloc = gst_shmem_allocator_old_new();
     if (alloc == nullptr) {
         gst_object_unref(pool);
         GST_ERROR_OBJECT(vidShMemSink, "create shmem allocator failed");

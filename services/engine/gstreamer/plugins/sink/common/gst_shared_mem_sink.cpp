@@ -83,8 +83,8 @@ static void gst_shared_mem_sink_class_init(GstSharedMemSinkClass *klass)
 
     g_object_class_install_property(gobjectClass, PROP_ENABLE_REMOTE_REFCOUNT,
         g_param_spec_boolean ("enable-remote-refcount", "Enable Remote RefCount",
-          "Enable the remote refcount at the allocated memory", DEFAULT_PROP_REMOTE_REFCOUNT,
-          (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+            "Enable the remote refcount at the allocated memory", DEFAULT_PROP_REMOTE_REFCOUNT,
+            (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
     gobjectClass->dispose = gst_shared_mem_sink_dispose;
     gobjectClass->finalize = gst_shared_mem_sink_finalize;
@@ -244,7 +244,7 @@ static gboolean set_pool_for_allocator(GstSharedMemSink *shmemSink, guint minBuf
 static GstFlowReturn do_copy_buffer(GstSharedMemSink *shmemSink, GstBuffer *inBuf, GstBuffer **outBuf)
 {
     GstSharedMemSinkPrivate *priv = shmemSink->priv;
-    GstMemSink *memsink = GST_MEM_SINK_CAST(shmemSink);
+    GstMemSink *memsink = GST_MEM_SINK(shmemSink);
 
     gboolean ret = set_pool_for_allocator(shmemSink, 1, memsink->maxPoolCapacity, priv->memSize);
     g_return_val_if_fail(ret, GST_FLOW_ERROR);
@@ -324,7 +324,7 @@ static gboolean check_need_copy(GstSharedMemSink *shmemSink, GstBuffer *buffer)
 
 static GstFlowReturn gst_shared_mem_sink_do_stream_render(GstMemSink *memsink, GstBuffer **buffer)
 {
-    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(memsink);
+    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK(memsink);
     GstSharedMemSinkPrivate *priv = shmemSink->priv;
     g_return_val_if_fail(priv != nullptr, GST_FLOW_ERROR);
     GstBuffer *origBuf = *buffer;
@@ -351,7 +351,7 @@ static GstFlowReturn gst_shared_mem_sink_do_app_render(GstMemSink *memsink, GstB
      */
     (void)buffer;
 
-    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(memsink);
+    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK(memsink);
     GstSharedMemSinkPrivate *priv = shmemSink->priv;
     g_return_val_if_fail(priv != nullptr, GST_FLOW_ERROR);
     g_return_val_if_fail(priv->avShmemPool == nullptr, GST_FLOW_ERROR);
@@ -362,7 +362,7 @@ static GstFlowReturn gst_shared_mem_sink_do_app_render(GstMemSink *memsink, GstB
 
 static gboolean set_pool_for_propose_allocation(GstSharedMemSink *shmemSink, GstQuery *query, GstCaps *caps)
 {
-    GstMemSink *memsink = GST_MEM_SINK_CAST(shmemSink);
+    GstMemSink *memsink = GST_MEM_SINK(shmemSink);
     GstSharedMemSinkPrivate *priv = shmemSink->priv;
 
     guint size = 0;
@@ -399,7 +399,7 @@ static gboolean set_pool_for_propose_allocation(GstSharedMemSink *shmemSink, Gst
 
 static gboolean gst_shared_mem_sink_do_propose_allocation(GstMemSink *memsink, GstQuery *query)
 {
-    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(memsink);
+    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK(memsink);
     GstSharedMemSinkPrivate *priv = shmemSink->priv;
     g_return_val_if_fail(priv != nullptr, FALSE);
     g_return_val_if_fail(priv->allocator != nullptr, FALSE);

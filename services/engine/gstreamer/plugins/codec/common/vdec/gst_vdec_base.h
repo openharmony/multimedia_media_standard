@@ -87,8 +87,7 @@ struct _GstVdecBaseClass {
     std::shared_ptr<OHOS::Media::IGstCodec> (*create_codec)(GstElementClass *kclass);
 };
 
-GST_API_EXPORT
-GType gst_vdec_base_get_type(void);
+GST_API_EXPORT GType gst_vdec_base_get_type(void);
 
 G_END_DECLS
 
