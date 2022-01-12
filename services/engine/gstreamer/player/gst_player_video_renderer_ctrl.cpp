@@ -28,8 +28,6 @@ namespace {
     constexpr uint32_t MAX_DEFAULT_WIDTH = 10000;
     constexpr uint32_t MAX_DEFAULT_HEIGHT = 10000;
     constexpr uint32_t DEFAULT_BUFFER_NUM = 8;
-    constexpr uint32_t MAX_DEFAULT_TRY_TIMES = 100;
-    constexpr uint32_t DEFAULT_WAIT_TIME = 5000;
 }
 
 namespace OHOS {
@@ -162,7 +160,6 @@ GstFlowReturn GstPlayerVideoRendererCap::VideoDataAvailableCb(const GstElement *
     int32_t ret = ctrl->PullVideoBuffer();
     if (ret != MSERR_OK) {
         MEDIA_LOGE("Failed to PullVideoBuffer!");
-        return GST_FLOW_ERROR;
     }
     return GST_FLOW_OK;
 }
@@ -404,10 +401,9 @@ sptr<SurfaceBuffer> GstPlayerVideoRendererCtrl::RequestBuffer(const GstVideoMeta
     do {
         ret = producerSurface_->RequestBuffer(surfaceBuffer, releaseFence, requestConfig);
         if (ret == SURFACE_ERROR_NO_BUFFER) {
-            usleep(DEFAULT_WAIT_TIME);
             ++count;
         }
-    } while (ret == SURFACE_ERROR_NO_BUFFER && count < MAX_DEFAULT_TRY_TIMES);
+    } while (0);
     CHECK_AND_RETURN_RET_LOG(ret == SURFACE_ERROR_OK, nullptr, "RequestBuffer is not ok..");
     return surfaceBuffer;
 }
