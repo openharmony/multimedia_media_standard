@@ -1160,6 +1160,7 @@ declare namespace media {
      * @return A Promise instance used to return when prepare completed.
      */
     prepare(config: VideoRecorderConfig): Promise<void>;
+
     /**
      * get input surface.it must be called between prepare completed and start.
      * @devices phone, tablet, tv, wearable, car
@@ -1168,6 +1169,7 @@ declare namespace media {
      * @param callback Callback used to return the input surface id in string.
      */
     getInputSurface(callback: AsyncCallback<string>): void;
+
     /**
      * get input surface. it must be called between prepare completed and start.
      * @devices phone, tablet, tv, wearable, car
@@ -1176,6 +1178,7 @@ declare namespace media {
      * @return A Promise instance used to return the input surface id in string.
      */
     getInputSurface(): Promise<string>;
+
     /**
      * Starts video recording.
      * @devices phone, tablet, tv, wearable
@@ -1184,6 +1187,7 @@ declare namespace media {
      * @param callback A callback instance used to return when start completed.
      */
     start(callback: AsyncCallback<void>): void;
+
     /**
      * Starts video recording.
      * @devices phone, tablet, tv, wearable
@@ -1192,6 +1196,7 @@ declare namespace media {
      * @return A Promise instance used to return when start completed.
      */
     start(): Promise<void>;
+
     /**
      * Pauses video recording.
      * @devices phone, tablet, tv, wearable
@@ -1200,6 +1205,7 @@ declare namespace media {
      * @param callback A callback instance used to return when pause completed.
      */
     pause(callback: AsyncCallback<void>): void;
+
     /**
      * Pauses video recording.
      * @devices phone, tablet, tv, wearable
@@ -1208,6 +1214,7 @@ declare namespace media {
      * @return A Promise instance used to return when pause completed.
      */
     pause(): Promise<void>;
+
     /**
      * Resumes video recording.
      * @devices phone, tablet, tv, wearable
@@ -1216,6 +1223,7 @@ declare namespace media {
      * @param callback A callback instance used to return when resume completed.
      */
     resume(callback: AsyncCallback<void>): void;
+
     /**
      * Resumes video recording.
      * @devices phone, tablet, tv, wearable
@@ -1224,6 +1232,7 @@ declare namespace media {
      * @return A Promise instance used to return when resume completed.
      */
     resume(): Promise<void>;
+
     /**
      * Stops video recording.
      * @devices phone, tablet, tv, wearable
@@ -1232,6 +1241,7 @@ declare namespace media {
      * @param callback A callback instance used to return when stop completed.
      */
     stop(callback: AsyncCallback<void>): void;
+
     /**
      * Stops video recording.
      * @devices phone, tablet, tv, wearable
@@ -1240,6 +1250,7 @@ declare namespace media {
      * @return A Promise instance used to return when stop completed.
      */
     stop(): Promise<void>;
+
     /**
      * Releases resources used for video recording.
      * @devices phone, tablet, tv, wearable
@@ -1248,6 +1259,7 @@ declare namespace media {
      * @param callback A callback instance used to return when release completed.
      */
     release(callback: AsyncCallback<void>): void;
+
     /**
       * Releases resources used for video recording.
       * @devices phone, tablet, tv, wearable
@@ -1256,6 +1268,7 @@ declare namespace media {
       * @return A Promise instance used to return when release completed.
       */
     release(): Promise<void>;
+
     /**
      * Resets video recording.
      * Before resetting video recording, you must call stop() to stop recording. After video recording is reset,
@@ -1266,16 +1279,18 @@ declare namespace media {
      * @param callback A callback instance used to return when reset completed.
      */
     reset(callback: AsyncCallback<void>): void;
-     /**
-      * Resets video recording.
-      * Before resetting video recording, you must call stop() to stop recording. After video recording is reset,
-      * you must call prepare() to set the recording configurations for another recording.
-      * @devices phone, tablet, tv, wearable
-      * @since 8
-      * @SysCap SystemCapability.Multimedia.Media
-      * @return A Promise instance used to return when reset completed.
-      */
+
+    /**
+     * Resets video recording.
+     * Before resetting video recording, you must call stop() to stop recording. After video recording is reset,
+     * you must call prepare() to set the recording configurations for another recording.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when reset completed.
+     */
     reset(): Promise<void>;
+
     /**
      * Listens for video recording error events.
      * @devices phone, tablet, tv, wearable
@@ -1287,12 +1302,47 @@ declare namespace media {
     on(type: 'error', callback: ErrorCallback): void;
 
     /**
+     * operation is not supported in current version.
+     *
+     * set next output url when receive INFO_MAX_SIZE_APPROCHING info.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback async callback return when set completed.
+     */
+     setNextOutputFile(url: string, callback: AsyncCallback<void>): void
+
+    /**
+     * operation is not supported in current version.
+     *
+     * set next output url when receive INFO_MAX_SIZE_APPROCHING info.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param index  track index.
+     * @return A Promise instance used to return when set completed.
+     */
+    setNextOutputFile(url: string) : Promise<void>;
+
+    /**
+     * operation is not supported in current version.
+     *
+     * Listens for video recording info events.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the video recording info event to listen for, see @RecorderInfoType .
+     * @param callback Callback used to listen for the video recording info event, and return the info type.
+     */
+    on(type: 'info', callback:(infoType: number, extra?: number) => void): void
+
+    /**
      * video recorder state.
      * @devices phone, tablet, tv, wearable
      * @since 8
      * @SysCap SystemCapability.Multimedia.Media
      */
-     readonly state: VideoRecordState;
+    readonly state: VideoRecordState;
   }
 
   /**
@@ -1316,6 +1366,7 @@ declare namespace media {
      * sample is partial frame.
      */
     PARTIAL_FRAME = 1 << 2 ,
+
     /**
     * sample is the codec data.
     */
