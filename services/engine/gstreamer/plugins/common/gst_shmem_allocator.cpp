@@ -21,7 +21,7 @@ G_DEFINE_TYPE(GstShMemAllocator, gst_shmem_allocator, GST_TYPE_ALLOCATOR);
 
 static const uint32_t ALIGN_BYTES = 4;
 
-GstShMemAllocator *gst_shmem_allocator_new()
+GstShMemAllocator *gst_shmem_allocator_new(void)
 {
     GstShMemAllocator *alloc = GST_SHMEM_ALLOCATOR_CAST(g_object_new(
         GST_TYPE_SHMEM_ALLOCATOR, "name", "ShMemAllocator", nullptr));

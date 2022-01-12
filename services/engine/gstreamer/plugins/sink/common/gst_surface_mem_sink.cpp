@@ -90,7 +90,7 @@ static void gst_surface_mem_sink_dispose(GObject *obj)
 {
     g_return_if_fail(obj != nullptr);
 
-    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK_CAST(obj);
+    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK(obj);
     GstSurfaceMemSinkPrivate *priv = surfaceSink->priv;
     g_return_if_fail(priv != nullptr);
 
@@ -115,7 +115,7 @@ static void gst_surface_mem_sink_set_property(GObject *object, guint propId, con
 {
     g_return_if_fail(object != nullptr && value != nullptr);
 
-    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK_CAST(object);
+    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK(object);
     GstSurfaceMemSinkPrivate *priv = surfaceSink->priv;
     g_return_if_fail(priv != nullptr);
 
@@ -139,7 +139,7 @@ static void gst_surface_mem_sink_get_property(GObject *object, guint propId, GVa
 {
     g_return_if_fail(object != nullptr);
 
-    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK_CAST(object);
+    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK(object);
     GstSurfaceMemSinkPrivate *priv = surfaceSink->priv;
     g_return_if_fail(priv != nullptr);
 
@@ -160,7 +160,7 @@ static void gst_surface_mem_sink_get_property(GObject *object, guint propId, GVa
 static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, GstBuffer *buffer)
 {
     g_return_val_if_fail(memsink != nullptr && buffer != nullptr, GST_FLOW_ERROR);
-    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK_CAST(memsink);
+    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK(memsink);
     g_return_val_if_fail(surfaceSink != nullptr, GST_FLOW_ERROR);
     GstSurfaceMemSinkPrivate *priv = surfaceSink->priv;
     GST_OBJECT_LOCK(surfaceSink);
@@ -192,7 +192,7 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
 static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, GstQuery *query)
 {
     g_return_val_if_fail(memsink != nullptr && query != nullptr, FALSE);
-    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK_CAST(memsink);
+    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK(memsink);
     g_return_val_if_fail(surfaceSink != nullptr, FALSE);
 
     GstCaps *caps = nullptr;

@@ -185,7 +185,7 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
     g_return_val_if_fail(surfacepool != nullptr && surfacepool->priv != nullptr, GST_FLOW_ERROR);
     GstBufferPoolClass *pclass = GST_BUFFER_POOL_GET_CLASS(pool);
     g_return_val_if_fail(pclass != nullptr, GST_FLOW_ERROR);
-    if(!pclass->alloc_buffer) {
+    if (!pclass->alloc_buffer) {
         return GST_FLOW_NOT_SUPPORTED;
     }
     auto priv = surfacepool->priv;

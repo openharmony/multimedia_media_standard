@@ -400,7 +400,7 @@ static GstBufferPool *gst_shmem_pool_src_new_shmem_pool(GstShmemPoolSrc *shmemsr
     (void)gst_shmem_allocator_set_pool(priv->allocator, priv->av_shmem_pool);
     GstStructure *config = gst_buffer_pool_get_config(GST_BUFFER_POOL_CAST(pool));
     g_return_val_if_fail(config != nullptr, nullptr);
-    if(priv->allocator == nullptr) {
+    if (priv->allocator == nullptr) {
         GST_ERROR_OBJECT(shmemsrc, "Allocator is null");
     }
     if (is_video) {

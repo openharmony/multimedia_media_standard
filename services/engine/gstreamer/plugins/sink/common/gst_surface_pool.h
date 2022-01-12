@@ -61,7 +61,7 @@ struct _GstSurfacePoolClass {
 
 GType gst_surface_pool_get_type(void);
 
-GstSurfacePool *gst_surface_pool_new();
+GstSurfacePool *gst_surface_pool_new(void);
 
 GST_API gboolean gst_surface_pool_set_surface(GstSurfacePool *pool,
     OHOS::sptr<OHOS::Surface> surface, guint waittime);
