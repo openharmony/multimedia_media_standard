@@ -90,7 +90,6 @@ void AVSharedMemoryPool::ReleaseMemory(AVSharedMemory *memory)
             idleList_.push_back(memory);
             cond_.notify_all();
             MEDIA_LOGD("0x%{public}06" PRIXPTR " released back to pool", FAKE_POINTER(memory));
-            MEDIA_LOGD("busylist size %{public}d, idlelist size %{public}d", busyList_.size(), idleList_.size());
             return;
         }
     }
@@ -100,7 +99,6 @@ void AVSharedMemoryPool::ReleaseMemory(AVSharedMemory *memory)
 
 bool AVSharedMemoryPool::DoAcquireMemory(int32_t size, AVSharedMemory **outMemory)
 {
-    MEDIA_LOGD("busylist size %{public}d, idlelist size %{public}d", busyList_.size(), idleList_.size());
     AVSharedMemory *result = nullptr;
     std::list<AVSharedMemory *>::iterator minSizeIdleMem = idleList_.end();
     int32_t minIdleSize = std::numeric_limits<int32_t>::max();
