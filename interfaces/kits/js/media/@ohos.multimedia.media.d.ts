@@ -222,44 +222,9 @@ declare namespace media {
     CFT_MPEG_4 = "mp4",
 
     /**
-     * A video container format type mpeg-ts.
-     */
-    CFT_MPEG_TS = "mpeg-ts",
-
-    /**
-     * A video container format type mkv.
-     */
-     CFT_MKV = "mkv",
-
-    /**
-     * A video container format type webm.
-     */
-    CFT_WEBM = "webm",
-
-    /**
      * A audio container format type m4a.
      */
     CFT_MPEG_4A = "m4a",
-
-    /**
-     * A audio container format type ogg.
-     */
-     CFT_OGG = "ogg",
-
-    /**
-     * A audio container format type wav.
-     */
-    CFT_WAV = "wav",
-
-    /**
-     * A audio container format type aac adts.
-     */
-     CFT_AAC = "aac",
-
-    /**
-     * A audio container format type flac.
-     */
-     CFT_FLAC = "flac",
   }
 
   enum MediaType {
