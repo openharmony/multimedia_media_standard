@@ -80,6 +80,7 @@ napi_value AudioRecorderNapi::Init(napi_env env, napi_value exports)
     };
     napi_property_descriptor staticProperty[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createAudioRecorder", CreateAudioRecorder),
+        DECLARE_NAPI_STATIC_FUNCTION("createAudioRecorderAsync", CreateAudioRecorderAsync),
     };
 
     napi_value constructor = nullptr;
@@ -167,6 +168,36 @@ napi_value AudioRecorderNapi::CreateAudioRecorder(napi_env env, napi_callback_in
     }
 
     MEDIA_LOGD("CreateAudioRecorder success");
+    return result;
+}
+
+napi_value AudioRecorderNapi::CreateAudioRecorderAsync(napi_env env, napi_callback_info info)
+{
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    MEDIA_LOGD("CreateAudioRecorderAsync In");
+
+    auto asyncCtx = std::make_unique<MediaAsyncContext>(env);
+
+    // get args
+    napi_value jsThis = nullptr;
+    napi_value args[1] = { nullptr };
+    size_t argCount = 1;
+    napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
+    if (status != napi_ok) {
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "failed to napi_get_cb_info");
+    }
+
+    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
+    asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
+    asyncCtx->JsResult = std::make_unique<MediaJsResultInstance>(constructor_);
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "CreateAudioRecorderAsync", NAPI_AUTO_LENGTH, &resource);
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, [](napi_env env, void* data) {},
+        MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
+    NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
+    asyncCtx.release();
+
     return result;
 }
 
