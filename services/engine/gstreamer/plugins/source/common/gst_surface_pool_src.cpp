@@ -306,7 +306,7 @@ static void gst_surface_pool_src_init_surface_buffer(GstSurfacePoolSrc *surfaces
 }
 
 static gboolean gst_surface_pool_src_get_pool(GstSurfacePoolSrc *surfacesrc, GstQuery *query, GstCaps *outcaps,
-        guint min_buf, guint max_buf)
+    guint min_buf, guint max_buf)
 {
     g_return_val_if_fail(surfacesrc != nullptr && query != nullptr && surfacesrc->consumerSurface != nullptr, FALSE);
     if(surfacesrc->pool == nullptr) {

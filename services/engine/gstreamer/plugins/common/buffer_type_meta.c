@@ -36,7 +36,7 @@ static gboolean gst_buffer_type_meta_init(GstMeta *meta, gpointer params, GstBuf
 GType gst_buffer_type_meta_api_get_type(void)
 {
     static volatile GType type = 0;
-    static const gchar *tags[] ={ GST_META_TAG_MEMORY_STR, NULL};
+    static const gchar *tags[] = { GST_META_TAG_MEMORY_STR, NULL };
     if (g_once_init_enter (&type)) {
         GType _type = gst_meta_api_type_register ("GstBufferTypeMetaAPI", tags);
         g_once_init_leave (&type, _type);
@@ -122,7 +122,7 @@ GstBufferTypeMeta *gst_buffer_add_buffer_vir_meta(GstBuffer *buffer, intptr_t bu
 }
 
 GstBufferTypeMeta *gst_buffer_add_buffer_handle_meta(GstBuffer *buffer, intptr_t buf,
-        int32_t fenceFd, uint32_t bufferFlag)
+    int32_t fenceFd, uint32_t bufferFlag)
 {
     g_return_val_if_fail(buffer != NULL, FALSE);
     GstBufferTypeMeta *buffer_meta = NULL;
@@ -138,7 +138,7 @@ GstBufferTypeMeta *gst_buffer_add_buffer_handle_meta(GstBuffer *buffer, intptr_t
 }
 
 GstBufferTypeMeta *gst_buffer_add_buffer_fd_meta(GstBuffer *buffer, intptr_t buf, uint32_t offset,
-        uint32_t length, uint32_t totalSize, uint32_t memFlag, uint32_t bufferFlag)
+    uint32_t length, uint32_t totalSize, uint32_t memFlag, uint32_t bufferFlag)
 {
     g_return_val_if_fail(buffer != NULL, FALSE);
     GstBufferTypeMeta *buffer_meta = NULL;

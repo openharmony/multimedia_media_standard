@@ -36,14 +36,13 @@ struct _GstMemPoolSrcPrivate {
     GDestroyNotify notify;
 };
 
-enum
-{
-  /* signals */
-  SIGNAL_BUFFER_AVAILABLE,
-  /* actions */
-  SIGNAL_PULL_BUFFER,
-  SIGNAL_PUSH_BUFFER,
-  LAST_SIGNAL
+enum {
+    /* signals */
+    SIGNAL_BUFFER_AVAILABLE,
+    /* actions */
+    SIGNAL_PULL_BUFFER,
+    SIGNAL_PUSH_BUFFER,
+    LAST_SIGNAL
 };
 
 enum {
@@ -137,7 +136,7 @@ GstFlowReturn gst_mem_pool_src_buffer_available(GstMemPoolSrc *memsrc)
     g_return_val_if_fail(memsrc != nullptr && memsrc->priv != nullptr, GST_FLOW_ERROR);
     GstFlowReturn ret = GST_FLOW_OK;
     auto priv = memsrc->priv;
-    gboolean emit = FALSE; 
+    gboolean emit = FALSE;
     if (priv->buffer_available) {
         ret = priv->buffer_available(memsrc, priv->user_data);
     } else {
@@ -165,7 +164,7 @@ void gst_mem_pool_src_set_caps(GstMemPoolSrc *memsrc, const GstCaps *caps)
     GST_OBJECT_LOCK(memsrc);
     GstCaps *old_caps = memsrc->caps;
     if (caps != nullptr) {
-        memsrc->caps = gst_caps_copy(caps); 
+        memsrc->caps = gst_caps_copy(caps);
     } else {
         memsrc->caps = nullptr;
     }
@@ -276,7 +275,7 @@ static gboolean gst_mem_pool_src_query(GstBaseSrc *src, GstQuery *query)
 }
 
 void gst_mem_pool_src_set_callback(GstMemPoolSrc *memsrc, BufferAvailable callback,
-                                        gpointer user_data, GDestroyNotify notify)
+    gpointer user_data, GDestroyNotify notify)
 {
     g_return_if_fail(memsrc != nullptr && memsrc->priv != nullptr);
     auto priv = memsrc->priv;

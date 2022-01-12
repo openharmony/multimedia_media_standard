@@ -92,8 +92,7 @@ struct _GstVencBaseClass {
     GstCaps *(*get_caps)(GstVencBase *self, GstVideoCodecState *state);
 };
 
-GST_API_EXPORT
-GType gst_venc_base_get_type(void);
+GST_API_EXPORT GType gst_venc_base_get_type(void);
 
 G_END_DECLS
 

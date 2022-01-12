@@ -46,7 +46,7 @@ static gboolean gst_venc_base_event(GstVideoEncoder *encoder, GstEvent *event);
 static gboolean gst_venc_base_decide_allocation(GstVideoEncoder *encoder, GstQuery *query);
 static gboolean gst_venc_base_propose_allocation(GstVideoEncoder *encoder, GstQuery *query);
 static gboolean gst_codec_return_is_ok(const GstVencBase *encoder, gint ret,
-                const char *error_name, gboolean need_report);
+    const char *error_name, gboolean need_report);
 
 enum {
     PROP_0,
@@ -110,7 +110,7 @@ static void gst_venc_base_set_property(GObject *object, guint prop_id, const GVa
             GST_OBJECT_LOCK(self);
             self->bitrate = g_value_get_uint(value);
             if (self->encoder != nullptr) {
-                ret = self->encoder->SetParameter(GST_DYNAMIC_BITRATE ,GST_ELEMENT(self));
+                ret = self->encoder->SetParameter(GST_DYNAMIC_BITRATE, GST_ELEMENT(self));
             }
             GST_OBJECT_UNLOCK(self);
             g_return_if_fail(ret == GST_CODEC_OK);
@@ -292,7 +292,7 @@ static gboolean gst_venc_base_stop(GstVideoEncoder *encoder)
 }
 
 static gboolean gst_codec_return_is_ok(const GstVencBase *encoder, gint ret,
-                const char *error_name, gboolean need_report)
+    const char *error_name, gboolean need_report)
 {
     if (ret == GST_CODEC_OK) {
         return TRUE;
@@ -339,7 +339,7 @@ static gboolean gst_venc_base_init_surface_mem(GstVencBase *self, GstQuery *quer
 {
     g_return_val_if_fail(self != nullptr, FALSE);
     g_return_val_if_fail(self->encoder != nullptr, FALSE);
-    gint ret = self->encoder->SetParameter(GST_VIDEO_SURFACE_INIT ,GST_ELEMENT(self));
+    gint ret = self->encoder->SetParameter(GST_VIDEO_SURFACE_INIT, GST_ELEMENT(self));
     g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "GST_VIDEO_SURFACE_INIT", TRUE), FALSE);
     if (update_pool) {
         gst_query_set_nth_allocation_pool(query, 0, nullptr, 0, self->input.buffer_cnt, self->input.buffer_cnt);
@@ -408,10 +408,10 @@ static gboolean gst_venc_base_update_out_port_def(GstVencBase *self)
     g_return_val_if_fail(self->encoder != nullptr, FALSE);
     gint ret = self->encoder->GetParameter(GST_VIDEO_OUTPUT_COMMON, GST_ELEMENT(self));
     GST_INFO_OBJECT(self, "output params is min buffer count %u, buffer count %u, buffer size is %u",
-            self->output.min_buffer_cnt, self->output.buffer_cnt, self->output.buffer_size);
+        self->output.min_buffer_cnt, self->output.buffer_cnt, self->output.buffer_size);
     g_return_val_if_fail(ret == GST_CODEC_OK, FALSE);
     self->output.buffer_size = self->input.buffer_size;
-    ret = self->encoder->SetParameter(GST_VIDEO_OUTPUT_COMMON ,GST_ELEMENT(self));
+    ret = self->encoder->SetParameter(GST_VIDEO_OUTPUT_COMMON, GST_ELEMENT(self));
     g_return_val_if_fail(ret == GST_CODEC_OK, FALSE);
     return TRUE;
 }
@@ -634,7 +634,7 @@ static gboolean gst_venc_base_set_format(GstVideoEncoder *encoder, GstVideoCodec
     gint ret = self->encoder->GetParameter(GST_VIDEO_INPUT_COMMON, GST_ELEMENT(self));
     g_return_val_if_fail(ret == GST_CODEC_OK, FALSE);
     GST_INFO_OBJECT(self, "input params is min buffer count %u, buffer count %u, buffer size is %u",
-            self->input.min_buffer_cnt, self->input.buffer_cnt, self->input.buffer_size);
+        self->input.min_buffer_cnt, self->input.buffer_cnt, self->input.buffer_size);
 
     GST_DEBUG_OBJECT(self, "Setting new caps");
 
@@ -659,9 +659,9 @@ static gboolean gst_venc_base_set_format(GstVideoEncoder *encoder, GstVideoCodec
     GST_DEBUG_OBJECT(self, "Setting inport definition");
     ret = self->encoder->SetParameter(GST_VIDEO_INPUT_COMMON, GST_ELEMENT(self));
     g_return_val_if_fail(ret == GST_CODEC_OK, FALSE);
-    ret = self->encoder->SetParameter(GST_VIDEO_FORMAT ,GST_ELEMENT(self));
+    ret = self->encoder->SetParameter(GST_VIDEO_FORMAT, GST_ELEMENT(self));
     g_return_val_if_fail(ret == GST_CODEC_OK, FALSE);
-    ret = self->encoder->SetParameter(GST_STATIC_BITRATE ,GST_ELEMENT(self));
+    ret = self->encoder->SetParameter(GST_STATIC_BITRATE, GST_ELEMENT(self));
     g_return_val_if_fail(ret == GST_CODEC_OK, FALSE);
     self->input_state = gst_video_codec_state_ref(state);
     return gst_codec_return_is_ok(self, ret, "setparam", TRUE);
@@ -693,7 +693,7 @@ static GstFlowReturn gst_venc_base_finish(GstVideoEncoder *encoder)
     if (!g_cond_wait_until(&self->drain_cond, &self->drain_lock, wait_until)) {
         GST_ERROR_OBJECT(self, "Drain timed out");
     } else {
-    	GST_DEBUG_OBJECT(self, "Finish hdi end");
+        GST_DEBUG_OBJECT(self, "Finish hdi end");
     }
     g_mutex_unlock(&self->drain_lock);
     GST_VIDEO_ENCODER_STREAM_LOCK(self);
@@ -722,7 +722,7 @@ static gboolean gst_venc_base_event(GstVideoEncoder *encoder, GstEvent *event)
 }
 
 static GstBufferPool *gst_venc_base_new_shmem_pool(GstVencBase *self, GstCaps *caps, guint size,
-        guint buffer_cnt, gboolean is_input)
+    guint buffer_cnt, gboolean is_input)
 {
     GST_DEBUG_OBJECT(self, "New pool");
     g_return_val_if_fail(self != nullptr, nullptr);
@@ -760,7 +760,7 @@ static GstBufferPool *gst_venc_base_new_shmem_pool(GstVencBase *self, GstCaps *c
         }
         self->output.allocator = allocator;
     }
-    return GST_BUFFER_POOL(pool);    
+    return GST_BUFFER_POOL(pool);
 }
 
 static void gst_venc_base_update_pool(GstVencBase *self, GstBufferPool **pool, GstCaps *caps, gint size, guint buf_cnt)
@@ -775,7 +775,7 @@ static void gst_venc_base_update_pool(GstVencBase *self, GstBufferPool **pool, G
         gst_structure_set(config, "usage", G_TYPE_INT, self->usage, nullptr);
     }
     g_return_if_fail(gst_buffer_pool_set_config(*pool, config));
-    CANCEL_SCOPE_EXIT_GUARD(0); 
+    CANCEL_SCOPE_EXIT_GUARD(0);
 }
 
 static gboolean gst_venc_base_decide_allocation(GstVideoEncoder *encoder, GstQuery *query)
@@ -869,5 +869,5 @@ static gboolean gst_venc_base_propose_allocation(GstVideoEncoder *encoder, GstQu
     self->inpool = pool;
     gst_buffer_pool_set_active(pool, TRUE);
     g_return_val_if_fail(gst_venc_base_allocate_in_buffers(self), FALSE);
-    return TRUE;    
+    return TRUE;
 }

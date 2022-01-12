@@ -225,7 +225,7 @@ static void gst_consumer_surface_pool_init(GstConsumerSurfacePool *pool)
 
 static void gst_consumer_surface_pool_buffer_available(GstConsumerSurfacePool *pool)
 {
-    g_return_if_fail(pool != nullptr & pool->priv != nullptr);
+    g_return_if_fail(pool != nullptr && pool->priv != nullptr);
     auto priv = pool->priv;
     g_mutex_lock(&priv->pool_lock);
     if (priv->available_buf_count == 0) {

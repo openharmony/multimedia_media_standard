@@ -59,7 +59,7 @@ ohos_shared_library("gst_video_shmem_sink") {
   configs = [ ":gst_video_shmem_sink_config" ]
 
   deps = [
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_plugins_common",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_media_common",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",

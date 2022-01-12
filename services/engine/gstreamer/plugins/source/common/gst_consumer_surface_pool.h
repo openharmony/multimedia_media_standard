@@ -58,7 +58,7 @@ GstBufferPool *gst_consumer_surface_pool_new();
 GstCaps *gst_consumer_surface_pool_get_caps(GstConsumerSurfacePool *pool);
 
 void gst_consumer_surface_pool_set_surface(GstBufferPool *surfacePool,
-                                                OHOS::sptr<OHOS::Surface> &consumerSurface);
+    OHOS::sptr<OHOS::Surface> &consumerSurface);
 
 G_END_DECLS
 

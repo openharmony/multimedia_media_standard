@@ -42,9 +42,9 @@ typedef struct _GstMemSinkClass GstMemSinkClass;
 typedef struct _GstMemSinkPrivate GstMemSinkPrivate;
 
 typedef struct {
-  void (*eos)(GstMemSink *memsink, gpointer user_data);
-  GstFlowReturn (*new_preroll)(GstMemSink *memsink, GstBuffer *preroll, gpointer user_data);
-  GstFlowReturn (*new_sample)(GstMemSink *memsink, GstBuffer *sample, gpointer user_data);
+    void (*eos)(GstMemSink *memsink, gpointer user_data);
+    GstFlowReturn (*new_preroll)(GstMemSink *memsink, GstBuffer *preroll, gpointer user_data);
+    GstFlowReturn (*new_sample)(GstMemSink *memsink, GstBuffer *sample, gpointer user_data);
 } GstMemSinkCallbacks;
 
 struct _GstMemSink {
@@ -77,9 +77,9 @@ GST_API_EXPORT GType gst_mem_sink_get_type(void);
  * @return GST_FLOW_OK if success, or error code.
  */
 GST_API_EXPORT void gst_mem_sink_set_callback(GstMemSink *memsink,
-                                       GstMemSinkCallbacks *callbacks,
-                                       gpointer userdata,
-                                       GDestroyNotify notify);
+                                              GstMemSinkCallbacks *callbacks,
+                                              gpointer userdata,
+                                              GDestroyNotify notify);
 
 /**
  * @brief call this interface to indicate the app ends up the access of buffer, then

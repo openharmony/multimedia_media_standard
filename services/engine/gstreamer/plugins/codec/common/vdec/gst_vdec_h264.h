@@ -48,8 +48,7 @@ struct _GstVdecH264Class {
     GstVdecBaseClass parent_class;
 };
 
-GST_API_EXPORT
-GType gst_vdec_h264_get_type(void);
+GST_API_EXPORT GType gst_vdec_h264_get_type(void);
 
 G_END_DECLS
 
