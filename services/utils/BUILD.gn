@@ -40,6 +40,7 @@ ohos_shared_library("media_service_utils") {
   install_enable = true
 
   sources = [
+    "avsharedmemorypool.cpp",
     "task_queue.cpp",
     "time_monitor.cpp",
     "time_perf.cpp",

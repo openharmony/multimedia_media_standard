@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 
-config("gst_video_shmem_sink_config") {
+config("gst_mem_src_config") {
   visibility = [ ":*" ]
 
   cflags = [
@@ -22,6 +22,7 @@ config("gst_video_shmem_sink_config") {
     "-Wall",
     "-fno-common",
     "-fstack-protector-strong",
+    "-Wshadow",
     "-FPIC",
     "-FS",
     "-O2",
@@ -33,11 +34,10 @@ config("gst_video_shmem_sink_config") {
   ]
 
   include_dirs = [
-    "include",
     "//utils/native/base/include",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/source/common",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/gstreamer/gstplugins_base",
@@ -45,31 +45,31 @@ config("gst_video_shmem_sink_config") {
     "//third_party/glib/glib",
     "//third_party/glib",
     "//third_party/glib/gmodule",
+    "foundation/graphic/standard/interfaces/innerkits/common",
   ]
 }
 
-ohos_shared_library("gst_video_shmem_sink") {
+ohos_shared_library("gst_mem_src") {
   install_enable = true
 
-  sources = [
-    "gst_video_shmem_pool.cpp",
-    "gst_video_shmem_sink.cpp",
-  ]
+  sources = [ "gst_mem_source_plugins.cpp" ]
 
-  configs = [ ":gst_video_shmem_sink_config" ]
+  configs = [ ":gst_mem_src_config" ]
 
   deps = [
+    "//foundation/graphic/standard:libsurface",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_media_common",
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",
-    "//third_party/gstreamer/gstplugins_base:gstvideo",
     "//third_party/gstreamer/gstreamer:gstbase",
     "//third_party/gstreamer/gstreamer:gstreamer",
   ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
 
   relative_install_dir = "media/plugins"
   subsystem_name = "multimedia"
