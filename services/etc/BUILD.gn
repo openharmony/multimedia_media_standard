@@ -14,10 +14,14 @@
 import("//build/ohos.gni")
 
 ohos_prebuilt_etc("media_service.rc") {
-  if (use_musl) {
+  if ("${product_name}" == "m40") {
     source = "media_service.cfg"
   } else {
-    source = "media_service.rc"
+    if (use_musl) {
+      source = "media_service.cfg"
+    } else {
+      source = "media_service.rc"
+    }
   }
   relative_install_dir = "init"
   part_name = "multimedia_media_standard"
