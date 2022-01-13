@@ -42,6 +42,23 @@ declare namespace media {
   function createAudioRecorder(): AudioRecorder;
 
   /**
+   * Creates an AudioRecorder instance.
+   * @since 6
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @param callback Callback used to return AudioRecorder instance if the operation is successful; returns null otherwise.
+   */
+  function createAudioRecorderAsync(callback: AsyncCallback<AudioRecorder>): void;
+
+  /**
+   * Creates an AudioRecorder instance.
+   * @since 6
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @return A Promise instance used to return AudioRecorder instance if the operation is successful; returns null otherwise.
+   */
+  function createAudioRecorderAsync(): Promise<AudioRecorder>;
+
   /**
    * Creates an VideoRecorder instance.
    * @since 8
@@ -49,16 +66,18 @@ declare namespace media {
    * @import import media from '@ohos.multimedia.media'
    * @param callback Callback used to return AudioPlayer instance if the operation is successful; returns null otherwise.
    */
-   function createVideoRecorder(callback: AsyncCallback<VideoRecorder>): void;
-   /**
-    * Creates an VideoRecorder instance.
-    * @since 8
-    * @SysCap SystemCapability.Multimedia.Media
-    * @import import media from '@ohos.multimedia.media'
-    * @return A Promise instance used to return VideoRecorder instance if the operation is successful; returns null otherwise.
-    */
+  function createVideoRecorder(callback: AsyncCallback<VideoRecorder>): void;
+
+  /**
+   * Creates an VideoRecorder instance.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @return A Promise instance used to return VideoRecorder instance if the operation is successful; returns null otherwise.
+   */
   function createVideoRecorder() : Promise<VideoRecorder>;
-   * Creates an audio decoder instance by name.
+
+  /** Creates an audio decoder instance by name.
    * @since 8
    * @SysCap SystemCapability.Multimedia.Media
    * @import import media from '@ohos.multimedia.media'
@@ -187,6 +206,25 @@ declare namespace media {
      * operation is not supported in current version.
      */
     MSERR_UNSUPPORTED = 9,
+  }
+
+  /**
+   * Enumerates container format type(The abbreviation for 'container format type' is CFT).
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @devices phone, tablet, tv, wearable, car
+   */
+   enum ContainerFormatType {
+    /**
+     * A video container format type mp4.
+     */
+    CFT_MPEG_4 = "mp4",
+
+    /**
+     * A audio container format type m4a.
+     */
+    CFT_MPEG_4A = "m4a",
   }
 
   enum MediaType {
@@ -437,6 +475,177 @@ declare namespace media {
      * key for audio sample rate, value type is number
      */
     MD_KEY_AUD_SAMPLE_RATE = "sample_rate",
+  }
+
+  /* operation is not supported in current version. */
+  interface VideoRecorderProfile {
+    /**
+     * Indicates the audio bit rate.
+     * @devices
+     */
+    readonly audioBitrate: number;
+
+    /**
+     * Indicates the number of audio channels.
+     * @devices
+     */
+    readonly audioChannels: number;
+
+    /**
+     * Indicates the audio encoding format.
+     * @devices
+     */
+    readonly audioCodec: CodecMimeType;
+
+    /**
+     * Indicates the audio sampling rate.
+     * @devices
+     */
+    readonly audioSampleRate: number;
+
+    /**
+     * Indicates the default recording duration.
+     * @devices
+     */
+    readonly durationTime: number;
+
+    /**
+     * Indicates the output file format.
+     * @devices
+     */
+    readonly fileFormat: ContainerFormatType;
+
+    /**
+     * Indicates the video bit rate.
+     * @devices
+     */
+    readonly videoBitrate: number;
+
+    /**
+     * Indicates the video encoding format.
+     * @devices
+     */
+    readonly videoCodec: CodecMimeType;
+
+    /**
+     * Indicates the video width.
+     * @devices
+     */
+    readonly videoFrameWidth: number;
+
+    /**
+     * Indicates the video height.
+     * @devices
+     */
+    readonly videoFrameHeight: number;
+
+    /**
+     * Indicates the video frame rate.
+     * @devices
+     */
+    readonly videoFrameRate: number;
+  }
+
+  enum AudioSourceType {
+    /**
+     * default audio source type.
+     */
+    AUDIO_SOURCE_TYPE_DEFAULT = 0,
+
+    /**
+     * source type mic.
+     */
+    AUDIO_SOURCE_TYPE_MIC = 1,
+  }
+
+  enum VideoSourceType {
+    /**
+     * surface raw data.
+     */
+    VIDEO_SOURCE_TYPE_SURFACE_YUV = 0,
+
+    /**
+     * surface ES data.
+     */
+    VIDEO_SOURCE_TYPE_SURFACE_ES = 1,
+  }
+
+  interface VideoRecorderConfig {
+    /**
+     * audio source type, details see @AudioSourceType .
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    audioSourceType: AudioSourceType;
+
+    /**
+     * video source type, details see @AudioSourceType .
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    videoSourceType: VideoSourceType;
+
+    /**
+     * operation is not supported in current version.
+     *
+     * video recorder profile, can get by "getVideoRecorderProfile", details see @VideoRecorderProfile .
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    profile:VideoRecorderProfile;
+
+    /**
+     * video output uri.support two kind of uri now.
+     * format like: scheme + "://" + "context".
+     * file:  file://path
+     * fd:    fd://fd
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    url: string;
+
+    /**
+     * Sets the orientation hint in output file, and for the file to playback. mp4 support.
+     * the range of orientationHint should be {0, 90, 180, 270}, default is 0.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    orientationHint?: number;
+
+    /**
+     * geographical location information.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+     location?: Location;
+
+    /**
+     * operation is not supported in current version.
+     *
+     * set max size in byte to record, when approaching to the max size, will call notify app INFO_MAX_SIZE_APPROCHING.
+     * 0 disable this feature. the default value is 0.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    maxSize?: number;
+
+    /**
+     * operation is not supported in current version.
+     *
+     * set max size in milliseconds to record, when approaching to the max size, will call notify app INFO_MAX_DURATION_APPROCHING.
+     * 0 disable this feature. the default value is 0.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    maxDuration?: number;
   }
 
   interface MediaDescription {
@@ -699,6 +908,29 @@ declare namespace media {
      * @SysCap SystemCapability.Multimedia.Media
      */
     location?: Location;
+
+    /**
+     * operation is not supported in current version.
+     *
+     *  set max size in byte to record, when approaching to the max size, will call notify app INFO_MAX_SIZE_APPROCHING.
+     *  0 disable this feature. the default value is 0.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+     maxSize?: number;
+
+     /**
+      * operation is not supported in current version.
+      *
+      * set max size in milliseconds to record, when approaching to the max size, will call notify app INFO_MAX_DURATION_APPROCHING.
+      * 0 disable this feature. the default value is 0.
+      * @devices phone, tablet, tv, wearable
+      * @since 8
+      * @SysCap SystemCapability.Multimedia.Media
+      */
+     maxDuration?: number;
+
     /**
      * audio encoding format MIME. it used to instead of audioEncoder.
      * @devices phone, tablet, tv, wearable
@@ -706,6 +938,7 @@ declare namespace media {
      * @SysCap SystemCapability.Multimedia.Media
      */
     audioEncoderMime?: CodecMimeType;
+
     /**
      * output file format. see @ContainerFormatType , it used to instead of "format".
      * @devices phone, tablet, tv, wearable
@@ -714,6 +947,42 @@ declare namespace media {
      */
     fileFormat?: ContainerFormatType;
   }
+
+  enum RecorderInfoType {
+    /**
+     * operation is not supported in current version.
+     *
+     * Indicates the recorded file is about to reach the maximum size.
+     */
+    INFO_MAX_SIZE_APPROCHING = 0,
+
+    /**
+     * operation is not supported in current version.
+     *
+     * Indicates the recorded file is about to reach the maximum duration.
+     */
+    INFO_MAX_DURATION_APPROCHING = 1,
+
+    /**
+     * operation is not supported in current version.
+     *
+     * Indicates the recorded file reached the maximum file size.
+     */
+    INFO_MAX_SIZE_REACHED = 2,
+
+    /**
+     * operation is not supported in current version.
+     *
+     * Indicates the recorded file reached the maximum duration.
+     */
+    INFO_MAX_DURATION_REACHED = 3,
+
+    /**
+     * operation is not supported in current version.
+     *
+     * Indicates the new file is started to record.
+     */
+    INFO_NEXT_FILE_STARTED = 4,
   }
 
   interface AudioRecorder {
@@ -795,9 +1064,46 @@ declare namespace media {
      * @param callback Callback used to listen for the audio recording error event.
      */
     on(type: 'error', callback: ErrorCallback): void;
+
+    /**
+     * operation is not supported in current version.
+     *
+     * set next output url when receive INFO_MAX_SIZE_APPROCHING info.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback async callback return when set completed.
+     */
+    setNextOutputFile(url: string, callback: AsyncCallback<void>): void;
+
+    /**
+     * operation is not supported in current version.
+     *
+     * set next output url when receive INFO_MAX_SIZE_APPROCHING info.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param index  track index.
+     * @return A Promise instance used to return when set completed.
+     */
+    setNextOutputFile(url: string) : Promise<void>;
+
+    /**
+     * operation is not supported in current version.
+     *
+     * Listens for audio recording info events.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the audio recording info event to listen for, see @RecorderInfoType .
+     * @param callback Callback used to listen for the audio recording info event, and return the info type.
+     */
+    on(type: 'info', callback:(infoType: number, extra?: number) => void): void;
+  }
+
   /**
-  * Describes video recorder states.
-  */
+   * Describes video recorder states.
+   */
   type VideoRecordState = 'idle' | 'prepared' | 'playing' | 'paused' | 'stopped' | 'error';
   interface VideoRecorder {
     /**
@@ -809,6 +1115,7 @@ declare namespace media {
      * @param callback A callback instance used to return when prepare completed.
      */
     prepare(config: VideoRecorderConfig, callback: AsyncCallback<void>): void;
+
     /**
      * Prepares for recording.
      * @devices phone, tablet, tv, wearable
@@ -818,6 +1125,7 @@ declare namespace media {
      * @return A Promise instance used to return when prepare completed.
      */
     prepare(config: VideoRecorderConfig): Promise<void>;
+
     /**
      * get input surface.it must be called between prepare completed and start.
      * @devices phone, tablet, tv, wearable, car
@@ -826,6 +1134,7 @@ declare namespace media {
      * @param callback Callback used to return the input surface id in string.
      */
     getInputSurface(callback: AsyncCallback<string>): void;
+
     /**
      * get input surface. it must be called between prepare completed and start.
      * @devices phone, tablet, tv, wearable, car
@@ -834,6 +1143,7 @@ declare namespace media {
      * @return A Promise instance used to return the input surface id in string.
      */
     getInputSurface(): Promise<string>;
+
     /**
      * Starts video recording.
      * @devices phone, tablet, tv, wearable
@@ -842,6 +1152,7 @@ declare namespace media {
      * @param callback A callback instance used to return when start completed.
      */
     start(callback: AsyncCallback<void>): void;
+
     /**
      * Starts video recording.
      * @devices phone, tablet, tv, wearable
@@ -850,6 +1161,7 @@ declare namespace media {
      * @return A Promise instance used to return when start completed.
      */
     start(): Promise<void>;
+
     /**
      * Pauses video recording.
      * @devices phone, tablet, tv, wearable
@@ -858,6 +1170,7 @@ declare namespace media {
      * @param callback A callback instance used to return when pause completed.
      */
     pause(callback: AsyncCallback<void>): void;
+
     /**
      * Pauses video recording.
      * @devices phone, tablet, tv, wearable
@@ -866,6 +1179,7 @@ declare namespace media {
      * @return A Promise instance used to return when pause completed.
      */
     pause(): Promise<void>;
+
     /**
      * Resumes video recording.
      * @devices phone, tablet, tv, wearable
@@ -874,6 +1188,7 @@ declare namespace media {
      * @param callback A callback instance used to return when resume completed.
      */
     resume(callback: AsyncCallback<void>): void;
+
     /**
      * Resumes video recording.
      * @devices phone, tablet, tv, wearable
@@ -882,6 +1197,7 @@ declare namespace media {
      * @return A Promise instance used to return when resume completed.
      */
     resume(): Promise<void>;
+
     /**
      * Stops video recording.
      * @devices phone, tablet, tv, wearable
@@ -890,6 +1206,7 @@ declare namespace media {
      * @param callback A callback instance used to return when stop completed.
      */
     stop(callback: AsyncCallback<void>): void;
+
     /**
      * Stops video recording.
      * @devices phone, tablet, tv, wearable
@@ -898,6 +1215,7 @@ declare namespace media {
      * @return A Promise instance used to return when stop completed.
      */
     stop(): Promise<void>;
+
     /**
      * Releases resources used for video recording.
      * @devices phone, tablet, tv, wearable
@@ -906,6 +1224,7 @@ declare namespace media {
      * @param callback A callback instance used to return when release completed.
      */
     release(callback: AsyncCallback<void>): void;
+
     /**
       * Releases resources used for video recording.
       * @devices phone, tablet, tv, wearable
@@ -914,6 +1233,7 @@ declare namespace media {
       * @return A Promise instance used to return when release completed.
       */
     release(): Promise<void>;
+
     /**
      * Resets video recording.
      * Before resetting video recording, you must call stop() to stop recording. After video recording is reset,
@@ -924,16 +1244,18 @@ declare namespace media {
      * @param callback A callback instance used to return when reset completed.
      */
     reset(callback: AsyncCallback<void>): void;
-     /**
-      * Resets video recording.
-      * Before resetting video recording, you must call stop() to stop recording. After video recording is reset,
-      * you must call prepare() to set the recording configurations for another recording.
-      * @devices phone, tablet, tv, wearable
-      * @since 8
-      * @SysCap SystemCapability.Multimedia.Media
-      * @return A Promise instance used to return when reset completed.
-      */
+
+    /**
+     * Resets video recording.
+     * Before resetting video recording, you must call stop() to stop recording. After video recording is reset,
+     * you must call prepare() to set the recording configurations for another recording.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when reset completed.
+     */
     reset(): Promise<void>;
+
     /**
      * Listens for video recording error events.
      * @devices phone, tablet, tv, wearable
@@ -943,21 +1265,49 @@ declare namespace media {
      * @param callback Callback used to listen for the video recording error event.
      */
     on(type: 'error', callback: ErrorCallback): void;
+
     /**
-    * set next output url when receive INFO_MAX_SIZE_APPROCHING info.
-    * @devices phone, tablet, tv, wearable, car
-    * @since 8
-    * @SysCap SystemCapability.Multimedia.Media
-    * @param callback async callback return when set completed.
-    */
+     * operation is not supported in current version.
+     *
+     * set next output url when receive INFO_MAX_SIZE_APPROCHING info.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback async callback return when set completed.
+     */
+     setNextOutputFile(url: string, callback: AsyncCallback<void>): void
+
+    /**
+     * operation is not supported in current version.
+     *
+     * set next output url when receive INFO_MAX_SIZE_APPROCHING info.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param index  track index.
+     * @return A Promise instance used to return when set completed.
+     */
+    setNextOutputFile(url: string) : Promise<void>;
+
+    /**
+     * operation is not supported in current version.
+     *
+     * Listens for video recording info events.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the video recording info event to listen for, see @RecorderInfoType .
+     * @param callback Callback used to listen for the video recording info event, and return the info type.
+     */
+    on(type: 'info', callback:(infoType: number, extra?: number) => void): void
+
     /**
      * video recorder state.
      * @devices phone, tablet, tv, wearable
      * @since 8
      * @SysCap SystemCapability.Multimedia.Media
      */
-     readonly state: VideoRecordState;
-  }
+    readonly state: VideoRecordState;
   }
 
   /**
@@ -981,6 +1331,7 @@ declare namespace media {
      * sample is partial frame.
      */
     PARTIAL_FRAME = 1 << 2 ,
+
     /**
     * sample is the codec data.
     */
