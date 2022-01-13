@@ -93,7 +93,7 @@ static void gst_shmem_allocator_old_init(GstShMemAllocatorOld *allocator)
 
     GST_DEBUG_OBJECT(allocator, "init allocator 0x%06" PRIXPTR "", FAKE_POINTER(allocator));
 
-    bAllocator->mem_type = GST_SHMEM_MEMORY_TYPE;
+    bAllocator->mem_type = gst_shmem_memory_type();
     bAllocator->mem_map = (GstMemoryMapFunction)gst_shmem_allocator_old_mem_map;
     bAllocator->mem_unmap = (GstMemoryUnmapFunction)gst_shmem_allocator_old_mem_unmap;
 }
