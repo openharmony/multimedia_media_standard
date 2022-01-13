@@ -431,7 +431,7 @@ static gboolean gst_shmem_pool_src_set_shmem_pool(GstShmemPoolSrc *shmemsrc, Gst
         GstVideoInfo info;
         gst_video_info_init(&info);
         gst_video_info_from_caps(&info, outcaps);
-        GST_INFO_OBJECT(shmemsrc, "It is raw video change size %u to %u", size, info.size);
+        GST_INFO_OBJECT(shmemsrc, "It is raw video change size %u to %" G_GSIZE_FORMAT, size, info.size);
         size = info.size;
     }
     if (pool == nullptr) {
