@@ -16,7 +16,7 @@
 #ifndef GST_COMMON_UTILS_H
 #define GST_COMMON_UTILS_H
 
-#include <stdint.h>
+#include <cstdint>
 #include <gst/gst.h>
 
 // only C style code is accepted in this file

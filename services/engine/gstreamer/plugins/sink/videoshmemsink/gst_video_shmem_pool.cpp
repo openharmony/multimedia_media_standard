@@ -14,7 +14,7 @@
  */
 
 #include "gst_video_shmem_pool.h"
-#include "gst_shmem_allocator.h"
+#include "gst_shmem_allocator_old.h"
 
 #define gst_video_shmem_pool_parent_class parent_class
 G_DEFINE_TYPE (GstVideoShMemPool, gst_video_shmem_pool, GST_TYPE_VIDEO_BUFFER_POOL);
@@ -33,7 +33,7 @@ static gboolean gst_video_shmem_pool_set_config(GstBufferPool *pool, GstStructur
 
     GstAllocator *allocator = nullptr;
     (void)gst_buffer_pool_config_get_allocator(config, &allocator, nullptr);
-    if (!(allocator && GST_IS_SHMEM_ALLOCATOR(allocator))) {
+    if (!(allocator && GST_IS_SHMEM_ALLOCATOR_OLD(allocator))) {
         GST_WARNING_OBJECT(pool, "no valid allocator in pool");
         return FALSE;
     }
