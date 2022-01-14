@@ -20,7 +20,6 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "VideoCaptureSfYuvmpl"};
-    constexpr uint32_t MAX_SURFACE_BUFFER_SIZE = 10 * 1024 * 1024;
 }
 
 namespace OHOS {
@@ -43,7 +42,7 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfYuvImpl::DoGetFrameBuffer()
     MEDIA_LOGD("enter yuv DoGetFrameBuffer");
 
     uint32_t bufferSize = static_cast<uint32_t>(dataSize_); // yuv size after encode
-    CHECK_AND_RETURN_RET_LOG(bufferSize < MAX_SURFACE_BUFFER_SIZE, nullptr, "buffer size too long");
+    MEDIA_LOGI("input buffersize is %{public}d", bufferSize);
 
     ON_SCOPE_EXIT(0) { (void)dataConSurface_->ReleaseBuffer(surfaceBuffer_, fence_); };
 
