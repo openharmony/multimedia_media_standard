@@ -34,7 +34,7 @@ public:
     int32_t InitAudioSink(const GstElement *playbin);
     const GstElement *GetVideoSink() const;
     int32_t PullVideoBuffer();
-    sptr<SurfaceBuffer> RequestBuffer(const GstVideoMeta *videoMeta) const;
+    sptr<SurfaceBuffer> RequestBuffer(const GstVideoMeta *videoMeta);
     int32_t UpdateSurfaceBuffer(const GstBuffer &buffer);
     int32_t SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs);
 
@@ -56,6 +56,7 @@ private:
     bool firstRenderFrame_ = true;
     uint32_t dumpFrameNum_ = 0;
     uint32_t dumpFrameInternal_ = 1;
+    uint32_t queueSize_ = 0;
     TimeMonitor surfaceTimeMonitor_;
     gulong signalId_ = 0;
     std::weak_ptr<IPlayerEngineObs> obs_;
