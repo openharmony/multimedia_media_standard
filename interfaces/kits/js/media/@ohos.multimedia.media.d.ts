@@ -251,6 +251,11 @@ declare namespace media {
    */
   enum CodecMimeType {
     /**
+     * MPEG4 codec MIME type
+     */
+    VIDEO_MPEG4 = 'video/mp4v-es',
+
+    /**
      * MPEG-1 audio codec MIME type.
      */
     AUDIO_MPEG = 'audio/mpeg',
