@@ -254,7 +254,7 @@ napi_value VideoDecoderNapi::Configure(napi_env env, napi_callback_info info)
                 return;
             }
             if (asyncCtx->napi->vdec_->Configure(asyncCtx->format) != MSERR_OK) {
-                asyncCtx->SignError(MSERR_UNKNOWN, "Failed to Configure");
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to Configure");
             }
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
@@ -296,7 +296,7 @@ napi_value VideoDecoderNapi::Prepare(napi_env env, napi_callback_info info)
                 return;
             }
             if (asyncCtx->napi->vdec_->Prepare() != MSERR_OK) {
-                asyncCtx->SignError(MSERR_UNKNOWN, "Failed to Prepare");
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to Prepare");
             }
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
@@ -338,7 +338,7 @@ napi_value VideoDecoderNapi::Start(napi_env env, napi_callback_info info)
                 return;
             }
             if (asyncCtx->napi->vdec_->Start() != MSERR_OK) {
-                asyncCtx->SignError(MSERR_UNKNOWN, "Failed to Start");
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to Start");
             }
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
@@ -380,7 +380,7 @@ napi_value VideoDecoderNapi::Stop(napi_env env, napi_callback_info info)
                 return;
             }
             if (asyncCtx->napi->vdec_->Stop() != MSERR_OK) {
-                asyncCtx->SignError(MSERR_UNKNOWN, "Failed to Stop");
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to Stop");
             }
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
@@ -422,7 +422,7 @@ napi_value VideoDecoderNapi::Flush(napi_env env, napi_callback_info info)
                 return;
             }
             if (asyncCtx->napi->vdec_->Flush() != MSERR_OK) {
-                asyncCtx->SignError(MSERR_UNKNOWN, "Failed to Flush");
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to Flush");
             }
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
@@ -464,7 +464,7 @@ napi_value VideoDecoderNapi::Reset(napi_env env, napi_callback_info info)
                 return;
             }
             if (asyncCtx->napi->vdec_->Reset() != MSERR_OK) {
-                asyncCtx->SignError(MSERR_UNKNOWN, "Failed to Reset");
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to Reset");
             }
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
@@ -513,7 +513,7 @@ napi_value VideoDecoderNapi::QueueInput(napi_env env, napi_callback_info info)
             }
             CHECK_AND_RETURN(asyncCtx->index >= 0);
             if (asyncCtx->napi->vdec_->QueueInputBuffer(asyncCtx->index, asyncCtx->info, asyncCtx->flag) != MSERR_OK) {
-                asyncCtx->SignError(MSERR_UNKNOWN, "Failed to QueueInput");
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to QueueInput");
             }
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
@@ -569,7 +569,7 @@ napi_value VideoDecoderNapi::ReleaseOutput(napi_env env, napi_callback_info info
             }
             CHECK_AND_RETURN(asyncCtx->index >= 0);
             if (asyncCtx->napi->vdec_->ReleaseOutputBuffer(asyncCtx->index, asyncCtx->isRender) != MSERR_OK) {
-                asyncCtx->SignError(MSERR_UNKNOWN, "Failed to ReleaseOutput");
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to ReleaseOutput");
             }
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
@@ -624,7 +624,7 @@ napi_value VideoDecoderNapi::SetParameter(napi_env env, napi_callback_info info)
                 return;
             }
             if (asyncCtx->napi->vdec_->SetParameter(asyncCtx->format) != MSERR_OK) {
-                asyncCtx->SignError(MSERR_UNKNOWN, "Failed to SetParameter");
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to SetParameter");
             }
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
