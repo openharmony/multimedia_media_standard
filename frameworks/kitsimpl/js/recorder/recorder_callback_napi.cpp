@@ -127,7 +127,7 @@ void RecorderCallbackNapi::OnError(RecorderErrorType errorType, int32_t errCode)
     CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
     cb->callback = errorCallback_;
     cb->callbackName = ERROR_CALLBACK_NAME;
-    cb->errorMsg = MSErrorToString(static_cast<MediaServiceErrCode>(errCode));
+    cb->errorMsg = MSErrorToExtErrorString(static_cast<MediaServiceErrCode>(errCode));
     cb->errorCode = MSErrorToExtError(static_cast<MediaServiceErrCode>(errCode));
     return OnJsErrorCallBack(cb);
 }
