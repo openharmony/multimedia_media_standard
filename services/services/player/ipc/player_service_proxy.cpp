@@ -391,6 +391,23 @@ int32_t PlayerServiceProxy::SetLooping(bool loop)
     return reply.ReadInt32();
 }
 
+int32_t PlayerServiceProxy::SetParameter(const Format &param)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    MediaParcel::Marshalling(data, param);
+
+    int error = Remote()->SendRequest(SET_RENDERER_DESC, data, reply, option);
+    if (error != MSERR_OK) {
+        MEDIA_LOGE("Set audio renderer desc failed, error: %{public}d", error);
+        return error;
+    }
+
+    return reply.ReadInt32();
+}
+
 int32_t PlayerServiceProxy::DestroyStub()
 {
     MessageParcel data;

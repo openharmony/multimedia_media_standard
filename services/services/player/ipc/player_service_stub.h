@@ -55,6 +55,7 @@ public:
     bool IsPlaying() override;
     bool IsLooping() override;
     int32_t SetLooping(bool loop) override;
+    int32_t SetParameter(const Format &param) override;
     int32_t DestroyStub() override;
     int32_t SetPlayerCallback() override;
 
@@ -85,6 +86,7 @@ private:
     int32_t IsPlaying(MessageParcel &data, MessageParcel &reply);
     int32_t IsLooping(MessageParcel &data, MessageParcel &reply);
     int32_t SetLooping(MessageParcel &data, MessageParcel &reply);
+    int32_t SetParameter(MessageParcel &data, MessageParcel &reply);
     int32_t DestroyStub(MessageParcel &data, MessageParcel &reply);
     int32_t SetPlayerCallback(MessageParcel &data, MessageParcel &reply);
 

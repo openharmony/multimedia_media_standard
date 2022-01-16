@@ -414,6 +414,17 @@ void GstPlayerCtrl::SetVolume(const float &leftVolume, const float &rightVolume)
     }
 }
 
+int32_t GstPlayerCtrl::SetParameter(const Format &param)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (!SetAudioRendererInfo(param)) {
+        MEDIA_LOGE("unsupported params");
+        return MSERR_UNSUPPORT_AUD_PARAMS;
+    }
+
+    return MSERR_OK;
+}
+
 uint64_t GstPlayerCtrl::GetPosition()
 {
     std::unique_lock<std::mutex> lock(mutex_);
@@ -1131,6 +1142,25 @@ bool GstPlayerCtrl::IsLiveMode() const
     }
 
     return false;
+}
+
+bool GstPlayerCtrl::SetAudioRendererInfo(const Format &param)
+{
+    CHECK_AND_RETURN_RET_LOG(audioSink_ != nullptr, false, "audioSink_ is nullptr");
+
+    int32_t contentType = 0;
+    int32_t streamUsage = 0;
+
+    if (param.GetIntValue(PlayerKeys::CONTENT_TYPE, contentType) &&
+        param.GetIntValue(PlayerKeys::STREAM_USAGE, streamUsage)) {
+        int32_t rendererInfo(0);
+        rendererInfo |= (contentType | (streamUsage << AudioStandard::RENDERER_STREAM_USAGE_SHIFT));
+        g_object_set(audioSink_, "audio-renderer-desc", rendererInfo, nullptr);
+        return true;
+    } else {
+        MEDIA_LOGI("parameter doesn't contain content_type or stream_usage");
+        return false;
+    }
 }
 } // Media
 } // OHOS
