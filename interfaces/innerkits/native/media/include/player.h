@@ -442,9 +442,9 @@ public:
     /**
      * @brief Sets an extended parameter for player
      *
-     * @param format Indicates the string key and value. For details, see {@link Format} and
-     * {@link RECORDER_PRE_CACHE_DURATION}.
-     * @return Returns {@link MSERR_OK} if the recording is stopped; returns an error code otherwise.
+     * @param format Indicates the string key and value. For details, see {@link Format}
+     * @return Returns {@link MSERR_OK} if the parameters are set; returns an error code defined
+     * in {@link media_errors.h} otherwise.
      * @since 1.0
      * @version 1.0
      */
