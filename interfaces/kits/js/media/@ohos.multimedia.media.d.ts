@@ -42,6 +42,24 @@ declare namespace media {
   function createAudioRecorder(): AudioRecorder;
 
   /**
+   * Creates an AudioPlayer instance.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @param callback Callback used to return AudioPlayer instance if the operation is successful; returns null otherwise.
+   */
+  function createAudioPlayerAsync(callback: AsyncCallback<AudioPlayer>): void;
+
+  /**
+   * Creates an AudioPlayer instance.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @return A Promise instance used to return AudioPlayer instance if the operation is successful; returns null otherwise.
+   */
+  function createAudioPlayerAsync() : Promise<AudioPlayer>;
+
+  /**
    * Creates an AudioRecorder instance.
    * @since 6
    * @SysCap SystemCapability.Multimedia.Media
@@ -206,6 +224,35 @@ declare namespace media {
      * operation is not supported in current version.
      */
     MSERR_UNSUPPORTED = 9,
+  }
+
+  /**
+   * Enumerates buffering info type, for network playback.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @devices phone, tablet, tv, wearable, car
+   */
+  enum BufferingInfoType {
+    /**
+     * begin to buffering
+     */
+    BUFFERING_START = 1,
+
+    /**
+     * end to buffering
+     */
+    BUFFERING_END = 2,
+
+    /**
+     * buffering percent
+     */
+    BUFFERING_PERCENT = 3,
+
+    /**
+     * cached duration in milliseconds
+     */
+    CACHED_DURATION= 4,
   }
 
   /**
@@ -666,10 +713,12 @@ declare namespace media {
   /**
    * Describes audio playback states.
    */
-  type AudioState = 'idle' | 'playing' | 'paused' | 'stopped';
+  type AudioState = 'idle' | 'playing' | 'paused' | 'stopped' | 'error';
+  
 
   /**
-   * Manages and plays audio. Before calling an AudioPlayer method, you must use createAudioPlayer() to create an AudioPlayer instance.
+   * Manages and plays audio. Before calling an AudioPlayer method, you must use createAudioPlayer()
+   * or createAudioPlayerAsync() to create an AudioPlayer instance.
    */
   interface AudioPlayer {
     /**
@@ -729,7 +778,36 @@ declare namespace media {
      * @SysCap SystemCapability.Multimedia.Media
      */
     release(): void;
+  
+    /**
+    * get all track infos in MediaDescription, should be called after dataloaded callback.
+    * @devices phone, tablet, tv, wearable, car
+    * @since 8
+    * @SysCap SystemCapability.Multimedia.Media
+    * @param callback async callback return track info in MediaDescription.
+    */
+    getTrackDescription(callback: AsyncCallback<Array<MediaDescription>>): void;
 
+    /**
+    * get all track infos in MediaDescription, should be called after dataloaded callback..
+    * @devices phone, tablet, tv, wearable, car
+    * @since 8
+    * @SysCap SystemCapability.Multimedia.Media
+    * @param index  track index.
+    * @return A Promise instance used to return the trackinfo in MediaDescription.
+    */
+    getTrackDescription() : Promise<Array<MediaDescription>>;
+  
+    /**
+     * Listens for audio playback buffering events.
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the playback buffering update event to listen for.
+     * @param callback Callback used to listen for the buffering update event, return BufferingInfoType and the value.
+     */
+    on(type: 'bufferingUpdate', callback: (infoType: BufferingInfoType, value: number) => void): void;
+  
     /**
      * Audio media URI. Mainstream audio formats are supported.
      * @devices phone, tablet, tv, wearable
