@@ -141,6 +141,11 @@ sptr<Surface> PlayerDemo::GetVideoSurface()
     if (mode == "0" || mode == "") {
         return nullptr;
     } else if (mode == "1") {
+        if (SetSurfaceSize() != 0) {
+            cout << "SetSurface Size fail" << endl;
+            return nullptr;
+        }
+
         sptr<WindowManager> wmi = WindowManager::GetInstance();
         if (wmi == nullptr) {
             cout << "WindowManager is null" << endl;
@@ -164,14 +169,16 @@ sptr<Surface> PlayerDemo::GetVideoSurface()
         }
         producerSurface = mwindow_->GetSurface();
     } else if (mode == "2") {
-        if (previewWindow_ == nullptr) {
-            sptr<Rosen::WindowOption> option = new Rosen::WindowOption();
-            option->SetWindowRect({0, 0, WIDTH, HEIGHT});
-            option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_LAUNCHING);
-            option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
-            previewWindow_ = Rosen::Window::Create("xcomponent_window", option);
+        if (SetSurfaceSize() != 0) {
+            cout << "SetSurface Size fail" << endl;
+            return nullptr;
         }
 
+        sptr<Rosen::WindowOption> option = new Rosen::WindowOption();
+        option->SetWindowRect({0, 0, WIDTH, HEIGHT});
+        option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_LAUNCHING);
+        option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
+        previewWindow_ = Rosen::Window::Create("xcomponent_window", option);
         if (previewWindow_ == nullptr || previewWindow_->GetSurfaceNode() == nullptr) {
             cout << "previewWindow_ is nullptr" << endl;
             return nullptr;
@@ -522,6 +529,26 @@ int32_t PlayerDemo::SelectBufferingOut()
     } else {
         return 0;
     }
+}
+
+int32_t PlayerDemo::SetSurfaceSize()
+{
+    int32_t ret = 0;
+    cout << "Please enter surface size(width x height):" << endl;
+    cout << "0:1920 x 1080" << endl;
+    cout << "1:640 x 360" << endl;
+    string mode;
+    (void)getline(cin, mode);
+    if (mode == "" || mode == "0") {
+        width_ = 1920;
+        height_ = 1080;
+    } else if (mode == "2") {
+        width_ = 640;
+        height_ = 360;
+    } else {
+        ret = -1;
+    }
+    return ret;
 }
 
 void PlayerDemo::RunCase(const string &path)

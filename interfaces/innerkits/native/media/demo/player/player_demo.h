@@ -26,8 +26,6 @@
 #include "foundation/windowmanager/interfaces/innerkits/wm/window.h"
 
 namespace MediaDemo {
-    const int32_t HEIGHT = 360;
-    const int32_t WIDTH = 640;
     const int32_t POSITION_UPDATE_INTERVAL = 100;
     const std::map<OHOS::Media::PlayerStates, std::string> STATE_MAP = {
         {OHOS::Media::PlayerStates::PLAYER_STATE_ERROR, "Error"},
@@ -65,6 +63,7 @@ private:
     int32_t GetPlaybackSpeed() const;
     int32_t SetDataSrc(const std::string &path, bool seekable);
     int32_t SelectSource(const std::string &path);
+    int32_t SetSurfaceSize();
     int32_t SelectBufferingOut();
     int32_t ChangeModeToSpeed(const PlaybackRateMode &mode, double &rate) const;
     int32_t ChangeSpeedToMode(const double &rate, PlaybackRateMode &mode) const;
@@ -74,6 +73,8 @@ private:
     std::map<std::string, std::function<int32_t()>> playerTable_;
     std::shared_ptr<Player> player_ = nullptr;
     std::shared_ptr<MediaDataSourceDemo> dataSrc_ = nullptr;
+    int32_t height_ = 0;
+    int32_t width_ = 0;
 };
 
 class PlayerCallbackDemo : public PlayerCallback {
