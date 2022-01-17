@@ -46,7 +46,6 @@ ohos_executable("media_demo") {
     "-D_FORTIFY_SOURCE=2",
     "-fvisibility=hidden",
     "-Wformat=2",
-    "-Wfloat-equal",
     "-Wdate-time",
   ]
 
@@ -67,6 +66,8 @@ ohos_executable("media_demo") {
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
     "//third_party/libjpeg:libjpeg_static",
     "//utils/native/base:utils",
+    "//foundation/windowmanager/wm:libwm",
+    "//foundation/windowmanager/wm:libwmutil",
   ]
 
   external_deps = [
