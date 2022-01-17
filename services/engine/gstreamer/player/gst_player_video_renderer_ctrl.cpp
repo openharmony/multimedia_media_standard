@@ -28,8 +28,7 @@ namespace {
     constexpr uint32_t MAX_DEFAULT_WIDTH = 10000;
     constexpr uint32_t MAX_DEFAULT_HEIGHT = 10000;
     constexpr uint32_t DEFAULT_BUFFER_NUM = 8;
-    constexpr uint32_t MAX_DEFAULT_TRY_TIMES = 100;
-    constexpr uint32_t DEFAULT_WAIT_TIME = 5000;
+    constexpr uint32_t MAX_BUFFER_NUM = 10;
 }
 
 namespace OHOS {
@@ -162,7 +161,6 @@ GstFlowReturn GstPlayerVideoRendererCap::VideoDataAvailableCb(const GstElement *
     int32_t ret = ctrl->PullVideoBuffer();
     if (ret != MSERR_OK) {
         MEDIA_LOGE("Failed to PullVideoBuffer!");
-        return GST_FLOW_ERROR;
     }
     return GST_FLOW_OK;
 }
@@ -240,6 +238,7 @@ int32_t GstPlayerVideoRendererCtrl::InitVideoSink(const GstElement *playbin)
     }
     if (producerSurface_ != nullptr) {
         producerSurface_->SetQueueSize(DEFAULT_BUFFER_NUM);
+        queueSize_ = DEFAULT_BUFFER_NUM;
     }
     return MSERR_OK;
 }
@@ -391,7 +390,7 @@ BufferRequestConfig GstPlayerVideoRendererCtrl::UpdateRequestConfig(const GstVid
     return config;
 }
 
-sptr<SurfaceBuffer> GstPlayerVideoRendererCtrl::RequestBuffer(const GstVideoMeta *videoMeta) const
+sptr<SurfaceBuffer> GstPlayerVideoRendererCtrl::RequestBuffer(const GstVideoMeta *videoMeta)
 {
     CHECK_AND_RETURN_RET_LOG(videoMeta != nullptr, nullptr, "gst_buffer_get_video_meta failed..");
     CHECK_AND_RETURN_RET_LOG(videoMeta->width < MAX_DEFAULT_WIDTH && videoMeta->height < MAX_DEFAULT_HEIGHT,
@@ -400,14 +399,15 @@ sptr<SurfaceBuffer> GstPlayerVideoRendererCtrl::RequestBuffer(const GstVideoMeta
     sptr<SurfaceBuffer> surfaceBuffer = nullptr;
     int32_t releaseFence = -1;
     SurfaceError ret = SURFACE_ERROR_OK;
-    uint32_t count = 0;
     do {
         ret = producerSurface_->RequestBuffer(surfaceBuffer, releaseFence, requestConfig);
-        if (ret == SURFACE_ERROR_NO_BUFFER) {
-            usleep(DEFAULT_WAIT_TIME);
-            ++count;
+        if (ret != SURFACE_ERROR_OK) {
+            if (queueSize_ < MAX_BUFFER_NUM) {
+                ++queueSize_;
+                producerSurface_->SetQueueSize(queueSize_);
+            }
         }
-    } while (ret == SURFACE_ERROR_NO_BUFFER && count < MAX_DEFAULT_TRY_TIMES);
+    } while (0);
     CHECK_AND_RETURN_RET_LOG(ret == SURFACE_ERROR_OK, nullptr, "RequestBuffer is not ok..");
     return surfaceBuffer;
 }

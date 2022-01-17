@@ -51,6 +51,7 @@ public:
     virtual bool IsPlaying() = 0;
     virtual bool IsLooping() = 0;
     virtual int32_t SetLooping(bool loop) = 0;
+    virtual int32_t SetParameter(const Format &param) = 0;
     virtual int32_t DestroyStub() = 0;
     virtual int32_t SetPlayerCallback() = 0;
 
@@ -78,6 +79,7 @@ public:
         IS_PLAYING,
         IS_LOOPING,
         SET_LOOPING,
+        SET_RENDERER_DESC,
         DESTROY,
         SET_CALLBACK,
         GET_VIDEO_TRACK_INFO,

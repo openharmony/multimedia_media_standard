@@ -54,6 +54,7 @@ public:
     int32_t GetDuration(int32_t &duration) override;
     int32_t SetPlaybackSpeed(PlaybackRateMode mode) override;
     int32_t GetPlaybackSpeed(PlaybackRateMode &mode) override;
+    int32_t SetParameter(const Format &param) override;
     int32_t SetLooping(bool loop) override;
 
 private:

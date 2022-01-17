@@ -47,6 +47,7 @@ public:
     int32_t Write(uint8_t *buffer, size_t size) override;
     int32_t GetAudioTime(uint64_t &time) override;
     int32_t GetLatency(uint64_t &latency) const override;
+    int32_t SetParameter(int32_t &param) override;
     bool Writeable() const override;
 
 private:

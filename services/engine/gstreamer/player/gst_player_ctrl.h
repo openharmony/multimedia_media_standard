@@ -45,6 +45,7 @@ public:
     void Stop();
     int32_t SetLoop(bool loop);
     void SetVolume(const float &leftVolume, const float &rightVolume);
+    int32_t SetParameter(const Format &param);
     uint64_t GetPosition();
     uint64_t GetDuration();
     int32_t GetVideoTrackInfo(std::vector<Format> &videoTrack);
@@ -106,6 +107,7 @@ private:
     void ProcessBufferingTime(const GstPlayer *cbPlayer, guint64 bufferingTime, guint mqNumId);
     void ProcessMqNumUseBuffering(const GstPlayer *cbPlayer, uint32_t mqNumUseBuffering);
     bool IsLiveMode() const;
+    bool SetAudioRendererInfo(const Format &param);
     std::mutex mutex_;
     std::condition_variable condVarPlaySync_;
     std::condition_variable condVarPauseSync_;
