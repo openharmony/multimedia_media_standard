@@ -1394,6 +1394,404 @@ declare namespace media {
   }
 
   /**
+   * Describes video playback states.
+   */
+  type VideoPlayState = 'idle' | 'prepared' | 'playing' | 'paused' | 'stopped' | 'error';
+
+  /**
+   * Enumerates seek mode.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @devices phone, tablet, tv, wearable, car
+   */
+  enum SeekMode {
+    /**
+     * seek to the next sync frame of the given timestemp
+     */
+    SEEK_NEXT_SYNC = 0,
+    /**
+     * seek to the previous sync frame of the given timestemp
+     */
+    SEEK_PREV_SYNC = 1,
+    /**
+     * seek to the closet sync frame of the given timestemp
+     */
+    SEEK_CLOSEST_SYNC = 2,
+    /**
+     * seek to the closet frame of the given timestemp
+     */
+    SEEK_CLOSEST = 3,
+  }
+
+  /**
+   * Enumerates playback speed.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @devices phone, tablet, tv, wearable, car
+   */
+  enum PlaybackSpeed {
+    /**
+     * playback at 0.75x normal speed
+     */
+    SPEED_FORWARD_0_75_X = 0,
+  
+    /**
+     * playback at normal speed
+     */
+    SPEED_FORWARD_1_00_X = 1,
+    
+    /**
+     * playback at 1.25x normal speed
+     */
+    SPEED_FORWARD_1_25_X = 2,
+    
+    /**
+     * playback at 1.75x normal speed
+     */
+    SPEED_FORWARD_1_75_X = 3,
+  
+    /**
+     * playback at 2.0x normal speed
+     */
+    SPEED_FORWARD_2_00_X = 4,
+  }
+
+  /**
+   * Manages and plays video. Before calling an video method, you must use createVideoPlayer() to create an VideoPlayer instance.
+   */
+ interface VideoPlayer {
+    /**
+     * set display surface.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param surfaceId surface id, videoplayer will use this id get a surface instance.
+     * @return A Promise instance used to return when release output buffer completed.
+     */
+    setDisplaySurface(surfaceId: string, callback: AsyncCallback<void>): void;
+
+    /**
+    * set display surface.
+    * @devices phone, tablet, tv, wearable, car
+    * @since 8
+    * @SysCap SystemCapability.Multimedia.Media
+    * @param surfaceId surface id, videoplayer will use this id get a surface instance.
+    * @return A Promise instance used to return when release output buffer completed.
+    */
+    setDisplaySurface(surfaceId: string): Promise<void>;
+
+    /**
+     * prepare video playback, it will request resource for playing.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when prepare completed.
+     */
+    prepare(callback: AsyncCallback<void>): void;
+
+    /**
+    * prepare video playback, it will request resource for playing.
+    * @devices phone, tablet, tv, wearable
+    * @since 8
+    * @SysCap SystemCapability.Multimedia.Media
+    * @return A Promise instance used to return when prepare completed.
+    */
+    prepare(): Promise<void>;
+
+    /**
+     * Starts video playback.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when start completed.
+     */
+    play(callback: AsyncCallback<void>): void;
+
+    /**
+    * Starts video playback.
+    * @devices phone, tablet, tv, wearable
+    * @since 8
+    * @SysCap SystemCapability.Multimedia.Media
+    * @return A Promise instance used to return when start completed.
+    */
+    play(): Promise<void>;
+
+    /**
+     * Pauses video playback.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when pause completed.
+     */
+    pause(callback: AsyncCallback<void>): void;
+
+    /**
+    * Pauses video playback.
+    * @devices phone, tablet, tv, wearable
+    * @since 8
+    * @SysCap SystemCapability.Multimedia.Media
+    * @return A Promise instance used to return when pause completed.
+    */
+    pause(): Promise<void>;
+
+    /**
+     * Stops video playback.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when stop completed.
+     */
+    stop(callback: AsyncCallback<void>): void;
+
+    /**
+    * Stops video playback.
+    * @devices phone, tablet, tv, wearable
+    * @since 8
+    * @SysCap SystemCapability.Multimedia.Media
+    * @return A Promise instance used to return when stop completed.
+    */
+    stop(): Promise<void>;
+
+    /**
+     * Resets video playback, it will release the resource.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when reset completed.
+     */
+    reset(callback: AsyncCallback<void>): void;
+
+    /**
+    * Resets video playback, it will release the resource.
+    * @devices phone, tablet, tv, wearable
+    * @since 8
+    * @SysCap SystemCapability.Multimedia.Media
+    * @return A Promise instance used to return when reset completed.
+    */
+    reset(): Promise<void>;
+
+    /**
+     * Jumps to the specified playback position by default Seekmode(SEEK_CLOSEST),
+     * the performance may be not the best.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param timeMs Playback position to jump
+     * @param callback A callback instance used to return when seek completed
+     * and return the seeking position result.
+     */
+    seek(timeMs: number, callback: AsyncCallback<number>): void;
+
+    /**
+     * Jumps to the specified playback position.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param timeMs Playback position to jump
+     * @param mode seek mode, see @SeekMode .
+     * @param callback A callback instance used to return when seek completed
+     * and return the seeking position result.
+     */
+     seek(timeMs: number, mode:SeekMode, callback: AsyncCallback<number>): void;
+
+     /**
+      * Jumps to the specified playback position.
+      * @devices phone, tablet, tv, wearable
+      * @since 8
+      * @SysCap SystemCapability.Multimedia.Media
+      * @param timeMs Playback position to jump
+      * @param mode seek mode, see @SeekMode .
+      * @return A Promise instance used to return when seek completed
+      * and return the seeking position result.
+      */
+    seek(timeMs: number, mode?:SeekMode): Promise<number>;
+
+    /**
+     * Sets the volume.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param vol Relative volume. The value ranges from 0.00 to 1.00. The value 1 indicates the maximum volume (100%).
+     * @param callback A callback instance used to return when set volume completed.
+     */
+    setVolume(vol: number, callback: AsyncCallback<void>): void;
+
+    /**
+    * Sets the volume.
+    * @devices phone, tablet, tv, wearable
+    * @since 8
+    * @SysCap SystemCapability.Multimedia.Media
+    * @param vol Relative volume. The value ranges from 0.00 to 1.00. The value 1 indicates the maximum volume (100%).
+    * @return A Promise instance used to return when set volume completed.
+    */
+    setVolume(vol: number): Promise<void>;
+
+    /**
+     * Releases resources used for video playback.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when release completed.
+     */
+    release(callback: AsyncCallback<void>): void;
+
+    /**
+    * Releases resources used for video playback.
+    * @devices phone, tablet, tv, wearable
+    * @since 8
+    * @SysCap SystemCapability.Multimedia.Media
+    * @return A Promise instance used to return when release completed.
+    */
+    release(): Promise<void>;
+
+    /**
+    * get all track infos in MediaDescription, should be called after dataloaded callback.
+    * @devices phone, tablet, tv, wearable, car
+    * @since 8
+    * @SysCap SystemCapability.Multimedia.Media
+    * @param callback async callback return track info in MediaDescription.
+    */
+    getTrackDescription(callback: AsyncCallback<Array<MediaDescription>>): void;
+
+    /**
+    * get all track infos in MediaDescription, should be called after dataloaded callback..
+    * @devices phone, tablet, tv, wearable, car
+    * @since 8
+    * @SysCap SystemCapability.Multimedia.Media
+    * @param index  track index.
+    * @return A Promise instance used to return the trackinfo in MediaDescription.
+    */
+    getTrackDescription() : Promise<Array<MediaDescription>>;
+
+    /**
+     * media url. Mainstream video formats are supported.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    url: string;
+
+    /**
+     * Whether to loop video playback. The value true means to loop playback.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    loop: boolean;
+
+    /**
+     * Current playback position.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    readonly currentTime: number;
+
+    /**
+     * Playback duration, if -1 means cannot seek.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    readonly duration: number;
+
+    /**
+     * Playback state.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    readonly state: VideoPlayState;
+
+    /**
+     * video width, valid after prepared.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    readonly width: number;
+
+    /**
+     * video height, valid after prepared.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    readonly height: number;
+
+    /**
+     * set payback speed.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param speed playback speed, see @PlaybackSpeed .
+     * @param callback Callback used to return actually speed.
+     */
+    setSpeed(speed:number, callback: AsyncCallback<number>): void;
+    /**
+     * set payback speed.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param speed playback speed, see @PlaybackSpeed .
+     * @return A Promise instance used to return actualy speed.
+     */
+    setSpeed(speed:number): Promise<number>;
+
+    /**
+     * Listens for video playback completed events.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the playback event to listen for.
+     * @param callback Callback used to listen for the playback event return .
+     */
+     on(type: 'playbackCompleted', callback: Callback<void>): void;
+
+    /**
+     * Listens for video playback buffering events.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the playback buffering update event to listen for.
+     * @param callback Callback used to listen for the buffering update event, return BufferingInfoType and the value.
+     */
+    on(type: 'bufferingUpdate', callback: (infoType: BufferingInfoType, value: number) => void): void;
+
+    /**
+     * Listens for start render video frame events.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the playback event to listen for.
+     * @param callback Callback used to listen for the playback event return .
+     */
+    on(type: 'startRenderFrame', callback: Callback<void>): void;
+
+    /**
+     * Listens for video size changed event.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the playback event to listen for.
+     * @param callback Callback used to listen for the playback event return video size.
+     */
+    on(type: 'videoSizeChanged', callback: (width: number, height: number) => void): void;
+
+    /**
+     * Listens for playback error events.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the playback error event to listen for.
+     * @param callback Callback used to listen for the playback error event.
+     */
+    on(type: 'error', callback: ErrorCallback): void;
+  }
+
+  /**
    * Enumerates frame flags.
    * @since 8
    * @SysCap SystemCapability.Multimedia.Media
