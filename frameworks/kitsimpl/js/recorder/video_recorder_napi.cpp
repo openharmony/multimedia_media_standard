@@ -262,14 +262,14 @@ napi_value VideoRecorderNapi::GetInputSurface(napi_env env, napi_callback_info i
             return;
         }
 
-        threadCtx->surface = threadCtx->napi->recorder_->GetSurface(threadCtx->napi->videoSourceID); // source id
-        if (threadCtx->surface != nullptr) {
-            SurfaceError error = SurfaceUtils::GetInstance()->Add(threadCtx->surface->GetUniqueId(),
-                threadCtx->surface);
+        threadCtx->napi->surface_ = threadCtx->napi->recorder_->GetSurface(threadCtx->napi->videoSourceID); // source id
+        if (threadCtx->napi->surface_ != nullptr) {
+            SurfaceError error = SurfaceUtils::GetInstance()->Add(threadCtx->napi->surface_->GetUniqueId(),
+                threadCtx->napi->surface_);
             if (error != SURFACE_ERROR_OK) {
                 threadCtx->SignError(MSERR_EXT_NO_MEMORY, "add surface error");
             }
-            auto surfaceId = std::to_string(threadCtx->surface->GetUniqueId());
+            auto surfaceId = std::to_string(threadCtx->napi->surface_->GetUniqueId());
             threadCtx->JsResult = std::make_unique<MediaJsResultString>(surfaceId);
         } else {
             threadCtx->SignError(MSERR_EXT_NO_MEMORY, "failed to get surface");
