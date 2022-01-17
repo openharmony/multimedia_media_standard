@@ -95,6 +95,24 @@ declare namespace media {
    */
   function createVideoRecorder() : Promise<VideoRecorder>;
 
+  /**
+   * Creates an VideoPlayer instance.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @param callback Callback used to return VideoPlayer instance if the operation is successful; returns null otherwise.
+   */
+  function createVideoPlayer(callback: AsyncCallback<VideoPlayer>): void;
+
+  /**
+   * Creates an VideoPlayer instance.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @return A Promise instance used to return VideoPlayer instance if the operation is successful; returns null otherwise.
+   */
+  function createVideoPlayer() : Promise<VideoPlayer>;
+
   /** Creates an audio decoder instance by name.
    * @since 8
    * @SysCap SystemCapability.Multimedia.Media
