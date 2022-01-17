@@ -107,6 +107,7 @@ private:
     napi_ref wrapper_ = nullptr;
     std::shared_ptr<Recorder> recorder_ = nullptr;
     std::shared_ptr<RecorderCallback> callbackNapi_ = nullptr;
+    sptr<Surface> surface_;
     std::string currentStates_ = VideoRecorderState::STATE_IDLE;
     bool isPureVideo = false;
     int32_t videoSourceID;
@@ -118,8 +119,6 @@ struct VideoRecorderAsyncContext : public MediaAsyncContext {
     ~VideoRecorderAsyncContext() = default;
 
     VideoRecorderNapi *napi = nullptr;
-
-    sptr<Surface> surface;
 };
 } // namespace Media
 } // namespace OHOS

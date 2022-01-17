@@ -127,7 +127,14 @@ void VideoRecorderNapi::Destructor(napi_env env, void *nativeObject, void *final
     (void)env;
     (void)finalize;
     if (nativeObject != nullptr) {
-        delete reinterpret_cast<VideoRecorderNapi *>(nativeObject);
+        VideoRecorderNapi *napi = reinterpret_cast<VideoRecorderNapi *>(nativeObject);
+        if (napi->surface_ != nullptr) {
+            auto id = napi->surface_->GetUniqueId();
+            if (napi->isSurfaceIdVaild(id)) {
+                (void)SurfaceUtils::GetInstance()->Remove(id);
+            }
+        }
+        delete napi;
     }
     MEDIA_LOGD("Destructor success");
 }
@@ -463,13 +470,12 @@ napi_value VideoRecorderNapi::Reset(napi_env env, napi_callback_info info)
             threadCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
             return;
         }
-        if (threadCtx->surface != nullptr) {
-            auto id = threadCtx->surface->GetUniqueId();
+        if (threadCtx->napi->surface_ != nullptr) {
+            auto id = threadCtx->napi->surface_->GetUniqueId();
             if (threadCtx->napi->isSurfaceIdVaild(id)) {
                 (void)SurfaceUtils::GetInstance()->Remove(id);
-            } else {
-                threadCtx->SignError(MSERR_UNKNOWN, "remove surface id failed");
             }
+            threadCtx->napi->surface_ = nullptr;
         }
         if (threadCtx->napi->recorder_->Reset() != MSERR_OK) {
             threadCtx->SignError(MSERR_UNKNOWN, "Failed to Reset");
@@ -511,13 +517,12 @@ napi_value VideoRecorderNapi::Release(napi_env env, napi_callback_info info)
             threadCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
             return;
         }
-        if (threadCtx->surface != nullptr) {
-            auto id = threadCtx->surface->GetUniqueId();
+        if (threadCtx->napi->surface_ != nullptr) {
+            auto id = threadCtx->napi->surface_->GetUniqueId();
             if (threadCtx->napi->isSurfaceIdVaild(id)) {
                 (void)SurfaceUtils::GetInstance()->Remove(id);
-            } else {
-                threadCtx->SignError(MSERR_UNKNOWN, "remove surface id failed");
             }
+            threadCtx->napi->surface_ = nullptr;
         }
         if (threadCtx->napi->recorder_->Release() != MSERR_OK) {
             threadCtx->SignError(MSERR_UNKNOWN, "Failed to Release");
