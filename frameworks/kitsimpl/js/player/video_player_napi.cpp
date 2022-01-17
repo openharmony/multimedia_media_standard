@@ -467,7 +467,8 @@ void VideoPlayerNapi::CompleteAsyncWork(napi_env env, napi_status status, void *
 
     asyncContext->env = env;
     auto cb = std::static_pointer_cast<VideoCallbackNapi>(asyncContext->jsPlayer->jsCallback_);
-
+    cb->QueueAsyncWork(asyncContext);
+    
     int32_t ret = MSERR_OK;
     auto player = asyncContext->jsPlayer->nativePlayer_;
     if (asyncContext->asyncWorkType == AsyncWorkType::ASYNC_WORK_PREPARE) {
@@ -501,8 +502,6 @@ void VideoPlayerNapi::CompleteAsyncWork(napi_env env, napi_status status, void *
         asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to operate playback");
         cb->ClearAsyncWork();
         return MediaAsyncContext::CompleteCallback(env, status, data);
-    } else {
-        cb->QueueAsyncWork(asyncContext);
     }
 }
 
