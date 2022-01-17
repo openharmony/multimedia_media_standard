@@ -248,6 +248,13 @@ int32_t PlayerClient::SetLooping(bool loop)
     return playerProxy_->SetLooping(loop);
 }
 
+int32_t PlayerClient::SetParameter(const Format &param)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
+    return playerProxy_->SetParameter(param);
+}
+
 int32_t PlayerClient::SetPlayerCallback(const std::shared_ptr<PlayerCallback> &callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);

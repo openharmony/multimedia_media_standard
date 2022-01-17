@@ -44,6 +44,7 @@ enum {
     PROP_VOLUME,
     PROP_MAX_VOLUME,
     PROP_MIN_VOLUME,
+    PROP_AUDIO_RENDERER_DESC
 };
 
 #define gst_audio_server_sink_parent_class parent_class
@@ -101,6 +102,11 @@ static void gst_audio_server_sink_class_init(GstAudioServerSinkClass *klass)
         g_param_spec_float("min-volume", "Minimum Volume",
             "Minimum Volume", 0, G_MAXFLOAT, 0,
             (GParamFlags)(G_PARAM_READABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_AUDIO_RENDERER_DESC,
+        g_param_spec_int("audio-renderer-desc", "Audio Renderer Desc",
+            "Audio Renderer Desc", 0, G_MAXINT32, 0,
+            (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
     gst_element_class_set_static_metadata(gstelement_class,
         "Audio server sink", "Sink/Audio",
@@ -171,6 +177,20 @@ static gboolean gst_audio_server_sink_set_volume(GstAudioServerSink *sink, gfloa
     return ret;
 }
 
+static gboolean gst_audio_server_sink_set_audio_renderer_desc(GstAudioServerSink *sink, gint param)
+{
+    gboolean ret = FALSE;
+    g_return_val_if_fail(sink != nullptr, FALSE);
+    g_return_val_if_fail(sink->audio_sink != nullptr, FALSE);
+
+    if (sink->audio_sink->SetParameter(param) == MSERR_OK) {
+        ret = TRUE;
+    }
+
+    GST_INFO_OBJECT(sink, "set renderer descriptor finish, ret=%d", ret);
+    return ret;
+}
+
 static void gst_audio_server_sink_set_property(GObject *object, guint prop_id,
     const GValue *value, GParamSpec *pspec)
 {
@@ -184,6 +204,12 @@ static void gst_audio_server_sink_set_property(GObject *object, guint prop_id,
             if (gst_audio_server_sink_set_volume(sink, g_value_get_float(value))) {
                 GST_INFO_OBJECT(sink, "set volume success!");
                 g_object_notify(G_OBJECT(sink), "volume");
+            }
+            break;
+        case PROP_AUDIO_RENDERER_DESC:
+            if (gst_audio_server_sink_set_audio_renderer_desc(sink, g_value_get_int(value))) {
+                GST_INFO_OBJECT(sink, "set renderer descriptor success!");
+                g_object_notify(G_OBJECT(sink), "audio-renderer-desc");
             }
             break;
         default:

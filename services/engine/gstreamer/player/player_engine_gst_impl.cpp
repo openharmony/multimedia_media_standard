@@ -420,6 +420,16 @@ int32_t PlayerEngineGstImpl::SetLooping(bool loop)
     return MSERR_OK;
 }
 
+int32_t PlayerEngineGstImpl::SetParameter(const Format &param)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (playerCtrl_ != nullptr) {
+        return playerCtrl_->SetParameter(param);
+    }
+
+    return MSERR_OK;
+}
+
 int32_t PlayerEngineGstImpl::Stop()
 {
     std::unique_lock<std::mutex> lock(mutex_);
