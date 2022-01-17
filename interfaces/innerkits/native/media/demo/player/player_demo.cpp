@@ -20,6 +20,8 @@
 #include "string_ex.h"
 #include "media_errors.h"
 #include "directory_ex.h"
+#include "wm_common.h"
+#include "foundation/windowmanager/interfaces/innerkits/wm/window_option.h"
 
 using namespace OHOS;
 using namespace OHOS::Media;
@@ -162,8 +164,21 @@ sptr<Surface> PlayerDemo::GetVideoSurface()
         }
         producerSurface = mwindow_->GetSurface();
     } else if (mode == "2") {
-        cout << "invalid operation" << endl;
-        return nullptr;
+        if (previewWindow_ == nullptr) {
+            sptr<Rosen::WindowOption> option = new Rosen::WindowOption();
+            option->SetWindowRect({0, 0, WIDTH, HEIGHT});
+            option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_LAUNCHING);
+            option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
+            previewWindow_ = Rosen::Window::Create("xcomponent_window", option);
+        }
+
+        if (previewWindow_ == nullptr || previewWindow_->GetSurfaceNode() == nullptr) {
+            cout << "previewWindow_ is nullptr" << endl;
+            return nullptr;
+        }
+
+        previewWindow_->Show();
+        producerSurface = previewWindow_->GetSurfaceNode()->GetSurface();
     }
     if (producerSurface == nullptr) {
         cout << "producerSurface is nullptr" << endl;
