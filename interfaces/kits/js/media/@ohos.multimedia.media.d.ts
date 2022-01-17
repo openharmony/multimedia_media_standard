@@ -801,7 +801,7 @@ declare namespace media {
     /**
      * Listens for audio playback buffering events.
      * @devices phone, tablet, tv, wearable
-     * @since 6
+     * @since 8
      * @SysCap SystemCapability.Multimedia.Media
      * @param type Type of the playback buffering update event to listen for.
      * @param callback Callback used to listen for the buffering update event, return BufferingInfoType and the value.
