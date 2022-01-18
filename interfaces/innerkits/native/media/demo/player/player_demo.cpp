@@ -566,7 +566,7 @@ int32_t PlayerDemo::SetSurfaceSize()
     if (mode == "" || mode == "0") {
         width_ = 1920; // 1920 for width
         height_ = 1080; // 1080 for height
-    } else if (mode == "2") {
+    } else if (mode == "1") {
         width_ = 640; // 640 for width
         height_ = 360; // 360 for height
     } else {

@@ -101,7 +101,6 @@ sptr<Surface> MediaSurfaceImpl::GetSurface()
     std::string winName = "media_player_window" + std::to_string(id_);
     previewWindow_ = Rosen::Window::Create(winName, option);
     id_++;
-
     if (previewWindow_ == nullptr || previewWindow_->GetSurfaceNode() == nullptr) {
         MEDIA_LOGE("previewWindow_ is nullptr");
         return nullptr;
