@@ -46,7 +46,6 @@ ohos_executable("media_demo") {
     "-D_FORTIFY_SOURCE=2",
     "-fvisibility=hidden",
     "-Wformat=2",
-    "-Wfloat-equal",
     "-Wdate-time",
   ]
 
@@ -65,6 +64,8 @@ ohos_executable("media_demo") {
     "//foundation/graphic/standard:libwmclient",
     "//foundation/graphic/standard/frameworks/surface:surface",
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+    "//foundation/windowmanager/utils:libwmutil",
+    "//foundation/windowmanager/wm:libwm",
     "//third_party/libjpeg:libjpeg_static",
     "//utils/native/base:utils",
   ]

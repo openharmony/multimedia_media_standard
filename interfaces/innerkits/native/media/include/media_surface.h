@@ -26,6 +26,7 @@ public:
     virtual std::string GetSurfaceId(const sptr<Surface> &surface) = 0;
     virtual sptr<Surface> GetSurface() = 0;
     virtual sptr<Surface> GetSurface(const std::string &id) = 0;
+    virtual void Release() = 0;
 };
 
 class __attribute__((visibility("default"))) MediaSurfaceFactory {
