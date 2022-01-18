@@ -218,7 +218,6 @@ ohos_shared_library("media_surface") {
     "-D_FORTIFY_SOURCE=2",
     "-fvisibility=hidden",
     "-Wformat=2",
-    "-Wfloat-equal",
     "-Wdate-time",
   ]
 
@@ -228,6 +227,8 @@ ohos_shared_library("media_surface") {
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard:libwmclient",
     "//foundation/graphic/standard/frameworks/surface:surface",
+    "//foundation/windowmanager/utils:libwmutil",
+    "//foundation/windowmanager/wm:libwm",
     "//utils/native/base:utils",
   ]
 

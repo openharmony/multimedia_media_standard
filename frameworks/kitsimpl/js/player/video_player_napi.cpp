@@ -468,7 +468,7 @@ void VideoPlayerNapi::CompleteAsyncWork(napi_env env, napi_status status, void *
     asyncContext->env = env;
     auto cb = std::static_pointer_cast<VideoCallbackNapi>(asyncContext->jsPlayer->jsCallback_);
     cb->QueueAsyncWork(asyncContext);
-
+    
     int32_t ret = MSERR_OK;
     auto player = asyncContext->jsPlayer->nativePlayer_;
     if (asyncContext->asyncWorkType == AsyncWorkType::ASYNC_WORK_PREPARE) {
@@ -697,9 +697,15 @@ napi_value VideoPlayerNapi::Release(napi_env env, napi_callback_info info)
     if (ret != MSERR_OK) {
         asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to release");
     }
+    
     asyncContext->jsPlayer->jsCallback_ = nullptr;
     asyncContext->jsPlayer->url_.clear();
-    
+
+    auto mediaSurface = MediaSurfaceFactory::CreateMediaSurface();
+    if (mediaSurface != nullptr) {
+        mediaSurface->Release();
+    }
+
     // async work
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Release", NAPI_AUTO_LENGTH, &resource);

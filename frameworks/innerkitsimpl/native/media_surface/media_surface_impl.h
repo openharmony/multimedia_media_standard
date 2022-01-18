@@ -20,6 +20,7 @@
 #include <string>
 #include "media_surface.h"
 #include "window_manager.h"
+#include "foundation/windowmanager/interfaces/innerkits/wm/window.h"
 
 namespace OHOS {
 namespace Media {
@@ -31,12 +32,16 @@ public:
     virtual std::string GetSurfaceId(const sptr<Surface> &surface) override;
     virtual sptr<Surface> GetSurface() override;
     virtual sptr<Surface> GetSurface(const std::string &id) override;
+    virtual void Release() override;
 
 private:
     std::mutex mutex_;
     int32_t idCount = 0;
+    int32_t id_ = 0;
     sptr<Window> mwindow_ = nullptr;
+    sptr<Rosen::Window> previewWindow_ = nullptr;
     std::map<std::string, wptr<Surface>> surfaceMap_;
+    sptr<Surface> producerSurface_ = nullptr;
 };
 }
 }

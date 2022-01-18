@@ -17,6 +17,8 @@
 #include "media_log.h"
 #include "media_errors.h"
 #include "display_type.h"
+#include "wm_common.h"
+#include "foundation/windowmanager/interfaces/innerkits/wm/window_option.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaSurface"};
@@ -73,31 +75,42 @@ sptr<Surface> MediaSurfaceImpl::GetSurface(const std::string &id)
     return nullptr;
 }
 
+void MediaSurfaceImpl::Release()
+{
+    MEDIA_LOGD("Release");
+    producerSurface_ = nullptr;
+    mwindow_ =nullptr;
+    if (previewWindow_ != nullptr) {
+        previewWindow_->Destroy();
+    }
+    previewWindow_ = nullptr;
+    surfaceMap_.clear();
+}
+
 sptr<Surface> MediaSurfaceImpl::GetSurface()
 {
+    if (previewWindow_ != nullptr || producerSurface_ != nullptr) {
+        Release();
+    }
+
     std::lock_guard<std::mutex> lock(mutex_);
-    sptr<WindowManager> wmi = WindowManager::GetInstance();
-    CHECK_AND_RETURN_RET_LOG(wmi != nullptr, nullptr, "WindowManager is nullptr!");
+    sptr<Rosen::WindowOption> option = new Rosen::WindowOption();
+    option->SetWindowRect({ 0, 0, 1920, 1080 }); // 1920 is width, 1080 is height
+    option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_LAUNCHING);
+    option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
+    std::string winName = "media_player_window" + std::to_string(id_);
+    previewWindow_ = Rosen::Window::Create(winName, option);
+    id_++;
 
-    wmi->Init();
-    sptr<WindowOption> option = WindowOption::Get();
-    CHECK_AND_RETURN_RET_LOG(option != nullptr, nullptr, "WindowOption is nullptr!");
-    const int32_t height = 360;
-    const int32_t width = 640;
-    (void)option->SetWidth(width);
-    (void)option->SetHeight(height);
-    (void)option->SetX(0);
-    (void)option->SetY(0);
-    (void)option->SetWindowType(WINDOW_TYPE_NORMAL);
-    (void)wmi->CreateWindow(mwindow_, option);
-    CHECK_AND_RETURN_RET_LOG(mwindow_ != nullptr, nullptr, "mwindow_ is nullptr!");
+    if (previewWindow_ == nullptr || previewWindow_->GetSurfaceNode() == nullptr) {
+        MEDIA_LOGE("previewWindow_ is nullptr");
+        return nullptr;
+    }
 
-    sptr<Surface> producerSurface = mwindow_->GetSurface();
-    CHECK_AND_RETURN_RET_LOG(producerSurface != nullptr, nullptr, "producerSurface is nullptr!");
-
-    const std::string format = "SURFACE_FORMAT";
-    (void)producerSurface->SetUserData(format, std::to_string(static_cast<int>(PIXEL_FMT_RGBA_8888)));
-    return producerSurface;
+    producerSurface_ = previewWindow_->GetSurfaceNode()->GetSurface();
+    previewWindow_->Show();
+    MEDIA_LOGD("Create MediaSurfaceImpl Surface");
+    return producerSurface_;
 }
 }
 }

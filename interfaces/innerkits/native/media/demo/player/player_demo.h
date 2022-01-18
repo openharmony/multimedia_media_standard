@@ -23,10 +23,9 @@
 #include "window_manager.h"
 #include "nocopyable.h"
 #include "media_data_source_demo.h"
+#include "foundation/windowmanager/interfaces/innerkits/wm/window.h"
 
 namespace MediaDemo {
-    const int32_t HEIGHT = 360;
-    const int32_t WIDTH = 640;
     const int32_t POSITION_UPDATE_INTERVAL = 100;
     const std::map<OHOS::Media::PlayerStates, std::string> STATE_MAP = {
         {OHOS::Media::PlayerStates::PLAYER_STATE_ERROR, "Error"},
@@ -44,8 +43,8 @@ namespace OHOS {
 namespace Media {
 class PlayerDemo {
 public:
-    PlayerDemo() = default;
-    virtual ~PlayerDemo() = default;
+    PlayerDemo();
+    ~PlayerDemo();
     DISALLOW_COPY_AND_MOVE(PlayerDemo);
     sptr<Surface> GetVideoSurface();
     void RunCase(const std::string &path);
@@ -64,14 +63,20 @@ private:
     int32_t GetPlaybackSpeed() const;
     int32_t SetDataSrc(const std::string &path, bool seekable);
     int32_t SelectSource(const std::string &path);
+    int32_t SetSurfaceSize();
     int32_t SelectBufferingOut();
     int32_t ChangeModeToSpeed(const PlaybackRateMode &mode, double &rate) const;
     int32_t ChangeSpeedToMode(const double &rate, PlaybackRateMode &mode) const;
+    sptr<Surface> GetWindowSurface();
+    sptr<Surface> GetSubWindowSurface();
     void RegisterTable();
     sptr<Window> mwindow_ = nullptr;
+    sptr<Rosen::Window> previewWindow_ = nullptr;
     std::map<std::string, std::function<int32_t()>> playerTable_;
     std::shared_ptr<Player> player_ = nullptr;
     std::shared_ptr<MediaDataSourceDemo> dataSrc_ = nullptr;
+    int32_t height_ = 0;
+    int32_t width_ = 0;
 };
 
 class PlayerCallbackDemo : public PlayerCallback {
