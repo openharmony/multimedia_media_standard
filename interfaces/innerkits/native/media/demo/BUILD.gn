@@ -49,6 +49,7 @@ ohos_executable("media_demo") {
     "-Wdate-time",
   ]
 
+
   sources = [
     "./avcodeclist/avcodeclist_demo.cpp",
     "./avmetadatahelper/avmetadatahelper_demo.cpp",
@@ -59,6 +60,7 @@ ohos_executable("media_demo") {
     "./recorder/recorder_demo.cpp",
   ]
 
+
   deps = [
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard:libwmclient",
@@ -66,8 +68,8 @@ ohos_executable("media_demo") {
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
     "//third_party/libjpeg:libjpeg_static",
     "//utils/native/base:utils",
-    "//foundation/windowmanager/wm:libwm",
     "//foundation/windowmanager/wm:libwmutil",
+    "//foundation/windowmanager/wm:libwm"
   ]
 
   external_deps = [
