@@ -160,7 +160,7 @@ sptr<Surface> PlayerDemo::GetWindowSurface()
         return nullptr;
     }
     (void)option->SetWidth(width_);
-    (void)option->SetHeight(heigth_);
+    (void)option->SetHeight(height_);
     (void)option->SetX(0);
     (void)option->SetY(0);
     (void)option->SetWindowType(WINDOW_TYPE_NORMAL);
@@ -181,7 +181,7 @@ sptr<Surface> PlayerDemo::GetSubWindowSurface()
     }
 
     sptr<Rosen::WindowOption> option = new Rosen::WindowOption();
-    option->SetWindowRect({ 0, 0, width_, heigth_ });
+    option->SetWindowRect({ 0, 0, width_, height_ });
     option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_LAUNCHING);
     option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
     previewWindow_ = Rosen::Window::Create("xcomponent_window", option);
