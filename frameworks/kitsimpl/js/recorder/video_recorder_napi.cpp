@@ -473,7 +473,7 @@ napi_value VideoRecorderNapi::Reset(napi_env env, napi_callback_info info)
         if (threadCtx->napi->surface_ != nullptr) {
             auto id = threadCtx->napi->surface_->GetUniqueId();
             if (threadCtx->napi->isSurfaceIdVaild(id)) {
-                (void)SurfaceUtils::GetInstance()->Remove(id)
+                (void)SurfaceUtils::GetInstance()->Remove(id);
             }
             threadCtx->napi->surface_ = nullptr;
         }
