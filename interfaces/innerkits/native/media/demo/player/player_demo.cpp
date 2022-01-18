@@ -129,6 +129,59 @@ void PlayerCallbackDemo::PrintBufferingUpdate(const Format &infoBody) const
     }
 }
 
+sptr<Surface> PlayerDemo::GetWindowSurface()
+{
+    if (SetSurfaceSize() != 0) {
+        cout << "SetSurface Size fail" << endl;
+        return nullptr;
+    }
+
+    sptr<WindowManager> wmi = WindowManager::GetInstance();
+    if (wmi == nullptr) {
+        cout << "WindowManager is null" << endl;
+        return nullptr;
+    }
+    wmi->Init();
+    sptr<WindowOption> option = WindowOption::Get();
+    if (option == nullptr) {
+        cout << "WindowOption is null" << endl;
+        return nullptr;
+    }
+    (void)option->SetWidth(width_);
+    (void)option->SetHeight(heigth_);
+    (void)option->SetX(0);
+    (void)option->SetY(0);
+    (void)option->SetWindowType(WINDOW_TYPE_NORMAL);
+    (void)wmi->CreateWindow(mwindow_, option);
+    if (mwindow_ == nullptr) {
+        cout << "mwindow_ is null" << endl;
+        return nullptr;
+    }
+
+    return mwindow_->GetSurface();
+}
+
+sptr<Surface> PlayerDemo::GetSubWindowSurface()
+{
+    if (SetSurfaceSize() != 0) {
+        cout << "SetSurface Size fail" << endl;
+        return nullptr;
+    }
+
+    sptr<Rosen::WindowOption> option = new Rosen::WindowOption();
+    option->SetWindowRect({ 0, 0, width_, heigth_ });
+    option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_LAUNCHING);
+    option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
+    previewWindow_ = Rosen::Window::Create("xcomponent_window", option);
+    if (previewWindow_ == nullptr || previewWindow_->GetSurfaceNode() == nullptr) {
+        cout << "previewWindow_ is nullptr" << endl;
+        return nullptr;
+    }
+
+    previewWindow_->Show();
+    return previewWindow_->GetSurfaceNode()->GetSurface();
+}
+
 sptr<Surface> PlayerDemo::GetVideoSurface()
 {
     cout << "Please enter the number of mode(default no window):" << endl;
@@ -141,52 +194,11 @@ sptr<Surface> PlayerDemo::GetVideoSurface()
     if (mode == "0" || mode == "") {
         return nullptr;
     } else if (mode == "1") {
-        if (SetSurfaceSize() != 0) {
-            cout << "SetSurface Size fail" << endl;
-            return nullptr;
-        }
-
-        sptr<WindowManager> wmi = WindowManager::GetInstance();
-        if (wmi == nullptr) {
-            cout << "WindowManager is null" << endl;
-            return nullptr;
-        }
-        wmi->Init();
-        sptr<WindowOption> option = WindowOption::Get();
-        if (option == nullptr) {
-            cout << "WindowOption is null" << endl;
-            return nullptr;
-        }
-        (void)option->SetWidth(WIDTH);
-        (void)option->SetHeight(HEIGHT);
-        (void)option->SetX(0);
-        (void)option->SetY(0);
-        (void)option->SetWindowType(WINDOW_TYPE_NORMAL);
-        (void)wmi->CreateWindow(mwindow_, option);
-        if (mwindow_ == nullptr) {
-            cout << "mwindow_ is null" << endl;
-            return nullptr;
-        }
-        producerSurface = mwindow_->GetSurface();
+        producerSurface = GetWindowSurface();
     } else if (mode == "2") {
-        if (SetSurfaceSize() != 0) {
-            cout << "SetSurface Size fail" << endl;
-            return nullptr;
-        }
-
-        sptr<Rosen::WindowOption> option = new Rosen::WindowOption();
-        option->SetWindowRect({0, 0, WIDTH, HEIGHT});
-        option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_LAUNCHING);
-        option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
-        previewWindow_ = Rosen::Window::Create("xcomponent_window", option);
-        if (previewWindow_ == nullptr || previewWindow_->GetSurfaceNode() == nullptr) {
-            cout << "previewWindow_ is nullptr" << endl;
-            return nullptr;
-        }
-
-        previewWindow_->Show();
-        producerSurface = previewWindow_->GetSurfaceNode()->GetSurface();
+        producerSurface = GetSubWindowSurface();
     }
+    
     if (producerSurface == nullptr) {
         cout << "producerSurface is nullptr" << endl;
         return nullptr;
@@ -540,11 +552,11 @@ int32_t PlayerDemo::SetSurfaceSize()
     string mode;
     (void)getline(cin, mode);
     if (mode == "" || mode == "0") {
-        width_ = 1920;
-        height_ = 1080;
+        width_ = 1920; //1920 for width
+        height_ = 1080; //1080 for height
     } else if (mode == "2") {
-        width_ = 640;
-        height_ = 360;
+        width_ = 640; //640 for width
+        height_ = 360; //360 for height
     } else {
         ret = -1;
     }
