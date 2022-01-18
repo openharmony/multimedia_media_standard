@@ -227,9 +227,9 @@ ohos_shared_library("media_surface") {
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard:libwmclient",
     "//foundation/graphic/standard/frameworks/surface:surface",
-    "//utils/native/base:utils",
     "//foundation/windowmanager/utils:libwmutil",
-    "//foundation/windowmanager/wm:libwm"
+    "//foundation/windowmanager/wm:libwm",
+    "//utils/native/base:utils",
   ]
 
   external_deps = [
