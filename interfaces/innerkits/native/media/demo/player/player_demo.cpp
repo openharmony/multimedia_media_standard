@@ -135,10 +135,10 @@ PlayerDemo::PlayerDemo()
 
 PlayerDemo::~PlayerDemo()
 {
-   if (previewWindow_ != nullptr) {
-       previewWindow_->Destroy();
-       previewWindow_ = nullptr;
-   } 
+    if (previewWindow_ != nullptr) {
+        previewWindow_->Destroy();
+        previewWindow_ = nullptr;
+    } 
 }
 
 sptr<Surface> PlayerDemo::GetWindowSurface()
@@ -181,7 +181,7 @@ sptr<Surface> PlayerDemo::GetSubWindowSurface()
     }
 
     sptr<Rosen::WindowOption> option = new Rosen::WindowOption();
-    option->SetWindowRect({ 0, 0, width_, heigth_ });
+    option->SetWindowRect( { 0, 0, width_, heigth_ } );
     option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_LAUNCHING);
     option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
     previewWindow_ = Rosen::Window::Create("xcomponent_window", option);
@@ -564,11 +564,11 @@ int32_t PlayerDemo::SetSurfaceSize()
     string mode;
     (void)getline(cin, mode);
     if (mode == "" || mode == "0") {
-        width_ = 1920; //1920 for width
-        height_ = 1080; //1080 for height
+        width_ = 1920; // 1920 for width
+        height_ = 1080; // 1080 for height
     } else if (mode == "2") {
-        width_ = 640; //640 for width
-        height_ = 360; //360 for height
+        width_ = 640; // 640 for width
+        height_ = 360; // 360 for height
     } else {
         ret = -1;
     }
