@@ -39,7 +39,7 @@ private:
     int32_t idCount = 0;
     int32_t id_ = 0;
     sptr<Window> mwindow_ = nullptr;
-    sptr<Rosen::Wibdow> previewWindow_ = nullptr;
+    sptr<Rosen::Window> previewWindow_ = nullptr;
     std::map<std::string, wptr<Surface>> surfaceMap_;
     sptr<Surface> producerSurface_ = nullptr;
 };
