@@ -43,8 +43,8 @@ namespace OHOS {
 namespace Media {
 class PlayerDemo {
 public:
-    PlayerDemo() = default;
-    virtual ~PlayerDemo() = default;
+    PlayerDemo();
+    ~PlayerDemo();
     DISALLOW_COPY_AND_MOVE(PlayerDemo);
     sptr<Surface> GetVideoSurface();
     void RunCase(const std::string &path);

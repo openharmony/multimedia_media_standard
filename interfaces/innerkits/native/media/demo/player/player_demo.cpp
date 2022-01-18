@@ -129,6 +129,18 @@ void PlayerCallbackDemo::PrintBufferingUpdate(const Format &infoBody) const
     }
 }
 
+PlayerDemo::PlayerDemo()
+{
+}
+
+PlayerDemo::~PlayerDemo()
+{
+   if (previewWindow_ != nullptr) {
+       previewWindow_->Destroy();
+       previewWindow_ = nullptr;
+   } 
+}
+
 sptr<Surface> PlayerDemo::GetWindowSurface()
 {
     if (SetSurfaceSize() != 0) {
@@ -198,7 +210,7 @@ sptr<Surface> PlayerDemo::GetVideoSurface()
     } else if (mode == "2") {
         producerSurface = GetSubWindowSurface();
     }
-    
+
     if (producerSurface == nullptr) {
         cout << "producerSurface is nullptr" << endl;
         return nullptr;
