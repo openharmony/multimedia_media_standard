@@ -95,7 +95,7 @@ sptr<Surface> MediaSurfaceImpl::GetSurface()
 
     std::lock_guard<std::mutex> lock(mutex_);
     sptr<Rosen::WindowOption> option = new Rosen::WindowOption();
-    option->SetWindowRect( { 0, 0, 1920, 1080 } ); // 1920 is width, 1080 is height
+    option->SetWindowRect({ 0, 0, 1920, 1080 }); // 1920 is width, 1080 is height
     option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_LAUNCHING);
     option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
     std::string winName = "media_player_window" + std::to_string(id_);
