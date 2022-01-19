@@ -71,19 +71,19 @@ enum MediaServiceErrCode : ErrCode {
     MSERR_EXTEND_START      = MS_ERR_OFFSET + 0xF000, // extend err start.
 };
 
-// External recieved code = MediaServiceExtErrCode - MS_ERR_OFFSET
+// media api error code
 enum MediaServiceExtErrCode : ErrCode {
-    MSERR_EXT_OK = ERR_OK,
-    MSERR_EXT_NO_MEMORY = MS_ERR_OFFSET + ENOMEM,         // no memory.
-    MSERR_EXT_OPERATE_NOT_PERMIT = MS_ERR_OFFSET + EPERM, // opertation not be permitted.
-    MSERR_EXT_INVALID_VAL = MS_ERR_OFFSET + EINVAL,       // invalid argument.
-    MSERR_EXT_IO = MS_ERR_OFFSET + EIO,                   // IO error.
-    MSERR_EXT_TIMEOUT = MS_ERR_OFFSET + ETIMEDOUT,        // network timeout.
-    MSERR_EXT_UNKNOWN = MS_ERR_OFFSET + 0x200,            // unknown error.
-    MSERR_EXT_SERVICE_DIED,                               // media service died.
-    MSERR_EXT_INVALID_STATE,                              // the state is not support this operation.
-    MSERR_EXT_UNSUPPORT,                                  // unsupport interface.
-    MSERR_EXT_EXTEND_START = MS_ERR_OFFSET + 0xF000,      // extend err start.
+    MSERR_EXT_OK = 0,
+    MSERR_EXT_NO_MEMORY = 1,           // no memory.
+    MSERR_EXT_OPERATE_NOT_PERMIT = 2,  // opertation not be permitted.
+    MSERR_EXT_INVALID_VAL = 3,         // invalid argument.
+    MSERR_EXT_IO = 4,                  // IO error.
+    MSERR_EXT_TIMEOUT = 5,             // network timeout.
+    MSERR_EXT_UNKNOWN = 6,             // unknown error.
+    MSERR_EXT_SERVICE_DIED = 7,        // media service died.
+    MSERR_EXT_INVALID_STATE = 8,       // the state is not support this operation.
+    MSERR_EXT_UNSUPPORT = 9,           // unsupport interface.
+    MSERR_EXT_EXTEND_START = 100,      // extend err start.
 };
 
 __attribute__((visibility("default"))) std::string MSErrorToString(MediaServiceErrCode code);
