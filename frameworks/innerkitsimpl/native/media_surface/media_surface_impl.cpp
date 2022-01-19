@@ -14,6 +14,8 @@
  */
 
 #include "media_surface_impl.h"
+
+#include <ui/rs_surface_node.h>
 #include "media_log.h"
 #include "media_errors.h"
 #include "display_type.h"
