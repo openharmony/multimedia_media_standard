@@ -44,7 +44,7 @@ napi_status AddCodecInfo(napi_env env, napi_value &result, std::shared_ptr<AVCod
     return napi_ok;
 }
 
-napi_status MediaJsResultAudioCapsDynamic::GetJsResult(napi_env env, napi_value &result)
+napi_status MediaJsAudioCapsDynamic::GetJsResult(napi_env env, napi_value &result)
 {
     auto codecList = AVCodecListFactory::CreateAVCodecList();
     CHECK_AND_RETURN_RET(codecList != nullptr, napi_generic_failure);
@@ -78,16 +78,16 @@ napi_status MediaJsResultAudioCapsDynamic::GetJsResult(napi_env env, napi_value 
         (void)CommonNapi::AddRangeProperty(env, result, "supportedComplexity", range.minVal, range.maxVal);
 
         std::vector<int32_t> vec = (*it)->GetSupportedFormats();
-        (void)CommonNapi::AddNumberArrayProperty(env, result, "supportedFormats", vec);
+        (void)CommonNapi::AddArrayProperty(env, result, "supportedFormats", vec);
 
         vec = (*it)->GetSupportedSampleRates();
-        (void)CommonNapi::AddNumberArrayProperty(env, result, "supportedSampleRates", vec);
+        (void)CommonNapi::AddArrayProperty(env, result, "supportedSampleRates", vec);
 
         vec = (*it)->GetSupportedProfiles();
-        (void)CommonNapi::AddNumberArrayProperty(env, result, "supportedProfiles", vec);
+        (void)CommonNapi::AddArrayProperty(env, result, "supportedProfiles", vec);
 
         vec = (*it)->GetSupportedLevels();
-        (void)CommonNapi::AddNumberArrayProperty(env, result, "supportedLevels", vec);
+        (void)CommonNapi::AddArrayProperty(env, result, "supportedLevels", vec);
     }
 
     return napi_ok;
@@ -126,16 +126,16 @@ napi_status MediaJsAudioCapsStatic::GetJsResult(napi_env env, napi_value &result
         (void)CommonNapi::AddRangeProperty(env, obj, "supportedComplexity", range.minVal, range.maxVal);
 
         std::vector<int32_t> vec = (*it)->GetSupportedFormats();
-        (void)CommonNapi::AddNumberArrayProperty(env, obj, "supportedFormats", vec);
+        (void)CommonNapi::AddArrayProperty(env, obj, "supportedFormats", vec);
 
         vec = (*it)->GetSupportedSampleRates();
-        (void)CommonNapi::AddNumberArrayProperty(env, obj, "supportedSampleRates", vec);
+        (void)CommonNapi::AddArrayProperty(env, obj, "supportedSampleRates", vec);
 
         vec = (*it)->GetSupportedProfiles();
-        (void)CommonNapi::AddNumberArrayProperty(env, obj, "supportedProfiles", vec);
+        (void)CommonNapi::AddArrayProperty(env, obj, "supportedProfiles", vec);
 
         vec = (*it)->GetSupportedLevels();
-        (void)CommonNapi::AddNumberArrayProperty(env, obj, "supportedLevels", vec);
+        (void)CommonNapi::AddArrayProperty(env, obj, "supportedLevels", vec);
 
         auto codecInfo = (*it)->GetCodecInfo();
         if (codecInfo != nullptr) {

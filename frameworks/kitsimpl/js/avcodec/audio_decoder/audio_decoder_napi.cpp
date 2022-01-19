@@ -691,7 +691,7 @@ napi_value AudioDecoderNapi::GetAudioDecoderCaps(napi_env env, napi_callback_inf
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
-    asyncCtx->JsResult = std::make_unique<MediaJsResultAudioCapsDynamic>(name, true);
+    asyncCtx->JsResult = std::make_unique<MediaJsAudioCapsDynamic>(name, true);
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "GetAudioDecoderCaps", NAPI_AUTO_LENGTH, &resource);
