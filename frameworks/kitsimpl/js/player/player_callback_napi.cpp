@@ -110,7 +110,7 @@ void PlayerCallbackNapi::OnError(PlayerErrorType errorType, int32_t errorCode)
     CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
     cb->callback = errorCallback_;
     cb->callbackName = ERROR_CALLBACK_NAME;
-    cb->errorMsg = MSErrorToString(static_cast<MediaServiceErrCode>(errorCode));
+    cb->errorMsg = MSErrorToExtErrorString(static_cast<MediaServiceErrCode>(errorCode));
     cb->errorCode = MSErrorToExtError(static_cast<MediaServiceErrCode>(errorCode));
     return OnJsCallBackError(cb);
 }
