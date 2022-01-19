@@ -239,7 +239,7 @@ bool CommonNapi::AddRangeProperty(napi_env env, napi_value obj, const std::strin
     return true;
 }
 
-bool CommonNapi::AddNumberArrayProperty(napi_env env, napi_value obj, const std::string &name,
+bool CommonNapi::AddArrayProperty(napi_env env, napi_value obj, const std::string &name,
     const std::vector<int32_t> &vec)
 {
     CHECK_AND_RETURN_RET(obj != nullptr, false);

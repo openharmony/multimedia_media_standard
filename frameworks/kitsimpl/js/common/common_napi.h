@@ -42,7 +42,7 @@ public:
     static napi_value CreateFormatBuffer(napi_env env, Format &format);
     static bool CreateFormatBufferByRef(napi_env env, Format &format, napi_value &result);
     static bool AddRangeProperty(napi_env env, napi_value obj, const std::string &name, int32_t min, int32_t max);
-    static bool AddNumberArrayProperty(napi_env env, napi_value obj, const std::string &name,
+    static bool AddArrayProperty(napi_env env, napi_value obj, const std::string &name,
         const std::vector<int32_t> &vec);
 };
 
