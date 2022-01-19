@@ -42,7 +42,7 @@ public:
     static napi_value CreateFormatBuffer(napi_env env, Format &format);
     static bool CreateFormatBufferByRef(napi_env env, Format &format, napi_value &result);
     static bool AddRangeProperty(napi_env env, napi_value obj, const std::string &name, int32_t min, int32_t max);
-    static bool AddArrayProperty(napi_env env, napi_value obj, const std::string &name,
+    static bool AddNumberArrayProperty(napi_env env, napi_value obj, const std::string &name,
         const std::vector<int32_t> &vec);
 };
 
@@ -94,6 +94,36 @@ public:
 
 private:
     std::vector<Format> value_;
+};
+
+class MediaJsResultRange : public MediaJsResult {
+public:
+    explicit MediaJsResultRange(int32_t min, int32_t max)
+        : min_(min),
+          max_(max)
+    {
+    }
+    ~MediaJsResultRange() = default;
+    napi_status GetJsResult(napi_env env, napi_value &result) override
+    {
+        napi_status status = napi_create_object(env, &result);
+        if (status != napi_ok) {
+            return status;
+        }
+
+        if (!CommonNapi::SetPropertyInt32(env, result, "min", min_)) {
+            return napi_invalid_arg;
+        }
+
+        if (!CommonNapi::SetPropertyInt32(env, result, "max", max_)) {
+            return napi_invalid_arg;
+        }
+
+        return napi_ok;
+    }
+private:
+    int32_t min_;
+    int32_t max_;
 };
 
 class MediaJsResultInstance : public MediaJsResult {
@@ -169,34 +199,6 @@ public:
 
 private:
     Format format_;
-};
-
-class MediaCapsJsResultAudio : public MediaJsResult {
-public:
-    explicit MediaCapsJsResultAudio(bool isDecoder)
-        : isDecoder_(isDecoder)
-    {
-    }
-    ~MediaCapsJsResultAudio() = default;
-    napi_status GetJsResult(napi_env env, napi_value &result) override;
-
-private:
-    bool isDecoder_;
-};
-
-class MediaCapsJsResultAudioDynamic : public MediaJsResult {
-public:
-    explicit MediaCapsJsResultAudioDynamic(std::string name, bool isDecoder)
-        : name_(name),
-          isDecoder_(isDecoder)
-    {
-    }
-    ~MediaCapsJsResultAudioDynamic() = default;
-    napi_status GetJsResult(napi_env env, napi_value &result) override;
-
-private:
-    std::string name_;
-    bool isDecoder_;
 };
 
 struct MediaAsyncContext {

@@ -239,7 +239,7 @@ bool CommonNapi::AddRangeProperty(napi_env env, napi_value obj, const std::strin
     return true;
 }
 
-bool CommonNapi::AddArrayProperty(napi_env env, napi_value obj, const std::string &name,
+bool CommonNapi::AddNumberArrayProperty(napi_env env, napi_value obj, const std::string &name,
     const std::vector<int32_t> &vec)
 {
     CHECK_AND_RETURN_RET(obj != nullptr, false);
@@ -253,6 +253,13 @@ bool CommonNapi::AddArrayProperty(napi_env env, napi_value obj, const std::strin
         (void)napi_create_int32(env, vec.at(i), &number);
         (void)napi_set_element(env, array, i, number);
     }
+
+    napi_value nameStr = nullptr;
+    status = napi_create_string_utf8(env, name.c_str(), NAPI_AUTO_LENGTH, &nameStr);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    status = napi_set_property(env, obj, nameStr, array);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
 
     return true;
 }
@@ -426,131 +433,6 @@ void MediaAsyncContext::CompleteCallback(napi_env env, napi_status status, void 
     napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
     asyncContext = nullptr;
-}
-
-napi_status AddCodecInfo(napi_env env, napi_value &result, std::shared_ptr<AVCodecInfo> info)
-{
-    CHECK_AND_RETURN_RET(info != nullptr, napi_generic_failure);
-
-    napi_value obj = nullptr;
-    napi_status status = napi_create_object(env, &obj);
-    CHECK_AND_RETURN_RET(status == napi_ok, status);
-
-    (void)CommonNapi::SetPropertyString(env, obj, "name", info->GetName());
-    (void)CommonNapi::SetPropertyInt32(env, obj, "type", static_cast<int32_t>(info->GetType()));
-    (void)CommonNapi::SetPropertyString(env, obj, "mimeType", info->GetMimeType());
-    (void)CommonNapi::SetPropertyInt32(env, obj, "isHardwareAccelerated",
-        static_cast<int32_t>(info->IsHardwareAccelerated()));
-    (void)CommonNapi::SetPropertyInt32(env, obj, "isSoftwareOnly", static_cast<int32_t>(info->IsSoftwareOnly()));
-    (void)CommonNapi::SetPropertyInt32(env, obj, "isVendor", static_cast<int32_t>(info->IsVendor()));
-
-    return napi_ok;
-}
-
-napi_status MediaCapsJsResultAudio::GetJsResult(napi_env env, napi_value &result)
-{
-    auto codecList = AVCodecListFactory::CreateAVCodecList();
-    CHECK_AND_RETURN_RET(codecList != nullptr, napi_generic_failure);
-
-    std::vector<std::shared_ptr<AudioCaps>> audioCaps;
-    if (isDecoder_) {
-        audioCaps = codecList->GetAudioDecoderCaps();
-    } else {
-        audioCaps = codecList->GetAudioEncoderCaps();
-    }
-
-    napi_status status = napi_create_array_with_length(env, audioCaps.size(), &result);
-    CHECK_AND_RETURN_RET(status == napi_ok, status);
-
-    int32_t index = 0;
-
-    for (auto it = audioCaps.begin(); it != audioCaps.end(); it++) {
-        CHECK_AND_CONTINUE((*it) != nullptr);
-
-        napi_value obj = nullptr;
-        status = napi_create_object(env, &obj);
-        CHECK_AND_CONTINUE(status == napi_ok);
-
-        Range range = (*it)->GetSupportedBitrate();
-        (void)CommonNapi::AddRangeProperty(env, obj, "supportedBitrate", range.minVal, range.maxVal);
-
-        range = (*it)->GetSupportedChannel();
-        (void)CommonNapi::AddRangeProperty(env, obj, "supportedChannel", range.minVal, range.maxVal);
-
-        range = (*it)->GetSupportedComplexity();
-        (void)CommonNapi::AddRangeProperty(env, obj, "supportedComplexity", range.minVal, range.maxVal);
-
-        std::vector<int32_t> vec = (*it)->GetSupportedFormats();
-        (void)CommonNapi::AddArrayProperty(env, obj, "supportedFormats", vec);
-
-        vec = (*it)->GetSupportedSampleRates();
-        (void)CommonNapi::AddArrayProperty(env, obj, "supportedSampleRates", vec);
-
-        vec = (*it)->GetSupportedProfiles();
-        (void)CommonNapi::AddArrayProperty(env, obj, "supportedProfiles", vec);
-
-        vec = (*it)->GetSupportedLevels();
-        (void)CommonNapi::AddArrayProperty(env, obj, "supportedLevels", vec);
-
-        auto codecInfo = (*it)->GetCodecInfo();
-        if (codecInfo != nullptr) {
-            (void)AddCodecInfo(env, obj, codecInfo);
-        }
-
-        (void)napi_set_element(env, result, index, obj);
-        index++;
-    }
-
-    return napi_ok;
-}
-
-napi_status MediaCapsJsResultAudioDynamic::GetJsResult(napi_env env, napi_value &result)
-{
-    auto codecList = AVCodecListFactory::CreateAVCodecList();
-    CHECK_AND_RETURN_RET(codecList != nullptr, napi_generic_failure);
-
-    std::vector<std::shared_ptr<AudioCaps>> audioCaps;
-    if (isDecoder_) {
-        audioCaps = codecList->GetAudioDecoderCaps();
-    } else {
-        audioCaps = codecList->GetAudioEncoderCaps();
-    }
-
-    napi_status status = napi_create_object(env, &result);
-    CHECK_AND_RETURN_RET(status == napi_ok, napi_generic_failure);
-
-    for (auto it = audioCaps.begin(); it != audioCaps.end(); it++) {
-        CHECK_AND_CONTINUE((*it) != nullptr);
-
-        auto info = (*it)->GetCodecInfo();
-        CHECK_AND_CONTINUE(info != nullptr);
-        CHECK_AND_CONTINUE(info->GetName() == name_);
-
-        (void)AddCodecInfo(env, result, info);
-
-        Range range = (*it)->GetSupportedBitrate();
-        (void)CommonNapi::AddRangeProperty(env, result, "supportedBitrate", range.minVal, range.maxVal);
-
-        range = (*it)->GetSupportedChannel();
-        (void)CommonNapi::AddRangeProperty(env, result, "supportedChannel", range.minVal, range.maxVal);
-
-        range = (*it)->GetSupportedComplexity();
-        (void)CommonNapi::AddRangeProperty(env, result, "supportedComplexity", range.minVal, range.maxVal);
-
-        std::vector<int32_t> vec = (*it)->GetSupportedFormats();
-        (void)CommonNapi::AddArrayProperty(env, result, "supportedFormats", vec);
-
-        vec = (*it)->GetSupportedSampleRates();
-        (void)CommonNapi::AddArrayProperty(env, result, "supportedSampleRates", vec);
-
-        vec = (*it)->GetSupportedProfiles();
-        (void)CommonNapi::AddArrayProperty(env, result, "supportedProfiles", vec);
-
-        vec = (*it)->GetSupportedLevels();
-        (void)CommonNapi::AddArrayProperty(env, result, "supportedLevels", vec);
-    }
-
-    return napi_ok;
 }
 }
 }
