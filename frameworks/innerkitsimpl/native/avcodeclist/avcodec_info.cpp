@@ -330,7 +330,6 @@ void VideoCaps::InitParams()
     heightRange_ = Range(1, INT32_MAX);
 }
 
-
 void VideoCaps::UpdateParams()
 {
     int32_t factor = (blockWidth_ * blockHeight_) / (data_.blockSize.width * data_.blockSize.height);
