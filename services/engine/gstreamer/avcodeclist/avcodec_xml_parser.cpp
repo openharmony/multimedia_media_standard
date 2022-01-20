@@ -18,6 +18,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecXmlParser"};
+    constexpr int32_t PAIR_LENGTH = 2;
 }
 
 namespace OHOS {
@@ -338,8 +339,8 @@ bool AVCodecXmlParser::SetCapabilityHashRangeData(std::unordered_map<std::string
         ImgSize resolution;
         Range frameRate;
         ret = SpiltKeyList(*iter, "@", resolutionFrameRateVector);
-        CHECK_AND_RETURN_RET_LOG(ret != false && resolutionFrameRateVector.size() == 2 , false,
-            "failed:can not trans %{public}s", iter->c_str()); // check vector has 2 element
+        CHECK_AND_RETURN_RET_LOG(ret != false && resolutionFrameRateVector.size() == PAIR_LENGTH, false,
+            "failed:can not trans %{public}s", iter->c_str());
         if (!(TransStrAsSize(resolutionFrameRateVector[0], resolution) &&
               TransStrAsRange(resolutionFrameRateVector[1], frameRate))) {
             MEDIA_LOGD("failed:can not trans %{public}s for resolution or frame rate", iter->c_str());
