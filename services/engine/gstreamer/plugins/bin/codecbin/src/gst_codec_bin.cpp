@@ -16,6 +16,7 @@
 #include "config.h"
 #include "gst_codec_bin.h"
 #include <gst/gst.h>
+#include "dumper.h"
 
 enum {
     PROP_0,
@@ -27,7 +28,8 @@ enum {
     PROP_SRC_CONVERT,
     PROP_SINK_CONVERT,
     PROP_PARSER,
-    PROP_FORCE_I_FRAME
+    PROP_FORCE_I_FRAME,
+    PROP_USE_SURFACE_INPUT
 };
 
 #define gst_codec_bin_parent_class parent_class
@@ -105,6 +107,9 @@ static void gst_codec_bin_class_init(GstCodecBinClass *klass)
         g_param_spec_int("req-i-frame", "Request I frame", "Request I frame for video encoder",
             -1, 1, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
+    g_object_class_install_property(gobject_class, PROP_USE_SURFACE_INPUT,
+        g_param_spec_boolean("use-surface-input", "use surface input", "The source is surface",
+            FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
     gst_element_class_set_static_metadata(gstelement_class,
         "Codec Bin", "Bin/Decoder&Encoder",
         "Auto construct codec pipeline", "OpenHarmony");
@@ -129,6 +134,7 @@ static void gst_codec_bin_init(GstCodecBin *bin)
     bin->need_src_convert = FALSE;
     bin->need_sink_convert = FALSE;
     bin->need_parser = FALSE;
+	bin->is_input_surface = FALSE;
 }
 
 static void gst_codec_bin_finalize(GObject *object)
@@ -177,6 +183,9 @@ static void gst_codec_bin_set_property(GObject *object, guint prop_id,
                 g_object_set(bin->coder, "req-i-frame", g_value_get_int(value), nullptr);
             }
             break;
+        case PROP_USE_SURFACE_INPUT:
+            bin->is_input_surface = g_value_get_boolean(value);
+            break;
         default:
             break;
     }
@@ -209,52 +218,38 @@ static void gst_codec_bin_get_property(GObject *object, guint prop_id,
     }
 }
 
-static gboolean create_hdi_coder(GstCodecBin *bin)
-{
-    g_return_val_if_fail(bin != nullptr, FALSE);
-    gboolean ret = TRUE;
-    switch (bin->type) {
-        case CODEC_BIN_TYPE_VIDEO_DECODER:
-            bin->coder = gst_element_factory_make("gsthdivdec", "gsthdivdec");
-            g_return_val_if_fail(bin->coder != nullptr, FALSE);
-            g_object_set(bin->coder, "name", bin->coder_name, nullptr);
-            break;
-        case CODEC_BIN_TYPE_VIDEO_ENCODER:
-            bin->coder = gst_element_factory_make("gsthdivenc", "gsthdivenc");
-            g_return_val_if_fail(bin->coder != nullptr, FALSE);
-            g_object_set(bin->coder, "name", bin->coder_name, nullptr);
-            ret = TRUE;
-            break;
-        case CODEC_BIN_TYPE_AUDIO_DECODER:
-            // fall-through
-        case CODEC_BIN_TYPE_AUDIO_ENCODER:
-            // fall-through
-        default:
-            GST_ERROR_OBJECT(bin, "Unsupport");
-            ret = FALSE;
-            break;
-    }
-    return ret;
-}
-
-static gboolean create_software_coder(GstCodecBin *bin)
-{
-    g_return_val_if_fail(bin != nullptr, FALSE);
-    bin->coder = gst_element_factory_make(bin->coder_name, "coder");
-    g_return_val_if_fail(bin->coder != nullptr, FALSE);
-    return TRUE;
-}
-
 static gboolean create_coder(GstCodecBin *bin)
 {
     g_return_val_if_fail(bin != nullptr, FALSE);
     g_return_val_if_fail(bin->coder_name != nullptr, FALSE);
     g_return_val_if_fail(bin->type != CODEC_BIN_TYPE_UNKNOWN, FALSE);
+    bin->coder = gst_element_factory_make(bin->coder_name, "coder");
+    g_return_val_if_fail(bin->coder != nullptr, FALSE);
+    g_object_set(bin->coder, "enable-surface", bin->is_input_surface, nullptr);
+    return TRUE;
+}
 
-    if (bin->use_software) {
-        return create_software_coder(bin);
+static void add_dump_probe(GstCodecBin *bin)
+{
+    if (!OHOS::Media::Dumper::IsEnableDumpGstBuffer()) {
+        return;
     }
-    return create_hdi_coder(bin);
+
+    if (bin->parser != nullptr) {
+        OHOS::Media::Dumper::AddDumpGstBufferProbe(bin->parser, "src");
+        OHOS::Media::Dumper::AddDumpGstBufferProbe(bin->parser, "sink");
+    }
+
+    if (bin->src != nullptr) {
+        OHOS::Media::Dumper::AddDumpGstBufferProbe(bin->src, "src");
+    }
+    if (bin->sink_convert != nullptr) {
+        OHOS::Media::Dumper::AddDumpGstBufferProbe(bin->sink_convert, "src");
+        OHOS::Media::Dumper::AddDumpGstBufferProbe(bin->sink_convert, "sink");
+    }
+    if (bin->sink != nullptr) {
+        OHOS::Media::Dumper::AddDumpGstBufferProbe(bin->sink, "sink");
+    }
 }
 
 static gboolean connect_element(GstCodecBin *bin)
@@ -288,6 +283,8 @@ static gboolean connect_element(GstCodecBin *bin)
         g_return_val_if_fail(ret == TRUE, FALSE);
     }
     GST_INFO_OBJECT(bin, "connect_element success");
+
+    add_dump_probe(bin);
     return TRUE;
 }
 

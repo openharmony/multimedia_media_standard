@@ -27,6 +27,8 @@
 
 namespace OHOS {
 namespace Media {
+#define EXPORT_API __attribute__((visibility("default")))
+
 #define ELEM_NAME(elem) (GST_ELEMENT_NAME(elem) != nullptr) ? GST_ELEMENT_NAME(elem) : "unkonwn"
 
 #define PAD_NAME(pad) (GST_PAD_NAME(pad) != nullptr) ? GST_PAD_NAME(pad) : "unknown"
@@ -37,7 +39,15 @@ namespace Media {
 
 #define STRUCTURE_NAME(struc) (gst_structure_get_name(struc) != nullptr) ? gst_structure_get_name(struc) : ""
 
-bool MatchElementByMeta(
+#define GST_OBJECT_UNREF_IF_NOT_NULL(obj) \
+    do {                                  \
+        if (obj != nullptr) {             \
+            gst_object_unref(obj);        \
+            obj = nullptr;                \
+        }                                 \
+    } while (0)
+
+EXPORT_API bool MatchElementByMeta(
     const GstElement &elem, const std::string_view &metaKey, const std::vector<std::string_view> &expectedMetaFields);
 
 template <typename T>

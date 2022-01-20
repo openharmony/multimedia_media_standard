@@ -52,7 +52,7 @@ static GstMemory *gst_consumer_surface_allocator_alloc(GstAllocator *allocator, 
     g_return_val_if_fail(sallocator != nullptr && sallocator->priv != nullptr, nullptr);
     g_return_val_if_fail(sallocator->priv->csurface != nullptr, nullptr);
     GstConsumerSurfaceMemory *mem =
-            reinterpret_cast<GstConsumerSurfaceMemory *>(g_slice_alloc0(sizeof(GstConsumerSurfaceMemory)));
+        reinterpret_cast<GstConsumerSurfaceMemory *>(g_slice_alloc0(sizeof(GstConsumerSurfaceMemory)));
     g_return_val_if_fail(mem != nullptr, nullptr);
 
     ON_SCOPE_EXIT(0) { g_slice_free(GstConsumerSurfaceMemory, mem); };
@@ -61,30 +61,25 @@ static GstMemory *gst_consumer_surface_allocator_alloc(GstAllocator *allocator, 
     sptr<SurfaceBuffer> surface_buffer = nullptr;
     gint32 fencefd = -1;
     gint64 timestamp = 0;
-    gint32 data_size = 0;
     gboolean is_key_frame = FALSE;
     Rect damage = {0, 0, 0, 0};
     if (surface->AcquireBuffer(surface_buffer, fencefd, timestamp, damage) != SURFACE_ERROR_OK) {
-        GST_WARNING_OBJECT(allocator, "AcquireBuffer failed");
+        GST_WARNING_OBJECT(allocator, "Acquire surface buffer failed");
         return nullptr;
     }
     g_return_val_if_fail(surface_buffer != nullptr, nullptr);
     ON_SCOPE_EXIT(1) { surface->ReleaseBuffer(surface_buffer, -1); };
-    SurfaceError surfaceRet = SURFACE_ERROR_OK;
-    surfaceRet = surface_buffer->ExtraGet("dataSize", data_size);
-    g_return_val_if_fail(surfaceRet == SURFACE_ERROR_OK && data_size > 0, nullptr);
-    surfaceRet = surface_buffer->ExtraGet("isKeyFrame", is_key_frame);
-    g_return_val_if_fail(surfaceRet == SURFACE_ERROR_OK, nullptr);
+    (void)surface_buffer->ExtraGet("timeStamp", timestamp);
 
     gst_memory_init(GST_MEMORY_CAST(mem), GST_MEMORY_FLAG_NO_SHARE,
-        allocator, nullptr, surface_buffer->GetSize(), 0, 0, data_size);
+        allocator, nullptr, surface_buffer->GetSize(), 0, 0, size);
     mem->surface_buffer = surface_buffer;
     mem->fencefd = fencefd;
     mem->timestamp = timestamp;
     mem->is_key_frame = is_key_frame;
     mem->damage = damage;
     mem->buffer_handle = reinterpret_cast<intptr_t>(surface_buffer->GetBufferHandle());
-    GST_INFO_OBJECT(allocator, "acquire surface buffer");
+    GST_INFO_OBJECT(allocator, "acquire surface buffer, timestamp:%lld", timestamp);
 
     CANCEL_SCOPE_EXIT_GUARD(0);
     CANCEL_SCOPE_EXIT_GUARD(1);

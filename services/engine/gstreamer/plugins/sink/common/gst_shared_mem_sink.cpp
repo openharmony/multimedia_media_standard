@@ -35,6 +35,7 @@ struct _GstSharedMemSinkPrivate {
     GstShMemAllocator *allocator;
     GstAllocationParams allocParams;
     std::shared_ptr<OHOS::Media::AVSharedMemoryPool> avShmemPool;
+    gboolean setPoolForAllocator;
 };
 
 enum {
@@ -56,6 +57,9 @@ static GstFlowReturn gst_shared_mem_sink_do_app_render(GstMemSink *memsink, GstB
 G_DEFINE_TYPE_WITH_CODE(GstSharedMemSink, gst_shared_mem_sink,
                         GST_TYPE_MEM_SINK, G_ADD_PRIVATE(GstSharedMemSink));
 
+GST_DEBUG_CATEGORY_STATIC(gst_shmem_sink_debug_category);
+#define GST_CAT_DEFAULT gst_shmem_sink_debug_category
+
 static void gst_shared_mem_sink_class_init(GstSharedMemSinkClass *klass)
 {
     g_return_if_fail(klass != nullptr);
@@ -64,10 +68,10 @@ static void gst_shared_mem_sink_class_init(GstSharedMemSinkClass *klass)
     GstMemSinkClass *memSinkClass = GST_MEM_SINK_CLASS(klass);
     GstElementClass *elementClass = GST_ELEMENT_CLASS(klass);
 
-    gst_element_class_set_static_metadata(elementClass,
-        "ShMemSink", "Sink/Generic",
-        "Output to multi-process shared memory and allow the application to get access to the shared memory",
-        "OpenHarmony");
+    gobjectClass->dispose = gst_shared_mem_sink_dispose;
+    gobjectClass->finalize = gst_shared_mem_sink_finalize;
+    gobjectClass->set_property = gst_shared_mem_sink_set_property;
+    gobjectClass->get_property = gst_shared_mem_sink_get_property;
 
     g_object_class_install_property(gobjectClass, PROP_MEM_SIZE,
         g_param_spec_uint("mem-size", "Memory Size",
@@ -86,14 +90,16 @@ static void gst_shared_mem_sink_class_init(GstSharedMemSinkClass *klass)
             "Enable the remote refcount at the allocated memory", DEFAULT_PROP_REMOTE_REFCOUNT,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
-    gobjectClass->dispose = gst_shared_mem_sink_dispose;
-    gobjectClass->finalize = gst_shared_mem_sink_finalize;
-    gobjectClass->set_property = gst_shared_mem_sink_set_property;
-    gobjectClass->get_property = gst_shared_mem_sink_get_property;
+    gst_element_class_set_static_metadata(elementClass,
+        "ShMemSink", "Sink/Generic",
+        "Output to multi-process shared memory and allow the application to get access to the shared memory",
+        "OpenHarmony");
 
     memSinkClass->do_propose_allocation = gst_shared_mem_sink_do_propose_allocation;
     memSinkClass->do_stream_render = gst_shared_mem_sink_do_stream_render;
     memSinkClass->do_app_render = gst_shared_mem_sink_do_app_render;
+
+    GST_DEBUG_CATEGORY_INIT(gst_shmem_sink_debug_category, "shmemsink", 0, "shmemsink class");
 }
 
 static void gst_shared_mem_sink_init(GstSharedMemSink *sink)
@@ -108,6 +114,7 @@ static void gst_shared_mem_sink_init(GstSharedMemSink *sink)
     priv->enableRemoteRefCount = DEFAULT_PROP_REMOTE_REFCOUNT;
     gst_allocation_params_init(&priv->allocParams);
     priv->allocator = gst_shmem_allocator_new();
+    priv->setPoolForAllocator = FALSE;
 }
 
 static void gst_shared_mem_sink_dispose(GObject *obj)
@@ -127,6 +134,7 @@ static void gst_shared_mem_sink_dispose(GObject *obj)
         gst_object_unref(priv->pool);
         priv->pool = nullptr;
     }
+    priv->avShmemPool = nullptr;
     GST_OBJECT_UNLOCK(shmemSink);
 
     G_OBJECT_CLASS(parent_class)->dispose(obj);
@@ -216,7 +224,7 @@ static gboolean set_pool_for_allocator(GstSharedMemSink *shmemSink, guint minBuf
         return FALSE;
     }
 
-    if (priv->avShmemPool != nullptr) {
+    if (priv->setPoolForAllocator) {
         return TRUE;
     }
 
@@ -225,26 +233,27 @@ static gboolean set_pool_for_allocator(GstSharedMemSink *shmemSink, guint minBuf
         return FALSE;
     }
 
-    if (priv->avShmemPool == nullptr) {
-        priv->avShmemPool = std::make_shared<OHOS::Media::AVSharedMemoryPool>();
-        OHOS::Media::AVSharedMemoryPool::InitializeOption option = {
-            .preAllocMemCnt = minBufs,
-            .memSize = size,
-            .maxMemCnt = maxBufs,
-            .enableRemoteRefCnt = priv->enableRemoteRefCount
-        };
-        int32_t ret = priv->avShmemPool->Init(option);
-        g_return_val_if_fail(ret == OHOS::Media::MSERR_OK, GST_FLOW_ERROR);
-    }
+    GST_DEBUG_OBJECT(shmemSink, "minBufs: %u, maxBufs: %u, size: %u", minBufs, maxBufs, size);
+
+    priv->avShmemPool = std::make_shared<OHOS::Media::AVSharedMemoryPool>("shmemsink");
+    OHOS::Media::AVSharedMemoryPool::InitializeOption option = {
+        .preAllocMemCnt = minBufs,
+        .memSize = size,
+        .maxMemCnt = maxBufs,
+        .enableRemoteRefCnt = priv->enableRemoteRefCount
+    };
+    int32_t ret = priv->avShmemPool->Init(option);
+    g_return_val_if_fail(ret == OHOS::Media::MSERR_OK, GST_FLOW_ERROR);
 
     gst_shmem_allocator_set_pool(priv->allocator, priv->avShmemPool);
+    priv->setPoolForAllocator = TRUE;
     return TRUE;
 }
 
 static GstFlowReturn do_copy_buffer(GstSharedMemSink *shmemSink, GstBuffer *inBuf, GstBuffer **outBuf)
 {
     GstSharedMemSinkPrivate *priv = shmemSink->priv;
-    GstMemSink *memsink = GST_MEM_SINK(shmemSink);
+    GstMemSink *memsink = GST_MEM_SINK_CAST(shmemSink);
 
     gboolean ret = set_pool_for_allocator(shmemSink, 1, memsink->maxPoolCapacity, priv->memSize);
     g_return_val_if_fail(ret, GST_FLOW_ERROR);
@@ -280,11 +289,13 @@ static GstFlowReturn do_copy_buffer(GstSharedMemSink *shmemSink, GstBuffer *inBu
 
         gsize size = gst_buffer_get_size(inBuf);
         gsize writesize = gst_buffer_extract(inBuf, 0, info.data, size);
+        gst_buffer_unmap(*outBuf, &info);
         if (writesize != size) {
             GST_ERROR_OBJECT(shmemSink, "extract buffer failed");
             ret = FALSE;
             break;
         }
+        gst_buffer_resize(*outBuf, 0, size);
     } while (0);
 
     if (!ret) {
@@ -305,11 +316,14 @@ static gboolean check_need_copy(GstSharedMemSink *shmemSink, GstBuffer *buffer)
         return FALSE;
     }
 
-    if (priv->pool != nullptr && buffer->pool == GST_BUFFER_POOL_CAST(priv->pool)) {
+    if (buffer->pool != nullptr) {
+        if (buffer->pool != GST_BUFFER_POOL_CAST(priv->pool)) {
+            return TRUE;
+        }
         return FALSE;
     }
 
-    if (priv->pool == nullptr && priv->allocator != nullptr) {
+    if (priv->allocator != nullptr) {
         GstMemory *memory = gst_buffer_peek_memory(buffer, 0);
         if (memory == nullptr) {
             return FALSE;
@@ -324,21 +338,23 @@ static gboolean check_need_copy(GstSharedMemSink *shmemSink, GstBuffer *buffer)
 
 static GstFlowReturn gst_shared_mem_sink_do_stream_render(GstMemSink *memsink, GstBuffer **buffer)
 {
-    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK(memsink);
+    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(memsink);
     GstSharedMemSinkPrivate *priv = shmemSink->priv;
     g_return_val_if_fail(priv != nullptr, GST_FLOW_ERROR);
     GstBuffer *origBuf = *buffer;
     GstBuffer *outBuf = nullptr;
 
     if (!check_need_copy(shmemSink, origBuf)) {
+        // To keep the user interface consistent with the scenario where the output
+        // buffer needs to be copied, reference counting needs to be added.
+        gst_buffer_ref(origBuf);
         return GST_FLOW_OK;
     }
 
     GstFlowReturn ret = do_copy_buffer(shmemSink, origBuf, &outBuf);
-    g_return_val_if_fail(ret != GST_FLOW_OK, ret);
+    g_return_val_if_fail(ret == GST_FLOW_OK, ret);
 
     *buffer = outBuf;
-    gst_buffer_unref(origBuf);
     return GST_FLOW_OK;
 }
 
@@ -351,7 +367,7 @@ static GstFlowReturn gst_shared_mem_sink_do_app_render(GstMemSink *memsink, GstB
      */
     (void)buffer;
 
-    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK(memsink);
+    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(memsink);
     GstSharedMemSinkPrivate *priv = shmemSink->priv;
     g_return_val_if_fail(priv != nullptr, GST_FLOW_ERROR);
     g_return_val_if_fail(priv->avShmemPool == nullptr, GST_FLOW_ERROR);
@@ -362,16 +378,20 @@ static GstFlowReturn gst_shared_mem_sink_do_app_render(GstMemSink *memsink, GstB
 
 static gboolean set_pool_for_propose_allocation(GstSharedMemSink *shmemSink, GstQuery *query, GstCaps *caps)
 {
-    GstMemSink *memsink = GST_MEM_SINK(shmemSink);
+    GstMemSink *memsink = GST_MEM_SINK_CAST(shmemSink);
     GstSharedMemSinkPrivate *priv = shmemSink->priv;
 
     guint size = 0;
     guint minBuffers = 0;
     guint maxBuffers = 0;
     gst_query_parse_nth_allocation_pool(query, 0, nullptr, &size, &minBuffers, &maxBuffers);
-    if (maxBuffers > memsink->maxPoolCapacity && memsink->maxPoolCapacity != 0) {
+    if (maxBuffers == 0) {
         GST_INFO_OBJECT(shmemSink, "correct the maxbuffer from %u to %u", maxBuffers, memsink->maxPoolCapacity);
         maxBuffers = memsink->maxPoolCapacity;
+    }
+    if (size == 0) {
+        GST_INFO_OBJECT(shmemSink, "correct the size from %u to %u", size, priv->memSize);
+        size = priv->memSize;
     }
 
     if (priv->pool != nullptr)  {
@@ -383,9 +403,9 @@ static gboolean set_pool_for_propose_allocation(GstSharedMemSink *shmemSink, Gst
     GstStructure *params = gst_structure_new("mem", "memtype", G_TYPE_STRING, "avshmem", nullptr);
     gst_query_add_allocation_pool(query, GST_BUFFER_POOL_CAST(pool), size, minBuffers, maxBuffers);
     gst_query_add_allocation_meta(query, GST_BUFFER_TYPE_META_API_TYPE, params);
-    gst_object_unref(params);
+    gst_structure_free(params);
 
-    priv->avShmemPool = std::make_shared<OHOS::Media::AVSharedMemoryPool>();
+    // the gstbufferpool will reconfig the avshmempool when the gstbufferpool is activated.
     (void)gst_shmem_pool_set_avshmempool(priv->pool, priv->avShmemPool);
 
     GstStructure *config = gst_buffer_pool_get_config(GST_BUFFER_POOL_CAST(pool));
@@ -399,7 +419,7 @@ static gboolean set_pool_for_propose_allocation(GstSharedMemSink *shmemSink, Gst
 
 static gboolean gst_shared_mem_sink_do_propose_allocation(GstMemSink *memsink, GstQuery *query)
 {
-    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK(memsink);
+    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(memsink);
     GstSharedMemSinkPrivate *priv = shmemSink->priv;
     g_return_val_if_fail(priv != nullptr, FALSE);
     g_return_val_if_fail(priv->allocator != nullptr, FALSE);
@@ -410,9 +430,17 @@ static gboolean gst_shared_mem_sink_do_propose_allocation(GstMemSink *memsink, G
     GST_INFO_OBJECT(shmemSink, "process allocation query, caps: %" GST_PTR_FORMAT ", need pool: %d", caps, needPool);
 
     GST_OBJECT_LOCK(shmemSink);
-
     gst_query_add_allocation_param(query, GST_ALLOCATOR_CAST(priv->allocator), &priv->allocParams);
-    gboolean ret = TRUE;
+
+    // always set avshmempool for allocator, in case that the upstream only use the
+    // gstallocator while the needpool is set.
+    gboolean ret = set_pool_for_allocator(shmemSink, 1, memsink->maxPoolCapacity, priv->memSize);
+    if (!ret) {
+        GST_ERROR_OBJECT(shmemSink, "set pool for allocator failed");
+        GST_OBJECT_UNLOCK(shmemSink);
+        return ret;
+    }
+
     if (needPool) {
         ret = set_pool_for_propose_allocation(shmemSink, query, caps);
         if (!ret) {

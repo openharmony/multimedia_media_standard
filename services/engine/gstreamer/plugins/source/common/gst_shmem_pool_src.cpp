@@ -152,6 +152,7 @@ static void gst_mem_pool_src_dispose(GObject *object)
         gst_object_unref(priv->pool);
         priv->pool = nullptr;
     }
+    priv->av_shmem_pool = nullptr;
     if (priv->shmem_task) {
         g_object_unref(priv->shmem_task);
         priv->shmem_task = nullptr;
@@ -177,28 +178,48 @@ static void gst_shmem_pool_src_finalize(GObject *object)
     gst_queue_array_free(priv->queue);
 }
 
+static gboolean gst_shmem_pool_src_task_need_wait(GstShmemPoolSrc *shmemsrc)
+{
+    auto priv = shmemsrc->priv;
+
+    if (!priv->task_start) {
+        return FALSE;
+    }
+
+    // available_bufer not be used, need wait.
+    if ((priv->pool != nullptr) && (priv->available_buffer == nullptr)) {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 static void gst_shmem_pool_src_loop(GstShmemPoolSrc *shmemsrc)
 {
     GST_DEBUG_OBJECT(shmemsrc, "Loop start");
     g_return_if_fail(shmemsrc != nullptr && shmemsrc->priv != nullptr);
     GstMemPoolSrc *memsrc = GST_MEM_POOL_SRC(shmemsrc);
     auto priv = shmemsrc->priv;
+
     g_mutex_lock(&priv->priv_lock);
-    while (priv->task_start && (priv->pool == nullptr || priv->available_buffer != nullptr)) {
+
+    while (gst_shmem_pool_src_task_need_wait(shmemsrc)) {
         g_cond_wait(&priv->task_condition, &priv->priv_lock);
     }
+
     if (!priv->task_start) {
         g_mutex_unlock(&priv->priv_lock);
         gst_task_pause(priv->shmem_task);
         GST_DEBUG_OBJECT(shmemsrc, "Task exit");
         return;
     }
+
     GstBufferPool *pool = reinterpret_cast<GstBufferPool*>(gst_object_ref(shmemsrc->priv->pool));
     g_mutex_unlock(&priv->priv_lock);
 
     GstBuffer *buffer = nullptr;
     GST_DEBUG_OBJECT(shmemsrc, "Acquire buffer start");
-    GstFlowReturn ret = gst_buffer_pool_acquire_buffer(pool, &buffer, NULL);
+    GstFlowReturn ret = gst_buffer_pool_acquire_buffer(pool, &buffer, nullptr);
     GST_DEBUG_OBJECT(shmemsrc, "Acquire buffer end");
     gst_object_unref(pool);
     pool = nullptr;
@@ -206,7 +227,9 @@ static void gst_shmem_pool_src_loop(GstShmemPoolSrc *shmemsrc)
         gst_buffer_unref(buffer);
         gst_task_pause(priv->shmem_task);
         GST_DEBUG_OBJECT(shmemsrc, "Task going to pause");
+        return;
     }
+
     g_mutex_lock(&priv->priv_lock);
     priv->available_buffer = buffer;
     g_mutex_unlock(&priv->priv_lock);
@@ -247,7 +270,7 @@ GstFlowReturn gst_shmem_pool_src_push_buffer(GstMemPoolSrc *memsrc, GstBuffer *b
 
 static gboolean gst_shmem_pool_src_start_task(GstShmemPoolSrc *shmemsrc)
 {
-    GST_DEBUG_OBJECT(shmemsrc, "Start task");
+    GST_INFO_OBJECT(shmemsrc, "Start task");
     auto priv = shmemsrc->priv;
     g_mutex_lock(&priv->priv_lock);
     if (priv->pool) {
@@ -261,7 +284,7 @@ static gboolean gst_shmem_pool_src_start_task(GstShmemPoolSrc *shmemsrc)
 
 static gboolean gst_shmem_pool_src_pause_task(GstShmemPoolSrc *shmemsrc)
 {
-    GST_DEBUG_OBJECT(shmemsrc, "Pause task");
+    GST_INFO_OBJECT(shmemsrc, "Pause task");
     auto priv = shmemsrc->priv;
     g_mutex_lock(&priv->priv_lock);
     shmemsrc->priv->task_start = FALSE;
@@ -273,18 +296,26 @@ static gboolean gst_shmem_pool_src_pause_task(GstShmemPoolSrc *shmemsrc)
 
 static gboolean gst_shmem_pool_src_stop_task(GstShmemPoolSrc *shmemsrc)
 {
-    GST_DEBUG_OBJECT(shmemsrc, "Stop task");
+    GST_INFO_OBJECT(shmemsrc, "Stop task");
     auto priv = shmemsrc->priv;
     // stop will not failed
     g_mutex_lock(&priv->priv_lock);
     shmemsrc->priv->task_start = FALSE;
-    if (priv->pool) {
+    if (priv->pool != nullptr) {
+        // will set the pool at flusing state, the task loop will go to pause
         gst_buffer_pool_set_active(priv->pool, FALSE);
     }
     g_cond_signal(&shmemsrc->priv->task_condition);
     g_mutex_unlock(&priv->priv_lock);
+
+    // ensure the task loop release the task lock, and go to pause
+    g_rec_mutex_lock(&priv->shmem_lock);
+    GST_INFO_OBJECT(shmemsrc, "got shmemlock");
+    g_rec_mutex_unlock(&priv->shmem_lock);
+
     (void)gst_task_stop(shmemsrc->priv->shmem_task);
     gboolean ret = gst_task_join(shmemsrc->priv->shmem_task);
+    GST_INFO_OBJECT(shmemsrc, "Stop task Ok");
     return ret;
 }
 
@@ -315,33 +346,97 @@ static GstStateChangeReturn gst_shmem_pool_src_change_state(GstElement *element,
     return ret;
 }
 
+static void gst_shmem_pool_src_set_pool_flushing(GstShmemPoolSrc *shmemsrc, gboolean flushing)
+{
+    g_return_if_fail(shmemsrc != nullptr && shmemsrc->priv != nullptr);
+    auto priv = shmemsrc->priv;
+    if (shmemsrc->priv->pool == nullptr) {
+        return;
+    }
+
+    g_mutex_lock(&priv->priv_lock);
+    GstBufferPool *pool = reinterpret_cast<GstBufferPool*>(gst_object_ref(shmemsrc->priv->pool));
+    g_mutex_unlock(&priv->priv_lock);
+
+    if (pool != nullptr) {
+        gst_buffer_pool_set_flushing(pool, flushing);
+        gst_object_unref(pool);
+    }
+}
+
+static gboolean gst_shmem_pool_src_handle_eos_event(GstShmemPoolSrc *shmemsrc)
+{
+    // just mark eos to avoiding the basesrc to process the eos too early, otherwise
+    // the buffers in the queue will be dropped due to the eos event.
+
+    auto priv = shmemsrc->priv;
+    // ensure that the task loop can be stopped to wait for buffer from pool.
+    gst_shmem_pool_src_set_pool_flushing(shmemsrc, TRUE);
+    g_mutex_lock(&priv->priv_lock);
+    shmemsrc->priv->task_start = FALSE;
+    g_mutex_unlock(&priv->priv_lock);
+    gst_task_pause(shmemsrc->priv->shmem_task);
+
+    // ensure the task loop release the task lock, and go to pause
+    g_rec_mutex_lock(&priv->shmem_lock);
+    GST_INFO_OBJECT(shmemsrc, "got shmemlock");
+    gst_shmem_pool_src_set_pool_flushing(shmemsrc, FALSE);
+    g_rec_mutex_unlock(&priv->shmem_lock);
+
+    g_mutex_lock(&priv->queue_lock);
+    priv->eos = TRUE;
+    g_cond_signal(&priv->queue_condition);
+    g_mutex_unlock(&priv->queue_lock);
+
+    return TRUE;
+}
+
+static gboolean gst_shmem_pool_src_handle_flush_start(GstShmemPoolSrc *shmemsrc)
+{
+    auto priv = shmemsrc->priv;
+    g_mutex_lock(&priv->queue_lock);
+    priv->flushing = TRUE;
+    priv->eos = FALSE;
+    g_cond_signal(&priv->queue_condition);
+    g_mutex_unlock(&priv->queue_lock);
+
+    gst_shmem_pool_src_set_pool_flushing(shmemsrc, TRUE);
+
+    return TRUE;
+}
+
+static gboolean gst_shmem_pool_src_handle_flush_stop(GstShmemPoolSrc *shmemsrc)
+{
+    auto priv = shmemsrc->priv;
+    g_mutex_lock(&priv->queue_lock);
+    priv->flushing = FALSE;
+    gst_shmem_pool_src_flush_queue(shmemsrc);
+    g_mutex_unlock(&priv->queue_lock);
+    gst_shmem_pool_src_set_pool_flushing(shmemsrc, FALSE);
+    g_mutex_lock(&priv->priv_lock);
+    shmemsrc->priv->task_start = TRUE;
+    g_mutex_unlock(&priv->priv_lock);
+    gst_task_start(shmemsrc->priv->shmem_task);
+
+    return TRUE;
+}
+
 static gboolean gst_shmem_pool_src_send_event(GstElement *element, GstEvent *event)
 {
     GstShmemPoolSrc *shmemsrc = GST_SHMEM_POOL_SRC(element);
     g_return_val_if_fail(shmemsrc != nullptr && shmemsrc->priv != nullptr, FALSE);
     g_return_val_if_fail(event != nullptr, FALSE);
-    auto priv = shmemsrc->priv;
     GST_DEBUG_OBJECT(shmemsrc, "New event %s", GST_EVENT_TYPE_NAME(event));
 
     switch (GST_EVENT_TYPE(event)) {
         case GST_EVENT_FLUSH_START:
-            g_mutex_lock(&priv->queue_lock);
-            priv->flushing = TRUE;
-            priv->eos = FALSE;
-            g_cond_signal(&priv->queue_condition);
-            g_mutex_unlock(&priv->queue_lock);
+            (void)gst_shmem_pool_src_handle_flush_start(shmemsrc);
             break;
         case GST_EVENT_FLUSH_STOP:
-            g_mutex_lock(&priv->queue_lock);
-            gst_shmem_pool_src_flush_queue(shmemsrc);
-            g_mutex_unlock(&priv->queue_lock);
+            (void)gst_shmem_pool_src_handle_flush_stop(shmemsrc);
             break;
         case GST_EVENT_EOS:
-            g_mutex_lock(&priv->queue_lock);
-            priv->eos = TRUE;
-            g_cond_signal(&priv->queue_condition);
-            g_mutex_unlock(&priv->queue_lock);
-            break;
+            return gst_shmem_pool_src_handle_eos_event(shmemsrc);
         default:
             break;
     }
@@ -395,7 +490,7 @@ static GstBufferPool *gst_shmem_pool_src_new_shmem_pool(GstShmemPoolSrc *shmemsr
     GstShMemPool *pool = gst_shmem_pool_new();
     g_return_val_if_fail(pool != nullptr, nullptr);
     ON_SCOPE_EXIT(0) { gst_object_unref(pool); };
-    priv->av_shmem_pool = std::make_shared<OHOS::Media::AVSharedMemoryPool>();
+    priv->av_shmem_pool = std::make_shared<OHOS::Media::AVSharedMemoryPool>("shmemsrc");
     (void)gst_shmem_pool_set_avshmempool(pool, priv->av_shmem_pool);
     (void)gst_shmem_allocator_set_pool(priv->allocator, priv->av_shmem_pool);
     GstStructure *config = gst_buffer_pool_get_config(GST_BUFFER_POOL_CAST(pool));
@@ -431,7 +526,7 @@ static gboolean gst_shmem_pool_src_set_shmem_pool(GstShmemPoolSrc *shmemsrc, Gst
         GstVideoInfo info;
         gst_video_info_init(&info);
         gst_video_info_from_caps(&info, outcaps);
-        GST_INFO_OBJECT(shmemsrc, "It is raw video change size %u to %" G_GSIZE_FORMAT, size, info.size);
+        GST_INFO_OBJECT(shmemsrc, "It is raw video change size %u to %u", size, info.size);
         size = info.size;
     }
     if (pool == nullptr) {
@@ -454,10 +549,13 @@ static gboolean gst_shmem_pool_src_decide_allocation(GstBaseSrc *basesrc, GstQue
 {
     GstShmemPoolSrc *shmemsrc = GST_SHMEM_POOL_SRC(basesrc);
     g_return_val_if_fail(basesrc != nullptr && query != nullptr, FALSE);
+    GstMemPoolSrc *memsrc = GST_MEM_POOL_SRC(basesrc);
+    g_return_val_if_fail(memsrc != nullptr, FALSE);
     GstBufferPool *pool = nullptr;
     guint size = 0;
-    guint min_buf = DEFAULT_SHMEM_BUF_NUM;
-    guint max_buf = DEFAULT_SHMEM_BUF_NUM;
+    guint min_buf = memsrc->buffer_num;
+    guint max_buf = memsrc->buffer_num;
+    GST_DEBUG_OBJECT(shmemsrc, "buffer_num: %u", memsrc->buffer_num);
 
     // get pool and pool info from down stream
     if (gst_query_get_n_allocation_pools(query) > 0) {

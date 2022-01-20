@@ -37,36 +37,24 @@ SrcSurfaceImpl::~SrcSurfaceImpl()
 
 int32_t SrcSurfaceImpl::Init()
 {
-    src_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("surfacevideosrc", "src")));
+    src_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("surfacesrc", "src")));
     CHECK_AND_RETURN_RET_LOG(src_ != nullptr, MSERR_UNKNOWN, "Failed to make gstsurfacevideosrc");
     return MSERR_OK;
 }
 
 int32_t SrcSurfaceImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 {
-    CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
-    g_object_set(src_, "stream-type", VideoStreamType::VIDEO_STREAM_TYPE_YUV_420, nullptr);
+    CHECK_AND_RETURN_RET(config->caps_ != nullptr, MSERR_UNKNOWN);
+    g_object_set(G_OBJECT(src_), "caps", config->caps_, nullptr);
     return MSERR_OK;
 }
 
 sptr<Surface> SrcSurfaceImpl::CreateInputSurface(std::shared_ptr<ProcessorConfig> inputConfig)
 {
-    CHECK_AND_RETURN_RET(inputConfig != nullptr, nullptr);
-    CHECK_AND_RETURN_RET(inputConfig->caps_ != nullptr, nullptr);
+    CHECK_AND_RETURN_RET(Configure(inputConfig) == MSERR_OK, nullptr);
 
-    GstStructure *structure = gst_caps_get_structure(inputConfig->caps_, 0);
-    CHECK_AND_RETURN_RET(structure != nullptr, nullptr);
-
-    gint width = 0;
-    CHECK_AND_RETURN_RET(gst_structure_get(structure, "width", G_TYPE_INT, &width, nullptr) == TRUE, nullptr);
-    CHECK_AND_RETURN_RET(width > 0, nullptr);
-
-    gint height = 0;
-    CHECK_AND_RETURN_RET(gst_structure_get(structure, "height", G_TYPE_INT, &height, nullptr) == TRUE, nullptr);
-    CHECK_AND_RETURN_RET(height > 0, nullptr);
-
-    g_object_set(src_, "surface-width", width, nullptr);
-    g_object_set(src_, "surface-height", height, nullptr);
+    GstStateChangeReturn ret = gst_element_set_state(src_, GST_STATE_READY);
+    CHECK_AND_RETURN_RET(ret != GST_STATE_CHANGE_FAILURE, nullptr);
 
     GValue val = G_VALUE_INIT;
     g_object_get_property((GObject *)src_, "surface", &val);

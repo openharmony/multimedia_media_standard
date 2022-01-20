@@ -17,12 +17,16 @@
 #define OHOS_GST_DUMPER_H
 
 #include <gst/gst.h>
+#include "gst_utils.h"
 
 namespace OHOS {
 namespace Media {
-class Dumper {
+class EXPORT_API Dumper {
 public:
     static void DumpDotGraph(GstPipeline &pipeline, int32_t oldState, int32_t newState);
+    static GstPadProbeReturn DumpGstBuffer(GstPad *pad, GstPadProbeInfo *info, gpointer user_data);
+    static void AddDumpGstBufferProbe(GstElement *element, const gchar *padname);
+    static bool IsEnableDumpGstBuffer();
 
 private:
     Dumper() = default;

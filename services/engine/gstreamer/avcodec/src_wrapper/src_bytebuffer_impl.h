@@ -17,6 +17,7 @@
 #define SRC_BYTEBUFFER_IMPL_H
 
 #include "src_base.h"
+#include "gst_shmem_pool_src.h"
 #include "nocopyable.h"
 
 namespace OHOS {
@@ -30,21 +31,21 @@ public:
     int32_t Init() override;
     int32_t Configure(std::shared_ptr<ProcessorConfig> config) override;
     int32_t Flush() override;
-    uint32_t GetBufferCount() override;
     std::shared_ptr<AVSharedMemory> GetInputBuffer(uint32_t index) override;
     int32_t QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag) override;
     int32_t SetCallback(const std::weak_ptr<IAVCodecEngineObs> &obs) override;
     int32_t SetParameter(const Format &format) override;
 
 private:
+    static GstFlowReturn BufferAvailable(GstMemPoolSrc *memsrc, gpointer userdata);
     int32_t HandleCodecBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag);
+    int32_t HandleBufferAvailable(GstBuffer *buffer);
+    int32_t FindBufferIndex(uint32_t &index, std::shared_ptr<AVSharedMemory> mem);
 
     bool needCodecData_ = false;
     GstCaps *caps_ = nullptr;
     std::mutex mutex_;
     std::vector<std::shared_ptr<BufferWrapper>> bufferList_;
-    uint32_t bufferCount_ = 0;
-    uint32_t bufferSize_ = 0;
     std::weak_ptr<IAVCodecEngineObs> obs_;
 };
 } // Media

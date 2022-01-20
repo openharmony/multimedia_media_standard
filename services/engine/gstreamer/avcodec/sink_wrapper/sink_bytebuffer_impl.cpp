@@ -14,12 +14,12 @@
  */
 
 #include "sink_bytebuffer_impl.h"
+#include "gst_shmem_memory.h"
 #include "media_log.h"
-#include "securec.h"
+#include "scope_guard.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "SinkBytebufferImpl"};
-    const uint32_t DEFAULT_BUFFER_COUNT = 5;
 }
 
 namespace OHOS {
@@ -31,8 +31,6 @@ SinkBytebufferImpl::SinkBytebufferImpl()
 SinkBytebufferImpl::~SinkBytebufferImpl()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    g_signal_handler_disconnect(G_OBJECT(sink_), signalSample_);
-    g_signal_handler_disconnect(G_OBJECT(sink_), signalEOS_);
     bufferList_.clear();
     if (sink_ != nullptr) {
         gst_object_unref(sink_);
@@ -42,7 +40,7 @@ SinkBytebufferImpl::~SinkBytebufferImpl()
 
 int32_t SinkBytebufferImpl::Init()
 {
-    sink_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("appsink", "sink")));
+    sink_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("sharedmemsink", "sink")));
     CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);
     gst_base_sink_set_async_enabled(GST_BASE_SINK(sink_), FALSE);
     return MSERR_OK;
@@ -52,25 +50,12 @@ int32_t SinkBytebufferImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 {
     CHECK_AND_RETURN_RET(sink_ != nullptr && config->caps_ != nullptr, MSERR_UNKNOWN);
 
-    bufferSize_ = config->bufferSize_;
-    bufferCount_ = DEFAULT_BUFFER_COUNT;
-
+    g_object_set(G_OBJECT(sink_), "mem-size", static_cast<guint>(config->bufferSize_), nullptr);
     g_object_set(G_OBJECT(sink_), "caps", config->caps_, nullptr);
     (void)CapsToFormat(config->caps_, bufferFormat_);
 
-    for (uint32_t i = 0; i < bufferCount_; i++) {
-        auto mem = AVSharedMemory::Create(bufferSize_, AVSharedMemory::Flags::FLAGS_READ_WRITE, "output");
-        CHECK_AND_RETURN_RET(mem != nullptr, MSERR_NO_MEMORY);
-
-        auto bufWrap = std::make_shared<BufferWrapper>(mem, nullptr, bufferList_.size(), BufferWrapper::DOWNSTREAM);
-        CHECK_AND_RETURN_RET(bufWrap != nullptr, MSERR_NO_MEMORY);
-        bufferList_.push_back(bufWrap);
-    }
-
-    signalSample_ = g_signal_connect(G_OBJECT(sink_), "new_sample",
-        G_CALLBACK(OutputAvailableCb), reinterpret_cast<gpointer>(this));
-    signalEOS_ = g_signal_connect(G_OBJECT(sink_), "eos", G_CALLBACK(EosCb), reinterpret_cast<gpointer>(this));
-    g_object_set(G_OBJECT(sink_), "emit-signals", TRUE, nullptr);
+    GstMemSinkCallbacks sinkCallbacks = { EosCb, nullptr, NewSampleCb };
+    gst_mem_sink_set_callback(GST_MEM_SINK(sink_), &sinkCallbacks, this, nullptr);
 
     return MSERR_OK;
 }
@@ -79,7 +64,14 @@ int32_t SinkBytebufferImpl::Flush()
 {
     std::unique_lock<std::mutex> lock(mutex_);
     for (auto it = bufferList_.begin(); it != bufferList_.end(); it++) {
-        (*it)->owner_ = BufferWrapper::DOWNSTREAM;
+        if ((*it)->owner_ != BufferWrapper::DOWNSTREAM) {
+            (*it)->owner_ = BufferWrapper::DOWNSTREAM;
+            if ((*it)->gstBuffer_ != nullptr) {
+                gst_buffer_unref((*it)->gstBuffer_);
+                (*it)->gstBuffer_ = nullptr;
+            }
+            (*it)->mem_ = nullptr;
+        }
     }
     isFirstFrame_ = true;
     return MSERR_OK;
@@ -88,19 +80,29 @@ int32_t SinkBytebufferImpl::Flush()
 std::shared_ptr<AVSharedMemory> SinkBytebufferImpl::GetOutputBuffer(uint32_t index)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET(index < bufferCount_ && index <= bufferList_.size(), nullptr);
-    CHECK_AND_RETURN_RET(bufferList_[index]->owner_ == BufferWrapper::APP, nullptr);
+    CHECK_AND_RETURN_RET(index <= bufferList_.size(), nullptr);
+    CHECK_AND_RETURN_RET(bufferList_[index]->owner_ == BufferWrapper::SERVER, nullptr);
 
-    return bufferList_[index]->mem_;
+    GstMemory *memory = gst_buffer_peek_memory(bufferList_[index]->gstBuffer_, 0);
+    CHECK_AND_RETURN_RET(memory != nullptr, nullptr);
+
+    GstShMemMemory *shmem = reinterpret_cast<GstShMemMemory *>(memory);
+    bufferList_[index]->owner_ = BufferWrapper::APP;
+    return shmem->mem;
 }
 
 int32_t SinkBytebufferImpl::ReleaseOutputBuffer(uint32_t index, bool render)
 {
     (void)render;
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET(index < bufferCount_ && index < bufferList_.size(), MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(index < bufferList_.size(), MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(bufferList_[index]->owner_ == BufferWrapper::APP, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(bufferList_[index]->gstBuffer_ != nullptr, MSERR_UNKNOWN);
+
     bufferList_[index]->owner_ = BufferWrapper::DOWNSTREAM;
+    gst_buffer_unref(bufferList_[index]->gstBuffer_);
+    bufferList_[index]->gstBuffer_ = nullptr;
+
     return MSERR_OK;
 }
 
@@ -111,19 +113,19 @@ int32_t SinkBytebufferImpl::SetCallback(const std::weak_ptr<IAVCodecEngineObs> &
     return MSERR_OK;
 }
 
-GstFlowReturn SinkBytebufferImpl::OutputAvailableCb(GstElement *sink, gpointer userData)
+GstFlowReturn SinkBytebufferImpl::NewSampleCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData)
 {
-    (void)sink;
+    (void)memSink;
     auto impl = static_cast<SinkBytebufferImpl *>(userData);
     CHECK_AND_RETURN_RET(impl != nullptr, GST_FLOW_ERROR);
     std::unique_lock<std::mutex> lock(impl->mutex_);
-    CHECK_AND_RETURN_RET(impl->HandleOutputCb() == MSERR_OK, GST_FLOW_ERROR);
+    CHECK_AND_RETURN_RET(impl->HandleNewSampleCb(sample) == MSERR_OK, GST_FLOW_ERROR);
     return GST_FLOW_OK;
 }
 
-void SinkBytebufferImpl::EosCb(GstElement *sink, gpointer userData)
+void SinkBytebufferImpl::EosCb(GstMemSink *memSink, gpointer userData)
 {
-    (void)sink;
+    (void)memSink;
     MEDIA_LOGI("EOS reached");
     auto impl = static_cast<SinkBytebufferImpl *>(userData);
     CHECK_AND_RETURN(impl != nullptr);
@@ -137,29 +139,18 @@ void SinkBytebufferImpl::EosCb(GstElement *sink, gpointer userData)
     obs->OnOutputBufferAvailable(invalidIndex, info, AVCODEC_BUFFER_FLAG_EOS);
 }
 
-int32_t SinkBytebufferImpl::HandleOutputCb()
+int32_t SinkBytebufferImpl::HandleNewSampleCb(GstBuffer *buffer)
 {
-    GstSample *sample = nullptr;
-    g_signal_emit_by_name(G_OBJECT(sink_), "pull-sample", &sample);
-    CHECK_AND_RETURN_RET(sample != nullptr, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(buffer != nullptr, MSERR_UNKNOWN);
+    ON_SCOPE_EXIT(0) { gst_buffer_unref(buffer); };
 
-    GstBuffer *buf = gst_sample_get_buffer(sample);
-    if (buf == nullptr) {
-        MEDIA_LOGE("Failed to gst_sample_get_buffer");
-        gst_sample_unref(sample);
-        return MSERR_UNKNOWN;
-    }
+    GstMemory *memory = gst_buffer_peek_memory(buffer, 0);
+    CHECK_AND_RETURN_RET(memory != nullptr, MSERR_UNKNOWN);
+    GstShMemMemory *shmem = reinterpret_cast<GstShMemMemory *>(memory);
+    CHECK_AND_RETURN_RET(shmem->mem != nullptr, MSERR_UNKNOWN);
 
-    uint32_t bufSize = 0;
     uint32_t index = 0;
-    HandleOutputBuffer(bufSize, index, buf);
-
-    gst_sample_unref(sample);
-
-    if (index == bufferCount_ || index == bufferList_.size()) {
-        MEDIA_LOGW("The output buffer queue is full, discard this buffer");
-        return MSERR_OK;
-    }
+    CHECK_AND_RETURN_RET(FindBufferIndex(index, shmem->mem) == MSERR_OK, MSERR_UNKNOWN);
 
     auto obs = obs_.lock();
     CHECK_AND_RETURN_RET_LOG(obs != nullptr, MSERR_UNKNOWN, "obs is nullptr");
@@ -169,36 +160,43 @@ int32_t SinkBytebufferImpl::HandleOutputCb()
         obs->OnOutputFormatChanged(bufferFormat_);
     }
 
+    GstMapInfo map = GST_MAP_INFO_INIT;
+    CHECK_AND_RETURN_RET(gst_buffer_map(buffer, &map, GST_MAP_READ) == TRUE, MSERR_UNKNOWN);
+
     AVCodecBufferInfo info;
     info.offset = 0;
-    info.size = bufSize;
-    info.presentationTimeUs = GST_BUFFER_PTS(buf);
+    info.size = map.size;
+    info.presentationTimeUs = GST_BUFFER_PTS(buffer);
     obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
 
     MEDIA_LOGD("OutputBufferAvailable, index:%{public}d", index);
+    gst_buffer_unmap(buffer, &map);
+    bufferList_[index]->owner_ = BufferWrapper::SERVER;
+    bufferList_[index]->gstBuffer_ = gst_buffer_ref(buffer);
 
     return MSERR_OK;
 }
 
-void SinkBytebufferImpl::HandleOutputBuffer(uint32_t &bufSize, uint32_t &index, GstBuffer *buf)
+int32_t SinkBytebufferImpl::FindBufferIndex(uint32_t &index, std::shared_ptr<AVSharedMemory> mem)
 {
+    CHECK_AND_RETURN_RET(mem != nullptr, MSERR_UNKNOWN);
+
+    index = 0;
     for (auto it = bufferList_.begin(); it != bufferList_.end(); it++) {
-        if ((*it)->owner_ == BufferWrapper::DOWNSTREAM && (*it)->mem_ != nullptr) {
-            GstMapInfo map = GST_MAP_INFO_INIT;
-            if (gst_buffer_map(buf, &map, GST_MAP_READ) != TRUE) {
-                index++;
-                continue;
-            }
-            (*it)->owner_ = BufferWrapper::APP;
-            bufSize = map.size;
-            if (memcpy_s((*it)->mem_->GetBase(), (*it)->mem_->GetSize(), map.data, map.size) != EOK) {
-                MEDIA_LOGE("Failed to copy output buffer");
-            }
-            gst_buffer_unmap(buf, &map);
+        if ((*it) != nullptr && (*it)->mem_ == mem.get()) {
             break;
         }
         index++;
     }
+
+    if (index == bufferList_.size()) {
+        auto bufWrap = std::make_shared<BufferWrapper>(BufferWrapper::SERVER);
+        CHECK_AND_RETURN_RET(bufWrap != nullptr, MSERR_NO_MEMORY);
+        bufWrap->mem_ = mem.get();
+        bufferList_.push_back(bufWrap);
+    }
+
+    return MSERR_OK;
 }
 } // Media
 } // OHOS

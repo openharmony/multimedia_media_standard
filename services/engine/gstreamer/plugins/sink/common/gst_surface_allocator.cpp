@@ -150,7 +150,7 @@ static void gst_surface_allocator_class_init(GstSurfaceAllocatorClass *klass)
     allocatorClass->free = gst_surface_allocator_free;
 }
 
-GstSurfaceAllocator *gst_surface_allocator_new(void)
+GstSurfaceAllocator *gst_surface_allocator_new()
 {
     GstSurfaceAllocator *alloc = GST_SURFACE_ALLOCATOR_CAST(g_object_new(
         GST_TYPE_SURFACE_ALLOCATOR, "name", "SurfaceAllocator", nullptr));

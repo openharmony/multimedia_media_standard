@@ -805,8 +805,8 @@ static GstBufferPool *gst_vdec_base_new_out_shmem_pool(GstVdecBase *self, GstCap
     GstShMemPool *pool = gst_shmem_pool_new();
     g_return_val_if_fail(pool != nullptr, nullptr);
     g_return_val_if_fail(self->output.allocator != nullptr, nullptr);
-    
-    self->output.av_shmem_pool = std::make_shared<OHOS::Media::AVSharedMemoryPool>();
+
+    self->output.av_shmem_pool = std::make_shared<OHOS::Media::AVSharedMemoryPool>("vdec_out");
     (void)gst_shmem_pool_set_avshmempool(pool, self->output.av_shmem_pool);
     (void)gst_shmem_allocator_set_pool(self->output.allocator, self->output.av_shmem_pool);
     ON_SCOPE_EXIT(0) { gst_object_unref(pool); };
@@ -829,8 +829,8 @@ static GstBufferPool *gst_vdec_base_new_in_shmem_pool(GstVdecBase *self, GstCaps
     GstShMemPool *pool = gst_shmem_pool_new();
     g_return_val_if_fail(pool != nullptr, nullptr);
     g_return_val_if_fail(self->input.allocator != nullptr, nullptr);
-    
-    self->input.av_shmem_pool = std::make_shared<OHOS::Media::AVSharedMemoryPool>();
+
+    self->input.av_shmem_pool = std::make_shared<OHOS::Media::AVSharedMemoryPool>("vdec_in");
     (void)gst_shmem_pool_set_avshmempool(pool, self->input.av_shmem_pool);
     (void)gst_shmem_allocator_set_pool(self->input.allocator, self->input.av_shmem_pool);
     ON_SCOPE_EXIT(0) { gst_object_unref(pool); };
