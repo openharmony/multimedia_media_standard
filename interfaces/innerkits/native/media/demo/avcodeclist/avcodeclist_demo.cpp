@@ -60,7 +60,7 @@ void AVCodecListDemo::DoNext()
         } else if (cmd.find("gae") != std::string::npos || cmd.find("GetAudioEncoderCaps") != std::string::npos) {
             std::vector<std::shared_ptr<AudioCaps>> audioEncoderArray = avCodecList_->GetAudioEncoderCaps();
             PrintAudioCapsArray(audioEncoderArray);
-        } else if (cmd.find("gsfr") != std::string::npos || cmd.find("GetSupportedFrameRatesFor") != std::string::npos) {
+        } else if (cmd.find("gsfr") != std::string::npos || cmd.find("GetSupportedFrameRates") != std::string::npos) {
             GetSupportedFrameRatesDemo();
         } else if (cmd.find("gpfr") != std::string::npos || cmd.find("GetPreferredFrameRate") != std::string::npos) {
             GetPreferredFrameRateDemo();
@@ -76,12 +76,14 @@ void AVCodecListDemo::GetSupportedFrameRatesDemo()
     std::vector<std::shared_ptr<VideoCaps>> videoEncoderArray = avCodecList_->GetVideoEncoderCaps();
     for (auto iter = videoEncoderArray.begin(); iter != videoEncoderArray.end(); iter++) {
         ret = (*iter)->GetSupportedFrameRatesFor(size.width, size.height);
-        cout << "name = " << (*iter)->GetCodecInfo()->GetName() << ", cal framerate = " << ret.minVal << ", " << ret.maxVal << endl;
+        cout << "name = " << (*iter)->GetCodecInfo()->GetName() << ":" << endl;
+        cout << "framerate = " << ret.minVal << ", " << ret.maxVal << endl;
     }
     std::vector<std::shared_ptr<VideoCaps>> videoDecoderArray = avCodecList_->GetVideoDecoderCaps();
     for (auto iter = videoDecoderArray.begin(); iter != videoDecoderArray.end(); iter++) {
         ret = (*iter)->GetSupportedFrameRatesFor(size.width, size.height);
-        cout << "name = " << (*iter)->GetCodecInfo()->GetName() << ", cal framerate = " << ret.minVal << ", " << ret.maxVal << endl;
+        cout << "name = " << (*iter)->GetCodecInfo()->GetName() << ":" << endl;
+        cout << "framerate = " << ret.minVal << ", " << ret.maxVal << endl;
     }
 }
 
@@ -93,12 +95,14 @@ void AVCodecListDemo::GetPreferredFrameRateDemo()
     std::vector<std::shared_ptr<VideoCaps>> videoEncoderArray = avCodecList_->GetVideoEncoderCaps();
     for (auto iter = videoEncoderArray.begin(); iter != videoEncoderArray.end(); iter++) {
         ret = (*iter)->GetPreferredFrameRate(size.width, size.height);
-        cout << "name = " << (*iter)->GetCodecInfo()->GetName() << ", cal framerate = " << ret.minVal << ", " << ret.maxVal << endl;
+        cout << "name = " << (*iter)->GetCodecInfo()->GetName() << ":" << endl;
+        cout << "framerate = " << ret.minVal << ", " << ret.maxVal << endl;
     }
     std::vector<std::shared_ptr<VideoCaps>> videoDecoderArray = avCodecList_->GetVideoDecoderCaps();
     for (auto iter = videoDecoderArray.begin(); iter != videoDecoderArray.end(); iter++) {
         ret = (*iter)->GetPreferredFrameRate(size.width, size.height);
-        cout << "name = " << (*iter)->GetCodecInfo()->GetName() << ", cal framerate = " << ret.minVal << ", " << ret.maxVal << endl;
+        cout << "name = " << (*iter)->GetCodecInfo()->GetName() << ":" << endl;
+        cout << "framerate = " << ret.minVal << ", " << ret.maxVal << endl;
     }
 }
 

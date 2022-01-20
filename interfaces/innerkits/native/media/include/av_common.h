@@ -128,7 +128,7 @@ struct CapabilityData {
     std::vector<int32_t> profiles;
     std::vector<int32_t> bitrateMode;
     std::vector<int32_t> levels;
-    std::map<int32_t, std::vector<int32_t>> profileLevelsMap; // key = profile, vector = levels
+    std::map<int32_t, std::vector<int32_t>> profileLevelsMap;
     std::map<ImgSize, Range> measuredFrameRate;
 };
 
