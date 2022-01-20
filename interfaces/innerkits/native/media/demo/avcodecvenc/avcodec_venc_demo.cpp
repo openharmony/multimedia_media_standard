@@ -26,6 +26,7 @@ using namespace std;
 namespace {
     constexpr uint32_t DEFAULT_WIDTH = 480;
     constexpr uint32_t DEFAULT_HEIGHT = 360;
+    constexpr uint32_t DEFAULT_FRAME_RATE = 30;
     constexpr uint32_t YUV_BUFFER_SIZE = 259200; // 480 * 360 * 3 / 2
     constexpr uint32_t FRAME_INTERVAL_MS = 30000;
     constexpr uint32_t FRAME_DURATION_US = 40000000;
@@ -60,7 +61,7 @@ void VEncDemo::RunCase()
     format.PutIntValue("width", DEFAULT_WIDTH);
     format.PutIntValue("height", DEFAULT_HEIGHT);
     format.PutIntValue("pixel_format", 3); // NV21
-    format.PutIntValue("frame_rate", 30);
+    format.PutIntValue("frame_rate", DEFAULT_FRAME_RATE);
     DEMO_CHECK_AND_RETURN_LOG(Configure(format) == MSERR_OK, "Fatal: Configure fail");
 
     sptr<Surface> surface = GetVideoSurface();
@@ -137,7 +138,7 @@ int32_t VEncDemo::Stop()
 
     if (readLoop_ != nullptr && readLoop_->joinable()) {
         unique_lock<mutex> queueLock(signal_->mutex_);
-        signal_->bufferQueue_.push(10000);
+        signal_->bufferQueue_.push(10000); // wake up read loop thread
         signal_->cond_.notify_all();
         queueLock.unlock();
         readLoop_->join();

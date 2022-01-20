@@ -67,6 +67,9 @@ static gboolean gst_mem_sink_propose_allocation(GstBaseSink *bsink, GstQuery *qu
 #define gst_mem_sink_parent_class parent_class
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE(GstMemSink, gst_mem_sink, GST_TYPE_BASE_SINK, G_ADD_PRIVATE(GstMemSink));
 
+GST_DEBUG_CATEGORY_STATIC(gst_mem_sink_debug_category);
+#define GST_CAT_DEFAULT gst_mem_sink_debug_category
+
 static void gst_mem_sink_class_init(GstMemSinkClass *klass)
 {
     g_return_if_fail(klass != nullptr);
@@ -81,7 +84,7 @@ static void gst_mem_sink_class_init(GstMemSinkClass *klass)
         "MemSink", "Generic/Sink",
         "Output to memory and allow the application to get access to the memory",
         "OpenHarmony");
-
+     
     gobjectClass->dispose = gst_mem_sink_dispose;
     gobjectClass->finalize = gst_mem_sink_finalize;
     gobjectClass->set_property = gst_mem_sink_set_property;
@@ -113,6 +116,8 @@ static void gst_mem_sink_class_init(GstMemSinkClass *klass)
     baseSinkClass->query = gst_mem_sink_query;
     baseSinkClass->event = gst_mem_sink_event;
     baseSinkClass->propose_allocation = gst_mem_sink_propose_allocation;
+
+    GST_DEBUG_CATEGORY_INIT(gst_mem_sink_debug_category, "memsink", 0, "memsink class");
 }
 
 static void gst_mem_sink_init(GstMemSink *memSink)

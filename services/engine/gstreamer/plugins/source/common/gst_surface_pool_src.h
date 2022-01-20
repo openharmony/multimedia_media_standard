@@ -47,7 +47,8 @@ struct _GstSurfacePoolSrcClass {
     GstMemPoolSrcClass parent_class;
 };
 
-GST_API_EXPORT GType gst_surface_pool_src_get_type(void);
+GST_API_EXPORT
+GType gst_surface_pool_src_get_type(void);
 
 G_END_DECLS
 #endif

@@ -790,7 +790,7 @@ static gboolean gst_video_shmem_sink_propose_allocation(GstBaseSink *bsink, GstQ
     GstCaps *caps = nullptr;
     gboolean needPool = FALSE;
     gst_query_parse_allocation(query, &caps, &needPool);
-    GST_INFO_OBJECT(bsink, "process allocation query, caps: %" GST_PTR_FORMAT "", caps);
+    GST_DEBUG_OBJECT(bsink, "process allocation query, caps: %" GST_PTR_FORMAT "", caps);
 
     if (!needPool) {
         GST_ERROR_OBJECT(bsink, "no need buffer pool, unexpected!");
@@ -801,6 +801,7 @@ static gboolean gst_video_shmem_sink_propose_allocation(GstBaseSink *bsink, GstQ
     g_return_val_if_fail(pool != nullptr, FALSE);
 
     GstVideoInfo info;
+    GST_DEBUG("begin gst_video_info_from_caps");
     gboolean ret = gst_video_info_from_caps(&info, caps);
     if (!ret) {
         gst_object_unref(pool);

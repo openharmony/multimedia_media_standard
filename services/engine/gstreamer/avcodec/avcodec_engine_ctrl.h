@@ -56,13 +56,13 @@ private:
     GstElement *codecBin_ = nullptr;
     bool useSurfaceInput_ = false;
     bool useSurfaceRender_ = false;
-    bool needInputCallback_ = true;
     std::condition_variable gstPipeCond_;
     std::mutex gstPipeMutex_;
     std::weak_ptr<IAVCodecEngineObs> obs_;
     std::unique_ptr<SrcBase> src_;
     std::unique_ptr<SinkBase> sink_;
     bool isEncoder_ = false;
+    bool flushAtStart_ = false;
 };
 } // Media
 } // OHOS

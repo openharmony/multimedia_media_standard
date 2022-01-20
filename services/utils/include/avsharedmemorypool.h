@@ -42,7 +42,7 @@ namespace Media {
 class __attribute__((visibility("default"))) AVSharedMemoryPool
     : public std::enable_shared_from_this<AVSharedMemoryPool> {
 public:
-    AVSharedMemoryPool();
+    AVSharedMemoryPool(const std::string &name);
     ~AVSharedMemoryPool();
 
     struct InitializeOption {
@@ -83,6 +83,11 @@ public:
      */
     void Reset();
 
+    std::string GetName()
+    {
+        return name_;
+    }
+
     DISALLOW_COPY_AND_MOVE(AVSharedMemoryPool);
 
 private:
@@ -97,6 +102,7 @@ private:
     std::mutex mutex_;
     std::condition_variable cond_;
     bool inited_ = false;
+    std::string name_;
 };
 }
 }

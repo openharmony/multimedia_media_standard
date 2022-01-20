@@ -63,14 +63,18 @@ struct _GstMemPoolSrcClass {
 // for subclass to use
 GstFlowReturn gst_mem_pool_src_buffer_available(GstMemPoolSrc *memsrc);
 // for app to use
-GST_API_EXPORT GstBuffer *gst_mem_pool_src_pull_buffer(GstMemPoolSrc *memsrc);
+GST_API_EXPORT
+GstBuffer *gst_mem_pool_src_pull_buffer(GstMemPoolSrc *memsrc);
 
-GST_API_EXPORT GstFlowReturn gst_mem_pool_src_push_buffer(GstMemPoolSrc *memsrc, GstBuffer *buffer);
+GST_API_EXPORT
+GstFlowReturn gst_mem_pool_src_push_buffer(GstMemPoolSrc *memsrc, GstBuffer *buffer);
 
-GST_API_EXPORT void gst_mem_pool_src_set_callback(GstMemPoolSrc *memsrc, BufferAvailable callback,
-    gpointer user_data, GDestroyNotify notify);
+GST_API_EXPORT
+void gst_mem_pool_src_set_callback(GstMemPoolSrc *memsrc, BufferAvailable callback,
+                                        gpointer user_data, GDestroyNotify notify);
 
-GST_API_EXPORT GType gst_mem_pool_src_get_type(void);
+GST_API_EXPORT
+GType gst_mem_pool_src_get_type(void);
 
 G_END_DECLS
 #endif

@@ -35,6 +35,7 @@ config("gst_codec_bin_config") {
   include_dirs = [
     "include",
     "//utils/native/base/include",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
@@ -54,6 +55,7 @@ ohos_shared_library("gst_codec_bin") {
   configs = [ ":gst_codec_bin_config" ]
 
   deps = [
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/common:media_gst_dfx",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",

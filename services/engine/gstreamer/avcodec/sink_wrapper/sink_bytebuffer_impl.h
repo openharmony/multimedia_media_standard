@@ -20,6 +20,7 @@
 #include <mutex>
 #include <vector>
 #include "avsharedmemory.h"
+#include "gst_shared_mem_sink.h"
 #include "nocopyable.h"
 
 namespace OHOS {
@@ -38,17 +39,13 @@ public:
     int32_t SetCallback(const std::weak_ptr<IAVCodecEngineObs> &obs) override;
 
 private:
-    static GstFlowReturn OutputAvailableCb(GstElement *sink, gpointer userData);
-    static void EosCb(GstElement *sink, gpointer userData);
+    static void EosCb(GstMemSink *memSink, gpointer userData);
+    static GstFlowReturn NewSampleCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData);
 
-    int32_t HandleOutputCb();
-    void HandleOutputBuffer(uint32_t &bufSize, uint32_t &index, GstBuffer *buf);
+    int32_t HandleNewSampleCb(GstBuffer *buffer);
+    int32_t FindBufferIndex(uint32_t &index, std::shared_ptr<AVSharedMemory> mem);
 
     std::mutex mutex_;
-    gulong signalSample_ = 0;
-    gulong signalEOS_ = 0;
-    uint32_t bufferCount_ = 0;
-    uint32_t bufferSize_ = 0;
     std::vector<std::shared_ptr<BufferWrapper>> bufferList_;
     std::weak_ptr<IAVCodecEngineObs> obs_;
     bool isFirstFrame_ = true;

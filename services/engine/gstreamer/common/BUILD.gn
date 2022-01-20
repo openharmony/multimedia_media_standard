@@ -65,11 +65,71 @@ ohos_static_library("media_engine_gst_common") {
     "playbin_adapter/playbin_state.cpp",
     "playbin_adapter/playbin_task_mgr.cpp",
     "state_machine/state_machine.cpp",
+  ]
+
+  configs = [ ":media_engine_gst_common_config" ]
+
+  deps = [
+    ":media_gst_dfx",
+    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
+    "//foundation/multimedia/media_standard/services/utils:media_format",
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//third_party/glib:glib",
+    "//third_party/glib:gobject",
+    "//third_party/gstreamer/gstplugins_base:gsttag",
+    "//third_party/gstreamer/gstreamer:gstreamer",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+
+  subsystem_name = "multimedia"
+  part_name = "multimedia_media_standard"
+}
+
+config("media_gst_dfx_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-std=c++17",
+    "-fno-rtti",
+    "-fno-exceptions",
+    "-Wall",
+    "-fno-common",
+    "-fstack-protector-strong",
+    "-FPIC",
+    "-FS",
+    "-O2",
+    "-D_FORTIFY_SOURCE=2",
+    "-fvisibility=hidden",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wdate-time",
+    "-DOHOS_EXT_FUNC",
+  ]
+
+  include_dirs = [
+    "//utils/native/base/include",
+    "//third_party/glib/glib",
+    "//third_party/glib",
+    "//third_party/gstreamer/gstreamer",
+    "//third_party/gstreamer/gstreamer/libs",
+    "//third_party/gstreamer/gstplugins_base",
+    "//third_party/gstreamer/gstplugins_base/gst-libs",
+    "//third_party/gstreamer/gstplugins_bad/gst-libs",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
+    "//foundation/multimedia/media_standard/services/utils/include",
+    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+  ]
+}
+
+ohos_static_library("media_gst_dfx") {
+  sources = [
     "utils/dumper.cpp",
     "utils/gst_utils.cpp",
   ]
 
-  configs = [ ":media_engine_gst_common_config" ]
+  configs = [ ":media_gst_dfx_config" ]
 
   deps = [
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
@@ -77,7 +137,6 @@ ohos_static_library("media_engine_gst_common") {
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gobject",
-    "//third_party/gstreamer/gstplugins_base:gsttag",
     "//third_party/gstreamer/gstreamer:gstreamer",
     "//utils/native/base:utils",
   ]
