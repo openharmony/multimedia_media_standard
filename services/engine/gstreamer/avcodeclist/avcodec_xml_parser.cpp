@@ -139,7 +139,6 @@ bool AVCodecXmlParser::LoadConfiguration()
     mDoc_ = xmlReadFile(AVCODEC_CONFIG_FILE, NULL, 0);
     if (mDoc_ == NULL) {
         MEDIA_LOGE("AVCodec xmlReadFile failed");
-        // this->isParsered_ = false;
         return false;
     }
     return true;
@@ -226,7 +225,6 @@ bool AVCodecXmlParser::TransStrAsSize(const std::string &str, ImgSize &size)
     }
     return true;
 }
-
 
 std::vector<int32_t> AVCodecXmlParser::TransStrAsIntegerArray(std::vector<std::string> &spilt)
 {
