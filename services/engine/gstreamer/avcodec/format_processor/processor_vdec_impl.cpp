@@ -19,7 +19,9 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "ProcessorVdecImpl"};
-    const uint32_t DEFAULT_BUFFER_SIZE = 30000;
+    const uint32_t MAX_SIZE = 3150000; // 3MB
+    const uint32_t MAX_WIDTH = 8000;
+    const uint32_t MAX_HEIGHT = 5000;
 }
 
 namespace OHOS {
@@ -48,13 +50,17 @@ int32_t ProcessorVdecImpl::ProcessMandatory(const Format &format)
 
 int32_t ProcessorVdecImpl::ProcessOptional(const Format &format)
 {
-    (void)format.GetIntValue("max_input_size", maxInputSize_);
+    if (format.GetValueType(std::string_view("max_input_size")) == FORMAT_TYPE_INT32) {
+        (void)format.GetIntValue("max_input_size", maxInputSize_);
+    }
+
     return MSERR_OK;
 }
 
 std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetInputPortConfig()
 {
-    CHECK_AND_RETURN_RET(width_ > 0 && height_ > 0, nullptr);
+    CHECK_AND_RETURN_RET(width_ > 0 && width_ < MAX_WIDTH, nullptr);
+    CHECK_AND_RETURN_RET(height_ > 0 && height_ < MAX_HEIGHT, nullptr);
 
     GstCaps *caps = nullptr;
     switch (codecName_) {
@@ -96,15 +102,20 @@ std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetInputPortConfig()
         return nullptr;
     }
 
-    config->needCodecData_ = (codecName_ == CODEC_MIMIE_TYPE_VIDEO_AVC) ? true : false;
-    config->bufferSize_ = (maxInputSize_ > 0) ? static_cast<uint32_t>(maxInputSize_) : DEFAULT_BUFFER_SIZE;
+    config->needCodecData_ = (codecName_ == CODEC_MIMIE_TYPE_VIDEO_AVC && isSoftWare_) ? true : false;
+    if (maxInputSize_ > 0) {
+        config->bufferSize_ = (maxInputSize_ > MAX_SIZE) ? MAX_SIZE : static_cast<uint32_t>(maxInputSize_);
+    } else {
+        config->bufferSize_ = EncodedBufSize(width_, height_);
+    }
 
     return config;
 }
 
 std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetOutputPortConfig()
 {
-    CHECK_AND_RETURN_RET(width_ > 0 && height_ > 0, nullptr);
+    CHECK_AND_RETURN_RET(width_ > 0 && width_ < MAX_WIDTH, nullptr);
+    CHECK_AND_RETURN_RET(height_ > 0 && height_ < MAX_HEIGHT, nullptr);
 
     GstCaps *caps = gst_caps_new_simple("video/x-raw",
         "width", G_TYPE_INT, width_,

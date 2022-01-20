@@ -57,7 +57,7 @@ private:
     int32_t QueryIsSoftPlugin(const std::string &name, bool &isSoftware);
 
     AVCodecType type_ = AVCODEC_TYPE_VIDEO_ENCODER;
-    bool uswSoftWare_ = false;
+    bool useSoftWare_ = false;
     std::string pluginName_ = "";
     std::unique_ptr<AVCodecEngineCtrl> ctrl_ = nullptr;
     std::unique_ptr<ProcessorBase> processor_ = nullptr;

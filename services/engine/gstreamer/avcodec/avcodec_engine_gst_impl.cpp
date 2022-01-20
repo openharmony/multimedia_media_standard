@@ -52,8 +52,6 @@ int32_t AVCodecEngineGstImpl::Init(AVCodecType type, bool isMimeType, const std:
     }
 
     processor_ = AVCodecEngineFactory::CreateProcessor(type);
-    CHECK_AND_RETURN_RET(processor_ != nullptr, MSERR_NO_MEMORY);
-    CHECK_AND_RETURN_RET(processor_->Init(codecName) == MSERR_OK, MSERR_UNKNOWN);
 
     ctrl_ = std::make_unique<AVCodecEngineCtrl>();
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_NO_MEMORY);
@@ -64,6 +62,8 @@ int32_t AVCodecEngineGstImpl::Init(AVCodecType type, bool isMimeType, const std:
     } else {
         CHECK_AND_RETURN_RET(HandlePluginName(type, name) == MSERR_OK, MSERR_UNKNOWN);
     }
+    CHECK_AND_RETURN_RET(processor_ != nullptr, MSERR_NO_MEMORY);
+    CHECK_AND_RETURN_RET(processor_->Init(codecName, useSoftWare_) == MSERR_OK, MSERR_UNKNOWN);
 
     return MSERR_OK;
 }
@@ -135,7 +135,7 @@ int32_t AVCodecEngineGstImpl::Reset()
     }
     ctrl_ = std::make_unique<AVCodecEngineCtrl>();
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_NO_MEMORY);
-    CHECK_AND_RETURN_RET(ctrl_->Init(type_, uswSoftWare_, pluginName_) == MSERR_OK, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(ctrl_->Init(type_, useSoftWare_, pluginName_) == MSERR_OK, MSERR_UNKNOWN);
     ctrl_->SetObs(obs_);
 
     MEDIA_LOGD("Reset success");
@@ -282,7 +282,7 @@ int32_t AVCodecEngineGstImpl::HandleMimeType(AVCodecType type, const std::string
     bool isSoftware = true;
     (void)QueryIsSoftPlugin(pluginName, isSoftware);
 
-    uswSoftWare_ = isSoftware;
+    useSoftWare_ = isSoftware;
     pluginName_ = pluginName;
 
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_UNKNOWN);
@@ -294,7 +294,7 @@ int32_t AVCodecEngineGstImpl::HandlePluginName(AVCodecType type, const std::stri
     bool isSoftware = true;
     (void)QueryIsSoftPlugin(name, isSoftware);
 
-    uswSoftWare_ = isSoftware;
+    useSoftWare_ = isSoftware;
     pluginName_ = name;
 
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_UNKNOWN);
