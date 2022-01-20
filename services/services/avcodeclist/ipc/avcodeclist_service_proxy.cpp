@@ -40,6 +40,7 @@ std::string AVCodecListServiceProxy::FindVideoDecoder(const Format &format)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    (void)MediaParcel::Marshalling(data, format);
     int32_t ret = Remote()->SendRequest(FIND_VIDEO_DECODER, data, reply, option);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, "", "FindVideoDecoder failed");
     return reply.ReadString();
@@ -50,6 +51,7 @@ std::string AVCodecListServiceProxy::FindVideoEncoder(const Format &format)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    (void)MediaParcel::Marshalling(data, format);
     int32_t ret = Remote()->SendRequest(FIND_VIDEO_ENCODER, data, reply, option);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, "", "FindVideoEncoder failed");
     return reply.ReadString();
@@ -60,6 +62,7 @@ std::string AVCodecListServiceProxy::FindAudioDecoder(const Format &format)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    (void)MediaParcel::Marshalling(data, format);
     int32_t ret = Remote()->SendRequest(FIND_AUDIO_DECODER, data, reply, option);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, "", "FindAudioDecoder failed");
 
@@ -71,6 +74,7 @@ std::string AVCodecListServiceProxy::FindAudioEncoder(const Format &format)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    (void)MediaParcel::Marshalling(data, format);
     int32_t ret = Remote()->SendRequest(FIND_AUDIO_ENCODER, data, reply, option);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, "", "FindAudioEncoder failed");
 

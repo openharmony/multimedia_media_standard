@@ -139,6 +139,7 @@ bool AVCodecXmlParser::LoadConfiguration()
     mDoc_ = xmlReadFile(AVCODEC_CONFIG_FILE, NULL, 0);
     if (mDoc_ == NULL) {
         MEDIA_LOGE("AVCodec xmlReadFile failed");
+        // this->isParsered_ = false;
         return false;
     }
     return true;
@@ -156,6 +157,7 @@ bool AVCodecXmlParser::Parse()
     }
     return true;
 }
+
 
 void AVCodecXmlParser::Destroy()
 {
@@ -205,6 +207,26 @@ bool AVCodecXmlParser::TransStrAsRange(const std::string &str, Range &range)
     }
     return true;
 }
+
+bool AVCodecXmlParser::TransStrAsSize(const std::string &str, ImgSize &size)
+{
+    if (str == "null" || str == "") {
+        MEDIA_LOGD("str is null");
+        return false;
+    }
+    size_t pos = str.find("x");
+    if (pos != str.npos) {
+        std::string head = str.substr(0, pos);
+        std::string tail = str.substr(pos + 1);
+        size.width = atoi(head.c_str());
+        size.height = atoi(tail.c_str());
+    } else {
+        MEDIA_LOGD("Can not find the delimiter of \"x\" in : %{public}s", str.c_str());
+        return false;
+    }
+    return true;
+}
+
 
 std::vector<int32_t> AVCodecXmlParser::TransStrAsIntegerArray(std::vector<std::string> &spilt)
 {
@@ -296,6 +318,41 @@ bool AVCodecXmlParser::SetCapabilityRangeData(std::unordered_map<std::string, Ra
     return true;
 }
 
+bool AVCodecXmlParser::SetCapabilitySizeData(std::unordered_map<std::string, ImgSize&> dataMap,
+                                              const std::string &capabilityKey, const std::string &capabilityValue)
+{
+    ImgSize size;
+    bool ret = TransStrAsSize(capabilityValue, size);
+    CHECK_AND_RETURN_RET_LOG(ret != false, false, "failed:can not trans %{public}s", capabilityValue.c_str());
+    dataMap.at(capabilityKey) = size;
+    return true;
+}
+
+bool AVCodecXmlParser::SetCapabilityHashRangeData(std::unordered_map<std::string, std::map<ImgSize, Range>&> dataMap,
+                                              const std::string &capabilityKey, const std::string &capabilityValue)
+{
+    std::map<ImgSize, Range> resolutionFrameRateMap;
+    std::vector<std::string> spilt;
+    bool ret = SpiltKeyList(capabilityValue, ",", spilt);
+    CHECK_AND_RETURN_RET_LOG(ret != false, false, "failed:can not split %{public}s", capabilityValue.c_str());
+    for (auto iter = spilt.begin(); iter != spilt.end(); iter++) {
+        std::vector<std::string> resolutionFrameRateVector;
+        ImgSize resolution;
+        Range frameRate;
+        ret = SpiltKeyList(*iter, "@", resolutionFrameRateVector);
+        CHECK_AND_RETURN_RET_LOG(ret != false && resolutionFrameRateVector.size() == 2 , false,
+                                "failed:can not trans %{public}s", iter->c_str());
+        if (!(TransStrAsSize(resolutionFrameRateVector[0], resolution) &&
+              TransStrAsRange(resolutionFrameRateVector[1], frameRate))) {
+            MEDIA_LOGD("failed:can not trans %{public}s for resolution or frame rate", iter->c_str());
+            return false;
+        }
+        resolutionFrameRateMap.insert(std::make_pair(resolution, frameRate));
+    }
+    dataMap.at(capabilityKey) = resolutionFrameRateMap;
+    return true;
+}
+
 bool AVCodecXmlParser::IsNumberArray(const std::vector<std::string> &strArray)
 {
     for (auto iter = strArray.begin(); iter != strArray.end(); iter++) {
@@ -354,6 +411,14 @@ bool AVCodecXmlParser::SetCapabilityData(CapabilityData &data, const std::string
         {"isVendor", data.isVendor}
     };
 
+    std::unordered_map<std::string, ImgSize&> capabilitySizeMap = {
+        {"blockSize", data.blockSize}
+    };
+
+    std::unordered_map<std::string, std::map<ImgSize, Range>&> capabilityHashRangeMap = {
+        {"measuredFrameRate", data.measuredFrameRate}
+    };
+
     std::unordered_map<std::string, Range&> capabilityRangeMap = {
         {"bitrate", data.bitrate},
         {"channels", data.channels},
@@ -364,6 +429,8 @@ bool AVCodecXmlParser::SetCapabilityData(CapabilityData &data, const std::string
         {"frameRate", data.frameRate},
         {"encodeQuality", data.encodeQuality},
         {"quality", data.quality},
+        {"blockPerFrame", data.blockPerFrame},
+        {"blockPerSecond", data.blockPerSecond},
     };
 
     std::unordered_map<std::string, std::vector<int32_t>&> capabilityVectorMap = {
@@ -384,6 +451,12 @@ bool AVCodecXmlParser::SetCapabilityData(CapabilityData &data, const std::string
     } else if (capabilityBoolMap.find(capabilityKey) != capabilityBoolMap.end()) {
         ret = SetCapabilityBoolData(capabilityBoolMap, capabilityKey, capabilityValue);
         CHECK_AND_RETURN_RET_LOG(ret != false, false, "SetCapabilityBoolData failed");
+    } else if (capabilitySizeMap.find(capabilityKey) != capabilitySizeMap.end()) {
+        ret = SetCapabilitySizeData(capabilitySizeMap, capabilityKey, capabilityValue);
+        CHECK_AND_RETURN_RET_LOG(ret != false, false, "SetCapabilitySizeData failed");
+    } else if (capabilityHashRangeMap.find(capabilityKey) != capabilityHashRangeMap.end()) {
+        ret = SetCapabilityHashRangeData(capabilityHashRangeMap, capabilityKey, capabilityValue);
+        CHECK_AND_RETURN_RET_LOG(ret != false, false, "SetCapabilityHashRangeData failed");
     } else if (capabilityRangeMap.find(capabilityKey) != capabilityRangeMap.end()) {
         ret = SetCapabilityRangeData(capabilityRangeMap, capabilityKey, capabilityValue);
         CHECK_AND_RETURN_RET_LOG(ret != false, false, "SetCapabilityRangeData failed");

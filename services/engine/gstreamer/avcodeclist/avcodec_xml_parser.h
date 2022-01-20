@@ -49,6 +49,7 @@ public:
 private:
     bool IsNumberArray(const std::vector<std::string> &strArray);
     bool TransStrAsRange(const std::string &str, Range &range);
+    bool TransStrAsSize(const std::string &str, ImgSize &size);
     std::vector<int32_t> TransMapAsIntegerArray(const std::unordered_map<std::string, int> &capabilityMap,
                                                 std::vector<std::string> &spilt);
     std::vector<int32_t> TransStrAsIntegerArray(std::vector<std::string> &spilt);
@@ -64,6 +65,10 @@ private:
     bool SetCapabilityVectorData(std::unordered_map<std::string, std::vector<int32_t>&> dataMap,
                                 const std::string &capabilityKey, const std::string &capabilityValue);
     bool SetCapabilityData(CapabilityData &data, const std::string &capabilityKey, const std::string &capabilityValue);
+    bool SetCapabilitySizeData(std::unordered_map<std::string, ImgSize&> dataMap,
+                                const std::string &capabilityKey, const std::string &capabilityValue);
+    bool SetCapabilityHashRangeData(std::unordered_map<std::string, std::map<ImgSize, Range>&> dataMap,
+                                                const std::string &capabilityKey, const std::string &capabilityValue);
 
     bool ParseInternal(xmlNode *node);
     NodeName GetNodeNameAsInt(xmlNode *node);
@@ -90,6 +95,11 @@ private:
         "encodeQuality",
         "quality",
         "levels",
+        "blockPerFrame",
+        "blockPerSecond",
+        "blockSize",
+        "profileLevelsMap",
+        "measuredFrameRate",
         };
 };
 } // Medias
