@@ -41,9 +41,9 @@ public:
     static GstElement *CreateSink(GstPlayerVideoRenderer *renderer, GstPlayer *player);
     using DataAvailableFunc = GstFlowReturn (*)(const GstElement *appsink, gpointer userData);
     static GstElement *CreateAudioSink(const GstCaps *caps, const DataAvailableFunc callback, const gpointer userData);
-    static GstElement *CreateVideoSink(const GstCaps *caps, const DataAvailableFunc callback, const gpointer userData,
-        gulong &signalId);
+    static GstElement *CreateVideoSink(const GstCaps *caps, const gpointer userData);
     static GstFlowReturn VideoDataAvailableCb(const GstElement *appsink, const gpointer userData);
+    static GstFlowReturn PrerollArrivedCb(const GstElement *appsink, const gpointer userData);
     static GstPadProbeReturn SinkPadProbeCb(GstPad *pad, GstPadProbeInfo *info, gpointer userData);
 };
 
@@ -89,7 +89,7 @@ static GstPlayerVideoRenderer *player_video_renderer_new(
 
 GstElement *GstPlayerVideoRendererCap::CreateSink(GstPlayerVideoRenderer *renderer, GstPlayer *player)
 {
-    MEDIA_LOGI("CreateVideoSink in.");
+    MEDIA_LOGI("CreateSink in.");
     CHECK_AND_RETURN_RET_LOG(renderer != nullptr, nullptr, "renderer is nullptr..");
     GstPlayerVideoRendererCtrl *userData = (reinterpret_cast<PlayerVideoRenderer *>(renderer))->rendererCtrl;
     CHECK_AND_RETURN_RET_LOG(userData != nullptr, nullptr, "userData is nullptr..");
@@ -126,18 +126,15 @@ GstElement *GstPlayerVideoRendererCap::CreateAudioSink(const GstCaps *caps,
     return sink;
 }
 
-GstElement *GstPlayerVideoRendererCap::CreateVideoSink(const GstCaps *caps,
-    const DataAvailableFunc callback, const gpointer userData, gulong &signalId)
+GstElement *GstPlayerVideoRendererCap::CreateVideoSink(const GstCaps *caps, const gpointer userData)
 {
     MEDIA_LOGI("CreateVideoSink in.");
     CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "input caps is nullptr..");
-    CHECK_AND_RETURN_RET_LOG(callback != nullptr, nullptr, "input callback is nullptr..");
     CHECK_AND_RETURN_RET_LOG(userData != nullptr, nullptr, "input userData is nullptr..");
 
     auto sink = gst_element_factory_make("appsink", nullptr);
     CHECK_AND_RETURN_RET_LOG(sink != nullptr, nullptr, "gst_element_factory_make failed..");
 
-    signalId = g_signal_connect(G_OBJECT(sink), "new_sample", G_CALLBACK(callback), userData);
     g_object_set(G_OBJECT(sink), "caps", caps, nullptr);
     g_object_set(G_OBJECT(sink), "emit-signals", TRUE, nullptr);
 
@@ -161,6 +158,19 @@ GstFlowReturn GstPlayerVideoRendererCap::VideoDataAvailableCb(const GstElement *
     int32_t ret = ctrl->PullVideoBuffer();
     if (ret != MSERR_OK) {
         MEDIA_LOGE("Failed to PullVideoBuffer!");
+    }
+    return GST_FLOW_OK;
+}
+
+GstFlowReturn GstPlayerVideoRendererCap::PrerollArrivedCb(const GstElement *appsink, const gpointer userData)
+{
+    (void)appsink;
+    CHECK_AND_RETURN_RET_LOG(userData != nullptr, GST_FLOW_ERROR, "userData is nullptr..");
+
+    auto ctrl = reinterpret_cast<GstPlayerVideoRendererCtrl *>(userData);
+    int32_t ret = ctrl->PrerollVideoBuffer();
+    if (ret != MSERR_OK) {
+        MEDIA_LOGE("Failed to PrerollVideoBuffer!");
     }
     return GST_FLOW_OK;
 }
@@ -197,7 +207,10 @@ GstPlayerVideoRendererCtrl::GstPlayerVideoRendererCtrl(const sptr<Surface> &surf
 
 GstPlayerVideoRendererCtrl::~GstPlayerVideoRendererCtrl()
 {
-    g_signal_handler_disconnect(G_OBJECT(videoSink_), signalId_);
+    for (auto signalId : signalIds_) {
+        g_signal_handler_disconnect(G_OBJECT(videoSink_), signalId);
+    }
+
     producerSurface_ = nullptr;
     if (videoSink_ != nullptr) {
         gst_object_unref(videoSink_);
@@ -230,9 +243,16 @@ int32_t GstPlayerVideoRendererCtrl::InitVideoSink(const GstElement *playbin)
         videoCaps_ = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, formatName.c_str(), nullptr);
         CHECK_AND_RETURN_RET_LOG(videoCaps_ != nullptr, MSERR_INVALID_OPERATION, "gst_caps_new_simple failed..");
 
-        videoSink_ = GstPlayerVideoRendererCap::CreateVideoSink(videoCaps_,
-            GstPlayerVideoRendererCap::VideoDataAvailableCb, reinterpret_cast<gpointer>(this), signalId_);
+        videoSink_ = GstPlayerVideoRendererCap::CreateVideoSink(videoCaps_, reinterpret_cast<gpointer>(this));
         CHECK_AND_RETURN_RET_LOG(videoSink_ != nullptr, MSERR_INVALID_OPERATION, "CreateVideoSink failed..");
+
+        gulong signalId = g_signal_connect(G_OBJECT(videoSink_), "new_sample",
+            G_CALLBACK(GstPlayerVideoRendererCap::VideoDataAvailableCb), userData);
+        signalIds_.push_back(signalId);
+
+        signalId = g_signal_connect(G_OBJECT(videoSink_), "new_preroll",
+            G_CALLBACK(GstPlayerVideoRendererCap::PrerollArrivedCb), userData);
+        signalIds_.push_back(signalId);
 
         g_object_set(const_cast<GstElement *>(playbin), "video-sink", videoSink_, nullptr);
     }
@@ -300,6 +320,30 @@ int32_t GstPlayerVideoRendererCtrl::PullVideoBuffer()
 
     GstSample *sample = nullptr;
     g_signal_emit_by_name(G_OBJECT(videoSink_), "pull-sample", &sample);
+    CHECK_AND_RETURN_RET_LOG(sample != nullptr, MSERR_INVALID_OPERATION, "sample is nullptr..");
+
+    GstBuffer *buf = gst_sample_get_buffer(sample);
+    if (buf == nullptr) {
+        MEDIA_LOGE("gst_sample_get_buffer err");
+        gst_sample_unref(sample);
+        return MSERR_INVALID_OPERATION;
+    }
+
+    int32_t ret = UpdateSurfaceBuffer(*buf);
+    if (ret != MSERR_OK) {
+        MEDIA_LOGE("Failed to update surface buffer and please provide the sptr<Surface>!");
+    }
+
+    gst_sample_unref(sample);
+    return ret;
+}
+
+int32_t GstPlayerVideoRendererCtrl::PrerollVideoBuffer()
+{
+    CHECK_AND_RETURN_RET_LOG(videoSink_ != nullptr, MSERR_INVALID_OPERATION, "videoSink_ is nullptr..");
+
+    GstSample *sample = nullptr;
+    g_signal_emit_by_name(G_OBJECT(videoSink_), "pull-preroll", &sample);
     CHECK_AND_RETURN_RET_LOG(sample != nullptr, MSERR_INVALID_OPERATION, "sample is nullptr..");
 
     GstBuffer *buf = gst_sample_get_buffer(sample);
