@@ -56,6 +56,8 @@ ohos_shared_library("media") {
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/avcodec/video_encoder/video_encoder_napi.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/common/common_napi.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediacapability/media_capability_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediacapability/media_capability_utils.cpp",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediacapability/media_capability_vcaps_napi.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediadata/callback_warp.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediadata/callback_works.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/mediadata/jscallback.cpp",

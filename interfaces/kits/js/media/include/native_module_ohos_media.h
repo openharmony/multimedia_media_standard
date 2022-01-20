@@ -23,6 +23,7 @@
 #include "audio_recorder_napi.h"
 #include "video_recorder_napi.h"
 #include "media_capability_napi.h"
+#include "media_capability_vcaps_napi.h"
 #include "media_data_source_napi.h"
 #include "video_encoder_napi.h"
 #include "video_decoder_napi.h"

@@ -50,6 +50,10 @@ napi_value MediaCapsNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("findAudioDecoder", FindAudioDecoder),
         DECLARE_NAPI_FUNCTION("getAudioEncoderCaps", GetAudioEncoderCaps),
         DECLARE_NAPI_FUNCTION("findAudioEncoder", FindAudioEncoder),
+        DECLARE_NAPI_FUNCTION("getVideoDecoderCaps", GetVideoDecoderCaps),
+        DECLARE_NAPI_FUNCTION("findVideoDecoder", FindVideoDecoder),
+        DECLARE_NAPI_FUNCTION("getVideoEncoderCaps", GetVideoEncoderCaps),
+        DECLARE_NAPI_FUNCTION("findVideoEncoder", FindVideoEncoder),
     };
     napi_property_descriptor staticProperty[] = {
         DECLARE_NAPI_STATIC_FUNCTION("getMediaCapability", GetMediaCapability),
@@ -169,7 +173,7 @@ napi_value MediaCapsNapi::GetAudioDecoderCaps(napi_env env, napi_callback_info i
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
-            asyncCtx->JsResult = std::make_unique<MediaCapsJsResultAudio>(true);
+            asyncCtx->JsResult = std::make_unique<MediaJsAudioCapsStatic>(true);
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
 
@@ -260,7 +264,7 @@ napi_value MediaCapsNapi::GetAudioEncoderCaps(napi_env env, napi_callback_info i
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
-            asyncCtx->JsResult = std::make_unique<MediaCapsJsResultAudio>(false);
+            asyncCtx->JsResult = std::make_unique<MediaJsAudioCapsStatic>(false);
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
 
@@ -312,6 +316,188 @@ napi_value MediaCapsNapi::FindAudioEncoder(napi_env env, napi_callback_info info
                 return;
             }
             std::string encoder = codecList->FindAudioEncoder(asyncCtx->format);
+            asyncCtx->JsResult = std::make_unique<MediaJsResultString>(encoder);
+        },
+        MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
+
+    NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
+    asyncCtx.release();
+
+    return result;
+}
+
+napi_value MediaCapsNapi::GetVideoDecoderCaps(napi_env env, napi_callback_info info)
+{
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+
+    auto asyncCtx = std::make_unique<MediaCapsAsyncContext>(env);
+
+    napi_value jsThis = nullptr;
+    napi_value args[1] = {nullptr};
+    size_t argCount = 1;
+    napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
+    if (status != napi_ok || jsThis == nullptr) {
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to napi_get_cb_info");
+    }
+
+    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
+    asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
+
+    (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
+
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "GetVideoDecoderCaps", NAPI_AUTO_LENGTH, &resource);
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
+        [](napi_env env, void* data) {
+            auto asyncCtx = reinterpret_cast<MediaCapsAsyncContext *>(data);
+            if (asyncCtx == nullptr || asyncCtx->napi == nullptr) {
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
+                return;
+            }
+            asyncCtx->JsResult = std::make_unique<MediaJsVideoCapsStatic>(true);
+        },
+        MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
+
+    NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
+    asyncCtx.release();
+
+    return result;
+}
+
+napi_value MediaCapsNapi::FindVideoDecoder(napi_env env, napi_callback_info info)
+{
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+
+    auto asyncCtx = std::make_unique<MediaCapsAsyncContext>(env);
+
+    napi_value jsThis = nullptr;
+    napi_value args[2] = {nullptr};
+    size_t argCount = 2;
+    napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
+    if (status != napi_ok || jsThis == nullptr) {
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to napi_get_cb_info");
+    }
+
+    napi_valuetype valueType = napi_undefined;
+    if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_object) {
+        (void)AVCodecNapiUtil::ExtractMediaFormat(env, args[0], asyncCtx->format);
+    } else {
+        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+    }
+
+    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[1]);
+    asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
+
+    (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
+
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "FindVideoDecoder", NAPI_AUTO_LENGTH, &resource);
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
+        [](napi_env env, void* data) {
+            auto asyncCtx = reinterpret_cast<MediaCapsAsyncContext *>(data);
+            if (asyncCtx == nullptr || asyncCtx->napi == nullptr) {
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
+                return;
+            }
+            auto codecList = AVCodecListFactory::CreateAVCodecList();
+            if (codecList == nullptr) {
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "No memory");
+                return;
+            }
+            std::string decoder = codecList->FindVideoDecoder(asyncCtx->format);
+            asyncCtx->JsResult = std::make_unique<MediaJsResultString>(decoder);
+        },
+        MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
+
+    NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
+    asyncCtx.release();
+
+    return result;
+}
+
+napi_value MediaCapsNapi::GetVideoEncoderCaps(napi_env env, napi_callback_info info)
+{
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+
+    auto asyncCtx = std::make_unique<MediaCapsAsyncContext>(env);
+
+    napi_value jsThis = nullptr;
+    napi_value args[1] = {nullptr};
+    size_t argCount = 1;
+    napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
+    if (status != napi_ok || jsThis == nullptr) {
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to napi_get_cb_info");
+    }
+
+    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
+    asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
+
+    (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
+
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "GetVideoEncoderCaps", NAPI_AUTO_LENGTH, &resource);
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
+        [](napi_env env, void* data) {
+            auto asyncCtx = reinterpret_cast<MediaCapsAsyncContext *>(data);
+            if (asyncCtx == nullptr || asyncCtx->napi == nullptr) {
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
+                return;
+            }
+            asyncCtx->JsResult = std::make_unique<MediaJsVideoCapsStatic>(false);
+        },
+        MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
+
+    NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
+    asyncCtx.release();
+
+    return result;
+}
+
+napi_value MediaCapsNapi::FindVideoEncoder(napi_env env, napi_callback_info info)
+{
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+
+    auto asyncCtx = std::make_unique<MediaCapsAsyncContext>(env);
+
+    napi_value jsThis = nullptr;
+    napi_value args[2] = {nullptr};
+    size_t argCount = 2;
+    napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
+    if (status != napi_ok || jsThis == nullptr) {
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to napi_get_cb_info");
+    }
+
+    napi_valuetype valueType = napi_undefined;
+    if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_object) {
+        (void)AVCodecNapiUtil::ExtractMediaFormat(env, args[0], asyncCtx->format);
+    } else {
+        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+    }
+
+    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[1]);
+    asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
+
+    (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
+
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "FindVideoEncoder", NAPI_AUTO_LENGTH, &resource);
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
+        [](napi_env env, void* data) {
+            auto asyncCtx = reinterpret_cast<MediaCapsAsyncContext *>(data);
+            if (asyncCtx == nullptr || asyncCtx->napi == nullptr) {
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
+                return;
+            }
+            auto codecList = AVCodecListFactory::CreateAVCodecList();
+            if (codecList == nullptr) {
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "No memory");
+                return;
+            }
+            std::string encoder = codecList->FindVideoEncoder(asyncCtx->format);
             asyncCtx->JsResult = std::make_unique<MediaJsResultString>(encoder);
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));

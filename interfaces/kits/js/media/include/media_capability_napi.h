@@ -17,7 +17,7 @@
 #define MEDIA_CAPABILITY_NAPI_H
 
 #include "media_errors.h"
-#include "common_napi.h"
+#include "media_capability_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
@@ -37,6 +37,10 @@ private:
     static napi_value FindAudioDecoder(napi_env env, napi_callback_info info);
     static napi_value GetAudioEncoderCaps(napi_env env, napi_callback_info info);
     static napi_value FindAudioEncoder(napi_env env, napi_callback_info info);
+    static napi_value GetVideoDecoderCaps(napi_env env, napi_callback_info info);
+    static napi_value FindVideoDecoder(napi_env env, napi_callback_info info);
+    static napi_value GetVideoEncoderCaps(napi_env env, napi_callback_info info);
+    static napi_value FindVideoEncoder(napi_env env, napi_callback_info info);
 
     MediaCapsNapi();
     ~MediaCapsNapi();
