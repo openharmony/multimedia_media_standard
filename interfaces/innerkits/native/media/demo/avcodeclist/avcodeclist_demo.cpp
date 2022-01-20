@@ -25,29 +25,21 @@ void AVCodecListDemo::DoNext()
 {
     cout << "Enter your step:" << endl;
     std::string cmd;
-    Format format;
+    Format format; // The content of format should be optional
     std::string codecName;
     while (std::getline(std::cin, cmd)) {
         if (cmd.find("fvd") != std::string::npos || cmd.find("FindVideoDecoder") != std::string::npos) {
-            if (BuildFormat(format)) {
-                codecName = avCodecList_->FindVideoDecoder(format);
-                cout << "FindVideoDecoder : " << codecName << endl;
-            }
+            codecName = avCodecList_->FindVideoDecoder(format);
+            cout << "FindVideoDecoder : " << codecName << endl;
         } else if (cmd.find("fve") != std::string::npos || cmd.find("FindVideoEncoder") != std::string::npos) {
-            if (BuildFormat(format)) {
-                codecName = avCodecList_->FindVideoEncoder(format);
-                cout << "FindVideoEncoder : " << codecName << endl;
-            }
+            codecName = avCodecList_->FindVideoEncoder(format);
+            cout << "FindVideoEncoder : " << codecName << endl;
         } else if (cmd.find("fad") != std::string::npos || cmd.find("FindAudioDecoder") != std::string::npos) {
-            if (BuildFormat(format)) {
-                codecName = avCodecList_->FindAudioDecoder(format);
-                cout << "FindAudioDecoder : " << codecName << endl;
-            }
+            codecName = avCodecList_->FindAudioDecoder(format);
+            cout << "FindAudioDecoder : " << codecName << endl;
         } else if (cmd.find("fae") != std::string::npos || cmd.find("FindAudioEncoder") != std::string::npos) {
-            if (BuildFormat(format)) {
-                codecName = avCodecList_->FindAudioEncoder(format);
-                cout << "FindAudioEncoder : " << codecName << endl;
-            }
+            codecName = avCodecList_->FindAudioEncoder(format);
+            cout << "FindAudioEncoder : " << codecName << endl;
         } else if (cmd.find("gvd") != std::string::npos || cmd.find("GetVideoDecoderCaps") != std::string::npos) {
             std::vector<std::shared_ptr<VideoCaps>> videoDecoderArray = avCodecList_->GetVideoDecoderCaps();
             PrintVideoCapsArray(videoDecoderArray);
@@ -60,128 +52,8 @@ void AVCodecListDemo::DoNext()
         } else if (cmd.find("gae") != std::string::npos || cmd.find("GetAudioEncoderCaps") != std::string::npos) {
             std::vector<std::shared_ptr<AudioCaps>> audioEncoderArray = avCodecList_->GetAudioEncoderCaps();
             PrintAudioCapsArray(audioEncoderArray);
-        } else if (cmd.find("gsfr") != std::string::npos || cmd.find("GetSupportedFrameRates") != std::string::npos) {
-            GetSupportedFrameRatesDemo();
-        } else if (cmd.find("gpfr") != std::string::npos || cmd.find("GetPreferredFrameRate") != std::string::npos) {
-            GetPreferredFrameRateDemo();
         }
     }
-}
-
-void AVCodecListDemo::GetSupportedFrameRatesDemo()
-{
-    Range ret;
-    ImgSize size = SetSize();
-
-    std::vector<std::shared_ptr<VideoCaps>> videoEncoderArray = avCodecList_->GetVideoEncoderCaps();
-    for (auto iter = videoEncoderArray.begin(); iter != videoEncoderArray.end(); iter++) {
-        ret = (*iter)->GetSupportedFrameRatesFor(size.width, size.height);
-        cout << "name = " << (*iter)->GetCodecInfo()->GetName() << ":" << endl;
-        cout << "framerate = " << ret.minVal << ", " << ret.maxVal << endl;
-    }
-    std::vector<std::shared_ptr<VideoCaps>> videoDecoderArray = avCodecList_->GetVideoDecoderCaps();
-    for (auto iter = videoDecoderArray.begin(); iter != videoDecoderArray.end(); iter++) {
-        ret = (*iter)->GetSupportedFrameRatesFor(size.width, size.height);
-        cout << "name = " << (*iter)->GetCodecInfo()->GetName() << ":" << endl;
-        cout << "framerate = " << ret.minVal << ", " << ret.maxVal << endl;
-    }
-}
-
-void AVCodecListDemo::GetPreferredFrameRateDemo()
-{
-    Range ret;
-    ImgSize size = SetSize();
-
-    std::vector<std::shared_ptr<VideoCaps>> videoEncoderArray = avCodecList_->GetVideoEncoderCaps();
-    for (auto iter = videoEncoderArray.begin(); iter != videoEncoderArray.end(); iter++) {
-        ret = (*iter)->GetPreferredFrameRate(size.width, size.height);
-        cout << "name = " << (*iter)->GetCodecInfo()->GetName() << ":" << endl;
-        cout << "framerate = " << ret.minVal << ", " << ret.maxVal << endl;
-    }
-    std::vector<std::shared_ptr<VideoCaps>> videoDecoderArray = avCodecList_->GetVideoDecoderCaps();
-    for (auto iter = videoDecoderArray.begin(); iter != videoDecoderArray.end(); iter++) {
-        ret = (*iter)->GetPreferredFrameRate(size.width, size.height);
-        cout << "name = " << (*iter)->GetCodecInfo()->GetName() << ":" << endl;
-        cout << "framerate = " << ret.minVal << ", " << ret.maxVal << endl;
-    }
-}
-
-ImgSize AVCodecListDemo::SetSize()
-{
-    string str;
-    cout << "Enter width : " << endl;
-    (void)getline(cin, str);
-    int32_t width = atoi(str.c_str());
-    cout << "Enter height : " << endl;
-    (void)getline(cin, str);
-    int32_t height = atoi(str.c_str());
-    cout << "width = " << width << ", height = " << height << endl;
-    return ImgSize(width, height);
-}
-
-bool AVCodecListDemo::BuildFormat(Format &format)
-{
-    format = Format();
-    const std::unordered_map<std::string, int32_t> MIME_TO_MEDIA_TYPE_MAP = {
-        {"audio/mpeg", MEDIA_TYPE_AUD},
-        {"audio/mp4a-latm", MEDIA_TYPE_AUD},
-        {"audio/vorbis", MEDIA_TYPE_AUD},
-        {"audio/flac", MEDIA_TYPE_AUD},
-        {"video/avc", MEDIA_TYPE_VID},
-        {"video/h263", MEDIA_TYPE_VID},
-        {"video/mpeg2", MEDIA_TYPE_VID},
-        {"video/mp4v-es", MEDIA_TYPE_VID},
-        {"video/x-vnd.on2.vp8", MEDIA_TYPE_VID}
-    };
-
-    cout << "Enter the MediaDescription of codec :" << endl;
-    cout << "Enter the codec mime :" << endl;
-    std::string codecMime;
-    (void)getline(cin, codecMime);
-    if (codecMime == "") {
-        cout << "Failed! The target of codec_mime cannot be set to null " << endl;
-        return false;
-    }
-    format.PutStringValue("codec_mime", codecMime);
-    (void)SetMediaDescriptionToFormat(format, "bitrate");
-
-    if (MIME_TO_MEDIA_TYPE_MAP.find(codecMime) != MIME_TO_MEDIA_TYPE_MAP.end()) {
-        if (MIME_TO_MEDIA_TYPE_MAP.at(codecMime) == MEDIA_TYPE_VID) {
-            (void)SetMediaDescriptionToFormat(format, "width");
-            (void)SetMediaDescriptionToFormat(format, "height");
-            (void)SetMediaDescriptionToFormat(format, "pixel_format");
-            (void)SetMediaDescriptionToFormat(format, "frame_rate");
-        } else if (MIME_TO_MEDIA_TYPE_MAP.at(codecMime) == MEDIA_TYPE_AUD) {
-            (void)SetMediaDescriptionToFormat(format, "channel_count");
-            (void)SetMediaDescriptionToFormat(format, "samplerate");
-        }
-    } else {
-        cout << "Failed! The target of codec_mime cannot be set to " << codecMime << endl;
-        return false;
-    }
-
-    return true;
-}
-
-void AVCodecListDemo::SetMediaDescriptionToFormat(Format &format, std::string key)
-{
-    cout << "Set the " << key << " :" << endl;
-    string mediaDescription;
-    if (key == "pixel_format") {
-        cout << "1:YUVI420" << endl;
-        cout << "2:NV12" << endl;
-        cout << "3:NV21" << endl;
-    } else if (key == "frame_rate") {
-        cout << "Please set the frame rate value as 100 times the actual frame rate" << endl;
-    }
-    (void)getline(cin, mediaDescription);
-    if (mediaDescription == "") {
-        cout << key << " is setting to null" << endl;
-        return;
-    }
-    int32_t number = atoi(mediaDescription.c_str());
-    format.PutIntValue(key, number);
-    cin.clear();
 }
 
 void AVCodecListDemo::PrintVideoCapsArray(const std::vector<std::shared_ptr<VideoCaps>> &videoCapsArray) const
