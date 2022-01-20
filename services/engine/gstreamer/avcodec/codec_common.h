@@ -38,7 +38,7 @@ struct BufferWrapper {
         SERVER,
         DOWNSTREAM
     };
-    BufferWrapper(Owner owner)
+    explicit BufferWrapper(Owner owner)
         : owner_(owner)
     {
     }
@@ -57,7 +57,7 @@ struct BufferWrapper {
 };
 
 struct ProcessorConfig {
-    explicit ProcessorConfig(GstCaps *caps, bool isEncoder)
+    ProcessorConfig(GstCaps *caps, bool isEncoder)
         : caps_(caps),
           isEncoder_(isEncoder)
     {

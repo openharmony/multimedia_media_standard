@@ -46,11 +46,9 @@ struct _GstShMemAllocatorOldClass {
     GstAllocatorClass parent;
 };
 
-GST_API_EXPORT
-GType gst_shmem_allocator_old_get_type(void);
+GST_API_EXPORT GType gst_shmem_allocator_old_get_type(void);
 
-GST_API_EXPORT
-GstAllocator *gst_shmem_allocator_old_new();
+GST_API_EXPORT GstAllocator *gst_shmem_allocator_old_new();
 
 G_END_DECLS
 

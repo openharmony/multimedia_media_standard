@@ -134,7 +134,7 @@ static void gst_codec_bin_init(GstCodecBin *bin)
     bin->need_src_convert = FALSE;
     bin->need_sink_convert = FALSE;
     bin->need_parser = FALSE;
-	bin->is_input_surface = FALSE;
+    bin->is_input_surface = FALSE;
 }
 
 static void gst_codec_bin_finalize(GObject *object)

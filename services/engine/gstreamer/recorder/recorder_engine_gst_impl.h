@@ -59,7 +59,7 @@ private:
     std::shared_ptr<RecorderPipelineCtrler> ctrler_ = nullptr;
     std::shared_ptr<RecorderPipeline> pipeline_ = nullptr;
     std::map<int32_t, RecorderSourceDesc> allSources_;
-    std::vector<uint32_t> sourceCount_;
+    std::vector<int32_t> sourceCount_;
     std::mutex mutex_;
 };
 }
