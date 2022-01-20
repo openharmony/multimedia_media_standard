@@ -81,6 +81,7 @@ std::string RawAudioFormatToGst(AudioRawFormat format);
 int32_t MapCodecMime(const std::string &mime, CodecMimeType &name);
 int32_t CapsToFormat(GstCaps *caps, Format &format);
 uint32_t PixelBufferSize(VideoPixelFormat pixel, uint32_t width, uint32_t height, uint32_t alignment);
+uint32_t EncodedBufSize(uint32_t width, uint32_t height);
 } // Media
 } // OHOS
 #endif // CODEC_COMMON_H
