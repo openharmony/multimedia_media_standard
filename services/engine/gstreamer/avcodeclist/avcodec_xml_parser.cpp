@@ -317,7 +317,7 @@ bool AVCodecXmlParser::SetCapabilityRangeData(std::unordered_map<std::string, Ra
 }
 
 bool AVCodecXmlParser::SetCapabilitySizeData(std::unordered_map<std::string, ImgSize&> dataMap,
-                                              const std::string &capabilityKey, const std::string &capabilityValue)
+                                             const std::string &capabilityKey, const std::string &capabilityValue)
 {
     ImgSize size;
     bool ret = TransStrAsSize(capabilityValue, size);
@@ -327,7 +327,7 @@ bool AVCodecXmlParser::SetCapabilitySizeData(std::unordered_map<std::string, Img
 }
 
 bool AVCodecXmlParser::SetCapabilityHashRangeData(std::unordered_map<std::string, std::map<ImgSize, Range>&> dataMap,
-                                              const std::string &capabilityKey, const std::string &capabilityValue)
+                                                  const std::string &capabilityKey, const std::string &capabilityValue)
 {
     std::map<ImgSize, Range> resolutionFrameRateMap;
     std::vector<std::string> spilt;
@@ -339,7 +339,7 @@ bool AVCodecXmlParser::SetCapabilityHashRangeData(std::unordered_map<std::string
         Range frameRate;
         ret = SpiltKeyList(*iter, "@", resolutionFrameRateVector);
         CHECK_AND_RETURN_RET_LOG(ret != false && resolutionFrameRateVector.size() == 2 , false,
-                                "failed:can not trans %{public}s", iter->c_str());
+            "failed:can not trans %{public}s", iter->c_str()); // check vector has 2 element
         if (!(TransStrAsSize(resolutionFrameRateVector[0], resolution) &&
               TransStrAsRange(resolutionFrameRateVector[1], frameRate))) {
             MEDIA_LOGD("failed:can not trans %{public}s for resolution or frame rate", iter->c_str());
@@ -397,47 +397,26 @@ bool AVCodecXmlParser::SetCapabilityData(CapabilityData &data, const std::string
                                          const std::string &capabilityValue)
 {
     std::unordered_map<std::string, std::string&> capabilityStringMap = {
-        {"codecName", data.codecName},
-        {"mimeType", data.mimeType}
-    };
+        {"codecName", data.codecName}, {"mimeType", data.mimeType}};
 
-    std::unordered_map<std::string, int32_t&> capabilityIntMap = {
-        {"codecType", data.codecType}
-    };
+    std::unordered_map<std::string, int32_t&> capabilityIntMap = {{"codecType", data.codecType}};
 
-    std::unordered_map<std::string, bool&> capabilityBoolMap = {
-        {"isVendor", data.isVendor}
-    };
+    std::unordered_map<std::string, bool&> capabilityBoolMap = {{"isVendor", data.isVendor}};
 
-    std::unordered_map<std::string, ImgSize&> capabilitySizeMap = {
-        {"blockSize", data.blockSize}
-    };
+    std::unordered_map<std::string, ImgSize&> capabilitySizeMap = {{"blockSize", data.blockSize}};
 
     std::unordered_map<std::string, std::map<ImgSize, Range>&> capabilityHashRangeMap = {
-        {"measuredFrameRate", data.measuredFrameRate}
-    };
+        {"measuredFrameRate", data.measuredFrameRate}};
 
     std::unordered_map<std::string, Range&> capabilityRangeMap = {
-        {"bitrate", data.bitrate},
-        {"channels", data.channels},
-        {"complexity", data.complexity},
-        {"alignment", data.alignment},
-        {"width", data.width},
-        {"height", data.height},
-        {"frameRate", data.frameRate},
-        {"encodeQuality", data.encodeQuality},
-        {"quality", data.quality},
-        {"blockPerFrame", data.blockPerFrame},
-        {"blockPerSecond", data.blockPerSecond},
-    };
+        {"bitrate", data.bitrate}, {"channels", data.channels}, {"complexity", data.complexity},
+        {"alignment", data.alignment}, {"width", data.width}, {"height", data.height}, {"frameRate", data.frameRate},
+        {"encodeQuality", data.encodeQuality}, {"quality", data.quality}, {"blockPerFrame", data.blockPerFrame},
+        {"blockPerSecond", data.blockPerSecond}};
 
     std::unordered_map<std::string, std::vector<int32_t>&> capabilityVectorMap = {
-        {"sampleRate", data.sampleRate},
-        {"format", data.format},
-        {"profiles", data.profiles},
-        {"bitrateMode", data.bitrateMode},
-        {"levels", data.levels},
-    };
+        {"sampleRate", data.sampleRate}, {"format", data.format}, {"profiles", data.profiles},
+        {"bitrateMode", data.bitrateMode}, {"levels", data.levels}};
 
     bool ret = false;
     if (capabilityStringMap.find(capabilityKey) != capabilityStringMap.end()) {

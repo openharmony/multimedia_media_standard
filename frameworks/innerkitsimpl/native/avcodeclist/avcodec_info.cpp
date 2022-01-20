@@ -18,12 +18,12 @@
 #include "media_errors.h"
 
 namespace {
-constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecInfo"};
-constexpr int32_t INT32MAX = 2147483647;
+    constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecInfo"};
+    constexpr int32_t FRAME_RATE_30 = 30;
+    constexpr int32_t BLOCK_SIZE_MIN = 2;
 }
 namespace OHOS {
 namespace Media {
-
 const std::map<int32_t, LevelParams> AVC_PARAMS_MAP = {
     {AVC_LEVEL_1, LevelParams(1485, 99)},
     {AVC_LEVEL_1b, LevelParams(1485, 99)},
@@ -57,7 +57,7 @@ const std::map<int32_t, LevelParams> MPEG2_MAIN_PARAMS_MAP = {
 const std::map<int32_t, LevelParams> MPEG4_ADVANCED_SIMPLE_PARAMS_MAP = {
     {MPEG4_LEVEL_0, LevelParams(2970, 99, 30, 11, 9)},
     {MPEG4_LEVEL_1, LevelParams(2970, 99, 30, 11, 9)},
-    {MPEG4_LEVEL_2,LevelParams(5940, 396, 30, 22, 18)},
+    {MPEG4_LEVEL_2, LevelParams(5940, 396, 30, 22, 18)},
     {MPEG4_LEVEL_3, LevelParams(11880, 396, 30, 22, 18)},
     {MPEG4_LEVEL_4, LevelParams(23760, 1200, 30, 44, 36)},
     {MPEG4_LEVEL_5, LevelParams(48600, 1620, 30, 45, 36)},
@@ -67,7 +67,7 @@ const std::map<int32_t, LevelParams> MPEG4_SIMPLE_PARAMS_MAP = {
     {MPEG4_LEVEL_0, LevelParams(1485, 99, 15, 11, 9)},
     {MPEG4_LEVEL_0B, LevelParams(1485, 99, 15, 11, 9)},
     {MPEG4_LEVEL_1, LevelParams(1485, 99, 30, 11, 9)},
-    {MPEG4_LEVEL_2,LevelParams(5940, 396, 30, 22, 18)},
+    {MPEG4_LEVEL_2, LevelParams(5940, 396, 30, 22, 18)},
     {MPEG4_LEVEL_3, LevelParams(11880, 396, 30, 22, 18)},
     {MPEG4_LEVEL_4A, LevelParams(36000, 1200, 30, 40, 30)},
     {MPEG4_LEVEL_5, LevelParams(40500, 1620, 30, 40, 36)},
@@ -201,7 +201,7 @@ void VideoCaps::LoadAVCLevelParams()
     }
     Range blockPerFrameRange = Range(1, maxBlockPerFrame);
     Range blockPerSecondRange = Range(1, maxBlockPerSecond);
-    UpdateBlockParams(16, 16, blockPerFrameRange, blockPerSecondRange);
+    UpdateBlockParams(16, 16, blockPerFrameRange, blockPerSecondRange); // set AVC block size as 16x16
 }
 
 void VideoCaps::LoadMPEG2LevelParams()
@@ -275,11 +275,17 @@ void VideoCaps::UpdateBlockParams(const int32_t &blockWidth, const int32_t &bloc
 {
     int32_t factor;
     if (blockWidth > blockWidth_ && blockHeight > blockHeight_) {
+        if (blockWidth_ == 0 || blockWidth_ == 0) {
+            return;
+        }
         factor = blockWidth * blockHeight / blockWidth_ / blockWidth_;
         blockPerFrameRange_ = DivRange(blockPerFrameRange_, factor);
         horizontalBlockRange_ = DivRange(horizontalBlockRange_, blockWidth / blockWidth_);
         verticalBlockRange_ = DivRange(verticalBlockRange_, blockHeight / blockHeight_);
     } else if (blockWidth < blockWidth_ && blockHeight < blockHeight_) {
+        if (blockWidth == 0 || blockWidth == 0) {
+            return;
+        }
         factor = blockWidth_ * blockHeight_ / blockWidth / blockWidth;
         blockPerFrameRange = DivRange(blockPerFrameRange, factor);
         blockPerSecondRange = DivRange(blockPerSecondRange, factor);
@@ -294,34 +300,34 @@ void VideoCaps::UpdateBlockParams(const int32_t &blockWidth, const int32_t &bloc
 void VideoCaps::InitParams()
 {
     if (data_.blockPerSecond.minVal == 0 || data_.blockPerSecond.maxVal == 0) {
-        data_.blockPerSecond = Range(1, INT32MAX);
+        data_.blockPerSecond = Range(1, INT32_MAX);
     }
     if (data_.blockPerFrame.minVal == 0 || data_.blockPerFrame.maxVal == 0) {
-        data_.blockPerFrame = Range(1, INT32MAX);
+        data_.blockPerFrame = Range(1, INT32_MAX);
     }
     if (data_.width.minVal == 0 || data_.width.maxVal == 0) {
-        data_.width = Range(1, INT32MAX);
+        data_.width = Range(1, INT32_MAX);
     }
     if (data_.height.minVal == 0 || data_.height.maxVal == 0) {
-        data_.height = Range(1, INT32MAX);
+        data_.height = Range(1, INT32_MAX);
     }
     if (data_.frameRate.minVal == 0 || data_.frameRate.maxVal == 0) {
-        data_.frameRate = Range(1, 30);
+        data_.frameRate = Range(1, FRAME_RATE_30);
     }
     if (data_.blockSize.width == 0 || data_.blockSize.width == 0) {
-        data_.blockSize.width = 8;
-        data_.blockSize.height = 8;
+        data_.blockSize.width = BLOCK_SIZE_MIN;
+        data_.blockSize.height = BLOCK_SIZE_MIN;
     }
 
     blockWidth_ = data_.blockSize.width;
     blockHeight_ = data_.blockSize.height;
     frameRateRange_ = data_.frameRate;
-    horizontalBlockRange_ = Range(1, INT32MAX);
-    verticalBlockRange_ = Range(1, INT32MAX);
-    blockPerFrameRange_ = Range(1, INT32MAX);
-    blockPerSecondRange_ = Range(1, INT32MAX);
-    widthRange_ = Range(1, INT32MAX);
-    heightRange_ = Range(1, INT32MAX);
+    horizontalBlockRange_ = Range(1, INT32_MAX);
+    verticalBlockRange_ = Range(1, INT32_MAX);
+    blockPerFrameRange_ = Range(1, INT32_MAX);
+    blockPerSecondRange_ = Range(1, INT32_MAX);
+    widthRange_ = Range(1, INT32_MAX);
+    heightRange_ = Range(1, INT32_MAX);
 }
 
 
@@ -331,13 +337,19 @@ void VideoCaps::UpdateParams()
 
     blockPerFrameRange_ = blockPerFrameRange_.Intersect(DivRange(data_.blockPerFrame, factor));
     blockPerSecondRange_ = blockPerSecondRange_.Intersect(DivRange(data_.blockPerSecond, factor));
-    horizontalBlockRange_ = horizontalBlockRange_.Intersect(Range(data_.width.minVal / blockWidth_, DivCeil(data_.width.maxVal, blockWidth_)));
-    horizontalBlockRange_ = horizontalBlockRange_.Intersect(Range(blockPerFrameRange_.minVal / verticalBlockRange_.maxVal,
+    horizontalBlockRange_ = horizontalBlockRange_.Intersect(
+        Range(data_.width.minVal / blockWidth_, DivCeil(data_.width.maxVal, blockWidth_)));
+    horizontalBlockRange_ = horizontalBlockRange_.Intersect(
+        Range(blockPerFrameRange_.minVal / verticalBlockRange_.maxVal,
         blockPerFrameRange_.maxVal / verticalBlockRange_.minVal));
-    verticalBlockRange_ = verticalBlockRange_.Intersect(Range(data_.height.minVal / blockHeight_, DivCeil(data_.height.maxVal, blockHeight_)));
-    verticalBlockRange_ = verticalBlockRange_.Intersect(Range(blockPerFrameRange_.minVal / horizontalBlockRange_.maxVal,
+
+    verticalBlockRange_ = verticalBlockRange_.Intersect(
+        Range(data_.height.minVal / blockHeight_, DivCeil(data_.height.maxVal, blockHeight_)));
+    verticalBlockRange_ = verticalBlockRange_.Intersect(
+        Range(blockPerFrameRange_.minVal / horizontalBlockRange_.maxVal,
         blockPerFrameRange_.maxVal / horizontalBlockRange_.minVal));
-    blockPerFrameRange_ = blockPerFrameRange_.Intersect(Range(horizontalBlockRange_.minVal * verticalBlockRange_.minVal,
+    blockPerFrameRange_ = blockPerFrameRange_.Intersect(
+        Range(horizontalBlockRange_.minVal * verticalBlockRange_.minVal,
         horizontalBlockRange_.maxVal * verticalBlockRange_.maxVal));
     blockPerSecondRange_ = blockPerSecondRange_.Intersect(blockPerFrameRange_.minVal * frameRateRange_.minVal,
         blockPerFrameRange_.maxVal * frameRateRange_.maxVal);
@@ -358,6 +370,10 @@ Range VideoCaps::DivRange(const Range &range, const int32_t &divisor)
 
 int32_t VideoCaps::DivCeil(const int32_t &dividend, const int32_t &divisor)
 {
+    if (divisor == 0) {
+        MEDIA_LOGE("The denominator cannot be 0");
+        return INT32_MAX;
+    }
     return (dividend + divisor - 1) / divisor;
 }
 

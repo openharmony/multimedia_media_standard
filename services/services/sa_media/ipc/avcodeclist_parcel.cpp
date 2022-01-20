@@ -153,7 +153,6 @@ bool AVCodecListParcel::Unmarshalling(MessageParcel &parcel, std::map<ImgSize, R
 
 bool AVCodecListParcel::Unmarshalling(MessageParcel &parcel, std::map<int32_t, std::vector<int32_t>> &mapIntToVec)
 {
-
     uint32_t size = parcel.ReadUint32();
     for (uint32_t index = 0; index < size; index++) {
         int32_t key;

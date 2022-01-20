@@ -23,8 +23,7 @@
 
 namespace OHOS {
 namespace Media {
-struct LevelParams
-{
+struct LevelParams {
     int32_t maxBlockPerFrame = 0;
     int32_t maxBlockPerSecond = 0;
     int32_t maxFrameRate = 0;
