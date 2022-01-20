@@ -247,11 +247,11 @@ int32_t GstPlayerVideoRendererCtrl::InitVideoSink(const GstElement *playbin)
         CHECK_AND_RETURN_RET_LOG(videoSink_ != nullptr, MSERR_INVALID_OPERATION, "CreateVideoSink failed..");
 
         gulong signalId = g_signal_connect(G_OBJECT(videoSink_), "new_sample",
-            G_CALLBACK(GstPlayerVideoRendererCap::VideoDataAvailableCb), userData);
+            G_CALLBACK(GstPlayerVideoRendererCap::VideoDataAvailableCb), reinterpret_cast<gpointer>(this));
         signalIds_.push_back(signalId);
 
         signalId = g_signal_connect(G_OBJECT(videoSink_), "new_preroll",
-            G_CALLBACK(GstPlayerVideoRendererCap::PrerollArrivedCb), userData);
+            G_CALLBACK(GstPlayerVideoRendererCap::PrerollArrivedCb), reinterpret_cast<gpointer>(this));
         signalIds_.push_back(signalId);
 
         g_object_set(const_cast<GstElement *>(playbin), "video-sink", videoSink_, nullptr);
