@@ -23,6 +23,29 @@
 
 namespace OHOS {
 namespace Media {
+struct LevelParams
+{
+    int32_t maxBlockPerFrame = 0;
+    int32_t maxBlockPerSecond = 0;
+    int32_t maxFrameRate = 0;
+    int32_t maxWidth = 0;
+    int32_t maxHeight = 0;
+    LevelParams(const int32_t &blockPerFrame, const int32_t &blockPerSecond,
+                const int32_t &frameRate, const int32_t &width, const int32_t height)
+    {
+        this->maxBlockPerFrame = blockPerFrame;
+        this->maxBlockPerSecond = blockPerSecond;
+        this->maxFrameRate = frameRate;
+        this->maxWidth = width;
+        this->maxHeight = height;
+    }
+    LevelParams(const int32_t &blockPerFrame, const int32_t &blockPerSecond)
+    {
+        this->maxBlockPerFrame = blockPerFrame;
+        this->maxBlockPerSecond = blockPerSecond;
+    }
+};
+
 class __attribute__((visibility("default"))) AVCodecInfo {
 public:
     explicit AVCodecInfo(CapabilityData &capabilityData);
@@ -256,6 +279,26 @@ public:
 
 private:
     CapabilityData data_;
+    int32_t blockWidth_;
+    int32_t blockHeight_;
+    Range horizontalBlockRange_;
+    Range verticalBlockRange_;
+    Range blockPerFrameRange_;
+    Range blockPerSecondRange_;
+    Range widthRange_;
+    Range heightRange_;
+    Range frameRateRange_;
+    void InitParams();
+    void UpdateParams();
+    void LoadLevelParams();
+    void LoadAVCLevelParams();
+    void LoadMPEG2LevelParams();
+    void LoadMPEG4LevelParams();
+    ImgSize MatchClosestSize(const ImgSize &imgSize);
+    int32_t DivCeil(const int32_t &dividend, const int32_t &divisor);
+    Range DivRange(const Range &range, const int32_t &divisor);
+    void UpdateBlockParams(const int32_t &blockWidth, const int32_t &blockHeight,
+                           Range &blockPerFrameRange, Range &blockPerSecondRange);
 };
 
 class __attribute__((visibility("default"))) AudioCaps {

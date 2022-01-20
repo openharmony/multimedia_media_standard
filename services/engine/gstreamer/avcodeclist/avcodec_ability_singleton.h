@@ -29,8 +29,10 @@ public:
     bool ParseCodecXml();
     Format codecXmlFormat;
     std::vector<CapabilityData> capabilityDataArray_;
+    bool IsParsered();
 
 private:
+    bool isParsered_ = false;
     AVCodecAbilitySingleton();
 };
 }
