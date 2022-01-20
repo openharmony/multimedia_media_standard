@@ -16,11 +16,9 @@
 #ifndef AVCODECLIST_DEMO_H
 #define AVCODECLIST_DEMO_H
 #include <functional>
-#include <unordered_map>
 #include "securec.h"
 #include "nocopyable.h"
 #include "avcodec_list.h"
-#include "format.h"
 
 namespace OHOS {
 namespace Media {
@@ -37,11 +35,6 @@ private:
     void PrintVideoCapsArray(const std::vector<std::shared_ptr<VideoCaps>> &videoCapsArray) const;
     void PrintAudioCapsArray(const std::vector<std::shared_ptr<AudioCaps>> &audioCapsArray) const;
     void PrintIntArray(const std::vector<int32_t> &array, const std::string &logmsg) const;
-    bool BuildFormat(Format &format);
-    void SetMediaDescriptionToFormat(Format &format, std::string key);
-    void GetSupportedFrameRatesDemo();
-    void GetPreferredFrameRateDemo();
-    ImgSize SetSize();
 };
 }
 }
