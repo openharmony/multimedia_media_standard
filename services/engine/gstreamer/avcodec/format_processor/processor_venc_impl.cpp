@@ -19,7 +19,8 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "ProcessorVencImpl"};
-    const uint32_t DEFAULT_BUFFER_SIZE = 30000;
+    const uint32_t MAX_WIDTH = 8000;
+    const uint32_t MAX_HEIGHT = 5000;
 }
 
 namespace OHOS {
@@ -48,21 +49,27 @@ int32_t ProcessorVencImpl::ProcessMandatory(const Format &format)
 
 int32_t ProcessorVencImpl::ProcessOptional(const Format &format)
 {
-    (void)format.GetIntValue("video_encode_bitrate_mode", bitrateMode_);
-    (void)format.GetIntValue("codec_profile", profile_);
+    if (format.GetValueType(std::string_view("video_encode_bitrate_mode")) == FORMAT_TYPE_INT32) {
+        (void)format.GetIntValue("video_encode_bitrate_mode", bitrateMode_);
+    }
+
+    if (format.GetValueType(std::string_view("codec_profile")) == FORMAT_TYPE_INT32) {
+        (void)format.GetIntValue("codec_profile", profile_);
+    }
 
     return MSERR_OK;
 }
 
 std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetInputPortConfig()
 {
-    CHECK_AND_RETURN_RET(width_ > 0 && height_ > 0, nullptr);
+    CHECK_AND_RETURN_RET(width_ > 0 && width_ < MAX_WIDTH, nullptr);
+    CHECK_AND_RETURN_RET(height_ > 0 && height_ < MAX_HEIGHT, nullptr);
 
     GstCaps *caps = gst_caps_new_simple("video/x-raw",
         "width", G_TYPE_INT, width_,
         "height", G_TYPE_INT, height_,
         "format", G_TYPE_STRING, gstPixelFormat_.c_str(),
-        "framerate", G_TYPE_INT, frameRate_, nullptr);
+        "framerate", GST_TYPE_FRACTION, frameRate_, 1, nullptr);
     CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "No memory");
 
     auto config = std::make_shared<ProcessorConfig>(caps, true);
@@ -81,26 +88,19 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetInputPortConfig()
 
 std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetOutputPortConfig()
 {
-    CHECK_AND_RETURN_RET(width_ > 0 && height_ > 0, nullptr);
+    CHECK_AND_RETURN_RET(width_ > 0 && width_ < MAX_WIDTH, nullptr);
+    CHECK_AND_RETURN_RET(height_ > 0 && height_ < MAX_HEIGHT, nullptr);
 
     GstCaps *caps = nullptr;
     switch (codecName_) {
         case CODEC_MIMIE_TYPE_VIDEO_MPEG4:
             caps = gst_caps_new_simple("video/mpeg",
-                "width", G_TYPE_INT, width_,
-                "height", G_TYPE_INT, height_,
-                "framerate", G_TYPE_INT, frameRate_,
-                "mpegversion", G_TYPE_INT, 1, nullptr);
+                "mpegversion", G_TYPE_INT, 4,
+                "systemstream", G_TYPE_BOOLEAN, FALSE,
+                "profile", G_TYPE_STRING, "simple", nullptr);
             break;
         case CODEC_MIMIE_TYPE_VIDEO_AVC:
             caps = gst_caps_new_simple("video/x-h264",
-                "width", G_TYPE_INT, width_,
-                "height", G_TYPE_INT, height_,
-                "framerate", G_TYPE_INT, frameRate_,
-                "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1,
-                "level", G_TYPE_STRING, "2",
-                "profile", G_TYPE_STRING, "high",
-                "alignment", G_TYPE_STRING, "nal",
                 "stream-format", G_TYPE_STRING, "byte-stream", nullptr);
             break;
         default:
@@ -115,7 +115,7 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetOutputPortConfig()
         return nullptr;
     }
 
-    config->bufferSize_ = DEFAULT_BUFFER_SIZE;
+    config->bufferSize_ = EncodedBufSize(width_, height_);
 
     return config;
 }

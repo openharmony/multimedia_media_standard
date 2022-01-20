@@ -81,7 +81,10 @@ int32_t ProcessorAencImpl::ProcessMandatory(const Format &format)
 
 int32_t ProcessorAencImpl::ProcessOptional(const Format &format)
 {
-    (void)format.GetIntValue("profile", profile_);
+    if (format.GetValueType(std::string_view("profile")) == FORMAT_TYPE_INT32) {
+        (void)format.GetIntValue("profile", profile_);
+    }
+
     return MSERR_OK;
 }
 
