@@ -19,6 +19,7 @@
 #include "recorder_demo.h"
 #include "avmetadatahelper_demo.h"
 #include "avcodeclist_demo.h"
+#include "avcodec_venc_demo.h"
 
 using namespace OHOS;
 using namespace OHOS::Media;
@@ -36,6 +37,7 @@ static int RunPlayer(const string &path)
     cout << "demo player end" << endl;
     return 0;
 }
+
 static int RunCodecList(const string &path)
 {
     auto avCodecList = std::make_unique<AVCodecListDemo>();
@@ -47,6 +49,7 @@ static int RunCodecList(const string &path)
     cout << "demo avCodecList end" << endl;
     return 0;
 }
+
 static int RunRecorder()
 {
     auto recorder = std::make_unique<RecorderDemo>();
@@ -71,6 +74,18 @@ static int RunAVMetadataHelper(const string &path)
     return 0;
 }
 
+static int RunVideoEncoder()
+{
+    auto venc = std::make_unique<VEncDemo>();
+    if (venc == nullptr) {
+        cout << "videoencoder is null" << endl;
+        return 0;
+    }
+    venc->RunCase();
+    cout << "demo videoencoder end" << endl;
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     constexpr int minRequiredArgCount = 2;
@@ -83,6 +98,7 @@ int main(int argc, char *argv[])
     cout << "1:recorder" << endl;
     cout << "2:avmetadatahelper" << endl;
     cout << "3:codeclist" << endl;
+    cout << "4:videoencoder" << endl;
     string mode;
     (void)getline(cin, mode);
     if (mode == "" || mode == "0") {
@@ -93,6 +109,8 @@ int main(int argc, char *argv[])
         (void)RunAVMetadataHelper(path);
     } else if (mode == "3") {
         (void)RunCodecList(path);
+    } else if (mode == "4") {
+        (void)RunVideoEncoder();
     } else {
         cout << "no that selection" << endl;
     }

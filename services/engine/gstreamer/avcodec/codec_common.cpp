@@ -125,5 +125,21 @@ uint32_t PixelBufferSize(VideoPixelFormat pixel, uint32_t width, uint32_t height
     }
     return size;
 }
+
+uint32_t EncodedBufSize(uint32_t width, uint32_t height)
+{
+    if (width == 0 || height == 0) {
+        return 0;
+    }
+
+    const uint32_t compressRatio = 15;
+    const uint32_t maxSize = 3150000; // 3MB
+
+    if ((UINT32_MAX / width) <= (height / compressRatio)) {
+        return maxSize;
+    }
+
+    return height / compressRatio * width;
+}
 } // namespace Media
 } // namespace OHOS
