@@ -377,7 +377,13 @@ static GstFlowReturn gst_shmem_pool_alloc_buffer(GstBufferPool *pool,
     if (baseMem->GetFlags() == OHOS::Media::AVSharedMemory::FLAGS_READ_ONLY) {
         flag = FLAGS_READ_ONLY;
     }
-    gst_buffer_add_buffer_fd_meta(*buffer, fd, 0, size, size, flag, 0);
+    GstBufferFdConfig config;
+    config.offset = 0;
+    config.length = size;
+    config.totalSize = size;
+    config.memFlag = flag;
+    config.bufferFlag = 0;
+    gst_buffer_add_buffer_fd_meta(*buffer, fd, config);
 
     GST_DEBUG("alloc buffer ok, 0x%06" PRIXPTR "", FAKE_POINTER(*buffer));
     return GST_FLOW_OK;

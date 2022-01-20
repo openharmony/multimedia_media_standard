@@ -46,8 +46,7 @@ struct _GstShmemPoolSrcClass {
     GstMemPoolSrcClass parent_class;
 };
 
-GST_API_EXPORT
-GType gst_shmem_pool_src_get_type(void);
+GST_API_EXPORT GType gst_shmem_pool_src_get_type(void);
 
 G_END_DECLS
 #endif

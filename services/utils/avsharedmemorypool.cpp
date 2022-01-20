@@ -101,7 +101,7 @@ void AVSharedMemoryPool::ReleaseMemory(AVSharedMemory *memory)
 
 bool AVSharedMemoryPool::DoAcquireMemory(int32_t size, AVSharedMemory **outMemory)
 {
-    MEDIA_LOGD("busylist size %{public}d, idlelist size %{public}d", busyList_.size(), idleList_.size());
+    MEDIA_LOGD("busylist size %{public}zu, idlelist size %{public}zu", busyList_.size(), idleList_.size());
 
     AVSharedMemory *result = nullptr;
     std::list<AVSharedMemory *>::iterator minSizeIdleMem = idleList_.end();

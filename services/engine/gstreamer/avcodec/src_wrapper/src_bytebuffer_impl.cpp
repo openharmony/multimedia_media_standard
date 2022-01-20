@@ -20,6 +20,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "SrcBytebufferImpl"};
+    constexpr uint32_t DEFAULT_BUFFER_NUM = 16;
 }
 
 namespace OHOS {
@@ -52,7 +53,7 @@ int32_t SrcBytebufferImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 {
     CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
 
-    g_object_set(G_OBJECT(src_), "buffer-num", 16, nullptr);
+    g_object_set(G_OBJECT(src_), "buffer-num", DEFAULT_BUFFER_NUM, nullptr);
     g_object_set(G_OBJECT(src_), "buffer-size", config->bufferSize_, nullptr);
     g_object_set(G_OBJECT(src_), "caps", config->caps_, nullptr);
     gst_mem_pool_src_set_callback(GST_MEM_POOL_SRC(src_), BufferAvailable, this, nullptr);

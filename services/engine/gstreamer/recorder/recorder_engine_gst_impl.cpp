@@ -100,7 +100,7 @@ int32_t RecorderEngineGstImpl::SetAudioSource(AudioSourceType source, int32_t &s
     }
 
     RecorderSourceDesc desc;
-    desc.SetAudioSource(source, static_cast<int32_t>(sourceCount_[RECORDER_SOURCE_KIND_AUDIO]));
+    desc.SetAudioSource(source, sourceCount_[RECORDER_SOURCE_KIND_AUDIO]);
     int32_t success = builder_->SetSource(desc);
     CHECK_AND_RETURN_RET(success == MSERR_OK, MSERR_INVALID_OPERATION);
 

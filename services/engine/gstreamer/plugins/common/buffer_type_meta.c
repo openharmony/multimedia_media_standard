@@ -137,8 +137,7 @@ GstBufferTypeMeta *gst_buffer_add_buffer_handle_meta(GstBuffer *buffer, intptr_t
     return buffer_meta;
 }
 
-GstBufferTypeMeta *gst_buffer_add_buffer_fd_meta(GstBuffer *buffer, intptr_t buf, uint32_t offset,
-    uint32_t length, uint32_t totalSize, uint32_t memFlag, uint32_t bufferFlag)
+GstBufferTypeMeta *gst_buffer_add_buffer_fd_meta(GstBuffer *buffer, intptr_t buf, GstBufferFdConfig config)
 {
     g_return_val_if_fail(buffer != NULL, FALSE);
     GstBufferTypeMeta *buffer_meta = NULL;
@@ -148,10 +147,10 @@ GstBufferTypeMeta *gst_buffer_add_buffer_fd_meta(GstBuffer *buffer, intptr_t buf
 
     buffer_meta->type = BUFFER_TYPE_AVSHMEM;
     buffer_meta->buf = buf;
-    buffer_meta->offset = offset;
-    buffer_meta->length = length;
-    buffer_meta->totalSize = totalSize;
-    buffer_meta->memFlag = memFlag;
-    buffer_meta->bufferFlag = bufferFlag;
+    buffer_meta->offset = config.offset;
+    buffer_meta->length = config.length;
+    buffer_meta->totalSize = config.totalSize;
+    buffer_meta->memFlag = config.memFlag;
+    buffer_meta->bufferFlag = config.bufferFlag;
     return buffer_meta;
 }

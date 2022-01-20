@@ -220,7 +220,7 @@ int32_t SinkSurfaceImpl::FindBufferIndex(uint32_t &index, sptr<SurfaceBuffer> bu
         bufferList_.push_back(bufWrap);
     }
 
-    MEDIA_LOGD("bufferList_ size is: %{public}u", bufferList_.size());
+    MEDIA_LOGD("bufferList_ size is: %{public}zu", bufferList_.size());
 
     CHECK_AND_RETURN_RET(index < bufferList_.size(), MSERR_UNKNOWN);
     return MSERR_OK;

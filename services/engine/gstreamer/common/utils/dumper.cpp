@@ -118,8 +118,7 @@ GstPadProbeReturn Dumper::DumpGstBuffer(GstPad *pad, GstPadProbeInfo *info, gpoi
 
     char fullPath[PATH_MAX] = { 0 };
     const char *format = "/data/media/dump/pad_%s_%s_buf_%" PRIu64 "";
-    int ret = sprintf_s(fullPath, PATH_MAX, format, GST_DEBUG_PAD_NAME(pad), bufSeq);
-    if (ret <= 0) {
+    if (sprintf_s(fullPath, PATH_MAX, format, GST_DEBUG_PAD_NAME(pad), bufSeq) <= 0) {
         MEDIA_LOGE("dump buffer failed for 0x%{public}06" PRIXPTR ", pad is %{public}s:%{public}s",
                    FAKE_POINTER(buf), GST_DEBUG_PAD_NAME(pad));
         gst_buffer_unmap(buf, &mapInfo);
@@ -146,7 +145,7 @@ void Dumper::AddDumpGstBufferProbe(GstElement *element, const gchar *padname)
     GstPad *pad = gst_element_get_static_pad(element, padname);
     CHECK_AND_RETURN(pad != nullptr);
 
-    gulong ret = gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_BUFFER , &Dumper::DumpGstBuffer, nullptr, nullptr);
+    gulong ret = gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_BUFFER, &Dumper::DumpGstBuffer, nullptr, nullptr);
     if (ret == 0) {
         MEDIA_LOGE("add dump gst buffer probe to pad %{public}s:%{public}s failed", GST_DEBUG_PAD_NAME(pad));
     } else {
