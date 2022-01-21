@@ -734,7 +734,7 @@ static GstBufferPool *gst_venc_base_new_shmem_pool(GstVencBase *self, GstCaps *c
     g_return_val_if_fail(pool != nullptr, nullptr);
     ON_SCOPE_EXIT(0) { gst_object_unref(pool); };
     std::shared_ptr<OHOS::Media::AVSharedMemoryPool> av_shmem_pool =
-                std::make_shared<OHOS::Media::AVSharedMemoryPool>();
+                std::make_shared<OHOS::Media::AVSharedMemoryPool>("venc");
     GstShMemAllocator *allocator = gst_shmem_allocator_new();
     g_return_val_if_fail(allocator != nullptr, nullptr);
     ON_SCOPE_EXIT(1) { gst_object_unref(allocator); };

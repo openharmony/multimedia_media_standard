@@ -27,6 +27,7 @@ extern "C" {
 #define GST_BUFFER_TYPE_META_API_TYPE (gst_buffer_type_meta_api_get_type())
 #define GST_BUFFER_TYPE_META_INFO (gst_buffer_type_meta_get_info())
 typedef struct _GstBufferTypeMeta GstBufferTypeMeta;
+typedef struct _GstBufferFdConfig GstBufferFdConfig;
 
 typedef enum {
     FLAGS_READ_WRITE = 0x1,
@@ -55,19 +56,28 @@ struct _GstBufferTypeMeta {
     uint32_t bufferFlag;
 };
 
+struct _GstBufferFdConfig {
+    uint32_t offset;
+    uint32_t length;
+    uint32_t totalSize;
+    uint32_t memFlag;
+    uint32_t bufferFlag;
+};
+
 GST_API_EXPORT GType gst_buffer_type_meta_api_get_type(void);
 
 GST_API_EXPORT const GstMetaInfo *gst_buffer_type_meta_get_info(void);
 
 GST_API_EXPORT GstBufferTypeMeta *gst_buffer_get_buffer_type_meta(GstBuffer *buffer);
 
-GST_API_EXPORT GstBufferTypeMeta *gst_buffer_add_buffer_vir_meta(GstBuffer *buffer, intptr_t buf, uint32_t bufferFlag);
+GST_API_EXPORT GstBufferTypeMeta *gst_buffer_add_buffer_vir_meta(GstBuffer *buffer,
+    intptr_t buf, uint32_t bufferFlag);
 
 GST_API_EXPORT GstBufferTypeMeta *gst_buffer_add_buffer_handle_meta(GstBuffer *buffer, intptr_t buf,
     int32_t fenceFd, uint32_t bufferFlag);
 
-GST_API_EXPORT GstBufferTypeMeta *gst_buffer_add_buffer_fd_meta(GstBuffer *buffer, intptr_t buf, uint32_t offset,
-    uint32_t length, uint32_t totalSize, uint32_t memFlag, uint32_t bufferFlag);
+GST_API_EXPORT GstBufferTypeMeta *gst_buffer_add_buffer_fd_meta(GstBuffer *buffer, intptr_t buf,
+    GstBufferFdConfig config);
 
 #ifdef __cplusplus
 }
