@@ -27,6 +27,8 @@ GST_DEBUG_CATEGORY_STATIC(gst_vdec_base_debug_category);
 #define gst_vdec_base_parent_class parent_class
 #define GST_VDEC_BASE_SUPPORTED_FORMATS "{ NV21, NV12 }"
 
+static void gst_vdec_base_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
+static void gst_vdec_base_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static gboolean gst_vdec_base_open(GstVideoDecoder *decoder);
 static gboolean gst_vdec_base_close(GstVideoDecoder *decoder);
 static gboolean gst_vdec_base_start(GstVideoDecoder *decoder);
@@ -46,6 +48,11 @@ static gboolean gst_vdec_base_check_allocate_input(GstVdecBase *self);
 static gboolean gst_codec_return_is_ok(const GstVdecBase *decoder, gint ret,
     const char *error_name, gboolean need_report);
 
+enum {
+    PROP_0,
+    PROP_SURFACE,
+};
+
 G_DEFINE_ABSTRACT_TYPE(GstVdecBase, gst_vdec_base, GST_TYPE_VIDEO_DECODER);
 
 static void gst_vdec_base_class_init(GstVdecBaseClass *klass)
@@ -56,6 +63,8 @@ static void gst_vdec_base_class_init(GstVdecBaseClass *klass)
     GstElementClass *element_class = GST_ELEMENT_CLASS(klass);
     GstVideoDecoderClass *video_decoder_class = GST_VIDEO_DECODER_CLASS(klass);
     GST_DEBUG_CATEGORY_INIT (gst_vdec_base_debug_category, "vdecbase", 0, "video decoder base class");
+    gobject_class->set_property = gst_vdec_base_set_property;
+    gobject_class->get_property = gst_vdec_base_get_property;
     gobject_class->finalize = gst_vdec_base_finalize;
     video_decoder_class->open = gst_vdec_base_open;
     video_decoder_class->close = gst_vdec_base_close;
@@ -69,14 +78,36 @@ static void gst_vdec_base_class_init(GstVdecBaseClass *klass)
     video_decoder_class->drain = gst_vdec_base_drain;
     video_decoder_class->decide_allocation = gst_vdec_base_decide_allocation;
     video_decoder_class->propose_allocation = gst_vdec_base_propose_allocation;
-    
+
     const gchar *src_caps_string = GST_VIDEO_CAPS_MAKE(GST_VDEC_BASE_SUPPORTED_FORMATS);
     GstCaps *src_caps = gst_caps_from_string(src_caps_string);
     GST_DEBUG_OBJECT(klass, "Pad template caps %" GST_PTR_FORMAT, src_caps);
-    if (src_caps != NULL) {
+    if (src_caps != nullptr) {
         GstPadTemplate *src_templ = gst_pad_template_new("src", GST_PAD_SRC, GST_PAD_ALWAYS, src_caps);
         gst_element_class_add_pad_template(element_class, src_templ);
         gst_caps_unref(src_caps);
+    }
+}
+
+static void gst_vdec_base_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
+{
+    (void)pspec;
+    g_return_if_fail(object != nullptr && value != nullptr);
+
+    switch (prop_id) {
+        default:
+            break;
+    }
+}
+
+static void gst_vdec_base_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
+{
+    (void)pspec;
+    g_return_if_fail(object != nullptr && value != nullptr);
+
+    switch (prop_id) {
+        default:
+            break;
     }
 }
 
@@ -105,6 +136,7 @@ static void gst_vdec_base_init(GstVdecBase *self)
     self->output = { 0 };
     self->input.allocator = gst_shmem_allocator_new();
     self->output.allocator = gst_shmem_allocator_new();
+    self->coding_outbuf_cnt = 0;
     gst_allocation_params_init(&self->input.allocParams);
     gst_allocation_params_init(&self->output.allocParams);
 }
@@ -424,6 +456,7 @@ static gboolean gst_vdec_base_allocate_out_buffers(GstVdecBase *self)
     g_return_val_if_fail(self != nullptr, FALSE);
     g_return_val_if_fail(self->decoder != nullptr, FALSE);
     std::vector<GstBuffer*> buffers;
+    self->coding_outbuf_cnt = self->output.buffer_cnt;
     for (guint i = 0; i < self->output.buffer_cnt; ++i) {
         GST_DEBUG_OBJECT(self, "Allocate output buffer %d", i);
         GstBuffer *buffer = gst_video_decoder_allocate_output_buffer(GST_VIDEO_DECODER(self));
@@ -519,7 +552,6 @@ static GstFlowReturn gst_vdec_base_handle_frame(GstVideoDecoder *decoder, GstVid
             ret = GST_FLOW_ERROR;
             GST_ELEMENT_WARNING(self, STREAM, ENCODE, ("Hardware encoder error!"), ("pull"));
     }
-    gst_video_codec_frame_unref(frame);
     return GST_FLOW_OK;
 }
 
@@ -638,13 +670,17 @@ static gboolean gst_vdec_base_push_out_buffers(GstVdecBase *self)
     gint codec_ret = GST_CODEC_OK;
     GstBufferPoolAcquireParams params;
     g_return_val_if_fail(memset_s(&params, sizeof(params), 0, sizeof(params)) == EOK, FALSE);
-    params.flags = GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT;
+    if (self->coding_outbuf_cnt != 0) {
+        params.flags = GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT;
+    }
     while (flow == GST_FLOW_OK) {
         flow = gst_buffer_pool_acquire_buffer(pool, &buffer, &params);
         if (flow == GST_FLOW_OK) {
             g_return_val_if_fail(buffer != nullptr, FALSE);
             codec_ret = self->decoder->PushOutputBuffer(buffer);
             g_return_val_if_fail(gst_codec_return_is_ok(self, codec_ret, "push buffer", TRUE), FALSE);
+            self->coding_outbuf_cnt++;
+            params.flags = GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT;
         }
     }
     g_return_val_if_fail(flow == GST_FLOW_EOS, FALSE);
@@ -684,6 +720,7 @@ static void gst_vdec_base_loop(GstVdecBase *self)
     }
     switch (flow_ret) {
         case GST_FLOW_OK:
+            self->coding_outbuf_cnt--;
             if (gst_vdec_base_push_out_buffers(self)) {
                 return;
             }
@@ -867,16 +904,16 @@ static gboolean gst_vdec_base_decide_allocation(GstVideoDecoder *decoder, GstQue
     g_return_val_if_fail(query != nullptr, FALSE);
     GstCaps *outcaps = nullptr;
     GstVideoInfo vinfo;
+    GstBufferPool *pool = nullptr;
+    guint size = 0;
+    guint min_buf = 0;
+    guint max_buf = 0;
     GstVdecBase *self = GST_VDEC_BASE(decoder);
     gst_query_parse_allocation(query, &outcaps, nullptr);
     gst_video_info_init(&vinfo);
     if (outcaps != nullptr) {
         gst_video_info_from_caps(&vinfo, outcaps);
     }
-    guint size = vinfo.size;
-    GstBufferPool *pool = nullptr;
-    guint min_buf = 0;
-    guint max_buf = 0;
 
     GstAllocationParams params;
     gboolean update_pool = FALSE;
@@ -896,6 +933,9 @@ static gboolean gst_vdec_base_decide_allocation(GstVideoDecoder *decoder, GstQue
         }
         size = MAX(size, vinfo.size);
         update_pool = TRUE;
+    } else {
+        pool = nullptr;
+        size = vinfo.size;
     }
 
     g_return_val_if_fail(gst_vdec_base_update_out_port_def(self), FALSE);
@@ -915,7 +955,7 @@ static gboolean gst_vdec_base_decide_allocation(GstVideoDecoder *decoder, GstQue
     if (pool) {
         gst_object_unref(pool);
     }
-    
+
     return TRUE;
 }
 
@@ -938,7 +978,7 @@ static gboolean gst_vdec_base_propose_allocation(GstVideoDecoder *decoder, GstQu
     g_return_val_if_fail(query != nullptr, FALSE);
     GstVdecBase *self = GST_VDEC_BASE(decoder);
     GstCaps *incaps = nullptr;
-    GstBufferPool *pool = NULL;
+    GstBufferPool *pool = nullptr;
     guint size = 0;
     gboolean update_pool = FALSE;
     gst_query_parse_allocation(query, &incaps, nullptr);

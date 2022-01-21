@@ -87,11 +87,11 @@ static void gst_venc_base_class_init(GstVencBaseClass *klass)
     g_object_class_install_property(gobject_class, PROP_SURFACE_ENABLE,
         g_param_spec_boolean("enable-surface", "Enable Surface", "The input mem is surface buffer",
         FALSE, (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
-    
+
     const gchar *sink_caps_string = GST_VIDEO_CAPS_MAKE(GST_VENC_BASE_SUPPORTED_FORMATS);
     GstCaps *sink_caps = gst_caps_from_string(sink_caps_string);
     GST_DEBUG_OBJECT(klass, "Sink_caps %" GST_PTR_FORMAT, sink_caps);
-    if (sink_caps != NULL) {
+    if (sink_caps != nullptr) {
         GstPadTemplate *sink_templ = gst_pad_template_new("sink", GST_PAD_SINK, GST_PAD_ALWAYS, sink_caps);
         gst_element_class_add_pad_template(element_class, sink_templ);
         gst_caps_unref(sink_caps);
@@ -360,6 +360,9 @@ static gboolean gst_venc_base_set_outstate(GstVencBase *self)
         gst_video_format_to_string(self->format), self->width, self->height);
     GstCaps *caps = klass->get_caps(self, self->input_state);
     GstVideoCodecState *out_state = gst_video_encoder_set_output_state(encoder, caps, self->input_state);
+    GST_DEBUG_OBJECT(self, "Out_state ref %d", out_state->ref_count);
+    out_state->info.interlace_mode = GST_VIDEO_INTERLACE_MODE_PROGRESSIVE;
+    out_state->info.chroma_site = GST_VIDEO_CHROMA_SITE_NONE;
     gst_video_codec_state_unref(out_state);
     return TRUE;
 }
@@ -603,6 +606,7 @@ static void gst_venc_base_loop(GstVencBase *self)
             GST_ERROR_OBJECT(self, "Unknown error");
             flow_ret = GST_FLOW_ERROR;
     }
+    GST_DEBUG_OBJECT(self, "Flow_ret %d", flow_ret);
     switch (flow_ret) {
         case GST_FLOW_OK:
             if (gst_venc_base_push_out_buffers(self)) {
@@ -783,12 +787,12 @@ static gboolean gst_venc_base_decide_allocation(GstVideoEncoder *encoder, GstQue
     GST_DEBUG_OBJECT(encoder, "Decide allocation");
     g_return_val_if_fail(encoder != nullptr, FALSE);
     GstCaps *outcaps = nullptr;
-    GstBufferPool *pool = NULL;
+    GstBufferPool *pool = nullptr;
     guint size = 0;
     guint min_buf = 0;
     guint max_buf = 0;
     GstVencBase *self = GST_VENC_BASE(encoder);
-    gst_query_parse_allocation(query, &outcaps, NULL);
+    gst_query_parse_allocation(query, &outcaps, nullptr);
 
     GstAllocationParams params;
     gboolean update_pool = FALSE;
@@ -833,7 +837,7 @@ static gboolean gst_venc_base_propose_allocation(GstVideoEncoder *encoder, GstQu
     GstVencBase *self = GST_VENC_BASE(encoder);
     GstCaps *incaps = nullptr;
     GstVideoInfo vinfo;
-    GstBufferPool *pool = NULL;
+    GstBufferPool *pool = nullptr;
     guint size = 0;
     gboolean update_pool = FALSE;
     guint pool_num = gst_query_get_n_allocation_pools(query);

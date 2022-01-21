@@ -66,6 +66,7 @@ struct VideoDecoderAsyncContext : public MediaAsyncContext {
     ~VideoDecoderAsyncContext() = default;
     // general variable
     VideoDecoderNapi *napi = nullptr;
+    sptr<Surface> surface;
     // used by constructor
     std::string pluginName;
     int32_t createByMime = 1;

@@ -519,8 +519,8 @@ static gboolean gst_shmem_pool_src_set_shmem_pool(GstShmemPoolSrc *shmemsrc, Gst
     // buffer size default is buffer_size
     guint size = memsrc->buffer_size;
     // get caps and save to video info
-    gst_query_parse_allocation(query, &outcaps, NULL);
-    gboolean is_video = gst_query_find_allocation_meta(query, GST_VIDEO_META_API_TYPE, NULL);
+    gst_query_parse_allocation(query, &outcaps, nullptr);
+    gboolean is_video = gst_query_find_allocation_meta(query, GST_VIDEO_META_API_TYPE, nullptr);
     if (is_video) {
         // when video need update size
         GstVideoInfo info;
