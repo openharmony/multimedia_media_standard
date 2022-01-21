@@ -47,6 +47,7 @@ private:
     void SetDumpFrameFromSysPara();
     void SetDumpFrameInternalFromSysPara();
     void SaveFrameToFile(const unsigned char *buffer, size_t size) const;
+    void CopyToSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer, const GstBuffer &buffer, bool &needFlush);
 
     sptr<Surface> producerSurface_ = nullptr;
     GstElement *videoSink_ = nullptr;
