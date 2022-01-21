@@ -199,8 +199,8 @@ bool AVCodecXmlParser::TransStrAsRange(const std::string &str, Range &range)
     if (pos != str.npos) {
         std::string head = str.substr(0, pos);
         std::string tail = str.substr(pos + 1);
-        range.minVal = atoi(head.c_str());
-        range.maxVal = atoi(tail.c_str());
+        range.minVal = stoi(head);
+        range.maxVal = stoi(tail);
     } else {
         MEDIA_LOGD("Can not find the delimiter of \"-\" in : %{public}s", str.c_str());
         return false;
@@ -218,8 +218,8 @@ bool AVCodecXmlParser::TransStrAsSize(const std::string &str, ImgSize &size)
     if (pos != str.npos) {
         std::string head = str.substr(0, pos);
         std::string tail = str.substr(pos + 1);
-        size.width = atoi(head.c_str());
-        size.height = atoi(tail.c_str());
+        size.width = stoi(head);
+        size.height = stoi(tail);
     } else {
         MEDIA_LOGD("Can not find the delimiter of \"x\" in : %{public}s", str.c_str());
         return false;
@@ -231,7 +231,7 @@ std::vector<int32_t> AVCodecXmlParser::TransStrAsIntegerArray(std::vector<std::s
 {
     std::vector<int32_t> array;
     for (auto iter = spilt.begin(); iter != spilt.end(); iter++) {
-        int32_t num = atoi(iter->c_str());
+        int32_t num = stoi(*iter);
         array.push_back(num);
     }
     return array;
