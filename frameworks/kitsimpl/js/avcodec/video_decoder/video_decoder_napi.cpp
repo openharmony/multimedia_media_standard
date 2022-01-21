@@ -296,6 +296,10 @@ napi_value VideoDecoderNapi::Prepare(napi_env env, napi_callback_info info)
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
+            if (!asyncCtx->napi->isSurfaceMode_) {
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Need to setOutputSurface before prepare");
+                return;
+            }
             if (asyncCtx->napi->vdec_->Prepare() != MSERR_OK) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to Prepare");
             }
@@ -631,6 +635,8 @@ napi_value VideoDecoderNapi::SetOutputSurface(napi_env env, napi_callback_info i
             }
             if (asyncCtx->napi->vdec_->SetOutputSurface(asyncCtx->surface) != MSERR_OK) {
                 asyncCtx->SignError(MSERR_UNKNOWN, "Failed to SetOutputSurface");
+            } else {
+                asyncCtx->napi->isSurfaceMode_ = true;
             }
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));

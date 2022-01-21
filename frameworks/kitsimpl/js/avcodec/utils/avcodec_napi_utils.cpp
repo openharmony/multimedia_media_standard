@@ -103,8 +103,7 @@ napi_value AVCodecNapiUtil::CreateInputCodecBuffer(napi_env env, uint32_t index,
 napi_value AVCodecNapiUtil::CreateOutputCodecBuffer(napi_env env, uint32_t index,
     std::shared_ptr<AVSharedMemory> memory, const AVCodecBufferInfo &info, AVCodecBufferFlag flag)
 {
-    bool isEos = flag & AVCODEC_BUFFER_FLAG_EOS;
-    if (memory == nullptr && isEos) {
+    if (flag & AVCODEC_BUFFER_FLAG_EOS) {
         MEDIA_LOGI("Return empty buffer with eos flag");
         return CreateEmptyEOSBuffer(env);
     }
@@ -120,25 +119,27 @@ napi_value AVCodecNapiUtil::CreateOutputCodecBuffer(napi_env env, uint32_t index
     CHECK_AND_RETURN_RET(AddNumberProp(env, buffer, "length", info.size) == true, nullptr);
     CHECK_AND_RETURN_RET(AddNumberProp(env, buffer, "flags", static_cast<int32_t>(flag)) == true, nullptr);
 
-    napi_value dataStr = nullptr;
-    status = napi_create_string_utf8(env, "data", NAPI_AUTO_LENGTH, &dataStr);
-    CHECK_AND_RETURN_RET(status == napi_ok, nullptr);
+    if (memory != nullptr) {
+        napi_value dataStr = nullptr;
+        status = napi_create_string_utf8(env, "data", NAPI_AUTO_LENGTH, &dataStr);
+        CHECK_AND_RETURN_RET(status == napi_ok, nullptr);
 
-    CHECK_AND_RETURN_RET(memory->GetSize() > (info.offset + info.size), nullptr);
-    napi_value dataVal = nullptr;
-    AvMemNapiWarp *memWarp = new(std::nothrow) AvMemNapiWarp(memory);
-    CHECK_AND_RETURN_RET(memWarp != nullptr, nullptr);
-    status = napi_create_external_arraybuffer(env, memory->GetBase() + info.offset, info.size,
-        [](napi_env env, void *data, void *hint) {
-            (void)env;
-            (void)data;
-            AvMemNapiWarp *memWarp = reinterpret_cast<AvMemNapiWarp *>(hint);
-            delete memWarp;
-        }, reinterpret_cast<void *>(memWarp), &dataVal);
-    CHECK_AND_RETURN_RET(status == napi_ok, nullptr);
+        CHECK_AND_RETURN_RET(memory->GetSize() > (info.offset + info.size), nullptr);
+        napi_value dataVal = nullptr;
+        AvMemNapiWarp *memWarp = new(std::nothrow) AvMemNapiWarp(memory);
+        CHECK_AND_RETURN_RET(memWarp != nullptr, nullptr);
+        status = napi_create_external_arraybuffer(env, memory->GetBase() + info.offset, info.size,
+            [](napi_env env, void *data, void *hint) {
+                (void)env;
+                (void)data;
+                AvMemNapiWarp *memWarp = reinterpret_cast<AvMemNapiWarp *>(hint);
+                delete memWarp;
+            }, reinterpret_cast<void *>(memWarp), &dataVal);
+        CHECK_AND_RETURN_RET(status == napi_ok, nullptr);
 
-    status = napi_set_property(env, buffer, dataStr, dataVal);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "Failed to set property");
+        status = napi_set_property(env, buffer, dataStr, dataVal);
+        CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "Failed to set property");
+    }
 
     return buffer;
 }
