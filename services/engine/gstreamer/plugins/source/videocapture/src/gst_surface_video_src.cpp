@@ -134,6 +134,7 @@ static void gst_surface_video_src_init(GstSurfaceVideoSrc *src)
     src->is_start = FALSE;
     src->need_codec_data = TRUE;
     src->is_eos = FALSE;
+    src->is_flushing = FALSE;
 }
 
 static void gst_surface_video_src_finalize(GObject *object)
@@ -392,6 +393,10 @@ static GstFlowReturn gst_surface_video_src_create(GstPushSrc *psrc, GstBuffer **
         GST_INFO_OBJECT(src, "eos...");
         return GST_FLOW_EOS;
     }
+    if (src->is_flushing) {
+        GST_INFO_OBJECT(src, "flushing...");
+        return GST_FLOW_FLUSHING;
+    }
     g_return_val_if_fail(frame_buffer != nullptr, GST_FLOW_ERROR);
 
     gst_base_src_set_blocksize(GST_BASE_SRC_CAST(src), static_cast<guint>(frame_buffer->size));
@@ -413,10 +418,12 @@ static gboolean gst_surface_video_src_send_event(GstElement *element, GstEvent *
         case GST_EVENT_FLUSH_START:
             g_return_val_if_fail(src->capture != nullptr, FALSE);
             src->is_eos = FALSE;
+            src->is_flushing = TRUE;
             src->capture->UnLock(true);
             break;
         case GST_EVENT_FLUSH_STOP:
             g_return_val_if_fail(src->capture != nullptr, FALSE);
+            src->is_flushing = FALSE;
             src->capture->UnLock(false);
             break;
         case GST_EVENT_EOS:
