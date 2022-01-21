@@ -132,19 +132,11 @@ void VideoDecoderCallbackNapi::OnOutputBufferAvailable(uint32_t index, AVCodecBu
     auto vdec = vdec_.lock();
     CHECK_AND_RETURN(vdec != nullptr);
 
-    auto buffer = vdec->GetOutputBuffer(index);
-    bool isEos = flag & AVCODEC_BUFFER_FLAG_EOS;
-    if (buffer == nullptr && !isEos) {
-        MEDIA_LOGW("Failed to get output buffer");
-        return;
-    }
-
     VideoDecoderJsCallback *cb = new(std::nothrow) VideoDecoderJsCallback();
     CHECK_AND_RETURN(cb != nullptr);
 
     cb->callback = outputCallback_;
     cb->callbackName = OUTPUT_CALLBACK_NAME;
-    cb->memory = buffer;
     cb->index = index;
     cb->info = info;
     cb->flag = flag;
@@ -246,7 +238,7 @@ void VideoDecoderCallbackNapi::OnJsBufferCallBack(VideoDecoderJsCallback *jsCb, 
                 args[0] = AVCodecNapiUtil::CreateInputCodecBuffer(env, event->index, event->memory);
             } else {
                 args[0] = AVCodecNapiUtil::CreateOutputCodecBuffer(env, event->index,
-                    event->memory, event->info, event->flag);
+                    nullptr, event->info, event->flag);
             }
             CHECK_AND_BREAK(args[0] != nullptr);
 

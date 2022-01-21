@@ -59,6 +59,7 @@ private:
     napi_ref wrap_ = nullptr;
     std::shared_ptr<VideoDecoder> vdec_ = nullptr;
     std::shared_ptr<AVCodecCallback> callback_ = nullptr;
+    bool isSurfaceMode_ = false;
 };
 
 struct VideoDecoderAsyncContext : public MediaAsyncContext {
@@ -66,6 +67,7 @@ struct VideoDecoderAsyncContext : public MediaAsyncContext {
     ~VideoDecoderAsyncContext() = default;
     // general variable
     VideoDecoderNapi *napi = nullptr;
+    sptr<Surface> surface;
     // used by constructor
     std::string pluginName;
     int32_t createByMime = 1;

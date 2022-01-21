@@ -118,12 +118,12 @@ GstShMemPool *gst_shmem_pool_new()
 static const gchar **gst_shmem_pool_get_options (GstBufferPool *pool)
 {
     // add buffer type meta option at here
-    static const gchar *options[] = { GST_BUFFER_POOL_OPTION_VIDEO_META, NULL };
+    static const gchar *options[] = { GST_BUFFER_POOL_OPTION_VIDEO_META, nullptr };
     return options;
 }
 
 gboolean gst_shmem_pool_set_avshmempool(GstShMemPool *pool,
-                                        std::shared_ptr<OHOS::Media::AVSharedMemoryPool> avshmempool)
+                                        std::shared_ptr<OHOS::Media::AVSharedMemoryPool> &avshmempool)
 {
     g_return_val_if_fail(pool != nullptr && avshmempool != nullptr, FALSE);
 

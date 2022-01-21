@@ -95,18 +95,18 @@ static void gst_mem_pool_src_class_init(GstMemPoolSrcClass *klass)
 
     gst_mem_pool_src_signals[SIGNAL_BUFFER_AVAILABLE] =
         g_signal_new("buffer-available", G_TYPE_FROM_CLASS(gobject_class), G_SIGNAL_RUN_LAST,
-            0, NULL, NULL, NULL, GST_TYPE_FLOW_RETURN, 0, G_TYPE_NONE);
+            0, nullptr, nullptr, nullptr, GST_TYPE_FLOW_RETURN, 0, G_TYPE_NONE);
 
     gst_mem_pool_src_signals[SIGNAL_PULL_BUFFER] =
         g_signal_new("pull-buffer", G_TYPE_FROM_CLASS(gobject_class),
             static_cast<GSignalFlags>(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
-            G_STRUCT_OFFSET(GstMemPoolSrcClass, pull_buffer), NULL, NULL, NULL,
+            G_STRUCT_OFFSET(GstMemPoolSrcClass, pull_buffer), nullptr, nullptr, nullptr,
             GST_TYPE_BUFFER, 0, G_TYPE_NONE);
 
     gst_mem_pool_src_signals[SIGNAL_PUSH_BUFFER] =
         g_signal_new("push-buffer", G_TYPE_FROM_CLASS(gobject_class),
             static_cast<GSignalFlags>(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
-            G_STRUCT_OFFSET(GstMemPoolSrcClass, push_buffer), NULL, NULL, NULL,
+            G_STRUCT_OFFSET(GstMemPoolSrcClass, push_buffer), nullptr, nullptr, nullptr,
             GST_TYPE_FLOW_RETURN, 1, GST_TYPE_BUFFER);
 
     gstbasesrc_class->is_seekable = gst_mem_pool_src_is_seekable;
@@ -214,7 +214,7 @@ static void gst_mem_pool_src_dispose(GObject *object)
     GST_OBJECT_LOCK(memsrc);
     if (memsrc->caps) {
         gst_caps_unref(memsrc->caps);
-        memsrc->caps = NULL;
+        memsrc->caps = nullptr;
     }
     if (priv->notify) {
         priv->notify(priv->user_data);
