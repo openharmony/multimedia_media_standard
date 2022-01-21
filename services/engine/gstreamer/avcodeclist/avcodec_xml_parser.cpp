@@ -201,11 +201,11 @@ bool AVCodecXmlParser::TransStrAsRange(const std::string &str, Range &range)
         std::string head = str.substr(0, pos);
         std::string tail = str.substr(pos + 1);
         if (!StrToInt(head, range.minVal)) {
-            MEDIA_LOGD("call StrToInt func false, input str is: %{public}s", head.c_str());
+            MEDIA_LOGE("call StrToInt func false, input str is: %{public}s", head.c_str());
             return false;
         }
         if (!StrToInt(tail, range.maxVal)) {
-            MEDIA_LOGD("call StrToInt func false, input str is: %{public}s", tail.c_str());
+            MEDIA_LOGE("call StrToInt func false, input str is: %{public}s", tail.c_str());
             return false;
         }
     } else {
@@ -226,11 +226,11 @@ bool AVCodecXmlParser::TransStrAsSize(const std::string &str, ImgSize &size)
         std::string head = str.substr(0, pos);
         std::string tail = str.substr(pos + 1);
         if (!StrToInt(head, size.width)) {
-            MEDIA_LOGD("call StrToInt func false, input str is: %{public}s", head.c_str());
+            MEDIA_LOGE("call StrToInt func false, input str is: %{public}s", head.c_str());
             return false;
         }
         if (!StrToInt(tail, size.height)) {
-            MEDIA_LOGD("call StrToInt func false, input str is: %{public}s", tail.c_str());
+            MEDIA_LOGE("call StrToInt func false, input str is: %{public}s", tail.c_str());
             return false;
         }
 
@@ -247,7 +247,7 @@ std::vector<int32_t> AVCodecXmlParser::TransStrAsIntegerArray(std::vector<std::s
     for (auto iter = spilt.begin(); iter != spilt.end(); iter++) {
         int32_t num = -1;
         if (!StrToInt(*iter, num)) {
-            MEDIA_LOGD("call StrToInt func false, input str is: %{public}s", iter->c_str());
+            MEDIA_LOGE("call StrToInt func false, input str is: %{public}s", iter->c_str());
             return array;
         }
         array.push_back(num);
