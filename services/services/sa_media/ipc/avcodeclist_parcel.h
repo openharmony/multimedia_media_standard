@@ -28,7 +28,12 @@ public:
     ~AVCodecListParcel() = delete;
 
     static bool Marshalling(MessageParcel &parcel, const std::vector<CapabilityData> &capabilityDataArray);
+    static bool Marshalling(MessageParcel &parcel, const std::map<ImgSize, Range> &mapSizeToRange);
+    static bool Marshalling(MessageParcel &parcel, const std::map<int32_t, std::vector<int32_t>> &mapIntToVec);
+
     static bool Unmarshalling(MessageParcel &parcel, std::vector<CapabilityData> &capabilityDataArray);
+    static bool Unmarshalling(MessageParcel &parcel, std::map<ImgSize, Range> &mapSizeToRange);
+    static bool Unmarshalling(MessageParcel &parcel, std::map<int32_t, std::vector<int32_t>> &mapIntToVec);
 };
 } // namespace Media
 } // namespace OHOS
