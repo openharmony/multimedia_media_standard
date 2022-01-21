@@ -92,23 +92,15 @@ static void gst_vdec_base_class_init(GstVdecBaseClass *klass)
 static void gst_vdec_base_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
     (void)pspec;
+    (void)prop_id;
     g_return_if_fail(object != nullptr && value != nullptr);
-
-    switch (prop_id) {
-        default:
-            break;
-    }
 }
 
 static void gst_vdec_base_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
     (void)pspec;
+    (void)prop_id;
     g_return_if_fail(object != nullptr && value != nullptr);
-
-    switch (prop_id) {
-        default:
-            break;
-    }
 }
 
 static void gst_vdec_base_init(GstVdecBase *self)
@@ -900,8 +892,7 @@ static void gst_vdec_base_update_pool(GstVdecBase *self, GstBufferPool **pool, G
 
 static gboolean gst_vdec_base_decide_allocation(GstVideoDecoder *decoder, GstQuery *query)
 {
-    g_return_val_if_fail(decoder != nullptr, FALSE);
-    g_return_val_if_fail(query != nullptr, FALSE);
+    g_return_val_if_fail(decoder != nullptr && query != nullptr, FALSE);
     GstCaps *outcaps = nullptr;
     GstVideoInfo vinfo;
     GstBufferPool *pool = nullptr;
