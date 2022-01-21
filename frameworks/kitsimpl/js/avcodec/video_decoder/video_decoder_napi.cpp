@@ -19,6 +19,7 @@
 #include "media_log.h"
 #include "media_errors.h"
 #include "video_decoder_callback_napi.h"
+#include "media_surface.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "VideoDecoderNapi"};
@@ -582,9 +583,62 @@ napi_value VideoDecoderNapi::ReleaseOutput(napi_env env, napi_callback_info info
 
 napi_value VideoDecoderNapi::SetOutputSurface(napi_env env, napi_callback_info info)
 {
-    napi_value undefinedResult = nullptr;
-    napi_get_undefined(env, &undefinedResult);
-    return undefinedResult;
+    MEDIA_LOGD("Enter SetOutputSurface");
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+
+    auto asyncCtx = std::make_unique<VideoDecoderAsyncContext>(env);
+
+    napi_value jsThis = nullptr;
+    napi_value args[3] = {nullptr};
+    size_t argCount = 3;
+    napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
+    if (status != napi_ok || jsThis == nullptr) {
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to napi_get_cb_info");
+    }
+
+    napi_valuetype valueType = napi_undefined;
+    if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_string &&
+        args[1] != nullptr && napi_typeof(env, args[1], &valueType) == napi_ok && valueType == napi_boolean) {
+        std::string idStr = CommonNapi::GetStringArgument(env, args[0]);
+        if (idStr == "") {
+            asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        } else {
+            auto mediaSurface = MediaSurfaceFactory::CreateMediaSurface();
+            if (mediaSurface == nullptr) {
+                asyncCtx->SignError(MSERR_INVALID_VAL, "Failed to CreateMeidaSurface");
+            }
+            asyncCtx->surface = mediaSurface->GetSurface(idStr);
+        }
+    } else {
+        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+    }
+
+    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[2]);
+    asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
+
+    (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
+
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "SetOutputSurface", NAPI_AUTO_LENGTH, &resource);
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
+        [](napi_env env, void* data) {
+            auto asyncCtx = reinterpret_cast<VideoDecoderAsyncContext *>(data);
+            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->vdec_ == nullptr ||
+                asyncCtx->surface == nullptr) {
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
+                return;
+            }
+            if (asyncCtx->napi->vdec_->SetOutputSurface(asyncCtx->surface) != MSERR_OK) {
+                asyncCtx->SignError(MSERR_UNKNOWN, "Failed to SetOutputSurface");
+            }
+        },
+        MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
+
+    NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
+    asyncCtx.release();
+
+    return result;
 }
 
 napi_value VideoDecoderNapi::SetParameter(napi_env env, napi_callback_info info)

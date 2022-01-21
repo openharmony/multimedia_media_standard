@@ -48,6 +48,7 @@ private:
     static napi_value GetOutputMediaDescription(napi_env env, napi_callback_info info);
     static napi_value GetVideoEncoderCaps(napi_env env, napi_callback_info info);
     static napi_value On(napi_env env, napi_callback_info info);
+    bool IsSurfaceIdValid(uint64_t surfaceId);
 
     void ErrorCallback(MediaServiceExtErrCode errCode);
 
@@ -57,6 +58,7 @@ private:
     static napi_ref constructor_;
     napi_env env_ = nullptr;
     napi_ref wrap_ = nullptr;
+    sptr<Surface> surface_;
     std::shared_ptr<VideoEncoder> venc_ = nullptr;
     std::shared_ptr<AVCodecCallback> callback_ = nullptr;
 };
