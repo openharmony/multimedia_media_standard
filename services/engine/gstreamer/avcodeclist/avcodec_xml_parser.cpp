@@ -233,7 +233,6 @@ bool AVCodecXmlParser::TransStrAsSize(const std::string &str, ImgSize &size)
             MEDIA_LOGE("call StrToInt func false, input str is: %{public}s", tail.c_str());
             return false;
         }
-
     } else {
         MEDIA_LOGD("Can not find the delimiter of \"x\" in : %{public}s", str.c_str());
         return false;
