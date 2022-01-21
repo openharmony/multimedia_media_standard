@@ -38,10 +38,11 @@ AVCodecListEngineGstImpl::~AVCodecListEngineGstImpl()
 bool AVCodecListEngineGstImpl::IsSupportMimeType(const Format &format, const CapabilityData &data)
 {
     std::string targetMimeType;
-    if (!format.GetStringValue("codec_mime", targetMimeType)) {
-        MEDIA_LOGD("Get MimeType form format failed");
+    if (!format.ContainKey("codec_mime")) {
+        MEDIA_LOGD("Get MimeType from format failed");
         return false;
     }
+    (void)format.GetStringValue("codec_mime", targetMimeType);
     if (data.mimeType != targetMimeType) {
         return false;
     }
@@ -51,10 +52,11 @@ bool AVCodecListEngineGstImpl::IsSupportMimeType(const Format &format, const Cap
 bool AVCodecListEngineGstImpl::IsSupportBitrate(const Format &format, const CapabilityData &data)
 {
     int32_t targetBitrate;
-    if (!format.GetIntValue("bitrate", targetBitrate)) {
+    if (!format.ContainKey("bitrate")) {
         MEDIA_LOGD("The bitrate of the format are not specified");
         return true;
     }
+    (void)format.GetIntValue("bitrate", targetBitrate);
     if (data.bitrate.minVal > targetBitrate || data.bitrate.maxVal < targetBitrate) {
         return false;
     }
@@ -65,10 +67,12 @@ bool AVCodecListEngineGstImpl::IsSupportSize(const Format &format, const Capabil
 {
     int32_t targetWidth;
     int32_t targetHeight;
-    if ((!format.GetIntValue("width", targetWidth)) || (!format.GetIntValue("height", targetHeight))) {
+    if ((!format.ContainKey("width")) || (!format.ContainKey("height"))) {
         MEDIA_LOGD("The width and height of the format are not specified");
         return true;
     }
+    (void)format.GetIntValue("width", targetWidth);
+    (void)format.GetIntValue("height", targetHeight);
     if (data.width.minVal > targetWidth || data.width.maxVal < targetWidth
         || data.height.minVal > targetHeight || data.height.maxVal < targetHeight) {
         return false;
@@ -82,10 +86,11 @@ bool AVCodecListEngineGstImpl::IsSupportPixelFormat(const Format &format, const 
         return true;
     }
     int32_t targetPixelFormat;
-    if (!format.GetIntValue("pixel_format", targetPixelFormat)) {
+    if (!format.ContainKey("pixel_format")) {
         MEDIA_LOGD("The pixel_format of the format are not specified");
         return true;
     }
+    (void)format.GetIntValue("pixel_format", targetPixelFormat);
     if (find(data.format.begin(), data.format.end(), targetPixelFormat) == data.format.end()) {
         return false;
     }
@@ -95,10 +100,11 @@ bool AVCodecListEngineGstImpl::IsSupportPixelFormat(const Format &format, const 
 bool AVCodecListEngineGstImpl::IsSupportFrameRate(const Format &format, const CapabilityData &data)
 {
     int32_t targetFrameRate;
-    if (!format.GetIntValue("frame_rate", targetFrameRate)) {
+    if (!format.ContainKey("frame_rate")) {
         MEDIA_LOGD("The frame_rate of the format are not specified");
         return true;
     }
+    (void)format.GetIntValue("frame_rate", targetFrameRate);
     if (data.frameRate.minVal * FRAME_RATE_TIMES > targetFrameRate ||
         data.frameRate.maxVal * FRAME_RATE_TIMES < targetFrameRate) {
         return false;
@@ -112,10 +118,11 @@ bool AVCodecListEngineGstImpl::IsSupportChannel(const Format &format, const Capa
         return true;
     }
     int32_t targetChannel;
-    if (!format.GetIntValue("channel_count", targetChannel)) {
+    if (!format.ContainKey("channel_count")) {
         MEDIA_LOGD("The channel_count of the format are not specified");
         return true;
     }
+    (void)format.GetIntValue("channel_count", targetChannel);
     if (data.channels.minVal > targetChannel || data.channels.maxVal < targetChannel) {
         return false;
     }
@@ -128,11 +135,11 @@ bool AVCodecListEngineGstImpl::IsSupportSampleRate(const Format &format, const C
         return true;
     }
     int32_t targetSampleRate;
-    if (!format.GetIntValue("samplerate", targetSampleRate)) {
+    if (!format.ContainKey("samplerate")) {
         MEDIA_LOGD("The samplerate of the format are not specified");
         return true;
     }
-
+    (void)format.GetIntValue("samplerate", targetSampleRate);
     if (find(data.sampleRate.begin(), data.sampleRate.end(), targetSampleRate) == data.sampleRate.end()) {
         return false;
     }
@@ -181,12 +188,12 @@ std::string AVCodecListEngineGstImpl::FindAudioEncoder(const Format &format)
 std::vector<CapabilityData> AVCodecListEngineGstImpl::GetCodecCapabilityInfos()
 {
     AVCodecAbilitySingleton& codecAbilityInstance = AVCodecAbilitySingleton::GetInstance();
-
-    bool ret = codecAbilityInstance.ParseCodecXml();
-    if (!ret) {
-        MEDIA_LOGD("ParseCodecXml failed");
+    if (!codecAbilityInstance.IsParsered()) {
+        bool ret = codecAbilityInstance.ParseCodecXml();
+        if (!ret) {
+            MEDIA_LOGD("ParseCodecXml failed");
+        }
     }
-
     return codecAbilityInstance.capabilityDataArray_;
 }
 } // Media

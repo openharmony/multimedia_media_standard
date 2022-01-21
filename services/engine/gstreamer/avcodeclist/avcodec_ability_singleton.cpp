@@ -44,11 +44,25 @@ bool AVCodecAbilitySingleton::ParseCodecXml()
 {
     AVCodecXmlParser xmlParser;
     bool ret = xmlParser.LoadConfiguration();
-    CHECK_AND_RETURN_RET_LOG(ret != false, false, "AVCodecList LoadConfiguration failed.");
+    if (!ret) {
+        this->isParsered_ = false;
+        MEDIA_LOGE("AVCodecList LoadConfiguration failed");
+        return false;
+    }
     ret = xmlParser.Parse();
-    CHECK_AND_RETURN_RET_LOG(ret != false, false, "AVCodecList Parse failed.");
+    if (!ret) {
+        isParsered_ = false;
+        MEDIA_LOGE("AVCodecList Parse failed.");
+        return false;
+    }
     capabilityDataArray_ = xmlParser.GetCapabilityDataArray();
+    isParsered_ = true;
     return true;
+}
+
+bool AVCodecAbilitySingleton::IsParsered()
+{
+    return this->isParsered_;
 }
 }
 }

@@ -34,6 +34,7 @@ enum AVCodecType : int32_t {
     AVCODEC_TYPE_AUDIO_ENCODER,
     AVCODEC_TYPE_AUDIO_DECODER,
 };
+
 /**
  * @brief Range contain min and max value
  *
@@ -41,8 +42,62 @@ enum AVCodecType : int32_t {
  * @version 3.1
  */
 struct Range {
-    int32_t minVal = 0;
-    int32_t maxVal = 0;
+    int32_t minVal;
+    int32_t maxVal;
+    Range() : minVal(0), maxVal(0) {}
+    Range(const int32_t &min, const int32_t &max)
+    {
+        if (min <= max) {
+            this->minVal = min;
+            this->maxVal = max;
+        } else {
+            this->minVal = 0;
+            this->maxVal = 0;
+        }
+    }
+
+    Range Create(const int32_t &min, const int32_t &max)
+    {
+        return Range(min, max);
+    }
+
+    Range Intersect(const int32_t &min, const int32_t &max)
+    {
+        int32_t minCmp = this->minVal > min ? this->minVal : min;
+        int32_t maxCmp = this->maxVal < max ? this->maxVal : max;
+        return this->Create(minCmp, maxCmp);
+    }
+
+    Range Intersect(const Range &range)
+    {
+        int32_t minCmp = this->minVal > range.minVal ? this->minVal : range.minVal;
+        int32_t maxCmp = this->maxVal < range.maxVal ? this->maxVal : range.maxVal;
+        return this->Create(minCmp, maxCmp);
+    }
+};
+
+/**
+ * @brief ImgSize contain width and height
+ *
+ * @since 3.1
+ * @version 3.1
+ */
+struct ImgSize {
+    int32_t width;
+    int32_t height;
+
+    ImgSize() : width(0), height(0) {}
+
+    ImgSize(const int32_t &width, const int32_t &height)
+    {
+        this->width = width;
+        this->height = height;
+    }
+
+    bool operator<(const ImgSize &p) const
+    {
+        return (width < p.width) || (width == p.width && height < p.height);
+    }
 };
 
 /**
@@ -65,11 +120,16 @@ struct CapabilityData {
     Range frameRate;
     Range encodeQuality;
     Range quality;
+    Range blockPerFrame;
+    Range blockPerSecond;
+    ImgSize blockSize;
     std::vector<int32_t> sampleRate;
     std::vector<int32_t> format;
     std::vector<int32_t> profiles;
     std::vector<int32_t> bitrateMode;
     std::vector<int32_t> levels;
+    std::map<int32_t, std::vector<int32_t>> profileLevelsMap;
+    std::map<ImgSize, Range> measuredFrameRate;
 };
 
 /**
@@ -205,6 +265,79 @@ enum AACProfile {
     AAC_PROFILE_HE_V2 = 4,
     AAC_PROFILE_LD = 5,
     AAC_PROFILE_MAIN = 6,
+};
+
+/**
+ * @brief
+ *
+ * @since 3.1
+ * @version 3.1
+ */
+enum AVCLevel {
+    AVC_LEVEL_1 = 0,
+    AVC_LEVEL_1b = 1,
+    AVC_LEVEL_11 = 2,
+    AVC_LEVEL_12 = 3,
+    AVC_LEVEL_13 = 4,
+    AVC_LEVEL_2 = 5,
+    AVC_LEVEL_21 = 6,
+    AVC_LEVEL_22 = 7,
+    AVC_LEVEL_3 = 8,
+    AVC_LEVEL_31 = 9,
+    AVC_LEVEL_32 = 10,
+    AVC_LEVEL_4 = 11,
+    AVC_LEVEL_41 = 12,
+    AVC_LEVEL_42 = 13,
+    AVC_LEVEL_5 = 14,
+    AVC_LEVEL_51 = 15,
+};
+
+/**
+ * @brief
+ *
+ * @since 3.1
+ * @version 3.1
+ */
+enum HEVCLevel {
+    HEVC_LEVEL_1 = 0,
+    HEVC_LEVEL_2 = 1,
+    HEVC_LEVEL_21 = 2,
+    HEVC_LEVEL_3 = 3,
+    HEVC_LEVEL_31 = 4,
+    HEVC_LEVEL_4 = 5,
+    HEVC_LEVEL_41 = 6,
+    HEVC_LEVEL_5 = 7,
+    HEVC_LEVEL_51 = 8,
+};
+
+/**
+ * @brief
+ *
+ * @since 3.1
+ * @version 3.1
+ */
+enum MPEG2Level {
+    MPEG2_LEVEL_LL = 0,
+    MPEG2_LEVEL_ML = 1,
+    MPEG2_LEVEL_H14 = 2,
+    MPEG2_LEVEL_HL = 3,
+};
+
+/**
+ * @brief
+ *
+ * @since 3.1
+ * @version 3.1
+ */
+enum MPEG4Level {
+    MPEG4_LEVEL_0 = 0,
+    MPEG4_LEVEL_0B = 1,
+    MPEG4_LEVEL_1 = 2,
+    MPEG4_LEVEL_2 = 3,
+    MPEG4_LEVEL_3 = 4,
+    MPEG4_LEVEL_4 = 5,
+    MPEG4_LEVEL_4A = 6,
+    MPEG4_LEVEL_5 = 7,
 };
 
 /**
