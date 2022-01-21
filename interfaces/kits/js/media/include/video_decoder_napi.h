@@ -59,6 +59,7 @@ private:
     napi_ref wrap_ = nullptr;
     std::shared_ptr<VideoDecoder> vdec_ = nullptr;
     std::shared_ptr<AVCodecCallback> callback_ = nullptr;
+    bool isSurfaceMode_ = false;
 };
 
 struct VideoDecoderAsyncContext : public MediaAsyncContext {

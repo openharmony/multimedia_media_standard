@@ -123,7 +123,7 @@ static const gchar **gst_shmem_pool_get_options (GstBufferPool *pool)
 }
 
 gboolean gst_shmem_pool_set_avshmempool(GstShMemPool *pool,
-                                        std::shared_ptr<OHOS::Media::AVSharedMemoryPool> avshmempool)
+                                        std::shared_ptr<OHOS::Media::AVSharedMemoryPool> &avshmempool)
 {
     g_return_val_if_fail(pool != nullptr && avshmempool != nullptr, FALSE);
 
