@@ -53,7 +53,7 @@ config("media_engine_gst_player_config") {
     "//third_party/glib",
     "//third_party/glib/gmodule",
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara/include",
-    "//foundation/graphic/standard/frameworks/surface/include"
+    "//foundation/graphic/standard/frameworks/surface/include",
   ]
 }
 
