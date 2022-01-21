@@ -33,6 +33,7 @@ G_BEGIN_DECLS
     (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_SURFACE_POOL))
 #define GST_IS_SURFACE_POOL_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_SURFACE_POOL))
+#define GST_SURFACE_POOL_CAST(obj) ((GstSurfacePool*)(obj))
 
 typedef struct _GstSurfacePool GstSurfacePool;
 typedef struct _GstSurfacePoolClass GstSurfacePoolClass;
@@ -61,7 +62,7 @@ struct _GstSurfacePoolClass {
 
 GType gst_surface_pool_get_type(void);
 
-GstSurfacePool *gst_surface_pool_new(void);
+GstSurfacePool *gst_surface_pool_new();
 
 GST_API gboolean gst_surface_pool_set_surface(GstSurfacePool *pool,
     OHOS::sptr<OHOS::Surface> surface, guint waittime);

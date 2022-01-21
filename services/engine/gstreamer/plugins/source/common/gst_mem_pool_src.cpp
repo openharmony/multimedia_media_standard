@@ -82,7 +82,7 @@ static void gst_mem_pool_src_class_init(GstMemPoolSrcClass *klass)
         g_param_spec_uint("buffer-num", "buffer num",
             "buffer num", 0, G_MAXINT32, 0,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
-    
+
     g_object_class_install_property(gobject_class, PROP_CAPS,
         g_param_spec_boxed("caps", "Caps",
             "The allowed caps for the src pad", GST_TYPE_CAPS,
@@ -191,6 +191,14 @@ void gst_mem_pool_src_set_buffer_size(GstMemPoolSrc *memsrc, guint size)
     GST_OBJECT_UNLOCK(memsrc);
 }
 
+void gst_mem_pool_src_set_buffer_num(GstMemPoolSrc *memsrc, guint num)
+{
+    g_return_if_fail(memsrc != nullptr);
+    GST_OBJECT_LOCK(memsrc);
+    memsrc->buffer_num = num;
+    GST_OBJECT_UNLOCK(memsrc);
+}
+
 static gboolean gst_mem_pool_src_is_seekable(GstBaseSrc *basesrc)
 {
     (void)basesrc;
@@ -233,6 +241,9 @@ static void gst_mem_pool_src_set_property(GObject *object, guint prop_id, const 
         case PROP_BUFFER_SIZE:
             gst_mem_pool_src_set_buffer_size(memsrc, g_value_get_uint(value));
             break;
+        case PROP_BUFFER_NUM:
+            gst_mem_pool_src_set_buffer_num(memsrc, g_value_get_uint(value));
+            break;
         default:
             break;
     }
@@ -247,9 +258,11 @@ static void gst_mem_pool_src_get_property(GObject *object, guint prop_id, GValue
     switch (prop_id) {
         case PROP_BUFFER_SIZE:
             g_value_set_uint(value, memsrc->buffer_size);
+            GST_DEBUG_OBJECT(object, "set buffer size: %u", memsrc->buffer_size);
             break;
         case PROP_BUFFER_NUM:
             g_value_set_uint(value, memsrc->buffer_num);
+            GST_DEBUG_OBJECT(object, "set buffer num: %u", memsrc->buffer_num);
             break;
         default:
             break;

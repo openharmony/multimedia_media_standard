@@ -60,11 +60,6 @@ public:
         return nullptr;
     }
 
-    virtual uint32_t GetBufferCount()
-    {
-        return 0;
-    }
-
     virtual int32_t QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
     {
         return MSERR_INVALID_OPERATION;

@@ -56,15 +56,15 @@ static void gst_surface_mem_sink_class_init(GstSurfaceMemSinkClass *klass)
 
     gst_element_class_add_static_pad_template (elementClass, &g_sinktemplate);
 
-    gst_element_class_set_static_metadata(elementClass,
-        "SurfaceMemSink", "Sink/Video",
-        "Output to surface buffer and allow the application to get access to the surface buffer",
-        "OpenHarmony");
-
     gobjectClass->dispose = gst_surface_mem_sink_dispose;
     gobjectClass->finalize = gst_surface_mem_sink_finalize;
     gobjectClass->set_property = gst_surface_mem_sink_set_property;
     gobjectClass->get_property = gst_surface_mem_sink_get_property;
+
+    gst_element_class_set_static_metadata(elementClass,
+        "SurfaceMemSink", "Sink/Video",
+        "Output to surface buffer and allow the application to get access to the surface buffer",
+        "OpenHarmony");
 
     g_object_class_install_property(gobjectClass, PROP_SURFACE,
         g_param_spec_pointer("surface", "Surface",
@@ -83,14 +83,14 @@ static void gst_surface_mem_sink_init(GstSurfaceMemSink *sink)
     g_return_if_fail(priv != nullptr);
     sink->priv = priv;
     sink->priv->surface = nullptr;
-    sink->priv->pool = GST_SURFACE_POOL(gst_surface_pool_new());
+    sink->priv->pool = GST_SURFACE_POOL_CAST(gst_surface_pool_new());
 }
 
 static void gst_surface_mem_sink_dispose(GObject *obj)
 {
     g_return_if_fail(obj != nullptr);
 
-    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK(obj);
+    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK_CAST(obj);
     GstSurfaceMemSinkPrivate *priv = surfaceSink->priv;
     g_return_if_fail(priv != nullptr);
 
@@ -115,7 +115,7 @@ static void gst_surface_mem_sink_set_property(GObject *object, guint propId, con
 {
     g_return_if_fail(object != nullptr && value != nullptr);
 
-    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK(object);
+    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK_CAST(object);
     GstSurfaceMemSinkPrivate *priv = surfaceSink->priv;
     g_return_if_fail(priv != nullptr);
 
@@ -139,7 +139,7 @@ static void gst_surface_mem_sink_get_property(GObject *object, guint propId, GVa
 {
     g_return_if_fail(object != nullptr);
 
-    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK(object);
+    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK_CAST(object);
     GstSurfaceMemSinkPrivate *priv = surfaceSink->priv;
     g_return_if_fail(priv != nullptr);
 
@@ -160,7 +160,7 @@ static void gst_surface_mem_sink_get_property(GObject *object, guint propId, GVa
 static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, GstBuffer *buffer)
 {
     g_return_val_if_fail(memsink != nullptr && buffer != nullptr, GST_FLOW_ERROR);
-    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK(memsink);
+    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK_CAST(memsink);
     g_return_val_if_fail(surfaceSink != nullptr, GST_FLOW_ERROR);
     GstSurfaceMemSinkPrivate *priv = surfaceSink->priv;
     GST_OBJECT_LOCK(surfaceSink);
@@ -186,19 +186,20 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
     }
 
     GST_OBJECT_UNLOCK(surfaceSink);
+    GST_DEBUG_OBJECT(surfaceSink, "End gst_surface_mem_sink_do_app_render");
     return GST_FLOW_OK;
 }
 
 static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, GstQuery *query)
 {
     g_return_val_if_fail(memsink != nullptr && query != nullptr, FALSE);
-    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK(memsink);
+    GstSurfaceMemSink *surfaceSink = GST_SURFACE_MEM_SINK_CAST(memsink);
     g_return_val_if_fail(surfaceSink != nullptr, FALSE);
 
     GstCaps *caps = nullptr;
     gboolean needPool = FALSE;
     gst_query_parse_allocation(query, &caps, &needPool);
-    GST_INFO_OBJECT(surfaceSink, "process allocation query, caps: %" GST_PTR_FORMAT "", caps);
+    GST_DEBUG_OBJECT(surfaceSink, "process allocation query, caps: %" GST_PTR_FORMAT "", caps);
 
     if (!needPool) {
         GST_ERROR_OBJECT(surfaceSink, "no need buffer pool, unexpected!");
@@ -211,10 +212,11 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     guint minBuffers = 0;
     guint maxBuffers = 0;
     gst_query_parse_nth_allocation_pool(query, 0, nullptr, &size, &minBuffers, &maxBuffers);
-    if (maxBuffers > memsink->maxPoolCapacity && memsink->maxPoolCapacity != 0) {
+    if (maxBuffers == 0) {
         GST_INFO_OBJECT(surfaceSink, "correct the maxbuffer from %u to %u", maxBuffers, memsink->maxPoolCapacity);
         maxBuffers = memsink->maxPoolCapacity;
     }
+    GST_DEBUG("maxBuffers is: %u", maxBuffers);
 
     GstSurfacePool *pool = surfaceSink->priv->pool;
     g_return_val_if_fail(pool != nullptr, FALSE);
@@ -222,17 +224,18 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     (void)gst_surface_pool_set_surface(pool, surfaceSink->priv->surface, memsink->waitTime);
 
     GstVideoInfo info;
+    GST_DEBUG("begin gst_video_info_from_caps");
     gboolean ret = gst_video_info_from_caps(&info, caps);
     g_return_val_if_fail(ret, FALSE);
     gst_query_add_allocation_pool(query, GST_BUFFER_POOL_CAST(pool), info.size, minBuffers, maxBuffers);
 
     GstSurfaceAllocator *allocator = gst_surface_allocator_new();
-    GstStructure *params = gst_structure_new("mem", "memtype", G_TYPE_STRING, "surface", nullptr);
     g_return_val_if_fail(allocator != nullptr, FALSE);
+    GstStructure *params = gst_structure_new("mem", "memtype", G_TYPE_STRING, "surface", nullptr);
     gst_query_add_allocation_param(query, GST_ALLOCATOR_CAST(allocator), nullptr);
     gst_query_add_allocation_meta(query, GST_VIDEO_META_API_TYPE, nullptr);
     gst_query_add_allocation_meta(query, GST_BUFFER_TYPE_META_API_TYPE, params);
-    gst_object_unref(params);
+    gst_structure_free(params);
 
     GstStructure *config = gst_buffer_pool_get_config(GST_BUFFER_POOL_CAST(pool));
     if (config == nullptr) {

@@ -22,6 +22,7 @@
 #include "av_common.h"
 #include "avsharedmemory.h"
 #include "format.h"
+#include "surface.h"
 
 namespace OHOS {
 namespace Media {
@@ -37,28 +38,26 @@ struct BufferWrapper {
         SERVER,
         DOWNSTREAM
     };
-    BufferWrapper(std::shared_ptr<AVSharedMemory> mem, GstBuffer *gstBuffer, uint32_t index, Owner owner)
-        : mem_(mem),
-          gstBuffer_(gstBuffer),
-          index_(index),
-          owner_(owner)
+    explicit BufferWrapper(Owner owner)
+        : owner_(owner)
     {
     }
+
     ~BufferWrapper()
     {
         if (gstBuffer_ != nullptr) {
             gst_buffer_unref(gstBuffer_);
         }
     }
-    std::shared_ptr<AVSharedMemory> mem_ = nullptr;
+
     GstBuffer *gstBuffer_ = nullptr;
-    uint32_t index_ = 0;
+    AVSharedMemory *mem_ = nullptr;
+    sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
     Owner owner_ = DOWNSTREAM;
-    GstSample *sample_ = nullptr;
 };
 
 struct ProcessorConfig {
-    explicit ProcessorConfig(GstCaps *caps, bool isEncoder)
+    ProcessorConfig(GstCaps *caps, bool isEncoder)
         : caps_(caps),
           isEncoder_(isEncoder)
     {

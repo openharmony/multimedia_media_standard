@@ -269,23 +269,22 @@ static int32_t gst_surface_pool_src_gstformat_to_surfaceformat(GstSurfacePoolSrc
 }
 
 // The buffer of the graphics is dynamically expanded.
-// In order to make the number of buffers used by the graphics correspond to the number of encoders one to one.
-// It is necessary to apply for the buffers first.
+// In order to make the number of buffers used by the graphics correspond to the number of encoders one-to-one.
+// it is necessary to apply for the buffers first.
 static void gst_surface_pool_src_init_surface_buffer(GstSurfacePoolSrc *surfacesrc)
 {
-    g_return_if_fail(surfacesrc != nullptr);
-    g_return_if_fail(surfacesrc->producerSurface != nullptr);
     GstMemPoolSrc *memsrc = GST_MEM_POOL_SRC(surfacesrc);
-    g_return_if_fail(memsrc->caps != nullptr);
     guint width = DEFAULT_VIDEO_WIDTH;
     guint height = DEFAULT_VIDEO_HEIGHT;
-    gint format = -1;
-    GstVideoInfo info;
-    gst_video_info_init(&info);
-    gst_video_info_from_caps(&info, memsrc->caps);
-    width = info.width;
-    height = info.height;
-    format = gst_surface_pool_src_gstformat_to_surfaceformat(surfacesrc, &info);
+    int32_t format = -1;
+    if (memsrc->caps != nullptr) {
+        GstVideoInfo info;
+        gst_video_info_init(&info);
+        gst_video_info_from_caps(&info, memsrc->caps);
+        width = info.width;
+        height = info.height;
+        format = gst_surface_pool_src_gstformat_to_surfaceformat(surfacesrc, &info);
+    }
     std::vector<OHOS::sptr<OHOS::SurfaceBuffer>> buffers;
     OHOS::BufferRequestConfig g_requestConfig;
     g_requestConfig.width = width;
@@ -294,13 +293,13 @@ static void gst_surface_pool_src_init_surface_buffer(GstSurfacePoolSrc *surfaces
     g_requestConfig.format = format;
     g_requestConfig.usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
     g_requestConfig.timeout = 0;
-    for (guint i = 0; i < surfacesrc->producerSurface->GetQueueSize(); ++i) {
+    for (uint32_t i = 0; i < surfacesrc->producerSurface->GetQueueSize(); ++i) {
         OHOS::sptr<OHOS::SurfaceBuffer> buffer;
-        gint releaseFence;
+        int32_t releaseFence;
         (void)surfacesrc->producerSurface->RequestBuffer(buffer, releaseFence, g_requestConfig);
         buffers.push_back(buffer);
     }
-    for (guint i = 0; i < buffers.size(); ++i) {
+    for (uint32_t i = 0; i < buffers.size(); ++i) {
         surfacesrc->producerSurface->CancelBuffer(buffers[i]);
     }
 }
