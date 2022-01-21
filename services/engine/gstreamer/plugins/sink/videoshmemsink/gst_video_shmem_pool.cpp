@@ -22,7 +22,7 @@ G_DEFINE_TYPE (GstVideoShMemPool, gst_video_shmem_pool, GST_TYPE_VIDEO_BUFFER_PO
 static const gchar **gst_video_shmem_pool_get_options (GstBufferPool *pool)
 {
     (void)pool;
-    static const gchar *options[] = { GST_BUFFER_POOL_OPTION_VIDEO_META, NULL };
+    static const gchar *options[] = { GST_BUFFER_POOL_OPTION_VIDEO_META, nullptr };
     return options;
 }
 

@@ -80,6 +80,7 @@ struct _GstVdecBase {
     gint memtype;
     gint usage;
     GstBufferPool *inpool;
+    guint coding_outbuf_cnt;
 };
 
 struct _GstVdecBaseClass {

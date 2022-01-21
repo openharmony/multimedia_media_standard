@@ -55,6 +55,7 @@ config("gst_codec_plugins_common_config") {
 
 ohos_static_library("gst_codec_plugins_common") {
   sources = [
+    "codec_plugins_capability.cpp",
     "vdec/gst_vdec_base.cpp",
     "vdec/gst_vdec_h264.cpp",
     "vdec/gst_vdec_h265.cpp",

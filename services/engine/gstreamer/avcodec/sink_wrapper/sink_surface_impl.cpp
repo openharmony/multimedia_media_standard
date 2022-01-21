@@ -21,7 +21,6 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "SinkSurfaceImpl"};
-    const uint32_t DEFAULT_BUFFER_COUNT = 8;
 }
 
 namespace OHOS {
@@ -52,7 +51,6 @@ int32_t SinkSurfaceImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 {
     CHECK_AND_RETURN_RET(sink_ != nullptr && config->caps_ != nullptr, MSERR_UNKNOWN);
 
-    g_object_set(G_OBJECT(sink_), "max-pool-capacity", static_cast<guint>(DEFAULT_BUFFER_COUNT), nullptr);
     g_object_set(G_OBJECT(sink_), "caps", config->caps_, nullptr);
     (void)CapsToFormat(config->caps_, bufferFormat_);
 

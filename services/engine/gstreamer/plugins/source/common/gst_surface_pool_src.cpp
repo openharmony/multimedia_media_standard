@@ -313,7 +313,7 @@ static gboolean gst_surface_pool_src_get_pool(GstSurfacePoolSrc *surfacesrc, Gst
     }
     GstMemPoolSrc *memsrc = GST_MEM_POOL_SRC(surfacesrc);
     memsrc->buffer_num = max_buf;
-    gboolean is_video = gst_query_find_allocation_meta(query, GST_VIDEO_META_API_TYPE, NULL);
+    gboolean is_video = gst_query_find_allocation_meta(query, GST_VIDEO_META_API_TYPE, nullptr);
     if (is_video) {
         // when video need update size
         GstVideoInfo info;
@@ -351,7 +351,7 @@ static gboolean gst_surface_pool_src_decide_allocation(GstBaseSrc *basesrc, GstQ
     guint max_buf = DEFAULT_SURFACE_QUEUE_SIZE;
 
     // get caps and save to video info
-    gst_query_parse_allocation(query, &outcaps, NULL);
+    gst_query_parse_allocation(query, &outcaps, nullptr);
     // get pool and pool info from down stream
     if (gst_query_get_n_allocation_pools(query) > 0) {
         gst_query_parse_nth_allocation_pool(query, 0, &pool, &size, &min_buf, &max_buf);
