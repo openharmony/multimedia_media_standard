@@ -15,6 +15,7 @@
 #include "avcodec_xml_parser.h"
 #include "media_errors.h"
 #include "media_log.h"
+#include "string_ex.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecXmlParser"};
@@ -199,8 +200,14 @@ bool AVCodecXmlParser::TransStrAsRange(const std::string &str, Range &range)
     if (pos != str.npos) {
         std::string head = str.substr(0, pos);
         std::string tail = str.substr(pos + 1);
-        range.minVal = stoi(head);
-        range.maxVal = stoi(tail);
+        if (!StrToInt(head, range.minVal)) {
+            MEDIA_LOGD("call StrToInt func false, input str is: %{public}s", head.c_str());
+            return false;
+        }
+        if (!StrToInt(tail, range.maxVal)) {
+            MEDIA_LOGD("call StrToInt func false, input str is: %{public}s", tail.c_str());
+            return false;
+        }
     } else {
         MEDIA_LOGD("Can not find the delimiter of \"-\" in : %{public}s", str.c_str());
         return false;
@@ -218,8 +225,15 @@ bool AVCodecXmlParser::TransStrAsSize(const std::string &str, ImgSize &size)
     if (pos != str.npos) {
         std::string head = str.substr(0, pos);
         std::string tail = str.substr(pos + 1);
-        size.width = stoi(head);
-        size.height = stoi(tail);
+        if (!StrToInt(head, size.width)) {
+            MEDIA_LOGD("call StrToInt func false, input str is: %{public}s", head.c_str());
+            return false;
+        }
+        if (!StrToInt(tail, size.height)) {
+            MEDIA_LOGD("call StrToInt func false, input str is: %{public}s", tail.c_str());
+            return false;
+        }
+
     } else {
         MEDIA_LOGD("Can not find the delimiter of \"x\" in : %{public}s", str.c_str());
         return false;
@@ -231,7 +245,11 @@ std::vector<int32_t> AVCodecXmlParser::TransStrAsIntegerArray(std::vector<std::s
 {
     std::vector<int32_t> array;
     for (auto iter = spilt.begin(); iter != spilt.end(); iter++) {
-        int32_t num = stoi(*iter);
+        int32_t num = -1;
+        if (!StrToInt(*iter, num)) {
+            MEDIA_LOGD("call StrToInt func false, input str is: %{public}s", iter->c_str());
+            return array;
+        }
         array.push_back(num);
     }
     return array;
