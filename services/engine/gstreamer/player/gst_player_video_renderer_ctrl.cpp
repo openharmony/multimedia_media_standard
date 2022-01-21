@@ -508,7 +508,7 @@ void GstPlayerVideoRendererCtrl::CopyToSurfaceBuffer(sptr<SurfaceBuffer> surface
         sizeCopy = gst_buffer_extract(buf, 0, surfaceBufferAddr, size);
         if (sizeCopy != size) {
             MEDIA_LOGW("extract buffer from size : %" G_GSIZE_FORMAT " to size %" G_GSIZE_FORMAT, size, sizeCopy);
-        } 
+        }
     } else {
         GstMapInfo map = GST_MAP_INFO_INIT;
         if (gst_buffer_map(buf, &map, GST_MAP_READ)) {
