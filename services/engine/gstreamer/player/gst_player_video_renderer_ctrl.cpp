@@ -515,11 +515,11 @@ void GstPlayerVideoRendererCtrl::CopyToSurfaceBuffer(sptr<SurfaceBuffer> surface
             for (size_t pos = 0; pos < map.size; pos++) {
                 int32_t height = pos / (videoMeta->width * DEFAULT_STRIDE);
                 int32_t addrPos = height * stride + pos % (videoMeta->width * DEFAULT_STRIDE);
-                bufAddr[addrPos] = map.data[pos];
+                bufferAddr[addrPos] = map.data[pos];
             }
 
             sizeCopy = map.size;
-            gst_buffer_unmap(bufferAddr, &map);
+            gst_buffer_unmap(buf, &map);
         } else {
             needFlush = false;
             MEDIA_LOGE("gst_buffer_map error");
