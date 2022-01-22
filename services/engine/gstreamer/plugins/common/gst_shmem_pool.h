@@ -50,10 +50,11 @@ struct _GstShMemPool {
     guint maxBuffers;
     GMutex lock;
     GCond cond;
-    guint freeBufCnt;
+    gint curBuffers;
     GstVideoInfo info;
     gboolean addVideoMeta;
     gboolean end;
+    gchar *debugName;
     std::shared_ptr<OHOS::Media::AVSharedMemoryPool> avshmempool;
 };
 

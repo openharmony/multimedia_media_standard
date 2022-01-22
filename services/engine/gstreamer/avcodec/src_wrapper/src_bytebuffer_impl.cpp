@@ -14,13 +14,14 @@
  */
 
 #include "src_bytebuffer_impl.h"
+#include <mutex>
 #include "gst_shmem_memory.h"
 #include "media_log.h"
 #include "scope_guard.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "SrcBytebufferImpl"};
-    constexpr uint32_t DEFAULT_BUFFER_NUM = 16;
+    constexpr uint32_t DEFAULT_BUFFER_NUM = 10;
 }
 
 namespace OHOS {
