@@ -188,7 +188,7 @@ void PlayerCallbackNapi::OnBufferingUpdateCb(const Format &infoBody) const
 
     cb->valueVec.push_back(bufferingType);
     cb->valueVec.push_back(value);
-    return OnJsCallBackBufferingUpdate(cb);
+    return OnJsCallBackIntVec(cb);
 }
 
 void PlayerCallbackNapi::OnEosCb(int32_t isLooping) const
@@ -424,7 +424,7 @@ void PlayerCallbackNapi::OnJsCallBackInt(PlayerJsCallback *jsCb) const
     }
 }
 
-void PlayerCallbackNapi::OnJsCallBackBufferingUpdate(PlayerJsCallback *jsCb) const
+void PlayerCallbackNapi::OnJsCallBackIntVec(PlayerJsCallback *jsCb) const
 {
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
