@@ -54,6 +54,7 @@ napi_value AudioEncoderNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("stop", Stop),
         DECLARE_NAPI_FUNCTION("flush", Flush),
         DECLARE_NAPI_FUNCTION("reset", Reset),
+        DECLARE_NAPI_FUNCTION("release", Release),
         DECLARE_NAPI_FUNCTION("queueInput", QueueInput),
         DECLARE_NAPI_FUNCTION("releaseOutput", ReleaseOutput),
         DECLARE_NAPI_FUNCTION("setParameter", SetParameter),
@@ -465,6 +466,48 @@ napi_value AudioEncoderNapi::Reset(napi_env env, napi_callback_info info)
             }
             if (asyncCtx->napi->aenc_->Reset() != MSERR_OK) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to Reset");
+            }
+        },
+        MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
+
+    NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
+    asyncCtx.release();
+
+    return result;
+}
+
+napi_value AudioEncoderNapi::Release(napi_env env, napi_callback_info info)
+{
+    MEDIA_LOGD("Enter Release");
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+
+    auto asyncCtx = std::make_unique<AudioEncoderAsyncContext>(env);
+
+    napi_value jsThis = nullptr;
+    napi_value args[1] = {nullptr};
+    size_t argCount = 1;
+    napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
+    if (status != napi_ok || jsThis == nullptr) {
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to napi_get_cb_info");
+    }
+
+    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
+    asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
+
+    (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
+
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "Release", NAPI_AUTO_LENGTH, &resource);
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
+        [](napi_env env, void* data) {
+            auto asyncCtx = reinterpret_cast<AudioEncoderAsyncContext *>(data);
+            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->aenc_ == nullptr) {
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
+                return;
+            }
+            if (asyncCtx->napi->aenc_->Release() != MSERR_OK) {
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to Release");
             }
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));

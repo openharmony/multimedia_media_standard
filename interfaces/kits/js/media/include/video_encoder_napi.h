@@ -41,6 +41,7 @@ private:
     static napi_value Stop(napi_env env, napi_callback_info info);
     static napi_value Flush(napi_env env, napi_callback_info info);
     static napi_value Reset(napi_env env, napi_callback_info info);
+    static napi_value Release(napi_env env, napi_callback_info info);
     static napi_value QueueInput(napi_env env, napi_callback_info info);
     static napi_value ReleaseOutput(napi_env env, napi_callback_info info);
     static napi_value GetInputSurface(napi_env env, napi_callback_info info);
