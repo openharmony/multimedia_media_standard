@@ -17,6 +17,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdio>
+#include "securec.h"
 #include "string_ex.h"
 #include "display_type.h"
 #include "media_log.h"
@@ -458,8 +459,9 @@ sptr<SurfaceBuffer> GstPlayerVideoRendererCtrl::RequestBuffer(const GstVideoMeta
     return surfaceBuffer;
 }
 
-void GstPlayerVideoRendererCtrl::SaveFrameToFile(const unsigned char *buffer, size_t size) const
+void GstPlayerVideoRendererCtrl::SaveFrameToFile(const unsigned char *buffer, size_t size)
 {
+    dumpFrameNum_++;
     if (!dumpFrameEnable_) {
         return;
     }
@@ -483,6 +485,58 @@ void GstPlayerVideoRendererCtrl::SaveFrameToFile(const unsigned char *buffer, si
     outfile.close();
 }
 
+int32_t GstPlayerVideoRendererCtrl::CopyDefault(sptr<SurfaceBuffer> surfaceBuffer, const GstBuffer &buffer)
+{
+    auto buf = const_cast<GstBuffer *>(&buffer);
+    auto surfaceBufferAddr = surfaceBuffer->GetVirAddr();
+    CHECK_AND_RETURN_RET_LOG(surfaceBufferAddr != nullptr, MSERR_NO_MEMORY, "Buffer addr is nullptr.");
+
+    gsize size = gst_buffer_get_size(buf);
+    CHECK_AND_RETURN_RET_LOG(size > 0, MSERR_NO_MEMORY, "gst_buffer_get_size failed..");
+    gsize sizeCopy = gst_buffer_extract(buf, 0, surfaceBufferAddr, size);
+    if (sizeCopy != size) {
+        MEDIA_LOGW("extract buffer from size : %" G_GSIZE_FORMAT " to size %" G_GSIZE_FORMAT, size, sizeCopy);
+    }
+
+    unsigned char *bufferAddr = static_cast<unsigned char *>(static_cast<void *>(surfaceBufferAddr));
+    SaveFrameToFile(bufferAddr, sizeCopy);
+    return MSERR_OK;
+}
+
+int32_t GstPlayerVideoRendererCtrl::CopyRgba(sptr<SurfaceBuffer> surfaceBuffer, const GstBuffer &buffer,
+    const GstMapInfo &map, int32_t stride)
+{
+    auto buf = const_cast<GstBuffer *>(&buffer);
+    GstVideoMeta *videoMeta = gst_buffer_get_video_meta(buf);
+
+    auto surfaceBufferAddr = surfaceBuffer->GetVirAddr();
+    CHECK_AND_RETURN_RET_LOG(surfaceBufferAddr != nullptr, MSERR_NO_MEMORY, "Buffer addr is nullptr.");
+    unsigned char *bufferAddr = static_cast<unsigned char *>(static_cast<void *>(surfaceBufferAddr));
+
+    gsize calcSize = videoMeta->width * videoMeta->height * DEFAULT_STRIDE;
+    CHECK_AND_RETURN_RET_LOG(map.size == calcSize, MSERR_NO_MEMORY, "size is error.");
+
+    int32_t rowCopy = videoMeta->width * DEFAULT_STRIDE;
+    unsigned char *currDstPos = bufferAddr;
+    unsigned char *currSrcPos = map.data;
+    gsize sizeCopy = 0;
+    for (uint32_t height = 0; height < videoMeta->height; height++) {
+        if ((sizeCopy + stride) > surfaceBuffer->GetSize()) {
+            MEDIA_LOGE("sizeCopy is error");
+            return MSERR_NO_MEMORY;
+        }
+
+        errno_t rc = memcpy_s(currDstPos, static_cast<size_t>(rowCopy), currSrcPos, static_cast<size_t>(rowCopy));
+        CHECK_AND_RETURN_RET_LOG(rc == EOK, MSERR_NO_MEMORY, "memcpy_s failed");
+
+        currDstPos += stride;
+        currSrcPos += rowCopy;
+        sizeCopy += stride;
+    }
+    SaveFrameToFile(bufferAddr, sizeCopy);
+    return MSERR_OK;
+}
+
 void GstPlayerVideoRendererCtrl::CopyToSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer,
     const GstBuffer &buffer, bool &needFlush)
 {
@@ -494,40 +548,28 @@ void GstPlayerVideoRendererCtrl::CopyToSurfaceBuffer(sptr<SurfaceBuffer> surface
     BufferHandle *bufferHandle = bufferImpl->GetBufferHandle();
     CHECK_AND_RETURN_LOG(bufferHandle != nullptr, "bufferHandle is nullptr.");
 
-    auto surfaceBufferAddr = surfaceBuffer->GetVirAddr();
-    CHECK_AND_RETURN_LOG(surfaceBufferAddr != nullptr, "Buffer addr is nullptr.");
-
-    needFlush = true;
     int32_t stride = bufferHandle->stride;
-    gsize sizeCopy = 0;
-    unsigned char *bufferAddr = static_cast<unsigned char *>(static_cast<void *>(surfaceBufferAddr));
-    
-    if (stride == 0) {
-        gsize size = gst_buffer_get_size(buf);
-        CHECK_AND_RETURN_LOG(size > 0, "gst_buffer_get_size failed..");
-        sizeCopy = gst_buffer_extract(buf, 0, surfaceBufferAddr, size);
-        if (sizeCopy != size) {
-            MEDIA_LOGW("extract buffer from size : %" G_GSIZE_FORMAT " to size %" G_GSIZE_FORMAT, size, sizeCopy);
-        }
+    if ((stride % videoMeta->width) == 0) {
+        int32_t ret = CopyDefault(surfaceBuffer, buffer);
+        CHECK_AND_RETURN_LOG(ret == MSERR_OK, "CopyDefault error.");
+        needFlush = true;
     } else {
         GstMapInfo map = GST_MAP_INFO_INIT;
-        if (gst_buffer_map(buf, &map, GST_MAP_READ)) {
-            for (size_t pos = 0; pos < map.size; pos++) {
-                int32_t height = pos / (videoMeta->width * DEFAULT_STRIDE);
-                int32_t addrPos = height * stride + pos % (videoMeta->width * DEFAULT_STRIDE);
-                bufferAddr[addrPos] = map.data[pos];
-            }
-
-            sizeCopy = map.size;
-            gst_buffer_unmap(buf, &map);
-        } else {
-            needFlush = false;
+        if (gst_buffer_map(buf, &map, GST_MAP_READ) != true) {
             MEDIA_LOGE("gst_buffer_map error");
+            return;
         }
-    }
 
-    SaveFrameToFile(bufferAddr, sizeCopy);
-    dumpFrameNum_++;
+        int32_t ret = CopyRgba(surfaceBuffer, buffer, map, stride);
+        if (ret != MSERR_OK) {
+            MEDIA_LOGE("CopyRgba error");
+            gst_buffer_unmap(buf, &map);
+            return;
+        }
+
+        needFlush = true;
+        gst_buffer_unmap(buf, &map);
+    }
 }
 
 int32_t GstPlayerVideoRendererCtrl::UpdateSurfaceBuffer(const GstBuffer &buffer)
