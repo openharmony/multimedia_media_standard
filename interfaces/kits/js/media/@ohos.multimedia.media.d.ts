@@ -2167,6 +2167,24 @@ declare namespace media {
     reset(): Promise<void>;
 
     /**
+     * release audio decoder, it will release the resource.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when release completed.
+     */
+    release(callback: AsyncCallback<void>): void;
+
+     /**
+      * release audio decoder, it will release the resource.
+      * @devices phone, tablet, tv, wearable
+      * @since 8
+      * @SysCap SystemCapability.Multimedia.Media
+      * @return A Promise instance used to return when release completed.
+      */
+    release(): Promise<void>;
+
+    /**
      * input frame data after start.
      * @devices phone, tablet, tv, wearable, car
      * @since 8
@@ -2418,6 +2436,24 @@ declare namespace media {
      * @return A Promise instance used to return when reset completed.
      */
     reset(): Promise<void>;
+
+    /**
+     * release audio encoder, it will release the resource.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when release completed.
+     */
+    release(callback: AsyncCallback<void>): void;
+
+     /**
+      * release audio encoder, it will release the resource.
+      * @devices phone, tablet, tv, wearable
+      * @since 8
+      * @SysCap SystemCapability.Multimedia.Media
+      * @return A Promise instance used to return when release completed.
+      */
+    release(): Promise<void>;
 
     /**
      * input frame data after start, this API is used in bytebuffer input mode.
