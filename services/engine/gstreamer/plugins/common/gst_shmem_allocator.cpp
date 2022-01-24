@@ -169,8 +169,9 @@ static GstShMemMemory *gst_shmem_allocator_mem_share(GstMemory *mem, gssize offs
         mem->align, mem->offset + offset, size);
     sub->mem = shmem->mem;
 
-    GST_LOG("share memory 0x%06" PRIXPTR " for size: %" G_GSSIZE_FORMAT ", offset: %" G_GSSIZE_FORMAT ", addr: 0x%06" PRIXPTR ", refcount: %ld",
-        FAKE_POINTER(mem), size, offset, FAKE_POINTER(sub), sub->mem.use_count());
+    GST_LOG("share memory 0x%06" PRIXPTR " for size: %" G_GSSIZE_FORMAT ", offset: %" G_GSSIZE_FORMAT
+            ", addr: 0x%06" PRIXPTR ", refcount: %ld",
+            FAKE_POINTER(mem), size, offset, FAKE_POINTER(sub), sub->mem.use_count());
 
     return sub;
 }
