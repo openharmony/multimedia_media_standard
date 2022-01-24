@@ -40,8 +40,9 @@ int32_t AVSharedMemoryPool::Init(const InitializeOption &option)
 {
     std::unique_lock<std::mutex> lock(mutex_);
 
-    CHECK_AND_RETURN_RET_LOG(!inited_, MSERR_INVALID_OPERATION, "already inited !");
-    CHECK_AND_RETURN_RET_LOG(option.memSize < MAX_MEM_SIZE, MSERR_INVALID_VAL, "size invalid");
+    CHECK_AND_RETURN_RET(!inited_, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(option.memSize < MAX_MEM_SIZE, MSERR_INVALID_VAL);
+    CHECK_AND_RETURN_RET(option.maxMemCnt != 0, MSERR_INVALID_VAL);
 
     option_ = option;
     if (option.preAllocMemCnt > option.maxMemCnt) {
@@ -49,9 +50,9 @@ int32_t AVSharedMemoryPool::Init(const InitializeOption &option)
     }
 
     MEDIA_LOGI("name: %{public}s, init option: preAllocMemCnt = %{public}u, memSize = %{public}d, "
-               "maxMemCnt = %{public}u, enableRemoteRefCnt = %{public}d, enableFixedSize = %{public}d",
+               "maxMemCnt = %{public}u, enableFixedSize = %{public}d",
                name_.c_str(), option_.preAllocMemCnt, option_.memSize, option_.maxMemCnt,
-               option_.enableRemoteRefCnt, option_.enableFixedSize);
+               option_.enableFixedSize);
 
     for (uint32_t i = 0; i < option_.preAllocMemCnt; ++i) {
         auto memory = AllocMemory(option_.memSize);
@@ -60,16 +61,13 @@ int32_t AVSharedMemoryPool::Init(const InitializeOption &option)
     }
 
     inited_ = true;
+    notifier_ = option.notifier;
     return MSERR_OK;
 }
 
 AVSharedMemory *AVSharedMemoryPool::AllocMemory(int32_t size)
 {
-    AVSharedMemoryBase *memory = nullptr;
-
-    if (!option_.enableRemoteRefCnt) {
-        memory = new (std::nothrow) AVSharedMemoryBase(size, option_.flags, name_);
-    }
+    AVSharedMemoryBase *memory = new (std::nothrow) AVSharedMemoryBase(size, option_.flags, name_);
     CHECK_AND_RETURN_RET_LOG(memory != nullptr, nullptr, "create object failed");
 
     if (memory->Init() != MSERR_OK) {
@@ -85,14 +83,22 @@ void AVSharedMemoryPool::ReleaseMemory(AVSharedMemory *memory)
     std::unique_lock<std::mutex> lock(mutex_);
 
     for (auto iter = busyList_.begin(); iter != busyList_.end(); ++iter) {
-        if (*iter == memory) {
-            busyList_.erase(iter);
-            idleList_.push_back(memory);
-            cond_.notify_all();
-            MEDIA_LOGD("0x%{public}06" PRIXPTR " released back to pool %{public}s",
-                       FAKE_POINTER(memory), name_.c_str());
-            return;
+        if (*iter != memory) {
+            continue;
         }
+
+        busyList_.erase(iter);
+        idleList_.push_back(memory);
+        cond_.notify_all();
+        MEDIA_LOGD("0x%{public}06" PRIXPTR " released back to pool %{public}s",
+                    FAKE_POINTER(memory), name_.c_str());
+
+        auto notifier = notifier_;
+        lock.unlock();
+        if (notifier_ != nullptr) {
+            notifier_();
+        }
+        return;
     }
 
     MEDIA_LOGE("0x%{public}06" PRIXPTR " is no longer managed by this pool", FAKE_POINTER(memory));
@@ -162,29 +168,33 @@ bool AVSharedMemoryPool::CheckSize(int32_t size)
     return true;
 }
 
-std::shared_ptr<AVSharedMemory> AVSharedMemoryPool::AcquireMemory(int32_t size)
+std::shared_ptr<AVSharedMemory> AVSharedMemoryPool::AcquireMemory(int32_t size, bool blocking)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    MEDIA_LOGD("acquire memory for size: %{public}d from pool %{public}s, blocking: %{public}d",
+               size, name_.c_str(), blocking);
 
+    std::unique_lock<std::mutex> lock(mutex_);
     if (!CheckSize(size)) {
         MEDIA_LOGE("invalid size: %{public}d", size);
         return nullptr;
     }
 
-    MEDIA_LOGD("acquire memory for size: %{public}d from pool %{public}s", size, name_.c_str());
     if (option_.enableFixedSize) {
         size = option_.memSize;
     }
 
     AVSharedMemory *memory = nullptr;
     do {
-        bool execute = DoAcquireMemory(size, &memory);
-        if (execute && memory == nullptr) {
-            cond_.wait(lock, [this]() { return !idleList_.empty() || !inited_; });
-        } else {
+        if (!DoAcquireMemory(size, &memory) || memory != nullptr) {
             break;
         }
-    } while (memory == nullptr && inited_);
+
+        if (!blocking || forceNonBlocking_) {
+            break;
+        }
+
+        cond_.wait(lock);
+    } while (inited_ && !forceNonBlocking_);
 
     if (memory == nullptr) {
         MEDIA_LOGE("acquire memory failed for size: %{public}d", size);
@@ -207,10 +217,14 @@ std::shared_ptr<AVSharedMemory> AVSharedMemoryPool::AcquireMemory(int32_t size)
     return result;
 }
 
-void AVSharedMemoryPool::SignalMemoryReleased()
+void AVSharedMemoryPool::SetNonBlocking(bool enable)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    cond_.notify_all();
+    MEDIA_LOGD("SetNonBlocking: %{public}d", enable);
+    forceNonBlocking_ = enable;
+    if (forceNonBlocking_) {
+        cond_.notify_all();
+    }
 }
 
 void AVSharedMemoryPool::Reset()
@@ -224,6 +238,9 @@ void AVSharedMemoryPool::Reset()
     }
     idleList_.clear();
     inited_ = false;
+    forceNonBlocking_ = false;
+    notifier_ = nullptr;
+    cond_.notify_all();
     // for busylist, the memory will be released when the refcount of shared_ptr is zero.
 }
 }

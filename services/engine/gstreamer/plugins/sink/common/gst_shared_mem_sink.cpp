@@ -51,7 +51,6 @@ static void gst_shared_mem_sink_set_property(GObject *object, guint prop_id, con
 static void gst_shared_mem_sink_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec);
 static gboolean gst_shared_mem_sink_do_propose_allocation(GstMemSink *memsink, GstQuery *query);
 static GstFlowReturn gst_shared_mem_sink_do_stream_render(GstMemSink *memsink, GstBuffer **buffer);
-static GstFlowReturn gst_shared_mem_sink_do_app_render(GstMemSink *memsink, GstBuffer *buffer);
 
 #define gst_shared_mem_sink_parent_class parent_class
 G_DEFINE_TYPE_WITH_CODE(GstSharedMemSink, gst_shared_mem_sink,
@@ -97,7 +96,6 @@ static void gst_shared_mem_sink_class_init(GstSharedMemSinkClass *klass)
 
     memSinkClass->do_propose_allocation = gst_shared_mem_sink_do_propose_allocation;
     memSinkClass->do_stream_render = gst_shared_mem_sink_do_stream_render;
-    memSinkClass->do_app_render = gst_shared_mem_sink_do_app_render;
 
     GST_DEBUG_CATEGORY_INIT(gst_shmem_sink_debug_category, "shmemsink", 0, "shmemsink class");
 }
@@ -240,7 +238,6 @@ static gboolean set_pool_for_allocator(GstSharedMemSink *shmemSink, guint minBuf
         .preAllocMemCnt = minBufs,
         .memSize = size,
         .maxMemCnt = maxBufs,
-        .enableRemoteRefCnt = priv->enableRemoteRefCount
     };
     int32_t ret = priv->avShmemPool->Init(option);
     g_return_val_if_fail(ret == OHOS::Media::MSERR_OK, GST_FLOW_ERROR);
@@ -355,24 +352,6 @@ static GstFlowReturn gst_shared_mem_sink_do_stream_render(GstMemSink *memsink, G
     g_return_val_if_fail(ret == GST_FLOW_OK, ret);
 
     *buffer = outBuf;
-    return GST_FLOW_OK;
-}
-
-static GstFlowReturn gst_shared_mem_sink_do_app_render(GstMemSink *memsink, GstBuffer *buffer)
-{
-    /**
-     * the buffer is not used by this sharedmemsink. But this sharedmemsink need this call to
-     * trigger the underlying pool to waken up when the remote process ends up the access to
-     * the memory.
-     */
-    (void)buffer;
-
-    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(memsink);
-    GstSharedMemSinkPrivate *priv = shmemSink->priv;
-    g_return_val_if_fail(priv != nullptr, GST_FLOW_ERROR);
-    g_return_val_if_fail(priv->avShmemPool == nullptr, GST_FLOW_ERROR);
-
-    priv->avShmemPool->SignalMemoryReleased();
     return GST_FLOW_OK;
 }
 
