@@ -647,9 +647,9 @@ static GstFlowReturn gst_vdec_base_format_change(GstVdecBase *self)
     GST_DEBUG_OBJECT(self, "Format change");
     g_return_val_if_fail(self != nullptr, GST_FLOW_ERROR);
     g_return_val_if_fail(self->decoder != nullptr, GST_FLOW_ERROR);
-    gboolean format_change = gst_vdec_check_out_format_change(self->decoder);
-    gboolean buffer_cnt_change = gst_vdec_check_out_buffer_cnt(self->decoder);
-    if (format_change && self->first_frame = FALSE) {
+    gboolean format_change = gst_vdec_check_out_format_change(self);
+    gboolean buffer_cnt_change = gst_vdec_check_out_buffer_cnt(self);
+    if (format_change && self->first_frame == FALSE) {
         GstMessage *msg_resolution_changed = nullptr;
         msg_resolution_changed = gst_message_new_resolution_changed(GST_OBJECT(self),
             self->width, self->height);
