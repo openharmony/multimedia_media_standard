@@ -40,12 +40,12 @@ config("gst_audio_capture_src_config") {
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
     "//foundation/multimedia/audio_standard/frameworks/innerkitsimpl/common/include",
-    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiocommon/include",
-    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiomanager/include",
-    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiopolicy/include",
-    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiosession/include",
-    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiostream/include",
-    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiocapturer/include",
+    "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiocommon/include",
+    "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiomanager/include",
+    "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiopolicy/include",
+    "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiosession/include",
+    "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiostream/include",
+    "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiocapturer/include",
     "//foundation/multimedia/audio_standard/services/include",
     "//foundation/multimedia/audio_standard/services/include/client",
     "//third_party/gstreamer/gstreamer",
@@ -70,7 +70,7 @@ ohos_shared_library("gst_audio_capture_src") {
   configs = [ ":gst_audio_capture_src_config" ]
 
   deps = [
-    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiocapturer:audio_capturer",
+    "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiocapturer:audio_capturer",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",
