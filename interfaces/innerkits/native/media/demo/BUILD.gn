@@ -22,6 +22,7 @@ ohos_executable("media_demo") {
     "./avmetadatahelper",
     "./avcodeclist",
     "./avcodecvenc",
+    "./avcodecvdec",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//graphic/standard/interfaces/innerkits/surface",
@@ -52,6 +53,7 @@ ohos_executable("media_demo") {
 
   sources = [
     "./avcodeclist/avcodeclist_demo.cpp",
+    "./avcodecvdec/avcodec_vdec_demo.cpp",
     "./avcodecvenc/avcodec_venc_demo.cpp",
     "./avmetadatahelper/avmetadatahelper_demo.cpp",
     "./media_demo.cpp",
