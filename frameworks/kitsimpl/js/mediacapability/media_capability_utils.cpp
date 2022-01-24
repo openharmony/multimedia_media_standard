@@ -25,7 +25,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-napi_status AddCodecInfo(napi_env env, napi_value &result, std::shared_ptr<AVCodecInfo> info)
+napi_status AddCodecInfo(napi_env env, napi_value result, std::shared_ptr<AVCodecInfo> info)
 {
     CHECK_AND_RETURN_RET(info != nullptr, napi_generic_failure);
 
@@ -40,6 +40,13 @@ napi_status AddCodecInfo(napi_env env, napi_value &result, std::shared_ptr<AVCod
         static_cast<int32_t>(info->IsHardwareAccelerated()));
     (void)CommonNapi::SetPropertyInt32(env, obj, "isSoftwareOnly", static_cast<int32_t>(info->IsSoftwareOnly()));
     (void)CommonNapi::SetPropertyInt32(env, obj, "isVendor", static_cast<int32_t>(info->IsVendor()));
+
+    napi_value nameStr = nullptr;
+    status = napi_create_string_utf8(env, "codecInfo", NAPI_AUTO_LENGTH, &nameStr);
+    CHECK_AND_RETURN_RET(status == napi_ok, napi_generic_failure);
+
+    status = napi_set_property(env, result, nameStr, obj);
+    CHECK_AND_RETURN_RET(status == napi_ok, napi_generic_failure);
 
     return napi_ok;
 }
