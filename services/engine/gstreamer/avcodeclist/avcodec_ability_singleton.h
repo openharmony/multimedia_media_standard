@@ -27,6 +27,7 @@ public:
     AVCodecAbilitySingleton& operator=(const AVCodecAbilitySingleton&) = delete;
     static AVCodecAbilitySingleton& GetInstance();
     bool ParseCodecXml();
+    bool ParseHardwareCapability();
     Format codecXmlFormat;
     std::vector<CapabilityData> capabilityDataArray_;
     bool IsParsered();
