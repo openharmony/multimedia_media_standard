@@ -149,8 +149,7 @@ int32_t VDecDemo::SetSurface()
     sptr<Rosen::Window> window = Rosen::Window::Create("avcodec video decoder window", option);
     DEMO_CHECK_AND_RETURN_RET_LOG(window != nullptr && window->GetSurfaceNode() != nullptr, MSERR_UNKNOWN, "Fatal");
 
-    sptr<Surface> surface = window->GetSurfaceNode()->GetSurface();
-    window->Show();
+    sptr<Surface> surface = nullptr;
     DEMO_CHECK_AND_RETURN_RET_LOG(surface != nullptr, MSERR_UNKNOWN, "Fatal: get surface fail");
     return vdec_->SetOutputSurface(surface);
 }
