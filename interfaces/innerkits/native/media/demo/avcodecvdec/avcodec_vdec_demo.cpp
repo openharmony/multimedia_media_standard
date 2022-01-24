@@ -15,6 +15,7 @@
 
 #include "avcodec_vdec_demo.h"
 #include <iostream>
+#include <unistd.h>
 #include "securec.h"
 #include "demo_log.h"
 #include "media_errors.h"
@@ -114,7 +115,7 @@ int32_t VDecDemo::Stop()
 
     if (outputLoop_ != nullptr && outputLoop_->joinable()) {
         unique_lock<mutex> lock(signal_->outMutex_);
-        signal_->outQueue_.push(10000);
+        signal_->outQueue_.push(10000); // wake up read loop thread
         signal_->outCond_.notify_all();
         lock.unlock();
         outputLoop_->join();
@@ -265,7 +266,7 @@ void VDecDemoCallback::OnInputBufferAvailable(uint32_t index)
 
 void VDecDemoCallback::OnOutputBufferAvailable(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
 {
-    cout << "OnOutputBufferAvailable received, index:" << index << " timestamp:" << info.presentationTimeUs << endl;
+    cout << "OnOutputBufferAvailable received, index:" << index << endl;
     unique_lock<mutex> lock(signal_->outMutex_);
     signal_->outQueue_.push(index);
     signal_->outCond_.notify_all();
