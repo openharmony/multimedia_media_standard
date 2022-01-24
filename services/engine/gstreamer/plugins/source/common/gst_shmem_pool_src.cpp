@@ -54,6 +54,7 @@ struct _GstShmemPoolSrcPrivate {
     GstAllocationParams allocParams;
     std::shared_ptr<OHOS::Media::AVSharedMemoryPool> av_shmem_pool;
     gboolean eos;
+    bool unlock;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(GstShmemPoolSrc, gst_shmem_pool_src, GST_TYPE_MEM_POOL_SRC);
@@ -71,6 +72,8 @@ GstBuffer *gst_shmem_pool_src_pull_buffer(GstMemPoolSrc *memsrc);
 GstFlowReturn gst_shmem_pool_src_push_buffer(GstMemPoolSrc *memsrc, GstBuffer *buffer);
 static GstFlowReturn gst_shmem_pool_src_create(GstBaseSrc *src, guint64 offset, guint size, GstBuffer **buffer);
 static void gst_shmem_pool_src_loop(GstShmemPoolSrc *shmemsrc);
+static gboolean gst_shmem_pool_src_unlock(GstBaseSrc *src);
+static gboolean gst_shmem_pool_src_unlock_stop(GstBaseSrc *src);
 
 static void gst_shmem_pool_src_class_init(GstShmemPoolSrcClass *klass)
 {
@@ -86,6 +89,8 @@ static void gst_shmem_pool_src_class_init(GstShmemPoolSrcClass *klass)
     gstelement_class->send_event = gst_shmem_pool_src_send_event;
     gstbasesrc_class->decide_allocation = gst_shmem_pool_src_decide_allocation;
     gstbasesrc_class->create = gst_shmem_pool_src_create;
+    gstbasesrc_class->unlock = gst_shmem_pool_src_unlock;
+    gstbasesrc_class->unlock_stop = gst_shmem_pool_src_unlock_stop;
     gstmemsrc_class->pull_buffer = gst_shmem_pool_src_pull_buffer;
     gstmemsrc_class->push_buffer = gst_shmem_pool_src_push_buffer;
     gst_element_class_set_static_metadata(gstelement_class,
@@ -113,6 +118,7 @@ static void gst_shmem_pool_src_init(GstShmemPoolSrc *shmemsrc)
     priv->available_buffer = nullptr;
     priv->flushing = FALSE;
     priv->eos = FALSE;
+    priv->unlock = FALSE;
     priv->queue = gst_queue_array_new(DEFAULT_QUEUE_SIZE);
     priv->allocator = gst_shmem_allocator_new();
     gst_allocation_params_init(&priv->allocParams);
@@ -412,11 +418,49 @@ static gboolean gst_shmem_pool_src_handle_flush_stop(GstShmemPoolSrc *shmemsrc)
     priv->flushing = FALSE;
     gst_shmem_pool_src_flush_queue(shmemsrc);
     g_mutex_unlock(&priv->queue_lock);
+
+    // ensure the task loop release the task lock, and go to pause
+    g_rec_mutex_lock(&priv->shmem_lock);
+    GST_INFO_OBJECT(shmemsrc, "got shmemlock");
     gst_shmem_pool_src_set_pool_flushing(shmemsrc, FALSE);
+    g_rec_mutex_unlock(&priv->shmem_lock);
+
     g_mutex_lock(&priv->priv_lock);
     shmemsrc->priv->task_start = TRUE;
     g_mutex_unlock(&priv->priv_lock);
     gst_task_start(shmemsrc->priv->shmem_task);
+
+    return TRUE;
+}
+
+static gboolean gst_shmem_pool_src_unlock(GstBaseSrc *src)
+{
+    GstShmemPoolSrc *shmemsrc = GST_SHMEM_POOL_SRC(src);
+    g_return_val_if_fail(shmemsrc != nullptr && shmemsrc->priv != nullptr, FALSE);
+
+    GST_DEBUG_OBJECT(shmemsrc, "unblock...");
+
+    auto priv = shmemsrc->priv;
+    g_mutex_lock(&priv->queue_lock);
+    priv->unlock = TRUE;
+    g_cond_signal(&priv->queue_condition);
+    g_mutex_unlock(&priv->queue_lock);
+
+    return TRUE;
+}
+
+static gboolean gst_shmem_pool_src_unlock_stop(GstBaseSrc *src)
+{
+    GstShmemPoolSrc *shmemsrc = GST_SHMEM_POOL_SRC(src);
+    g_return_val_if_fail(shmemsrc != nullptr && shmemsrc->priv != nullptr, FALSE);
+
+    GST_DEBUG_OBJECT(shmemsrc, "unblock stop...");
+
+    auto priv = shmemsrc->priv;
+    g_mutex_lock(&priv->queue_lock);
+    priv->unlock = FALSE;
+    g_cond_signal(&priv->queue_condition);
+    g_mutex_unlock(&priv->queue_lock);
 
     return TRUE;
 }
@@ -454,8 +498,13 @@ static GstFlowReturn gst_shmem_pool_src_create(GstBaseSrc *src, guint64 offset, 
     g_return_val_if_fail(buffer != nullptr, GST_FLOW_ERROR);
     auto priv = shmemsrc->priv;
     g_mutex_lock(&priv->queue_lock);
-    while (gst_queue_array_is_empty(priv->queue) && !priv->flushing && !priv->eos) {
+    while (gst_queue_array_is_empty(priv->queue) && !priv->flushing && !priv->eos && !priv->unlock) {
         g_cond_wait(&priv->queue_condition, &priv->queue_lock);
+    }
+    if (priv->unlock) {
+        g_mutex_unlock(&priv->queue_lock);
+        GST_DEBUG_OBJECT(src, "Source unlock");
+        return GST_FLOW_FLUSHING;
     }
     if (priv->flushing) {
         g_mutex_unlock(&priv->queue_lock);
