@@ -63,6 +63,7 @@ private:
     std::unique_ptr<SinkBase> sink_;
     bool isEncoder_ = false;
     bool flushAtStart_ = false;
+    bool isStart_ = false;
 };
 } // Media
 } // OHOS
