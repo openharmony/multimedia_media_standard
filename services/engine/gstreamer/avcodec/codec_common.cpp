@@ -44,7 +44,7 @@ const std::map<AudioRawFormat, std::string> PCM_TO_STRING = {
 };
 
 const std::map<std::string, CodecMimeType> MIME_TO_CODEC_NAME = {
-    {"video/3gpp", CODEC_MIMIE_TYPE_VIDEO_H263},
+    {"video/h263", CODEC_MIMIE_TYPE_VIDEO_H263},
     {"video/avc", CODEC_MIMIE_TYPE_VIDEO_AVC},
     {"video/hevc", CODEC_MIMIE_TYPE_VIDEO_HEVC},
     {"video/mpeg2", CODEC_MIMIE_TYPE_VIDEO_MPEG2},

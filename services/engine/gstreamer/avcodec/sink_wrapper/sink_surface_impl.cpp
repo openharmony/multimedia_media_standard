@@ -180,7 +180,8 @@ int32_t SinkSurfaceImpl::HandleNewSampleCb(GstBuffer *buffer)
     AVCodecBufferInfo info;
     info.offset = 0;
     info.size = 0;
-    info.presentationTimeUs = GST_BUFFER_PTS(buffer);
+    const uint64_t nsToUs = 1000;
+    info.presentationTimeUs = GST_BUFFER_PTS(buffer) / nsToUs;
     obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
 
     MEDIA_LOGD("OutputBufferAvailable, index:%{public}d", index);
