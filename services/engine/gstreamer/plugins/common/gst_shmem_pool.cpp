@@ -23,8 +23,6 @@
 
 #define GST_BUFFER_POOL_LOCK(pool) (g_mutex_lock(&pool->lock))
 #define GST_BUFFER_POOL_UNLOCK(pool) (g_mutex_unlock(&pool->lock))
-#define GST_BUFFER_POOL_WAIT(pool) (g_cond_wait(&pool->cond, &pool->lock))
-#define GST_BUFFER_POOL_NOTIFY(pool) (g_cond_signal(&pool->cond))
 
 #define gst_shmem_pool_parent_class parent_class
 G_DEFINE_TYPE (GstShMemPool, gst_shmem_pool, GST_TYPE_BUFFER_POOL);
@@ -40,7 +38,7 @@ static void gst_shmem_pool_free_buffer(GstBufferPool *pool, GstBuffer *buffer);
 static GstFlowReturn gst_shmem_pool_acquire_buffer(GstBufferPool *pool,
     GstBuffer **buffer, GstBufferPoolAcquireParams *params);
 static void gst_shmem_pool_release_buffer(GstBufferPool *pool, GstBuffer *buffer);
-static void gst_shmem_pool_flush_start(GstBufferPool *pool);
+static void gst_shmem_pool_memory_available(GstBufferPool *pool);
 
 GST_DEBUG_CATEGORY_STATIC(gst_shmem_pool_debug_category);
 #define GST_CAT_DEFAULT gst_shmem_pool_debug_category
@@ -60,7 +58,6 @@ static void gst_shmem_pool_class_init (GstShMemPoolClass *klass)
     poolClass->alloc_buffer = gst_shmem_pool_alloc_buffer;
     poolClass->release_buffer = gst_shmem_pool_release_buffer;
     poolClass->free_buffer = gst_shmem_pool_free_buffer;
-    poolClass->flush_start = gst_shmem_pool_flush_start;
 
     GST_DEBUG_CATEGORY_INIT(gst_shmem_pool_debug_category, "shmempool", 0, "shmempool class");
 }
@@ -79,8 +76,9 @@ static void gst_shmem_pool_init (GstShMemPool *pool)
     pool->addVideoMeta = FALSE;
     gst_video_info_init(&pool->info);
     pool->size = 0;
-    pool->freeBufCnt = 0;
+    pool->curBuffers = 0;
     pool->end = FALSE;
+    pool->debugName = g_strdup("");
     gst_allocation_params_init(&pool->params);
 
     GST_DEBUG_OBJECT(pool, "init pool");
@@ -101,6 +99,10 @@ static void gst_shmem_pool_finalize(GObject *obj)
         spool->avshmempool = nullptr;
     }
     spool->end = TRUE;
+    if (spool->debugName != nullptr) {
+        g_free(spool->debugName);
+        spool->debugName = nullptr;
+    }
 
     GST_DEBUG_OBJECT(spool, "finalize pool");
     G_OBJECT_CLASS(parent_class)->finalize(obj);
@@ -141,6 +143,11 @@ gboolean gst_shmem_pool_set_avshmempool(GstShMemPool *pool,
         return FALSE;
     }
     pool->avshmempool = avshmempool;
+
+    if (pool->debugName != nullptr) {
+        g_free(pool->debugName);
+        pool->debugName = g_strdup(avshmempool->GetName().c_str());
+    }
 
     GST_BUFFER_POOL_UNLOCK(pool);
     return TRUE;
@@ -205,6 +212,10 @@ static gboolean gst_shmem_pool_set_config(GstBufferPool *pool, GstStructure *con
     spool->params = params;
 
     GST_BUFFER_POOL_UNLOCK(spool);
+
+    // modify the minBuffers to zero, we preallocate buffer by the avshmempool's memory available notifier.
+    gst_buffer_pool_config_set_params(config, caps, size, 0, maxBuffers);
+    GST_BUFFER_POOL_CLASS(parent_class)->set_config(pool, config);
     return TRUE;
 }
 
@@ -225,6 +236,9 @@ static gboolean gst_shmem_pool_start(GstBufferPool *pool)
 
     // clear the configuration carried in the avshmempool
     spool->avshmempool->Reset();
+    auto notifier = [pool]() {
+        gst_shmem_pool_memory_available(pool);
+    };
 
     static const uint32_t alignBytes = 4;
     gsize alignedPrefix = (spool->params.prefix + alignBytes - 1) & ~(alignBytes - 1);
@@ -232,7 +246,7 @@ static gboolean gst_shmem_pool_start(GstBufferPool *pool)
         .preAllocMemCnt = spool->minBuffers,
         .memSize = spool->size + alignedPrefix,
         .maxMemCnt = spool->maxBuffers,
-        .enableRemoteRefCnt = false
+        .notifier = notifier,
     };
 
     int32_t ret = spool->avshmempool->Init(option);
@@ -242,10 +256,17 @@ static gboolean gst_shmem_pool_start(GstBufferPool *pool)
         return FALSE;
     }
 
+    // Always force to non-blocking way to alloc shared memory if we use the gstbuferpool's memory manage.
+    spool->avshmempool->SetNonBlocking(true);
     gst_shmem_allocator_set_pool(spool->allocator, spool->avshmempool);
 
+    gboolean rc = GST_BUFFER_POOL_CLASS(parent_class)->start(pool);
+    if (!rc) {
+        GST_ERROR("parent class start failed");
+        return rc;
+    }
+
     spool->started = TRUE;
-    spool->freeBufCnt = spool->maxBuffers;
     GST_BUFFER_POOL_UNLOCK(spool);
     return TRUE;
 }
@@ -265,72 +286,40 @@ static gboolean gst_shmem_pool_stop(GstBufferPool *pool)
     if (spool->avshmempool != nullptr) {
         spool->avshmempool->Reset();
     }
-    GST_BUFFER_POOL_NOTIFY(spool); // wakeup immediately
-    gboolean ret = (spool->freeBufCnt == spool->maxBuffers);
-    GST_INFO("stop pool, freeBufCnt: %u, maxBuffers: %u", spool->freeBufCnt, spool->maxBuffers);
+
+    gboolean ret = GST_BUFFER_POOL_CLASS(parent_class)->stop(pool);
+    GST_DEBUG("parent class stop ret: %d, ret", ret);
+    ret = ret && (g_atomic_int_get(&spool->curBuffers) == 0);
+    GST_DEBUG("stop pool, curBuffers: %d, maxBuffers: %u", spool->curBuffers, spool->maxBuffers);
 
     // leave all configuration unchanged.
     GST_BUFFER_POOL_UNLOCK(spool);
     return ret;
 }
 
-static void gst_shmem_pool_flush_start(GstBufferPool *pool)
+static GstFlowReturn add_meta_to_buffer(GstShMemPool *spool, GstBuffer *buffer, GstShMemMemory *memory)
 {
-    g_return_if_fail(pool != nullptr);
-    GstShMemPool *spool = GST_SHMEM_POOL_CAST(pool);
-
-    GST_DEBUG("pool flush");
-    GST_BUFFER_POOL_LOCK(spool);
-    GST_BUFFER_POOL_NOTIFY(spool);
-    GST_BUFFER_POOL_UNLOCK(spool);
-}
-
-static GstFlowReturn do_alloc_memory_locked(GstShMemPool *spool,
-    GstBufferPoolAcquireParams *params, GstShMemMemory **memory)
-{
-    GstBufferPool *pool = GST_BUFFER_POOL_CAST(spool);
-    *memory = nullptr;
-    GstFlowReturn ret = GST_FLOW_OK;
-
-    while (TRUE) {
-        // when pool is set flusing or set inactive, the flusing state is true, refer to GstBufferPool
-        if (GST_BUFFER_POOL_IS_FLUSHING(pool)) {
-            ret = GST_FLOW_FLUSHING;
-            GST_INFO("pool is flushing");
-            break;
-        }
-
-        /**
-         * If the freeBufCnt is 0, it means the GstBuffer is not release back to GstPool, we can not
-         * allow to acquire buffer from AVShMemPool to avoiding that two different GstBuffer hold
-         * the same AVSharedMemory.
-         */
-        if (spool->freeBufCnt > 0) {
-            if (spool->allocator == nullptr) {
-                GST_ERROR("Allocator is null");
-            }
-            GstMemory *mem = gst_allocator_alloc(GST_ALLOCATOR_CAST(spool->allocator), spool->size, &spool->params);
-            if (mem != nullptr) {
-                *memory = reinterpret_cast<GstShMemMemory *>(mem);
-            } else {
-                ret = GST_FLOW_ERROR;
-                GST_ERROR("alloc memory failed when the freeBufCnt is not zero");
-            }
-            break;
-        }
-        if ((params != nullptr) && (params->flags & GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT)) {
-            ret = GST_FLOW_EOS;
-            break;
-        }
-
-        if (!GST_BUFFER_POOL_IS_FLUSHING(pool)) {
-            GST_DEBUG("before sleep currtime: %" G_GINT64_FORMAT, g_get_monotonic_time());
-            GST_BUFFER_POOL_WAIT(spool);
-            GST_DEBUG("after sleep currtime: %" G_GINT64_FORMAT, g_get_monotonic_time());
-        }
+    if (spool->addVideoMeta) {
+        GstVideoInfo *info = &spool->info;
+        gst_buffer_add_video_meta(buffer, GST_VIDEO_FRAME_FLAG_NONE, GST_VIDEO_INFO_FORMAT(info),
+            GST_VIDEO_INFO_WIDTH(info), GST_VIDEO_INFO_HEIGHT(info));
     }
 
-    return ret;
+    auto mem = std::static_pointer_cast<OHOS::Media::AVSharedMemoryBase>(memory->mem);
+    if (mem == nullptr) {
+        GST_ERROR("invalid pointer");
+        return GST_FLOW_ERROR;
+    }
+
+    AVShmemFlags flag = FLAGS_READ_WRITE;
+    if (mem->GetFlags() == OHOS::Media::AVSharedMemory::FLAGS_READ_ONLY) {
+        flag = FLAGS_READ_ONLY;
+    }
+
+    GstBufferFdConfig config = { 0, mem->GetSize(), mem->GetSize(), flag, 0 };
+    gst_buffer_add_buffer_fd_meta(buffer, mem->GetFd(), config);
+
+    return GST_FLOW_OK;
 }
 
 static GstFlowReturn gst_shmem_pool_alloc_buffer(GstBufferPool *pool,
@@ -339,12 +328,13 @@ static GstFlowReturn gst_shmem_pool_alloc_buffer(GstBufferPool *pool,
     g_return_val_if_fail(pool != nullptr && buffer != nullptr, GST_FLOW_ERROR);
     GstShMemPool *spool = GST_SHMEM_POOL_CAST(pool);
     g_return_val_if_fail(spool != nullptr, GST_FLOW_ERROR);
+    GstFlowReturn ret = GST_FLOW_OK;
 
-    GstShMemMemory *memory = nullptr;
-    GstFlowReturn ret = do_alloc_memory_locked(spool, params, &memory);
+    GstShMemMemory *memory = reinterpret_cast<GstShMemMemory *>(
+        gst_allocator_alloc(GST_ALLOCATOR_CAST(spool->allocator), spool->size, &spool->params));
     if (memory == nullptr) {
-        GST_DEBUG("no memory");
-        return ret;
+        GST_DEBUG("alloc memory failed");
+        return GST_FLOW_EOS;
     }
 
     *buffer = gst_buffer_new();
@@ -356,44 +346,26 @@ static GstFlowReturn gst_shmem_pool_alloc_buffer(GstBufferPool *pool,
 
     gst_buffer_append_memory(*buffer, reinterpret_cast<GstMemory *>(memory));
 
-    if (spool->addVideoMeta) { // don't need the mutex
-        GstVideoInfo *info = &spool->info;
-        gst_buffer_add_video_meta(*buffer, GST_VIDEO_FRAME_FLAG_NONE, GST_VIDEO_INFO_FORMAT(info),
-            GST_VIDEO_INFO_WIDTH(info), GST_VIDEO_INFO_HEIGHT(info));
+    ret = add_meta_to_buffer(spool, *buffer, memory);
+    if (ret != GST_FLOW_OK) {
+        gst_buffer_unref(*buffer);
+        return ret;
     }
 
-    // add buffer type meta at here.
-    std::shared_ptr<OHOS::Media::AVSharedMemory> mem = memory->mem;
-    std::shared_ptr<OHOS::Media::AVSharedMemoryBase> baseMem =
-            std::static_pointer_cast<OHOS::Media::AVSharedMemoryBase>(mem);
-    if (baseMem == nullptr)  {
-        GST_ERROR("invalid pointer");
-        return GST_FLOW_ERROR;
-    }
-
-    int32_t fd = baseMem->GetFd();
-    int32_t size = baseMem->GetSize();
-    AVShmemFlags flag = FLAGS_READ_WRITE;
-    if (baseMem->GetFlags() == OHOS::Media::AVSharedMemory::FLAGS_READ_ONLY) {
-        flag = FLAGS_READ_ONLY;
-    }
-    GstBufferFdConfig config;
-    config.offset = 0;
-    config.length = size;
-    config.totalSize = size;
-    config.memFlag = flag;
-    config.bufferFlag = 0;
-    gst_buffer_add_buffer_fd_meta(*buffer, fd, config);
-
-    GST_DEBUG("alloc buffer ok, 0x%06" PRIXPTR "", FAKE_POINTER(*buffer));
+    GST_LOG("alloc buffer ok, 0x%06" PRIXPTR " from pool %s", FAKE_POINTER(*buffer), spool->debugName);
+    g_atomic_int_add(&spool->curBuffers, 1);
     return GST_FLOW_OK;
 }
 
 static void gst_shmem_pool_free_buffer(GstBufferPool *pool, GstBuffer *buffer)
 {
-    (void)pool;
+    g_return_if_fail(pool != nullptr);
+    GstShMemPool *spool = GST_SHMEM_POOL_CAST(pool);
     g_return_if_fail(buffer != nullptr);
+
     gst_buffer_unref(buffer);
+    g_atomic_int_add(&spool->curBuffers, -1);
+    GST_LOG("free buffer ok, 0x%06" PRIXPTR ", from pool %s", FAKE_POINTER(buffer), spool->debugName);
 }
 
 static GstFlowReturn gst_shmem_pool_acquire_buffer(GstBufferPool *pool,
@@ -402,22 +374,12 @@ static GstFlowReturn gst_shmem_pool_acquire_buffer(GstBufferPool *pool,
     g_return_val_if_fail(pool != nullptr && buffer != nullptr, GST_FLOW_ERROR);
     GstShMemPool *spool = GST_SHMEM_POOL_CAST(pool);
     g_return_val_if_fail(spool != nullptr, GST_FLOW_ERROR);
-    GST_DEBUG("acquire buffer from pool 0x%06" PRIXPTR, FAKE_POINTER(pool));
 
-    GST_BUFFER_POOL_LOCK(spool);
-    // Rather than keeping a idlelist for surface buffer by ourself, we acquire buffer
-    // from the AVShMemPool directly.
-    GstFlowReturn ret = gst_shmem_pool_alloc_buffer(pool, buffer, params);
-    if (ret == GST_FLOW_OK) {
-        spool->freeBufCnt -= 1;
-    }
-
-    if (ret == GST_FLOW_EOS) {
-        GST_DEBUG("no more buffers");
-    }
+    GST_LOG("acquire buffer from pool 0x%06" PRIXPTR " %s before", FAKE_POINTER(pool), spool->debugName);
+    GstFlowReturn ret = GST_BUFFER_POOL_CLASS(parent_class)->acquire_buffer(pool, buffer, params);
 
     // The GstBufferPool will add the GstBuffer's pool ref to this pool.
-    GST_BUFFER_POOL_UNLOCK(spool);
+    GST_LOG("acquire buffer from pool 0x%06" PRIXPTR " %s after", FAKE_POINTER(pool), spool->debugName);
     return ret;
 }
 
@@ -427,21 +389,28 @@ static void gst_shmem_pool_release_buffer(GstBufferPool *pool, GstBuffer *buffer
 
     GstShMemPool *spool = GST_SHMEM_POOL_CAST(pool);
     g_return_if_fail(spool != nullptr);
-    GST_DEBUG("release buffer 0x%06" PRIXPTR " to pool 0x%06" PRIXPTR, FAKE_POINTER(buffer), FAKE_POINTER(pool));
+    GST_LOG("release buffer 0x%06" PRIXPTR " to pool 0x%06" PRIXPTR " %s",
+        FAKE_POINTER(buffer), FAKE_POINTER(pool), spool->debugName);
 
-    if (G_UNLIKELY(!gst_buffer_is_all_memory_writable(buffer))) {
-        GST_WARNING("buffer is not writable, 0x%06" PRIXPTR, FAKE_POINTER(buffer));
-        gst_shmem_pool_free_buffer(pool, buffer);
-        // not add the freeBufCnt, we wait the internal avshmemory released back to the internal avshmmempool
+    GST_BUFFER_POOL_CLASS(parent_class)->release_buffer(pool, buffer);
+}
+
+static void gst_shmem_pool_memory_available(GstBufferPool *pool)
+{
+    g_return_if_fail(pool != nullptr);
+
+    GstShMemPool *spool = GST_SHMEM_POOL_CAST(pool);
+    GST_DEBUG("pool memory available, currBuffers: %d", g_atomic_int_get(&spool->curBuffers));
+
+    GstBuffer *buffer = nullptr;
+    GstBufferPoolAcquireParams params = { GST_FORMAT_DEFAULT, 0, 0, GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT };
+    GstFlowReturn ret = gst_shmem_pool_acquire_buffer(pool, &buffer, &params);
+
+    GST_DEBUG("memory available, fake acquire ret: %s", gst_flow_get_name(ret));
+    // Get bufer maybe fail f there ary any others getting buffer concurringly.
+    if (ret != GST_FLOW_OK) {
         return;
     }
 
-    // we dont queue the buffer to the idlelist. the memory rotation reuse feature
-    // provided by the AVShMemPool itself.
-    gst_shmem_pool_free_buffer(pool, buffer);
-
-    GST_BUFFER_POOL_LOCK(spool);
-    spool->freeBufCnt += 1;
-    GST_BUFFER_POOL_NOTIFY(spool);
-    GST_BUFFER_POOL_UNLOCK(spool);
+    gst_shmem_pool_release_buffer(pool, buffer);
 }

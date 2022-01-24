@@ -249,7 +249,6 @@ std::shared_ptr<AVSharedMemory> AVCodecEngineCtrl::GetInputBuffer(uint32_t index
 
 int32_t AVCodecEngineCtrl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
 {
-    MEDIA_LOGD("QueueInputBuffer, index:%{public}d", index);
     CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
     int32_t ret = src_->QueueInputBuffer(index, info, flag);
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);

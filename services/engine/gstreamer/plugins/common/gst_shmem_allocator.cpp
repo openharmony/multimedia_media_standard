@@ -63,7 +63,7 @@ GstMemory *gst_shmem_allocator_alloc(GstAllocator *allocator, gsize size, GstAll
         nullptr, allocSize, 0, 0, size);
 
     memory->mem = shmem;
-    GST_DEBUG("alloc memory from %s for size: %" PRIu64 ", gstmemory: 0x%06" PRIXPTR "",
+    GST_LOG("alloc memory from %s for size: %" PRIu64 ", gstmemory: 0x%06" PRIXPTR "",
         sAlloctor->avShmemPool->GetName().c_str(), allocSize, FAKE_POINTER(memory));
 
     return GST_MEMORY_CAST(memory);
@@ -78,8 +78,9 @@ void gst_shmem_allocator_free(GstAllocator *allocator, GstMemory *memory)
     g_return_if_fail(sAlloctor != nullptr && sAlloctor->avShmemPool != nullptr);
 
     GstShMemMemory *avSharedMem = reinterpret_cast<GstShMemMemory *>(memory);
-    GST_DEBUG("free memory to %s for size: %" G_GSIZE_FORMAT ", gstmemory: 0x%06" PRIXPTR "",
-        sAlloctor->avShmemPool->GetName().c_str(), memory->maxsize, FAKE_POINTER(avSharedMem));
+    GST_LOG("free memory to %s for size: %" G_GSIZE_FORMAT ", gstmemory: 0x%06" PRIXPTR ", recount: %ld",
+        sAlloctor->avShmemPool->GetName().c_str(), memory->size, FAKE_POINTER(avSharedMem),
+        avSharedMem->mem.use_count());
 
     // assign the nullptr will decrease the refcount, if the refcount is zero,
     // the memory will be released back to pool.
@@ -103,36 +104,74 @@ static void gst_shmem_allocator_mem_unmap(GstMemory *mem)
     (void)mem;
 }
 
-static GstShMemMemory *gst_shmem_allocator_mem_copy(GstShMemMemory *mem, gssize offset, gssize size)
-{
-    (void)mem;
-    (void)offset;
-    (void)size;
-    return nullptr;
-}
-
-static GstShMemMemory *gst_shmem_allocator_mem_share(GstShMemMemory *mem, gssize offset, gssize size)
+static GstMemory *gst_shmem_allocator_mem_copy(GstShMemMemory *mem, gssize offset, gssize size)
 {
     g_return_val_if_fail(mem != nullptr && mem->mem != nullptr, nullptr);
+    g_return_val_if_fail(mem->mem->GetBase() != nullptr, nullptr);
 
-    GstMemory *parent = mem->parent.parent;
+    gssize realOffset = mem->parent.offset + offset;
+    g_return_val_if_fail(realOffset >= 0, nullptr);
+
+    if (size == -1) {
+        size = mem->parent.size - offset;
+    }
+    g_return_val_if_fail(size > 0, nullptr);
+
+    gsize realLimit = static_cast<gsize>(size) + static_cast<gsize>(realOffset);
+    g_return_val_if_fail(realLimit <= static_cast<gsize>(mem->mem->GetSize()), nullptr);
+
+    GstMemory *copy = gst_allocator_alloc(nullptr, static_cast<gsize>(size), nullptr);
+    g_return_val_if_fail(copy != nullptr, nullptr);
+
+    GstMapInfo info = GST_MAP_INFO_INIT;
+    if (!gst_memory_map(copy, &info, GST_MAP_READ)) {
+        gst_memory_unref(copy);
+        GST_ERROR("map failed");
+        return nullptr;
+    }
+
+    uint8_t *src = mem->mem->GetBase() + realOffset;
+    errno_t rc = memcpy_s(info.data, info.size, src, static_cast<size_t>(size));
+    if (rc != EOK) {
+        GST_ERROR("memcpy failed");
+        gst_memory_unmap(copy, &info);
+        gst_memory_unref(copy);
+        return nullptr;
+    }
+
+    gst_memory_unmap(copy, &info);
+    GST_LOG("copy memory: 0x%06" PRIXPTR " for size: %" G_GSSIZE_FORMAT ", offset: %" G_GSSIZE_FORMAT
+        ", gstmemory: 0x%06" PRIXPTR, FAKE_POINTER(mem), size, offset, FAKE_POINTER(copy));
+
+    return copy;
+}
+
+static GstShMemMemory *gst_shmem_allocator_mem_share(GstMemory *mem, gssize offset, gssize size)
+{
+    g_return_val_if_fail(mem != nullptr, nullptr);
+    g_return_val_if_fail(offset >= 0 && static_cast<gsize>(offset) < mem->size, nullptr);
+    GstShMemMemory *shmem = reinterpret_cast<GstShMemMemory *>(mem);
+    g_return_val_if_fail(shmem->mem != nullptr, nullptr);
+
+    GstMemory *parent = mem->parent;
     if (parent == nullptr) {
         parent = GST_MEMORY_CAST(mem);
     }
     if (size == -1) {
-        size = mem->parent.size - offset;
+        size = mem->size - offset;
     }
 
     GstShMemMemory *sub = reinterpret_cast<GstShMemMemory *>(g_slice_alloc0(sizeof(GstShMemMemory)));
     g_return_val_if_fail(sub != nullptr, nullptr);
 
     GstMemoryFlags flags = static_cast<GstMemoryFlags>(GST_MEMORY_FLAGS(parent) | GST_MEMORY_FLAG_READONLY);
-    gst_memory_init(GST_MEMORY_CAST(sub), flags, mem->parent.allocator, parent, mem->parent.maxsize,
-        mem->parent.align, mem->parent.offset + offset, size);
-    sub->mem = mem->mem;
+    gst_memory_init(GST_MEMORY_CAST(sub), flags, mem->allocator, parent, mem->maxsize,
+        mem->align, mem->offset + offset, size);
+    sub->mem = shmem->mem;
 
-    GST_DEBUG("share memory for size: %" G_GSSIZE_FORMAT ", offset: %" G_GSSIZE_FORMAT ", addr: 0x%06" PRIXPTR,
-        size, offset, FAKE_POINTER(mem->mem->GetBase()));
+    GST_LOG("share memory 0x%06" PRIXPTR " for size: %" G_GSSIZE_FORMAT ", offset: %" G_GSSIZE_FORMAT
+            ", addr: 0x%06" PRIXPTR ", refcount: %ld",
+            FAKE_POINTER(mem), size, offset, FAKE_POINTER(sub), sub->mem.use_count());
 
     return sub;
 }
