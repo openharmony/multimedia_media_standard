@@ -348,7 +348,6 @@ static GstFlowReturn gst_shared_mem_sink_do_stream_render(GstMemSink *memsink, G
         return GST_FLOW_OK;
     }
 
-    // TODO: need to avoiding infinite waiting if change playing to pause.
     GstFlowReturn ret = do_copy_buffer(shmemSink, origBuf, &outBuf);
     g_return_val_if_fail(ret == GST_FLOW_OK, ret);
 
