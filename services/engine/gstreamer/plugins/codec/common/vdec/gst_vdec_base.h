@@ -80,7 +80,10 @@ struct _GstVdecBase {
     gint memtype;
     gint usage;
     GstBufferPool *inpool;
+    GstBufferPool *outpool;
     guint coding_outbuf_cnt;
+    guint out_buffer_cnt;
+    gboolean first_frame;
 };
 
 struct _GstVdecBaseClass {

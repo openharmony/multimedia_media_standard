@@ -29,6 +29,7 @@ config("gst_codec_plugins_common_config") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-DOHOS_EXT_FUNC",
   ]
   cflags_cc = [ "-frtti" ]
 
