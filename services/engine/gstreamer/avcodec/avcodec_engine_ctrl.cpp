@@ -125,12 +125,17 @@ int32_t AVCodecEngineCtrl::Start()
         gstPipeCond_.wait(lock);
     }
 
+    isStart_ = true;
     MEDIA_LOGD("Start success");
     return MSERR_OK;
 }
 
 int32_t AVCodecEngineCtrl::Stop()
 {
+    if (!isStart_) {
+        return MSERR_OK;
+    }
+
     GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(gstPipeline_), GST_STATE_PAUSED);
     CHECK_AND_RETURN_RET(ret != GST_STATE_CHANGE_FAILURE, MSERR_UNKNOWN);
     if (ret == GST_STATE_CHANGE_ASYNC) {
@@ -145,6 +150,7 @@ int32_t AVCodecEngineCtrl::Stop()
     CHECK_AND_RETURN_RET(sink_->Flush() == MSERR_OK, MSERR_UNKNOWN);
 
     MEDIA_LOGD("Stop success");
+    isStart_ = false;
     return MSERR_OK;
 }
 
