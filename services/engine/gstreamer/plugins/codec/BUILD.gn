@@ -16,7 +16,7 @@ import("//build/ohos.gni")
 group("codec_plugins") {
   if ("${product_name}" == "m40") {
     deps = [
-      "//foundation/multimedia/omx_adapter/omx_plugins:gst_codec_plugins_omx",
+      "//foundation/multimedia/omx_adapter/omx_plugins:gst_codec_plugin_omx",
     ]
   }
 }
