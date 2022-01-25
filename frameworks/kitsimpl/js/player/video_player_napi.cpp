@@ -493,15 +493,16 @@ void VideoPlayerNapi::CompleteAsyncWork(napi_env env, napi_status status, void *
         PlaybackRateMode speedMode = static_cast<PlaybackRateMode>(asyncContext->speedMode);
         ret = player->SetPlaybackSpeed(speedMode);
     } else {
-        asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to operate playback");
+        asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to operate playback", false);
+        MediaAsyncContext::CompleteCallback(env, status, data);
         cb->ClearAsyncWork();
-        return MediaAsyncContext::CompleteCallback(env, status, data);
+        return;
     }
 
     if (ret != MSERR_OK) {
-        asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to operate playback");
+        asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to operate playback", false);
+        MediaAsyncContext::CompleteCallback(env, status, data);
         cb->ClearAsyncWork();
-        return MediaAsyncContext::CompleteCallback(env, status, data);
     }
 }
 

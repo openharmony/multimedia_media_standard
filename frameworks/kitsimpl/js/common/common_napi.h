@@ -205,7 +205,7 @@ struct MediaAsyncContext {
     explicit MediaAsyncContext(napi_env env) : env(env) {}
     virtual ~MediaAsyncContext() = default;
     static void CompleteCallback(napi_env env, napi_status status, void *data);
-    void SignError(int32_t code, std::string message);
+    void SignError(int32_t code, std::string message, bool del = true);
     napi_env env;
     napi_async_work work = nullptr;
     napi_deferred deferred = nullptr;
@@ -214,6 +214,7 @@ struct MediaAsyncContext {
     bool errFlag = false;
     int32_t errCode = 0;
     std::string errMessage = "";
+    bool delFlag = true;
 };
 
 struct AutoRef {
