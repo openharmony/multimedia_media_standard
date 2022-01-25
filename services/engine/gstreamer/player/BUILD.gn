@@ -76,7 +76,7 @@ ohos_static_library("media_engine_gst_player") {
   deps = [
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//foundation/graphic/standard/frameworks/surface:surface",
-    "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiomanager:audio_client",
+    "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiomanager:audio_client",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gobject",
