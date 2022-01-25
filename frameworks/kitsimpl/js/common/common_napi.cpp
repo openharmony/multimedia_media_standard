@@ -433,7 +433,7 @@ void MediaAsyncContext::CompleteCallback(napi_env env, napi_status status, void 
     }
     napi_delete_async_work(env, asyncContext->work);
 
-    if (delFlag) {
+    if (asyncContext->delFlag) {
         delete asyncContext;
         asyncContext = nullptr;
     }
