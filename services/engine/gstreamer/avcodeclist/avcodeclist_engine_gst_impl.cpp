@@ -193,6 +193,10 @@ std::vector<CapabilityData> AVCodecListEngineGstImpl::GetCodecCapabilityInfos()
         if (!ret) {
             MEDIA_LOGD("ParseCodecXml failed");
         }
+        ret = codecAbilityInstance.ParseHardwareCapability();
+        if (!ret) {
+            MEDIA_LOGD("ParseHardwareCapability failed");
+        }
     }
     return codecAbilityInstance.capabilityDataArray_;
 }

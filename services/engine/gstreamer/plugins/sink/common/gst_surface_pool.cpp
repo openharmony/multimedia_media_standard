@@ -26,6 +26,8 @@ namespace {
     const std::unordered_map<GstVideoFormat, PixelFormat> FORMAT_MAPPING = {
         { GST_VIDEO_FORMAT_RGBA, PIXEL_FMT_RGBA_8888 },
         { GST_VIDEO_FORMAT_NV21, PIXEL_FMT_YCRCB_420_SP },
+        { GST_VIDEO_FORMAT_NV12, PIXEL_FMT_YCBCR_420_SP },
+        { GST_VIDEO_FORMAT_I420, PIXEL_FMT_YCBCR_420_P },
     };
 }
 
@@ -315,6 +317,9 @@ static GstFlowReturn do_alloc_memory_locked(GstSurfacePool *spool,
             GST_VIDEO_INFO_HEIGHT(info), spool->format, spool->usage);
     }
 
+    if (*memory == nullptr) {
+        return GST_FLOW_EOS;
+    }
     return GST_FLOW_OK;
 }
 
@@ -329,7 +334,10 @@ static GstFlowReturn gst_surface_pool_alloc_buffer(GstBufferPool *pool,
 
     GstSurfaceMemory *memory = nullptr;
     GstFlowReturn ret = do_alloc_memory_locked(spool, params, &memory);
-    g_return_val_if_fail(memory != nullptr, ret);
+    if (memory == nullptr) {
+        GST_DEBUG_OBJECT(spool, "allocator mem fail");
+        return ret;
+    }
 
     *buffer = gst_buffer_new();
     if (*buffer == nullptr) {
