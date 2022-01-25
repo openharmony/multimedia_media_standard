@@ -20,6 +20,7 @@
 #include "avmetadatahelper_demo.h"
 #include "avcodeclist_demo.h"
 #include "avcodec_venc_demo.h"
+#include "avcodec_vdec_demo.h"
 
 using namespace OHOS;
 using namespace OHOS::Media;
@@ -86,6 +87,18 @@ static int RunVideoEncoder()
     return 0;
 }
 
+static int RunVideoDecoder()
+{
+    auto vdec = std::make_unique<VDecDemo>();
+    if (vdec == nullptr) {
+        cout << "videodecoder is null" << endl;
+        return 0;
+    }
+    vdec->RunCase();
+    cout << "demo videodecoder end" << endl;
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     constexpr int minRequiredArgCount = 2;
@@ -99,6 +112,7 @@ int main(int argc, char *argv[])
     cout << "2:avmetadatahelper" << endl;
     cout << "3:codeclist" << endl;
     cout << "4:videoencoder" << endl;
+    cout << "5:videodecoder" << endl;
     string mode;
     (void)getline(cin, mode);
     if (mode == "" || mode == "0") {
@@ -111,6 +125,8 @@ int main(int argc, char *argv[])
         (void)RunCodecList(path);
     } else if (mode == "4") {
         (void)RunVideoEncoder();
+    } else if (mode == "5") {
+        (void)RunVideoDecoder();
     } else {
         cout << "no that selection" << endl;
     }
