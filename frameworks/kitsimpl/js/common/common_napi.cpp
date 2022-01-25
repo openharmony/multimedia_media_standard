@@ -376,11 +376,12 @@ napi_status MediaJsResultArray::GetJsResult(napi_env env, napi_value &result)
     return napi_ok;
 }
 
-void MediaAsyncContext::SignError(int32_t code, std::string message)
+void MediaAsyncContext::SignError(int32_t code, std::string message, bool del)
 {
     errMessage = message;
     errCode = code;
     errFlag = true;
+    delFlag = del;
     MEDIA_LOGE("SignError: %{public}s", message.c_str());
 }
 
@@ -431,8 +432,11 @@ void MediaAsyncContext::CompleteCallback(napi_env env, napi_status status, void 
         napi_delete_reference(env, asyncContext->callbackRef);
     }
     napi_delete_async_work(env, asyncContext->work);
-    delete asyncContext;
-    asyncContext = nullptr;
+
+    if (asyncContext->delFlag) {
+        delete asyncContext;
+        asyncContext = nullptr;
+    }
 }
 }
 }
