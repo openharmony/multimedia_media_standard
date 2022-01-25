@@ -25,7 +25,7 @@ using namespace OHOS::Media;
 GST_DEBUG_CATEGORY_STATIC(gst_vdec_base_debug_category);
 #define GST_CAT_DEFAULT gst_vdec_base_debug_category
 #define gst_vdec_base_parent_class parent_class
-#define GST_VDEC_BASE_SUPPORTED_FORMATS "{ NV21, NV12 }"
+#define GST_VDEC_BASE_SUPPORTED_FORMATS "{ NV12, NV21 }"
 
 static void gst_vdec_base_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void gst_vdec_base_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
@@ -120,6 +120,7 @@ static void gst_vdec_base_init(GstVdecBase *self)
     self->draining = FALSE;
     self->flushing = FALSE;
     self->prepared = FALSE;
+    self->first_frame = TRUE;
     self->width = 0;
     self->height = 0;
     self->frame_rate = 0;
@@ -152,6 +153,10 @@ static void gst_vdec_base_finalize(GObject *object)
     if (self->inpool) {
         gst_object_unref(self->inpool);
         self->inpool = nullptr;
+    }
+    if (self->outpool) {
+        gst_object_unref(self->outpool);
+        self->outpool = nullptr;
     }
     G_OBJECT_CLASS(parent_class)->finalize(object);
 }
@@ -235,6 +240,7 @@ static gboolean gst_vdec_base_stop(GstVideoDecoder *decoder)
         self->inpool = nullptr;
     }
     self->prepared = FALSE;
+    self->first_frame = TRUE;
     GST_DEBUG_OBJECT(self, "Stop decoder end");
 
     return TRUE;
@@ -588,9 +594,52 @@ static GstFlowReturn push_output_buffer(GstVdecBase *self, GstBuffer *buffer)
     GstVideoCodecFrame *frame = gst_vdec_base_new_frame();
     g_return_val_if_fail(frame != nullptr, GST_FLOW_ERROR);
 
+    if (self->first_frame) {
+        GstMessage *msg_resolution_changed = nullptr;
+        msg_resolution_changed = gst_message_new_resolution_changed(GST_OBJECT(self),
+            self->width, self->height);
+        if (msg_resolution_changed) {
+            gst_element_post_message(GST_ELEMENT(self), msg_resolution_changed);
+        }
+        self->first_frame = FALSE;
+    }
+
     frame->output_buffer = buffer;
     GstFlowReturn flow_ret = gst_video_decoder_finish_frame(GST_VIDEO_DECODER(self), frame);
     return flow_ret;
+}
+
+static gboolean gst_vdec_check_out_format_change(GstVdecBase *self)
+{
+    gboolean is_format_change = FALSE;
+    is_format_change = is_format_change || self->width != self->output.width;
+    is_format_change = is_format_change || self->height != self->output.height;
+
+    if (is_format_change) {
+        self->width = self->output.width;
+        self->height = self->output.height;
+    }
+    return is_format_change;
+}
+
+static gboolean gst_vdec_check_out_buffer_cnt(GstVdecBase *self)
+{
+    gboolean is_buffer_cnt_change = self->out_buffer_cnt != self->output.buffer_cnt;
+    self->out_buffer_cnt = self->output.buffer_cnt;
+    return is_buffer_cnt_change;
+}
+
+static gboolean update_outpool_max_buf_cnt(GstVdecBase *self)
+{
+    GstCaps *caps = nullptr;
+    guint size = 0;
+    guint min_buffers = 0;
+    guint max_buffers = 0;
+    GstStructure *config = gst_buffer_pool_get_config(self->outpool);
+    g_return_val_if_fail(config != nullptr, FALSE);
+    g_return_val_if_fail(gst_buffer_pool_config_get_params(config, &caps, &size, &min_buffers, &max_buffers), FALSE);
+    gst_buffer_pool_config_set_params(config, caps, size, self->out_buffer_cnt, self->out_buffer_cnt);
+    return TRUE;
 }
 
 static GstFlowReturn gst_vdec_base_format_change(GstVdecBase *self)
@@ -598,6 +647,16 @@ static GstFlowReturn gst_vdec_base_format_change(GstVdecBase *self)
     GST_DEBUG_OBJECT(self, "Format change");
     g_return_val_if_fail(self != nullptr, GST_FLOW_ERROR);
     g_return_val_if_fail(self->decoder != nullptr, GST_FLOW_ERROR);
+    gboolean format_change = gst_vdec_check_out_format_change(self);
+    gboolean buffer_cnt_change = gst_vdec_check_out_buffer_cnt(self);
+    if (format_change && self->first_frame == FALSE) {
+        GstMessage *msg_resolution_changed = nullptr;
+        msg_resolution_changed = gst_message_new_resolution_changed(GST_OBJECT(self),
+            self->width, self->height);
+        if (msg_resolution_changed) {
+            gst_element_post_message(GST_ELEMENT(self), msg_resolution_changed);
+        }
+    }
     gint ret = self->decoder->ActiveBufferMgr(GST_CODEC_OUTPUT, false);
     g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "ActiveBufferMgr", TRUE), GST_FLOW_ERROR);
     ret = self->decoder->FreeOutputBuffers();
@@ -606,8 +665,12 @@ static GstFlowReturn gst_vdec_base_format_change(GstVdecBase *self)
     self->width = self->output.width;
     self->height = self->output.height;
     g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "GetParameter", TRUE), GST_FLOW_ERROR);
-    g_return_val_if_fail(gst_vdec_base_set_outstate(self), GST_FLOW_ERROR);
-    g_return_val_if_fail(gst_video_decoder_negotiate(GST_VIDEO_DECODER(self)), GST_FLOW_ERROR);
+    if (format_change) {
+        g_return_val_if_fail(gst_vdec_base_set_outstate(self), GST_FLOW_ERROR);
+        g_return_val_if_fail(gst_video_decoder_negotiate(GST_VIDEO_DECODER(self)), GST_FLOW_ERROR);
+    } else if (buffer_cnt_change) {
+        g_return_val_if_fail(update_outpool_max_buf_cnt(self), GST_FLOW_ERROR);
+    }
     g_return_val_if_fail(gst_vdec_base_allocate_out_buffers(self), GST_FLOW_ERROR);
     ret = self->decoder->ActiveBufferMgr(GST_CODEC_OUTPUT, true);
     self->decoder->Start();
@@ -930,6 +993,7 @@ static gboolean gst_vdec_base_decide_allocation(GstVideoDecoder *decoder, GstQue
     }
 
     g_return_val_if_fail(gst_vdec_base_update_out_port_def(self), FALSE);
+    self->out_buffer_cnt = self->output.buffer_cnt;
     if (pool == nullptr) {
         pool = gst_vdec_base_new_out_shmem_pool(self, outcaps, size, self->output.buffer_cnt, self->output.buffer_cnt);
     } else {
@@ -944,7 +1008,8 @@ static gboolean gst_vdec_base_decide_allocation(GstVideoDecoder *decoder, GstQue
     }
     GST_DEBUG_OBJECT(decoder, "Pool ref %u", (reinterpret_cast<GObject*>(pool)->ref_count));
     if (pool) {
-        gst_object_unref(pool);
+        gst_object_unref(self->outpool);
+        self->outpool = pool;
     }
 
     return TRUE;
