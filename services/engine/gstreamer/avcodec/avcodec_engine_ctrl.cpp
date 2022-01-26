@@ -143,11 +143,7 @@ int32_t AVCodecEngineCtrl::Stop()
         gstPipeCond_.wait(lock);
     }
 
-    CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
-    CHECK_AND_RETURN_RET(src_->Flush() == MSERR_OK, MSERR_UNKNOWN);
-
-    CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);
-    CHECK_AND_RETURN_RET(sink_->Flush() == MSERR_OK, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(Flush() == MSERR_OK, MSERR_UNKNOWN);
 
     MEDIA_LOGD("Stop success");
     isStart_ = false;
