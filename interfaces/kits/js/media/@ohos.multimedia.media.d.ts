@@ -3086,7 +3086,7 @@ declare namespace media {
      * @since 8
      * @SysCap SystemCapability.Multimedia.Media
      * @param callback Callback used to return wether the width and height is supported.
-     *  true:support, false: not support.
+     * true:support, false: not support.
      */
     isSizeSupported(width: number, height: number, callback: AsyncCallback<boolean>);
 
@@ -3096,7 +3096,7 @@ declare namespace media {
      * @since 8
      * @SysCap SystemCapability.Multimedia.Media
      * @return A Promise instance used to return wether the width and height is supported.
-     *  true:support, false: not support.
+     * true:support, false: not support.
      */
     isSizeSupported(width: number, height: number): Promise<boolean>;
 
@@ -3340,7 +3340,7 @@ declare namespace media {
      * @param surfaceId surface id, video decoder will use this id get a surface instance.
      * @param isDisplay true if the surface is used to display.
      * false if the surface is used as a bufferqueue and not to display.
-     *@param callback Callback used to return when release output buffer completed.
+     * @param callback Callback used to return when release output buffer completed.
      */
     setOutputSurface(surfaceId: string, isDisplay: boolean, callback: AsyncCallback<void>): void;
 
@@ -3371,7 +3371,7 @@ declare namespace media {
      * @devices phone, tablet, tv, wearable, car
      * @since 8
      * @SysCap SystemCapability.Multimedia.Media
-     * @param desc  parameter Description, see @MediaDescription .
+     * @param desc parameter Description, see @MediaDescription .
      * @return A Promise instance used to return when set completed.
      */
     setParameter(desc: MediaDescription): Promise<void>;
@@ -3391,7 +3391,7 @@ declare namespace media {
      * @devices phone, tablet, tv, wearable, car
      * @since 8
      * @SysCap SystemCapability.Multimedia.Media
-     * @param desc  parameter Description, see @MediaDescription .
+     * @param desc parameter Description, see @MediaDescription .
      * @return A Promise instance used to return output MediaDescription.
      */
     getOutputMediaDescription(): Promise<MediaDescription>;
