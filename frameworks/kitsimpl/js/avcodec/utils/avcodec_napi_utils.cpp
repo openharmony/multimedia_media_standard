@@ -15,6 +15,7 @@
 
 #include "avcodec_napi_utils.h"
 #include <map>
+#include <math.h>
 #include "common_napi.h"
 #include "media_log.h"
 #include "media_errors.h"
@@ -30,7 +31,7 @@ namespace {
         {"width", OHOS::Media::FORMAT_TYPE_INT32},
         {"height", OHOS::Media::FORMAT_TYPE_INT32},
         {"pixel_format", OHOS::Media::FORMAT_TYPE_INT32},
-        {"frame_rate", OHOS::Media::FORMAT_TYPE_INT32},
+        {"frame_rate", OHOS::Media::FORMAT_TYPE_DOUBLE},
         {"capture_rate", OHOS::Media::FORMAT_TYPE_INT32},
         {"i_frame_interval", OHOS::Media::FORMAT_TYPE_INT32},
         {"req_i_frame", OHOS::Media::FORMAT_TYPE_INT32},
@@ -221,6 +222,20 @@ bool AVCodecNapiUtil::ExtractMediaFormat(napi_env env, napi_value mediaFormat, F
                 int32_t result = 0;
                 (void)napi_get_value_int32(env, item, &result);
                 format.PutIntValue(it->first, result);
+            }
+        } else if (it->second == FORMAT_TYPE_DOUBLE) {
+            bool exist = false;
+            if (napi_has_named_property(env, mediaFormat, it->first.c_str(), &exist) == napi_ok && exist) {
+                napi_value item = nullptr;
+                CHECK_AND_CONTINUE(napi_get_named_property(env, mediaFormat, it->first.c_str(), &item) == napi_ok);
+                double result = 0;
+                (void)napi_get_value_double(env, item, &result);
+                if (it->first == "frame_rate") {
+                    double frameRate = round(result);
+                    format.PutIntValue(it->first, static_cast<int32_t>(frameRate));
+                } else {
+                    format.PutDoubleValue(it->first, result);
+                }
             }
         }
     }
