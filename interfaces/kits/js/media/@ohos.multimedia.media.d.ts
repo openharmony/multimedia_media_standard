@@ -698,16 +698,9 @@ declare namespace media {
     MD_KEY_AUDIO_RAW_FORMAT = "audio_raw_format",
 
     /**
-     * key for video framerate, value type is number,The value is 100 times the actual frame rate.
-     * example: The real frame rate is 23.99, so this value is 2399.
+     * key for video framerate, value type is number.
      */
     MD_KEY_FRAME_RATE = "frame_rate",
-
-    /**
-     * key for video framerate, value type is number,The value is 100 times the actual frame rate.
-     * example: The real frame rate is 23.99, so this value is 2399.
-     */
-    MD_KEY_CAPTURE_RATE = "capture_rate",
 
     /**
      * video encode bitrate mode, the value type is number, see @VideoEncodeBitrateMode .
