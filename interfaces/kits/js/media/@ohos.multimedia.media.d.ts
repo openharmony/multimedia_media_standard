@@ -583,13 +583,7 @@ declare namespace media {
    */
   enum AVCProfile {
     AVC_PROFILE_BASELINE = 0,
-    AVC_PROFILE_CONSTRAINED_BASELINE = 1,
-    AVC_PROFILE_CONSTRAINED_HIGH = 2,
-    AVC_PROFILE_EXTENDED = 3,
     AVC_PROFILE_HIGH = 4,
-    AVC_PROFILE_HIGH_10 = 5,
-    AVC_PROFILE_HIGH_422 = 6,
-    AVC_PROFILE_HIGH_444 = 7,
     AVC_PROFILE_MAIN = 8,
   }
 
@@ -601,12 +595,8 @@ declare namespace media {
    * @devices phone, tablet, tv, wearable, car
    */
   enum MPEG2Profile {
-    MPEG2_PROFILE_422 = 0,
-    MPEG2_PROFILE_HIGH = 1,
     MPEG2_PROFILE_MAIN = 2,
-    MPEG2_PROFILE_SNR = 3,
     MPEG2_PROFILE_SIMPLE = 4,
-    MPEG2_PROFILE_SPATIAL = 5,
   }
 
   /**
@@ -617,22 +607,8 @@ declare namespace media {
    * @devices phone, tablet, tv, wearable, car
    */
   enum MPEG4Profile {
-    MPEG4_PROFILE_ADVANCED_CODING = 0,
-    MPEG4_PROFILE_ADVANCED_CORE = 1,
-    MPEG4_PROFILE_ADVANCED_REAL_TIME = 2,
-    MPEG4_PROFILE_ADVANCED_SCALABLE = 3,
     MPEG4_PROFILE_ADVANCED_SIMPLE = 4,
-    MPEG4_PROFILE_BASIC_ANIMATED = 5,
-    MPEG4_PROFILE_CORE = 6,
-    MPEG4_PROFILE_CORE_SCALABLE = 7,
-    MPEG4_PROFILE_HYBRID = 8,
-    MPEG4_PROFILE_MAIN = 9,
-    MPEG4_PROFILE_NBIT = 10,
-    MPEG4_PROFILE_SCALABLE_TEXXTURE = 11,
     MPEG4_PROFILE_SIMPLE = 12,
-    MPEG4_PROFILE_SIMPLE_FBA = 13,
-    MPEG4_PROFILE_SIMPLE_FACE = 14,
-    MPEG4_PROFILE_SIMPLE_SCALABLE = 15,
   }
 
   /**
@@ -643,15 +619,9 @@ declare namespace media {
    * @devices phone, tablet, tv, wearable, car
    */
   enum H263Profile {
-    H263_PROFILE_BACKWARD_COMPATIBLE = 0,
     H263_PROFILE_BASELINE = 1,
-    H263_PROFILE_H320_CODING = 2,
     H263_PROFILE_HIGH_COMPRESSION = 3,
-    H263_PROFILE_HIGH_LATENCY = 4,
     H263_PROFILE_ISW_V2 = 5,
-    H263_PROFILE_ISW_V3 = 6,
-    H263_PROFILE_INTERLACE = 7,
-    H263_PROFILE_INTERNET = 8,
   }
 
   /**
@@ -740,16 +710,6 @@ declare namespace media {
     MD_KEY_CAPTURE_RATE = "capture_rate",
 
     /**
-     * key for key frame interval. value type is number, the unit is milliseconds.
-     */
-    MD_KEY_I_FRAME_INTERVAL = "i_frame_interval",
-
-    /**
-     * key for request a I frame imediately. value type is number.
-     */
-    MD_KEY_REQUEST_I_FRAME = "req_i_frame",
-
-    /**
      * video encode bitrate mode, the value type is number, see @VideoEncodeBitrateMode .
      */
     MD_KEY_VIDEO_ENCODE_BITRATE_MODE = "video_encode_bitrate_mode",
@@ -758,11 +718,6 @@ declare namespace media {
      * encode profile, the value type is number. see the codec's profile definition.
      */
     MD_KEY_PROFILE = "codec_profile",
-
-    /**
-     * encode quality, the value type is number.
-     */
-    MD_KEY_QUALITY = "codec_quality",
 
     /**
      * key for audio channel count, value type is number
@@ -2365,22 +2320,6 @@ declare namespace media {
      * @SysCap SystemCapability.Multimedia.Media
      */
     readonly supportedProfiles: Array<number>;
-
-    /**
-     * supported codec level array.
-     * @devices phone, tablet, tv, wearable, car
-     * @since 8
-     * @SysCap SystemCapability.Multimedia.Media
-     */
-    readonly supportedLevels: Array<number>;
-
-    /**
-     * supported encode complexity range.
-     * @devices phone, tablet, tv, wearable, car
-     * @since 8
-     * @SysCap SystemCapability.Multimedia.Media
-     */
-    readonly supportedComplexity: Range;
   }
 
   interface CodecError extends Error {
@@ -3000,11 +2939,6 @@ declare namespace media {
      * NV21. yvu 420 semiplanar.
      */
     NV21 = 3,
-
-    /**
-     * format from surface.
-     */
-    SURFACE_FORMAT = 4,
   }
 
   interface VideoCaps {
@@ -3073,14 +3007,6 @@ declare namespace media {
     readonly supportedProfiles: Array<number>;
 
     /**
-     * supported codec level array, empty if there is no level for the codec.
-     * @devices phone, tablet, tv, wearable, car
-     * @since 8
-     * @SysCap SystemCapability.Multimedia.Media
-     */
-    readonly supportedLevels: Array<number>;
-
-    /**
      * check width and height is supported
      * @devices phone, tablet, tv, wearable, car
      * @since 8
@@ -3143,22 +3069,6 @@ declare namespace media {
      * @SysCap SystemCapability.Multimedia.Media
      */
     readonly supportedBitrateMode: Array<number>;
-
-    /**
-     * supported encode quality range.
-     * @devices phone, tablet, tv, wearable, car
-     * @since 8
-     * @SysCap SystemCapability.Multimedia.Media
-     */
-    readonly supportedQuality: Range;
-
-    /**
-     * supported encode complexity range.
-     * @devices phone, tablet, tv, wearable, car
-     * @since 8
-     * @SysCap SystemCapability.Multimedia.Media
-     */
-    readonly supportedComplexity: Range;
   }
 
   interface VideoDecodeProcessor {
