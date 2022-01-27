@@ -29,6 +29,7 @@ struct _GstConsumerSurfaceMemory {
     gint64 timestamp;
     gint32 is_key_frame;
     OHOS::Rect damage;
+    gboolean is_eos_frame;
 };
 
 gboolean gst_is_consumer_surface_memory(GstMemory *mem);

@@ -19,6 +19,7 @@
 #include <gst/video/video.h>
 #include "media_errors.h"
 #include "surface_buffer.h"
+#include "buffer_type_meta.h"
 #include "scope_guard.h"
 #include "display_type.h"
 
@@ -135,7 +136,10 @@ static GstFlowReturn gst_surface_pool_src_fill(GstBaseSrc *src, guint64 offset, 
     (void)src;
     (void)offset;
     (void)size;
-    (void)buf;
+    GstBufferTypeMeta *meta = gst_buffer_get_buffer_type_meta(buf);
+    if (meta != nullptr && (meta->bufferFlag & BUFFER_FLAG_EOS)) {
+        return GST_FLOW_EOS;
+    }
     return GST_FLOW_OK;
 }
 
