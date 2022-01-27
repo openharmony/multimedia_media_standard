@@ -113,8 +113,8 @@ static const std::vector<struct JsEnumInt> g_frameFlags = {
 };
 
 static const std::vector<struct JsEnumInt> g_seekMode = {
-    { "SEEK_NEXT_SYNC", PlayerSeekMode::SEEK_PREVIOUS_SYNC },
-    { "SEEK_PREV_SYNC", PlayerSeekMode::SEEK_NEXT_SYNC },
+    { "SEEK_NEXT_SYNC", PlayerSeekMode::SEEK_NEXT_SYNC },
+    { "SEEK_PREV_SYNC", PlayerSeekMode::SEEK_PREVIOUS_SYNC },
     { "SEEK_CLOSEST_SYNC", PlayerSeekMode::SEEK_CLOSEST_SYNC },
     { "SEEK_CLOSEST", PlayerSeekMode::SEEK_CLOSEST },
 };
