@@ -342,6 +342,9 @@ int32_t RecorderServer::Pause()
 int32_t RecorderServer::Resume()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    if (status_ == REC_RECORDING) {
+        return MSERR_OK;
+    }    
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_RECORDING && status_ != REC_PAUSED, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = recorderEngine_->Resume();
