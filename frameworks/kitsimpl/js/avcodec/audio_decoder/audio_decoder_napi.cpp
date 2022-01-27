@@ -551,8 +551,8 @@ napi_value AudioDecoderNapi::ReleaseOutput(napi_env env, napi_callback_info info
     if (asyncCtx->index < 0 || asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
         asyncCtx->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "nullptr");
     } else {
-        if (asyncCtx->napi->adec_->QueueInputBuffer(asyncCtx->index, asyncCtx->info, asyncCtx->flag) != MSERR_OK) {
-            asyncCtx->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "Failed to QueueInput");
+        if (asyncCtx->napi->adec_->ReleaseOutputBuffer(asyncCtx->index) != MSERR_OK) {
+            asyncCtx->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "Failed to ReleaseOutput");
         }
     }
 
