@@ -192,6 +192,106 @@ declare namespace media {
    */
   function createAudioEncoderByMime(codecMime: string): Promise<AudioEncodeProcessor>;
 
+  /**
+   * Creates a video decoder instance by name.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @param name decoder name.
+   * @param callback Callback used to return VideoDecodeProcessor instance if the operation is successful; returns null otherwise.
+   */
+  function createVideoDecoderByName(name: string, callback: AsyncCallback<VideoDecodeProcessor>): void;
+
+  /**
+   * Creates a video decoder instance by name.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @param name decoder name.
+   * @return A Promise instance used to return VideoDecodeProcessor instance if the operation is successful; returns null otherwise.
+   */
+  function createVideoDecoderByName(name: string): Promise<VideoDecodeProcessor>;
+
+  /**
+   * Creates a video decoder instance by codec MIME.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @param codecMime codec MIME, see @CodecMimeType .
+   * @param callback Callback used to return VideoDecodeProcessor instance if the operation is successful; returns null otherwise.
+   */
+  function createVideoDecoderByMime(codecMime: string, callback: AsyncCallback<VideoDecodeProcessor>):void;
+
+  /**
+   * Creates a video decoder instance by codec MIME.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @param codecMime codec MIME, see @CodecMimeType .
+   * @return A Promise instance used to return VideoDecodeProcessor instance if the operation is successful; returns null otherwise.
+   */
+  function createVideoDecoderByMime(codecMime: string): Promise<VideoDecodeProcessor>;
+
+  /**
+   * Creates a video encoder instance by name.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @param name encoder name.
+   * @param callback Callback used to return VideoEncodeProcessor instance if the operation is successful; returns null otherwise.
+   */
+  function createVideoEncoderByName(name: string, callback: AsyncCallback<VideoEncodeProcessor>): void;
+
+  /**
+   * Creates a video encoder instance by name.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @param name encoder name.
+   * @return A Promise instance used to return VideoEncodeProcessor instance if the operation is successful; returns null otherwise.
+   */
+  function createVideoEncoderByName(name: string): Promise<VideoEncodeProcessor>;
+
+  /**
+   * Creates a video encoder instance by codec MIME.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @param codecMime codec MIME, see @CodecMimeType .
+   * @param callback Callback used to return VideoEncodeProcessor instance if the operation is successful; returns null otherwise.
+   */
+  function createVideoEncoderByMime(codecMime: string, callback: AsyncCallback<VideoEncodeProcessor>): void;
+
+  /**
+   * Creates a video encoder instance by codec MIME.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @param codecMime codec MIME, see @CodecMimeType .
+   * @return A Promise instance used to return VideoEncodeProcessor instance if the operation is successful; returns null otherwise.
+   */
+  function createVideoEncoderByMime(codecMime: string): Promise<VideoEncodeProcessor>;
+
+  /**
+   * obtain an getMediaCapability instance. app can use this instance to query media capabilities.
+   * suche as the supported container formats, video codeces, audio codecs and others.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @param callback Callback used to return MediaCapability instance if the operation is successful; returns null otherwise.
+   */
+   function getMediaCapability(callback: AsyncCallback<MediaCapability>): void;
+
+  /**
+   * obtain an getMediaCapability instance. app can use this instance to query media capabilities.
+   * such as the supported container formats, video codeces, audio codecs and others.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @return A Promise instance used to return an MediaCapability instance if the operation is successful; returns null otherwise.
+   */
+  function getMediaCapability(): Promise<MediaCapability>;
+
   enum MediaErrorCode {
     /**
      * operation success.
@@ -474,6 +574,78 @@ declare namespace media {
     AAC_PROFILE_MAIN = 6,
   }
 
+  /**
+   * Enumerates h.264 profile.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @devices phone, tablet, tv, wearable, car
+   */
+  enum AVCProfile {
+    AVC_PROFILE_BASELINE = 0,
+    AVC_PROFILE_HIGH = 4,
+    AVC_PROFILE_MAIN = 8,
+  }
+
+  /**
+   * Enumerates mpeg2 profile.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @devices phone, tablet, tv, wearable, car
+   */
+  enum MPEG2Profile {
+    MPEG2_PROFILE_MAIN = 2,
+    MPEG2_PROFILE_SIMPLE = 4,
+  }
+
+  /**
+   * Enumerates mpeg4 profile.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @devices phone, tablet, tv, wearable, car
+   */
+  enum MPEG4Profile {
+    MPEG4_PROFILE_ADVANCED_SIMPLE = 4,
+    MPEG4_PROFILE_SIMPLE = 12,
+  }
+
+  /**
+   * Enumerates h.263 profile.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @devices phone, tablet, tv, wearable, car
+   */
+  enum H263Profile {
+    H263_PROFILE_BASELINE = 1,
+    H263_PROFILE_HIGH_COMPRESSION = 3,
+    H263_PROFILE_ISW_V2 = 5,
+  }
+
+  /**
+   * Enumerates video encode bit rate mode.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @devices phone, tablet, tv, wearable, car
+   */
+  enum VideoEncodeBitrateMode {
+    /**
+     * constant bit rate mode.
+    */
+    CBR = 0,
+    /**
+     * variable bit rate mode.
+    */
+    VBR = 1,
+    /**
+     * constant quality mode.
+    */
+    CQ = 2,
+  }
+
   enum MediaDescriptionKey {
     /**
      * key for track index, value type is number.
@@ -526,10 +698,14 @@ declare namespace media {
     MD_KEY_AUDIO_RAW_FORMAT = "audio_raw_format",
 
     /**
-     * key for video framerate, value type is number,The value is 100 times the actual frame rate.
-     * example: The real frame rate is 23.99, so this value is 2399.
+     * key for video framerate, value type is number.
      */
     MD_KEY_FRAME_RATE = "frame_rate",
+
+    /**
+     * video encode bitrate mode, the value type is number, see @VideoEncodeBitrateMode .
+     */
+    MD_KEY_VIDEO_ENCODE_BITRATE_MODE = "video_encode_bitrate_mode",
 
     /**
      * encode profile, the value type is number. see the codec's profile definition.
@@ -545,6 +721,160 @@ declare namespace media {
      * key for audio sample rate, value type is number
      */
     MD_KEY_AUD_SAMPLE_RATE = "sample_rate",
+  }
+
+  interface MediaCapability {
+    /**
+     * get the supported video decoder capabilities.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback Callback used to return an array of supported video decoder capability.
+     */
+    getVideoDecoderCaps(callback: AsyncCallback<Array<VideoCaps>>): void;
+
+    /**
+     * get the supported video decoder capabilities.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return an array of supported video decoder capability.
+     */
+    getVideoDecoderCaps(): Promise<Array<VideoCaps>>;
+
+    /**
+     * find the supported video decoder name by MediaDescription(usually contains video decoder MIME).
+     * app can use this name to create video decoder.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback Callback used to return video decoder name, if not find, return empty string.
+     */
+    findVideoDecoder(desc: MediaDescription, callback: AsyncCallback<string>): void;
+
+    /**
+     * find the supported video decoder name by MediaDescription(usually contains video decoder MIME).
+     * app can use this name to create video decoder.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return video decoder name, if not find, return empty string.
+     */
+    findVideoDecoder(desc: MediaDescription): Promise<string>;
+
+    /**
+     * get the supported video encoder capabilities.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback Callback used to return an array of supported video encoder capability.
+     */
+    getVideoEncoderCaps(callback: AsyncCallback<Array<VideoCaps>>): void;
+
+     /**
+      * get the supported video encoder capabilities.
+      * @devices phone, tablet, tv, wearable, car
+      * @since 8
+      * @SysCap SystemCapability.Multimedia.Media
+      * @return A Promise instance used to return an array of supported video encoder capability.
+      */
+    getVideoEncoderCaps(): Promise<Array<VideoCaps>>;
+
+    /**
+     * find the supported video encoder name by MediaDescription(usually contains video encoder MIME).
+     * app can use this name to create video encoder.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback Callback used to return video decoder name, if not find, return empty string.
+     */
+    findVideoEncoder(desc: MediaDescription, callback: AsyncCallback<string>): void;
+
+    /**
+     * find the supported video encoder name by MediaDescription(usually contains video encoder MIME).
+     * app can use this name to create video encoder.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return video encoder name, if not find, return empty string.
+     */
+    findVideoEncoder(desc: MediaDescription): Promise<string>;
+
+    /**
+     * get the supported audio decoder capabilities.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback Callback used to return an array of supported audio decoder capability.
+     */
+    getAudioDecoderCaps(callback: AsyncCallback<Array<AudioCaps>>): void;
+
+    /**
+     * get the supported audio decoder capabilities.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return an array of supported audio decoder capability.
+     */
+    getAudioDecoderCaps(): Promise<Array<AudioCaps>>;
+
+    /**
+     * find the supported audio decoder name by MediaDescription(usually contains audio decoder MIME).
+     * app can use this name to create audio decoder.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback Callback used to return audio decoder name, if not find, return empty string.
+     */
+    findAudioDecoder(desc: MediaDescription, callback: AsyncCallback<string>): void;
+
+    /**
+     * find the supported audio decoder name by MediaDescription(usually contains audio decoder MIME).
+     * app can use this name to create audio decoder.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return audio decoder name, if not find, return empty string.
+     */
+    findAudioDecoder(desc: MediaDescription): Promise<string>;
+
+    /**
+     * get the supported audio encoder capabilities.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback Callback used to return an array of supported audio encoder capability.
+     */
+    getAudioEncoderCaps(callback: AsyncCallback<Array<AudioCaps>>): void;
+
+     /**
+      * get the supported audio encoder capabilities.
+      * @devices phone, tablet, tv, wearable, car
+      * @since 8
+      * @SysCap SystemCapability.Multimedia.Media
+      * @return A Promise instance used to return an array of supported audio encoder capability.
+      */
+    getAudioEncoderCaps(): Promise<Array<AudioCaps>>;
+
+    /**
+     * find the supported audio encoder name by MediaDescription(usually contains audio encoder MIME).
+     * app can use this name to create audio encoder.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback Callback used to return audio encoder name, if not find, return empty string.
+     */
+    findAudioEncoder(desc: MediaDescription, callback: AsyncCallback<string>): void;
+
+    /**
+     * find the supported audio encoder name by MediaDescription(usually contains audio encoder MIME).
+     * app can use this name to create audio encoder.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return audio encoder name, if not find, return empty string.
+     */
+    findAudioEncoder(desc: MediaDescription): Promise<string>;
   }
 
   /* operation is not supported in current version. */
@@ -732,7 +1062,7 @@ declare namespace media {
    * Describes audio playback states.
    */
   type AudioState = 'idle' | 'playing' | 'paused' | 'stopped' | 'error';
-  
+
 
   /**
    * Manages and plays audio. Before calling an AudioPlayer method, you must use createAudioPlayer()
@@ -796,7 +1126,7 @@ declare namespace media {
      * @SysCap SystemCapability.Multimedia.Media
      */
     release(): void;
-  
+
     /**
     * get all track infos in MediaDescription, should be called after dataloaded callback.
     * @devices phone, tablet, tv, wearable, car
@@ -815,7 +1145,7 @@ declare namespace media {
     * @return A Promise instance used to return the trackinfo in MediaDescription.
     */
     getTrackDescription() : Promise<Array<MediaDescription>>;
-  
+
     /**
      * Listens for audio playback buffering events.
      * @devices phone, tablet, tv, wearable
@@ -825,7 +1155,7 @@ declare namespace media {
      * @param callback Callback used to listen for the buffering update event, return BufferingInfoType and the value.
      */
     on(type: 'bufferingUpdate', callback: (infoType: BufferingInfoType, value: number) => void): void;
-  
+
     /**
      * Audio media URI. Mainstream audio formats are supported.
      * @devices phone, tablet, tv, wearable
@@ -1454,22 +1784,22 @@ declare namespace media {
      * playback at 0.75x normal speed
      */
     SPEED_FORWARD_0_75_X = 0,
-  
+
     /**
      * playback at normal speed
      */
     SPEED_FORWARD_1_00_X = 1,
-    
+
     /**
      * playback at 1.25x normal speed
      */
     SPEED_FORWARD_1_25_X = 2,
-    
+
     /**
      * playback at 1.75x normal speed
      */
     SPEED_FORWARD_1_75_X = 3,
-  
+
     /**
      * playback at 2.0x normal speed
      */
@@ -1983,22 +2313,6 @@ declare namespace media {
      * @SysCap SystemCapability.Multimedia.Media
      */
     readonly supportedProfiles: Array<number>;
-
-    /**
-     * supported codec level array.
-     * @devices phone, tablet, tv, wearable, car
-     * @since 8
-     * @SysCap SystemCapability.Multimedia.Media
-     */
-    readonly supportedLevels: Array<number>;
-
-    /**
-     * supported encode complexity range.
-     * @devices phone, tablet, tv, wearable, car
-     * @since 8
-     * @SysCap SystemCapability.Multimedia.Media
-     */
-    readonly supportedComplexity: Range;
   }
 
   interface CodecError extends Error {
@@ -2175,13 +2489,13 @@ declare namespace media {
      */
     release(callback: AsyncCallback<void>): void;
 
-     /**
-      * release audio decoder, it will release the resource.
-      * @devices phone, tablet, tv, wearable
-      * @since 8
-      * @SysCap SystemCapability.Multimedia.Media
-      * @return A Promise instance used to return when release completed.
-      */
+    /**
+     * release audio decoder, it will release the resource.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when release completed.
+     */
     release(): Promise<void>;
 
     /**
@@ -2446,13 +2760,13 @@ declare namespace media {
      */
     release(callback: AsyncCallback<void>): void;
 
-     /**
-      * release audio encoder, it will release the resource.
-      * @devices phone, tablet, tv, wearable
-      * @since 8
-      * @SysCap SystemCapability.Multimedia.Media
-      * @return A Promise instance used to return when release completed.
-      */
+    /**
+     * release audio encoder, it will release the resource.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when release completed.
+     */
     release(): Promise<void>;
 
     /**
@@ -2594,6 +2908,746 @@ declare namespace media {
       * @return A Promise instance used to return the supported audio encoder capability.
       */
     getAudioEncoderCaps(): Promise<AudioCaps>;
+  }
+
+  /**
+   * Enumerates video raw format type.
+   * @since 8
+   * @SysCap SystemCapability.Multimedia.Media
+   * @import import media from '@ohos.multimedia.media'
+   * @devices phone, tablet, tv, wearable, car
+   */
+  enum VideoPixelformat {
+    /**
+     * yuv 420 planar.
+     */
+    YUVI420 = 1,
+
+    /**
+     * NV12. yuv 420 semiplanar.
+     */
+    NV12 = 2,
+
+    /**
+     * NV21. yvu 420 semiplanar.
+     */
+    NV21 = 3,
+  }
+
+  interface VideoCaps {
+    /**
+     * codec info, see @AVCodecInfo
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    readonly codecInfo: AVCodecInfo;
+
+    /**
+     * supported bitrate range.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    readonly supportedBitrate: Range;
+
+    /**
+     * supported video raw format. @VideoPixelformat .
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    readonly supportedFormats: Array<VideoPixelformat>;
+
+    /**
+     * supported height alignment.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    readonly supportedheightAligment: number;
+
+    /**
+     * supported width alignment.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    readonly supportedwidthAligment: number;
+
+    /**
+     * supported width Range.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    readonly supportedWidth: Range;
+
+    /**
+     * supported height Range.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    readonly supportedHeight: Range;
+
+    /**
+     * supported codec profile number
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    readonly supportedProfiles: Array<number>;
+
+    /**
+     * check width and height is supported
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback Callback used to return wether the width and height is supported.
+     * true:support, false: not support.
+     */
+    isSizeSupported(width: number, height: number, callback: AsyncCallback<boolean>);
+
+    /**
+     * check width and height is supported
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return wether the width and height is supported.
+     * true:support, false: not support.
+     */
+    isSizeSupported(width: number, height: number): Promise<boolean>;
+
+    /**
+     * get supported framerate range for the specified width and height.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback Callback used to return the frame rate range.
+     */
+    getSupportedFrameRate(width: number, height: number, callback: AsyncCallback<Range>);
+
+    /**
+     * get supported framerate range for the specified width and height.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return the frame rate range.
+     */
+    getSupportedFrameRate(width: number, height: number): Promise<Range>;
+
+    /**
+     * get preferred framerate range for the specified width and height, these framerates can be reach the performance.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback Callback used to return the frame rate range.
+     */
+    getPreferredFrameRate(width: number, height: number, callback: AsyncCallback<Range>);
+
+    /**
+     * get preferred framerate range for the specified width and height, these framerates can be reach the performance.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return the frame rate range.
+     */
+    getPreferredFrameRate(width: number, height: number): Promise<Range>;
+
+    /**
+     * supported encode bitrate mode. see @VideoEncodeBitrateMode .
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     */
+    readonly supportedBitrateMode: Array<number>;
+  }
+
+  interface VideoDecodeProcessor {
+    /**
+     * configure video decoder using MediaDescription.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param desc configure Description, see @MediaDescription .
+     * @param callback A callback instance used to return when configure completed.
+     */
+    configure(desc: MediaDescription, callback: AsyncCallback<void>): void;
+
+    /**
+     * configure video decoder using MediaDescription.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param desc configure Description, see @MediaDescription .
+     * @return A Promise instance used to return when configure completed.
+     */
+    configure(desc: MediaDescription): Promise<void>;
+
+    /**
+     * prepare video decoder, it will request the resource.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when prepare completed.
+     */
+    prepare(callback: AsyncCallback<void>): void;
+
+    /**
+     * prepare video decoder, it will request the resource.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when prepare completed.
+     */
+    prepare(): Promise<void>;
+
+    /**
+     * start video decoder, after start, app can input video data.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when start completed.
+     */
+    start(callback: AsyncCallback<void>): void;
+
+    /**
+     * start video decoder, after start, app can input video data.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when start completed.
+     */
+    start(): Promise<void>;
+
+    /**
+     * stop decode.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when stop completed.
+     */
+    stop(callback: AsyncCallback<void>): void;
+
+    /**
+     * stop decode.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when stop completed.
+     */
+    stop(): Promise<void>;
+
+    /**
+     * flush video coder cached buffer.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when flush completed.
+     */
+    flush(callback: AsyncCallback<void>): void;
+
+    /**
+     * flush video coder cached buffer.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when flush completed.
+     */
+    flush(): Promise<void>;
+
+    /**
+     * reset video decoder, it will release the resource.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when reset completed.
+     */
+    reset(callback: AsyncCallback<void>): void;
+
+    /**
+     * reset video decoder, it will release the resource.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when reset completed.
+     */
+    reset(): Promise<void>;
+
+    /**
+     * release video decoder, it will release the resource.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when release completed.
+     */
+    release(callback: AsyncCallback<void>): void;
+
+    /**
+     * release video decoder, it will release the resource.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when release completed.
+     */
+    release(): Promise<void>;
+
+    /**
+     * input frame data after start.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param buffer the input video buffer.
+     * @param callback Callback used to return when input buffer completed.
+     */
+    queueInput(buffer: CodecBuffer, callback: AsyncCallback<void>): void;
+
+    /**
+     * input frame data after start.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param buffer the input video buffer.
+     * @return A Promise instance used to return when input buffer completed.
+     */
+    queueInput(buffer: CodecBuffer): Promise<void>;
+
+    /**
+     * release output buffer
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param buffer the outout video buffer.
+     * @param isRender true need render the buffer,
+     * @param callback Callback used to return when output buffer release completed.
+     */
+    releaseOutput(buffer: CodecBuffer, isRender: boolean, callback: AsyncCallback<void>): void;
+
+    /**
+     * release output buffer
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param buffer the output video buffer.
+     * @param isRender true need render the buffer,
+     * @return A Promise instance used to return when release output buffer completed.
+     */
+    releaseOutput(buffer: CodecBuffer, isRender: boolean): Promise<void>;
+
+    /**
+     * set output surface.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param surfaceId surface id, video decoder will use this id get a surface instance.
+     * @param isDisplay true if the surface is used to display.
+     * false if the surface is used as a bufferqueue and not to display.
+     * @param callback Callback used to return when release output buffer completed.
+     */
+    setOutputSurface(surfaceId: string, isDisplay: boolean, callback: AsyncCallback<void>): void;
+
+    /**
+     * set output surface.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param surfaceId surface id, video decoder will use this id get a surface instance.
+     * @param isDisplay true if the surface is used to display.
+     * false if the surface is used as a bufferqueue and not to display.
+     * @return A Promise instance used to return when release output buffer completed.
+     */
+    setOutputSurface(surfaceId: string, isDisplay: boolean): Promise<void>;
+
+    /**
+     * set parameter to video decoder.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param desc parameter Description, see @MediaDescription .
+     * @param callback Callback used to return when set completed.
+     */
+    setParameter(desc: MediaDescription, callback: AsyncCallback<void>): void;
+
+    /**
+     * set parameter to video decoder.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param desc parameter Description, see @MediaDescription .
+     * @return A Promise instance used to return when set completed.
+     */
+    setParameter(desc: MediaDescription): Promise<void>;
+
+    /**
+     * get output description to video decoder, can call after "outputAvailable".
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param desc parameter Description, see @MediaDescription .
+     * @param callback Callback used to return output MediaDescription.
+     */
+    getOutputMediaDescription(callback: AsyncCallback<MediaDescription>): void;
+
+    /**
+     * set parameter to video decoder, can call after "outputAvailable".
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param desc parameter Description, see @MediaDescription .
+     * @return A Promise instance used to return output MediaDescription.
+     */
+    getOutputMediaDescription(): Promise<MediaDescription>;
+
+    /**
+     * Listens for video decoder error events.
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the video decoder error event to listen for.
+     * @param callback Callback used to listen for the video decoder error event, errorcode see @CodecError .
+     */
+    on(type: 'error', callback: ErrorCallback<CodecError>): void;
+
+    /**
+     * Listens for video decoder outputformat changed or first frame decoded format event. the new output info will callback.
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the video decoder event to listen for.
+     * @param callback Callback used to listen for the video decoder event, new info see @MediaDescription .
+     * usualy contain the width and height.
+     */
+    on(type: 'outputFormatChanged', callback: Callback<MediaDescription>): void;
+
+    /**
+     * Listens for video decoder input buffer.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the video decoder event to listen for.
+     * @param callback Callback used to listen for the video decoder event, return the input codecbuffer.
+     * usualy contain the width and height.
+     */
+    on(type: 'inputAvailable', callback: Callback<CodecBuffer>): void;
+
+    /**
+     * Listens for video decoder output buffer.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the video decoder event to listen for.
+     * @param callback Callback used to listen for the video decoder event, return the output codecbuffer.
+     */
+    on(type: 'outputAvailable', callback: Callback<CodecBuffer>): void;
+
+    /**
+     * get the supported video decoder capabilities.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback Callback used to return the supported video decoder capability.
+     */
+    getVideoDecoderCaps(callback: AsyncCallback<VideoCaps>): void;
+
+    /**
+     * get the supported video decoder capabilities.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return the supported video decoder capability.
+     */
+    getVideoDecoderCaps(): Promise<VideoCaps>;
+  }
+
+  interface VideoEncodeProcessor {
+    /**
+     * configure video encoder using MediaDescription.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param desc configure Description, see @MediaDescription .
+     * @param callback A callback instance used to return when configure completed.
+     */
+    configure(desc: MediaDescription, callback: AsyncCallback<void>): void;
+
+    /**
+     * configure video encoder using MediaDescription.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param desc configure Description, see @MediaDescription .
+     * @return A Promise instance used to return when configure completed.
+     */
+    configure(desc: MediaDescription): Promise<void>;
+
+    /**
+     * get input surface. this API only used in surface/bufferqueue input mode.
+     * it must be called between configure and prepare.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback Callback used to return the input surface id in string.
+     */
+    getInputSurface(callback: AsyncCallback<string>): void;
+
+    /**
+     * get input surface. this API only used in surface/bufferqueue input mode.
+     * it must be called between configure and prepare.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return the input surface id in string.
+     */
+    getInputSurface(): Promise<string>;
+
+    /**
+     * prepare video encoder, it will request the resource.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when prepare completed.
+     */
+    prepare(callback: AsyncCallback<void>): void;
+
+    /**
+     * prepare video encoder, it will request the resource.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when prepare completed.
+     */
+    prepare(): Promise<void>;
+
+    /**
+     * start video encode, after start, app can input video data.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when start completed.
+     */
+    start(callback: AsyncCallback<void>): void;
+
+    /**
+     * start video encode, after start, app can input video data.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when start completed.
+     */
+    start(): Promise<void>;
+
+    /**
+     * stop video encode.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when stop completed.
+     */
+    stop(callback: AsyncCallback<void>): void;
+
+    /**
+     * stop video encode.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when stop completed.
+     */
+    stop(): Promise<void>;
+
+    /**
+     * flush video encoder cached buffer.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when flush completed.
+     */
+    flush(callback: AsyncCallback<void>): void;
+
+    /**
+     * flush video encoder cached buffer.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when flush completed.
+     */
+    flush(): Promise<void>;
+
+    /**
+     * reset video encoder, it will release the resource.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when reset completed.
+     */
+    reset(callback: AsyncCallback<void>): void;
+
+    /**
+     * reset video encoder, it will release the resource.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when reset completed.
+     */
+    reset(): Promise<void>;
+
+    /**
+     * release video encoder, it will release the resource.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback A callback instance used to return when release completed.
+     */
+    release(callback: AsyncCallback<void>): void;
+
+    /**
+     * release video encoder, it will release the resource.
+     * @devices phone, tablet, tv, wearable
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return when release completed.
+     */
+    release(): Promise<void>;
+
+    /**
+     * input frame data after start, this API is used in bytebuffer input mode.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param buffer the input video buffer.
+     * @param callback Callback used to return when input buffer completed.
+     */
+    queueInput(buffer: CodecBuffer, callback: AsyncCallback<void>): void;
+
+    /**
+     * input frame data after start, this API is used in bytebuffer input mode.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param buffer the input video buffer.
+     * @return A Promise instance used to return when input buffer completed.
+     */
+    queueInput(buffer: CodecBuffer): Promise<void>;
+
+    /**
+     * release outputbuffer
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param buffer the outout video buffer.
+     * @param callback Callback used to return when output buffer release completed.
+     */
+    releaseOutput(buffer: CodecBuffer, callback: AsyncCallback<void>): void;
+
+    /**
+     * release outputbuffer
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param buffer the outout video buffer.
+     * @return A Promise instance used to return when release output buffer completed.
+     */
+    releaseOutput(buffer: CodecBuffer): Promise<void>;
+
+    /**
+     * set parameter to video encoder.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param desc parameter Description, see @MediaDescription .
+     * @param callback Callback used to return when set completed.
+     */
+    setParameter(desc: MediaDescription, callback: AsyncCallback<void>): void;
+
+    /**
+     * set parameter to video encoder.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param desc  parameter Description, see @MediaDescription .
+     * @return A Promise instance used to return when set completed.
+     */
+    setParameter(desc: MediaDescription): Promise<void>;
+
+    /**
+     * get output description to video encoder, can call after "outputAvailable".
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param desc parameter Description, see @MediaDescription .
+     * @param callback Callback used to return output MediaDescription.
+     */
+    getOutputMediaDescription(callback: AsyncCallback<MediaDescription>): void;
+
+    /**
+     * set parameter to video encoder, can call after "outputAvailable".
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param desc  parameter Description, see @MediaDescription .
+     * @return A Promise instance used to return output MediaDescription.
+     */
+    getOutputMediaDescription(): Promise<MediaDescription>;
+
+    /**
+     * Listens for video encoder error events.
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the video encoder error event to listen for.
+     * @param callback Callback used to listen for the video encoder error event, errorcode see @CodecError .
+     */
+    on(type: 'error', callback: ErrorCallback<CodecError>): void;
+
+    /**
+     * Listens for video encoder outputformat changed or first frame encoded format event. the new output info will callback.
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the video encoder event to listen for.
+     * @param callback Callback used to listen for the video encoder event, new info see @MediaDescription .
+     * usualy contain the width and height.
+     */
+    on(type: 'outputFormatChanged', callback: Callback<MediaDescription>): void;
+
+    /**
+     * Listens for video encoder input buffer, only in bytebuffer input mode.
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the video encoder event to listen for.
+     * @param callback Callback used to listen for the video encoder event, return the input codecbuffer.
+     * usualy contain the width and height.
+     */
+    on(type: 'inputAvailable', callback: Callback<CodecBuffer>): void;
+
+    /**
+     * Listens for video encoder output buffer.
+     * @devices phone, tablet, tv, wearable
+     * @since 6
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param type Type of the video encoder event to listen for.
+     * @param callback Callback used to listen for the video encoder event, return the output codecbuffer.
+     */
+    on(type: 'outputAvailable', callback: Callback<CodecBuffer>): void;
+
+    /**
+     * get the supported video encoder capabilities.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @param callback Callback used to return the supported video encoder capability.
+     */
+    getVideoEncoderCaps(callback: AsyncCallback<VideoCaps>): void;
+
+    /**
+     * get the supported video encoder capabilities.
+     * @devices phone, tablet, tv, wearable, car
+     * @since 8
+     * @SysCap SystemCapability.Multimedia.Media
+     * @return A Promise instance used to return the supported video encoder capability.
+     */
+    getVideoEncoderCaps(): Promise<VideoCaps>;
   }
 }
 
