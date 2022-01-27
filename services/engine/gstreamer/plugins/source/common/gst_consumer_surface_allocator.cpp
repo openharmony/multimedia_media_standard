@@ -61,6 +61,7 @@ static GstMemory *gst_consumer_surface_allocator_alloc(GstAllocator *allocator, 
     sptr<SurfaceBuffer> surface_buffer = nullptr;
     gint32 fencefd = -1;
     gint64 timestamp = 0;
+    gboolean endOfStream = false;
     gboolean is_key_frame = FALSE;
     Rect damage = {0, 0, 0, 0};
     if (surface->AcquireBuffer(surface_buffer, fencefd, timestamp, damage) != SURFACE_ERROR_OK) {
@@ -70,6 +71,7 @@ static GstMemory *gst_consumer_surface_allocator_alloc(GstAllocator *allocator, 
     g_return_val_if_fail(surface_buffer != nullptr, nullptr);
     ON_SCOPE_EXIT(1) { surface->ReleaseBuffer(surface_buffer, -1); };
     (void)surface_buffer->ExtraGet("timeStamp", timestamp);
+    (void)surface_buffer->ExtraGet("endOfStream", endOfStream);
 
     gst_memory_init(GST_MEMORY_CAST(mem), GST_MEMORY_FLAG_NO_SHARE,
         allocator, nullptr, surface_buffer->GetSize(), 0, 0, size);
@@ -78,6 +80,7 @@ static GstMemory *gst_consumer_surface_allocator_alloc(GstAllocator *allocator, 
     mem->timestamp = timestamp;
     mem->is_key_frame = is_key_frame;
     mem->damage = damage;
+    mem->is_eos_frame = endOfStream;
     mem->buffer_handle = reinterpret_cast<intptr_t>(surface_buffer->GetBufferHandle());
     GST_INFO_OBJECT(allocator, "acquire surface buffer");
 

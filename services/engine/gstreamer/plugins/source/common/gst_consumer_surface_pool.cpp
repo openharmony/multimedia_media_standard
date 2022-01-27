@@ -202,7 +202,11 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
     GstMemory *mem = gst_buffer_peek_memory(*buffer, 0);
     if (gst_is_consumer_surface_memory(mem)) {
         GstConsumerSurfaceMemory *surfacemem = reinterpret_cast<GstConsumerSurfaceMemory*>(mem);
-        gst_buffer_add_buffer_handle_meta(*buffer, surfacemem->buffer_handle, surfacemem->fencefd, 0);
+        uint32_t bufferFlag = 0;
+        if (surfacemem->is_eos_frame) {
+            bufferFlag = BUFFER_FLAG_EOS;
+        }
+        gst_buffer_add_buffer_handle_meta(*buffer, surfacemem->buffer_handle, surfacemem->fencefd, bufferFlag);
         GST_BUFFER_PTS(*buffer) = surfacemem->timestamp;
     }
     surfacepool->priv->available_buf_count--;
