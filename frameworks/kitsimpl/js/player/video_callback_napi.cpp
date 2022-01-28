@@ -242,7 +242,7 @@ void VideoCallbackNapi::OnVideoSizeChangedCb(const Format &infoBody)
     cb->callbackName = VIDEO_SIZE_CHANGED_CALLBACK_NAME;
     cb->valueVec.push_back(width_);
     cb->valueVec.push_back(height_);
-    return PlayerCallbackNapi::OnJsCallBack(cb);
+    return PlayerCallbackNapi::OnJsCallBackIntVec(cb);
 }
 
 void VideoCallbackNapi::OnPlaybackCompleteCb() const
