@@ -123,10 +123,10 @@ enum PlayerStates : int32_t {
 };
 
 enum PlayerSeekMode : int32_t {
-    /* sync to keyframes before the time point. */
-    SEEK_PREVIOUS_SYNC = 0,
     /* sync to keyframes after the time point. */
-    SEEK_NEXT_SYNC,
+    SEEK_NEXT_SYNC = 0,
+    /* sync to keyframes before the time point. */
+    SEEK_PREVIOUS_SYNC,
     /* sync to closest keyframes. */
     SEEK_CLOSEST_SYNC,
     /* seek to frames closest the time point. */
