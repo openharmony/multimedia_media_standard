@@ -180,7 +180,7 @@ enum AVCProfile {
 enum HEVCProfile {
     HEVC_PROFILE_MAIN = 0,
     HEVC_PROFILE_MAIN_10 = 1,
-    HEVC_PROFILE_MAIN_STILL = 2,
+    HEVC_PROFILE_MAIN_STILL = 3,
 };
 
 /**
@@ -511,9 +511,9 @@ enum OutputFormatType : int32_t {
     /** Default format */
     FORMAT_DEFAULT = 0,
     /** MPEG4 format */
-    FORMAT_MPEG_4,
+    FORMAT_MPEG_4 = 2,
     /** M4A format */
-    FORMAT_M4A,
+    FORMAT_M4A = 6,
     /** BUTT */
     FORMAT_BUTT,
 };
@@ -544,7 +544,7 @@ enum AudioCodecFormat : int32_t {
     /** Default format */
     AUDIO_DEFAULT = 0,
     /** Advanced Audio Coding Low Complexity (AAC-LC) */
-    AAC_LC      =   1,
+    AAC_LC      =   3,
     /** Invalid value */
     AUDIO_CODEC_FORMAT_BUTT,
 };
