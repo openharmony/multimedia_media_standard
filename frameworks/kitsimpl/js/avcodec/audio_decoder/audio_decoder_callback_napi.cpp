@@ -94,6 +94,7 @@ void AudioDecoderCallbackNapi::OnOutputFormatChanged(const Format &format)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGD("OnOutputFormatChanged is called");
+    CHECK_AND_RETURN(formatChangedCallback_ != nullptr);
 
     AudioDecoderJsCallback *cb = new(std::nothrow) AudioDecoderJsCallback();
     CHECK_AND_RETURN(cb != nullptr);
@@ -127,7 +128,7 @@ void AudioDecoderCallbackNapi::OnInputBufferAvailable(uint32_t index)
 void AudioDecoderCallbackNapi::OnOutputBufferAvailable(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN(inputCallback_ != nullptr);
+    CHECK_AND_RETURN(outputCallback_ != nullptr);
 
     auto adec = adec_.lock();
     CHECK_AND_RETURN(adec != nullptr);
