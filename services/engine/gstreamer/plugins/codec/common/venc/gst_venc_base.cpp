@@ -715,7 +715,16 @@ static gboolean gst_venc_base_event(GstVideoEncoder *encoder, GstEvent *event)
 
     switch (GST_EVENT_TYPE(event)) {
         case GST_EVENT_FLUSH_START:
+            if (self->encoder != nullptr) {
+                (void)self->encoder->Flush(GST_CODEC_INPUT);
+            }
             gst_venc_base_set_flushing(self, TRUE);
+            break;
+        case GST_EVENT_FLUSH_STOP:
+            if (self->encoder != nullptr) {
+                (void)self->encoder->Flush(GST_CODEC_OUTPUT);
+            }
+            gst_venc_base_set_flushing(self, FALSE);
             break;
         default:
             break;

@@ -357,6 +357,19 @@ bool CommonNapi::CreateFormatBufferByRef(napi_env env, Format &format, napi_valu
     return true;
 }
 
+bool CodecNapiHelper::IsEos()
+{
+    if (isEos_.load()) {
+        return true;
+    }
+    return false;
+}
+
+void CodecNapiHelper::SetEos(bool eos)
+{
+    isEos_.store(eos);
+}
+
 napi_status MediaJsResultArray::GetJsResult(napi_env env, napi_value &result)
 {
     // create Description
