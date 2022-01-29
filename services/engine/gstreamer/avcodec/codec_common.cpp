@@ -126,15 +126,19 @@ uint32_t PixelBufferSize(VideoPixelFormat pixel, uint32_t width, uint32_t height
     return size;
 }
 
-uint32_t EncodedBufSize(uint32_t width, uint32_t height)
+uint32_t CompressedBufSize(uint32_t width, uint32_t height, bool isEncoder, CodecMimeType type)
 {
     if (width == 0 || height == 0) {
         return 0;
     }
 
-    const uint32_t compressRatio = 15;
-    const uint32_t maxSize = 3150000; // 3MB
+    uint32_t compressRatio = 7;
 
+    if (isEncoder && type == CODEC_MIMIE_TYPE_VIDEO_MPEG4) {
+        compressRatio = 3;
+    }
+
+    const uint32_t maxSize = 3150000; // 3MB
     if ((UINT32_MAX / width) <= (height / compressRatio)) {
         return maxSize;
     }

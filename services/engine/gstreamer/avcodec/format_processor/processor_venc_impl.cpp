@@ -115,7 +115,7 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetOutputPortConfig()
         return nullptr;
     }
 
-    config->bufferSize_ = EncodedBufSize(width_, height_);
+    config->bufferSize_ = CompressedBufSize(width_, height_, true, codecName_);
 
     return config;
 }
