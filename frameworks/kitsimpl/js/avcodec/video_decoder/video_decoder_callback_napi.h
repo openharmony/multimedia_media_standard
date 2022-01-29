@@ -31,8 +31,8 @@ const std::string OUTPUT_CALLBACK_NAME = "outputBufferAvailable";
 
 class VideoDecoderCallbackNapi : public AVCodecCallback {
 public:
-    explicit VideoDecoderCallbackNapi(napi_env env, std::weak_ptr<VideoDecoder> vdec,
-        std::shared_ptr<CodecNapiHelper> codecHelper);
+    VideoDecoderCallbackNapi(napi_env env, std::weak_ptr<VideoDecoder> vdec,
+        std::shared_ptr<AVCodecNapiHelper> codecHelper);
     virtual ~VideoDecoderCallbackNapi();
 
     void SaveCallbackReference(const std::string &callbackName, napi_value callback);
@@ -68,7 +68,7 @@ private:
     std::shared_ptr<AutoRef> formatChangedCallback_ = nullptr;
     std::shared_ptr<AutoRef> inputCallback_ = nullptr;
     std::shared_ptr<AutoRef> outputCallback_ = nullptr;
-    std::shared_ptr<CodecNapiHelper> codecHelper_ = nullptr;
+    std::shared_ptr<AVCodecNapiHelper> codecHelper_ = nullptr;
 };
 }  // namespace Media
 }  // namespace OHOS

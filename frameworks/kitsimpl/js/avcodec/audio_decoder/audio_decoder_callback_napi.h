@@ -21,6 +21,7 @@
 #include "common_napi.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "avcodec_napi_helper.h"
 
 namespace OHOS {
 namespace Media {
