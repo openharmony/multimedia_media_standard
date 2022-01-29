@@ -55,6 +55,7 @@ AudioRecorderNapi::AudioRecorderNapi()
 
 AudioRecorderNapi::~AudioRecorderNapi()
 {
+    MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy in ", FAKE_POINTER(this));
     if (wrapper_ != nullptr) {
         napi_delete_reference(env_, wrapper_);
     }
@@ -63,7 +64,7 @@ AudioRecorderNapi::~AudioRecorderNapi()
     }
     callbackNapi_ = nullptr;
     recorderImpl_ = nullptr;
-    MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
+    MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy out ", FAKE_POINTER(this));
 }
 
 napi_value AudioRecorderNapi::Init(napi_env env, napi_value exports)
