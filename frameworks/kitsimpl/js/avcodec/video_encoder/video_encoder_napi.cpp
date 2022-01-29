@@ -674,10 +674,11 @@ napi_value VideoEncoderNapi::GetInputSurface(napi_env env, napi_callback_info in
                     asyncCtx->napi->surface_);
                 if (error != SURFACE_ERROR_OK) {
                     asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to add surface");
+                } else {
+                    auto surfaceId = std::to_string(asyncCtx->napi->surface_->GetUniqueId());
+                    asyncCtx->JsResult = std::make_unique<MediaJsResultString>(surfaceId);
+                    asyncCtx->napi->isSurfaceMode_ = true;
                 }
-                auto surfaceId = std::to_string(asyncCtx->napi->surface_->GetUniqueId());
-                asyncCtx->JsResult = std::make_unique<MediaJsResultString>(surfaceId);
-                asyncCtx->napi->isSurfaceMode_ = true;
             }
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
