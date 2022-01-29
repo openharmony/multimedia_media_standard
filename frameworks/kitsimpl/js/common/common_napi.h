@@ -46,16 +46,6 @@ public:
         const std::vector<int32_t> &vec);
 };
 
-class CodecNapiHelper {
-public:
-    CodecNapiHelper() = default;
-    ~CodecNapiHelper() = default;
-    bool IsEos();
-    void SetEos(bool eos);
-private:
-    std::atomic<bool> isEos_ = false;
-};
-
 class MediaJsResult {
 public:
     virtual ~MediaJsResult() = default;

@@ -22,6 +22,7 @@
 #include "media_errors.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "avcodec_napi_helper.h"
 
 namespace OHOS {
 namespace Media {
@@ -62,7 +63,7 @@ private:
     std::shared_ptr<VideoDecoder> vdec_ = nullptr;
     std::shared_ptr<AVCodecCallback> callback_ = nullptr;
     bool isSurfaceMode_ = false;
-    std::shared_ptr<CodecNapiHelper> codecHelper_ = nullptr;
+    std::shared_ptr<AVCodecNapiHelper> codecHelper_ = nullptr;
 };
 
 struct VideoDecoderAsyncContext : public MediaAsyncContext {

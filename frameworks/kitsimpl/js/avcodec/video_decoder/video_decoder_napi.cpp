@@ -112,7 +112,7 @@ napi_value VideoDecoderNapi::Constructor(napi_env env, napi_callback_info info)
         vdecNapi->vdec_ = VideoDecoderFactory::CreateByName(name);
     }
     CHECK_AND_RETURN_RET(vdecNapi->vdec_ != nullptr, result);
-    vdecNapi->codecHelper_ = std::make_shared<CodecNapiHelper>();
+    vdecNapi->codecHelper_ = std::make_shared<AVCodecNapiHelper>();
 
     if (vdecNapi->callback_ == nullptr) {
         vdecNapi->callback_ = std::make_shared<VideoDecoderCallbackNapi>(env, vdecNapi->vdec_, vdecNapi->codecHelper_);

@@ -26,7 +26,7 @@ namespace {
 namespace OHOS {
 namespace Media {
 VideoDecoderCallbackNapi::VideoDecoderCallbackNapi(napi_env env, std::weak_ptr<VideoDecoder> vdec,
-    std::shared_ptr<CodecNapiHelper> codecHelper)
+    std::shared_ptr<AVCodecNapiHelper> codecHelper)
     : env_(env),
       vdec_(vdec),
       codecHelper_(codecHelper)
