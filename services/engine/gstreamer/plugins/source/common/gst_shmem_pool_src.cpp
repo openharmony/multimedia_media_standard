@@ -55,6 +55,7 @@ struct _GstShmemPoolSrcPrivate {
     std::shared_ptr<OHOS::Media::AVSharedMemoryPool> av_shmem_pool;
     gboolean eos;
     bool unlock;
+    gboolean need_start;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(GstShmemPoolSrc, gst_shmem_pool_src, GST_TYPE_MEM_POOL_SRC);
@@ -119,6 +120,7 @@ static void gst_shmem_pool_src_init(GstShmemPoolSrc *shmemsrc)
     priv->flushing = FALSE;
     priv->eos = FALSE;
     priv->unlock = FALSE;
+    priv->need_start = FALSE;
     priv->queue = gst_queue_array_new(DEFAULT_QUEUE_SIZE);
     priv->allocator = gst_shmem_allocator_new();
     gst_allocation_params_init(&priv->allocParams);
@@ -406,6 +408,9 @@ static gboolean gst_shmem_pool_src_handle_flush_start(GstShmemPoolSrc *shmemsrc)
     g_cond_signal(&priv->queue_condition);
     g_mutex_unlock(&priv->queue_lock);
 
+    if (gst_task_get_state(shmemsrc->priv->shmem_task) == GST_TASK_STARTED) {
+        shmemsrc->priv->need_start = TRUE;
+    }
     gst_shmem_pool_src_set_pool_flushing(shmemsrc, TRUE);
 
     return TRUE;
@@ -428,7 +433,10 @@ static gboolean gst_shmem_pool_src_handle_flush_stop(GstShmemPoolSrc *shmemsrc)
     g_mutex_lock(&priv->priv_lock);
     shmemsrc->priv->task_start = TRUE;
     g_mutex_unlock(&priv->priv_lock);
-    gst_task_start(shmemsrc->priv->shmem_task);
+    if (shmemsrc->priv->need_start == TRUE) {
+        gst_task_start(shmemsrc->priv->shmem_task);
+        shmemsrc->priv->need_start = FALSE;
+    }
 
     return TRUE;
 }
