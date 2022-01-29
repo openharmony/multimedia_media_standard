@@ -16,6 +16,7 @@
 #ifndef VIDEO_DECODER_NAPI_H
 #define VIDEO_DECODER_NAPI_H
 
+#include <atomic>
 #include "avcodec_video_decoder.h"
 #include "common_napi.h"
 #include "media_errors.h"
@@ -61,6 +62,7 @@ private:
     std::shared_ptr<VideoDecoder> vdec_ = nullptr;
     std::shared_ptr<AVCodecCallback> callback_ = nullptr;
     bool isSurfaceMode_ = false;
+    std::shared_ptr<CodecNapiHelper> codecHelper_ = nullptr;
 };
 
 struct VideoDecoderAsyncContext : public MediaAsyncContext {
