@@ -440,11 +440,13 @@ static gboolean gst_vdec_base_update_out_port_def(GstVdecBase *self)
     g_return_val_if_fail(self != nullptr, FALSE);
     g_return_val_if_fail(self->decoder != nullptr, FALSE);
     gint ret = self->decoder->GetParameter(GST_VIDEO_OUTPUT_COMMON, GST_ELEMENT(self));
-    GST_INFO_OBJECT(self, "output params is min buffer count %u, buffer count %u, buffer size is %u",
-        self->output.min_buffer_cnt, self->output.buffer_cnt, self->output.buffer_size);
     g_return_val_if_fail(ret == GST_CODEC_OK, FALSE);
     ret = self->decoder->SetParameter(GST_VIDEO_OUTPUT_COMMON, GST_ELEMENT(self));
     g_return_val_if_fail(ret == GST_CODEC_OK, FALSE);
+    ret = self->decoder->GetParameter(GST_VIDEO_OUTPUT_COMMON, GST_ELEMENT(self));
+    g_return_val_if_fail(ret == GST_CODEC_OK, FALSE);
+    GST_INFO_OBJECT(self, "output params is min buffer count %u, buffer count %u, buffer size is %u",
+        self->output.min_buffer_cnt, self->output.buffer_cnt, self->output.buffer_size);
     return TRUE;
 }
 
@@ -616,6 +618,8 @@ static gboolean gst_vdec_check_out_format_change(GstVdecBase *self)
     is_format_change = is_format_change || self->height != self->output.height;
 
     if (is_format_change) {
+        GST_INFO_OBJECT(self, "Format change width %d to %d, height %d to %d",
+            self->width, self->output.width, self->height, self->output.height);
         self->width = self->output.width;
         self->height = self->output.height;
     }
@@ -625,6 +629,7 @@ static gboolean gst_vdec_check_out_format_change(GstVdecBase *self)
 static gboolean gst_vdec_check_out_buffer_cnt(GstVdecBase *self)
 {
     gboolean is_buffer_cnt_change = self->out_buffer_cnt != self->output.buffer_cnt;
+    GST_INFO_OBJECT(self, "Format change buffer %d to %d", self->out_buffer_cnt, self->output.buffer_cnt);
     self->out_buffer_cnt = self->output.buffer_cnt;
     return is_buffer_cnt_change;
 }
@@ -647,6 +652,12 @@ static GstFlowReturn gst_vdec_base_format_change(GstVdecBase *self)
     GST_DEBUG_OBJECT(self, "Format change");
     g_return_val_if_fail(self != nullptr, GST_FLOW_ERROR);
     g_return_val_if_fail(self->decoder != nullptr, GST_FLOW_ERROR);
+    gint ret = self->decoder->ActiveBufferMgr(GST_CODEC_OUTPUT, false);
+    g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "ActiveBufferMgr", TRUE), GST_FLOW_ERROR);
+    ret = self->decoder->FreeOutputBuffers();
+    g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "freebuffer", TRUE), GST_FLOW_ERROR);
+    ret = self->decoder->GetParameter(GST_VIDEO_OUTPUT_COMMON, GST_ELEMENT(self));
+    g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "GetParameter", TRUE), GST_FLOW_ERROR);
     gboolean format_change = gst_vdec_check_out_format_change(self);
     gboolean buffer_cnt_change = gst_vdec_check_out_buffer_cnt(self);
     if (format_change && self->first_frame == FALSE) {
@@ -657,14 +668,6 @@ static GstFlowReturn gst_vdec_base_format_change(GstVdecBase *self)
             gst_element_post_message(GST_ELEMENT(self), msg_resolution_changed);
         }
     }
-    gint ret = self->decoder->ActiveBufferMgr(GST_CODEC_OUTPUT, false);
-    g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "ActiveBufferMgr", TRUE), GST_FLOW_ERROR);
-    ret = self->decoder->FreeOutputBuffers();
-    g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "freebuffer", TRUE), GST_FLOW_ERROR);
-    ret = self->decoder->GetParameter(GST_VIDEO_OUTPUT_COMMON, GST_ELEMENT(self));
-    self->width = self->output.width;
-    self->height = self->output.height;
-    g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "GetParameter", TRUE), GST_FLOW_ERROR);
     if (format_change) {
         g_return_val_if_fail(gst_vdec_base_set_outstate(self), GST_FLOW_ERROR);
         g_return_val_if_fail(gst_video_decoder_negotiate(GST_VIDEO_DECODER(self)), GST_FLOW_ERROR);
@@ -677,11 +680,10 @@ static GstFlowReturn gst_vdec_base_format_change(GstVdecBase *self)
     return GST_FLOW_OK;
 }
 
-static GstFlowReturn gst_vdec_base_codec_eos(GstVdecBase *self, GstBuffer *buffer)
+static GstFlowReturn gst_vdec_base_codec_eos(GstVdecBase *self)
 {
     GST_DEBUG_OBJECT(self, "Eos");
     g_return_val_if_fail(self != nullptr, GST_FLOW_ERROR);
-    g_return_val_if_fail(buffer != nullptr, GST_FLOW_ERROR);
     g_return_val_if_fail(GST_VIDEO_DECODER_SRC_PAD(self) != nullptr, GST_FLOW_ERROR);
     g_mutex_lock(&self->drain_lock);
     if (self->draining) {
@@ -760,7 +762,7 @@ static void gst_vdec_base_loop(GstVdecBase *self)
             flow_ret = gst_vdec_base_format_change(self);
             break;
         case GST_CODEC_EOS:
-            flow_ret = gst_vdec_base_codec_eos(self, gst_buffer);
+            flow_ret = gst_vdec_base_codec_eos(self);
             break;
         case GST_CODEC_FLUSH:
             flow_ret = GST_FLOW_FLUSHING;
@@ -881,7 +883,16 @@ static gboolean gst_vdec_base_event(GstVideoDecoder *decoder, GstEvent *event)
 
     switch (GST_EVENT_TYPE(event)) {
         case GST_EVENT_FLUSH_START:
+            if (self->decoder != nullptr) {
+                (void)self->decoder->Flush(GST_CODEC_INPUT);
+            }
             gst_vdec_base_set_flushing(self, TRUE);
+            break;
+        case GST_EVENT_FLUSH_STOP:
+            if (self->decoder != nullptr) {
+                (void)self->decoder->Flush(GST_CODEC_OUTPUT);
+            }
+            gst_vdec_base_set_flushing(self, FALSE);
             break;
         default:
             break;
@@ -1058,5 +1069,6 @@ static gboolean gst_vdec_base_propose_allocation(GstVideoDecoder *decoder, GstQu
     GST_DEBUG_OBJECT(decoder, "pool ref_count %u", ((GObject *)pool)->ref_count);
     gst_buffer_pool_set_active(pool, TRUE);
     g_return_val_if_fail(gst_vdec_base_allocate_in_buffers(self), FALSE);
+    gst_query_add_allocation_meta(query, GST_BUFFER_TYPE_META_API_TYPE, nullptr);
     return TRUE;
 }

@@ -112,9 +112,10 @@ napi_value VideoDecoderNapi::Constructor(napi_env env, napi_callback_info info)
         vdecNapi->vdec_ = VideoDecoderFactory::CreateByName(name);
     }
     CHECK_AND_RETURN_RET(vdecNapi->vdec_ != nullptr, result);
+    vdecNapi->codecHelper_ = std::make_shared<AVCodecNapiHelper>();
 
     if (vdecNapi->callback_ == nullptr) {
-        vdecNapi->callback_ = std::make_shared<VideoDecoderCallbackNapi>(env, vdecNapi->vdec_);
+        vdecNapi->callback_ = std::make_shared<VideoDecoderCallbackNapi>(env, vdecNapi->vdec_, vdecNapi->codecHelper_);
         (void)vdecNapi->vdec_->SetCallback(vdecNapi->callback_);
     }
 
@@ -378,6 +379,7 @@ napi_value VideoDecoderNapi::Stop(napi_env env, napi_callback_info info)
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Stop", NAPI_AUTO_LENGTH, &resource);
+    asyncCtx->napi->codecHelper_->SetEos(false);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoDecoderAsyncContext *>(data);
@@ -420,6 +422,7 @@ napi_value VideoDecoderNapi::Flush(napi_env env, napi_callback_info info)
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Flush", NAPI_AUTO_LENGTH, &resource);
+    asyncCtx->napi->codecHelper_->SetEos(false);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoDecoderAsyncContext *>(data);
@@ -462,6 +465,7 @@ napi_value VideoDecoderNapi::Reset(napi_env env, napi_callback_info info)
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Reset", NAPI_AUTO_LENGTH, &resource);
+    asyncCtx->napi->codecHelper_->SetEos(false);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoDecoderAsyncContext *>(data);
@@ -550,7 +554,9 @@ napi_value VideoDecoderNapi::QueueInput(napi_env env, napi_callback_info info)
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
-
+    if (asyncCtx->flag & AVCODEC_BUFFER_FLAG_EOS) {
+        asyncCtx->napi->codecHelper_->SetEos(true);
+    }
     if (asyncCtx->napi->vdec_->QueueInputBuffer(asyncCtx->index, asyncCtx->info, asyncCtx->flag) != MSERR_OK) {
         asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to QueueInput");
     }
