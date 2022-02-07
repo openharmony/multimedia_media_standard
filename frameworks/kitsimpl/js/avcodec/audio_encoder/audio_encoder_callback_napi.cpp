@@ -94,6 +94,7 @@ void AudioEncoderCallbackNapi::OnOutputFormatChanged(const Format &format)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGD("OnOutputFormatChanged is called");
+    CHECK_AND_RETURN(formatChangedCallback_ != nullptr);
 
     AudioEncoderJsCallback *cb = new(std::nothrow) AudioEncoderJsCallback();
     CHECK_AND_RETURN(cb != nullptr);
@@ -127,7 +128,7 @@ void AudioEncoderCallbackNapi::OnInputBufferAvailable(uint32_t index)
 void AudioEncoderCallbackNapi::OnOutputBufferAvailable(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN(inputCallback_ != nullptr);
+    CHECK_AND_RETURN(outputCallback_ != nullptr);
 
     auto aenc = aenc_.lock();
     CHECK_AND_RETURN(aenc != nullptr);

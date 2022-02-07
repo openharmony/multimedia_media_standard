@@ -94,6 +94,7 @@ void VideoEncoderCallbackNapi::OnOutputFormatChanged(const Format &format)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGD("OnOutputFormatChanged is called");
+    CHECK_AND_RETURN(formatChangedCallback_ != nullptr);
 
     VideoEncoderJsCallback *cb = new(std::nothrow) VideoEncoderJsCallback();
     CHECK_AND_RETURN(cb != nullptr);
@@ -127,7 +128,7 @@ void VideoEncoderCallbackNapi::OnInputBufferAvailable(uint32_t index)
 void VideoEncoderCallbackNapi::OnOutputBufferAvailable(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN(inputCallback_ != nullptr);
+    CHECK_AND_RETURN(outputCallback_ != nullptr);
 
     auto adec = venc_.lock();
     CHECK_AND_RETURN(adec != nullptr);

@@ -62,6 +62,7 @@ private:
     sptr<Surface> surface_;
     std::shared_ptr<VideoEncoder> venc_ = nullptr;
     std::shared_ptr<AVCodecCallback> callback_ = nullptr;
+    bool isSurfaceMode_ = false;
 };
 
 struct VideoEncoderAsyncContext : public MediaAsyncContext {
