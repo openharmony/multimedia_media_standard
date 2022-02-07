@@ -282,6 +282,20 @@ void MediaClient::MediaServerDied(pid_t pid)
             avMetadataHelper->MediaServerDied();
         }
     }
+
+    for (auto &it : avCodecClientList_) {
+        auto avCodecClient = std::static_pointer_cast<AVCodecClient>(it);
+        if (avCodecClient != nullptr) {
+            avCodecClient->MediaServerDied();
+        }
+    }
+
+    for (auto &it : avCodecListClientList_) {
+        auto avCodecListClient = std::static_pointer_cast<AVCodecListClient>(it);
+        if (avCodecListClient != nullptr) {
+            avCodecListClient->MediaServerDied();
+        }
+    }
 }
 } // Media
 } // OHOS
