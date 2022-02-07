@@ -106,7 +106,7 @@ std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetInputPortConfig()
     if (maxInputSize_ > 0) {
         config->bufferSize_ = (maxInputSize_ > MAX_SIZE) ? MAX_SIZE : static_cast<uint32_t>(maxInputSize_);
     } else {
-        config->bufferSize_ = EncodedBufSize(width_, height_);
+        config->bufferSize_ = CompressedBufSize(width_, height_, false, codecName_);
     }
 
     return config;
