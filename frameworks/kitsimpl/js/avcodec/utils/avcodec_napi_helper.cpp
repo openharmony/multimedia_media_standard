@@ -29,5 +29,18 @@ void AVCodecNapiHelper::SetEos(bool eos)
 {
     isEos_.store(eos);
 }
+
+bool AVCodecNapiHelper::IsStop()
+{
+    if (isStop_.load()) {
+        return true;
+    }
+    return false;
+}
+
+void AVCodecNapiHelper::SetStop(bool stop)
+{
+    isStop_.store(stop);
+}
 }
 }

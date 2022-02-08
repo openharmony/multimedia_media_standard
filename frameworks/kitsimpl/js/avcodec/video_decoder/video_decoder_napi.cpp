@@ -337,6 +337,7 @@ napi_value VideoDecoderNapi::Start(napi_env env, napi_callback_info info)
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Start", NAPI_AUTO_LENGTH, &resource);
+    asyncCtx->napi->codecHelper_->SetStop(false);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoDecoderAsyncContext *>(data);
@@ -379,6 +380,7 @@ napi_value VideoDecoderNapi::Stop(napi_env env, napi_callback_info info)
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Stop", NAPI_AUTO_LENGTH, &resource);
+    asyncCtx->napi->codecHelper_->SetStop(true);
     asyncCtx->napi->codecHelper_->SetEos(false);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
@@ -465,6 +467,7 @@ napi_value VideoDecoderNapi::Reset(napi_env env, napi_callback_info info)
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Reset", NAPI_AUTO_LENGTH, &resource);
+    asyncCtx->napi->codecHelper_->SetStop(true);
     asyncCtx->napi->codecHelper_->SetEos(false);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
@@ -508,6 +511,8 @@ napi_value VideoDecoderNapi::Release(napi_env env, napi_callback_info info)
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Release", NAPI_AUTO_LENGTH, &resource);
+    asyncCtx->napi->codecHelper_->SetStop(true);
+    asyncCtx->napi->codecHelper_->SetEos(false);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoDecoderAsyncContext *>(data);
@@ -554,6 +559,10 @@ napi_value VideoDecoderNapi::QueueInput(napi_env env, napi_callback_info info)
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
+    if (asyncCtx->napi->codecHelper_->IsEos() || asyncCtx->napi->codecHelper_->IsStop()) {
+        MEDIA_LOGD("Eos or stop, queue buffer failed");
+        return result;
+    }
     if (asyncCtx->flag & AVCODEC_BUFFER_FLAG_EOS) {
         asyncCtx->napi->codecHelper_->SetEos(true);
     }

@@ -25,10 +25,13 @@ public:
     AVCodecNapiHelper() = default;
     ~AVCodecNapiHelper() = default;
     bool IsEos();
+    bool IsStop();
     void SetEos(bool eos);
+    void SetStop(bool stop);
     DISALLOW_COPY_AND_MOVE(AVCodecNapiHelper);
 private:
     std::atomic<bool> isEos_ = false;
+    std::atomic<bool> isStop_ = false;
 };
 }
 }
