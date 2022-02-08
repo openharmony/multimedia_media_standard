@@ -67,6 +67,20 @@ int32_t SrcBytebufferImpl::Configure(std::shared_ptr<ProcessorConfig> config)
     return MSERR_OK;
 }
 
+int32_t SrcBytebufferImpl::Start()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    start_ = true;
+    return MSERR_OK;
+}
+
+int32_t SrcBytebufferImpl::Stop()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    start_ = false;
+    return MSERR_OK;
+}
+
 int32_t SrcBytebufferImpl::Flush()
 {
     std::unique_lock<std::mutex> lock(mutex_);
@@ -80,6 +94,12 @@ int32_t SrcBytebufferImpl::Flush()
         }
     }
     return MSERR_OK;
+}
+
+bool SrcBytebufferImpl::Needflush()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    return !bufferList_.empty();
 }
 
 std::shared_ptr<AVSharedMemory> SrcBytebufferImpl::GetInputBuffer(uint32_t index)
@@ -198,6 +218,10 @@ int32_t SrcBytebufferImpl::HandleBufferAvailable(GstBuffer *buffer)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     ON_SCOPE_EXIT(0) { gst_buffer_unref(buffer); };
+    if (!start_) {
+        MEDIA_LOGD("Codec source is stop, unref available buffer");
+        return MSERR_OK;
+    }
 
     GstMemory *memory = gst_buffer_peek_memory(buffer, 0);
     CHECK_AND_RETURN_RET(memory != nullptr, MSERR_UNKNOWN);

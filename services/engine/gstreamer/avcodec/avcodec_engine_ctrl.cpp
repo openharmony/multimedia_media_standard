@@ -117,6 +117,7 @@ int32_t AVCodecEngineCtrl::Start()
         flushAtStart_ = false;
     }
 
+    CHECK_AND_RETURN_RET(src_->Start() == MSERR_OK, MSERR_INVALID_OPERATION);
     GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(gstPipeline_), GST_STATE_PLAYING);
     CHECK_AND_RETURN_RET(ret != GST_STATE_CHANGE_FAILURE, MSERR_UNKNOWN);
     if (ret == GST_STATE_CHANGE_ASYNC) {
@@ -136,6 +137,7 @@ int32_t AVCodecEngineCtrl::Stop()
         return MSERR_OK;
     }
 
+    CHECK_AND_RETURN_RET(src_->Stop() == MSERR_OK, MSERR_INVALID_OPERATION);
     GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(gstPipeline_), GST_STATE_PAUSED);
     CHECK_AND_RETURN_RET(ret != GST_STATE_CHANGE_FAILURE, MSERR_UNKNOWN);
     if (ret == GST_STATE_CHANGE_ASYNC) {
@@ -155,6 +157,10 @@ int32_t AVCodecEngineCtrl::Flush()
     CHECK_AND_RETURN_RET(gstPipeline_ != nullptr, MSERR_UNKNOWN);
 
     CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
+    if (!src_->Needflush()) {
+        MEDIA_LOGD("Flush success, src is empty.");
+        return MSERR_OK;
+    }
     CHECK_AND_RETURN_RET(src_->Flush() == MSERR_OK, MSERR_UNKNOWN);
 
     CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);

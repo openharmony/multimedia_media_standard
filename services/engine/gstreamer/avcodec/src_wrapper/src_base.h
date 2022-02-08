@@ -45,9 +45,24 @@ public:
         return nullptr;
     }
 
+    virtual int32_t Start()
+    {
+        return MSERR_OK;
+    }
+
+    virtual int32_t Stop()
+    {
+        return MSERR_OK;
+    }
+
     virtual int32_t Flush()
     {
         return MSERR_OK;
+    }
+
+    virtual bool Needflush()
+    {
+        return true;
     }
 
     virtual const GstElement *GetElement()
