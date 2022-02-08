@@ -30,7 +30,10 @@ public:
 
     int32_t Init() override;
     int32_t Configure(std::shared_ptr<ProcessorConfig> config) override;
+    int32_t Start() override;
+    int32_t Stop() override;
     int32_t Flush() override;
+    bool Needflush() override;
     std::shared_ptr<AVSharedMemory> GetInputBuffer(uint32_t index) override;
     int32_t QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag) override;
     int32_t SetCallback(const std::weak_ptr<IAVCodecEngineObs> &obs) override;
@@ -47,6 +50,7 @@ private:
     std::mutex mutex_;
     std::vector<std::shared_ptr<BufferWrapper>> bufferList_;
     std::weak_ptr<IAVCodecEngineObs> obs_;
+    bool start_ = false;
 };
 } // Media
 } // OHOS
