@@ -379,6 +379,10 @@ static gboolean drop_this_fame(GstConsumerSurfacePool *pool, guint64 new_timesta
         return TRUE;
     }
 
+    if (frame_rate == 0) {
+        GST_WARNING_OBJECT(pool, "Invalid frame rate: 0");
+        return FALSE;
+    }
     guint64 min_interval = 1000000000 / frame_rate; // 1s = 1000000000ns
     if ((UINT64_MAX - min_interval) < old_timestamp) {
         GST_WARNING_OBJECT(pool, "Invalid timestamp: too big");
