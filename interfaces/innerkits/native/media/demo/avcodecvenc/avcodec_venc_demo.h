@@ -59,6 +59,8 @@ private:
     int32_t Configure(const Format &format);
     int32_t Prepare();
     int32_t Start();
+    int32_t SetParameter();
+    int32_t CancelParameter();
     int32_t Stop();
     int32_t Flush();
     int32_t Reset();

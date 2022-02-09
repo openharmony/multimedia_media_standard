@@ -67,12 +67,22 @@ sptr<Surface> SrcSurfaceImpl::CreateInputSurface(std::shared_ptr<ProcessorConfig
 int32_t SrcSurfaceImpl::SetParameter(const Format &format)
 {
     int32_t value = 0;
-    if (format.GetIntValue("repeat_frame_after", value) == true) {
-        g_object_set(src_, "repeat-frame-after", value, nullptr);
+    if (format.GetValueType(std::string_view("suspend_input_surface")) == FORMAT_TYPE_INT32) {
+        if (format.GetIntValue("suspend_input_surface", value) && (value == 0 || value == 1)) {
+            g_object_set(src_, "suspend", static_cast<bool>(value), nullptr);
+        }
     }
 
-    if (format.GetIntValue("suspend_input_surface", value) == true) {
-        g_object_set(src_, "suspend-input-surface", value, nullptr);
+    if (format.GetValueType(std::string_view("max_encoder_fps")) == FORMAT_TYPE_INT32) {
+        if (format.GetIntValue("max_encoder_fps", value) && value >= 0) {
+            g_object_set(src_, "max_framerate", static_cast<uint32_t>(value), nullptr);
+        }
+    }
+
+    if (format.GetValueType(std::string_view("repeat_frame_after")) == FORMAT_TYPE_INT32) {
+        if (format.GetIntValue("repeat_frame_after", value) && value >= 0) {
+            g_object_set(src_, "repeat", static_cast<uint32_t>(value), nullptr);
+        }
     }
 
     return MSERR_OK;
