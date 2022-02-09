@@ -165,6 +165,12 @@ static void gst_venc_base_init(GstVencBase *self)
     self->output = { 0 };
     self->memtype = GST_MEMTYPE_INVALID;
     self->bitrate = 0;
+    self->input.frame_cnt = 0;
+    self->input.first_frame_time = 0;
+    self->input.last_frame_time = 0;
+    self->output.frame_cnt = 0;
+    self->output.first_frame_time = 0;
+    self->output.last_frame_time = 0;
 }
 
 static void gst_venc_base_finalize(GObject *object)
@@ -233,7 +239,13 @@ static gboolean gst_venc_base_close(GstVideoEncoder *encoder)
 static gboolean gst_venc_base_start(GstVideoEncoder *encoder)
 {
     GST_DEBUG_OBJECT(encoder, "Start");
-    (void)encoder;
+    GstVencBase *self = GST_VENC_BASE(encoder);
+    self->input.frame_cnt = 0;
+    self->input.first_frame_time = 0;
+    self->input.last_frame_time = 0;
+    self->output.frame_cnt = 0;
+    self->output.first_frame_time = 0;
+    self->output.last_frame_time = 0;
     return TRUE;
 }
 
@@ -456,6 +468,42 @@ static gboolean gst_venc_base_prepare(GstVencBase *self)
     return TRUE;
 }
 
+static void gst_venc_debug_input_time(GstVencBase *self)
+{
+    if (self->input.first_frame_time == 0) {
+        self->input.first_frame_time = g_get_monotonic_time();
+    } else {
+        self->input.last_frame_time = g_get_monotonic_time();
+    }
+    self->input.frame_cnt++;
+    gint64 time_interval = self->input.last_frame_time - self->input.first_frame_time;
+    gint64 frame_cnt = self->input.frame_cnt - 1;
+    if (frame_cnt > 0) {
+        gint64 time_every_frame = time_interval / frame_cnt;
+        GST_DEBUG_OBJECT(self, "Encoder Input Time interval %" G_GINT64_FORMAT " us, frame count %" G_GINT64_FORMAT
+        " ,every frame time %" G_GINT64_FORMAT " us, frame rate %.9f", time_interval, self->input.frame_cnt,
+        time_every_frame, static_cast<double>(G_TIME_SPAN_SECOND)/static_cast<double>(time_every_frame));
+    }
+}
+
+static void gst_venc_debug_output_time(GstVencBase *self)
+{
+    if (self->output.first_frame_time == 0) {
+        self->output.first_frame_time = g_get_monotonic_time();
+    } else {
+        self->output.last_frame_time = g_get_monotonic_time();
+    }
+    self->output.frame_cnt++;
+    gint64 time_interval = self->output.last_frame_time - self->output.first_frame_time;
+    gint64 frame_cnt = self->output.frame_cnt - 1;
+    if (frame_cnt > 0) {
+        gint64 time_every_frame = time_interval / frame_cnt;
+        GST_DEBUG_OBJECT(self, "Encoder Output Time interval %" G_GINT64_FORMAT " us, frame count %" G_GINT64_FORMAT
+        " ,every frame time %" G_GINT64_FORMAT " us, frame rate %.9f", time_interval, self->output.frame_cnt,
+        time_every_frame, static_cast<double>(G_TIME_SPAN_SECOND)/static_cast<double>(time_every_frame));
+    }
+}
+
 static GstFlowReturn gst_venc_base_handle_frame(GstVideoEncoder *encoder, GstVideoCodecFrame *frame)
 {
     GST_DEBUG_OBJECT(encoder, "Handle frame");
@@ -483,6 +531,7 @@ static GstFlowReturn gst_venc_base_handle_frame(GstVideoEncoder *encoder, GstVid
         }
     }
     GST_VIDEO_ENCODER_STREAM_UNLOCK(self);
+    gst_venc_debug_input_time(self);
     gint codec_ret = self->encoder->PushInputBuffer(frame->input_buffer);
     GST_VIDEO_ENCODER_STREAM_LOCK(self);
     GstFlowReturn ret = GST_FLOW_OK;
@@ -508,6 +557,7 @@ static GstFlowReturn gst_venc_base_finish_output_buffer(GstVencBase *self, GstBu
     g_return_val_if_fail(self != nullptr, GST_FLOW_ERROR);
     g_return_val_if_fail(buffer != nullptr, GST_FLOW_ERROR);
     GstFlowReturn flow_ret = GST_FLOW_OK;
+    gst_venc_debug_output_time(self);
     GstVideoCodecFrame *frame = gst_video_encoder_get_oldest_frame(GST_VIDEO_ENCODER(self));
     if (frame != nullptr) {
         frame->output_buffer = buffer;
@@ -658,6 +708,8 @@ static gboolean gst_venc_base_set_format(GstVideoEncoder *encoder, GstVideoCodec
         self->nslice_height = self->height;
         self->nstride = info->stride[0];
         self->input.buffer_size = info->size;
+        GST_DEBUG_OBJECT(self, "width %d height %d frame_rate %d nslice_height %d nstride %d buffer_size %d",
+            self->width, self->height, self->frame_rate, self->nslice_height, self->nstride, self->input.buffer_size);
     }
 
     GST_DEBUG_OBJECT(self, "Setting inport definition");
