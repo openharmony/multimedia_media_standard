@@ -46,6 +46,21 @@ private:
     bool isDecoder_;
 };
 
+class MediaJsVideoCapsDynamic : public MediaJsResult {
+public:
+    explicit MediaJsVideoCapsDynamic(std::string name, bool isDecoder)
+        : name_(name),
+          isDecoder_(isDecoder)
+    {
+    }
+    ~MediaJsVideoCapsDynamic() = default;
+    napi_status GetJsResult(napi_env env, napi_value &result) override;
+
+private:
+    std::string name_;
+    bool isDecoder_;
+};
+
 class MediaJsAudioCapsDynamic : public MediaJsResult {
 public:
     explicit MediaJsAudioCapsDynamic(std::string name, bool isDecoder)

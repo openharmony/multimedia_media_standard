@@ -183,5 +183,32 @@ napi_status MediaJsVideoCapsStatic::GetJsResult(napi_env env, napi_value &result
 
     return napi_ok;
 }
+
+napi_status MediaJsVideoCapsDynamic::GetJsResult(napi_env env, napi_value &result)
+{
+    auto codecList = AVCodecListFactory::CreateAVCodecList();
+    CHECK_AND_RETURN_RET(codecList != nullptr, napi_generic_failure);
+
+    std::vector<std::shared_ptr<VideoCaps>> caps;
+    if (isDecoder_) {
+        caps = codecList->GetVideoDecoderCaps();
+    } else {
+        caps = codecList->GetVideoEncoderCaps();
+    }
+
+    CHECK_AND_RETURN_RET(napi_create_object(env, &result) == napi_ok, napi_generic_failure);
+
+    for (auto it = caps.begin(); it != caps.end(); it++) {
+        CHECK_AND_CONTINUE((*it) != nullptr);
+        auto info = (*it)->GetCodecInfo();
+        CHECK_AND_CONTINUE(info != nullptr);
+        CHECK_AND_CONTINUE(info->GetName() == name_);
+
+        napi_value videoCaps = MediaVideoCapsNapi::Create(env, (*it).get());
+        CHECK_AND_BREAK(videoCaps != nullptr);
+    }
+
+    return napi_ok;
+}
 }
 }
