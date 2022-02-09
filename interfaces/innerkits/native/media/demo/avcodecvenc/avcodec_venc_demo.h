@@ -52,15 +52,15 @@ public:
     VEncDemo() = default;
     virtual ~VEncDemo() = default;
     DISALLOW_COPY_AND_MOVE(VEncDemo);
-    void RunCase();
+    void RunCase(bool enableProp);
+    void GenerateData(uint32_t count, uint32_t fps);
 
 private:
     int32_t CreateVenc();
     int32_t Configure(const Format &format);
     int32_t Prepare();
     int32_t Start();
-    int32_t SetParameter();
-    int32_t CancelParameter();
+    int32_t SetParameter(int32_t suspend, int32_t maxFps, int32_t repeatMs);
     int32_t Stop();
     int32_t Flush();
     int32_t Reset();
@@ -73,6 +73,8 @@ private:
     std::shared_ptr<VideoEncoder> venc_;
     std::shared_ptr<VEncSignal> signal_;
     std::shared_ptr<VEncDemoCallback> cb_;
+    sptr<Surface> surface_ = nullptr;
+    int64_t timestampNs_ = 0;
 };
 } // Media
 } // OHOS
