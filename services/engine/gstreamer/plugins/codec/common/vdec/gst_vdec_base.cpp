@@ -641,9 +641,11 @@ static gboolean update_outpool_max_buf_cnt(GstVdecBase *self)
     guint min_buffers = 0;
     guint max_buffers = 0;
     GstStructure *config = gst_buffer_pool_get_config(self->outpool);
+    gst_buffer_pool_set_active(self->outpool, FALSE);
     g_return_val_if_fail(config != nullptr, FALSE);
     g_return_val_if_fail(gst_buffer_pool_config_get_params(config, &caps, &size, &min_buffers, &max_buffers), FALSE);
     gst_buffer_pool_config_set_params(config, caps, size, self->out_buffer_cnt, self->out_buffer_cnt);
+    gst_buffer_pool_set_active(self->outpool, TRUE);
     return TRUE;
 }
 
@@ -760,7 +762,7 @@ static void gst_vdec_base_loop(GstVdecBase *self)
             break;
         case GST_CODEC_FORMAT_CHANGE:
             flow_ret = gst_vdec_base_format_change(self);
-            break;
+            return;
         case GST_CODEC_EOS:
             flow_ret = gst_vdec_base_codec_eos(self);
             break;
