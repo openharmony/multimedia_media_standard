@@ -213,7 +213,7 @@ int32_t AVCodecServer::ReleaseOutputBuffer(uint32_t index, bool render)
 int32_t AVCodecServer::SetParameter(const Format &format)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_RUNNING, MSERR_INVALID_OPERATION, "invalid state");
+    CHECK_AND_RETURN_RET_LOG(status_ != AVCODEC_INITIALIZED, MSERR_INVALID_OPERATION, "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     return codecEngine_->SetParameter(format);
 }

@@ -283,12 +283,6 @@ int32_t AVCodecEngineCtrl::SetParameter(const Format &format)
     CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);
     CHECK_AND_RETURN_RET(sink_->SetParameter(format) == MSERR_OK, MSERR_UNKNOWN);
 
-    CHECK_AND_RETURN_RET(codecBin_ != nullptr, MSERR_UNKNOWN);
-    int32_t value = 0;
-    if (format.GetIntValue("req_i_frame", value) == true) {
-        g_object_set(codecBin_, "req-i-frame", value, nullptr);
-    }
-
     MEDIA_LOGD("SetParameter success");
     return MSERR_OK;
 }
