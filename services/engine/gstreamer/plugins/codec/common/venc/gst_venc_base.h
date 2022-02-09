@@ -54,6 +54,9 @@ struct _GstVencBasePort {
     guint buffer_size;
     std::shared_ptr<OHOS::Media::AVSharedMemoryPool> av_shmem_pool;
     GstShMemAllocator *allocator;
+    gint64 frame_cnt;
+    gint64 first_frame_time;
+    gint64 last_frame_time;
 };
 
 struct _GstVencBase {

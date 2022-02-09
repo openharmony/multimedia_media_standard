@@ -132,6 +132,12 @@ static void gst_vdec_base_init(GstVdecBase *self)
     self->coding_outbuf_cnt = 0;
     gst_allocation_params_init(&self->input.allocParams);
     gst_allocation_params_init(&self->output.allocParams);
+    self->input.frame_cnt = 0;
+    self->input.first_frame_time = 0;
+    self->input.last_frame_time = 0;
+    self->output.frame_cnt = 0;
+    self->output.first_frame_time = 0;
+    self->output.last_frame_time = 0;
 }
 
 static void gst_vdec_base_finalize(GObject *object)
@@ -203,7 +209,13 @@ static gboolean gst_vdec_base_close(GstVideoDecoder *decoder)
 static gboolean gst_vdec_base_start(GstVideoDecoder *decoder)
 {
     GST_DEBUG_OBJECT(decoder, "Start");
-    (void)decoder;
+    GstVdecBase *self = GST_VDEC_BASE(decoder);
+    self->input.frame_cnt = 0;
+    self->input.first_frame_time = 0;
+    self->input.last_frame_time = 0;
+    self->output.frame_cnt = 0;
+    self->output.first_frame_time = 0;
+    self->output.last_frame_time = 0;
     return TRUE;
 }
 
@@ -505,6 +517,42 @@ static void gst_vdec_base_clean_all_frames(GstVideoDecoder *decoder)
     return;
 }
 
+static void gst_vdec_debug_input_time(GstVdecBase *self)
+{
+    if (self->input.first_frame_time == 0) {
+        self->input.first_frame_time = g_get_monotonic_time();
+    } else {
+        self->input.last_frame_time = g_get_monotonic_time();
+    }
+    self->input.frame_cnt++;
+    gint64 time_interval = self->input.last_frame_time - self->input.first_frame_time;
+    gint64 frame_cnt = self->input.frame_cnt - 1;
+    if (frame_cnt > 0) {
+        gint64 time_every_frame = time_interval / frame_cnt;
+        GST_DEBUG_OBJECT(self, "Decoder Input Time interval %" G_GINT64_FORMAT " us, frame count %" G_GINT64_FORMAT
+        " ,every frame time %" G_GINT64_FORMAT " us, frame rate %.9f", time_interval, self->input.frame_cnt,
+        time_every_frame, static_cast<double>(G_TIME_SPAN_SECOND)/static_cast<double>(time_every_frame));
+    }
+}
+
+static void gst_vdec_debug_output_time(GstVdecBase *self)
+{
+    if (self->output.first_frame_time == 0) {
+        self->output.first_frame_time = g_get_monotonic_time();
+    } else {
+        self->output.last_frame_time = g_get_monotonic_time();
+    }
+    self->output.frame_cnt++;
+    gint64 time_interval = self->output.last_frame_time - self->output.first_frame_time;
+    gint64 frame_cnt = self->output.frame_cnt - 1;
+    if (frame_cnt > 0) {
+        gint64 time_every_frame = time_interval / frame_cnt;
+        GST_DEBUG_OBJECT(self, "Decoder Output Time interval %" G_GINT64_FORMAT " us, frame count %" G_GINT64_FORMAT
+        " ,every frame time %" G_GINT64_FORMAT " us, frame rate %.9f", time_interval, self->output.frame_cnt,
+        time_every_frame, static_cast<double>(G_TIME_SPAN_SECOND)/static_cast<double>(time_every_frame));
+    }
+}
+
 static GstFlowReturn gst_vdec_base_handle_frame(GstVideoDecoder *decoder, GstVideoCodecFrame *frame)
 {
     GST_DEBUG_OBJECT(decoder, "Handle frame");
@@ -538,6 +586,7 @@ static GstFlowReturn gst_vdec_base_handle_frame(GstVideoDecoder *decoder, GstVid
         }
     }
     GST_VIDEO_DECODER_STREAM_UNLOCK(self);
+    gst_vdec_debug_input_time(self);
     gint codec_ret = self->decoder->PushInputBuffer(frame->input_buffer);
     GST_VIDEO_DECODER_STREAM_LOCK(self);
     GstFlowReturn ret = GST_FLOW_OK;
@@ -595,6 +644,7 @@ static GstFlowReturn push_output_buffer(GstVdecBase *self, GstBuffer *buffer)
     update_video_meta(self, buffer);
     GstVideoCodecFrame *frame = gst_vdec_base_new_frame();
     g_return_val_if_fail(frame != nullptr, GST_FLOW_ERROR);
+    gst_vdec_debug_output_time(self);
 
     if (self->first_frame) {
         GstMessage *msg_resolution_changed = nullptr;
@@ -818,6 +868,7 @@ static gboolean gst_vdec_base_set_format(GstVideoDecoder *decoder, GstVideoCodec
         self->width = info->width;
         self->height = GST_VIDEO_INFO_FIELD_HEIGHT(info);
         self->frame_rate  = info->fps_n;
+        GST_DEBUG_OBJECT(self, "width: %d, height: %d, frame_rate: %d", self->width, self->height, self->frame_rate);
     }
 
     GST_DEBUG_OBJECT(self, "Setting inport definition");
