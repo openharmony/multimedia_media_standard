@@ -368,6 +368,14 @@ static gboolean add_element_to_bin(GstCodecBin *bin)
     return gst_bin_add(GST_BIN_CAST(bin), bin->sink);
 }
 
+static gboolean operate_element(GstCodecBin *bin)
+{
+    g_return_val_if_fail(bin != nullptr, FALSE);
+    g_return_val_if_fail(bin->sink != nullptr, FALSE);
+    g_object_set(bin->sink, "sync", FALSE, nullptr);
+    return TRUE;
+}
+
 static GstStateChangeReturn gst_codec_bin_change_state(GstElement *element, GstStateChange transition)
 {
     GstCodecBin *bin = GST_CODEC_BIN(element);
@@ -384,6 +392,10 @@ static GstStateChangeReturn gst_codec_bin_change_state(GstElement *element, GstS
             if (bin->is_start == FALSE) {
                 if (add_element_to_bin(bin) == FALSE) {
                     GST_ERROR_OBJECT(bin, "Failed to add_element_to_bin");
+                    return GST_STATE_CHANGE_FAILURE;
+                }
+                if (operate_element(bin) == FALSE) {
+                    GST_ERROR_OBJECT(bin, "Failed to operate_element");
                     return GST_STATE_CHANGE_FAILURE;
                 }
                 if (connect_element(bin) == FALSE) {
