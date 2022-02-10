@@ -117,6 +117,10 @@ int32_t AVCodecEngineCtrl::Start()
         flushAtStart_ = false;
     }
 
+    if (useSurfaceInput_ && sink_ != nullptr && sink_->IsEos()) {
+        CHECK_AND_RETURN_RET(Flush() == MSERR_OK, MSERR_INVALID_OPERATION);
+    }
+
     GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(gstPipeline_), GST_STATE_PLAYING);
     CHECK_AND_RETURN_RET(ret != GST_STATE_CHANGE_FAILURE, MSERR_UNKNOWN);
     if (ret == GST_STATE_CHANGE_ASYNC) {
