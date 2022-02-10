@@ -145,7 +145,7 @@ int32_t AudioSinkSvImpl::Start()
 {
     MEDIA_LOGD("audioRenderer Start In");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
-    CHECK_AND_RETURN_RET(audioRenderer_->Start() == true, MSERR_UNKNOWN);
+    (void)audioRenderer_->Start();
     MEDIA_LOGD("audioRenderer Start Out");
     return MSERR_OK;
 }
@@ -154,7 +154,7 @@ int32_t AudioSinkSvImpl::Stop()
 {
     MEDIA_LOGD("audioRenderer Stop In");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
-    CHECK_AND_RETURN_RET(audioRenderer_->Stop() == true, MSERR_UNKNOWN);
+    (void)audioRenderer_->Stop();
     MEDIA_LOGD("audioRenderer Stop Out");
     return MSERR_OK;
 }
@@ -188,7 +188,7 @@ int32_t AudioSinkSvImpl::Release()
 {
     MEDIA_LOGD("audioRenderer Release In");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
-    CHECK_AND_RETURN_RET(audioRenderer_->Release() == true, MSERR_UNKNOWN);
+    (void)audioRenderer_->Release();
     audioRenderer_ = nullptr;
     MEDIA_LOGD("audioRenderer Release Out");
     return MSERR_OK;
