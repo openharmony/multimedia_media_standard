@@ -50,6 +50,7 @@ config("media_service_config") {
     "avcodec/server",
     "avcodeclist/ipc",
     "avcodeclist/server",
+    "//base/security/access_token/interfaces/innerkits/access_token/include",
     "//foundation/multimedia/media_standard/services/include",
     "//foundation/multimedia/media_standard/services/services/factory",
     "//foundation/multimedia/media_standard/services/services/engine_intf",
@@ -109,6 +110,7 @@ ohos_shared_library("media_service") {
   ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
     "bytrace_standard:bytrace_core",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
