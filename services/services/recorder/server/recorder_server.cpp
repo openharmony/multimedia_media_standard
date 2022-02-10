@@ -76,7 +76,7 @@ bool RecorderServer::CheckPermission()
 {
     Security::AccessToken::AccessTokenID tokenCaller = IPCSkeleton::GetCallingTokenID();
     int result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(tokenCaller, "ohos.permission.MICROPHONE");
-    if( result == Security::AccessToken::PERMISSION_GRANTED) {
+    if (result == Security::AccessToken::PERMISSION_GRANTED) {
         MEDIA_LOGI("user have the right to access MICROPHONE!");
         return true;
     } else {
