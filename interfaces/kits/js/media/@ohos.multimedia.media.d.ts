@@ -42,42 +42,6 @@ declare namespace media {
   function createAudioRecorder(): AudioRecorder;
 
   /**
-   * Creates an AudioPlayer instance.
-   * @since 8
-   * @SysCap SystemCapability.Multimedia.Media
-   * @import import media from '@ohos.multimedia.media'
-   * @param callback Callback used to return AudioPlayer instance if the operation is successful; returns null otherwise.
-   */
-  function createAudioPlayerAsync(callback: AsyncCallback<AudioPlayer>): void;
-
-  /**
-   * Creates an AudioPlayer instance.
-   * @since 8
-   * @SysCap SystemCapability.Multimedia.Media
-   * @import import media from '@ohos.multimedia.media'
-   * @return A Promise instance used to return AudioPlayer instance if the operation is successful; returns null otherwise.
-   */
-  function createAudioPlayerAsync() : Promise<AudioPlayer>;
-
-  /**
-   * Creates an AudioRecorder instance.
-   * @since 6
-   * @SysCap SystemCapability.Multimedia.Media
-   * @import import media from '@ohos.multimedia.media'
-   * @param callback Callback used to return AudioRecorder instance if the operation is successful; returns null otherwise.
-   */
-  function createAudioRecorderAsync(callback: AsyncCallback<AudioRecorder>): void;
-
-  /**
-   * Creates an AudioRecorder instance.
-   * @since 6
-   * @SysCap SystemCapability.Multimedia.Media
-   * @import import media from '@ohos.multimedia.media'
-   * @return A Promise instance used to return AudioRecorder instance if the operation is successful; returns null otherwise.
-   */
-  function createAudioRecorderAsync(): Promise<AudioRecorder>;
-
-  /**
    * Creates an VideoRecorder instance.
    * @since 8
    * @SysCap SystemCapability.Multimedia.Media
