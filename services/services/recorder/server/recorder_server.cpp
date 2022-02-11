@@ -80,11 +80,9 @@ bool RecorderServer::CheckPermission()
         MEDIA_LOGI("user have the right to access MICROPHONE!");
         return true;
     } else {
-        MEDIA_LOGI("user do not have the right to access MICROPHONE!");
+        MEDIA_LOGE("user do not have the right to access MICROPHONE!");
         return false;
     }
-
-    return false;
 }
 
 void RecorderServer::OnError(ErrorType errorType, int32_t errorCode)
@@ -173,7 +171,8 @@ int32_t RecorderServer::SetAudioSource(AudioSourceType source, int32_t &sourceId
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
 
     if (!CheckPermission()) {
-        return MSERR_UNSUPPORT_AUD_SRC_TYPE;
+        MEDIA_LOGE("Permission check failed!");
+        return MSERR_INVALID_VAL;
     }
 
     return recorderEngine_->SetAudioSource(source, sourceId);
