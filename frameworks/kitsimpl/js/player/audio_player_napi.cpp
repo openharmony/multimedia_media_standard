@@ -76,7 +76,6 @@ napi_value AudioPlayerNapi::Init(napi_env env, napi_value exports)
 
     napi_property_descriptor staticProperty[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createAudioPlayer", CreateAudioPlayer),
-        DECLARE_NAPI_STATIC_FUNCTION("createAudioPlayerAsync", CreateAudioPlayerAsync),
     };
 
     napi_value constructor = nullptr;
