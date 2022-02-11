@@ -16,6 +16,7 @@
 #include "video_encoder_napi.h"
 #include <climits>
 #include "avcodec_napi_utils.h"
+#include "media_capability_utils.h"
 #include "media_log.h"
 #include "media_errors.h"
 #include "surface_utils.h"
@@ -792,23 +793,25 @@ napi_value VideoEncoderNapi::GetVideoEncoderCaps(napi_env env, napi_callback_inf
         asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to napi_get_cb_info");
     }
 
+    VideoEncoderNapi *napi = nullptr;
+    (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&napi));
+    std::string name = "";
+    if (napi->venc_ != nullptr) {
+        Format format;
+        (void)napi->venc_->GetOutputFormat(format);
+        (void)format.GetStringValue("plugin_name", name);
+    } else {
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to unwrap");
+    }
+
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
-
-    (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
+    asyncCtx->JsResult = std::make_unique<MediaJsVideoCapsDynamic>(name, false);
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "GetVideoEncoderCaps", NAPI_AUTO_LENGTH, &resource);
-    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
-        [](napi_env env, void* data) {
-            auto asyncCtx = reinterpret_cast<VideoEncoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
-                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
-                return;
-            }
-        },
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, [](napi_env env, void* data) {},
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
-
     NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
     asyncCtx.release();
 
