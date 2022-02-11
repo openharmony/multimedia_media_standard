@@ -209,29 +209,25 @@ bool AVCodecNapiUtil::ExtractMediaFormat(napi_env env, napi_value mediaFormat, F
     bool exist = false;
     napi_value item = nullptr;
     for (auto it = FORMAT.begin(); it != FORMAT.end(); it++) {
+        if (napi_has_named_property(env, mediaFormat, it->first.c_str(), &exist) != napi_ok || !exist) {
+            continue;
+        }
+        CHECK_AND_CONTINUE(napi_get_named_property(env, mediaFormat, it->first.c_str(), &item) == napi_ok);
+
         if (it->second == FORMAT_TYPE_STRING) {
-            if (napi_has_named_property(env, mediaFormat, it->first.c_str(), &exist) == napi_ok && exist) {
-                CHECK_AND_CONTINUE(napi_get_named_property(env, mediaFormat, it->first.c_str(), &item) == napi_ok);
-                format.PutStringValue(it->first, CommonNapi::GetStringArgument(env, item));
-            }
+            format.PutStringValue(it->first, CommonNapi::GetStringArgument(env, item));
         } else if (it->second == FORMAT_TYPE_INT32) {
-            if (napi_has_named_property(env, mediaFormat, it->first.c_str(), &exist) == napi_ok && exist) {
-                CHECK_AND_CONTINUE(napi_get_named_property(env, mediaFormat, it->first.c_str(), &item) == napi_ok);
-                int32_t result = 0;
-                (void)napi_get_value_int32(env, item, &result);
-                format.PutIntValue(it->first, result);
-            }
+            int32_t result = 0;
+            (void)napi_get_value_int32(env, item, &result);
+            format.PutIntValue(it->first, result);
         } else if (it->second == FORMAT_TYPE_DOUBLE) {
-            if (napi_has_named_property(env, mediaFormat, it->first.c_str(), &exist) == napi_ok && exist) {
-                CHECK_AND_CONTINUE(napi_get_named_property(env, mediaFormat, it->first.c_str(), &item) == napi_ok);
-                double result = 0;
-                (void)napi_get_value_double(env, item, &result);
-                if (it->first == "frame_rate") {
-                    double frameRate = round(result);
-                    format.PutIntValue(it->first, static_cast<int32_t>(frameRate));
-                } else {
-                    format.PutDoubleValue(it->first, result);
-                }
+            double result = 0;
+            (void)napi_get_value_double(env, item, &result);
+            if (it->first == "frame_rate") {
+                double frameRate = round(result);
+                format.PutIntValue(it->first, static_cast<int32_t>(frameRate));
+            } else {
+                format.PutDoubleValue(it->first, result);
             }
         }
     }
