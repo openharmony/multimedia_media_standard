@@ -73,13 +73,12 @@ void VEncDemo::RunCase(bool enableProp)
     DEMO_CHECK_AND_RETURN_LOG(Start() == MSERR_OK, "Fatal: Start fail");
 
     if (enableProp) {
-        DEMO_CHECK_AND_RETURN_LOG(SetParameter(1, 0, 0) == MSERR_OK, "Fatal: Set suspend fail");
-        GenerateData(DEFAULT_FRAME_COUNT, DEFAULT_FRAME_RATE);
-
         DEMO_CHECK_AND_RETURN_LOG(SetParameter(0, DEFAULT_FRAME_RATE, REPEAT_FRAME_AFTER_MS) == MSERR_OK,
             "Fatal: SetParameter fail");
         GenerateData(DEFAULT_FRAME_COUNT, FAST_PRODUCER);
         GenerateData(DEFAULT_FRAME_COUNT, SLOW_PRODUCER);
+        DEMO_CHECK_AND_RETURN_LOG(SetParameter(1, 0, 0) == MSERR_OK, "Fatal: Set suspend fail");
+        GenerateData(DEFAULT_FRAME_COUNT, DEFAULT_FRAME_RATE);
     } else {
         GenerateData(DEFAULT_FRAME_COUNT, DEFAULT_FRAME_RATE);
     }
@@ -111,7 +110,6 @@ void VEncDemo::GenerateData(uint32_t count, uint32_t fps)
         }
         DEMO_CHECK_AND_BREAK_LOG(memset_s(addr, buffer->GetSize(), 0xFF, YUV_BUFFER_SIZE) == EOK, "Fatal");
         (void)buffer->ExtraSet("timestampNs_", timestampNs_);
-
         timestampNs_ += intervalUs * 1000; // us to ns
 
         (void)surface_->FlushBuffer(buffer, -1, g_flushConfig);
