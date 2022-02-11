@@ -61,6 +61,7 @@ static void gst_surface_pool_src_destroy_pool(GstSurfacePoolSrc *src);
 static gboolean gst_surface_pool_src_decide_allocation(GstBaseSrc *basesrc, GstQuery *query);
 static GstFlowReturn gst_surface_pool_src_fill(GstBaseSrc *src, guint64 offset, guint size, GstBuffer *buf);
 static void gst_surface_pool_src_init_surface(GstSurfacePoolSrc *src);
+static gboolean gst_surface_pool_src_send_event(GstElement *element, GstEvent *event);
 
 static void gst_surface_pool_src_class_init(GstSurfacePoolSrcClass *klass)
 {
@@ -82,6 +83,7 @@ static void gst_surface_pool_src_class_init(GstSurfacePoolSrcClass *klass)
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
     gstelement_class->change_state = gst_surface_pool_src_change_state;
+    gstelement_class->send_event = gst_surface_pool_src_send_event;
     gstbasesrc_class->fill = gst_surface_pool_src_fill;
     gstbasesrc_class->decide_allocation = gst_surface_pool_src_decide_allocation;
     gst_element_class_set_static_metadata(gstelement_class,
@@ -96,6 +98,8 @@ static void gst_surface_pool_src_init(GstSurfacePoolSrc *surfacesrc)
     g_return_if_fail(surfacesrc != nullptr);
     surfacesrc->pool = nullptr;
     surfacesrc->stride = STRIDE_ALIGN;
+    surfacesrc->need_flush = FALSE;
+    surfacesrc->flushing = FALSE;
 }
 
 static void gst_surface_pool_src_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
@@ -164,6 +168,9 @@ static GstStateChangeReturn gst_surface_pool_src_change_state(GstElement *elemen
         case GST_STATE_CHANGE_READY_TO_NULL:
             gst_surface_pool_src_destroy_pool(surfacesrc);
             gst_surface_pool_src_destroy_surface(surfacesrc);
+            GST_OBJECT_LOCK(surfacesrc);
+            surfacesrc->need_flush = FALSE;
+            GST_OBJECT_UNLOCK(surfacesrc);
             break;
         default:
             break;
@@ -186,6 +193,36 @@ static gboolean gst_surface_pool_src_create_surface(GstSurfacePoolSrc *surfacesr
 
     GST_DEBUG_OBJECT(surfacesrc, "create surface");
     return TRUE;
+}
+
+static gboolean gst_surface_pool_src_send_event(GstElement *element, GstEvent *event)
+{
+    GstSurfacePoolSrc *surfacesrc = GST_SURFACE_POOL_SRC(element);
+    g_return_val_if_fail(surfacesrc != nullptr, FALSE);
+    g_return_val_if_fail(event != nullptr, FALSE);
+    GST_DEBUG_OBJECT(surfacesrc, "New event %s", GST_EVENT_TYPE_NAME(event));
+
+    switch (GST_EVENT_TYPE(event)) {
+        case GST_EVENT_FLUSH_START:
+            if (surfacesrc->need_flush == FALSE) {
+                GST_DEBUG_OBJECT(surfacesrc, "No need flushing");
+                surfacesrc->flushing = FALSE;
+                return TRUE;
+            }
+            surfacesrc->flushing = TRUE;
+            break;
+        case GST_EVENT_FLUSH_STOP:
+            if (surfacesrc->flushing == FALSE) {
+                GST_DEBUG_OBJECT(surfacesrc, "No flush start");
+                return TRUE;
+            }
+            surfacesrc->flushing = FALSE;
+            break;
+        default:
+            break;
+    }
+
+    return GST_ELEMENT_CLASS(parent_class)->send_event(element, event);
 }
 
 static gboolean gst_surface_pool_src_create_pool(GstSurfacePoolSrc *surfacesrc)
@@ -348,6 +385,9 @@ static gboolean gst_surface_pool_src_decide_allocation(GstBaseSrc *basesrc, GstQ
 {
     GstSurfacePoolSrc *surfacesrc = GST_SURFACE_POOL_SRC(basesrc);
     g_return_val_if_fail(basesrc != nullptr && query != nullptr, FALSE);
+    GST_OBJECT_LOCK(surfacesrc);
+    surfacesrc->need_flush = TRUE;
+    GST_OBJECT_UNLOCK(surfacesrc);
     GstCaps *outcaps = nullptr;
     GstBufferPool *pool = nullptr;
     guint size = 0;

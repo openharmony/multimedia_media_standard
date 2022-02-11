@@ -41,6 +41,8 @@ struct _GstSurfacePoolSrc {
     OHOS::sptr<OHOS::Surface> producerSurface;
     GstBufferPool *pool;
     guint stride;
+    gboolean need_flush;
+    gboolean flushing;
 };
 
 struct _GstSurfacePoolSrcClass {
