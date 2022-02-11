@@ -1117,8 +1117,7 @@ declare namespace media {
     MD_KEY_HEIGHT = "height",
 
     /**
-     * key for video frame rate, value type is number,The value is 100 times the actual frame rate.
-     * example: The real frame rate is 23.99, so this value is 2399.
+     * key for video frame rate, value type is number.
      */
     MD_KEY_FRAME_RATE = "frame_rate",
 
