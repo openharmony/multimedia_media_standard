@@ -37,6 +37,7 @@ public:
     std::shared_ptr<AVSharedMemory> GetOutputBuffer(uint32_t index) override;
     int32_t ReleaseOutputBuffer(uint32_t index, bool render = false) override;
     int32_t SetCallback(const std::weak_ptr<IAVCodecEngineObs> &obs) override;
+    bool IsEos() override;
 
 private:
     static void EosCb(GstMemSink *memSink, gpointer userData);
@@ -50,6 +51,7 @@ private:
     std::weak_ptr<IAVCodecEngineObs> obs_;
     bool isFirstFrame_ = true;
     Format bufferFormat_;
+    bool isEos_ = false;
 };
 } // Media
 } // OHOS
