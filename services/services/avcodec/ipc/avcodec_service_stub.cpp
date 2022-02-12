@@ -136,8 +136,8 @@ int32_t AVCodecServiceStub::Init()
 int32_t AVCodecServiceStub::DestroyStub()
 {
     codecServer_ = nullptr;
-    inputBufferCache_ = nullptr;
     outputBufferCache_ = nullptr;
+    inputBufferCache_ = nullptr;
 
     MediaServerManager::GetInstance().DestroyStubObject(MediaServerManager::AVCODEC, AsObject());
     return MSERR_OK;
