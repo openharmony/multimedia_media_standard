@@ -174,7 +174,7 @@ bool RecorderServer::GetSystemParam()
     }
     MEDIA_LOGD("sys.media.audioSource.permission =%{public}s", permissionEnable.c_str());
     if (permissionEnable == "true") {
-        return ture;
+        return true;
     }
     return false;
 }
