@@ -164,15 +164,32 @@ sptr<OHOS::Surface> RecorderServer::GetSurface(int32_t sourceId)
     return recorderEngine_->GetSurface(sourceId);
 }
 
+bool RecorderServer::GetSystemParam()
+{
+    std::string permissionEnable;
+    int32_t res = OHOS::system::GetStringParameter("sys.media.audioSource.permission", permissionEnable, "");
+    if (res != 0 || permissionEnable.empty()) {
+        MEDIA_LOGD("sys.media.audioSource.permission is false");
+        return false;
+    }
+    MEDIA_LOGD("sys.media.audioSource.permission =%{public}s", permissionEnable.c_str());
+    if (permissionEnable == "true") {
+        return ture;
+    }
+    return false;
+}
+
 int32_t RecorderServer::SetAudioSource(AudioSourceType source, int32_t &sourceId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_INITIALIZED, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
 
-    if (!CheckPermission()) {
-        MEDIA_LOGE("Permission check failed!");
-        return MSERR_INVALID_VAL;
+    if (GetSystemParam() == true) {
+        if (!CheckPermission()) {
+            MEDIA_LOGE("Permission check failed!");
+            return MSERR_INVALID_VAL;
+        }
     }
 
     return recorderEngine_->SetAudioSource(source, sourceId);
