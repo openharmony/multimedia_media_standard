@@ -49,6 +49,10 @@ public:
 
 private:
     static inline BrokerDelegator<AVCodecServiceProxy> delegator_;
+
+    class AVCodecBufferCache;
+    std::unique_ptr<AVCodecBufferCache> inputBufferCache_;
+    std::unique_ptr<AVCodecBufferCache> outputBufferCache_;
 };
 }
 } // namespace OHOS

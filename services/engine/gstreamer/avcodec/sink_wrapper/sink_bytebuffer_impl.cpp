@@ -73,6 +73,7 @@ int32_t SinkBytebufferImpl::Flush()
             (*it)->mem_ = nullptr;
         }
     }
+    bufferList_.clear();
     isFirstFrame_ = true;
     return MSERR_OK;
 }

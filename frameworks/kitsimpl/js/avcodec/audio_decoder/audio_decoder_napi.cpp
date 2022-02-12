@@ -111,9 +111,10 @@ napi_value AudioDecoderNapi::Constructor(napi_env env, napi_callback_info info)
         adecNapi->adec_ = AudioDecoderFactory::CreateByName(name);
     }
     CHECK_AND_RETURN_RET(adecNapi->adec_ != nullptr, result);
+    adecNapi->codecHelper_ = std::make_shared<AVCodecNapiHelper>();
 
     if (adecNapi->callback_ == nullptr) {
-        adecNapi->callback_ = std::make_shared<AudioDecoderCallbackNapi>(env, adecNapi->adec_);
+        adecNapi->callback_ = std::make_shared<AudioDecoderCallbackNapi>(env, adecNapi->adec_, adecNapi->codecHelper_);
         (void)adecNapi->adec_->SetCallback(adecNapi->callback_);
     }
 
@@ -331,6 +332,7 @@ napi_value AudioDecoderNapi::Start(napi_env env, napi_callback_info info)
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Start", NAPI_AUTO_LENGTH, &resource);
+    asyncCtx->napi->codecHelper_->SetStop(false);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<AudioDecoderAsyncContext *>(data);
@@ -373,6 +375,8 @@ napi_value AudioDecoderNapi::Stop(napi_env env, napi_callback_info info)
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Stop", NAPI_AUTO_LENGTH, &resource);
+    asyncCtx->napi->codecHelper_->SetStop(true);
+    asyncCtx->napi->codecHelper_->SetEos(false);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<AudioDecoderAsyncContext *>(data);
@@ -415,6 +419,8 @@ napi_value AudioDecoderNapi::Flush(napi_env env, napi_callback_info info)
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Flush", NAPI_AUTO_LENGTH, &resource);
+    asyncCtx->napi->codecHelper_->SetEos(false);
+    asyncCtx->napi->codecHelper_->SetFlushing(true);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<AudioDecoderAsyncContext *>(data);
@@ -424,6 +430,9 @@ napi_value AudioDecoderNapi::Flush(napi_env env, napi_callback_info info)
             }
             if (asyncCtx->napi->adec_->Flush() != MSERR_OK) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to Flush");
+            }
+            if (asyncCtx->napi->codecHelper_ != nullptr) {
+                asyncCtx->napi->codecHelper_->SetFlushing(false);
             }
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
@@ -457,6 +466,8 @@ napi_value AudioDecoderNapi::Reset(napi_env env, napi_callback_info info)
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Reset", NAPI_AUTO_LENGTH, &resource);
+    asyncCtx->napi->codecHelper_->SetStop(true);
+    asyncCtx->napi->codecHelper_->SetEos(false);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<AudioDecoderAsyncContext *>(data);
@@ -499,6 +510,8 @@ napi_value AudioDecoderNapi::Release(napi_env env, napi_callback_info info)
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Release", NAPI_AUTO_LENGTH, &resource);
+    asyncCtx->napi->codecHelper_->SetStop(true);
+    asyncCtx->napi->codecHelper_->SetEos(false);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<AudioDecoderAsyncContext *>(data);
@@ -545,6 +558,15 @@ napi_value AudioDecoderNapi::QueueInput(napi_env env, napi_callback_info info)
 
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
 
+    if (asyncCtx->napi->codecHelper_->IsEos() || asyncCtx->napi->codecHelper_->IsStop() ||
+        asyncCtx->napi->codecHelper_->IsFlushing()) {
+            MEDIA_LOGD("Eos or stop or flushing, queue buffer failed");
+            return result;
+        }
+    if (asyncCtx->flag & AVCODEC_BUFFER_FLAG_EOS) {
+        asyncCtx->napi->codecHelper_->SetEos(true);
+    }
+
     if (asyncCtx->index < 0 || asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
         asyncCtx->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "nullptr");
     } else {
@@ -590,6 +612,11 @@ napi_value AudioDecoderNapi::ReleaseOutput(napi_env env, napi_callback_info info
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
+
+    if (asyncCtx->napi->codecHelper_->IsStop() || asyncCtx->napi->codecHelper_->IsFlushing()) {
+        MEDIA_LOGD("Stop already or flushing, release output failed");
+        return result;
+    }
 
     if (asyncCtx->index < 0 || asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
         asyncCtx->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "nullptr");

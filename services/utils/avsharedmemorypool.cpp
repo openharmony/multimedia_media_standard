@@ -197,7 +197,7 @@ std::shared_ptr<AVSharedMemory> AVSharedMemoryPool::AcquireMemory(int32_t size, 
     } while (inited_ && !forceNonBlocking_);
 
     if (memory == nullptr) {
-        MEDIA_LOGE("acquire memory failed for size: %{public}d", size);
+        MEDIA_LOGD("acquire memory failed for size: %{public}d", size);
         return nullptr;
     }
 
