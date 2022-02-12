@@ -193,6 +193,7 @@ int32_t AVCodecServiceProxy::Flush()
     MessageParcel reply;
     MessageOption option;
     int32_t ret = Remote()->SendRequest(FLUSH, data, reply, option);
+
     if (inputBufferCache_ != nullptr) {
         inputBufferCache_->ClearCache();
     }
@@ -212,6 +213,7 @@ int32_t AVCodecServiceProxy::Reset()
 {
     inputBufferCache_ = nullptr;
     outputBufferCache_ = nullptr;
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -227,6 +229,7 @@ int32_t AVCodecServiceProxy::Release()
 {
     inputBufferCache_ = nullptr;
     outputBufferCache_ = nullptr;
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -414,6 +417,7 @@ int32_t AVCodecServiceProxy::DestroyStub()
 {
     inputBufferCache_ = nullptr;
     outputBufferCache_ = nullptr;
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -422,6 +426,7 @@ int32_t AVCodecServiceProxy::DestroyStub()
         MEDIA_LOGE("destroy failed, error: %{public}d", ret);
         return ret;
     }
+
     return reply.ReadInt32();
 }
 } // namespace Media

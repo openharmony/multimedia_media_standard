@@ -115,7 +115,7 @@ void AudioDecoderCallbackNapi::OnInputBufferAvailable(uint32_t index)
     CHECK_AND_RETURN(adec != nullptr);
 
     if (codecHelper_->IsEos() || codecHelper_->IsStop()) {
-        MEDIA_LOGD("At eos or stop, not buffer available");
+        MEDIA_LOGD("At eos or stop, no buffer available");
         return;
     }
 

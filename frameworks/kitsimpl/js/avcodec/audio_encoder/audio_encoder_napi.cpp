@@ -560,9 +560,9 @@ napi_value AudioEncoderNapi::QueueInput(napi_env env, napi_callback_info info)
 
     if (asyncCtx->napi->codecHelper_->IsEos() || asyncCtx->napi->codecHelper_->IsStop() ||
         asyncCtx->napi->codecHelper_->IsFlushing()) {
-            MEDIA_LOGD("Eos or stop or flushing, queue buffer failed");
-            return result;
-        }
+        MEDIA_LOGD("Eos or stop or flushing, queue buffer failed");
+        return result;
+    }
     if (asyncCtx->flag & AVCODEC_BUFFER_FLAG_EOS) {
         asyncCtx->napi->codecHelper_->SetEos(true);
     }
