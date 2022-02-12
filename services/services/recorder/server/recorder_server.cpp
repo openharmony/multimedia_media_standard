@@ -17,6 +17,7 @@
 #include "media_log.h"
 #include "media_errors.h"
 #include "engine_factory_repo.h"
+#include "param_wrapper.h"
 #include "accesstoken_kit.h"
 #include "ipc_skeleton.h"
 
