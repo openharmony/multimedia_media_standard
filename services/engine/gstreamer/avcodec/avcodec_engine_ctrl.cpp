@@ -112,7 +112,8 @@ int32_t AVCodecEngineCtrl::Start()
 {
     CHECK_AND_RETURN_RET(gstPipeline_ != nullptr, MSERR_UNKNOWN);
 
-    if (flushAtStart_) {
+    CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);
+    if (flushAtStart_ || sink_->IsEos()) {
         CHECK_AND_RETURN_RET(Flush() == MSERR_OK, MSERR_INVALID_OPERATION);
         flushAtStart_ = false;
     }
