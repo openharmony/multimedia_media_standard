@@ -594,6 +594,7 @@ napi_value VideoDecoderNapi::ReleaseOutput(napi_env env, napi_callback_info info
     } else {
         asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
     }
+    CHECK_AND_RETURN_RET_LOG(asyncCtx->index >= 0, result, "Failed to check index");
 
     valueType = napi_undefined;
     if (args[1] != nullptr && napi_typeof(env, args[1], &valueType) == napi_ok && valueType == napi_boolean) {
@@ -607,6 +608,10 @@ napi_value VideoDecoderNapi::ReleaseOutput(napi_env env, napi_callback_info info
 
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
 
+    if (asyncCtx->napi->vdec_->ReleaseOutputBuffer(asyncCtx->index, asyncCtx->isRender) != MSERR_OK) {
+        asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to ReleaseOutput");
+    }
+
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "ReleaseOutput", NAPI_AUTO_LENGTH, &resource);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
@@ -615,10 +620,6 @@ napi_value VideoDecoderNapi::ReleaseOutput(napi_env env, napi_callback_info info
             if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->vdec_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
-            }
-            CHECK_AND_RETURN(asyncCtx->index >= 0);
-            if (asyncCtx->napi->vdec_->ReleaseOutputBuffer(asyncCtx->index, asyncCtx->isRender) != MSERR_OK) {
-                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to ReleaseOutput");
             }
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
