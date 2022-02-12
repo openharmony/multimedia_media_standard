@@ -594,7 +594,6 @@ napi_value VideoDecoderNapi::ReleaseOutput(napi_env env, napi_callback_info info
     } else {
         asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
     }
-    CHECK_AND_RETURN_RET_LOG(asyncCtx->index >= 0, result, "Failed to check index");
 
     valueType = napi_undefined;
     if (args[1] != nullptr && napi_typeof(env, args[1], &valueType) == napi_ok && valueType == napi_boolean) {
@@ -602,6 +601,7 @@ napi_value VideoDecoderNapi::ReleaseOutput(napi_env env, napi_callback_info info
     } else {
         asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
     }
+    CHECK_AND_RETURN_RET_LOG(asyncCtx->index >= 0, result, "Failed to check index");
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[2]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
