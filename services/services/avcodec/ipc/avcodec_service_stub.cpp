@@ -28,6 +28,63 @@ namespace {
 
 namespace OHOS {
 namespace Media {
+class AVCodecServiceStub::AVCodecBufferCache {
+public:
+    AVCodecBufferCache() = default;
+    ~AVCodecBufferCache() = default;
+
+    int32_t WriteToParcel(uint32_t index, const std::shared_ptr<AVSharedMemory> &memory, MessageParcel &parcel)
+    {
+        CacheFlag flag = CacheFlag::UPDATE_CACHE;
+
+        if (memory == nullptr || memory->GetBase() == nullptr) {
+            MEDIA_LOGE("invalid memory for index: %{public}u", index);
+            flag = CacheFlag::INVALIDATE_CACHE;
+            parcel.WriteUint8(flag);
+            auto iter = caches_.find(index);
+            if (iter != caches_.end()) {
+                iter->second = nullptr;
+                caches_.erase(iter);
+            }
+            return MSERR_OK;
+        }
+
+        auto iter = caches_.find(index);
+        if (iter != caches_.end() && iter->second == memory.get()) {
+            flag = CacheFlag::HIT_CACHE;
+            parcel.WriteUint8(flag);
+            return MSERR_OK;
+        }
+
+        if (iter == caches_.end()) {
+            MEDIA_LOGI("add cached codec buffer, index: %{public}u", index);
+            caches_.emplace(index, memory.get());
+        } else {
+            MEDIA_LOGI("update cached codec buffer, index: %{public}u", index);
+            iter->second = memory.get();
+        }
+
+        parcel.WriteUint8(flag);
+        return WriteAVSharedMemoryToParcel(memory, parcel);
+    }
+
+    void ClearCache()
+    {
+        caches_.clear();
+    }
+
+private:
+    DISALLOW_COPY_AND_MOVE(AVCodecBufferCache);
+
+    enum CacheFlag : uint8_t {
+        HIT_CACHE = 1,
+        UPDATE_CACHE,
+        INVALIDATE_CACHE,
+    };
+
+    std::unordered_map<uint32_t, AVSharedMemory *> caches_;
+};
+
 sptr<AVCodecServiceStub> AVCodecServiceStub::Create()
 {
     sptr<AVCodecServiceStub> codecStub = new(std::nothrow) AVCodecServiceStub();
@@ -79,6 +136,8 @@ int32_t AVCodecServiceStub::Init()
 int32_t AVCodecServiceStub::DestroyStub()
 {
     codecServer_ = nullptr;
+    inputBufferCache_ = nullptr;
+    outputBufferCache_ = nullptr;
 
     MediaServerManager::GetInstance().DestroyStubObject(MediaServerManager::AVCODEC, AsObject());
     return MSERR_OK;
@@ -133,6 +192,12 @@ int32_t AVCodecServiceStub::Configure(const Format &format)
 int32_t AVCodecServiceStub::Prepare()
 {
     CHECK_AND_RETURN_RET_LOG(codecServer_ != nullptr, MSERR_NO_MEMORY, "avcodec server is nullptr");
+    if (outputBufferCache_ == nullptr) {
+        outputBufferCache_ = std::make_unique<AVCodecBufferCache>();
+    }
+    if (inputBufferCache_ == nullptr) {
+        inputBufferCache_ = std::make_unique<AVCodecBufferCache>();
+    }
     return codecServer_->Prepare();
 }
 
@@ -151,18 +216,28 @@ int32_t AVCodecServiceStub::Stop()
 int32_t AVCodecServiceStub::Flush()
 {
     CHECK_AND_RETURN_RET_LOG(codecServer_ != nullptr, MSERR_NO_MEMORY, "avcodec server is nullptr");
+    if (inputBufferCache_ != nullptr) {
+        inputBufferCache_->ClearCache();
+    }
+    if (outputBufferCache_ != nullptr) {
+        outputBufferCache_->ClearCache();
+    }
     return codecServer_->Flush();
 }
 
 int32_t AVCodecServiceStub::Reset()
 {
     CHECK_AND_RETURN_RET_LOG(codecServer_ != nullptr, MSERR_NO_MEMORY, "avcodec server is nullptr");
+    inputBufferCache_ = nullptr;
+    outputBufferCache_ = nullptr;
     return codecServer_->Reset();
 }
 
 int32_t AVCodecServiceStub::Release()
 {
     CHECK_AND_RETURN_RET_LOG(codecServer_ != nullptr, MSERR_NO_MEMORY, "avcodec server is nullptr");
+    inputBufferCache_ = nullptr;
+    outputBufferCache_ = nullptr;
     return codecServer_->Release();
 }
 
@@ -323,12 +398,11 @@ int32_t AVCodecServiceStub::SetOutputSurface(MessageParcel &data, MessageParcel 
 
 int32_t AVCodecServiceStub::GetInputBuffer(MessageParcel &data, MessageParcel &reply)
 {
+    CHECK_AND_RETURN_RET(inputBufferCache_ != nullptr, MSERR_INVALID_OPERATION);
+
     uint32_t index = data.ReadUint32();
     auto buffer = GetInputBuffer(index);
-    if (buffer != nullptr) {
-        (void)WriteAVSharedMemoryToParcel(buffer, reply);
-    }
-    return MSERR_OK;
+    return inputBufferCache_->WriteToParcel(index, buffer, reply);
 }
 
 int32_t AVCodecServiceStub::QueueInputBuffer(MessageParcel &data, MessageParcel &reply)
@@ -345,12 +419,11 @@ int32_t AVCodecServiceStub::QueueInputBuffer(MessageParcel &data, MessageParcel 
 
 int32_t AVCodecServiceStub::GetOutputBuffer(MessageParcel &data, MessageParcel &reply)
 {
+    CHECK_AND_RETURN_RET(outputBufferCache_ != nullptr, MSERR_INVALID_OPERATION);
+
     uint32_t index = data.ReadUint32();
     auto buffer = GetOutputBuffer(index);
-    if (buffer != nullptr) {
-        (void)WriteAVSharedMemoryToParcel(buffer, reply);
-    }
-    return MSERR_OK;
+    return outputBufferCache_->WriteToParcel(index, buffer, reply);
 }
 
 int32_t AVCodecServiceStub::GetOutputFormat(MessageParcel &data, MessageParcel &reply)

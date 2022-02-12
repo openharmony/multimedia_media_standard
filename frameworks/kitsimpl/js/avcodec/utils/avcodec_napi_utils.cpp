@@ -53,18 +53,6 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-struct AvMemNapiWarp {
-    explicit AvMemNapiWarp(const std::shared_ptr<AVSharedMemory> &mem) : mem_(mem)
-    {
-        MEDIA_LOGD("0x%{public}06" PRIXPTR " AvMemNapiWarp Instances create", FAKE_POINTER(this));
-    };
-    ~AvMemNapiWarp()
-    {
-        MEDIA_LOGD("0x%{public}06" PRIXPTR " AvMemNapiWarp Instances destroy", FAKE_POINTER(this));
-    };
-    std::shared_ptr<AVSharedMemory> mem_;
-};
-
 napi_value AVCodecNapiUtil::CreateInputCodecBuffer(napi_env env, uint32_t index, std::shared_ptr<AVSharedMemory> mem)
 {
     CHECK_AND_RETURN_RET(mem != nullptr, nullptr);
@@ -83,16 +71,9 @@ napi_value AVCodecNapiUtil::CreateInputCodecBuffer(napi_env env, uint32_t index,
     status = napi_create_string_utf8(env, "data", NAPI_AUTO_LENGTH, &dataStr);
     CHECK_AND_RETURN_RET(status == napi_ok, nullptr);
 
-    AvMemNapiWarp *memWarp = new(std::nothrow) AvMemNapiWarp(mem);
-    CHECK_AND_RETURN_RET(memWarp != nullptr, nullptr);
     napi_value dataVal = nullptr;
     status = napi_create_external_arraybuffer(env, mem->GetBase(), static_cast<size_t>(mem->GetSize()),
-        [](napi_env env, void *data, void *hint) {
-            (void)env;
-            (void)data;
-            AvMemNapiWarp *memWarp = reinterpret_cast<AvMemNapiWarp *>(hint);
-            delete memWarp;
-        }, reinterpret_cast<void *>(memWarp), &dataVal);
+        [](napi_env env, void *data, void *hint) {}, nullptr, &dataVal);
     CHECK_AND_RETURN_RET(status == napi_ok, nullptr);
 
     status = napi_set_property(env, buffer, dataStr, dataVal);
@@ -127,15 +108,8 @@ napi_value AVCodecNapiUtil::CreateOutputCodecBuffer(napi_env env, uint32_t index
 
         CHECK_AND_RETURN_RET(memory->GetSize() > (info.offset + info.size), nullptr);
         napi_value dataVal = nullptr;
-        AvMemNapiWarp *memWarp = new(std::nothrow) AvMemNapiWarp(memory);
-        CHECK_AND_RETURN_RET(memWarp != nullptr, nullptr);
         status = napi_create_external_arraybuffer(env, memory->GetBase() + info.offset, info.size,
-            [](napi_env env, void *data, void *hint) {
-                (void)env;
-                (void)data;
-                AvMemNapiWarp *memWarp = reinterpret_cast<AvMemNapiWarp *>(hint);
-                delete memWarp;
-            }, reinterpret_cast<void *>(memWarp), &dataVal);
+            [](napi_env env, void *data, void *hint) {}, nullptr, &dataVal);
         CHECK_AND_RETURN_RET(status == napi_ok, nullptr);
 
         status = napi_set_property(env, buffer, dataStr, dataVal);

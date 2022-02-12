@@ -25,9 +25,11 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-AudioDecoderCallbackNapi::AudioDecoderCallbackNapi(napi_env env, std::weak_ptr<AudioDecoder> adec)
+AudioDecoderCallbackNapi::AudioDecoderCallbackNapi(napi_env env, std::weak_ptr<AudioDecoder> adec,
+    const std::shared_ptr<AVCodecNapiHelper>& codecHelper)
     : env_(env),
-      adec_(adec)
+      adec_(adec),
+      codecHelper_(codecHelper)
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
 }
@@ -112,8 +114,22 @@ void AudioDecoderCallbackNapi::OnInputBufferAvailable(uint32_t index)
     auto adec = adec_.lock();
     CHECK_AND_RETURN(adec != nullptr);
 
+    if (codecHelper_->IsEos() || codecHelper_->IsStop()) {
+        MEDIA_LOGD("At eos or stop, not buffer available");
+        return;
+    }
+
     auto buffer = adec->GetInputBuffer(index);
     CHECK_AND_RETURN(buffer != nullptr);
+
+    // cache this buffer for this index to make sure that this buffer is valid until when it be
+    // obtained to response to OnInputBufferAvailable at next time.
+    auto iter = inputBufferCaches_.find(index);
+    if (iter == inputBufferCaches_.end()) {
+        inputBufferCaches_.emplace(index, buffer);
+    } else {
+        iter->second = buffer;
+    }
 
     AudioDecoderJsCallback *cb = new(std::nothrow) AudioDecoderJsCallback();
     CHECK_AND_RETURN(cb != nullptr);
@@ -133,11 +149,25 @@ void AudioDecoderCallbackNapi::OnOutputBufferAvailable(uint32_t index, AVCodecBu
     auto adec = adec_.lock();
     CHECK_AND_RETURN(adec != nullptr);
 
+    if (codecHelper_->IsStop()) {
+        MEDIA_LOGD("At stop state, ignore");
+        return;
+    }
+
     auto buffer = adec->GetOutputBuffer(index);
     bool isEos = flag & AVCODEC_BUFFER_FLAG_EOS;
     if (buffer == nullptr && !isEos) {
         MEDIA_LOGW("Failed to get output buffer");
         return;
+    }
+
+    // cache this buffer for this index to make sure that this buffer is valid until the buffer of this index
+    // obtained to response to OnInputBufferAvailable at next time.
+    auto iter = outputBufferCaches_.find(index);
+    if (iter == outputBufferCaches_.end()) {
+        outputBufferCaches_.emplace(index, buffer);
+    } else {
+        iter->second = buffer;
     }
 
     AudioDecoderJsCallback *cb = new(std::nothrow) AudioDecoderJsCallback();
@@ -235,7 +265,7 @@ void AudioDecoderCallbackNapi::OnJsBufferCallBack(AudioDecoderJsCallback *jsCb, 
         CHECK_AND_RETURN_LOG(work != nullptr, "Work thread is nullptr");
         AudioDecoderJsCallback *event = reinterpret_cast<AudioDecoderJsCallback *>(work->data);
         napi_env env = event->callback->env_;
-        MEDIA_LOGD("JsCallBack %{public}s, uv_queue_work start", event->callbackName.c_str());
+        MEDIA_LOGD("JsCallBack %{public}s, uv_queue_work start, index: %{public}u", event->callbackName.c_str(), event->index);
         do {
             CHECK_AND_BREAK(status != UV_ECANCELED);
             napi_value jsCallback = nullptr;
@@ -259,6 +289,7 @@ void AudioDecoderCallbackNapi::OnJsBufferCallBack(AudioDecoderJsCallback *jsCb, 
         delete event;
         delete work;
     });
+
     if (ret != 0) {
         MEDIA_LOGE("Failed to execute libuv work queue");
         delete jsCb;
