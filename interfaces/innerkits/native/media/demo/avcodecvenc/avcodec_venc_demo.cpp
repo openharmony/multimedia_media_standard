@@ -89,6 +89,9 @@ void VEncDemo::RunCase(bool enableProp)
 
 void VEncDemo::GenerateData(uint32_t count, uint32_t fps)
 {
+    if (fps == 0) {
+        return;
+    }
     const uint32_t secToUs = 1000000;
     uint32_t intervalUs = secToUs / fps;
     uint32_t frameCount = 0;
