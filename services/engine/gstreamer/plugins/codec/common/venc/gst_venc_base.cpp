@@ -117,6 +117,7 @@ static void gst_venc_base_set_property(GObject *object, guint prop_id, const GVa
     gint ret = GST_CODEC_OK;
     switch (prop_id) {
         case PROP_BITRATE: {
+            GST_INFO_OBJECT(object, "Set dynamic bitrate");
             GST_OBJECT_LOCK(self);
             self->bitrate = g_value_get_uint(value);
             if (self->encoder != nullptr) {
@@ -127,9 +128,11 @@ static void gst_venc_base_set_property(GObject *object, guint prop_id, const GVa
             break;
         }
         case PROP_REQUEST_I_FRAME: {
+            GST_INFO_OBJECT(object, "Request I frame");
             break;
         }
         case PROP_VENDOR: {
+            GST_INFO_OBJECT(object, "Set vendor property");
             break;
         }
         case PROP_SURFACE_ENABLE: {

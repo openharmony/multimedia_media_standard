@@ -101,6 +101,7 @@ static void gst_vdec_base_set_property(GObject *object, guint prop_id, const GVa
 
     switch (prop_id) {
         case PROP_VENDOR:
+            GST_INFO_OBJECT(object, "Set vendor property");
             break;
         default:
             break;
