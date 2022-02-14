@@ -33,18 +33,27 @@
 │   └── kits                             # js外部接口文件
 ├── services                             # 服务实现
 │   ├── include                          # 服务对外头文件
-│   ├── play                             # 播放C/S实现
-│   │   ├── client                       # 播放C实现
-│   │   ├── ipc                          # 播放C/S框架
-│   │   ├── server                       # 播放S实现
-│   │   ├── engine                       # 播放引擎框架
-│   ├── recorder                         # 录制C/S实现
-│   │   ├── client                       # 录制C实现
-│   │   ├── ipc                          # 录制C/S框架
-│   │   ├── server                       # 录制S实现
-│   │   ├── engine                       # 录制引擎框架
-│   ├── plugins                          # 自定义插件
-│   ├── sa_media                         # 媒体服务主进程
+│   ├── services                         # 服务框架
+│   │   ├── player                       # 播放C/S框架
+│   │   ├── recorder                     # 录制C/S框架
+│   │   ├── avcodec                      # 编解码C/S框架
+│   │   ├── avcodeclist                  # 编解码器能力查询C/S框架
+│   │   ├── avmetadatahelper             # 元信息缩略图C/S框架
+│   │   ├── media_data_source            # datasource C/S框架
+│   │   ├── sa_media                     # 媒体主进程 C/S框架
+│   │   ├── factory                      # 引擎工厂
+│   │   ├── engine_intf                  # 引擎API
+│   ├── engine                           # 引擎实现
+│   │   ├── gstreamer                    # gstreamer引擎
+│   │   │   ├── player                   # 播放引擎
+│   │   │   ├── recorder                 # 录制引擎
+│   │   │   ├── avcodec                  # 编解码引擎
+│   │   │   ├── avcodeclist              # 编解码器能力查询
+│   │   │   ├── avmetadatahelper         # 元信息缩略图引擎
+│   │   │   ├── plugins                  # 引擎自研插件
+│   │   │   ├── common                   # 引擎通用资源
+│   │   │   ├── factory                  # 引擎工厂实现
+│   │   │   ├── loader                   # 引擎资源加载
 │   ├── utils                            # 子系统基础资源
 ├── LICENSE                              # 证书文件
 └── ohos.build                           # 编译文件

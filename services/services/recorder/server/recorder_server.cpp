@@ -17,6 +17,9 @@
 #include "media_log.h"
 #include "media_errors.h"
 #include "engine_factory_repo.h"
+#include "param_wrapper.h"
+#include "accesstoken_kit.h"
+#include "ipc_skeleton.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "RecorderServer"};
@@ -68,6 +71,19 @@ int32_t RecorderServer::Init()
         "failed to create recorder engine");
     status_ = REC_INITIALIZED;
     return MSERR_OK;
+}
+
+bool RecorderServer::CheckPermission()
+{
+    Security::AccessToken::AccessTokenID tokenCaller = IPCSkeleton::GetCallingTokenID();
+    int result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(tokenCaller, "ohos.permission.MICROPHONE");
+    if (result == Security::AccessToken::PERMISSION_GRANTED) {
+        MEDIA_LOGI("user have the right to access MICROPHONE!");
+        return true;
+    } else {
+        MEDIA_LOGE("user do not have the right to access MICROPHONE!");
+        return false;
+    }
 }
 
 void RecorderServer::OnError(ErrorType errorType, int32_t errorCode)
@@ -149,11 +165,34 @@ sptr<OHOS::Surface> RecorderServer::GetSurface(int32_t sourceId)
     return recorderEngine_->GetSurface(sourceId);
 }
 
+bool RecorderServer::GetSystemParam()
+{
+    std::string permissionEnable;
+    int32_t res = OHOS::system::GetStringParameter("sys.media.audioSource.permission", permissionEnable, "");
+    if (res != 0 || permissionEnable.empty()) {
+        MEDIA_LOGD("sys.media.audioSource.permission is false");
+        return false;
+    }
+    MEDIA_LOGD("sys.media.audioSource.permission =%{public}s", permissionEnable.c_str());
+    if (permissionEnable == "true") {
+        return true;
+    }
+    return false;
+}
+
 int32_t RecorderServer::SetAudioSource(AudioSourceType source, int32_t &sourceId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_INITIALIZED, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
+
+    if (GetSystemParam()) {
+        if (!CheckPermission()) {
+            MEDIA_LOGE("Permission check failed!");
+            return MSERR_INVALID_VAL;
+        }
+    }
+
     return recorderEngine_->SetAudioSource(source, sourceId);
 }
 
@@ -344,7 +383,7 @@ int32_t RecorderServer::Resume()
     std::lock_guard<std::mutex> lock(mutex_);
     if (status_ == REC_RECORDING) {
         return MSERR_OK;
-    }    
+    }
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_RECORDING && status_ != REC_PAUSED, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = recorderEngine_->Resume();

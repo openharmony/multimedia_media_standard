@@ -29,5 +29,28 @@ void AVCodecNapiHelper::SetEos(bool eos)
 {
     isEos_.store(eos);
 }
+
+bool AVCodecNapiHelper::IsStop()
+{
+    if (isStop_.load()) {
+        return true;
+    }
+    return false;
+}
+
+bool AVCodecNapiHelper::IsFlushing()
+{
+    return isFlushing_.load();
+}
+
+void AVCodecNapiHelper::SetStop(bool stop)
+{
+    isStop_.store(stop);
+}
+
+void AVCodecNapiHelper::SetFlushing(bool flushing)
+{
+    isFlushing_.store(flushing);
+}
 }
 }

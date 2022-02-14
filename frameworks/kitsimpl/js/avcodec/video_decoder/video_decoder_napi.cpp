@@ -16,6 +16,7 @@
 #include "video_decoder_napi.h"
 #include <climits>
 #include "avcodec_napi_utils.h"
+#include "media_capability_utils.h"
 #include "media_log.h"
 #include "media_errors.h"
 #include "video_decoder_callback_napi.h"
@@ -337,6 +338,7 @@ napi_value VideoDecoderNapi::Start(napi_env env, napi_callback_info info)
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Start", NAPI_AUTO_LENGTH, &resource);
+    asyncCtx->napi->codecHelper_->SetStop(false);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoDecoderAsyncContext *>(data);
@@ -379,6 +381,7 @@ napi_value VideoDecoderNapi::Stop(napi_env env, napi_callback_info info)
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Stop", NAPI_AUTO_LENGTH, &resource);
+    asyncCtx->napi->codecHelper_->SetStop(true);
     asyncCtx->napi->codecHelper_->SetEos(false);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
@@ -465,6 +468,7 @@ napi_value VideoDecoderNapi::Reset(napi_env env, napi_callback_info info)
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Reset", NAPI_AUTO_LENGTH, &resource);
+    asyncCtx->napi->codecHelper_->SetStop(true);
     asyncCtx->napi->codecHelper_->SetEos(false);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
@@ -508,6 +512,8 @@ napi_value VideoDecoderNapi::Release(napi_env env, napi_callback_info info)
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "Release", NAPI_AUTO_LENGTH, &resource);
+    asyncCtx->napi->codecHelper_->SetStop(true);
+    asyncCtx->napi->codecHelper_->SetEos(false);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoDecoderAsyncContext *>(data);
@@ -554,6 +560,10 @@ napi_value VideoDecoderNapi::QueueInput(napi_env env, napi_callback_info info)
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
+    if (asyncCtx->napi->codecHelper_->IsEos() || asyncCtx->napi->codecHelper_->IsStop()) {
+        MEDIA_LOGD("Eos or stop, queue buffer failed");
+        return result;
+    }
     if (asyncCtx->flag & AVCODEC_BUFFER_FLAG_EOS) {
         asyncCtx->napi->codecHelper_->SetEos(true);
     }
@@ -607,11 +617,16 @@ napi_value VideoDecoderNapi::ReleaseOutput(napi_env env, napi_callback_info info
     } else {
         asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
     }
+    CHECK_AND_RETURN_RET_LOG(asyncCtx->index >= 0, result, "Failed to check index");
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[2]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
+
+    if (asyncCtx->napi->vdec_->ReleaseOutputBuffer(asyncCtx->index, asyncCtx->isRender) != MSERR_OK) {
+        asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to ReleaseOutput");
+    }
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "ReleaseOutput", NAPI_AUTO_LENGTH, &resource);
@@ -621,10 +636,6 @@ napi_value VideoDecoderNapi::ReleaseOutput(napi_env env, napi_callback_info info
             if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->vdec_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
-            }
-            CHECK_AND_RETURN(asyncCtx->index >= 0);
-            if (asyncCtx->napi->vdec_->ReleaseOutputBuffer(asyncCtx->index, asyncCtx->isRender) != MSERR_OK) {
-                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to ReleaseOutput");
             }
         },
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
@@ -800,23 +811,25 @@ napi_value VideoDecoderNapi::GetVideoDecoderCaps(napi_env env, napi_callback_inf
         asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to napi_get_cb_info");
     }
 
+    VideoDecoderNapi *napi = nullptr;
+    (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&napi));
+    std::string name = "";
+    if (napi->vdec_ != nullptr) {
+        Format format;
+        (void)napi->vdec_->GetOutputFormat(format);
+        (void)format.GetStringValue("plugin_name", name);
+    } else {
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to unwrap");
+    }
+
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
-
-    (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
+    asyncCtx->JsResult = std::make_unique<MediaJsVideoCapsDynamic>(name, true);
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "GetVideoDecoderCaps", NAPI_AUTO_LENGTH, &resource);
-    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
-        [](napi_env env, void* data) {
-            auto asyncCtx = reinterpret_cast<VideoDecoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->vdec_ == nullptr) {
-                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
-                return;
-            }
-        },
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, [](napi_env env, void* data) {},
         MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
-
     NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
     asyncCtx.release();
 

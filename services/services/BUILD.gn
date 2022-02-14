@@ -50,6 +50,8 @@ config("media_service_config") {
     "avcodec/server",
     "avcodeclist/ipc",
     "avcodeclist/server",
+    "//base/security/access_token/interfaces/innerkits/access_token/include",
+    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara/include",
     "//foundation/multimedia/media_standard/services/include",
     "//foundation/multimedia/media_standard/services/services/factory",
     "//foundation/multimedia/media_standard/services/services/engine_intf",
@@ -101,6 +103,7 @@ ohos_shared_library("media_service") {
   ]
 
   deps = [
+    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//foundation/graphic/standard/frameworks/surface:surface",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/avcodeclist:media_engine_gst_avcodeclist",
     "//foundation/multimedia/media_standard/services/utils:media_format",
@@ -109,6 +112,7 @@ ohos_shared_library("media_service") {
   ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
     "bytrace_standard:bytrace_core",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",

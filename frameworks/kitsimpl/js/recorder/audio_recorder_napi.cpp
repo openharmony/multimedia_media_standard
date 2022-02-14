@@ -81,7 +81,6 @@ napi_value AudioRecorderNapi::Init(napi_env env, napi_value exports)
     };
     napi_property_descriptor staticProperty[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createAudioRecorder", CreateAudioRecorder),
-        DECLARE_NAPI_STATIC_FUNCTION("createAudioRecorderAsync", CreateAudioRecorderAsync),
     };
 
     napi_value constructor = nullptr;

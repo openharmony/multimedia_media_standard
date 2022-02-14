@@ -55,6 +55,9 @@ struct _GstVdecBasePort {
     std::shared_ptr<OHOS::Media::AVSharedMemoryPool> av_shmem_pool;
     GstShMemAllocator *allocator;
     GstAllocationParams allocParams;
+    gint64 frame_cnt;
+    gint64 first_frame_time;
+    gint64 last_frame_time;
 };
 
 struct _GstVdecBase {
