@@ -23,6 +23,7 @@
 #include "media_data_source_callback.h"
 #include "common_napi.h"
 #include "media_surface.h"
+#include "surface_utils.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "VideoPlayerNapi"};
@@ -345,13 +346,12 @@ void VideoPlayerNapi::AsyncSetDisplaySurface(napi_env env, void *data)
         return;
     }
 
-    auto mediaSurface = MediaSurfaceFactory::CreateMediaSurface();
-    if (mediaSurface == nullptr) {
-        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "mediaSurface is nullptr");
-        return;
-    }
+    uint64_t surfaceId = 0;
+    MEDIA_LOGD("get surface, surfaceStr = %{public}s", asyncContext->surface.c_str());
+    surfaceId = std::stoull(asyncContext->surface);
+    MEDIA_LOGD("get surface, surfaceId = (%{public}" PRIu64 ")", surfaceId);
 
-    auto surface = mediaSurface->GetSurface(asyncContext->surface);
+    auto surface = SurfaceUtils::GetInstance()->GetSurface(surfaceId);
     if (surface != nullptr) {
         int32_t ret = asyncContext->jsPlayer->nativePlayer_->SetVideoSurface(surface);
         if (ret != MSERR_OK) {
