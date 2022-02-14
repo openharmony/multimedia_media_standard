@@ -189,13 +189,13 @@ std::vector<CapabilityData> AVCodecListEngineGstImpl::GetCodecCapabilityInfos()
 {
     AVCodecAbilitySingleton& codecAbilityInstance = AVCodecAbilitySingleton::GetInstance();
     if (!codecAbilityInstance.IsParsered()) {
-        bool ret = codecAbilityInstance.ParseCodecXml();
-        if (!ret) {
-            MEDIA_LOGD("ParseCodecXml failed");
-        }
-        ret = codecAbilityInstance.ParseHardwareCapability();
+        bool ret = codecAbilityInstance.ParseHardwareCapability();
         if (!ret) {
             MEDIA_LOGD("ParseHardwareCapability failed");
+        }
+        ret = codecAbilityInstance.ParseCodecXml();
+        if (!ret) {
+            MEDIA_LOGD("ParseCodecXml failed");
         }
     }
     return codecAbilityInstance.capabilityDataArray_;
