@@ -26,6 +26,65 @@ namespace {
 
 namespace OHOS {
 namespace Media {
+class AVCodecServiceProxy::AVCodecBufferCache {
+public:
+    AVCodecBufferCache() = default;
+    ~AVCodecBufferCache() = default;
+
+    int32_t ReadFromParcel(uint32_t index, MessageParcel &parcel, std::shared_ptr<AVSharedMemory> &memory)
+    {
+        MEDIA_LOGD("caches size: %{public}zu", caches_.size());
+        auto iter = caches_.find(index);
+        CacheFlag flag = static_cast<CacheFlag>(parcel.ReadUint8());
+        if (flag == CacheFlag::HIT_CACHE) {
+            if (iter == caches_.end()) {
+                MEDIA_LOGE("mark hit cache, but can find the index's cache, index: %{public}u", index);
+                return MSERR_INVALID_VAL;
+            }
+            memory = iter->second;
+            return MSERR_OK;
+        }
+
+        if (flag == CacheFlag::UPDATE_CACHE) {
+            memory = ReadAVSharedMemoryFromParcel(parcel);
+            CHECK_AND_RETURN_RET(memory != nullptr, MSERR_INVALID_VAL);
+            if (iter == caches_.end()) {
+                MEDIA_LOGI("add cache, index: %{public}u", index);
+                caches_.emplace(index, memory);
+            } else {
+                iter->second = memory;
+                MEDIA_LOGI("update cache, index: %{public}u", index);
+            }
+            return MSERR_OK;
+        }
+
+        // invalidate cache flag
+        if (iter != caches_.end()) {
+            iter->second = nullptr;
+            caches_.erase(iter);
+        }
+        memory = nullptr;
+        MEDIA_LOGE("invalidate cache for index: %{public}u, flag: %{public}hhu", index, flag);
+        return MSERR_INVALID_VAL;
+    }
+
+    void ClearCache()
+    {
+        caches_.clear();
+    }
+
+private:
+    DISALLOW_COPY_AND_MOVE(AVCodecBufferCache);
+
+    enum CacheFlag : uint8_t {
+        HIT_CACHE = 1,
+        UPDATE_CACHE,
+        INVALIDATE_CACHE,
+    };
+
+    std::unordered_map<uint32_t, std::shared_ptr<AVSharedMemory>> caches_;
+};
+
 AVCodecServiceProxy::AVCodecServiceProxy(const sptr<IRemoteObject> &impl)
     : IRemoteProxy<IStandardAVCodecService>(impl)
 {
@@ -83,6 +142,14 @@ int32_t AVCodecServiceProxy::Configure(const Format &format)
 
 int32_t AVCodecServiceProxy::Prepare()
 {
+    if (inputBufferCache_ == nullptr) {
+        inputBufferCache_ = std::make_unique<AVCodecBufferCache>();
+    }
+
+    if (outputBufferCache_ == nullptr) {
+        outputBufferCache_ = std::make_unique<AVCodecBufferCache>();
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -126,6 +193,15 @@ int32_t AVCodecServiceProxy::Flush()
     MessageParcel reply;
     MessageOption option;
     int32_t ret = Remote()->SendRequest(FLUSH, data, reply, option);
+
+    if (inputBufferCache_ != nullptr) {
+        inputBufferCache_->ClearCache();
+    }
+
+    if (outputBufferCache_ != nullptr) {
+        outputBufferCache_->ClearCache();
+    }
+
     if (ret != MSERR_OK) {
         MEDIA_LOGE("Flush failed, error: %{public}d", ret);
         return ret;
@@ -135,6 +211,9 @@ int32_t AVCodecServiceProxy::Flush()
 
 int32_t AVCodecServiceProxy::Reset()
 {
+    inputBufferCache_ = nullptr;
+    outputBufferCache_ = nullptr;
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -148,6 +227,9 @@ int32_t AVCodecServiceProxy::Reset()
 
 int32_t AVCodecServiceProxy::Release()
 {
+    inputBufferCache_ = nullptr;
+    outputBufferCache_ = nullptr;
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -222,7 +304,12 @@ std::shared_ptr<AVSharedMemory> AVCodecServiceProxy::GetInputBuffer(uint32_t ind
         MEDIA_LOGE("GetInputBuffer failed, error: %{public}d", ret);
         return nullptr;
     }
-    auto memory = ReadAVSharedMemoryFromParcel(reply);
+
+    std::shared_ptr<AVSharedMemory> memory = nullptr;
+    if (inputBufferCache_ != nullptr) {
+        ret = inputBufferCache_->ReadFromParcel(index, reply, memory);
+        CHECK_AND_RETURN_RET(ret == MSERR_OK, nullptr);
+    }
     if (memory == nullptr) {
         MEDIA_LOGE("Failed to GetInputBuffer");
         return nullptr;
@@ -259,7 +346,12 @@ std::shared_ptr<AVSharedMemory> AVCodecServiceProxy::GetOutputBuffer(uint32_t in
         MEDIA_LOGE("GetOutputBuffer failed, error: %{public}d", ret);
         return nullptr;
     }
-    auto memory = ReadAVSharedMemoryFromParcel(reply);
+
+    std::shared_ptr<AVSharedMemory> memory = nullptr;
+    if (outputBufferCache_ != nullptr) {
+        ret = outputBufferCache_->ReadFromParcel(index, reply, memory);
+        CHECK_AND_RETURN_RET(ret == MSERR_OK, nullptr);
+    }
     if (memory == nullptr) {
         MEDIA_LOGE("Failed to GetOutputBuffer");
         return nullptr;
@@ -323,6 +415,9 @@ int32_t AVCodecServiceProxy::SetParameter(const Format &format)
 
 int32_t AVCodecServiceProxy::DestroyStub()
 {
+    inputBufferCache_ = nullptr;
+    outputBufferCache_ = nullptr;
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -331,6 +426,7 @@ int32_t AVCodecServiceProxy::DestroyStub()
         MEDIA_LOGE("destroy failed, error: %{public}d", ret);
         return ret;
     }
+
     return reply.ReadInt32();
 }
 } // namespace Media

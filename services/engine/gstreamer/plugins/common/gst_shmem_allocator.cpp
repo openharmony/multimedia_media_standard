@@ -54,7 +54,10 @@ GstMemory *gst_shmem_allocator_alloc(GstAllocator *allocator, gsize size, GstAll
     g_return_val_if_fail(allocSize < INT32_MAX, nullptr);
 
     std::shared_ptr<OHOS::Media::AVSharedMemory> shmem = sAlloctor->avShmemPool->AcquireMemory(allocSize);
-    g_return_val_if_fail(shmem != nullptr, nullptr);
+    if (shmem == nullptr) {
+        GST_LOG("no memory");
+        return nullptr;
+    }
 
     GstShMemMemory *memory = reinterpret_cast<GstShMemMemory *>(g_slice_alloc0(sizeof(GstShMemMemory)));
     g_return_val_if_fail(memory != nullptr, nullptr);

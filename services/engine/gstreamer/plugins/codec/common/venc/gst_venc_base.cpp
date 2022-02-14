@@ -51,6 +51,8 @@ static gboolean gst_codec_return_is_ok(const GstVencBase *encoder, gint ret,
 enum {
     PROP_0,
     PROP_BITRATE,
+    PROP_REQUEST_I_FRAME,
+    PROP_VENDOR,
     PROP_SURFACE_ENABLE,
 };
 
@@ -84,6 +86,14 @@ static void gst_venc_base_class_init(GstVencBaseClass *klass)
         0, G_MAXUINT, GST_VENC_BITRATE_DEFAULT,
         (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | GST_PARAM_MUTABLE_PLAYING)));
 
+    g_object_class_install_property(gobject_class, PROP_REQUEST_I_FRAME,
+        g_param_spec_uint("req-i-frame", "Request I frame", "Request I frame for video encoder",
+            0, G_MAXUINT32, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_VENDOR,
+        g_param_spec_pointer("vendor", "Vendor property", "Vendor property",
+            (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
     g_object_class_install_property(gobject_class, PROP_SURFACE_ENABLE,
         g_param_spec_boolean("enable-surface", "Enable Surface", "The input mem is surface buffer",
         FALSE, (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
@@ -107,6 +117,7 @@ static void gst_venc_base_set_property(GObject *object, guint prop_id, const GVa
     gint ret = GST_CODEC_OK;
     switch (prop_id) {
         case PROP_BITRATE: {
+            GST_INFO_OBJECT(object, "Set dynamic bitrate");
             GST_OBJECT_LOCK(self);
             self->bitrate = g_value_get_uint(value);
             if (self->encoder != nullptr) {
@@ -114,6 +125,20 @@ static void gst_venc_base_set_property(GObject *object, guint prop_id, const GVa
             }
             GST_OBJECT_UNLOCK(self);
             g_return_if_fail(ret == GST_CODEC_OK);
+            break;
+        }
+        case PROP_REQUEST_I_FRAME: {
+            GST_INFO_OBJECT(object, "Request I frame");
+            if (self->encoder != nullptr) {
+                g_return_if_fail(self->encoder->SetParameter(GST_REQUEST_I_FRAME, GST_ELEMENT(self)) == GST_CODEC_OK);
+            }
+            break;
+        }
+        case PROP_VENDOR: {
+            GST_INFO_OBJECT(object, "Set vendor property");
+            if (self->encoder != nullptr) {
+                g_return_if_fail(self->encoder->SetParameter(GST_VENDOR, GST_ELEMENT(self)) == GST_CODEC_OK);
+            }
             break;
         }
         case PROP_SURFACE_ENABLE: {
@@ -165,6 +190,13 @@ static void gst_venc_base_init(GstVencBase *self)
     self->output = { 0 };
     self->memtype = GST_MEMTYPE_INVALID;
     self->bitrate = 0;
+    self->input.frame_cnt = 0;
+    self->input.first_frame_time = 0;
+    self->input.last_frame_time = 0;
+    self->output.frame_cnt = 0;
+    self->output.first_frame_time = 0;
+    self->output.last_frame_time = 0;
+    self->coding_outbuf_cnt = 0;
 }
 
 static void gst_venc_base_finalize(GObject *object)
@@ -233,7 +265,13 @@ static gboolean gst_venc_base_close(GstVideoEncoder *encoder)
 static gboolean gst_venc_base_start(GstVideoEncoder *encoder)
 {
     GST_DEBUG_OBJECT(encoder, "Start");
-    (void)encoder;
+    GstVencBase *self = GST_VENC_BASE(encoder);
+    self->input.frame_cnt = 0;
+    self->input.first_frame_time = 0;
+    self->input.last_frame_time = 0;
+    self->output.frame_cnt = 0;
+    self->output.first_frame_time = 0;
+    self->output.last_frame_time = 0;
     return TRUE;
 }
 
@@ -426,6 +464,7 @@ static gboolean gst_venc_base_allocate_out_buffers(GstVencBase *self)
     g_return_val_if_fail(self->encoder != nullptr, FALSE);
     g_return_val_if_fail(self->outpool != nullptr, FALSE);
     std::vector<GstBuffer*> buffers;
+    self->coding_outbuf_cnt = self->output.buffer_cnt;
     GstBufferPool *pool = reinterpret_cast<GstBufferPool*>(gst_object_ref(self->outpool));
     ON_SCOPE_EXIT(0) { gst_object_unref(pool); };
     for (guint i = 0; i < self->output.buffer_cnt; ++i) {
@@ -456,6 +495,42 @@ static gboolean gst_venc_base_prepare(GstVencBase *self)
     return TRUE;
 }
 
+static void gst_venc_debug_input_time(GstVencBase *self)
+{
+    if (self->input.first_frame_time == 0) {
+        self->input.first_frame_time = g_get_monotonic_time();
+    } else {
+        self->input.last_frame_time = g_get_monotonic_time();
+    }
+    self->input.frame_cnt++;
+    gint64 time_interval = self->input.last_frame_time - self->input.first_frame_time;
+    gint64 frame_cnt = self->input.frame_cnt - 1;
+    if (frame_cnt > 0) {
+        gint64 time_every_frame = time_interval / frame_cnt;
+        GST_DEBUG_OBJECT(self, "Encoder Input Time interval %" G_GINT64_FORMAT " us, frame count %" G_GINT64_FORMAT
+        " ,every frame time %" G_GINT64_FORMAT " us, frame rate %.9f", time_interval, self->input.frame_cnt,
+        time_every_frame, static_cast<double>(G_TIME_SPAN_SECOND)/static_cast<double>(time_every_frame));
+    }
+}
+
+static void gst_venc_debug_output_time(GstVencBase *self)
+{
+    if (self->output.first_frame_time == 0) {
+        self->output.first_frame_time = g_get_monotonic_time();
+    } else {
+        self->output.last_frame_time = g_get_monotonic_time();
+    }
+    self->output.frame_cnt++;
+    gint64 time_interval = self->output.last_frame_time - self->output.first_frame_time;
+    gint64 frame_cnt = self->output.frame_cnt - 1;
+    if (frame_cnt > 0) {
+        gint64 time_every_frame = time_interval / frame_cnt;
+        GST_DEBUG_OBJECT(self, "Encoder Output Time interval %" G_GINT64_FORMAT " us, frame count %" G_GINT64_FORMAT
+        " ,every frame time %" G_GINT64_FORMAT " us, frame rate %.9f", time_interval, self->output.frame_cnt,
+        time_every_frame, static_cast<double>(G_TIME_SPAN_SECOND)/static_cast<double>(time_every_frame));
+    }
+}
+
 static GstFlowReturn gst_venc_base_handle_frame(GstVideoEncoder *encoder, GstVideoCodecFrame *frame)
 {
     GST_DEBUG_OBJECT(encoder, "Handle frame");
@@ -483,6 +558,7 @@ static GstFlowReturn gst_venc_base_handle_frame(GstVideoEncoder *encoder, GstVid
         }
     }
     GST_VIDEO_ENCODER_STREAM_UNLOCK(self);
+    gst_venc_debug_input_time(self);
     gint codec_ret = self->encoder->PushInputBuffer(frame->input_buffer);
     GST_VIDEO_ENCODER_STREAM_LOCK(self);
     GstFlowReturn ret = GST_FLOW_OK;
@@ -508,6 +584,7 @@ static GstFlowReturn gst_venc_base_finish_output_buffer(GstVencBase *self, GstBu
     g_return_val_if_fail(self != nullptr, GST_FLOW_ERROR);
     g_return_val_if_fail(buffer != nullptr, GST_FLOW_ERROR);
     GstFlowReturn flow_ret = GST_FLOW_OK;
+    gst_venc_debug_output_time(self);
     GstVideoCodecFrame *frame = gst_video_encoder_get_oldest_frame(GST_VIDEO_ENCODER(self));
     if (frame != nullptr) {
         frame->output_buffer = buffer;
@@ -567,13 +644,17 @@ static gboolean gst_venc_base_push_out_buffers(GstVencBase *self)
     gint codec_ret = GST_CODEC_OK;
     GstBufferPoolAcquireParams params;
     g_return_val_if_fail(memset_s(&params, sizeof(params), 0, sizeof(params)) == EOK, FALSE);
-    params.flags = GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT;
+    if (self->coding_outbuf_cnt != 0) {
+        params.flags = GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT;
+    }
     while (flow == GST_FLOW_OK) {
         flow = gst_buffer_pool_acquire_buffer(pool, &buffer, &params);
         if (flow == GST_FLOW_OK) {
             g_return_val_if_fail(buffer != nullptr, FALSE);
             codec_ret = self->encoder->PushOutputBuffer(buffer);
             g_return_val_if_fail(gst_codec_return_is_ok(self, codec_ret, "push buffer", TRUE), FALSE);
+            self->coding_outbuf_cnt++;
+            params.flags = GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT;
         }
     }
     g_return_val_if_fail(flow == GST_FLOW_EOS, FALSE);
@@ -609,6 +690,7 @@ static void gst_venc_base_loop(GstVencBase *self)
     GST_DEBUG_OBJECT(self, "Flow_ret %d", flow_ret);
     switch (flow_ret) {
         case GST_FLOW_OK:
+            self->coding_outbuf_cnt--;
             if (gst_venc_base_push_out_buffers(self)) {
                 return;
             }
@@ -658,6 +740,8 @@ static gboolean gst_venc_base_set_format(GstVideoEncoder *encoder, GstVideoCodec
         self->nslice_height = self->height;
         self->nstride = info->stride[0];
         self->input.buffer_size = info->size;
+        GST_DEBUG_OBJECT(self, "width %d height %d frame_rate %d nslice_height %d nstride %d buffer_size %d",
+            self->width, self->height, self->frame_rate, self->nslice_height, self->nstride, self->input.buffer_size);
     }
 
     GST_DEBUG_OBJECT(self, "Setting inport definition");

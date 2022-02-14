@@ -51,6 +51,7 @@ static gboolean gst_codec_return_is_ok(const GstVdecBase *decoder, gint ret,
 enum {
     PROP_0,
     PROP_SURFACE,
+    PROP_VENDOR,
 };
 
 G_DEFINE_ABSTRACT_TYPE(GstVdecBase, gst_vdec_base, GST_TYPE_VIDEO_DECODER);
@@ -79,6 +80,10 @@ static void gst_vdec_base_class_init(GstVdecBaseClass *klass)
     video_decoder_class->decide_allocation = gst_vdec_base_decide_allocation;
     video_decoder_class->propose_allocation = gst_vdec_base_propose_allocation;
 
+    g_object_class_install_property(gobject_class, PROP_VENDOR,
+        g_param_spec_pointer("vendor", "Vendor property", "Vendor property",
+            (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
     const gchar *src_caps_string = GST_VIDEO_CAPS_MAKE(GST_VDEC_BASE_SUPPORTED_FORMATS);
     GstCaps *src_caps = gst_caps_from_string(src_caps_string);
     GST_DEBUG_OBJECT(klass, "Pad template caps %" GST_PTR_FORMAT, src_caps);
@@ -92,8 +97,15 @@ static void gst_vdec_base_class_init(GstVdecBaseClass *klass)
 static void gst_vdec_base_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
     (void)pspec;
-    (void)prop_id;
     g_return_if_fail(object != nullptr && value != nullptr);
+
+    switch (prop_id) {
+        case PROP_VENDOR:
+            GST_INFO_OBJECT(object, "Set vendor property");
+            break;
+        default:
+            break;
+    }
 }
 
 static void gst_vdec_base_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
@@ -132,6 +144,12 @@ static void gst_vdec_base_init(GstVdecBase *self)
     self->coding_outbuf_cnt = 0;
     gst_allocation_params_init(&self->input.allocParams);
     gst_allocation_params_init(&self->output.allocParams);
+    self->input.frame_cnt = 0;
+    self->input.first_frame_time = 0;
+    self->input.last_frame_time = 0;
+    self->output.frame_cnt = 0;
+    self->output.first_frame_time = 0;
+    self->output.last_frame_time = 0;
 }
 
 static void gst_vdec_base_finalize(GObject *object)
@@ -203,7 +221,13 @@ static gboolean gst_vdec_base_close(GstVideoDecoder *decoder)
 static gboolean gst_vdec_base_start(GstVideoDecoder *decoder)
 {
     GST_DEBUG_OBJECT(decoder, "Start");
-    (void)decoder;
+    GstVdecBase *self = GST_VDEC_BASE(decoder);
+    self->input.frame_cnt = 0;
+    self->input.first_frame_time = 0;
+    self->input.last_frame_time = 0;
+    self->output.frame_cnt = 0;
+    self->output.first_frame_time = 0;
+    self->output.last_frame_time = 0;
     return TRUE;
 }
 
@@ -505,6 +529,42 @@ static void gst_vdec_base_clean_all_frames(GstVideoDecoder *decoder)
     return;
 }
 
+static void gst_vdec_debug_input_time(GstVdecBase *self)
+{
+    if (self->input.first_frame_time == 0) {
+        self->input.first_frame_time = g_get_monotonic_time();
+    } else {
+        self->input.last_frame_time = g_get_monotonic_time();
+    }
+    self->input.frame_cnt++;
+    gint64 time_interval = self->input.last_frame_time - self->input.first_frame_time;
+    gint64 frame_cnt = self->input.frame_cnt - 1;
+    if (frame_cnt > 0) {
+        gint64 time_every_frame = time_interval / frame_cnt;
+        GST_DEBUG_OBJECT(self, "Decoder Input Time interval %" G_GINT64_FORMAT " us, frame count %" G_GINT64_FORMAT
+        " ,every frame time %" G_GINT64_FORMAT " us, frame rate %.9f", time_interval, self->input.frame_cnt,
+        time_every_frame, static_cast<double>(G_TIME_SPAN_SECOND)/static_cast<double>(time_every_frame));
+    }
+}
+
+static void gst_vdec_debug_output_time(GstVdecBase *self)
+{
+    if (self->output.first_frame_time == 0) {
+        self->output.first_frame_time = g_get_monotonic_time();
+    } else {
+        self->output.last_frame_time = g_get_monotonic_time();
+    }
+    self->output.frame_cnt++;
+    gint64 time_interval = self->output.last_frame_time - self->output.first_frame_time;
+    gint64 frame_cnt = self->output.frame_cnt - 1;
+    if (frame_cnt > 0) {
+        gint64 time_every_frame = time_interval / frame_cnt;
+        GST_DEBUG_OBJECT(self, "Decoder Output Time interval %" G_GINT64_FORMAT " us, frame count %" G_GINT64_FORMAT
+        " ,every frame time %" G_GINT64_FORMAT " us, frame rate %.9f", time_interval, self->output.frame_cnt,
+        time_every_frame, static_cast<double>(G_TIME_SPAN_SECOND)/static_cast<double>(time_every_frame));
+    }
+}
+
 static GstFlowReturn gst_vdec_base_handle_frame(GstVideoDecoder *decoder, GstVideoCodecFrame *frame)
 {
     GST_DEBUG_OBJECT(decoder, "Handle frame");
@@ -538,6 +598,7 @@ static GstFlowReturn gst_vdec_base_handle_frame(GstVideoDecoder *decoder, GstVid
         }
     }
     GST_VIDEO_DECODER_STREAM_UNLOCK(self);
+    gst_vdec_debug_input_time(self);
     gint codec_ret = self->decoder->PushInputBuffer(frame->input_buffer);
     GST_VIDEO_DECODER_STREAM_LOCK(self);
     GstFlowReturn ret = GST_FLOW_OK;
@@ -595,6 +656,7 @@ static GstFlowReturn push_output_buffer(GstVdecBase *self, GstBuffer *buffer)
     update_video_meta(self, buffer);
     GstVideoCodecFrame *frame = gst_vdec_base_new_frame();
     g_return_val_if_fail(frame != nullptr, GST_FLOW_ERROR);
+    gst_vdec_debug_output_time(self);
 
     if (self->first_frame) {
         GstMessage *msg_resolution_changed = nullptr;
@@ -641,9 +703,11 @@ static gboolean update_outpool_max_buf_cnt(GstVdecBase *self)
     guint min_buffers = 0;
     guint max_buffers = 0;
     GstStructure *config = gst_buffer_pool_get_config(self->outpool);
+    gst_buffer_pool_set_active(self->outpool, FALSE);
     g_return_val_if_fail(config != nullptr, FALSE);
     g_return_val_if_fail(gst_buffer_pool_config_get_params(config, &caps, &size, &min_buffers, &max_buffers), FALSE);
     gst_buffer_pool_config_set_params(config, caps, size, self->out_buffer_cnt, self->out_buffer_cnt);
+    gst_buffer_pool_set_active(self->outpool, TRUE);
     return TRUE;
 }
 
@@ -760,7 +824,7 @@ static void gst_vdec_base_loop(GstVdecBase *self)
             break;
         case GST_CODEC_FORMAT_CHANGE:
             flow_ret = gst_vdec_base_format_change(self);
-            break;
+            return;
         case GST_CODEC_EOS:
             flow_ret = gst_vdec_base_codec_eos(self);
             break;
@@ -818,6 +882,7 @@ static gboolean gst_vdec_base_set_format(GstVideoDecoder *decoder, GstVideoCodec
         self->width = info->width;
         self->height = GST_VIDEO_INFO_FIELD_HEIGHT(info);
         self->frame_rate  = info->fps_n;
+        GST_DEBUG_OBJECT(self, "width: %d, height: %d, frame_rate: %d", self->width, self->height, self->frame_rate);
     }
 
     GST_DEBUG_OBJECT(self, "Setting inport definition");

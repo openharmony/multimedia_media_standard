@@ -32,7 +32,8 @@ const std::string OUTPUT_CALLBACK_NAME = "outputBufferAvailable";
 
 class AudioDecoderCallbackNapi : public AVCodecCallback {
 public:
-    explicit AudioDecoderCallbackNapi(napi_env env, std::weak_ptr<AudioDecoder> adec);
+    explicit AudioDecoderCallbackNapi(napi_env env, std::weak_ptr<AudioDecoder> adec,
+        const std::shared_ptr<AVCodecNapiHelper>& codecHelper);
     virtual ~AudioDecoderCallbackNapi();
 
     void SaveCallbackReference(const std::string &callbackName, napi_value callback);
@@ -68,6 +69,9 @@ private:
     std::shared_ptr<AutoRef> formatChangedCallback_ = nullptr;
     std::shared_ptr<AutoRef> inputCallback_ = nullptr;
     std::shared_ptr<AutoRef> outputCallback_ = nullptr;
+    std::shared_ptr<AVCodecNapiHelper> codecHelper_ = nullptr;
+    std::unordered_map<uint32_t, std::shared_ptr<AVSharedMemory>> inputBufferCaches_;
+    std::unordered_map<uint32_t, std::shared_ptr<AVSharedMemory>> outputBufferCaches_;
 };
 }  // namespace Media
 }  // namespace OHOS

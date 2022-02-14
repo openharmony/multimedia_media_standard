@@ -25,9 +25,11 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-AudioEncoderCallbackNapi::AudioEncoderCallbackNapi(napi_env env, std::weak_ptr<AudioEncoder> aenc)
+AudioEncoderCallbackNapi::AudioEncoderCallbackNapi(napi_env env, std::weak_ptr<AudioEncoder> aenc,
+    const std::shared_ptr<AVCodecNapiHelper>& codecHelper)
     : env_(env),
-      aenc_(aenc)
+      aenc_(aenc),
+      codecHelper_(codecHelper)
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
 }
@@ -112,8 +114,22 @@ void AudioEncoderCallbackNapi::OnInputBufferAvailable(uint32_t index)
     auto aenc = aenc_.lock();
     CHECK_AND_RETURN(aenc != nullptr);
 
+    if (codecHelper_->IsEos() || codecHelper_->IsStop()) {
+        MEDIA_LOGD("At eos or stop, no buffer available");
+        return;
+    }
+
     auto buffer = aenc->GetInputBuffer(index);
     CHECK_AND_RETURN(buffer != nullptr);
+
+    // cache this buffer for this index to make sure that this buffer is valid until when it be
+    // obtained to response to OnInputBufferAvailable at next time.
+    auto iter = inputBufferCaches_.find(index);
+    if (iter == inputBufferCaches_.end()) {
+        inputBufferCaches_.emplace(index, buffer);
+    } else {
+        iter->second = buffer;
+    }
 
     AudioEncoderJsCallback *cb = new(std::nothrow) AudioEncoderJsCallback();
     CHECK_AND_RETURN(cb != nullptr);
@@ -133,11 +149,25 @@ void AudioEncoderCallbackNapi::OnOutputBufferAvailable(uint32_t index, AVCodecBu
     auto aenc = aenc_.lock();
     CHECK_AND_RETURN(aenc != nullptr);
 
+    if (codecHelper_->IsStop()) {
+        MEDIA_LOGD("At stop state, ignore");
+        return;
+    }
+
     auto buffer = aenc->GetOutputBuffer(index);
     bool isEos = flag & AVCODEC_BUFFER_FLAG_EOS;
     if (buffer == nullptr && !isEos) {
         MEDIA_LOGW("Failed to get output buffer");
         return;
+    }
+
+    // cache this buffer for this index to make sure that this buffer is valid until the buffer of this index
+    // obtained to response to OnInputBufferAvailable at next time.
+    auto iter = outputBufferCaches_.find(index);
+    if (iter == outputBufferCaches_.end()) {
+        outputBufferCaches_.emplace(index, buffer);
+    } else {
+        iter->second = buffer;
     }
 
     AudioEncoderJsCallback *cb = new(std::nothrow) AudioEncoderJsCallback();

@@ -84,7 +84,7 @@ static void gst_mem_sink_class_init(GstMemSinkClass *klass)
         "MemSink", "Generic/Sink",
         "Output to memory and allow the application to get access to the memory",
         "OpenHarmony");
-     
+
     gobjectClass->dispose = gst_mem_sink_dispose;
     gobjectClass->finalize = gst_mem_sink_finalize;
     gobjectClass->set_property = gst_mem_sink_set_property;

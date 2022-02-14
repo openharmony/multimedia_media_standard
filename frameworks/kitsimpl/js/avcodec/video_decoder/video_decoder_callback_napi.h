@@ -32,7 +32,7 @@ const std::string OUTPUT_CALLBACK_NAME = "outputBufferAvailable";
 class VideoDecoderCallbackNapi : public AVCodecCallback {
 public:
     VideoDecoderCallbackNapi(napi_env env, std::weak_ptr<VideoDecoder> vdec,
-        std::shared_ptr<AVCodecNapiHelper> codecHelper);
+        const std::shared_ptr<AVCodecNapiHelper>& codecHelper);
     virtual ~VideoDecoderCallbackNapi();
 
     void SaveCallbackReference(const std::string &callbackName, napi_value callback);

@@ -81,6 +81,10 @@ private:
     std::shared_ptr<IAVCodecService> codecServer_ = nullptr;
     std::map<uint32_t, AVCodecStubFunc> recFuncs_;
     std::mutex mutex_;
+
+    class AVCodecBufferCache;
+    std::unique_ptr<AVCodecBufferCache> inputBufferCache_;
+    std::unique_ptr<AVCodecBufferCache> outputBufferCache_;
 };
 }
 } // namespace OHOS
