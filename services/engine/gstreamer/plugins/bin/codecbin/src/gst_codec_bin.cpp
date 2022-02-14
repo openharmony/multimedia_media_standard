@@ -173,11 +173,9 @@ static void gst_codec_bin_set_property(GObject *object, guint prop_id,
             break;
         case PROP_SRC:
             bin->src = static_cast<GstElement *>(g_value_get_pointer(value));
-            GST_INFO_OBJECT(bin, "Set src element");
             break;
         case PROP_SINK:
             bin->sink = static_cast<GstElement *>(g_value_get_pointer(value));
-            GST_INFO_OBJECT(bin, "Set sink element");
             break;
         case PROP_SRC_CONVERT:
             bin->need_src_convert = g_value_get_boolean(value);
