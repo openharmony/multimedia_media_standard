@@ -68,6 +68,8 @@ static gboolean gst_consumer_surface_pool_stop(GstBufferPool *pool);
 static gboolean gst_consumer_surface_pool_start(GstBufferPool *pool);
 static void gst_consumer_surface_pool_flush_start(GstBufferPool *pool);
 static void gst_consumer_surface_pool_flush_stop(GstBufferPool *pool);
+static void add_buffer_info(GstConsumerSurfaceMemory *mem, GstBuffer *buffer);
+static void cache_frame_if_necessary(GstConsumerSurfacePool *pool, GstConsumerSurfaceMemory *mem, GstBuffer *buffer);
 static gboolean drop_this_fame(GstConsumerSurfacePool *pool, guint64 new_timestamp,
     guint64 old_timestamp, guint32 frame_rate);
 
@@ -282,12 +284,7 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
         GstConsumerSurfaceMemory *surfacemem = nullptr;
         if (gst_is_consumer_surface_memory(mem)) {
             surfacemem = reinterpret_cast<GstConsumerSurfaceMemory*>(mem);
-            uint32_t bufferFlag = 0;
-            if (surfacemem->is_eos_frame) {
-                bufferFlag = BUFFER_FLAG_EOS;
-            }
-            gst_buffer_add_buffer_handle_meta(*buffer, surfacemem->buffer_handle, surfacemem->fencefd, bufferFlag);
-            GST_BUFFER_PTS(*buffer) = surfacemem->timestamp;
+            add_buffer_info(surfacemem, *buffer);
         }
         priv->available_buf_count--;
 
@@ -299,14 +296,7 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
                 continue;
             }
         }
-        priv->pre_timestamp = surfacemem->timestamp;
-        if (priv->repeat_interval > 0) {
-            if (priv->cache_buffer != nullptr) {
-                gst_buffer_unref(priv->cache_buffer);
-            }
-            priv->cache_buffer = *buffer;
-            gst_buffer_ref(priv->cache_buffer);
-        }
+        cache_frame_if_necessary(surfacepool, surfacemem, *buffer);
     } while (0);
 
     return GST_FLOW_OK;
@@ -368,6 +358,31 @@ void gst_consumer_surface_pool_set_surface(GstBufferPool *pool, sptr<Surface> &c
 
     if (consumer_surface->RegisterConsumerListener(listenerProxy) != SURFACE_ERROR_OK) {
         GST_WARNING_OBJECT(surfacepool, "register consumer listener fail");
+    }
+}
+
+static void add_buffer_info(GstConsumerSurfaceMemory *mem, GstBuffer *buffer)
+{
+    g_return_if_fail(mem != nullptr && buffer != nullptr);
+    uint32_t bufferFlag = 0;
+    if (mem->is_eos_frame) {
+        bufferFlag = BUFFER_FLAG_EOS;
+    }
+    gst_buffer_add_buffer_handle_meta(buffer, mem->buffer_handle, mem->fencefd, bufferFlag);
+    GST_BUFFER_PTS(buffer) = mem->timestamp;
+}
+
+static void cache_frame_if_necessary(GstConsumerSurfacePool *pool, GstConsumerSurfaceMemory *mem, GstBuffer *buffer)
+{
+    g_return_if_fail(pool != nullptr && pool->priv != nullptr && mem != nullptr && buffer != nullptr);
+    auto priv = pool->priv;
+    priv->pre_timestamp = mem->timestamp;
+    if (priv->repeat_interval > 0) {
+        if (priv->cache_buffer != nullptr) {
+            gst_buffer_unref(priv->cache_buffer);
+        }
+        priv->cache_buffer = buffer;
+        gst_buffer_ref(priv->cache_buffer);
     }
 }
 
