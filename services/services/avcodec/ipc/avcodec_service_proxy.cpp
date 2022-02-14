@@ -68,11 +68,6 @@ public:
         return MSERR_INVALID_VAL;
     }
 
-    void ClearCache()
-    {
-        caches_.clear();
-    }
-
 private:
     DISALLOW_COPY_AND_MOVE(AVCodecBufferCache);
 
@@ -193,15 +188,6 @@ int32_t AVCodecServiceProxy::Flush()
     MessageParcel reply;
     MessageOption option;
     int32_t ret = Remote()->SendRequest(FLUSH, data, reply, option);
-
-    if (inputBufferCache_ != nullptr) {
-        inputBufferCache_->ClearCache();
-    }
-
-    if (outputBufferCache_ != nullptr) {
-        outputBufferCache_->ClearCache();
-    }
-
     if (ret != MSERR_OK) {
         MEDIA_LOGE("Flush failed, error: %{public}d", ret);
         return ret;

@@ -70,10 +70,8 @@ int32_t SinkBytebufferImpl::Flush()
                 gst_buffer_unref((*it)->gstBuffer_);
                 (*it)->gstBuffer_ = nullptr;
             }
-            (*it)->mem_ = nullptr;
         }
     }
-    bufferList_.clear();
     isFirstFrame_ = true;
     isEos_ = false;
     return MSERR_OK;
