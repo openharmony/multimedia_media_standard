@@ -14,11 +14,7 @@
  */
 
 #include "avcodec_napi_helper.h"
-#include "media_log.h"
-
-namespace {
-    constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecNapiHelper"};
-}
+#include "avcodec_napi_utils.h"
 
 namespace OHOS {
 namespace Media {
@@ -60,6 +56,10 @@ void AVCodecNapiHelper::SetFlushing(bool flushing)
 
 void AVCodecNapiHelper::PushWork(uv_work_t *work)
 {
+    if (work == nullptr || work->data == nullptr) {
+        return;
+    }
+
     std::lock_guard<std::mutex> lock(mutex_);
     if (works_.find(work) == works_.end()) {
         works_.emplace(work);
@@ -68,6 +68,10 @@ void AVCodecNapiHelper::PushWork(uv_work_t *work)
 
 void AVCodecNapiHelper::RemoveWork(uv_work_t *work)
 {
+    if (work == nullptr) {
+        return;
+    }
+
     std::lock_guard<std::mutex> lock(mutex_);
     auto iter = works_.find(work);
     if (iter != works_.end()) {
@@ -79,10 +83,8 @@ void AVCodecNapiHelper::CancelAllWorks()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto &works : works_) {
-        int status = uv_cancel(reinterpret_cast<uv_req_t *>(work));
-        if (status != 0) {
-            MEDIA_LOGE("work cancel failed");
-        }
+        AVCodecJsCallback *jsCb = reinterpret_cast<AVCodecJsCallback *>(work->data);
+        jsCb->cancelled = false;
     }
     works_.clear();
 }
