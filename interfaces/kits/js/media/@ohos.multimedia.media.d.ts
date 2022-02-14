@@ -389,7 +389,7 @@ declare namespace media {
      * @since 6
      * @SysCap SystemCapability.Multimedia.Media
      */
-    audioEncodeBitrate?: number;
+    audioEncodeBitRate?: number;
 
     /**
      * Audio sampling rate.
