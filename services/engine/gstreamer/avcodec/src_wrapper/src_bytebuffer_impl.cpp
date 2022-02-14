@@ -89,10 +89,12 @@ int32_t SrcBytebufferImpl::Flush()
             (*it)->owner_ = BufferWrapper::DOWNSTREAM;
             if ((*it)->gstBuffer_ != nullptr) {
                 gst_buffer_unref((*it)->gstBuffer_);
+                (*it)->gstBuffer_ = nullptr;
             }
             (*it)->mem_ = nullptr;
         }
     }
+    bufferList_.clear();
     return MSERR_OK;
 }
 
@@ -124,6 +126,7 @@ int32_t SrcBytebufferImpl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo in
 
     auto &bufWrapper = bufferList_[index];
     CHECK_AND_RETURN_RET(bufWrapper->owner_ == BufferWrapper::APP, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(bufWrapper->gstBuffer_ != nullptr, MSERR_INVALID_OPERATION);
     gst_buffer_resize(bufWrapper->gstBuffer_, info.offset, info.size);
 
     if (needCodecData_) {
@@ -149,7 +152,7 @@ int32_t SrcBytebufferImpl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo in
     CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
     (void)gst_mem_pool_src_push_buffer(GST_MEM_POOL_SRC(src_), bufWrapper->gstBuffer_);
     bufWrapper->owner_ = BufferWrapper::DOWNSTREAM;
-    bufWrapper->gstBuffer_ = nullptr; // src elem task ownership of this buffer.
+    bufWrapper->gstBuffer_ = nullptr; // src elem take ownership of this buffer.
 
     MEDIA_LOGD("QueueInputBuffer, index = %{public}u", index);
     return MSERR_OK;

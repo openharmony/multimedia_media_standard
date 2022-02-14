@@ -35,7 +35,6 @@ int32_t WriteAVSharedMemoryToParcel(const std::shared_ptr<AVSharedMemory> &memor
 
     int32_t fd = baseMem->GetFd();
     int32_t size = baseMem->GetSize();
-    CHECK_AND_RETURN_RET_LOG(fd > 0 || size > 0, MSERR_INVALID_VAL, "fd or size invalid");
 
     (void)parcel.WriteFileDescriptor(fd);
     parcel.WriteInt32(size);
@@ -54,7 +53,7 @@ std::shared_ptr<AVSharedMemory> ReadAVSharedMemoryFromParcel(MessageParcel &parc
 
     std::shared_ptr<AVSharedMemoryBase> memory = std::make_shared<AVSharedMemoryBase>(fd, size, flags, name);
     int32_t ret = memory->Init();
-    if (ret != MSERR_OK) {
+    if (ret != MSERR_OK || memory->GetBase() == nullptr) {
         MEDIA_LOGE("create remote AVSharedMemoryBase failed, ret = %{public}d", ret);
         memory = nullptr;
     }

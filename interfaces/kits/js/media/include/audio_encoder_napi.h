@@ -21,6 +21,7 @@
 #include "media_errors.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "avcodec_napi_helper.h"
 
 namespace OHOS {
 namespace Media {
@@ -59,6 +60,7 @@ private:
     napi_ref wrap_ = nullptr;
     std::shared_ptr<AudioEncoder> aenc_ = nullptr;
     std::shared_ptr<AVCodecCallback> callback_ = nullptr;
+    std::shared_ptr<AVCodecNapiHelper> codecHelper_ = nullptr;
 };
 
 struct AudioEncoderAsyncContext : public MediaAsyncContext {
