@@ -291,6 +291,7 @@ void AudioEncoderCallbackNapi::OnJsBufferCallBack(AudioEncoderJsCallback *jsCb, 
     });
     if (ret != 0) {
         MEDIA_LOGE("Failed to execute libuv work queue");
+        codecHelper_->RemoveWork(work);
         delete jsCb;
         delete work;
     }

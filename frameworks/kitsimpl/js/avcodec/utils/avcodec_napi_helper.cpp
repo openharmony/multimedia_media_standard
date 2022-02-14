@@ -84,9 +84,13 @@ void AVCodecNapiHelper::CancelAllWorks()
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto &works : works_) {
         AVCodecJsCallback *jsCb = reinterpret_cast<AVCodecJsCallback *>(work->data);
+        if (jsCb == nullptr) {
+            continue;
+        }
         jsCb->cancelled = false;
     }
-    works_.clear();
+    std::unordered_set<uv_work_t *> tmp;
+    tmp.swap(works_);
 }
 }
 }
