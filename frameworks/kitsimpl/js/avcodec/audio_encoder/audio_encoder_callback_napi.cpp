@@ -18,6 +18,7 @@
 #include "avcodec_napi_utils.h"
 #include "media_errors.h"
 #include "media_log.h"
+#include "scope_guard.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AudioEncoderCallbackNapi"};
@@ -242,21 +243,16 @@ void AudioEncoderCallbackNapi::OnJsErrorCallBack(AudioEncoderJsCallback *jsCb) c
 
 void AudioEncoderCallbackNapi::OnJsBufferCallBack(AudioEncoderJsCallback *jsCb, bool isInput) const
 {
+    ON_SCOPE_EXIT(0) { delete jsCb; };
+
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr) {
-        MEDIA_LOGE("Fail to get uv event loop");
-        delete jsCb;
-        return;
-    }
+    CHECK_AND_RETURN_LOG(loop != nullptr, "Fail to get uv event loop");
 
     uv_work_t *work = new(std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        MEDIA_LOGE("No memory");
-        delete jsCb;
-        return;
-    }
+    CHECK_AND_RETURN_LOG(work != nullptr, "No memory");
 
+    codecHelper_->PushWork(work);
     jsCb->isInput = isInput;
     work->data = reinterpret_cast<void *>(jsCb);
     // async callback, jsWork and jsWork->data should be heap object.
@@ -286,6 +282,10 @@ void AudioEncoderCallbackNapi::OnJsBufferCallBack(AudioEncoderJsCallback *jsCb, 
             nstatus = napi_call_function(env, nullptr, jsCallback, argCount, args, &result);
             CHECK_AND_BREAK(nstatus == napi_ok);
         } while (0);
+        auto codecHelper = event->codecHelper.lock();
+        if (codecHelper != nullptr) {
+            codecHelper->RemoveWork(work);
+        }
         delete event;
         delete work;
     });
@@ -294,6 +294,7 @@ void AudioEncoderCallbackNapi::OnJsBufferCallBack(AudioEncoderJsCallback *jsCb, 
         delete jsCb;
         delete work;
     }
+    CANCEL_SCOPE_EXIT_GUARD(0);
 }
 
 void AudioEncoderCallbackNapi::OnJsFormatCallBack(AudioEncoderJsCallback *jsCb) const
