@@ -30,7 +30,7 @@ using namespace MediaDemo;
 using namespace std;
 namespace {
 const std::string SURFACE_STRIDE_ALIGNMENT = "SURFACE_STRIDE_ALIGNMENT";
-const std::string SURFACE_FORMAT = "SURFACE_FORMAT";
+const std::string SURFACE_FORMAT_KEY = "SURFACE_FORMAT";
 const float EPSINON = 0.0001;
 const float SPEED_0_75_X = 0.75;
 const float SPEED_1_00_X = 1.00;
@@ -216,7 +216,7 @@ sptr<Surface> PlayerDemo::GetVideoSurface()
         cout << "producerSurface is nullptr" << endl;
         return nullptr;
     }
-    (void)producerSurface->SetUserData(SURFACE_FORMAT, std::to_string(static_cast<int>(PIXEL_FMT_RGBA_8888)));
+    (void)producerSurface->SetUserData(SURFACE_FORMAT_KEY, std::to_string(static_cast<int>(PIXEL_FMT_RGBA_8888)));
     cout << "GetVideoSurface ok" << endl;
     return producerSurface;
 }

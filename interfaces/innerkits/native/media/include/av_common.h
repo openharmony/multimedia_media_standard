@@ -349,20 +349,20 @@ enum MPEG4Level {
 enum VideoPixelFormat {
     /**
      * yuv 420 planar.
-    */
+     */
     YUVI420 = 1,
     /**
      *  NV12. yuv 420 semiplanar.
-    */
+     */
     NV12 = 2,
     /**
      *  NV21. yvu 420 semiplanar.
-    */
+     */
     NV21 = 3,
     /**
      * format from surface.
-    */
-    // SURFACE_FORMAT = 4,
+     */
+    SURFACE_FORMAT = 4,
 };
 
 /**
