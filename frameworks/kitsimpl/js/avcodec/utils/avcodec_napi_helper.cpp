@@ -14,6 +14,11 @@
  */
 
 #include "avcodec_napi_helper.h"
+#include "media_log.h"
+
+namespace {
+    constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecNapiHelper"};
+}
 
 namespace OHOS {
 namespace Media {
@@ -52,5 +57,35 @@ void AVCodecNapiHelper::SetFlushing(bool flushing)
 {
     isFlushing_.store(flushing);
 }
+
+void AVCodecNapiHelper::PushWork(uv_work_t *work)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (works_.find(work) == works_.end()) {
+        works_.emplace(work);
+    }
+}
+
+void AVCodecNapiHelper::RemoveWork(uv_work_t *work)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto iter = works_.find(work);
+    if (iter != works_.end()) {
+        works_.erase(iter);
+    }
+}
+
+void AVCodecNapiHelper::CancelAllWorks()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto &works : works_) {
+        int status = uv_cancel(reinterpret_cast<uv_req_t *>(work));
+        if (status != 0) {
+            MEDIA_LOGE("work cancel failed");
+        }
+    }
+    works_.clear();
+}
+
 }
 }

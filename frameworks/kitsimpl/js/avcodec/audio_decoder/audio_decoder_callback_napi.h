@@ -57,6 +57,7 @@ private:
         std::shared_ptr<AVSharedMemory> memory = nullptr;
         bool isInput = false;
         Format format;
+        std::weak_ptr<AVCodecNapiHelper> codecHelper;
     };
     void OnJsErrorCallBack(AudioDecoderJsCallback *jsCb) const;
     void OnJsBufferCallBack(AudioDecoderJsCallback *jsCb, bool isInput) const;

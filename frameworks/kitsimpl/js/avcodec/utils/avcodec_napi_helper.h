@@ -16,6 +16,9 @@
 #ifndef AVCODEC_NAPI_HELPER_H
 #define AVCODEC_NAPI_HELPER_H
 #include <atomic>
+#include <mutex>
+#include <unordered_set>
+#include <uv.h>
 #include "nocopyable.h"
 
 namespace OHOS {
@@ -30,12 +33,17 @@ public:
     void SetEos(bool eos);
     void SetStop(bool stop);
     void SetFlushing(bool flushing);
+    void PushWork(uv_work_t *work);
+    void RemoveWork(uv_work_t *work);
+    void CancelAllWorks();
     DISALLOW_COPY_AND_MOVE(AVCodecNapiHelper);
 
 private:
     std::atomic<bool> isEos_ = false;
     std::atomic<bool> isStop_ = false;
     std::atomic<bool> isFlushing_ = false;
+    std::mutex mutex_;
+    std::unordered_set<uv_work_t *> works_;
 };
 }
 }
