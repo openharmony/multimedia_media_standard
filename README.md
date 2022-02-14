@@ -23,30 +23,39 @@ It offers various media services covering audio, videos, and media storage. The 
 The structure of the repository directory is as follows:
 ```
 /foundation/multimedia/media_standard
-+-- frameworks                           # Framework code
-¦   +-- innerkitsimpl                    # Native framework implementation
-¦   +-- kitsimpl                         # JS framework implementation
-¦   +-- videodisplaymanager              # Video display implementation
-+-- interfaces                           # External APIs
-¦   +-- innerkits                        # Native external interface files
-¦   +-- kits                             # External JS API files
-+-- services                             # Service implementation
-¦   +-- include                          # External header files of services
-¦   +-- play                             # Player client/server implementation
-¦   ¦   +-- client                       # Player client implementation
-¦   ¦   +-- ipc                          # Player client/server framework
-¦   ¦   +-- server                       # Player server implementation
-¦   ¦   +-- engine                       # Player engine framework
-¦   +-- recorder                         # Recorder client/server implementation
-¦   ¦   +-- client                       # Recorder client implementation
-¦   ¦   +-- ipc                          # Recorder client/server framework
-¦   ¦   +-- server                       # Recorder server implementation
-¦   ¦   +-- engine                       # Recorder engine framework
-¦   +-- plugins                          # Custom plug-ins
-¦   +-- sa_media                         # Main process of the media service
-¦   +-- utils                            # Basic resources of the subsystem
-+-- LICENSE                              # License file
-+-- ohos.build                           # Build file
+├── frameworks                           # Framework code
+│   ├── innerkitsimpl                    # Native framework implementation
+│   ├── kitsimpl                         # JS framework implementation
+│   ├── videodisplaymanager              # Video display implementation
+├── interfaces                           # External APIs
+│   ├── innerkits                        # Native external interface files
+│   └── kits                             # External JS API files
+├── services                             # Service implementation
+│   ├── include                          # External header files of services
+│   ├── services                         # Service framework
+│   │   ├── player                       # Player C/S framework
+│   │   ├── recorder                     # Recorder C/S framework
+│   │   ├── avcodec                      # Codec C/S framework
+│   │   ├── avcodeclist                  # Codec capability C/S framework
+│   │   ├── avmetadatahelper             # Metadata C/S framework
+│   │   ├── media_data_source            # Datasource C/S framework
+│   │   ├── sa_media                     # Media master process C/S framework
+│   │   ├── factory                      # Engine factory
+│   │   ├── engine_intf                  # Engine factory API
+│   ├── engine                           # Engine implementation
+│   │   ├── gstreamer                    # Gstreamer engine
+│   │   │   ├── player                   # Player engine
+│   │   │   ├── recorder                 # Recorder engine
+│   │   │   ├── avcodec                  # Codec engine
+│   │   │   ├── avcodeclist              # Codec capability engine
+│   │   │   ├── avmetadatahelper         # Metadata engine
+│   │   │   ├── plugins                  # Engine self-developed plugins
+│   │   │   ├── common                   # Engine General Resources
+│   │   │   ├── factory                  # Engine factory implementation
+│   │   │   ├── loader                   # Engine resources loading
+│   ├── utils                            # Basic resources of the subsystem
+├── LICENSE                              # License file
+└── ohos.build                           # Build file
 ```
 
 ## Repositories Involved<a name="section1533973044317"></a>
