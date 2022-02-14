@@ -47,6 +47,9 @@ enum {
     PROP_0,
     PROP_SURFACE,
     PROP_SURFACE_STRIDE,
+    PROP_SUSPEND,
+    PROP_REPEAT,
+    PROP_MAX_FRAME_RATE,
 };
 
 G_DEFINE_TYPE(GstSurfacePoolSrc, gst_surface_pool_src, GST_TYPE_MEM_POOL_SRC);
@@ -81,6 +84,18 @@ static void gst_surface_pool_src_class_init(GstSurfacePoolSrcClass *klass)
         g_param_spec_uint("surface-stride", "surface stride",
             "surface buffer stride", 0, G_MAXINT32, STRIDE_ALIGN,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_SUSPEND,
+        g_param_spec_boolean("suspend", "Suspend surface", "Suspend surface",
+            FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_REPEAT,
+        g_param_spec_uint("repeat", "Repeat frame", "Repeat previous frame after given milliseconds",
+            0, G_MAXUINT32, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_MAX_FRAME_RATE,
+        g_param_spec_uint("max-framerate", "Max frame rate", "Max frame rate",
+            0, G_MAXUINT32, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
     gstelement_class->change_state = gst_surface_pool_src_change_state;
     gstelement_class->send_event = gst_surface_pool_src_send_event;
@@ -123,12 +138,23 @@ static void gst_surface_pool_src_get_property(GObject *object, guint prop_id, GV
 static void gst_surface_pool_src_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
     GstSurfacePoolSrc *src = GST_SURFACE_POOL_SRC(object);
-    g_return_if_fail(src != nullptr);
-    g_return_if_fail(value != nullptr);
+    g_return_if_fail(src != nullptr && value != nullptr);
     (void)pspec;
     switch (prop_id) {
         case PROP_SURFACE_STRIDE:
             src->stride = g_value_get_uint(value);
+            break;
+        case PROP_SUSPEND:
+            g_return_if_fail(src->pool != nullptr);
+            g_object_set(src->pool, "suspend", g_value_get_boolean(value), nullptr);
+            break;
+        case PROP_REPEAT:
+            g_return_if_fail(src->pool != nullptr);
+            g_object_set(src->pool, "repeat", g_value_get_uint(value), nullptr);
+            break;
+        case PROP_MAX_FRAME_RATE:
+            g_return_if_fail(src->pool != nullptr);
+            g_object_set(src->pool, "max-framerate", g_value_get_uint(value), nullptr);
             break;
         default:
             break;

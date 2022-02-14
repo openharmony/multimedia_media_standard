@@ -28,10 +28,12 @@ namespace {
     constexpr uint32_t DEFAULT_HEIGHT = 360;
     constexpr uint32_t DEFAULT_FRAME_RATE = 30;
     constexpr uint32_t YUV_BUFFER_SIZE = 259200; // 480 * 360 * 3 / 2
-    constexpr uint32_t FRAME_INTERVAL_MS = 30000;
-    constexpr uint32_t FRAME_DURATION_US = 40000000;
     constexpr uint32_t STRIDE_ALIGN = 8;
-    constexpr uint32_t FRAME_COUNT = 150;
+
+    constexpr int32_t FAST_PRODUCER = 50; // 50 fps producer, used to test max_encoder_fps property
+    constexpr int32_t SLOW_PRODUCER = 20; // 20 fps producer, used to test repeat_frame_after property
+    constexpr uint32_t REPEAT_FRAME_AFTER_MS = 50;
+    constexpr uint32_t DEFAULT_FRAME_COUNT = 50;
 }
 
 static BufferFlushConfig g_flushConfig = {
@@ -53,7 +55,7 @@ static BufferRequestConfig g_request = {
     .timeout = 0
 };
 
-void VEncDemo::RunCase()
+void VEncDemo::RunCase(bool enableProp)
 {
     DEMO_CHECK_AND_RETURN_LOG(CreateVenc() == MSERR_OK, "Fatal: CreateVenc fail");
 
@@ -64,19 +66,41 @@ void VEncDemo::RunCase()
     format.PutIntValue("frame_rate", DEFAULT_FRAME_RATE);
     DEMO_CHECK_AND_RETURN_LOG(Configure(format) == MSERR_OK, "Fatal: Configure fail");
 
-    sptr<Surface> surface = GetVideoSurface();
-    DEMO_CHECK_AND_RETURN_LOG(surface != nullptr, "Fatal: GetVideoSurface fail");
+    surface_ = GetVideoSurface();
+    DEMO_CHECK_AND_RETURN_LOG(surface_ != nullptr, "Fatal: GetVideoSurface fail");
 
     DEMO_CHECK_AND_RETURN_LOG(Prepare() == MSERR_OK, "Fatal: Prepare fail");
     DEMO_CHECK_AND_RETURN_LOG(Start() == MSERR_OK, "Fatal: Start fail");
 
+    if (enableProp) {
+        DEMO_CHECK_AND_RETURN_LOG(SetParameter(0, DEFAULT_FRAME_RATE, REPEAT_FRAME_AFTER_MS) == MSERR_OK,
+            "Fatal: SetParameter fail");
+        GenerateData(DEFAULT_FRAME_COUNT, FAST_PRODUCER);
+        GenerateData(DEFAULT_FRAME_COUNT, SLOW_PRODUCER);
+        DEMO_CHECK_AND_RETURN_LOG(SetParameter(1, 0, 0) == MSERR_OK, "Fatal: Set suspend fail");
+        GenerateData(DEFAULT_FRAME_COUNT, DEFAULT_FRAME_RATE);
+    } else {
+        GenerateData(DEFAULT_FRAME_COUNT, DEFAULT_FRAME_RATE);
+    }
+
+    DEMO_CHECK_AND_RETURN_LOG(Stop() == MSERR_OK, "Fatal: Stop fail");
+    DEMO_CHECK_AND_RETURN_LOG(Release() == MSERR_OK, "Fatal: Release fail");
+}
+
+void VEncDemo::GenerateData(uint32_t count, uint32_t fps)
+{
+    if (fps == 0) {
+        return;
+    }
+    const uint32_t secToUs = 1000000;
+    uint32_t intervalUs = secToUs / fps;
     uint32_t frameCount = 0;
-    int64_t timeStamp = 0;
-    while (frameCount <= FRAME_COUNT) {
-        usleep(FRAME_INTERVAL_MS);
+    while (frameCount <= count) {
+        usleep(intervalUs);
+
         sptr<OHOS::SurfaceBuffer> buffer = nullptr;
         int32_t fence = -1;
-        if (surface->RequestBuffer(buffer, fence, g_request) != SURFACE_ERROR_OK) {
+        if (surface_->RequestBuffer(buffer, fence, g_request) != SURFACE_ERROR_OK) {
             continue;
         }
         DEMO_CHECK_AND_BREAK_LOG(buffer != nullptr, "Fatal: SurfaceBuffer is nullptr");
@@ -84,19 +108,17 @@ void VEncDemo::RunCase()
         auto addr = static_cast<uint8_t *>(buffer->GetVirAddr());
         if (addr == nullptr) {
             cout << "Fatal: SurfaceBuffer address is nullptr" << endl;
-            (void)surface->CancelBuffer(buffer);
+            (void)surface_->CancelBuffer(buffer);
             break;
         }
         DEMO_CHECK_AND_BREAK_LOG(memset_s(addr, buffer->GetSize(), 0xFF, YUV_BUFFER_SIZE) == EOK, "Fatal");
-        (void)buffer->ExtraSet("timeStamp", timeStamp);
-        timeStamp += FRAME_DURATION_US;
-        (void)surface->FlushBuffer(buffer, -1, g_flushConfig);
-        cout << "Generate input buffer success" << endl;
+        (void)buffer->ExtraSet("timestampNs_", timestampNs_);
+        timestampNs_ += intervalUs * 1000; // us to ns
+
+        (void)surface_->FlushBuffer(buffer, -1, g_flushConfig);
+        cout << "Generate input buffer success, timestamp: " << timestampNs_ << endl;
         frameCount++;
     }
-
-    DEMO_CHECK_AND_RETURN_LOG(Stop() == MSERR_OK, "Fatal: Stop fail");
-    DEMO_CHECK_AND_RETURN_LOG(Release() == MSERR_OK, "Fatal: Release fail");
 }
 
 int32_t VEncDemo::CreateVenc()
@@ -130,6 +152,15 @@ int32_t VEncDemo::Start()
     readLoop_ = make_unique<thread>(&VEncDemo::LoopFunc, this);
     DEMO_CHECK_AND_RETURN_RET_LOG(readLoop_ != nullptr, MSERR_UNKNOWN, "Fatal: No memory");
     return venc_->Start();
+}
+
+int32_t VEncDemo::SetParameter(int32_t suspend, int32_t maxFps, int32_t repeatMs)
+{
+    Format format;
+    format.PutIntValue("suspend_input_surface", suspend);
+    format.PutIntValue("max_encoder_fps", maxFps);
+    format.PutIntValue("repeat_frame_after", repeatMs);
+    return venc_->SetParameter(format);
 }
 
 int32_t VEncDemo::Stop()
