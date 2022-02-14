@@ -28,7 +28,7 @@ struct MediaVideoCapsAsyncCtx;
 class MediaVideoCapsNapi {
 public:
     static napi_value Init(napi_env env, napi_value exports);
-    static napi_value Create(napi_env env, VideoCaps *caps);
+    static napi_value Create(napi_env env, std::shared_ptr<VideoCaps> caps);
 
 private:
     static napi_value Constructor(napi_env env, napi_callback_info info);
@@ -57,6 +57,11 @@ private:
     std::shared_ptr<VideoCaps> caps_;
     napi_env env_ = nullptr;
     napi_ref wrap_ = nullptr;
+    struct CapsWrap {
+        explicit CapsWrap(std::shared_ptr<VideoCaps> caps) : caps_(caps) {}
+        ~CapsWrap() = default;
+        std::shared_ptr<VideoCaps> caps_;
+    };
 };
 
 struct MediaVideoCapsAsyncCtx : public MediaAsyncContext {
