@@ -264,7 +264,7 @@ void AudioDecoderCallbackNapi::OnJsBufferCallBack(AudioDecoderJsCallback *jsCb, 
         MEDIA_LOGD("JsCallBack %{public}s, uv_queue_work start, index: %{public}u",
             event->callbackName.c_str(), event->index);
         do {
-            CHECK_AND_BREAK(status != UV_ECANCELED);
+            CHECK_AND_BREAK(!event->cancelled && status != UV_ECANCELED);
             napi_value jsCallback = nullptr;
             napi_status nstatus = napi_get_reference_value(env, event->callback->cb_, &jsCallback);
             CHECK_AND_BREAK(nstatus == napi_ok && jsCallback != nullptr);
