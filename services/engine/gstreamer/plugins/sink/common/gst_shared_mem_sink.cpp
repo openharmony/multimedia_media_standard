@@ -36,6 +36,10 @@ struct _GstSharedMemSinkPrivate {
     GstAllocationParams allocParams;
     std::shared_ptr<OHOS::Media::AVSharedMemoryPool> avShmemPool;
     gboolean setPoolForAllocator;
+    GMutex mutex;
+    GCond cond;
+    gboolean unlock;
+    gboolean flushing;
 };
 
 enum {
@@ -51,6 +55,10 @@ static void gst_shared_mem_sink_set_property(GObject *object, guint prop_id, con
 static void gst_shared_mem_sink_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec);
 static gboolean gst_shared_mem_sink_do_propose_allocation(GstMemSink *memsink, GstQuery *query);
 static GstFlowReturn gst_shared_mem_sink_do_stream_render(GstMemSink *memsink, GstBuffer **buffer);
+static gboolean gst_shared_mem_sink_unlock_start(GstBaseSink *bsink);
+static gboolean gst_shared_mem_sink_unlock_stop(GstBaseSink *bsink);
+static gboolean gst_shared_mem_sink_start(GstBaseSink *bsink);
+static gboolean gst_shared_mem_sink_stop(GstBaseSink *bsink);
 
 #define gst_shared_mem_sink_parent_class parent_class
 G_DEFINE_TYPE_WITH_CODE(GstSharedMemSink, gst_shared_mem_sink,
@@ -66,6 +74,7 @@ static void gst_shared_mem_sink_class_init(GstSharedMemSinkClass *klass)
     GObjectClass *gobjectClass = G_OBJECT_CLASS(klass);
     GstMemSinkClass *memSinkClass = GST_MEM_SINK_CLASS(klass);
     GstElementClass *elementClass = GST_ELEMENT_CLASS(klass);
+    GstBaseSinkClass *baseSinkClass = GST_BASE_SINK_CLASS(klass);
 
     gobjectClass->dispose = gst_shared_mem_sink_dispose;
     gobjectClass->finalize = gst_shared_mem_sink_finalize;
@@ -94,6 +103,11 @@ static void gst_shared_mem_sink_class_init(GstSharedMemSinkClass *klass)
         "Output to multi-process shared memory and allow the application to get access to the shared memory",
         "OpenHarmony");
 
+    baseSinkClass->unlock = gst_shared_mem_sink_unlock_start;
+    baseSinkClass->unlock_stop = gst_shared_mem_sink_unlock_stop;
+    baseSinkClass->start = gst_shared_mem_sink_start;
+    baseSinkClass->stop = gst_shared_mem_sink_stop;
+
     memSinkClass->do_propose_allocation = gst_shared_mem_sink_do_propose_allocation;
     memSinkClass->do_stream_render = gst_shared_mem_sink_do_stream_render;
 
@@ -113,6 +127,10 @@ static void gst_shared_mem_sink_init(GstSharedMemSink *sink)
     gst_allocation_params_init(&priv->allocParams);
     priv->allocator = gst_shmem_allocator_new();
     priv->setPoolForAllocator = FALSE;
+    g_mutex_init(&priv->mutex);
+    g_cond_init(&priv->cond);
+    priv->unlock = FALSE;
+    priv->flushing = FALSE;
 }
 
 static void gst_shared_mem_sink_dispose(GObject *obj)
@@ -141,6 +159,13 @@ static void gst_shared_mem_sink_dispose(GObject *obj)
 static void gst_shared_mem_sink_finalize(GObject *obj)
 {
     g_return_if_fail(obj != nullptr);
+    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(obj);
+    GstSharedMemSinkPrivate *priv = shmemSink->priv;
+    g_return_if_fail(priv != nullptr);
+
+    g_mutex_clear(&priv->mutex);
+    g_cond_clear(&priv->cond);
+
     G_OBJECT_CLASS(parent_class)->finalize(obj);
 }
 
@@ -214,6 +239,84 @@ static void gst_shared_mem_sink_get_property(GObject *object, guint propId, GVal
     }
 }
 
+static gboolean gst_shared_mem_sink_unlock_start(GstBaseSink *bsink)
+{
+    g_return_val_if_fail(bsink != nullptr, FALSE);
+    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(bsink);
+    GstSharedMemSinkPrivate *priv = shmemSink->priv;
+    g_return_val_if_fail(priv != nullptr, FALSE);
+
+    GST_INFO_OBJECT(shmemSink, "we are unlock start");
+
+    g_mutex_lock(&priv->mutex);
+    priv->unlock = TRUE;
+    g_cond_signal(&priv->cond);
+    g_mutex_unlock(&priv->mutex);
+
+    return TRUE;
+}
+
+static gboolean gst_shared_mem_sink_unlock_stop(GstBaseSink *bsink)
+{
+    g_return_val_if_fail(bsink != nullptr, FALSE);
+    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(bsink);
+    GstSharedMemSinkPrivate *priv = shmemSink->priv;
+    g_return_val_if_fail(priv != nullptr, FALSE);
+
+    GST_INFO_OBJECT(shmemSink, "we are unlock stop");
+
+    g_mutex_lock(&priv->mutex);
+    priv->unlock = FALSE;
+    g_cond_signal(&priv->cond);
+    g_mutex_unlock(&priv->mutex);
+
+    return TRUE;
+}
+
+static gboolean gst_shared_mem_sink_start(GstBaseSink *bsink)
+{
+    g_return_val_if_fail(bsink != nullptr, FALSE);
+    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(bsink);
+    GstSharedMemSinkPrivate *priv = shmemSink->priv;
+    g_return_val_if_fail(priv != nullptr, FALSE);
+
+    GST_INFO_OBJECT(shmemSink, "we are start");
+
+    g_mutex_lock(&priv->mutex);
+    priv->flushing = FALSE;
+    g_mutex_unlock(&priv->mutex);
+
+    return GST_BASE_SINK_CLASS(parent_class)->start(bsink);
+}
+
+static gboolean gst_shared_mem_sink_stop(GstBaseSink *bsink)
+{
+    g_return_val_if_fail(bsink != nullptr, FALSE);
+    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(bsink);
+    GstSharedMemSinkPrivate *priv = shmemSink->priv;
+    g_return_val_if_fail(priv != nullptr, FALSE);
+
+    GST_INFO_OBJECT(shmemSink, "we are stop");
+
+    g_mutex_lock(&priv->mutex);
+    priv->flushing = TRUE;
+    g_cond_signal(&priv->cond);
+    g_mutex_unlock(&priv->mutex);
+
+    return GST_BASE_SINK_CLASS(parent_class)->stop(bsink);
+}
+
+static void notify_memory_available(GstSharedMemSink *shmemSink)
+{
+    g_return_if_fail(shmemSink != nullptr);
+    GstSharedMemSinkPrivate *priv = shmemSink->priv;
+    g_return_if_fail(priv != nullptr);
+
+    g_mutex_lock(&priv->mutex);
+    g_cond_signal(&priv->cond);
+    g_mutex_unlock(&priv->mutex);
+}
+
 static gboolean set_pool_for_allocator(GstSharedMemSink *shmemSink, guint minBufs, guint maxBufs, guint size)
 {
     GstSharedMemSinkPrivate *priv = shmemSink->priv;
@@ -233,18 +336,62 @@ static gboolean set_pool_for_allocator(GstSharedMemSink *shmemSink, guint minBuf
 
     GST_DEBUG_OBJECT(shmemSink, "minBufs: %u, maxBufs: %u, size: %u", minBufs, maxBufs, size);
 
+    auto notifier = [shmemSink]() {
+        notify_memory_available(shmemSink);
+    };
+
     priv->avShmemPool = std::make_shared<OHOS::Media::AVSharedMemoryPool>("shmemsink");
     OHOS::Media::AVSharedMemoryPool::InitializeOption option = {
         .preAllocMemCnt = minBufs,
         .memSize = size,
         .maxMemCnt = maxBufs,
+        .notifier = notifier,
     };
     int32_t ret = priv->avShmemPool->Init(option);
     g_return_val_if_fail(ret == OHOS::Media::MSERR_OK, GST_FLOW_ERROR);
 
+    priv->avShmemPool->SetNonBlocking(true);
     gst_shmem_allocator_set_pool(priv->allocator, priv->avShmemPool);
     priv->setPoolForAllocator = TRUE;
     return TRUE;
+}
+
+static GstFlowReturn do_allocate_buffer(GstSharedMemSink *shmemSink, GstBuffer **buffer)
+{
+    GstSharedMemSinkPrivate *priv = shmemSink->priv;
+    g_mutex_lock(&priv->mutex);
+
+    while (!priv->flushing) {
+        GstMemory *memory = gst_allocator_alloc(GST_ALLOCATOR_CAST(priv->allocator), priv->memSize, &priv->allocParams);
+        if (memory != nullptr) {
+            g_mutex_unlock(&priv->mutex);
+            *buffer = gst_buffer_new();
+            if (*buffer == nullptr) {
+                GST_ERROR_OBJECT(shmemSink, "buffer new failed");
+                gst_allocator_free(GST_ALLOCATOR_CAST(priv->allocator), memory);
+                return GST_FLOW_ERROR;
+            }
+            gst_buffer_append_memory(*buffer, memory);
+            return GST_FLOW_OK;
+        }
+
+        if (priv->unlock) {
+            g_mutex_unlock(&priv->mutex);
+            GstFlowReturn ret = gst_base_sink_wait_preroll(GST_BASE_SINK(shmemSink));
+            if (ret != GST_FLOW_OK) {
+                GST_INFO_OBJECT(shmemSink, "we are stopping");
+                return ret;
+            }
+            g_mutex_lock(&priv->mutex);
+            continue;
+        }
+
+        g_cond_wait(&priv->cond, &priv->mutex);
+    };
+
+    g_mutex_unlock(&priv->mutex);
+    GST_INFO_OBJECT(shmemSink, "we are flushing");
+    return GST_FLOW_FLUSHING;
 }
 
 static GstFlowReturn do_copy_buffer(GstSharedMemSink *shmemSink, GstBuffer *inBuf, GstBuffer **outBuf)
@@ -255,18 +402,9 @@ static GstFlowReturn do_copy_buffer(GstSharedMemSink *shmemSink, GstBuffer *inBu
     gboolean ret = set_pool_for_allocator(shmemSink, 1, memsink->maxPoolCapacity, priv->memSize);
     g_return_val_if_fail(ret, GST_FLOW_ERROR);
 
-    *outBuf = gst_buffer_new();
+    GstFlowReturn flowRet = do_allocate_buffer(shmemSink, outBuf);
+    g_return_val_if_fail(flowRet == GST_FLOW_OK, flowRet);
     g_return_val_if_fail(*outBuf != nullptr, GST_FLOW_ERROR);
-
-    // blocking allocate memory
-    GstMemory *memory = gst_allocator_alloc(GST_ALLOCATOR_CAST(priv->allocator), priv->memSize, &priv->allocParams);
-    if  (memory == nullptr) {
-        GST_ERROR_OBJECT(shmemSink, "alloc memory failed");
-        gst_buffer_unref(*outBuf);
-        *outBuf = nullptr;
-        return GST_FLOW_ERROR;
-    }
-    gst_buffer_append_memory(*outBuf, memory);
 
     do {
         ret = gst_buffer_copy_into(*outBuf, inBuf, GST_BUFFER_COPY_METADATA, 0, -1);

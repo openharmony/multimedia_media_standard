@@ -26,12 +26,16 @@ public:
     ~AVCodecNapiHelper() = default;
     bool IsEos();
     bool IsStop();
+    bool IsFlushing();
     void SetEos(bool eos);
     void SetStop(bool stop);
+    void SetFlushing(bool flushing);
     DISALLOW_COPY_AND_MOVE(AVCodecNapiHelper);
+
 private:
     std::atomic<bool> isEos_ = false;
     std::atomic<bool> isStop_ = false;
+    std::atomic<bool> isFlushing_ = false;
 };
 }
 }
