@@ -112,7 +112,7 @@ void VEncDemo::GenerateData(uint32_t count, uint32_t fps)
             break;
         }
         DEMO_CHECK_AND_BREAK_LOG(memset_s(addr, buffer->GetSize(), 0xFF, YUV_BUFFER_SIZE) == EOK, "Fatal");
-        (void)buffer->ExtraSet("timestampNs_", timestampNs_);
+        (void)buffer->ExtraSet("timeStamp", timestampNs_);
         timestampNs_ += intervalUs * 1000; // us to ns
 
         (void)surface_->FlushBuffer(buffer, -1, g_flushConfig);
