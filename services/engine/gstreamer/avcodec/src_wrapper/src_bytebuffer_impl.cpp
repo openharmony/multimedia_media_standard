@@ -165,16 +165,6 @@ int32_t SrcBytebufferImpl::SetCallback(const std::weak_ptr<IAVCodecEngineObs> &o
     return MSERR_OK;
 }
 
-int32_t SrcBytebufferImpl::SetParameter(const Format &format)
-{
-    int32_t value = 0;
-    if (format.GetIntValue("repeat_frame_after", value) == true) {
-        g_object_set(src_, "repeat-frame-after", value, nullptr);
-    }
-
-    return MSERR_OK;
-}
-
 int32_t SrcBytebufferImpl::HandleCodecBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
 {
     bool hasCodecFlag = static_cast<int32_t>(flag) & static_cast<int32_t>(AVCODEC_BUFFER_FLAG_CODEDC_DATA);
