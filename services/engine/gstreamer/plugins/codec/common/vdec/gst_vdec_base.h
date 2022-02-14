@@ -86,6 +86,7 @@ struct _GstVdecBase {
     GstBufferPool *outpool;
     guint coding_outbuf_cnt;
     guint out_buffer_cnt;
+    guint out_buffer_max_cnt;
     gboolean first_frame;
 };
 
