@@ -129,10 +129,16 @@ static void gst_venc_base_set_property(GObject *object, guint prop_id, const GVa
         }
         case PROP_REQUEST_I_FRAME: {
             GST_INFO_OBJECT(object, "Request I frame");
+            if (self->encoder != nullptr) {
+                g_return_if_fail(self->encoder->SetParameter(GST_REQUEST_I_FRAME, GST_ELEMENT(self)) == GST_CODEC_OK);
+            }
             break;
         }
         case PROP_VENDOR: {
             GST_INFO_OBJECT(object, "Set vendor property");
+            if (self->encoder != nullptr) {
+                g_return_if_fail(self->encoder->SetParameter(GST_VENDOR, GST_ELEMENT(self)) == GST_CODEC_OK);
+            }
             break;
         }
         case PROP_SURFACE_ENABLE: {
