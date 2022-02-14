@@ -88,6 +88,5 @@ void AVCodecNapiHelper::CancelAllWorks()
     }
     works_.clear();
 }
-
 }
 }
