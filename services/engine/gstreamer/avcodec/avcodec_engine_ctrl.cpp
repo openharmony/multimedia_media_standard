@@ -17,6 +17,7 @@
 #include <vector>
 #include "media_errors.h"
 #include "media_log.h"
+#include "scope_guard.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecEngineCtrl"};
@@ -291,9 +292,33 @@ int32_t AVCodecEngineCtrl::SetParameter(const Format &format)
     CHECK_AND_RETURN_RET(sink_->SetParameter(format) == MSERR_OK, MSERR_UNKNOWN);
 
     CHECK_AND_RETURN_RET(codecBin_ != nullptr, MSERR_UNKNOWN);
+
     int32_t value = 0;
-    if (format.GetIntValue("req_i_frame", value) == true) {
-        g_object_set(codecBin_, "req-i-frame", value, nullptr);
+    if (format.GetValueType(std::string_view("req_i_frame")) == FORMAT_TYPE_INT32) {
+        if (format.GetIntValue("req_i_frame", value) && value >= 0) {
+            g_object_set(codecBin_, "req-i-frame", static_cast<uint32_t>(value), nullptr);
+        }
+    }
+
+    if (format.GetValueType(std::string_view("bitrate")) == FORMAT_TYPE_INT32) {
+        if (format.GetIntValue("bitrate", value) && value > 0) {
+            g_object_set(codecBin_, "bitrate", static_cast<uint32_t>(value), nullptr);
+        }
+    }
+
+    if (format.GetValueType(std::string_view("vendor.custom")) == FORMAT_TYPE_ADDR) {
+        uint8_t *addr = nullptr;
+        size_t size = 0;
+        if (format.GetBuffer("vendor.custom", &addr, size) && addr != nullptr) {
+            GstBuffer *buffer = gst_buffer_new_allocate(nullptr, size, nullptr);
+            CHECK_AND_RETURN_RET(buffer != nullptr, MSERR_NO_MEMORY);
+
+            ON_SCOPE_EXIT(0) { gst_buffer_unref(buffer); };
+
+            gsize ret = gst_buffer_fill(buffer, 0, (char *)addr, size);
+            CHECK_AND_RETURN_RET(ret == static_cast<gsize>(size), MSERR_UNKNOWN);
+            g_object_set(codecBin_, "vendor", static_cast<gpointer>(buffer), nullptr);
+        }
     }
 
     MEDIA_LOGD("SetParameter success");

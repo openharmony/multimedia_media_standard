@@ -51,6 +51,7 @@ static gboolean gst_codec_return_is_ok(const GstVdecBase *decoder, gint ret,
 enum {
     PROP_0,
     PROP_SURFACE,
+    PROP_VENDOR,
 };
 
 G_DEFINE_ABSTRACT_TYPE(GstVdecBase, gst_vdec_base, GST_TYPE_VIDEO_DECODER);
@@ -79,6 +80,10 @@ static void gst_vdec_base_class_init(GstVdecBaseClass *klass)
     video_decoder_class->decide_allocation = gst_vdec_base_decide_allocation;
     video_decoder_class->propose_allocation = gst_vdec_base_propose_allocation;
 
+    g_object_class_install_property(gobject_class, PROP_VENDOR,
+        g_param_spec_pointer("vendor", "Vendor property", "Vendor property",
+            (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
     const gchar *src_caps_string = GST_VIDEO_CAPS_MAKE(GST_VDEC_BASE_SUPPORTED_FORMATS);
     GstCaps *src_caps = gst_caps_from_string(src_caps_string);
     GST_DEBUG_OBJECT(klass, "Pad template caps %" GST_PTR_FORMAT, src_caps);
@@ -92,8 +97,15 @@ static void gst_vdec_base_class_init(GstVdecBaseClass *klass)
 static void gst_vdec_base_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
     (void)pspec;
-    (void)prop_id;
     g_return_if_fail(object != nullptr && value != nullptr);
+
+    switch (prop_id) {
+        case PROP_VENDOR:
+            GST_INFO_OBJECT(object, "Set vendor property");
+            break;
+        default:
+            break;
+    }
 }
 
 static void gst_vdec_base_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)

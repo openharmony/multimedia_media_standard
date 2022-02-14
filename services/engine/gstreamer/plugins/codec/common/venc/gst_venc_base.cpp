@@ -51,6 +51,8 @@ static gboolean gst_codec_return_is_ok(const GstVencBase *encoder, gint ret,
 enum {
     PROP_0,
     PROP_BITRATE,
+    PROP_REQUEST_I_FRAME,
+    PROP_VENDOR,
     PROP_SURFACE_ENABLE,
 };
 
@@ -84,6 +86,14 @@ static void gst_venc_base_class_init(GstVencBaseClass *klass)
         0, G_MAXUINT, GST_VENC_BITRATE_DEFAULT,
         (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | GST_PARAM_MUTABLE_PLAYING)));
 
+    g_object_class_install_property(gobject_class, PROP_REQUEST_I_FRAME,
+        g_param_spec_uint("req-i-frame", "Request I frame", "Request I frame for video encoder",
+            0, G_MAXUINT32, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_VENDOR,
+        g_param_spec_pointer("vendor", "Vendor property", "Vendor property",
+            (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
     g_object_class_install_property(gobject_class, PROP_SURFACE_ENABLE,
         g_param_spec_boolean("enable-surface", "Enable Surface", "The input mem is surface buffer",
         FALSE, (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
@@ -107,6 +117,7 @@ static void gst_venc_base_set_property(GObject *object, guint prop_id, const GVa
     gint ret = GST_CODEC_OK;
     switch (prop_id) {
         case PROP_BITRATE: {
+            GST_INFO_OBJECT(object, "Set dynamic bitrate");
             GST_OBJECT_LOCK(self);
             self->bitrate = g_value_get_uint(value);
             if (self->encoder != nullptr) {
@@ -114,6 +125,20 @@ static void gst_venc_base_set_property(GObject *object, guint prop_id, const GVa
             }
             GST_OBJECT_UNLOCK(self);
             g_return_if_fail(ret == GST_CODEC_OK);
+            break;
+        }
+        case PROP_REQUEST_I_FRAME: {
+            GST_INFO_OBJECT(object, "Request I frame");
+            if (self->encoder != nullptr) {
+                g_return_if_fail(self->encoder->SetParameter(GST_REQUEST_I_FRAME, GST_ELEMENT(self)) == GST_CODEC_OK);
+            }
+            break;
+        }
+        case PROP_VENDOR: {
+            GST_INFO_OBJECT(object, "Set vendor property");
+            if (self->encoder != nullptr) {
+                g_return_if_fail(self->encoder->SetParameter(GST_VENDOR, GST_ELEMENT(self)) == GST_CODEC_OK);
+            }
             break;
         }
         case PROP_SURFACE_ENABLE: {
