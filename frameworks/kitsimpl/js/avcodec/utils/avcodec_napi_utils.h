@@ -24,6 +24,10 @@
 
 namespace OHOS {
 namespace Media {
+struct AVCodecJSCallback {
+    bool cancelled = false;
+};
+
 class AVCodecNapiUtil {
 public:
     AVCodecNapiUtil() = delete;

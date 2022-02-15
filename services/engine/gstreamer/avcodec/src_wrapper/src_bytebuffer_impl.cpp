@@ -91,10 +91,8 @@ int32_t SrcBytebufferImpl::Flush()
                 gst_buffer_unref((*it)->gstBuffer_);
                 (*it)->gstBuffer_ = nullptr;
             }
-            (*it)->mem_ = nullptr;
         }
     }
-    bufferList_.clear();
     return MSERR_OK;
 }
 
