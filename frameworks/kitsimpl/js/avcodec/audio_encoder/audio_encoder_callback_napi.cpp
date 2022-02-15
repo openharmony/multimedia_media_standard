@@ -252,7 +252,7 @@ void AudioEncoderCallbackNapi::OnJsBufferCallBack(AudioEncoderJsCallback *jsCb, 
     uv_work_t *work = new(std::nothrow) uv_work_t;
     CHECK_AND_RETURN_LOG(work != nullptr, "No memory");
 
-    codecHelper_->PushWork(work);
+    codecHelper_->PushWork(jsCb);
     jsCb->isInput = isInput;
     work->data = reinterpret_cast<void *>(jsCb);
     // async callback, jsWork and jsWork->data should be heap object.
@@ -284,14 +284,14 @@ void AudioEncoderCallbackNapi::OnJsBufferCallBack(AudioEncoderJsCallback *jsCb, 
         } while (0);
         auto codecHelper = event->codecHelper.lock();
         if (codecHelper != nullptr) {
-            codecHelper->RemoveWork(work);
+            codecHelper->RemoveWork(event);
         }
         delete event;
         delete work;
     });
     if (ret != 0) {
         MEDIA_LOGE("Failed to execute libuv work queue");
-        codecHelper_->RemoveWork(work);
+        codecHelper_->RemoveWork(jsCb);
         delete jsCb;
         delete work;
     }

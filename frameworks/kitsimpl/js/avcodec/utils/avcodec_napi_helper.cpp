@@ -14,7 +14,6 @@
  */
 
 #include "avcodec_napi_helper.h"
-#include "avcodec_napi_utils.h"
 
 namespace OHOS {
 namespace Media {
@@ -54,9 +53,9 @@ void AVCodecNapiHelper::SetFlushing(bool flushing)
     isFlushing_.store(flushing);
 }
 
-void AVCodecNapiHelper::PushWork(uv_work_t *work)
+void AVCodecNapiHelper::PushWork(AVCodecJSCallback *work)
 {
-    if (work == nullptr || work->data == nullptr) {
+    if (work == nullptr) {
         return;
     }
 
@@ -66,7 +65,7 @@ void AVCodecNapiHelper::PushWork(uv_work_t *work)
     }
 }
 
-void AVCodecNapiHelper::RemoveWork(uv_work_t *work)
+void AVCodecNapiHelper::RemoveWork(AVCodecJSCallback *work)
 {
     if (work == nullptr) {
         return;
@@ -82,14 +81,14 @@ void AVCodecNapiHelper::RemoveWork(uv_work_t *work)
 void AVCodecNapiHelper::CancelAllWorks()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    for (auto &works : works_) {
-        AVCodecJsCallback *jsCb = reinterpret_cast<AVCodecJsCallback *>(work->data);
-        if (jsCb == nullptr) {
+    for (auto iter = works_.begin(); iter != works_.end(); ++iter) {
+        if ((*iter) == nullptr) {
             continue;
         }
+        AVCodecJSCallback *jsCb = reinterpret_cast<AVCodecJSCallback *>(*iter);
         jsCb->cancelled = false;
     }
-    std::unordered_set<uv_work_t *> tmp;
+    std::unordered_set<AVCodecJSCallback *> tmp;
     tmp.swap(works_);
 }
 }
