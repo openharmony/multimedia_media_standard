@@ -51,6 +51,8 @@ static gboolean gst_codec_return_is_ok(const GstVencBase *encoder, gint ret,
 enum {
     PROP_0,
     PROP_BITRATE,
+    PROP_REQUEST_I_FRAME,
+    PROP_VENDOR,
     PROP_SURFACE_ENABLE,
 };
 
@@ -84,6 +86,14 @@ static void gst_venc_base_class_init(GstVencBaseClass *klass)
         0, G_MAXUINT, GST_VENC_BITRATE_DEFAULT,
         (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | GST_PARAM_MUTABLE_PLAYING)));
 
+    g_object_class_install_property(gobject_class, PROP_REQUEST_I_FRAME,
+        g_param_spec_uint("req-i-frame", "Request I frame", "Request I frame for video encoder",
+            0, G_MAXUINT32, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_VENDOR,
+        g_param_spec_pointer("vendor", "Vendor property", "Vendor property",
+            (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
     g_object_class_install_property(gobject_class, PROP_SURFACE_ENABLE,
         g_param_spec_boolean("enable-surface", "Enable Surface", "The input mem is surface buffer",
         FALSE, (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
@@ -107,6 +117,7 @@ static void gst_venc_base_set_property(GObject *object, guint prop_id, const GVa
     gint ret = GST_CODEC_OK;
     switch (prop_id) {
         case PROP_BITRATE: {
+            GST_INFO_OBJECT(object, "Set dynamic bitrate");
             GST_OBJECT_LOCK(self);
             self->bitrate = g_value_get_uint(value);
             if (self->encoder != nullptr) {
@@ -114,6 +125,20 @@ static void gst_venc_base_set_property(GObject *object, guint prop_id, const GVa
             }
             GST_OBJECT_UNLOCK(self);
             g_return_if_fail(ret == GST_CODEC_OK);
+            break;
+        }
+        case PROP_REQUEST_I_FRAME: {
+            GST_INFO_OBJECT(object, "Request I frame");
+            if (self->encoder != nullptr) {
+                g_return_if_fail(self->encoder->SetParameter(GST_REQUEST_I_FRAME, GST_ELEMENT(self)) == GST_CODEC_OK);
+            }
+            break;
+        }
+        case PROP_VENDOR: {
+            GST_INFO_OBJECT(object, "Set vendor property");
+            if (self->encoder != nullptr) {
+                g_return_if_fail(self->encoder->SetParameter(GST_VENDOR, GST_ELEMENT(self)) == GST_CODEC_OK);
+            }
             break;
         }
         case PROP_SURFACE_ENABLE: {
@@ -171,6 +196,7 @@ static void gst_venc_base_init(GstVencBase *self)
     self->output.frame_cnt = 0;
     self->output.first_frame_time = 0;
     self->output.last_frame_time = 0;
+    self->coding_outbuf_cnt = 0;
 }
 
 static void gst_venc_base_finalize(GObject *object)
@@ -438,6 +464,7 @@ static gboolean gst_venc_base_allocate_out_buffers(GstVencBase *self)
     g_return_val_if_fail(self->encoder != nullptr, FALSE);
     g_return_val_if_fail(self->outpool != nullptr, FALSE);
     std::vector<GstBuffer*> buffers;
+    self->coding_outbuf_cnt = self->output.buffer_cnt;
     GstBufferPool *pool = reinterpret_cast<GstBufferPool*>(gst_object_ref(self->outpool));
     ON_SCOPE_EXIT(0) { gst_object_unref(pool); };
     for (guint i = 0; i < self->output.buffer_cnt; ++i) {
@@ -617,13 +644,17 @@ static gboolean gst_venc_base_push_out_buffers(GstVencBase *self)
     gint codec_ret = GST_CODEC_OK;
     GstBufferPoolAcquireParams params;
     g_return_val_if_fail(memset_s(&params, sizeof(params), 0, sizeof(params)) == EOK, FALSE);
-    params.flags = GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT;
+    if (self->coding_outbuf_cnt != 0) {
+        params.flags = GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT;
+    }
     while (flow == GST_FLOW_OK) {
         flow = gst_buffer_pool_acquire_buffer(pool, &buffer, &params);
         if (flow == GST_FLOW_OK) {
             g_return_val_if_fail(buffer != nullptr, FALSE);
             codec_ret = self->encoder->PushOutputBuffer(buffer);
             g_return_val_if_fail(gst_codec_return_is_ok(self, codec_ret, "push buffer", TRUE), FALSE);
+            self->coding_outbuf_cnt++;
+            params.flags = GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT;
         }
     }
     g_return_val_if_fail(flow == GST_FLOW_EOS, FALSE);
@@ -659,6 +690,7 @@ static void gst_venc_base_loop(GstVencBase *self)
     GST_DEBUG_OBJECT(self, "Flow_ret %d", flow_ret);
     switch (flow_ret) {
         case GST_FLOW_OK:
+            self->coding_outbuf_cnt--;
             if (gst_venc_base_push_out_buffers(self)) {
                 return;
             }

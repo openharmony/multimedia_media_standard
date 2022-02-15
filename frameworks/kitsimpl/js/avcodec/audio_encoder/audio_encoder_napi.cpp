@@ -377,6 +377,7 @@ napi_value AudioEncoderNapi::Stop(napi_env env, napi_callback_info info)
     napi_create_string_utf8(env, "Stop", NAPI_AUTO_LENGTH, &resource);
     asyncCtx->napi->codecHelper_->SetStop(true);
     asyncCtx->napi->codecHelper_->SetEos(false);
+    asyncCtx->napi->codecHelper_->CancelAllWorks();
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<AudioEncoderAsyncContext *>(data);
@@ -421,6 +422,7 @@ napi_value AudioEncoderNapi::Flush(napi_env env, napi_callback_info info)
     napi_create_string_utf8(env, "Flush", NAPI_AUTO_LENGTH, &resource);
     asyncCtx->napi->codecHelper_->SetEos(false);
     asyncCtx->napi->codecHelper_->SetFlushing(true);
+    asyncCtx->napi->codecHelper_->CancelAllWorks();
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<AudioEncoderAsyncContext *>(data);
@@ -468,6 +470,7 @@ napi_value AudioEncoderNapi::Reset(napi_env env, napi_callback_info info)
     napi_create_string_utf8(env, "Reset", NAPI_AUTO_LENGTH, &resource);
     asyncCtx->napi->codecHelper_->SetStop(true);
     asyncCtx->napi->codecHelper_->SetEos(false);
+    asyncCtx->napi->codecHelper_->CancelAllWorks();
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<AudioEncoderAsyncContext *>(data);
@@ -512,6 +515,7 @@ napi_value AudioEncoderNapi::Release(napi_env env, napi_callback_info info)
     napi_create_string_utf8(env, "Release", NAPI_AUTO_LENGTH, &resource);
     asyncCtx->napi->codecHelper_->SetStop(true);
     asyncCtx->napi->codecHelper_->SetEos(false);
+    asyncCtx->napi->codecHelper_->CancelAllWorks();
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<AudioEncoderAsyncContext *>(data);

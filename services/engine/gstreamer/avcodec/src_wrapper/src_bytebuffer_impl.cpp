@@ -91,10 +91,8 @@ int32_t SrcBytebufferImpl::Flush()
                 gst_buffer_unref((*it)->gstBuffer_);
                 (*it)->gstBuffer_ = nullptr;
             }
-            (*it)->mem_ = nullptr;
         }
     }
-    bufferList_.clear();
     return MSERR_OK;
 }
 
@@ -162,16 +160,6 @@ int32_t SrcBytebufferImpl::SetCallback(const std::weak_ptr<IAVCodecEngineObs> &o
 {
     std::unique_lock<std::mutex> lock(mutex_);
     obs_ = obs;
-    return MSERR_OK;
-}
-
-int32_t SrcBytebufferImpl::SetParameter(const Format &format)
-{
-    int32_t value = 0;
-    if (format.GetIntValue("repeat_frame_after", value) == true) {
-        g_object_set(src_, "repeat-frame-after", value, nullptr);
-    }
-
     return MSERR_OK;
 }
 
