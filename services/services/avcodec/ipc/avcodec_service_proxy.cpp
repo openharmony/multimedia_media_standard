@@ -33,7 +33,6 @@ public:
 
     int32_t ReadFromParcel(uint32_t index, MessageParcel &parcel, std::shared_ptr<AVSharedMemory> &memory)
     {
-        MEDIA_LOGD("caches size: %{public}zu", caches_.size());
         auto iter = caches_.find(index);
         CacheFlag flag = static_cast<CacheFlag>(parcel.ReadUint8());
         if (flag == CacheFlag::HIT_CACHE) {
