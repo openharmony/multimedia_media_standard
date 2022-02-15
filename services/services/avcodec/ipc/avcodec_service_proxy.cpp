@@ -33,7 +33,6 @@ public:
 
     int32_t ReadFromParcel(uint32_t index, MessageParcel &parcel, std::shared_ptr<AVSharedMemory> &memory)
     {
-        MEDIA_LOGD("caches size: %{public}zu", caches_.size());
         auto iter = caches_.find(index);
         CacheFlag flag = static_cast<CacheFlag>(parcel.ReadUint8());
         if (flag == CacheFlag::HIT_CACHE) {
@@ -66,11 +65,6 @@ public:
         memory = nullptr;
         MEDIA_LOGE("invalidate cache for index: %{public}u, flag: %{public}hhu", index, flag);
         return MSERR_INVALID_VAL;
-    }
-
-    void ClearCache()
-    {
-        caches_.clear();
     }
 
 private:
@@ -193,15 +187,6 @@ int32_t AVCodecServiceProxy::Flush()
     MessageParcel reply;
     MessageOption option;
     int32_t ret = Remote()->SendRequest(FLUSH, data, reply, option);
-
-    if (inputBufferCache_ != nullptr) {
-        inputBufferCache_->ClearCache();
-    }
-
-    if (outputBufferCache_ != nullptr) {
-        outputBufferCache_->ClearCache();
-    }
-
     if (ret != MSERR_OK) {
         MEDIA_LOGE("Flush failed, error: %{public}d", ret);
         return ret;

@@ -20,6 +20,10 @@
 #include "buffer_type_meta.h"
 #include "media_log.h"
 
+namespace {
+    constexpr guint32 DEFAULT_SURFACE_MAX_POOL_CAPACITY = 10; // 10 is surface queue max size
+}
+
 struct _GstSurfaceMemSinkPrivate {
     OHOS::sptr<OHOS::Surface> surface;
     GstSurfacePool *pool;
@@ -84,6 +88,8 @@ static void gst_surface_mem_sink_init(GstSurfaceMemSink *sink)
     sink->priv = priv;
     sink->priv->surface = nullptr;
     sink->priv->pool = GST_SURFACE_POOL_CAST(gst_surface_pool_new());
+    GstMemSink *memSink = GST_MEM_SINK_CAST(sink);
+    memSink->maxPoolCapacity = DEFAULT_SURFACE_MAX_POOL_CAPACITY;
 }
 
 static void gst_surface_mem_sink_dispose(GObject *obj)

@@ -52,5 +52,44 @@ void AVCodecNapiHelper::SetFlushing(bool flushing)
 {
     isFlushing_.store(flushing);
 }
+
+void AVCodecNapiHelper::PushWork(AVCodecJSCallback *work)
+{
+    if (work == nullptr) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (works_.find(work) == works_.end()) {
+        works_.emplace(work);
+    }
+}
+
+void AVCodecNapiHelper::RemoveWork(AVCodecJSCallback *work)
+{
+    if (work == nullptr) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto iter = works_.find(work);
+    if (iter != works_.end()) {
+        works_.erase(iter);
+    }
+}
+
+void AVCodecNapiHelper::CancelAllWorks()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto iter = works_.begin(); iter != works_.end(); ++iter) {
+        if ((*iter) == nullptr) {
+            continue;
+        }
+        AVCodecJSCallback *jsCb = reinterpret_cast<AVCodecJSCallback *>(*iter);
+        jsCb->cancelled = false;
+    }
+    std::unordered_set<AVCodecJSCallback *> tmp;
+    tmp.swap(works_);
+}
 }
 }

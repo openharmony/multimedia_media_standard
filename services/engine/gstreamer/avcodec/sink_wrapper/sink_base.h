@@ -64,6 +64,11 @@ public:
 
     virtual int32_t SetCallback(const std::weak_ptr<IAVCodecEngineObs> &obs) = 0;
 
+    virtual bool IsEos()
+    {
+        return false;
+    }
+
 protected:
     GstElement *sink_ = nullptr;
 };

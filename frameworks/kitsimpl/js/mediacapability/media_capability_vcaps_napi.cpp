@@ -76,15 +76,26 @@ napi_value MediaVideoCapsNapi::Init(napi_env env, napi_value exports)
     return exports;
 }
 
-napi_value MediaVideoCapsNapi::Create(napi_env env, VideoCaps *caps)
+napi_value MediaVideoCapsNapi::Create(napi_env env, std::shared_ptr<VideoCaps> caps)
 {
     napi_value constructor = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     CHECK_AND_RETURN_RET(status == napi_ok && constructor != nullptr, nullptr);
+    CapsWrap *capsWrap = new(std::nothrow) CapsWrap(caps);
 
     napi_value args[1] = {nullptr};
-    args[0] = reinterpret_cast<napi_value>(caps);
-
+    status = napi_create_external_arraybuffer(env, capsWrap, sizeof(CapsWrap),
+        [] (napi_env env, void *data, void *hint) {
+            (void)env;
+            (void)data;
+            CapsWrap *capsWrap = reinterpret_cast<CapsWrap *>(hint);
+            delete capsWrap;
+        }, reinterpret_cast<void*>(capsWrap), &args[0]);
+    if (status != napi_ok) {
+        delete capsWrap;
+        MEDIA_LOGE("create capsWrap val failed");
+        return nullptr;
+    }
     napi_value result = nullptr;
     CHECK_AND_RETURN_RET(napi_new_instance(env, constructor, 1, args, &result) == napi_ok, nullptr);
     return result;
@@ -105,7 +116,11 @@ napi_value MediaVideoCapsNapi::Constructor(napi_env env, napi_callback_info info
     CHECK_AND_RETURN_RET(napi != nullptr, result);
 
     napi->env_ = env;
-    napi->caps_.reset(reinterpret_cast<VideoCaps *>(args[0]));
+    void *data;
+    size_t byte_length;
+    (void)napi_get_arraybuffer_info(env, args[0], &data, &byte_length);
+    CapsWrap *capsWrap = reinterpret_cast<CapsWrap*>(data);
+    napi->caps_ = capsWrap->caps_;
 
     status = napi_wrap(env, jsThis, reinterpret_cast<void *>(napi),
         MediaVideoCapsNapi::Destructor, nullptr, &(napi->wrap_));

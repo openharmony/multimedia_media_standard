@@ -87,6 +87,7 @@ struct _GstVencBase {
     guint bitrate;
     GstBufferPool *inpool;
     GstBufferPool *outpool;
+    guint coding_outbuf_cnt;
 };
 
 struct _GstVencBaseClass {

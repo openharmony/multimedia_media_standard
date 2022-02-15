@@ -26,6 +26,7 @@ GST_DEBUG_CATEGORY_STATIC(gst_vdec_base_debug_category);
 #define GST_CAT_DEFAULT gst_vdec_base_debug_category
 #define gst_vdec_base_parent_class parent_class
 #define GST_VDEC_BASE_SUPPORTED_FORMATS "{ NV12, NV21 }"
+#define DEFAULT_MAX_QUEUE_SIZE 10
 
 static void gst_vdec_base_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void gst_vdec_base_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
@@ -51,6 +52,7 @@ static gboolean gst_codec_return_is_ok(const GstVdecBase *decoder, gint ret,
 enum {
     PROP_0,
     PROP_SURFACE,
+    PROP_VENDOR,
 };
 
 G_DEFINE_ABSTRACT_TYPE(GstVdecBase, gst_vdec_base, GST_TYPE_VIDEO_DECODER);
@@ -79,6 +81,10 @@ static void gst_vdec_base_class_init(GstVdecBaseClass *klass)
     video_decoder_class->decide_allocation = gst_vdec_base_decide_allocation;
     video_decoder_class->propose_allocation = gst_vdec_base_propose_allocation;
 
+    g_object_class_install_property(gobject_class, PROP_VENDOR,
+        g_param_spec_pointer("vendor", "Vendor property", "Vendor property",
+            (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
     const gchar *src_caps_string = GST_VIDEO_CAPS_MAKE(GST_VDEC_BASE_SUPPORTED_FORMATS);
     GstCaps *src_caps = gst_caps_from_string(src_caps_string);
     GST_DEBUG_OBJECT(klass, "Pad template caps %" GST_PTR_FORMAT, src_caps);
@@ -92,8 +98,15 @@ static void gst_vdec_base_class_init(GstVdecBaseClass *klass)
 static void gst_vdec_base_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
     (void)pspec;
-    (void)prop_id;
     g_return_if_fail(object != nullptr && value != nullptr);
+
+    switch (prop_id) {
+        case PROP_VENDOR:
+            GST_INFO_OBJECT(object, "Set vendor property");
+            break;
+        default:
+            break;
+    }
 }
 
 static void gst_vdec_base_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
@@ -453,6 +466,13 @@ static gboolean gst_vdec_base_update_out_port_def(GstVdecBase *self)
     g_return_val_if_fail(self->decoder != nullptr, FALSE);
     gint ret = self->decoder->GetParameter(GST_VIDEO_OUTPUT_COMMON, GST_ELEMENT(self));
     g_return_val_if_fail(ret == GST_CODEC_OK, FALSE);
+    if (self->output.min_buffer_cnt > self->out_buffer_max_cnt) {
+        GST_ERROR_OBJECT(self, "min buffer %d > max buffer %d", self->output.min_buffer_cnt, self->out_buffer_max_cnt);
+        return FALSE;
+    }
+    if (self->output.buffer_cnt > self->out_buffer_max_cnt) {
+        self->output.buffer_cnt = self->out_buffer_max_cnt;
+    }
     ret = self->decoder->SetParameter(GST_VIDEO_OUTPUT_COMMON, GST_ELEMENT(self));
     g_return_val_if_fail(ret == GST_CODEC_OK, FALSE);
     ret = self->decoder->GetParameter(GST_VIDEO_OUTPUT_COMMON, GST_ELEMENT(self));
@@ -678,6 +698,13 @@ static gboolean gst_vdec_check_out_format_change(GstVdecBase *self)
 
 static gboolean gst_vdec_check_out_buffer_cnt(GstVdecBase *self)
 {
+    if (self->output.min_buffer_cnt > self->out_buffer_max_cnt) {
+        GST_ERROR_OBJECT(self, "min buffer %d > max buffer %d", self->output.min_buffer_cnt, self->out_buffer_max_cnt);
+        return FALSE;
+    }
+    if (self->output.buffer_cnt > self->out_buffer_max_cnt) {
+        self->output.buffer_cnt = self->out_buffer_max_cnt;
+    }
     gboolean is_buffer_cnt_change = self->out_buffer_cnt != self->output.buffer_cnt;
     GST_INFO_OBJECT(self, "Format change buffer %d to %d", self->out_buffer_cnt, self->output.buffer_cnt);
     self->out_buffer_cnt = self->output.buffer_cnt;
@@ -695,6 +722,7 @@ static gboolean update_outpool_max_buf_cnt(GstVdecBase *self)
     g_return_val_if_fail(config != nullptr, FALSE);
     g_return_val_if_fail(gst_buffer_pool_config_get_params(config, &caps, &size, &min_buffers, &max_buffers), FALSE);
     gst_buffer_pool_config_set_params(config, caps, size, self->out_buffer_cnt, self->out_buffer_cnt);
+    g_return_val_if_fail(gst_buffer_pool_set_config(GST_BUFFER_POOL_CAST(self->outpool), config), FALSE);
     gst_buffer_pool_set_active(self->outpool, TRUE);
     return TRUE;
 }
@@ -1055,7 +1083,7 @@ static gboolean gst_vdec_base_decide_allocation(GstVideoDecoder *decoder, GstQue
         pool = nullptr;
         size = vinfo.size;
     }
-
+    self->out_buffer_max_cnt = max_buf == 0 ? DEFAULT_MAX_QUEUE_SIZE : max_buf;
     g_return_val_if_fail(gst_vdec_base_update_out_port_def(self), FALSE);
     self->out_buffer_cnt = self->output.buffer_cnt;
     if (pool == nullptr) {

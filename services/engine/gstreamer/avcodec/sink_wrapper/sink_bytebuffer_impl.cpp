@@ -70,11 +70,10 @@ int32_t SinkBytebufferImpl::Flush()
                 gst_buffer_unref((*it)->gstBuffer_);
                 (*it)->gstBuffer_ = nullptr;
             }
-            (*it)->mem_ = nullptr;
         }
     }
-    bufferList_.clear();
     isFirstFrame_ = true;
+    isEos_ = false;
     return MSERR_OK;
 }
 
@@ -114,6 +113,11 @@ int32_t SinkBytebufferImpl::SetCallback(const std::weak_ptr<IAVCodecEngineObs> &
     return MSERR_OK;
 }
 
+bool SinkBytebufferImpl::IsEos()
+{
+    return isEos_;
+}
+
 GstFlowReturn SinkBytebufferImpl::NewSampleCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData)
 {
     (void)memSink;
@@ -131,6 +135,7 @@ void SinkBytebufferImpl::EosCb(GstMemSink *memSink, gpointer userData)
     auto impl = static_cast<SinkBytebufferImpl *>(userData);
     CHECK_AND_RETURN(impl != nullptr);
     std::unique_lock<std::mutex> lock(impl->mutex_);
+    impl->isEos_ = true;
 
     auto obs = impl->obs_.lock();
     CHECK_AND_RETURN(obs != nullptr);
@@ -160,6 +165,8 @@ int32_t SinkBytebufferImpl::HandleNewSampleCb(GstBuffer *buffer)
         isFirstFrame_ = false;
         obs->OnOutputFormatChanged(bufferFormat_);
     }
+
+    isEos_ = false;
 
     GstMapInfo map = GST_MAP_INFO_INIT;
     CHECK_AND_RETURN_RET(gst_buffer_map(buffer, &map, GST_MAP_READ) == TRUE, MSERR_UNKNOWN);

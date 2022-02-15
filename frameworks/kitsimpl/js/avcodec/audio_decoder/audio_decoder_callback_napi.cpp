@@ -18,6 +18,7 @@
 #include "avcodec_napi_utils.h"
 #include "media_errors.h"
 #include "media_log.h"
+#include "scope_guard.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AudioDecoderCallbackNapi"};
@@ -242,22 +243,18 @@ void AudioDecoderCallbackNapi::OnJsErrorCallBack(AudioDecoderJsCallback *jsCb) c
 
 void AudioDecoderCallbackNapi::OnJsBufferCallBack(AudioDecoderJsCallback *jsCb, bool isInput) const
 {
+    ON_SCOPE_EXIT(0) { delete jsCb; };
+
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr) {
-        MEDIA_LOGE("Fail to get uv event loop");
-        delete jsCb;
-        return;
-    }
+    CHECK_AND_RETURN_LOG(loop != nullptr, "Fail to get uv event loop");
 
     uv_work_t *work = new(std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        MEDIA_LOGE("No memory");
-        delete jsCb;
-        return;
-    }
+    CHECK_AND_RETURN_LOG(work != nullptr, "No memory");
 
+    codecHelper_->PushWork(jsCb);
     jsCb->isInput = isInput;
+    jsCb->codecHelper = codecHelper_;
     work->data = reinterpret_cast<void *>(jsCb);
     // async callback, jsWork and jsWork->data should be heap object.
     int ret = uv_queue_work(loop, work, [] (uv_work_t *work) {}, [] (uv_work_t *work, int status) {
@@ -268,7 +265,7 @@ void AudioDecoderCallbackNapi::OnJsBufferCallBack(AudioDecoderJsCallback *jsCb, 
         MEDIA_LOGD("JsCallBack %{public}s, uv_queue_work start, index: %{public}u",
             event->callbackName.c_str(), event->index);
         do {
-            CHECK_AND_BREAK(status != UV_ECANCELED);
+            CHECK_AND_BREAK(!event->cancelled && status != UV_ECANCELED);
             napi_value jsCallback = nullptr;
             napi_status nstatus = napi_get_reference_value(env, event->callback->cb_, &jsCallback);
             CHECK_AND_BREAK(nstatus == napi_ok && jsCallback != nullptr);
@@ -287,14 +284,20 @@ void AudioDecoderCallbackNapi::OnJsBufferCallBack(AudioDecoderJsCallback *jsCb, 
             nstatus = napi_call_function(env, nullptr, jsCallback, argCount, args, &result);
             CHECK_AND_BREAK(nstatus == napi_ok);
         } while (0);
+        auto codecHelper = event->codecHelper.lock();
+        if (codecHelper != nullptr) {
+            codecHelper->RemoveWork(event);
+        }
         delete event;
         delete work;
     });
     if (ret != 0) {
         MEDIA_LOGE("Failed to execute libuv work queue");
+        codecHelper_->RemoveWork(jsCb);
         delete jsCb;
         delete work;
     }
+    CANCEL_SCOPE_EXIT_GUARD(0);
 }
 
 void AudioDecoderCallbackNapi::OnJsFormatCallBack(AudioDecoderJsCallback *jsCb) const

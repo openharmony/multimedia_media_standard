@@ -47,7 +47,7 @@ GstSurfaceMemory *gst_surface_allocator_alloc(GstSurfaceAllocator *allocator,
     if (ret == OHOS::SurfaceError::SURFACE_ERROR_NO_BUFFER) {
         GST_INFO("there is no more buffers");
     }
-    if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
+    if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK || surfaceBuffer == nullptr) {
         return nullptr;
     }
 
