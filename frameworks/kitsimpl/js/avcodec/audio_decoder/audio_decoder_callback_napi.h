@@ -22,6 +22,7 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "avcodec_napi_helper.h"
+#include "avcodec_napi_utils.h"
 
 namespace OHOS {
 namespace Media {
@@ -46,7 +47,7 @@ protected:
     void OnOutputBufferAvailable(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag) override;
 
 private:
-    struct AudioDecoderJsCallback {
+    struct AudioDecoderJsCallback : public AVCodecJSCallback  {
         std::shared_ptr<AutoRef> callback = nullptr;
         std::string callbackName = "unknown";
         std::string errorMsg = "unknown";
@@ -57,6 +58,7 @@ private:
         std::shared_ptr<AVSharedMemory> memory = nullptr;
         bool isInput = false;
         Format format;
+        std::weak_ptr<AVCodecNapiHelper> codecHelper;
     };
     void OnJsErrorCallBack(AudioDecoderJsCallback *jsCb) const;
     void OnJsBufferCallBack(AudioDecoderJsCallback *jsCb, bool isInput) const;

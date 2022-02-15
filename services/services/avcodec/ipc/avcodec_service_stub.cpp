@@ -68,11 +68,6 @@ public:
         return WriteAVSharedMemoryToParcel(memory, parcel);
     }
 
-    void ClearCache()
-    {
-        caches_.clear();
-    }
-
 private:
     DISALLOW_COPY_AND_MOVE(AVCodecBufferCache);
 
@@ -216,12 +211,6 @@ int32_t AVCodecServiceStub::Stop()
 int32_t AVCodecServiceStub::Flush()
 {
     CHECK_AND_RETURN_RET_LOG(codecServer_ != nullptr, MSERR_NO_MEMORY, "avcodec server is nullptr");
-    if (inputBufferCache_ != nullptr) {
-        inputBufferCache_->ClearCache();
-    }
-    if (outputBufferCache_ != nullptr) {
-        outputBufferCache_->ClearCache();
-    }
     return codecServer_->Flush();
 }
 
