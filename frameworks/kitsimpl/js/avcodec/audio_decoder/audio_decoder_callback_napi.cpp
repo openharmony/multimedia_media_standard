@@ -254,6 +254,7 @@ void AudioDecoderCallbackNapi::OnJsBufferCallBack(AudioDecoderJsCallback *jsCb, 
 
     codecHelper_->PushWork(jsCb);
     jsCb->isInput = isInput;
+    jsCb->codecHelper = codecHelper_;
     work->data = reinterpret_cast<void *>(jsCb);
     // async callback, jsWork and jsWork->data should be heap object.
     int ret = uv_queue_work(loop, work, [] (uv_work_t *work) {}, [] (uv_work_t *work, int status) {
