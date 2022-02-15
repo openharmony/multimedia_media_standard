@@ -55,6 +55,7 @@ private:
     int32_t HandleMimeType(AVCodecType type, const std::string &name);
     int32_t HandlePluginName(AVCodecType type, const std::string &name);
     int32_t QueryIsSoftPlugin(const std::string &name, bool &isSoftware);
+    void CheckSurfaceFormat(Format &format);
 
     AVCodecType type_ = AVCODEC_TYPE_VIDEO_ENCODER;
     bool useSoftWare_ = false;
@@ -64,6 +65,7 @@ private:
     std::mutex mutex_;
     std::weak_ptr<IAVCodecEngineObs> obs_;
     Format format_;
+    CapabilityData capData_;
 };
 } // Media
 } // OHOS

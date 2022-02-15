@@ -68,16 +68,32 @@ int32_t AVCodecEngineGstImpl::Init(AVCodecType type, bool isMimeType, const std:
     return MSERR_OK;
 }
 
+void AVCodecEngineGstImpl::CheckSurfaceFormat(Format &format)
+{
+    int32_t pixelFormat = 0;
+    if (useSoftWare_) {
+        return;
+    }
+    if (format.GetIntValue("pixel_format", pixelFormat) && pixelFormat == SURFACE_FORMAT) {
+        format.RemoveKey("pixel_format");
+        if (capData_.format.empty()) {
+            return;
+        }
+        format.PutIntValue("pixel_format", capData_.format[0]);
+    }
+}
+
 int32_t AVCodecEngineGstImpl::Configure(const Format &format)
 {
     MEDIA_LOGD("Enter Configure");
     std::unique_lock<std::mutex> lock(mutex_);
+    format_ = format;
+    CheckSurfaceFormat(format_);
 
     CHECK_AND_RETURN_RET(processor_ != nullptr, MSERR_INVALID_OPERATION);
-    CHECK_AND_RETURN_RET(processor_->DoProcess(format) == MSERR_OK, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(processor_->DoProcess(format_) == MSERR_OK, MSERR_UNKNOWN);
 
     MEDIA_LOGD("Configure success");
-    format_ = format;
 
     return MSERR_OK;
 }
@@ -313,6 +329,8 @@ int32_t AVCodecEngineGstImpl::QueryIsSoftPlugin(const std::string &name, bool &i
         if ((*it).codecName == name) {
             isSoftware = !(*it).isVendor;
             pluginExist = true;
+            capData_ = *it;
+            break;
         }
     }
     CHECK_AND_RETURN_RET(pluginExist == true, MSERR_INVALID_VAL);
