@@ -624,6 +624,11 @@ napi_value VideoDecoderNapi::ReleaseOutput(napi_env env, napi_callback_info info
 
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
 
+    if (asyncCtx->napi->codecHelper_->IsStop() || asyncCtx->napi->codecHelper_->IsFlushing()) {
+        MEDIA_LOGD("Stop already or flushing, release output failed");
+        return result;
+    }
+
     if (asyncCtx->napi->vdec_->ReleaseOutputBuffer(asyncCtx->index, asyncCtx->isRender) != MSERR_OK) {
         asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to ReleaseOutput");
     }
