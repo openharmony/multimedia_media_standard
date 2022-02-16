@@ -40,7 +40,7 @@ GstSurfaceMemory *gst_surface_allocator_alloc(GstSurfaceAllocator *allocator,
     static constexpr int32_t strideAlignment = 8;
     OHOS::BufferRequestConfig requestConfig = {
         width, height, strideAlignment, format, static_cast<uint32_t>(usage) |
-            HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA, 0
+        HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA, 0
     };
     int32_t releaseFence = -1;
     OHOS::sptr<OHOS::SurfaceBuffer> surfaceBuffer = nullptr;

@@ -70,7 +70,7 @@ static void gst_consumer_surface_pool_flush_start(GstBufferPool *pool);
 static void gst_consumer_surface_pool_flush_stop(GstBufferPool *pool);
 static void add_buffer_info(GstConsumerSurfacePool *pool, GstConsumerSurfaceMemory *mem, GstBuffer *buffer);
 static void cache_frame_if_necessary(GstConsumerSurfacePool *pool, GstConsumerSurfaceMemory *mem, GstBuffer *buffer);
-static gboolean drop_this_fame(GstConsumerSurfacePool *pool, guint64 new_timestamp,
+static gboolean drop_this_frame(GstConsumerSurfacePool *pool, guint64 new_timestamp,
     guint64 old_timestamp, guint32 frame_rate);
 
 void ConsumerListenerProxy::OnBufferAvailable()
@@ -290,7 +290,7 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
 
         // check whether needs to dropp frame to ensure the maximum frame rate
         if (surfacemem != nullptr && priv->max_frame_rate > 0 &&
-            drop_this_fame(surfacepool, surfacemem->timestamp, priv->pre_timestamp, priv->max_frame_rate)) {
+            drop_this_frame(surfacepool, surfacemem->timestamp, priv->pre_timestamp, priv->max_frame_rate)) {
             (void)priv->consumer_surface->ReleaseBuffer(surfacemem->surface_buffer, surfacemem->fencefd);
             if (!priv->flushing && priv->start) {
                 continue;
@@ -392,7 +392,7 @@ static void cache_frame_if_necessary(GstConsumerSurfacePool *pool, GstConsumerSu
     }
 }
 
-static gboolean drop_this_fame(GstConsumerSurfacePool *pool, guint64 new_timestamp,
+static gboolean drop_this_frame(GstConsumerSurfacePool *pool, guint64 new_timestamp,
     guint64 old_timestamp, guint32 frame_rate)
 {
     if (new_timestamp <= old_timestamp) {
