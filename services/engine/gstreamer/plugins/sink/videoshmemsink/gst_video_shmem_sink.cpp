@@ -319,7 +319,7 @@ static void gst_video_shmem_sink_setcaps(GstVideoShMemSink *vidShMemSink, const 
     g_return_if_fail(priv != nullptr);
 
     GST_OBJECT_LOCK(vidShMemSink);
-    GST_INFO_OBJECT(vidShMemSink, "setting caps to %" GST_PTR_FORMAT, caps);
+    GST_INFO_OBJECT(vidShMemSink, "setting caps to %s", gst_caps_to_string(caps));
 
     GstCaps *old = priv->caps;
     if (old != caps) {
@@ -345,7 +345,7 @@ static GstCaps *gst_video_shmem_sink_getcaps(GstVideoShMemSink *vidShMemSink)
     GstCaps *caps = priv->caps;
     if (caps != nullptr) {
         (void)gst_caps_ref(caps);
-        GST_INFO_OBJECT(vidShMemSink, "getting caps of %" GST_PTR_FORMAT, caps);
+        GST_INFO_OBJECT(vidShMemSink, "getting caps of %s", gst_caps_to_string(caps));
     }
     GST_OBJECT_UNLOCK(vidShMemSink);
 
@@ -579,7 +579,7 @@ static GstCaps *gst_video_shmem_sink_get_caps(GstBaseSink *sink, GstCaps *filter
         } else {
             (void)gst_caps_ref(caps);
         }
-        GST_INFO_OBJECT(vidShMemSink, "got caps %" GST_PTR_FORMAT, caps);
+        GST_INFO_OBJECT(vidShMemSink, "got caps %s", gst_caps_to_string(caps));
     }
     GST_OBJECT_UNLOCK(vidShMemSink);
 
@@ -646,7 +646,7 @@ static GstBuffer *DequeueBuffer(GstVideoShMemSink *vidShMemSink)
                 case GST_EVENT_CAPS: {
                     GstCaps *caps = nullptr;
                     gst_event_parse_caps(event, &caps);
-                    GST_INFO_OBJECT(vidShMemSink, "activating caps %" GST_PTR_FORMAT, caps);
+                    GST_INFO_OBJECT(vidShMemSink, "activating caps %s", gst_caps_to_string(caps));
                     (void)gst_caps_replace(&priv->lastCaps, caps);
                     priv->sample = gst_sample_make_writable(priv->sample);
                     gst_sample_set_caps(priv->sample, priv->lastCaps);
@@ -760,7 +760,7 @@ static GstFlowReturn gst_video_shmem_sink_render(GstBaseSink *bsink, GstBuffer *
     if (G_UNLIKELY(priv->lastCaps == nullptr && gst_pad_has_current_caps(GST_BASE_SINK_PAD(bsink)))) {
         priv->lastCaps = gst_pad_get_current_caps(GST_BASE_SINK_PAD(bsink));
         gst_sample_set_caps(priv->sample, priv->lastCaps);
-        GST_INFO_OBJECT(vidShMemSink, "activating pad caps %" GST_PTR_FORMAT, priv->lastCaps);
+        GST_INFO_OBJECT(vidShMemSink, "activating pad caps %s", gst_caps_to_string(priv->lastCaps));
     }
 
     GST_INFO_OBJECT(vidShMemSink, "pushing render buffer 0x%06" PRIXPTR " on queue (%d)",
@@ -790,7 +790,7 @@ static gboolean gst_video_shmem_sink_propose_allocation(GstBaseSink *bsink, GstQ
     GstCaps *caps = nullptr;
     gboolean needPool = FALSE;
     gst_query_parse_allocation(query, &caps, &needPool);
-    GST_DEBUG_OBJECT(bsink, "process allocation query, caps: %" GST_PTR_FORMAT "", caps);
+    GST_DEBUG_OBJECT(bsink, "process allocation query, caps: %s", gst_caps_to_string(caps));
 
     if (!needPool) {
         GST_ERROR_OBJECT(bsink, "no need buffer pool, unexpected!");

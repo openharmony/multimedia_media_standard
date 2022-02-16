@@ -546,7 +546,7 @@ static gboolean gst_shared_mem_sink_do_propose_allocation(GstMemSink *memsink, G
     gboolean needPool = FALSE;
     priv->setPoolForAllocator = FALSE;
     gst_query_parse_allocation(query, &caps, &needPool);
-    GST_INFO_OBJECT(shmemSink, "process allocation query, caps: %" GST_PTR_FORMAT ", need pool: %d", caps, needPool);
+    GST_INFO_OBJECT(shmemSink, "allocation query, caps: %s, need pool: %d", gst_caps_to_string(caps), needPool);
 
     GST_OBJECT_LOCK(shmemSink);
     gst_query_add_allocation_param(query, GST_ALLOCATOR_CAST(priv->allocator), &priv->allocParams);
