@@ -41,6 +41,7 @@ public:
     sptr<Surface> GetSurface() override;
     std::shared_ptr<EsAvcCodecBuffer> GetCodecBuffer() override;
     std::shared_ptr<VideoFrameBuffer> GetFrameBuffer() override;
+    int32_t SetFrameRate(uint32_t frameRate) override;
     void UnLock(bool start) override;
 
 protected:
@@ -58,6 +59,7 @@ protected:
     };
     void OnBufferAvailable();
     int32_t GetSufferExtraData();
+    bool DropThisFrame(uint32_t fps, int64_t oldTimeStamp, int64_t newTimeStamp);
 
     uint32_t videoWidth_;
     uint32_t videoHeight_;
@@ -90,6 +92,7 @@ private:
     int64_t persistTime_ = 0;
     uint32_t pauseCount_ = 0;
     int64_t totalPauseTime_ = 0;
+    uint32_t framerate_ = 0;
     bool resourceLock_ = false;
 };
 }  // namespace Media
