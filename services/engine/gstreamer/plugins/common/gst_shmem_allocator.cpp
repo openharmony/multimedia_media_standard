@@ -112,11 +112,20 @@ static GstMemory *gst_shmem_allocator_mem_copy(GstShMemMemory *mem, gssize offse
     g_return_val_if_fail(mem != nullptr && mem->mem != nullptr, nullptr);
     g_return_val_if_fail(mem->mem->GetBase() != nullptr, nullptr);
 
-    gssize realOffset = mem->parent.offset + offset;
+    gssize realOffset = 0;
+    if (((gint64)mem->parent.offset + offset) > INT32_MAX) {
+        realOffset = INT32_MAX;
+    } else {
+        realOffset = mem->parent.offset + offset;
+    }
     g_return_val_if_fail(realOffset >= 0, nullptr);
 
     if (size == -1) {
-        size = mem->parent.size - offset;
+        if (((gint64)mem->parent.size - offset) > INT32_MAX) {
+            size = INT32_MAX;
+        } else {
+            size = mem->parent.size - offset;
+        }
     }
     g_return_val_if_fail(size > 0, nullptr);
 

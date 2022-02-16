@@ -205,7 +205,7 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     GstCaps *caps = nullptr;
     gboolean needPool = FALSE;
     gst_query_parse_allocation(query, &caps, &needPool);
-    GST_DEBUG_OBJECT(surfaceSink, "process allocation query, caps: %" GST_PTR_FORMAT "", caps);
+    GST_DEBUG_OBJECT(surfaceSink, "process allocation query, caps: %s", gst_caps_to_string(caps));
 
     if (!needPool) {
         GST_ERROR_OBJECT(surfaceSink, "no need buffer pool, unexpected!");

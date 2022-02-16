@@ -320,7 +320,7 @@ napi_value MediaEnumNapi::JsEnumIntInit(napi_env env, napi_value exports)
     for (auto it = g_intEnumClassMap.begin(); it != g_intEnumClassMap.end(); it++) {
         auto &enumClassName = it->first;
         auto &enumItemVec = it->second;
-        int32_t vecSize = enumItemVec.size();
+        int32_t vecSize = enumItemVec.size() > INT32_MAX ? INT32_MAX : enumItemVec.size();
         std::vector<napi_value> value;
         value.resize(vecSize);
         for (int32_t index = 0; index < vecSize; ++index) {
@@ -356,7 +356,7 @@ napi_value MediaEnumNapi::JsEnumStringInit(napi_env env, napi_value exports)
     for (auto it = g_stringEnumClassMap.begin(); it != g_stringEnumClassMap.end(); it++) {
         auto &enumClassName = it->first;
         auto &enumItemVec = it->second;
-        int32_t vecSize = enumItemVec.size();
+        int32_t vecSize = enumItemVec.size() > INT32_MAX ? INT32_MAX : enumItemVec.size();
         std::vector<napi_value> value;
         value.resize(vecSize);
         for (int32_t index = 0; index < vecSize; ++index) {

@@ -160,7 +160,7 @@ static gboolean gst_mem_pool_src_negotiate(GstBaseSrc *basesrc)
 void gst_mem_pool_src_set_caps(GstMemPoolSrc *memsrc, const GstCaps *caps)
 {
     g_return_if_fail(memsrc != nullptr);
-    GST_DEBUG_OBJECT(memsrc, "Setting caps to %" GST_PTR_FORMAT, caps);
+    GST_DEBUG_OBJECT(memsrc, "Setting caps to %s", gst_caps_to_string(caps));
     GST_OBJECT_LOCK(memsrc);
     GstCaps *old_caps = memsrc->caps;
     if (caps != nullptr) {

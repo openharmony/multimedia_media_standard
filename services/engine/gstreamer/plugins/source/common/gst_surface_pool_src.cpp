@@ -143,6 +143,9 @@ static void gst_surface_pool_src_set_property(GObject *object, guint prop_id, co
     switch (prop_id) {
         case PROP_SURFACE_STRIDE:
             src->stride = g_value_get_uint(value);
+            if (src->stride > INT32_MAX) {
+                src->stride = STRIDE_ALIGN;
+            }
             break;
         case PROP_SUSPEND:
             g_return_if_fail(src->pool != nullptr);
@@ -341,8 +344,8 @@ static int32_t gst_surface_pool_src_gstformat_to_surfaceformat(GstSurfacePoolSrc
 static void gst_surface_pool_src_init_surface_buffer(GstSurfacePoolSrc *surfacesrc)
 {
     GstMemPoolSrc *memsrc = GST_MEM_POOL_SRC(surfacesrc);
-    guint width = DEFAULT_VIDEO_WIDTH;
-    guint height = DEFAULT_VIDEO_HEIGHT;
+    gint width = DEFAULT_VIDEO_WIDTH;
+    gint height = DEFAULT_VIDEO_HEIGHT;
     int32_t format = -1;
     if (memsrc->caps != nullptr) {
         GstVideoInfo info;

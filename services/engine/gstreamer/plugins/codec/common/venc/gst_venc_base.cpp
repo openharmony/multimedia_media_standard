@@ -100,7 +100,7 @@ static void gst_venc_base_class_init(GstVencBaseClass *klass)
 
     const gchar *sink_caps_string = GST_VIDEO_CAPS_MAKE(GST_VENC_BASE_SUPPORTED_FORMATS);
     GstCaps *sink_caps = gst_caps_from_string(sink_caps_string);
-    GST_DEBUG_OBJECT(klass, "Sink_caps %" GST_PTR_FORMAT, sink_caps);
+    GST_DEBUG_OBJECT(klass, "Sink_caps %s", gst_caps_to_string(sink_caps));
     if (sink_caps != nullptr) {
         GstPadTemplate *sink_templ = gst_pad_template_new("sink", GST_PAD_SINK, GST_PAD_ALWAYS, sink_caps);
         gst_element_class_add_pad_template(element_class, sink_templ);
@@ -894,7 +894,7 @@ static gboolean gst_venc_base_decide_allocation(GstVideoEncoder *encoder, GstQue
     guint pool_num = gst_query_get_n_allocation_pools(query);
     if (pool_num > 0) {
         gst_query_parse_nth_allocation_pool(query, 0, &pool, &size, &min_buf, &max_buf);
-        GST_DEBUG_OBJECT(encoder, "Get bufferpool num %u query %p", pool_num, query);
+        GST_DEBUG_OBJECT(encoder, "Get bufferpool num %u", pool_num);
         if (!gst_query_find_allocation_meta(query, GST_BUFFER_TYPE_META_API_TYPE, &index)) {
             GST_INFO_OBJECT(encoder, "no meta api");
             gst_object_unref(pool);
@@ -947,7 +947,7 @@ static gboolean gst_venc_base_propose_allocation(GstVideoEncoder *encoder, GstQu
     gst_video_info_init(&vinfo);
     gst_query_parse_allocation(query, &incaps, nullptr);
     if (incaps != nullptr) {
-        GST_DEBUG_OBJECT(encoder, "Query caps %" GST_PTR_FORMAT, incaps);
+        GST_DEBUG_OBJECT(encoder, "Query caps %s", gst_caps_to_string(incaps));
         gst_video_info_from_caps(&vinfo, incaps);
     }
     size = vinfo.size;
