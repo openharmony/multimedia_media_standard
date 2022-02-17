@@ -153,6 +153,7 @@ int32_t VideoCaptureSfImpl::SetVideoHeight(uint32_t height)
 int32_t VideoCaptureSfImpl::SetFrameRate(uint32_t frameRate)
 {
     framerate_ = frameRate;
+    minInterval_ = 1000000000 / framerate_; // 1s = 1000000000ns
     return MSERR_OK;
 }
 
@@ -257,14 +258,14 @@ bool VideoCaptureSfImpl::DropThisFrame(uint32_t fps, int64_t oldTimeStamp, int64
         MEDIA_LOGW("Invalid frame rate: 0");
         return FALSE;
     }
-    int64_t min_interval = 1000000000 / fps; // 1s = 1000000000ns
-    if ((INT64_MAX - min_interval) < oldTimeStamp) {
+
+    if ((INT64_MAX - minInterval_) < oldTimeStamp) {
         MEDIA_LOGW("Invalid timestamp: too big");
         return TRUE;
     }
 
     const int64_t deviations = 3000000; // 3ms
-    if (newTimeStamp < (oldTimeStamp - deviations + min_interval)) {
+    if (newTimeStamp < (oldTimeStamp - deviations + minInterval_)) {
         MEDIA_LOGW("Drop this frame to make sure maximum frame rate");
         return TRUE;
     }
