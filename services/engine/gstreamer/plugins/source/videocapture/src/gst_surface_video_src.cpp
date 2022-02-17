@@ -305,6 +305,8 @@ static GstStateChangeReturn gst_state_change_forward_direction(GstSurfaceVideoSr
                 GST_STATE_CHANGE_FAILURE);
             g_return_val_if_fail(src->capture->SetVideoWidth(src->video_width) == MSERR_OK,
                 GST_STATE_CHANGE_FAILURE);
+            g_return_val_if_fail(src->capture->SetFrameRate(src->video_frame_rate) == MSERR_OK,
+                GST_STATE_CHANGE_FAILURE);
             g_return_val_if_fail(src->capture->SetStreamType(src->stream_type) == MSERR_OK,
                 GST_STATE_CHANGE_FAILURE);
             g_return_val_if_fail(src->capture->Prepare() == MSERR_OK, GST_STATE_CHANGE_FAILURE);
