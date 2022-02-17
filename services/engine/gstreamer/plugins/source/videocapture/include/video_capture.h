@@ -111,6 +111,19 @@ public:
     virtual int32_t SetVideoHeight(uint32_t height) = 0;
 
     /**
+     * @brief Sets the frameRate of the video frame to capture.
+     *
+     * This function must be called before {@link Prepare}.
+     *
+     * @param frameRate Indicates the video frameRate to set.
+     * @return Returns {@link SUCCESS} if the setting is successful; returns an error code defined
+     * in {@link media_errors.h} otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    virtual int32_t SetFrameRate(uint32_t frameRate) = 0;
+
+    /**
      * @brief Sets the streamType of the video frame to capture.
      *
      * This function must be called before {@link Prepare}.

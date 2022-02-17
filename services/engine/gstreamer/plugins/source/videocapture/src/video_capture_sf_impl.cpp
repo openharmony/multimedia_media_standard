@@ -150,6 +150,13 @@ int32_t VideoCaptureSfImpl::SetVideoHeight(uint32_t height)
     return MSERR_OK;
 }
 
+int32_t VideoCaptureSfImpl::SetFrameRate(uint32_t frameRate)
+{
+    framerate_ = frameRate;
+    minInterval_ = 1000000000 / framerate_; // 1s = 1000000000ns
+    return MSERR_OK;
+}
+
 int32_t VideoCaptureSfImpl::SetStreamType(VideoStreamType streamType)
 {
     streamTypeUnknown_ = false;
@@ -237,39 +244,70 @@ int32_t VideoCaptureSfImpl::GetSufferExtraData()
     MEDIA_LOGI("surfaceBuffer extraData dataSize_: %{public}d, pts: (%{public}" PRId64 ")", dataSize_, pts_);
     MEDIA_LOGI("is this surfaceBuffer keyFrame ? : %{public}d", isCodecFrame_);
 
-    if (pts_ < previousTimestamp_) {
-        MEDIA_LOGW("get error timestamp from surfaceBuffer");
-    }
-    previousTimestamp_ = pts_;
-
     return MSERR_OK;
+}
+
+bool VideoCaptureSfImpl::DropThisFrame(uint32_t fps, int64_t oldTimeStamp, int64_t newTimeStamp)
+{
+    if (newTimeStamp <= oldTimeStamp) {
+        MEDIA_LOGW("Invalid timestamp: not increased");
+        return TRUE;
+    }
+
+    if (fps == 0) {
+        MEDIA_LOGW("Invalid frame rate: 0");
+        return FALSE;
+    }
+
+    if ((INT64_MAX - minInterval_) < oldTimeStamp) {
+        MEDIA_LOGW("Invalid timestamp: too big");
+        return TRUE;
+    }
+
+    const int64_t deviations = 3000000; // 3ms
+    if (newTimeStamp < (oldTimeStamp - deviations + minInterval_)) {
+        MEDIA_LOGW("Drop this frame to make sure maximum frame rate");
+        return TRUE;
+    }
+    return FALSE;
 }
 
 int32_t VideoCaptureSfImpl::AcquireSurfaceBuffer()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (!started_ || (dataConSurface_ == nullptr)) {
-        return MSERR_INVALID_OPERATION;
-    }
+    do {
+        if (!started_ || (dataConSurface_ == nullptr)) {
+            return MSERR_INVALID_OPERATION;
+        }
 
-    bufferAvailableCondition_.wait(lock, [this]() { return bufferAvailableCount_ > 0 || resourceLock_; });
-    if (resourceLock_) {
-        MEDIA_LOGI("flush start / eos, skip acquire buffer");
-        return MSERR_NO_MEMORY;
-    }
+        bufferAvailableCondition_.wait(lock, [this]() { return bufferAvailableCount_ > 0 || resourceLock_; });
+        if (resourceLock_) {
+            MEDIA_LOGI("flush start / eos, skip acquire buffer");
+            return MSERR_NO_MEMORY;
+        }
 
-    if (!started_ || (dataConSurface_ == nullptr)) {
-        return MSERR_INVALID_OPERATION;
-    }
-    if (dataConSurface_->AcquireBuffer(surfaceBuffer_, fence_, timestamp_, damage_) != SURFACE_ERROR_OK) {
-        return MSERR_UNKNOWN;
-    }
+        if (!started_ || (dataConSurface_ == nullptr)) {
+            return MSERR_INVALID_OPERATION;
+        }
+        if (dataConSurface_->AcquireBuffer(surfaceBuffer_, fence_, timestamp_, damage_) != SURFACE_ERROR_OK) {
+            return MSERR_UNKNOWN;
+        }
 
-    int32_t ret = GetSufferExtraData();
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "get ExtraData fail");
+        int32_t ret = GetSufferExtraData();
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "get ExtraData fail");
 
-    pts_ = pts_ - totalPauseTime_;
-    bufferAvailableCount_--;
+        pts_ = pts_ - totalPauseTime_;
+        bufferAvailableCount_--;
+
+        if (DropThisFrame(framerate_, previousTimestamp_, pts_)) {
+            MEDIA_LOGI("drop this frame!");
+            (void)dataConSurface_->ReleaseBuffer(surfaceBuffer_, fence_);
+            continue;
+        } else {
+            previousTimestamp_ = pts_;
+            break;
+        }
+    } while (0);
     return MSERR_OK;
 }
 
