@@ -274,6 +274,14 @@ int32_t AudioRecorderNapi::GetAudioProperties(napi_env env, napi_value args, Aud
             return MSERR_INVALID_VAL;
     }
 
+    napi_status status = napi_has_named_property(env, args, "fileFormat", &ret);
+    if (status == napi_ok && ret) {
+        ContainerFormatType tempCFT;
+        std::string outputFile = CommonNapi::GetPropertyString(env, args, "fileFormat");
+        MapStringToContainerFormat(outputFile, tempCFT);
+        MapContainerFormatToOutputFormat(tempCFT, properties.outputFormatType);
+    }
+
     int32_t audioEncoder = 0;
     ret = CommonNapi::GetPropertyInt32(env, args, "audioEncoder", audioEncoder);
     if (ret == false) {
@@ -286,6 +294,14 @@ int32_t AudioRecorderNapi::GetAudioProperties(napi_env env, napi_value args, Aud
             break;
         default:
             return MSERR_INVALID_VAL;
+    }
+
+    status = napi_has_named_property(env, args, "audioEncoderMime", &ret);
+    if (status == napi_ok && ret) {
+        CodecMimeType tempCMT;
+        std::string audioCodec = CommonNapi::GetPropertyString(env, item, "audioEncoderMime");
+        MapStringToCodecMime(audioCodec, tempCMT);
+        MapCodecMimeToAudioCodec(tempCMT, properties.audioCodecFormat);
     }
 
     napi_value geoLocation = nullptr;
