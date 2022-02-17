@@ -216,6 +216,7 @@ static gboolean gst_vdec_base_close(GstVideoDecoder *decoder)
     GST_DEBUG_OBJECT(decoder, "Close");
     g_return_val_if_fail(decoder != nullptr, FALSE);
     GstVdecBase *self = GST_VDEC_BASE(decoder);
+    self->decoder->Deinit();
     self->decoder = nullptr;
     return TRUE;
 }
