@@ -43,7 +43,7 @@ struct VideoPlayerAsyncContext : public MediaAsyncContext {
     int32_t seekPosition = 0;
     int32_t seekMode = SEEK_PREVIOUS_SYNC;
     int32_t speedMode = SPEED_FORWARD_1_00_X;
-    std::string surface = "invalid surface id";
+    std::string surface = "";
 };
 
 class VideoCallbackNapi : public PlayerCallbackNapi {

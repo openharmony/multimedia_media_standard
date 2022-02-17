@@ -172,13 +172,13 @@ void PlayerCallbackNapi::OnBufferingUpdateCb(const Format &infoBody) const
 
     int32_t value = 0;
     int32_t bufferingType = -1;
-    if (infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_START), value)) {
+    if (infoBody.ContainKey(std::string(PlayerKeys::PLAYER_BUFFERING_START))) {
         bufferingType = BUFFERING_START;
-    } else if (infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_END), value)) {
+    } else if (infoBody.ContainKey(std::string(PlayerKeys::PLAYER_BUFFERING_END))) {
         bufferingType = BUFFERING_END;
-    } else if (infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_PERCENT), value)) {
+    } else if (infoBody.ContainKey(std::string(PlayerKeys::PLAYER_BUFFERING_PERCENT))) {
         bufferingType = BUFFERING_PERCENT;
-    } else if (infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_CACHED_DURATION), value)) {
+    } else if (infoBody.ContainKey(std::string(PlayerKeys::PLAYER_CACHED_DURATION))) {
         bufferingType = CACHED_DURATION;
     } else {
         return;
