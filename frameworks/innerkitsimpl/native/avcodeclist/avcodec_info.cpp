@@ -332,6 +332,14 @@ void VideoCaps::InitParams()
 
 void VideoCaps::UpdateParams()
 {
+    if (data_.blockSize.width == 0 || data_.blockSize.height == 0 || blockWidth_ == 0 || blockHeight_ == 0 ||
+        verticalBlockRange_.maxVal == 0 || verticalBlockRange_.minVal == 0 ||
+        horizontalBlockRange_.maxVal == 0 || horizontalBlockRange_.minVal == 0 ||
+        blockPerFrameRange_.minVal == 0 || blockPerFrameRange_.maxVal == 0) {
+        MEDIA_LOGE("Invalid param");
+        return;
+    }
+
     int32_t factor = (blockWidth_ * blockHeight_) / (data_.blockSize.width * data_.blockSize.height);
 
     blockPerFrameRange_ = blockPerFrameRange_.Intersect(DivRange(data_.blockPerFrame, factor));

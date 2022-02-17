@@ -279,7 +279,7 @@ static void gst_mem_sink_setcaps(GstMemSink *memSink, const GstCaps *caps)
     g_return_if_fail(priv != nullptr);
 
     GST_OBJECT_LOCK(memSink);
-    GST_INFO_OBJECT(memSink, "setting caps to %" GST_PTR_FORMAT, caps);
+    GST_INFO_OBJECT(memSink, "setting caps to %s", gst_caps_to_string(caps));
 
     GstCaps *old = priv->caps;
     if (old != caps) {
@@ -305,7 +305,7 @@ static GstCaps *gst_mem_sink_getcaps(GstMemSink *memSink)
     GstCaps *caps = priv->caps;
     if (caps != nullptr) {
         gst_caps_ref(caps);
-        GST_INFO_OBJECT(memSink, "getting caps of %" GST_PTR_FORMAT, caps);
+        GST_INFO_OBJECT(memSink, "getting caps of %s", gst_caps_to_string(caps));
     }
     GST_OBJECT_UNLOCK(memSink);
 
@@ -397,7 +397,7 @@ static gboolean gst_mem_sink_set_caps(GstBaseSink *sink, GstCaps *caps)
     GST_OBJECT_LOCK(memSink);
 
     gboolean ret = FALSE;
-    GST_INFO_OBJECT(memSink, "receiving CAPS %" GST_PTR_FORMAT, caps);
+    GST_INFO_OBJECT(memSink, "receiving CAPS %s", gst_caps_to_string(caps));
     if (caps != nullptr && priv->caps != nullptr) {
         caps = gst_caps_intersect_full(priv->caps, caps, GST_CAPS_INTERSECT_FIRST);
         if (caps != nullptr) {
@@ -426,7 +426,7 @@ static GstCaps *gst_mem_sink_get_caps(GstBaseSink *sink, GstCaps *filter)
         } else {
             gst_caps_ref(caps);
         }
-        GST_INFO_OBJECT(memSink, "got caps %" GST_PTR_FORMAT, caps);
+        GST_INFO_OBJECT(memSink, "got caps %s", gst_caps_to_string(caps));
     }
     GST_OBJECT_UNLOCK(memSink);
 
