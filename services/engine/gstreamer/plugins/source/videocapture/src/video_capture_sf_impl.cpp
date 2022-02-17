@@ -246,7 +246,7 @@ int32_t VideoCaptureSfImpl::GetSufferExtraData()
     return MSERR_OK;
 }
 
-bool DropThisFrame(uint32_t fps, int64_t oldTimeStamp, int64_t newTimeStamp)
+bool VideoCaptureSfImpl::DropThisFrame(uint32_t fps, int64_t oldTimeStamp, int64_t newTimeStamp)
 {
     if (newTimeStamp <= oldTimeStamp) {
         MEDIA_LOGW("Invalid timestamp: not increased");
