@@ -86,8 +86,9 @@ static void gst_vdec_base_class_init(GstVdecBaseClass *klass)
             (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
     const gchar *src_caps_string = GST_VIDEO_CAPS_MAKE(GST_VDEC_BASE_SUPPORTED_FORMATS);
+    GST_DEBUG_OBJECT(klass, "Pad template caps %s", src_caps_string);
+
     GstCaps *src_caps = gst_caps_from_string(src_caps_string);
-    GST_DEBUG_OBJECT(klass, "Pad template caps %" GST_PTR_FORMAT, src_caps);
     if (src_caps != nullptr) {
         GstPadTemplate *src_templ = gst_pad_template_new("src", GST_PAD_SRC, GST_PAD_ALWAYS, src_caps);
         gst_element_class_add_pad_template(element_class, src_templ);
@@ -357,14 +358,12 @@ static gboolean gst_vdec_base_negotiate_format(GstVdecBase *self)
     g_return_val_if_fail(self != nullptr, FALSE);
     g_return_val_if_fail(self->decoder != nullptr, FALSE);
     g_return_val_if_fail(GST_VIDEO_DECODER_SRC_PAD(self) != nullptr, FALSE);
-    GstVideoFormat format;
 
     GST_DEBUG_OBJECT(self, "Trying to negotiate a video format with downstream");
     GstCaps *templ_caps = gst_pad_get_pad_template_caps(GST_VIDEO_DECODER_SRC_PAD(self));
-    GST_DEBUG_OBJECT(self, "templ_caps %" GST_PTR_FORMAT, templ_caps);
+    GST_DEBUG_OBJECT(self, "templ_caps %s", gst_caps_to_string(templ_caps));
     (void)update_caps_format(self, templ_caps);
     GstCaps *intersection = gst_pad_peer_query_caps(GST_VIDEO_DECODER_SRC_PAD(self), templ_caps);
-    GST_DEBUG_OBJECT(self, "intersection %" GST_PTR_FORMAT, intersection);
     gst_caps_unref(templ_caps);
     // We need unref at end.
     ON_SCOPE_EXIT(0) { gst_caps_unref(intersection); };
@@ -378,11 +377,11 @@ static gboolean gst_vdec_base_negotiate_format(GstVdecBase *self)
 
     GstStructure *structure = gst_caps_get_structure(intersection, 0);
     const gchar *format_str = gst_structure_get_string(structure, "format");
+    g_return_val_if_fail(format_str != nullptr, FALSE);
 
-    if (format_str == nullptr || (format = gst_video_format_from_string(format_str)) == GST_VIDEO_FORMAT_UNKNOWN) {
-        GST_ERROR_OBJECT(self, "Invalid caps");
-        return FALSE;
-    }
+    GstVideoFormat format = gst_video_format_from_string(format_str);
+    g_return_val_if_fail(format != GST_VIDEO_FORMAT_UNKNOWN, FALSE);
+
     self->format = format;
     gint ret = self->decoder->SetParameter(GST_VIDEO_FORMAT, GST_ELEMENT(self));
     g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "setparameter", TRUE), FALSE);
@@ -1132,7 +1131,7 @@ static gboolean gst_vdec_base_propose_allocation(GstVideoDecoder *decoder, GstQu
     gst_query_parse_allocation(query, &incaps, nullptr);
     guint pool_num = gst_query_get_n_allocation_pools(query);
     if (pool_num > 0) {
-        GST_DEBUG_OBJECT(decoder, "Get bufferpool num %u query %" GST_PTR_FORMAT, pool_num, query);
+        GST_DEBUG_OBJECT(decoder, "Get bufferpool num %u", pool_num);
         update_pool = TRUE;
     }
     size = self->input.buffer_size;

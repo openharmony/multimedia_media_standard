@@ -145,7 +145,15 @@ int32_t SrcBytebufferImpl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo in
     CHECK_AND_RETURN_RET((info.offset + info.size) <= bufWrapper->mem_->GetSize(), MSERR_INVALID_VAL);
 
     const int32_t usToNs = 1000;
-    GST_BUFFER_PTS(bufWrapper->gstBuffer_) = info.presentationTimeUs * usToNs;
+    if (info.presentationTimeUs < 0) {
+        MEDIA_LOGE("Invalid pts: < 0, use 0 as default");
+        GST_BUFFER_PTS(bufWrapper->gstBuffer_) = 0;
+    } else if ((INT64_MAX / usToNs) <= info.presentationTimeUs) {
+        MEDIA_LOGE("Invalid pts: too big, use 0 as default");
+        GST_BUFFER_PTS(bufWrapper->gstBuffer_) = 0;
+    } else {
+        GST_BUFFER_PTS(bufWrapper->gstBuffer_) = info.presentationTimeUs * usToNs;
+    }
 
     CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
     (void)gst_mem_pool_src_push_buffer(GST_MEM_POOL_SRC(src_), bufWrapper->gstBuffer_);

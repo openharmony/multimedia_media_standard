@@ -35,11 +35,12 @@ gboolean gst_surface_allocator_set_surface(GstSurfaceAllocator *allocator, OHOS:
 GstSurfaceMemory *gst_surface_allocator_alloc(GstSurfaceAllocator *allocator,
     gint width, gint height, PixelFormat format, gint usage)
 {
-    g_return_val_if_fail(allocator != nullptr && allocator->surface != nullptr, nullptr);
+    g_return_val_if_fail(allocator != nullptr && allocator->surface != nullptr && usage >= 0, nullptr);
 
     static constexpr int32_t strideAlignment = 8;
     OHOS::BufferRequestConfig requestConfig = {
-        width, height, strideAlignment, format, usage | HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA, 0
+        width, height, strideAlignment, format, static_cast<uint32_t>(usage) |
+        HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA, 0
     };
     int32_t releaseFence = -1;
     OHOS::sptr<OHOS::SurfaceBuffer> surfaceBuffer = nullptr;
