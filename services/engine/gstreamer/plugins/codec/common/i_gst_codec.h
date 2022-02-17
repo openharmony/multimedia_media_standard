@@ -229,6 +229,16 @@ public:
      * @version 1.0
      */
     virtual int32_t ActiveBufferMgr(GstCodecDirect direct, bool active) = 0;
+
+    /**
+     * @brief Init codec.
+     *
+     * This function must be called immediately before destroy
+     *
+     * @since 1.0
+     * @version 1.0
+     */
+    virtual void Deinit() = 0;
 };
 } // namespace Media
 } // namespace OHOS
