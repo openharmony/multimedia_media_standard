@@ -93,6 +93,7 @@ private:
     uint32_t pauseCount_ = 0;
     int64_t totalPauseTime_ = 0;
     uint32_t framerate_ = 0;
+    int64_t minInterval_ = 0;
     bool resourceLock_ = false;
 };
 }  // namespace Media
