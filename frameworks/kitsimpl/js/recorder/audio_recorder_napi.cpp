@@ -253,7 +253,7 @@ napi_value AudioRecorderNapi::Prepare(napi_env env, napi_callback_info info)
     return undefinedResult;
 }
 
-int32_t AudioRecorderNapi::GetAudioApi8Properties(napi_env env, napi_value args, AudioRecorderProperties &properties)
+int32_t AudioRecorderNapi::GetAudioEncAndFileFormat(napi_env env, napi_value args, AudioRecorderProperties &properties)
 {
     bool ret = false;
     napi_status status = napi_has_named_property(env, args, "fileFormat", &ret);
