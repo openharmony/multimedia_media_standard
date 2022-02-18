@@ -982,8 +982,7 @@ static gboolean gst_vdec_base_event(GstVideoDecoder *decoder, GstEvent *event)
     return ret;
 }
 
-static GstBufferPool *gst_vdec_base_new_out_shmem_pool(GstVdecBase *self, GstCaps *outcaps, gint size,
-    guint min_buffer_cnt, guint max_buffer_cnt)
+static GstBufferPool *gst_vdec_base_new_out_shmem_pool(GstVdecBase *self, GstCaps *outcaps, gint size)
 {
     GstShMemPool *pool = gst_shmem_pool_new();
     g_return_val_if_fail(pool != nullptr, nullptr);
@@ -1000,7 +999,7 @@ static GstBufferPool *gst_vdec_base_new_out_shmem_pool(GstVdecBase *self, GstCap
     }
     gst_buffer_pool_config_set_allocator(config, GST_ALLOCATOR_CAST(self->output.allocator),
             &self->output.allocParams);
-    gst_buffer_pool_config_set_params(config, outcaps, size, min_buffer_cnt, max_buffer_cnt);
+    gst_buffer_pool_config_set_params(config, outcaps, size, self->out_buffer_cnt, self->out_buffer_cnt);
     g_return_val_if_fail(gst_buffer_pool_set_config(GST_BUFFER_POOL_CAST(pool), config), nullptr);
     CANCEL_SCOPE_EXIT_GUARD(0);
     return GST_BUFFER_POOL(pool);
@@ -1029,14 +1028,14 @@ static GstBufferPool *gst_vdec_base_new_in_shmem_pool(GstVdecBase *self, GstCaps
     return GST_BUFFER_POOL(pool);
 }
 
-static void gst_vdec_base_update_pool(GstVdecBase *self, GstBufferPool **pool, GstCaps *outcaps,
-    gint size, guint min_buffer_cnt, guint max_buffer_cnt)
+static void gst_vdec_base_update_out_pool(GstVdecBase *self, GstBufferPool **pool, GstCaps *outcaps,
+    gint size)
 {
     g_return_if_fail(*pool != nullptr);
     ON_SCOPE_EXIT(0) { gst_object_unref(*pool); *pool = nullptr; };
     GstStructure *config = gst_buffer_pool_get_config(*pool);
     g_return_if_fail(config != nullptr);
-    gst_buffer_pool_config_set_params(config, outcaps, size, min_buffer_cnt, max_buffer_cnt);
+    gst_buffer_pool_config_set_params(config, outcaps, size, self->out_buffer_cnt, self->out_buffer_cnt);
     if (self->memtype == GST_MEMTYPE_SURFACE) {
         gst_structure_set(config, "usage", G_TYPE_INT, self->usage, nullptr);
     }
@@ -1044,6 +1043,19 @@ static void gst_vdec_base_update_pool(GstVdecBase *self, GstBufferPool **pool, G
     CANCEL_SCOPE_EXIT_GUARD(0);
 }
 
+static gboolean gst_vdec_base_check_mem_type(GstVdecBase *self, GstQuery *query)
+{
+    guint index = 0;
+    const GstStructure *buffer_type_struct = nullptr;
+    if (gst_query_find_allocation_meta(query, GST_BUFFER_TYPE_META_API_TYPE, &index)) {
+        (void)gst_query_parse_nth_allocation_meta(query, index, &buffer_type_struct);
+        (void)get_memtype(self, buffer_type_struct);
+    } else {
+        GST_INFO_OBJECT(self, "No meta api");
+        return FALSE;
+    }
+    return TRUE;
+}
 static gboolean gst_vdec_base_decide_allocation(GstVideoDecoder *decoder, GstQuery *query)
 {
     g_return_val_if_fail(decoder != nullptr && query != nullptr, FALSE);
@@ -1059,39 +1071,28 @@ static gboolean gst_vdec_base_decide_allocation(GstVideoDecoder *decoder, GstQue
     if (outcaps != nullptr) {
         gst_video_info_from_caps(&vinfo, outcaps);
     }
-
-    GstAllocationParams params;
     gboolean update_pool = FALSE;
-    guint index = 0;
-    const GstStructure *buffer_type_struct = nullptr;
-    gst_allocation_params_init(&params);
     guint pool_num = gst_query_get_n_allocation_pools(query);
     if (pool_num > 0) {
         gst_query_parse_nth_allocation_pool(query, 0, &pool, &size, &min_buf, &max_buf);
-        if (gst_query_find_allocation_meta(query, GST_BUFFER_TYPE_META_API_TYPE, &index)) {
-            (void)gst_query_parse_nth_allocation_meta(query, index, &buffer_type_struct);
-            (void)get_memtype(self, buffer_type_struct);
-        } else {
-            GST_INFO_OBJECT(decoder, "No meta api");
+        if (gst_vdec_base_check_mem_type(self, query) != TRUE) {
             gst_object_unref(pool);
             pool = nullptr;
         }
-        size = MAX(size, vinfo.size);
         update_pool = TRUE;
     } else {
         pool = nullptr;
-        size = vinfo.size;
     }
+    size = vinfo.size;
     self->out_buffer_max_cnt = max_buf == 0 ? DEFAULT_MAX_QUEUE_SIZE : max_buf;
     g_return_val_if_fail(gst_vdec_base_update_out_port_def(self), FALSE);
     self->out_buffer_cnt = self->output.buffer_cnt;
     if (pool == nullptr) {
-        pool = gst_vdec_base_new_out_shmem_pool(self, outcaps, size, self->output.buffer_cnt, self->output.buffer_cnt);
+        pool = gst_vdec_base_new_out_shmem_pool(self, outcaps, size);
     } else {
-        gst_vdec_base_update_pool(self, &pool, outcaps, size, self->output.buffer_cnt, self->output.buffer_cnt);
+        gst_vdec_base_update_out_pool(self, &pool, outcaps, size);
     }
     g_return_val_if_fail(pool != nullptr, FALSE);
-
     if (update_pool) {
         gst_query_set_nth_allocation_pool(query, 0, pool, size, self->output.buffer_cnt, self->output.buffer_cnt);
     } else {
@@ -1102,7 +1103,6 @@ static gboolean gst_vdec_base_decide_allocation(GstVideoDecoder *decoder, GstQue
         gst_object_unref(self->outpool);
         self->outpool = pool;
     }
-
     return TRUE;
 }
 
