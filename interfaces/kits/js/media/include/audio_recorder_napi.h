@@ -68,6 +68,7 @@ private:
         Location location;
     };
     int32_t GetAudioProperties(napi_env env, napi_value args, AudioRecorderProperties &properties);
+    int32_t GetAudioApi8Properties(napi_env env, napi_value args, AudioRecorderProperties &properties);
     int32_t GetAudioUriPath(napi_env env, napi_value args, std::string &uriPath);
     int32_t OnPrepare(const std::string &uriPath, const AudioRecorderProperties &properties);
     int32_t SetUri(const std::string &uriPath);
