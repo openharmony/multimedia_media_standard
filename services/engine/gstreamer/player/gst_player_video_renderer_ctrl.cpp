@@ -17,6 +17,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdio>
+#include <sync_fence.h>
 #include "securec.h"
 #include "string_ex.h"
 #include "display_type.h"
@@ -438,6 +439,10 @@ sptr<SurfaceBuffer> GstPlayerVideoRendererCtrl::RequestBuffer(const GstVideoMeta
             }
         }
     } while (0);
+    sptr<SyncFence> autoFence = new(std::nothrow) SyncFence(releaseFence);
+    if (autoFence != nullptr) {
+        autoFence->Wait(100); // 100ms
+    }
     CHECK_AND_RETURN_RET_LOG(ret == SURFACE_ERROR_OK, nullptr, "RequestBuffer is not ok..");
     return surfaceBuffer;
 }
