@@ -71,45 +71,45 @@ static void gst_shared_mem_sink_class_init(GstSharedMemSinkClass *klass)
 {
     g_return_if_fail(klass != nullptr);
 
-    GObjectClass *gobjectClass = G_OBJECT_CLASS(klass);
-    GstMemSinkClass *memSinkClass = GST_MEM_SINK_CLASS(klass);
-    GstElementClass *elementClass = GST_ELEMENT_CLASS(klass);
-    GstBaseSinkClass *baseSinkClass = GST_BASE_SINK_CLASS(klass);
+    GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+    GstMemSinkClass *mem_sink_class = GST_MEM_SINK_CLASS(klass);
+    GstElementClass *element_class = GST_ELEMENT_CLASS(klass);
+    GstBaseSinkClass *base_sink_class = GST_BASE_SINK_CLASS(klass);
 
-    gobjectClass->dispose = gst_shared_mem_sink_dispose;
-    gobjectClass->finalize = gst_shared_mem_sink_finalize;
-    gobjectClass->set_property = gst_shared_mem_sink_set_property;
-    gobjectClass->get_property = gst_shared_mem_sink_get_property;
+    gobject_class->dispose = gst_shared_mem_sink_dispose;
+    gobject_class->finalize = gst_shared_mem_sink_finalize;
+    gobject_class->set_property = gst_shared_mem_sink_set_property;
+    gobject_class->get_property = gst_shared_mem_sink_get_property;
 
-    g_object_class_install_property(gobjectClass, PROP_MEM_SIZE,
+    g_object_class_install_property(gobject_class, PROP_MEM_SIZE,
         g_param_spec_uint("mem-size", "Memory Size",
             "Allocate the memory with required length (in bytes)",
             0, G_MAXUINT, DEFAULT_PROP_MEM_SIZE,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
-    g_object_class_install_property(gobjectClass, PROP_MEM_PREFIX_SIZE,
+    g_object_class_install_property(gobject_class, PROP_MEM_PREFIX_SIZE,
         g_param_spec_uint("mem-prefix-size", "Memory Prefix Size",
             "Allocate the memory with required length's prefix (in bytes)",
             0, G_MAXUINT, DEFAULT_PROP_MEM_PREFIX_SIZE,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
-    g_object_class_install_property(gobjectClass, PROP_ENABLE_REMOTE_REFCOUNT,
+    g_object_class_install_property(gobject_class, PROP_ENABLE_REMOTE_REFCOUNT,
         g_param_spec_boolean ("enable-remote-refcount", "Enable Remote RefCount",
             "Enable the remote refcount at the allocated memory", DEFAULT_PROP_REMOTE_REFCOUNT,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
-    gst_element_class_set_static_metadata(elementClass,
+    gst_element_class_set_static_metadata(element_class,
         "ShMemSink", "Sink/Generic",
         "Output to multi-process shared memory and allow the application to get access to the shared memory",
         "OpenHarmony");
 
-    baseSinkClass->unlock = gst_shared_mem_sink_unlock_start;
-    baseSinkClass->unlock_stop = gst_shared_mem_sink_unlock_stop;
-    baseSinkClass->start = gst_shared_mem_sink_start;
-    baseSinkClass->stop = gst_shared_mem_sink_stop;
+    base_sink_class->unlock = gst_shared_mem_sink_unlock_start;
+    base_sink_class->unlock_stop = gst_shared_mem_sink_unlock_stop;
+    base_sink_class->start = gst_shared_mem_sink_start;
+    base_sink_class->stop = gst_shared_mem_sink_stop;
 
-    memSinkClass->do_propose_allocation = gst_shared_mem_sink_do_propose_allocation;
-    memSinkClass->do_stream_render = gst_shared_mem_sink_do_stream_render;
+    mem_sink_class->do_propose_allocation = gst_shared_mem_sink_do_propose_allocation;
+    mem_sink_class->do_stream_render = gst_shared_mem_sink_do_stream_render;
 
     GST_DEBUG_CATEGORY_INIT(gst_shmem_sink_debug_category, "shmemsink", 0, "shmemsink class");
 }
@@ -137,11 +137,11 @@ static void gst_shared_mem_sink_dispose(GObject *obj)
 {
     g_return_if_fail(obj != nullptr);
 
-    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(obj);
-    GstSharedMemSinkPrivate *priv = shmemSink->priv;
+    GstSharedMemSink *shmem_sink = GST_SHARED_MEM_SINK_CAST(obj);
+    GstSharedMemSinkPrivate *priv = shmem_sink->priv;
     g_return_if_fail(priv != nullptr);
 
-    GST_OBJECT_LOCK(shmemSink);
+    GST_OBJECT_LOCK(shmem_sink);
     if (priv->allocator) {
         gst_object_unref(priv->allocator);
         priv->allocator = nullptr;
@@ -151,7 +151,7 @@ static void gst_shared_mem_sink_dispose(GObject *obj)
         priv->pool = nullptr;
     }
     priv->avShmemPool = nullptr;
-    GST_OBJECT_UNLOCK(shmemSink);
+    GST_OBJECT_UNLOCK(shmem_sink);
 
     G_OBJECT_CLASS(parent_class)->dispose(obj);
 }
@@ -159,8 +159,8 @@ static void gst_shared_mem_sink_dispose(GObject *obj)
 static void gst_shared_mem_sink_finalize(GObject *obj)
 {
     g_return_if_fail(obj != nullptr);
-    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(obj);
-    GstSharedMemSinkPrivate *priv = shmemSink->priv;
+    GstSharedMemSink *shmem_sink = GST_SHARED_MEM_SINK_CAST(obj);
+    GstSharedMemSinkPrivate *priv = shmem_sink->priv;
     g_return_if_fail(priv != nullptr);
 
     g_mutex_clear(&priv->mutex);
@@ -173,31 +173,31 @@ static void gst_shared_mem_sink_set_property(GObject *object, guint propId, cons
 {
     g_return_if_fail(object != nullptr && value != nullptr);
 
-    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(object);
-    GstSharedMemSinkPrivate *priv = shmemSink->priv;
+    GstSharedMemSink *shmem_sink = GST_SHARED_MEM_SINK_CAST(object);
+    GstSharedMemSinkPrivate *priv = shmem_sink->priv;
     g_return_if_fail(priv != nullptr);
 
     switch (propId) {
         case PROP_MEM_SIZE: {
-            GST_OBJECT_LOCK(shmemSink);
+            GST_OBJECT_LOCK(shmem_sink);
             priv->memSize = g_value_get_uint(value);
-            GST_DEBUG_OBJECT(shmemSink, "memory size: %u", priv->memSize);
-            GST_OBJECT_UNLOCK(shmemSink);
+            GST_DEBUG_OBJECT(shmem_sink, "memory size: %u", priv->memSize);
+            GST_OBJECT_UNLOCK(shmem_sink);
             break;
         }
         case PROP_MEM_PREFIX_SIZE: {
-            GST_OBJECT_LOCK(shmemSink);
+            GST_OBJECT_LOCK(shmem_sink);
             priv->memPrefixSize = g_value_get_uint(value);
             priv->allocParams.prefix = priv->memPrefixSize;
-            GST_DEBUG_OBJECT(shmemSink, "memory prefix size: %u", priv->memPrefixSize);
-            GST_OBJECT_UNLOCK(shmemSink);
+            GST_DEBUG_OBJECT(shmem_sink, "memory prefix size: %u", priv->memPrefixSize);
+            GST_OBJECT_UNLOCK(shmem_sink);
             break;
         }
         case PROP_ENABLE_REMOTE_REFCOUNT: {
-            GST_OBJECT_LOCK(shmemSink);
+            GST_OBJECT_LOCK(shmem_sink);
             priv->enableRemoteRefCount = g_value_get_boolean(value);
-            GST_DEBUG_OBJECT(shmemSink, "enable remote refcount: %d", priv->enableRemoteRefCount);
-            GST_OBJECT_UNLOCK(shmemSink);
+            GST_DEBUG_OBJECT(shmem_sink, "enable remote refcount: %d", priv->enableRemoteRefCount);
+            GST_OBJECT_UNLOCK(shmem_sink);
             break;
         }
         default:
@@ -210,27 +210,27 @@ static void gst_shared_mem_sink_get_property(GObject *object, guint propId, GVal
 {
     g_return_if_fail(object != nullptr);
 
-    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(object);
-    GstSharedMemSinkPrivate *priv = shmemSink->priv;
+    GstSharedMemSink *shmem_sink = GST_SHARED_MEM_SINK_CAST(object);
+    GstSharedMemSinkPrivate *priv = shmem_sink->priv;
     g_return_if_fail(priv != nullptr);
 
     switch (propId) {
         case PROP_MEM_SIZE: {
-            GST_OBJECT_LOCK(shmemSink);
+            GST_OBJECT_LOCK(shmem_sink);
             g_value_set_uint(value, priv->memSize);
-            GST_OBJECT_UNLOCK(shmemSink);
+            GST_OBJECT_UNLOCK(shmem_sink);
             break;
         }
         case PROP_MEM_PREFIX_SIZE: {
-            GST_OBJECT_LOCK(shmemSink);
+            GST_OBJECT_LOCK(shmem_sink);
             g_value_set_uint(value, priv->memPrefixSize);
-            GST_OBJECT_UNLOCK(shmemSink);
+            GST_OBJECT_UNLOCK(shmem_sink);
             break;
         }
         case PROP_ENABLE_REMOTE_REFCOUNT: {
-            GST_OBJECT_LOCK(shmemSink);
+            GST_OBJECT_LOCK(shmem_sink);
             g_value_set_boolean(value, priv->enableRemoteRefCount);
-            GST_OBJECT_UNLOCK(shmemSink);
+            GST_OBJECT_UNLOCK(shmem_sink);
             break;
         }
         default:
@@ -242,11 +242,11 @@ static void gst_shared_mem_sink_get_property(GObject *object, guint propId, GVal
 static gboolean gst_shared_mem_sink_unlock_start(GstBaseSink *bsink)
 {
     g_return_val_if_fail(bsink != nullptr, FALSE);
-    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(bsink);
-    GstSharedMemSinkPrivate *priv = shmemSink->priv;
+    GstSharedMemSink *shmem_sink = GST_SHARED_MEM_SINK_CAST(bsink);
+    GstSharedMemSinkPrivate *priv = shmem_sink->priv;
     g_return_val_if_fail(priv != nullptr, FALSE);
 
-    GST_INFO_OBJECT(shmemSink, "we are unlock start");
+    GST_INFO_OBJECT(shmem_sink, "we are unlock start");
 
     g_mutex_lock(&priv->mutex);
     priv->unlock = TRUE;
@@ -259,11 +259,11 @@ static gboolean gst_shared_mem_sink_unlock_start(GstBaseSink *bsink)
 static gboolean gst_shared_mem_sink_unlock_stop(GstBaseSink *bsink)
 {
     g_return_val_if_fail(bsink != nullptr, FALSE);
-    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(bsink);
-    GstSharedMemSinkPrivate *priv = shmemSink->priv;
+    GstSharedMemSink *shmem_sink = GST_SHARED_MEM_SINK_CAST(bsink);
+    GstSharedMemSinkPrivate *priv = shmem_sink->priv;
     g_return_val_if_fail(priv != nullptr, FALSE);
 
-    GST_INFO_OBJECT(shmemSink, "we are unlock stop");
+    GST_INFO_OBJECT(shmem_sink, "we are unlock stop");
 
     g_mutex_lock(&priv->mutex);
     priv->unlock = FALSE;
@@ -276,11 +276,11 @@ static gboolean gst_shared_mem_sink_unlock_stop(GstBaseSink *bsink)
 static gboolean gst_shared_mem_sink_start(GstBaseSink *bsink)
 {
     g_return_val_if_fail(bsink != nullptr, FALSE);
-    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(bsink);
-    GstSharedMemSinkPrivate *priv = shmemSink->priv;
+    GstSharedMemSink *shmem_sink = GST_SHARED_MEM_SINK_CAST(bsink);
+    GstSharedMemSinkPrivate *priv = shmem_sink->priv;
     g_return_val_if_fail(priv != nullptr, FALSE);
 
-    GST_INFO_OBJECT(shmemSink, "we are start");
+    GST_INFO_OBJECT(shmem_sink, "we are start");
 
     g_mutex_lock(&priv->mutex);
     priv->flushing = FALSE;
@@ -292,11 +292,11 @@ static gboolean gst_shared_mem_sink_start(GstBaseSink *bsink)
 static gboolean gst_shared_mem_sink_stop(GstBaseSink *bsink)
 {
     g_return_val_if_fail(bsink != nullptr, FALSE);
-    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(bsink);
-    GstSharedMemSinkPrivate *priv = shmemSink->priv;
+    GstSharedMemSink *shmem_sink = GST_SHARED_MEM_SINK_CAST(bsink);
+    GstSharedMemSinkPrivate *priv = shmem_sink->priv;
     g_return_val_if_fail(priv != nullptr, FALSE);
 
-    GST_INFO_OBJECT(shmemSink, "we are stop");
+    GST_INFO_OBJECT(shmem_sink, "we are stop");
 
     g_mutex_lock(&priv->mutex);
     priv->flushing = TRUE;
@@ -474,20 +474,20 @@ static gboolean check_need_copy(GstSharedMemSink *shmemSink, GstBuffer *buffer)
 
 static GstFlowReturn gst_shared_mem_sink_do_stream_render(GstMemSink *memsink, GstBuffer **buffer)
 {
-    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(memsink);
-    GstSharedMemSinkPrivate *priv = shmemSink->priv;
+    GstSharedMemSink *shmem_sink = GST_SHARED_MEM_SINK_CAST(memsink);
+    GstSharedMemSinkPrivate *priv = shmem_sink->priv;
     g_return_val_if_fail(priv != nullptr, GST_FLOW_ERROR);
     GstBuffer *origBuf = *buffer;
     GstBuffer *outBuf = nullptr;
 
-    if (!check_need_copy(shmemSink, origBuf)) {
+    if (!check_need_copy(shmem_sink, origBuf)) {
         // To keep the user interface consistent with the scenario where the output
         // buffer needs to be copied, reference counting needs to be added.
         gst_buffer_ref(origBuf);
         return GST_FLOW_OK;
     }
 
-    GstFlowReturn ret = do_copy_buffer(shmemSink, origBuf, &outBuf);
+    GstFlowReturn ret = do_copy_buffer(shmem_sink, origBuf, &outBuf);
     g_return_val_if_fail(ret == GST_FLOW_OK, ret);
 
     *buffer = outBuf;
@@ -537,8 +537,8 @@ static gboolean set_pool_for_propose_allocation(GstSharedMemSink *shmemSink, Gst
 
 static gboolean gst_shared_mem_sink_do_propose_allocation(GstMemSink *memsink, GstQuery *query)
 {
-    GstSharedMemSink *shmemSink = GST_SHARED_MEM_SINK_CAST(memsink);
-    GstSharedMemSinkPrivate *priv = shmemSink->priv;
+    GstSharedMemSink *shmem_sink = GST_SHARED_MEM_SINK_CAST(memsink);
+    GstSharedMemSinkPrivate *priv = shmem_sink->priv;
     g_return_val_if_fail(priv != nullptr, FALSE);
     g_return_val_if_fail(priv->allocator != nullptr, FALSE);
 
@@ -546,27 +546,27 @@ static gboolean gst_shared_mem_sink_do_propose_allocation(GstMemSink *memsink, G
     gboolean needPool = FALSE;
     priv->setPoolForAllocator = FALSE;
     gst_query_parse_allocation(query, &caps, &needPool);
-    GST_INFO_OBJECT(shmemSink, "allocation query, caps: %s, need pool: %d", gst_caps_to_string(caps), needPool);
+    GST_INFO_OBJECT(shmem_sink, "allocation query, caps: %s, need pool: %d", gst_caps_to_string(caps), needPool);
 
-    GST_OBJECT_LOCK(shmemSink);
+    GST_OBJECT_LOCK(shmem_sink);
     gst_query_add_allocation_param(query, GST_ALLOCATOR_CAST(priv->allocator), &priv->allocParams);
 
     // always set avshmempool for allocator, in case that the upstream only use the
     // gstallocator while the needpool is set.
-    gboolean ret = set_pool_for_allocator(shmemSink, 1, memsink->maxPoolCapacity, priv->memSize);
+    gboolean ret = set_pool_for_allocator(shmem_sink, 1, memsink->maxPoolCapacity, priv->memSize);
     if (!ret) {
-        GST_ERROR_OBJECT(shmemSink, "set pool for allocator failed");
-        GST_OBJECT_UNLOCK(shmemSink);
+        GST_ERROR_OBJECT(shmem_sink, "set pool for allocator failed");
+        GST_OBJECT_UNLOCK(shmem_sink);
         return ret;
     }
 
     if (needPool) {
-        ret = set_pool_for_propose_allocation(shmemSink, query, caps);
+        ret = set_pool_for_propose_allocation(shmem_sink, query, caps);
         if (!ret) {
-            GST_ERROR_OBJECT(shmemSink, "config pool failed");
+            GST_ERROR_OBJECT(shmem_sink, "config pool failed");
         }
     }
 
-    GST_OBJECT_UNLOCK(shmemSink);
+    GST_OBJECT_UNLOCK(shmem_sink);
     return ret;
 }
