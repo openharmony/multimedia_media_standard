@@ -310,7 +310,7 @@ int32_t AudioRecorderNapi::GetAudioProperties(napi_env env, napi_value args, Aud
             return MSERR_INVALID_VAL;
     }
 
-    (void)GetAudioApi8Properties(env, args, properties);
+    (void)GetAudioEncAndFileFormat(env, args, properties);
 
     napi_value geoLocation = nullptr;
     napi_get_named_property(env, args, "location", &geoLocation);
