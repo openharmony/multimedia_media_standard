@@ -42,16 +42,16 @@ typedef struct _GstMemSinkClass GstMemSinkClass;
 typedef struct _GstMemSinkPrivate GstMemSinkPrivate;
 
 typedef struct {
-    void (*eos)(GstMemSink *memsink, gpointer user_data);
-    GstFlowReturn (*new_preroll)(GstMemSink *memsink, GstBuffer *preroll, gpointer user_data);
-    GstFlowReturn (*new_sample)(GstMemSink *memsink, GstBuffer *sample, gpointer user_data);
+    void (*eos)(GstMemSink *mem_sink, gpointer user_data);
+    GstFlowReturn (*new_preroll)(GstMemSink *mem_sink, GstBuffer *preroll, gpointer user_data);
+    GstFlowReturn (*new_sample)(GstMemSink *mem_sink, GstBuffer *sample, gpointer user_data);
 } GstMemSinkCallbacks;
 
 struct _GstMemSink {
     GstBaseSink basesink;
 
-    guint maxPoolCapacity; /* max buffer count for buffer pool */
-    guint waitTime; /* longest waiting time for single try to acquire buffer from buffer pool */
+    guint max_pool_capacity; /* max buffer count for buffer pool */
+    guint wait_time; /* longest waiting time for single try to acquire buffer from buffer pool */
 
     /* < private > */
     GstMemSinkPrivate *priv;
@@ -70,13 +70,13 @@ GST_API_EXPORT GType gst_mem_sink_get_type(void);
 /**
  * @brief call this interface to set the notifiers for new_preroll, new_sample and eos.
  *
- * @param memsink the sink element instance
+ * @param mem_sink the sink element instance
  * @param callbacks callbacks, refer to {@GstMemSinkCallbacks}
  * @param userdata will be passed to callbacks
- * @param notify the function to be used to destroy the userdata when the memsink is disposed
+ * @param notify the function to be used to destroy the userdata when the mem_sink is disposed
  * @return GST_FLOW_OK if success, or error code.
  */
-GST_API_EXPORT void gst_mem_sink_set_callback(GstMemSink *memsink,
+GST_API_EXPORT void gst_mem_sink_set_callback(GstMemSink *mem_sink,
                                               GstMemSinkCallbacks *callbacks,
                                               gpointer userdata,
                                               GDestroyNotify notify);
@@ -86,11 +86,11 @@ GST_API_EXPORT void gst_mem_sink_set_callback(GstMemSink *memsink,
  * the buffer can be release back to buffer pool. Call this function is not necessary,
  * it is up to the sink and pool implementation and underlying memory type.
  *
- * @param memsink the sink element instance
+ * @param mem_sink the sink element instance
  * @param buffer the buffer will be rendered, allowd to be nullptr at certain situation.
  * @return GST_FLOW_OK if success, or error code.
  */
-GST_API_EXPORT GstFlowReturn gst_mem_sink_app_render(GstMemSink *memsink, GstBuffer *buffer);
+GST_API_EXPORT GstFlowReturn gst_mem_sink_app_render(GstMemSink *mem_sink, GstBuffer *buffer);
 
 #ifdef G_DEFINE_AUTOPTR_CLEANUP_FUNC
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GstMemSink, gst_object_unref)

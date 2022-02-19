@@ -130,8 +130,8 @@ static void gst_mem_sink_init(GstMemSink *memSink)
 
     g_mutex_init(&priv->mutex);
 
-    memSink->maxPoolCapacity = DEFAULT_PROP_MAX_POOL_CAPACITY;
-    memSink->waitTime = DEFAULT_PROP_WAIT_TIME;
+    memSink->max_pool_capacity = DEFAULT_PROP_MAX_POOL_CAPACITY;
+    memSink->wait_time = DEFAULT_PROP_WAIT_TIME;
     priv->started = FALSE;
     priv->caps = nullptr;
     priv->callbacks.eos = nullptr;
@@ -191,18 +191,18 @@ static void gst_mem_sink_set_property(GObject *object, guint propId, const GValu
             break;
         case PROP_MAX_POOL_CAPACITY: {
             GST_OBJECT_LOCK(memSink);
-            guint maxPoolCapacity = g_value_get_uint(value);
-            if (maxPoolCapacity != 0) {
-                memSink->maxPoolCapacity = maxPoolCapacity;
+            guint max_pool_capacity = g_value_get_uint(value);
+            if (max_pool_capacity != 0) {
+                memSink->max_pool_capacity = max_pool_capacity;
             }
-            GST_DEBUG_OBJECT(memSink, "set max pool capacity: %u", memSink->maxPoolCapacity);
+            GST_DEBUG_OBJECT(memSink, "set max pool capacity: %u", memSink->max_pool_capacity);
             GST_OBJECT_UNLOCK(memSink);
             break;
         }
         case PROP_WAIT_TIME: {
             GST_OBJECT_LOCK(memSink);
-            memSink->waitTime = g_value_get_uint(value);
-            GST_DEBUG_OBJECT(memSink, "set wait time: %d", memSink->waitTime);
+            memSink->wait_time = g_value_get_uint(value);
+            GST_DEBUG_OBJECT(memSink, "set wait time: %d", memSink->wait_time);
             GST_OBJECT_UNLOCK(memSink);
             break;
         }
@@ -231,13 +231,13 @@ static void gst_mem_sink_get_property(GObject *object, guint propId, GValue *val
         }
         case PROP_MAX_POOL_CAPACITY: {
             GST_OBJECT_LOCK(memSink);
-            g_value_set_uint(value, memSink->maxPoolCapacity);
+            g_value_set_uint(value, memSink->max_pool_capacity);
             GST_OBJECT_UNLOCK(memSink);
             break;
         }
         case PROP_WAIT_TIME: {
             GST_OBJECT_LOCK(memSink);
-            g_value_set_uint(value, memSink->waitTime);
+            g_value_set_uint(value, memSink->wait_time);
             GST_OBJECT_UNLOCK(memSink);
             break;
         }
@@ -247,30 +247,30 @@ static void gst_mem_sink_get_property(GObject *object, guint propId, GValue *val
     }
 }
 
-void gst_mem_sink_set_callback(GstMemSink *memSink, GstMemSinkCallbacks *callbacks,
+void gst_mem_sink_set_callback(GstMemSink *mem_sink, GstMemSinkCallbacks *callbacks,
                                gpointer userdata, GDestroyNotify notify)
 {
-    g_return_if_fail(GST_IS_MEM_SINK(memSink));
+    g_return_if_fail(GST_IS_MEM_SINK(mem_sink));
     g_return_if_fail(callbacks != nullptr);
-    GstMemSinkPrivate *priv = memSink->priv;
+    GstMemSinkPrivate *priv = mem_sink->priv;
     g_return_if_fail(priv != nullptr);
 
-    GST_OBJECT_LOCK(memSink);
+    GST_OBJECT_LOCK(mem_sink);
     GDestroyNotify old_notify = priv->notify;
     if (old_notify) {
         gpointer old_data = priv->userdata;
         priv->userdata = nullptr;
         priv->notify = nullptr;
 
-        GST_OBJECT_UNLOCK(memSink);
+        GST_OBJECT_UNLOCK(mem_sink);
         old_notify(old_data);
-        GST_OBJECT_LOCK(memSink);
+        GST_OBJECT_LOCK(mem_sink);
     }
 
     priv->callbacks = *callbacks;
     priv->userdata = userdata;
     priv->notify = notify;
-    GST_OBJECT_UNLOCK(memSink);
+    GST_OBJECT_UNLOCK(mem_sink);
 }
 
 static void gst_mem_sink_setcaps(GstMemSink *memSink, const GstCaps *caps)
@@ -505,27 +505,27 @@ static gboolean gst_mem_sink_propose_allocation(GstBaseSink *bsink, GstQuery *qu
     return FALSE;
 }
 
-GstFlowReturn gst_mem_sink_app_render(GstMemSink *memsink, GstBuffer *buffer)
+GstFlowReturn gst_mem_sink_app_render(GstMemSink *mem_sink, GstBuffer *buffer)
 {
-    g_return_val_if_fail(memsink != nullptr, GST_FLOW_ERROR);
-    GstMemSinkPrivate *priv = memsink->priv;
+    g_return_val_if_fail(mem_sink != nullptr, GST_FLOW_ERROR);
+    GstMemSinkPrivate *priv = mem_sink->priv;
     g_return_val_if_fail(priv != nullptr, GST_FLOW_ERROR);
-    GstMemSinkClass *memSinkClass = GST_MEM_SINK_GET_CLASS(memsink);
+    GstMemSinkClass *memSinkClass = GST_MEM_SINK_GET_CLASS(mem_sink);
     g_return_val_if_fail(memSinkClass != nullptr, GST_FLOW_ERROR);
 
     g_mutex_lock(&priv->mutex);
     if (!priv->started) {
-        GST_INFO_OBJECT(memsink, "we are not started");
+        GST_INFO_OBJECT(mem_sink, "we are not started");
         g_mutex_unlock(&priv->mutex);
         return GST_FLOW_FLUSHING;
     }
     g_mutex_unlock(&priv->mutex);
 
-    GST_INFO_OBJECT(memsink, "app render buffer 0x%06" PRIXPTR "", FAKE_POINTER(buffer));
+    GST_INFO_OBJECT(mem_sink, "app render buffer 0x%06" PRIXPTR "", FAKE_POINTER(buffer));
 
     GstFlowReturn ret = GST_FLOW_OK;
     if (memSinkClass->do_app_render != nullptr) {
-        ret = memSinkClass->do_app_render(memsink, buffer);
+        ret = memSinkClass->do_app_render(mem_sink, buffer);
     }
 
     return ret;
