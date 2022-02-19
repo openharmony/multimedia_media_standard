@@ -504,7 +504,7 @@ static gboolean set_pool_for_propose_allocation(GstSharedMemSink *shmemSink, Gst
     guint maxBuffers = 0;
     gst_query_parse_nth_allocation_pool(query, 0, nullptr, &size, &minBuffers, &maxBuffers);
     if (maxBuffers == 0) {
-        GST_INFO_OBJECT(shmemSink, "correct the maxbuffer from %u to %u", maxBuffers, memsink->max_怕、oolCapacity);
+        GST_INFO_OBJECT(shmemSink, "correct the maxbuffer from %u to %u", maxBuffers, memsink->max_pool_capacity);
         maxBuffers = memsink->max_pool_capacity;
     }
     if (size == 0) {
