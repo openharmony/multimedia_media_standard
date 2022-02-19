@@ -89,7 +89,7 @@ static void gst_surface_mem_sink_init(GstSurfaceMemSink *sink)
     sink->priv->surface = nullptr;
     sink->priv->pool = GST_SURFACE_POOL_CAST(gst_surface_pool_new());
     GstMemSink *memSink = GST_MEM_SINK_CAST(sink);
-    memSink->maxPoolCapacity = DEFAULT_SURFACE_MAX_POOL_CAPACITY;
+    memSink->max_pool_capacity = DEFAULT_SURFACE_MAX_POOL_CAPACITY;
 }
 
 static void gst_surface_mem_sink_dispose(GObject *obj)
@@ -219,15 +219,15 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     guint maxBuffers = 0;
     gst_query_parse_nth_allocation_pool(query, 0, nullptr, &size, &minBuffers, &maxBuffers);
     if (maxBuffers == 0) {
-        GST_INFO_OBJECT(surface_sink, "correct the maxbuffer from %u to %u", maxBuffers, memsink->maxPoolCapacity);
-        maxBuffers = memsink->maxPoolCapacity;
+        GST_INFO_OBJECT(surface_sink, "correct the maxbuffer from %u to %u", maxBuffers, memsink->max_pool_capacity);
+        maxBuffers = memsink->max_pool_capacity;
     }
     GST_DEBUG("maxBuffers is: %u", maxBuffers);
 
     GstSurfacePool *pool = surface_sink->priv->pool;
     g_return_val_if_fail(pool != nullptr, FALSE);
     g_return_val_if_fail(gst_buffer_pool_set_active(GST_BUFFER_POOL(pool), FALSE), FALSE);
-    (void)gst_surface_pool_set_surface(pool, surface_sink->priv->surface, memsink->waitTime);
+    (void)gst_surface_pool_set_surface(pool, surface_sink->priv->surface, memsink->wait_time);
 
     GstVideoInfo info;
     GST_DEBUG("begin gst_video_info_from_caps");

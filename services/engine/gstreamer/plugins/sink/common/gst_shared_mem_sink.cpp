@@ -399,7 +399,7 @@ static GstFlowReturn do_copy_buffer(GstSharedMemSink *shmemSink, GstBuffer *inBu
     GstSharedMemSinkPrivate *priv = shmemSink->priv;
     GstMemSink *memsink = GST_MEM_SINK_CAST(shmemSink);
 
-    gboolean ret = set_pool_for_allocator(shmemSink, 1, memsink->maxPoolCapacity, priv->memSize);
+    gboolean ret = set_pool_for_allocator(shmemSink, 1, memsink->max_pool_capacity, priv->memSize);
     g_return_val_if_fail(ret, GST_FLOW_ERROR);
 
     GstFlowReturn flowRet = do_allocate_buffer(shmemSink, outBuf);
@@ -504,8 +504,8 @@ static gboolean set_pool_for_propose_allocation(GstSharedMemSink *shmemSink, Gst
     guint maxBuffers = 0;
     gst_query_parse_nth_allocation_pool(query, 0, nullptr, &size, &minBuffers, &maxBuffers);
     if (maxBuffers == 0) {
-        GST_INFO_OBJECT(shmemSink, "correct the maxbuffer from %u to %u", maxBuffers, memsink->maxPoolCapacity);
-        maxBuffers = memsink->maxPoolCapacity;
+        GST_INFO_OBJECT(shmemSink, "correct the maxbuffer from %u to %u", maxBuffers, memsink->max_怕、oolCapacity);
+        maxBuffers = memsink->max_pool_capacity;
     }
     if (size == 0) {
         GST_INFO_OBJECT(shmemSink, "correct the size from %u to %u", size, priv->memSize);
@@ -553,7 +553,7 @@ static gboolean gst_shared_mem_sink_do_propose_allocation(GstMemSink *memsink, G
 
     // always set avshmempool for allocator, in case that the upstream only use the
     // gstallocator while the needpool is set.
-    gboolean ret = set_pool_for_allocator(shmem_sink, 1, memsink->maxPoolCapacity, priv->memSize);
+    gboolean ret = set_pool_for_allocator(shmem_sink, 1, memsink->max_pool_capacity, priv->memSize);
     if (!ret) {
         GST_ERROR_OBJECT(shmem_sink, "set pool for allocator failed");
         GST_OBJECT_UNLOCK(shmem_sink);
