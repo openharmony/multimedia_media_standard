@@ -62,6 +62,7 @@ private:
     int32_t GetTrackInfo();
     int32_t GetPlaybackSpeed() const;
     int32_t SetDataSrc(const std::string &path, bool seekable);
+    int32_t SetFdSource(const std::string &path);
     int32_t SelectSource(const std::string &path);
     int32_t SetSurfaceSize();
     int32_t SelectBufferingOut();
