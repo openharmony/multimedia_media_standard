@@ -503,6 +503,25 @@ int32_t PlayerDemo::SetDataSrc(const string &path, bool seekable)
     return player_->SetSource(dataSrc_);
 }
 
+int32_t PlayerDemo::SetFdSource(const string &path)
+{
+    int32_t fd = open(path.c_str(), O_RDONLY);
+    if (fd < 0) {
+        cout << "Open file failed" << endl;
+        return -1;
+    }
+    int32_t offset = 0;
+
+    struct stat64 buffer;
+    fstat64(fd, &buffer);
+    int64_t length = static_cast<int64_t>(buffer.st_size);
+    cout << "fd = " << fd << ", offset = " << offset << ", length = " << length << endl;
+
+    int32_t ret = player_->SetSource(fd, offset, length);
+    (void)close(fd);
+    return ret;
+}
+
 int32_t PlayerDemo::SelectSource(const string &pathOuter)
 {
     string path;
@@ -519,6 +538,7 @@ int32_t PlayerDemo::SelectSource(const string &pathOuter)
     cout << "0:local file source" << endl;
     cout << "1:stream file source with no seek" << endl;
     cout << "2:stream file source with seekable" << endl;
+    cout << "3:file descriptor source" << endl;
     string srcMode;
     (void)getline(cin, srcMode);
     if (srcMode == "" || srcMode == "0") {
@@ -530,6 +550,9 @@ int32_t PlayerDemo::SelectSource(const string &pathOuter)
     } else if (srcMode == "2") {
         cout << "source mode is stream seekable" << endl;
         ret = SetDataSrc(path, true);
+    } else if (srcMode == "3") {
+        cout << "source mode is FD" << endl;
+        ret = SetFdSource(path);
     } else {
         cout << "unknow mode" << endl;
     }

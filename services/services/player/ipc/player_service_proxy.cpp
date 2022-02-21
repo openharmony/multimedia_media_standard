@@ -80,6 +80,22 @@ int32_t PlayerServiceProxy::SetSource(const sptr<IRemoteObject> &object)
     return reply.ReadInt32();
 }
 
+int32_t PlayerServiceProxy::SetSource(int32_t fd, int64_t offset, int64_t size)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    (void)data.WriteFileDescriptor(fd);
+    (void)data.WriteInt64(offset);
+    (void)data.WriteInt64(size);
+    int error = Remote()->SendRequest(SET_FD_SOURCE, data, reply, option);
+    if (error != MSERR_OK) {
+        MEDIA_LOGE("Set fd Source failed, error: %{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
 int32_t PlayerServiceProxy::Play()
 {
     MessageParcel data;

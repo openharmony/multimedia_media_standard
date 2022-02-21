@@ -21,6 +21,7 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "media_data_source_callback.h"
+#include "common_napi.h"
 
 namespace OHOS {
 namespace Media {
@@ -105,6 +106,11 @@ private:
     static napi_value GetDataSrc(napi_env env, napi_callback_info info);
     static napi_value SetDataSrc(napi_env env, napi_callback_info info);
     /**
+     * fdSrc: AVFileDescriptor
+     */
+    static napi_value GetFdSrc(napi_env env, napi_callback_info info);
+    static napi_value SetFdSrc(napi_env env, napi_callback_info info);
+    /**
      * loop: boolenan
      */
     static napi_value SetLoop(napi_env env, napi_callback_info info);
@@ -159,6 +165,7 @@ private:
     std::shared_ptr<MediaDataSourceCallback> dataSrcCallBack_ = nullptr;
     std::string url_ = "";
     std::vector<Format> videoTrackInfoVec_;
+    AVFileDescriptor rawFd_;
 };
 } // namespace Media
 } // namespace OHOS

@@ -15,6 +15,8 @@
 
 #include "common_napi.h"
 #include <climits>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "avcodec_list.h"
 #include "media_log.h"
 #include "media_errors.h"
@@ -66,6 +68,28 @@ bool CommonNapi::GetPropertyInt32(napi_env env, napi_value configObj, const std:
     return true;
 }
 
+bool CommonNapi::GetPropertyInt64(napi_env env, napi_value configObj, const std::string &type, int64_t &result)
+{
+    napi_value item = nullptr;
+    bool exist = false;
+    napi_status status = napi_has_named_property(env, configObj, type.c_str(), &exist);
+    if (status != napi_ok || !exist) {
+        MEDIA_LOGE("can not find %{public}s property", type.c_str());
+        return false;
+    }
+
+    if (napi_get_named_property(env, configObj, type.c_str(), &item) != napi_ok) {
+        MEDIA_LOGE("get %{public}s property fail", type.c_str());
+        return false;
+    }
+
+    if (napi_get_value_int64(env, item, &result) != napi_ok) {
+        MEDIA_LOGE("get %{public}s property value fail", type.c_str());
+        return false;
+    }
+    return true;
+}
+
 bool CommonNapi::GetPropertyDouble(napi_env env, napi_value configObj, const std::string &type, double &result)
 {
     napi_value item = nullptr;
@@ -105,6 +129,36 @@ std::string CommonNapi::GetPropertyString(napi_env env, napi_value configObj, co
     }
 
     return GetStringArgument(env, item);
+}
+
+bool CommonNapi::GetFdArgument(napi_env env, napi_value value, AVFileDescriptor &rawFd)
+{
+    CHECK_AND_RETURN_RET(GetPropertyInt32(env, value, "fd", rawFd.fd) == true, false);
+
+    if (GetPropertyInt64(env, value, "offset", rawFd.offset) == false) {
+        rawFd.offset = 0; // use default value
+    }
+
+    if (rawFd.offset < 0) {
+        MEDIA_LOGE("get rawfd argument invalid, offset = %{public}" PRIi64, rawFd.offset);
+        return false;
+    }
+
+    struct stat64 buffer;
+    fstat64(rawFd.fd, &buffer);
+    int64_t fdSize = static_cast<int64_t>(buffer.st_size);
+
+    if (GetPropertyInt64(env, value, "length", rawFd.length) == false) {
+        rawFd.length = fdSize - rawFd.offset; // use default value
+    }
+
+    if ((rawFd.length < 0) || (rawFd.length > fdSize - rawFd.offset)) {
+        MEDIA_LOGE("get rawfd argument invalid, length = %{public}" PRIi64 ", offset = %{public}" PRIi64 ","
+            "fdSize = %{public}" PRIi64 "", rawFd.length, rawFd.offset, fdSize);
+        return false;
+    }
+
+    return true;
 }
 
 napi_status CommonNapi::FillErrorArgs(napi_env env, int32_t errCode, const napi_value &args)
@@ -282,6 +336,24 @@ bool CommonNapi::SetPropertyInt32(napi_env env, napi_value &obj, const std::stri
     return true;
 }
 
+bool CommonNapi::SetPropertyInt64(napi_env env, napi_value &obj, const std::string &key, int64_t value)
+{
+    CHECK_AND_RETURN_RET(obj != nullptr, false);
+
+    napi_value keyNapi = nullptr;
+    napi_status status = napi_create_string_utf8(env, key.c_str(), NAPI_AUTO_LENGTH, &keyNapi);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    napi_value valueNapi = nullptr;
+    status = napi_create_int64(env, value, &valueNapi);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    status = napi_set_property(env, obj, keyNapi, valueNapi);
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, false, "faile to set property");
+
+    return true;
+}
+
 bool CommonNapi::SetPropertyString(napi_env env, napi_value &obj, const std::string &key, const std::string &value)
 {
     CHECK_AND_RETURN_RET(obj != nullptr, false);
@@ -353,6 +425,42 @@ bool CommonNapi::CreateFormatBufferByRef(napi_env env, Format &format, napi_valu
                 break;
         }
     }
+
+    return true;
+}
+
+bool CommonNapi::AddNumberPropInt32(napi_env env, napi_value obj, const std::string &key, int32_t value)
+{
+    CHECK_AND_RETURN_RET(obj != nullptr, false);
+
+    napi_value keyNapi = nullptr;
+    napi_status status = napi_create_string_utf8(env, key.c_str(), NAPI_AUTO_LENGTH, &keyNapi);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    napi_value valueNapi = nullptr;
+    status = napi_create_int32(env, value, &valueNapi);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    status = napi_set_property(env, obj, keyNapi, valueNapi);
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, false, "Failed to set property");
+
+    return true;
+}
+
+bool CommonNapi::AddNumberPropInt64(napi_env env, napi_value obj, const std::string &key, int64_t value)
+{
+    CHECK_AND_RETURN_RET(obj != nullptr, false);
+
+    napi_value keyNapi = nullptr;
+    napi_status status = napi_create_string_utf8(env, key.c_str(), NAPI_AUTO_LENGTH, &keyNapi);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    napi_value valueNapi = nullptr;
+    status = napi_create_int64(env, value, &valueNapi);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    status = napi_set_property(env, obj, keyNapi, valueNapi);
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, false, "Failed to set property");
 
     return true;
 }

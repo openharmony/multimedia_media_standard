@@ -95,6 +95,13 @@ int32_t PlayerClient::SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc
     return playerProxy_->SetSource(object);
 }
 
+int32_t PlayerClient::SetSource(int32_t fd, int64_t offset, int64_t size)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
+    return playerProxy_->SetSource(fd, offset, size);
+}
+
 int32_t PlayerClient::Play()
 {
     std::lock_guard<std::mutex> lock(mutex_);
