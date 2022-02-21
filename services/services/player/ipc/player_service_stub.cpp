@@ -318,8 +318,8 @@ int32_t PlayerServiceStub::SetMediaDataSource(MessageParcel &data, MessageParcel
 int32_t PlayerServiceStub::SetFdSource(MessageParcel &data, MessageParcel &reply)
 {
     int32_t fd = data.ReadFileDescriptor();
-    int32_t offset = data.ReadInt64();
-    int32_t size = data.ReadInt64();
+    int64_t offset = data.ReadInt64();
+    int64_t size = data.ReadInt64();
     reply.WriteInt32(SetSource(fd, offset, size));
     (void)::close(fd);
     return MSERR_OK;
