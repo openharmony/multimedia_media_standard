@@ -26,11 +26,11 @@
 
 namespace OHOS {
 namespace Media {
-class GstPlayerVideoRendererCtrl {
+class GstPlayerVideoRendererCtrl : public NoCopyable {
 public:
     explicit GstPlayerVideoRendererCtrl(const sptr<Surface> &surface);
     ~GstPlayerVideoRendererCtrl();
-    DISALLOW_COPY_AND_MOVE(GstPlayerVideoRendererCtrl);
+
     int32_t InitVideoSink(const GstElement *playbin);
     int32_t InitAudioSink(const GstElement *playbin);
     const GstElement *GetVideoSink() const;

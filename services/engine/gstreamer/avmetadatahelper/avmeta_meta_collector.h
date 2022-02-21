@@ -27,12 +27,10 @@
 
 namespace OHOS {
 namespace Media {
-class AVMetaMetaCollector {
+class AVMetaMetaCollector : public NoCopyable {
 public:
     AVMetaMetaCollector();
     ~AVMetaMetaCollector();
-
-    DISALLOW_COPY_AND_MOVE(AVMetaMetaCollector);
 
     void Start();
     void AddMetaSource(GstElement &source);

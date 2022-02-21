@@ -21,11 +21,10 @@
 
 namespace OHOS {
 namespace Media {
-class MediaListenerStub : public IRemoteStub<IStandardMediaListener> {
+class MediaListenerStub : public IRemoteStub<IStandardMediaListener>, public NoCopyable {
 public:
     MediaListenerStub();
     virtual ~MediaListenerStub();
-    DISALLOW_COPY_AND_MOVE(MediaListenerStub);
 };
 }
 } // namespace OHOS

@@ -24,15 +24,13 @@
 
 namespace OHOS {
 namespace Media {
-class AVMetaSinkProvider : public PlayBinSinkProvider {
+class AVMetaSinkProvider : public PlayBinSinkProvider, public NoCopyable {
 public:
     explicit AVMetaSinkProvider(int32_t usage);
     ~AVMetaSinkProvider();
 
     SinkPtr CreateAudioSink() override;
     SinkPtr CreateVideoSink() override;
-
-    DISALLOW_COPY_AND_MOVE(AVMetaSinkProvider);
 
 private:
     int32_t usage_;

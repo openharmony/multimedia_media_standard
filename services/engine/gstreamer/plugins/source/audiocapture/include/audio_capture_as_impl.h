@@ -22,11 +22,11 @@
 
 namespace OHOS {
 namespace Media {
-class AudioCaptureAsImpl : public AudioCapture {
+class AudioCaptureAsImpl : public AudioCapture, public NoCopyable {
 public:
     AudioCaptureAsImpl();
     virtual ~AudioCaptureAsImpl();
-    DISALLOW_COPY_AND_MOVE(AudioCaptureAsImpl);
+
     int32_t SetCaptureParameter(uint32_t bitrate, uint32_t channels, uint32_t sampleRate) override;
     int32_t GetCaptureParameter(uint32_t &bitrate, uint32_t &channels, uint32_t &sampleRate) override;
     int32_t GetSegmentInfo(uint64_t &start) override;

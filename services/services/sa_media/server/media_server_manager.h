@@ -26,11 +26,10 @@
 
 namespace OHOS {
 namespace Media {
-class MediaServerManager {
+class MediaServerManager : public NoCopyable {
 public:
     static MediaServerManager &GetInstance();
     ~MediaServerManager();
-    DISALLOW_COPY_AND_MOVE(MediaServerManager);
 
     enum StubType {
         RECORDER = 0,

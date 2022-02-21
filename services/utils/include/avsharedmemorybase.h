@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace Media {
-class __attribute__((visibility("default"))) AVSharedMemoryBase : public AVSharedMemory {
+class __attribute__((visibility("default"))) AVSharedMemoryBase : public AVSharedMemory, public NoCopyable {
 public:
     // only used for local process
     AVSharedMemoryBase(int32_t size, uint32_t flags, const std::string &name);
@@ -39,8 +39,6 @@ public:
     uint8_t *GetBase() override;
     int32_t GetSize() override;
     uint32_t GetFlags() override;
-
-    DISALLOW_COPY_AND_MOVE(AVSharedMemoryBase);
 
 private:
     int32_t MapMemory(bool isRemote);

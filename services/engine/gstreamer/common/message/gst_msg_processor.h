@@ -28,7 +28,7 @@
 
 namespace OHOS {
 namespace Media {
-class GstMsgProcessor {
+class GstMsgProcessor : public NoCopyable {
 public:
     GstMsgProcessor(GstBus &gstBus, const InnerMsgNotifier &notifier,
         const std::shared_ptr<IGstMsgConverter> &converter = nullptr);
@@ -45,8 +45,6 @@ public:
     void FlushBegin();
     void FlushEnd();
     void Reset() noexcept;
-
-    DISALLOW_COPY_AND_MOVE(GstMsgProcessor);
 
 private:
     int32_t DoInit();

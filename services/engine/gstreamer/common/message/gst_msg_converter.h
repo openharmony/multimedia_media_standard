@@ -28,13 +28,10 @@ public:
     virtual int32_t ConvertToInnerMsg(GstMessage &gstMsg, InnerMessage &innerMsg) const = 0;
 };
 
-class GstMsgConverterDefault : public IGstMsgConverter {
+class GstMsgConverterDefault : public IGstMsgConverter, public NoCopyable {
 public:
     GstMsgConverterDefault() = default;
     ~GstMsgConverterDefault() = default;
-
-    DISALLOW_COPY_AND_MOVE(GstMsgConverterDefault);
-
     int32_t ConvertToInnerMsg(GstMessage &gstMsg, InnerMessage &innerMsg) const override;
 };
 }
