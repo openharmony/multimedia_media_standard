@@ -513,7 +513,10 @@ int32_t PlayerDemo::SetFdSource(const string &path)
     int32_t offset = 0;
 
     struct stat64 buffer;
-    fstat64(fd, &buffer);
+    if(fstat64(fd, &buffer) != 0) {
+        cout << "Get file state failed" << endl;
+        return -1;
+    }
     int64_t length = static_cast<int64_t>(buffer.st_size);
     cout << "fd = " << fd << ", offset = " << offset << ", length = " << length << endl;
 
