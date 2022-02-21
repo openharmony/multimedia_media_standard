@@ -33,6 +33,7 @@ struct _GstConsumerSurfacePoolPrivate {
     gboolean flushing;
     gboolean start;
     gboolean suspend;
+    gboolean is_first_buffer;
     guint32 repeat_interval;
     guint32 max_frame_rate;
     guint64 pre_timestamp;
@@ -199,6 +200,7 @@ static void gst_consumer_surface_pool_flush_stop(GstBufferPool *pool)
     auto priv = surfacepool->priv;
     g_mutex_lock(&priv->pool_lock);
     surfacepool->priv->flushing = FALSE;
+    surfacepool->priv->is_first_buffer = TRUE;
     g_mutex_unlock(&priv->pool_lock);
 }
 
@@ -289,7 +291,7 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
         priv->available_buf_count--;
 
         // check whether needs to dropp frame to ensure the maximum frame rate
-        if (surfacemem != nullptr && priv->max_frame_rate > 0 &&
+        if (surfacemem != nullptr && priv->max_frame_rate > 0 && !priv->is_first_buffer &&
             drop_this_frame(surfacepool, surfacemem->timestamp, priv->pre_timestamp, priv->max_frame_rate)) {
             (void)priv->consumer_surface->ReleaseBuffer(surfacemem->surface_buffer, surfacemem->fencefd);
             if (!priv->flushing && priv->start) {
@@ -313,6 +315,7 @@ static void gst_consumer_surface_pool_init(GstConsumerSurfacePool *pool)
     priv->flushing = FALSE;
     priv->start = FALSE;
     priv->suspend = FALSE;
+    priv->is_first_buffer = TRUE;
     priv->repeat_interval = 0;
     priv->max_frame_rate = 0;
     priv->pre_timestamp = 0;
@@ -383,7 +386,9 @@ static void cache_frame_if_necessary(GstConsumerSurfacePool *pool, GstConsumerSu
     g_return_if_fail(pool != nullptr && pool->priv != nullptr && mem != nullptr && buffer != nullptr);
     auto priv = pool->priv;
     priv->pre_timestamp = mem->timestamp;
-    if (priv->repeat_interval > 0) {
+    if (priv->is_first_buffer) {
+        priv->is_first_buffer = FALSE;
+    } else if (priv->repeat_interval > 0) {
         if (priv->cache_buffer != nullptr) {
             gst_buffer_unref(priv->cache_buffer);
         }
