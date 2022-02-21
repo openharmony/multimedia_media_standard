@@ -29,8 +29,7 @@ static void gst_vdec_h265_class_init(GstVdecH265Class *klass)
         "OpenHarmony");
     const gchar *sink_caps_string = "video/x-h265, "
         "alignment=(string) nal, "
-        "stream-format=(string){ byte-stream }, "
-        "width=(int) [1,MAX], " "height=(int) [1,MAX]";
+        "stream-format=(string){ byte-stream }";
     GstCaps *sink_caps = gst_caps_from_string(sink_caps_string);
 
     if (sink_caps != nullptr) {
