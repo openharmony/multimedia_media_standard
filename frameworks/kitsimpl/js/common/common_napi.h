@@ -217,7 +217,6 @@ struct MediaAsyncContext {
     napi_async_work work = nullptr;
     napi_deferred deferred = nullptr;
     napi_ref callbackRef = nullptr;
-    napi_ref thisRef = nullptr;
     std::unique_ptr<MediaJsResult> JsResult;
     bool errFlag = false;
     int32_t errCode = 0;
