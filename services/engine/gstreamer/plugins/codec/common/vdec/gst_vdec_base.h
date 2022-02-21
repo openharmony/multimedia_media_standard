@@ -18,6 +18,7 @@
 
 #include <gst/video/gstvideodecoder.h>
 #include <vector>
+#include <list>
 #include "gst_shmem_allocator.h"
 #include "gst_shmem_pool.h"
 #include "i_gst_codec.h"
@@ -58,6 +59,8 @@ struct _GstVdecBasePort {
     gint64 frame_cnt;
     gint64 first_frame_time;
     gint64 last_frame_time;
+    gboolean enable_dump;
+    FILE *dump_file;
 };
 
 struct _GstVdecBase {
@@ -88,6 +91,8 @@ struct _GstVdecBase {
     guint out_buffer_cnt;
     guint out_buffer_max_cnt;
     gboolean first_frame;
+    std::list<GstClockTime> pts_list;
+    GstClockTime last_pts;
 };
 
 struct _GstVdecBaseClass {
