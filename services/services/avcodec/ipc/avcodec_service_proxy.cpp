@@ -26,7 +26,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-class AVCodecServiceProxy::AVCodecBufferCache {
+class AVCodecServiceProxy::AVCodecBufferCache : public NoCopyable {
 public:
     AVCodecBufferCache() = default;
     ~AVCodecBufferCache() = default;
@@ -68,8 +68,6 @@ public:
     }
 
 private:
-    DISALLOW_COPY_AND_MOVE(AVCodecBufferCache);
-
     enum CacheFlag : uint8_t {
         HIT_CACHE = 1,
         UPDATE_CACHE,

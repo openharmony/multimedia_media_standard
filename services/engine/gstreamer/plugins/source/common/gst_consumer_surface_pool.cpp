@@ -48,11 +48,10 @@ enum {
 
 G_DEFINE_TYPE_WITH_PRIVATE(GstConsumerSurfacePool, gst_consumer_surface_pool, GST_TYPE_VIDEO_BUFFER_POOL);
 
-class ConsumerListenerProxy : public IBufferConsumerListener {
+class ConsumerListenerProxy : public IBufferConsumerListener, public NoCopyable {
 public:
     explicit ConsumerListenerProxy(GstConsumerSurfacePool &owner) : owner_(owner) {}
     ~ConsumerListenerProxy() = default;
-    DISALLOW_COPY_AND_MOVE(ConsumerListenerProxy);
     void OnBufferAvailable() override;
 private:
     GstConsumerSurfacePool &owner_;
