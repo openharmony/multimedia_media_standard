@@ -145,7 +145,10 @@ bool CommonNapi::GetFdArgument(napi_env env, napi_value value, AVFileDescriptor 
     }
 
     struct stat64 buffer;
-    fstat64(rawFd.fd, &buffer);
+    if (fstat64(rawFd.fd, &buffer) != 0) {
+        MEDIA_LOGE("can not get file state");
+        return false;
+    }
     int64_t fdSize = static_cast<int64_t>(buffer.st_size);
 
     if (GetPropertyInt64(env, value, "length", rawFd.length) == false) {
