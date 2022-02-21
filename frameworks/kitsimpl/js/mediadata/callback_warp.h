@@ -22,13 +22,13 @@
 
 namespace OHOS {
 namespace Media {
-class CallbackWarp {
+class CallbackWarp : public NoCopyable {
 public:
     static std::shared_ptr<CallbackWarp> Create(napi_env env, const size_t argsCount,
         const std::shared_ptr<JsCallback> &jsCb);
     CallbackWarp(napi_env env, const size_t argsCount, const std::shared_ptr<JsCallback> &jsCb);
     ~CallbackWarp();
-    DISALLOW_COPY_AND_MOVE(CallbackWarp);
+
     int32_t SetArg(uint32_t arg);
     int32_t SetArg(int64_t arg);
     int32_t SetArg(const std::shared_ptr<AVSharedMemory> &mem);

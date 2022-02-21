@@ -24,13 +24,12 @@
 
 namespace OHOS {
 namespace Media {
-class PlayerServiceStub : public IRemoteStub<IStandardPlayerService> {
+class PlayerServiceStub : public IRemoteStub<IStandardPlayerService>, public NoCopyable {
 public:
     static sptr<PlayerServiceStub> Create();
     virtual ~PlayerServiceStub();
-    DISALLOW_COPY_AND_MOVE(PlayerServiceStub);
-    int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
+    int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
     int32_t SetListenerObject(const sptr<IRemoteObject> &object) override;
     int32_t SetSource(const std::string &url) override;
     int32_t SetSource(const sptr<IRemoteObject> &object) override;

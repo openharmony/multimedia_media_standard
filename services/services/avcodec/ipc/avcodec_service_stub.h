@@ -25,13 +25,12 @@
 
 namespace OHOS {
 namespace Media {
-class AVCodecServiceStub : public IRemoteStub<IStandardAVCodecService> {
+class AVCodecServiceStub : public IRemoteStub<IStandardAVCodecService>, public NoCopyable {
 public:
     static sptr<AVCodecServiceStub> Create();
     virtual ~AVCodecServiceStub();
-    DISALLOW_COPY_AND_MOVE(AVCodecServiceStub);
-    int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
+    int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
     using AVCodecStubFunc = int32_t(AVCodecServiceStub::*)(MessageParcel &data, MessageParcel &reply);
     int32_t SetListenerObject(const sptr<IRemoteObject> &object) override;
     int32_t InitParameter(AVCodecType type, bool isMimeType, const std::string &name) override;

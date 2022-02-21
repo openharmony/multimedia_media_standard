@@ -22,11 +22,11 @@
 
 namespace OHOS {
 namespace Media {
-class MediaDataCallback : public IMediaDataSource {
+class MediaDataCallback : public IMediaDataSource, public NoCopyable {
 public:
     explicit MediaDataCallback(const sptr<IStandardMediaDataSource> &proxy);
     virtual ~MediaDataCallback();
-    DISALLOW_COPY_AND_MOVE(MediaDataCallback);
+
     int32_t ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
     int32_t ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
     int32_t GetSize(int64_t &size) override;
@@ -35,11 +35,11 @@ private:
     sptr<IStandardMediaDataSource> callbackProxy_ = nullptr;
 };
 
-class MediaDataSourceProxy : public IRemoteProxy<IStandardMediaDataSource> {
+class MediaDataSourceProxy : public IRemoteProxy<IStandardMediaDataSource>, public NoCopyable {
 public:
     explicit MediaDataSourceProxy(const sptr<IRemoteObject> &impl);
     virtual ~MediaDataSourceProxy();
-    DISALLOW_COPY_AND_MOVE(MediaDataSourceProxy);
+
     int32_t ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
     int32_t ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
     int32_t GetSize(int64_t &size) override;

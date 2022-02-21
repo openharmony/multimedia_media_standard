@@ -39,8 +39,6 @@ public:
     explicit PlayBinCtrlerBase(const PlayBinCreateParam &createParam);
     virtual ~PlayBinCtrlerBase();
 
-    DISALLOW_COPY_AND_MOVE(PlayBinCtrlerBase);
-
     int32_t Init();
     int32_t SetSource(const std::string &url)  override;
     int32_t Prepare() override;

@@ -23,11 +23,11 @@
 
 namespace OHOS {
 namespace Media {
-class CallbackWorks : public std::enable_shared_from_this<CallbackWorks> {
+class CallbackWorks : public std::enable_shared_from_this<CallbackWorks>, public NoCopyable {
 public:
     explicit CallbackWorks(napi_env env);
     ~CallbackWorks();
-    DISALLOW_COPY_AND_MOVE(CallbackWorks);
+
     int32_t Push(const std::shared_ptr<CallbackWarp> &callback);
     int32_t Remove(uv_work_t *work);
     void CancelAll();

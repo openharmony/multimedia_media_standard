@@ -20,11 +20,10 @@
 
 namespace OHOS {
 namespace Media {
-class AVMetadataHelperServiceProxy : public IRemoteProxy<IStandardAVMetadataHelperService> {
+class AVMetadataHelperServiceProxy : public IRemoteProxy<IStandardAVMetadataHelperService>, public NoCopyable {
 public:
     explicit AVMetadataHelperServiceProxy(const sptr<IRemoteObject> &impl);
     virtual ~AVMetadataHelperServiceProxy();
-    DISALLOW_COPY_AND_MOVE(AVMetadataHelperServiceProxy);
 
     int32_t SetSource(const std::string &uri, int32_t usage) override;
     std::string ResolveMetadata(int32_t key) override;

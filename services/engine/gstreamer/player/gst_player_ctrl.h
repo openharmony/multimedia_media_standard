@@ -28,11 +28,11 @@
 
 namespace OHOS {
 namespace Media {
-class GstPlayerCtrl {
+class GstPlayerCtrl : public NoCopyable {
 public:
     explicit GstPlayerCtrl(GstPlayer *gstPlayer);
     ~GstPlayerCtrl();
-    DISALLOW_COPY_AND_MOVE(GstPlayerCtrl);
+
     int32_t SetUrl(const std::string &url);
     int32_t SetSource(const std::shared_ptr<GstAppsrcWarp> &appsrcWarp);
     int32_t SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs);

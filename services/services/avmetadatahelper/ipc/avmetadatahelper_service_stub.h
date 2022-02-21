@@ -23,11 +23,10 @@
 
 namespace OHOS {
 namespace Media {
-class AVMetadataHelperServiceStub : public IRemoteStub<IStandardAVMetadataHelperService> {
+class AVMetadataHelperServiceStub : public IRemoteStub<IStandardAVMetadataHelperService>, public NoCopyable {
 public:
     static sptr<AVMetadataHelperServiceStub> Create();
     virtual ~AVMetadataHelperServiceStub();
-    DISALLOW_COPY_AND_MOVE(AVMetadataHelperServiceStub);
 
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
     int32_t SetSource(const std::string &uri, int32_t usage) override;

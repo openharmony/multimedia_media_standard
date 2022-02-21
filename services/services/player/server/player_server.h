@@ -23,12 +23,11 @@
 
 namespace OHOS {
 namespace Media {
-class PlayerServer : public IPlayerService, public IPlayerEngineObs {
+class PlayerServer : public IPlayerService, public IPlayerEngineObs, public NoCopyable {
 public:
     static std::shared_ptr<IPlayerService> Create();
     PlayerServer();
     virtual ~PlayerServer();
-    DISALLOW_COPY_AND_MOVE(PlayerServer);
 
     int32_t SetSource(const std::string &url) override;
     int32_t SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc) override;

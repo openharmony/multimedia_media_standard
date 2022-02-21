@@ -24,11 +24,10 @@
 
 namespace OHOS {
 namespace Media {
-class VideoCaptureSfImpl : public VideoCapture {
+class VideoCaptureSfImpl : public VideoCapture, public NoCopyable {
 public:
     VideoCaptureSfImpl();
     virtual ~VideoCaptureSfImpl();
-    DISALLOW_COPY_AND_MOVE(VideoCaptureSfImpl);
 
     int32_t Prepare() override;
     int32_t Start() override;
@@ -48,11 +47,10 @@ protected:
     virtual std::shared_ptr<EsAvcCodecBuffer> DoGetCodecBuffer() = 0;
     virtual std::shared_ptr<VideoFrameBuffer> DoGetFrameBuffer() = 0;
 
-    class ConsumerListenerProxy : public IBufferConsumerListener {
+    class ConsumerListenerProxy : public IBufferConsumerListener, public NoCopyable {
     public:
         explicit ConsumerListenerProxy(VideoCaptureSfImpl &owner) : owner_(owner) {}
         ~ConsumerListenerProxy() = default;
-        DISALLOW_COPY_AND_MOVE(ConsumerListenerProxy);
         void OnBufferAvailable() override;
     private:
         VideoCaptureSfImpl &owner_;

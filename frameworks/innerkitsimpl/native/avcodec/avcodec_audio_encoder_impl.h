@@ -21,11 +21,10 @@
 
 namespace OHOS {
 namespace Media {
-class AudioEncoderImpl : public AudioEncoder {
+class AudioEncoderImpl : public AudioEncoder, public NoCopyable {
 public:
     AudioEncoderImpl();
     ~AudioEncoderImpl();
-    DISALLOW_COPY_AND_MOVE(AudioEncoderImpl);
 
     int32_t Configure(const Format &format) override;
     int32_t Prepare() override;

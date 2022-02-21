@@ -42,12 +42,12 @@ struct AppsrcBufferWarp {
     int32_t size = 0;
 };
 
-class GstAppsrcWarp {
+class GstAppsrcWarp : public NoCopyable {
 public:
     static std::shared_ptr<GstAppsrcWarp> Create(const std::shared_ptr<IMediaDataSource> &dataSrc);
     GstAppsrcWarp(const std::shared_ptr<IMediaDataSource> &dataSrc, const int64_t size);
     ~GstAppsrcWarp();
-    DISALLOW_COPY_AND_MOVE(GstAppsrcWarp);
+
     int32_t SetAppsrc(GstElement *appSrc);
     int32_t SetErrorCallback(const std::weak_ptr<IPlayerEngineObs> &obs);
     bool IsLiveMode() const;

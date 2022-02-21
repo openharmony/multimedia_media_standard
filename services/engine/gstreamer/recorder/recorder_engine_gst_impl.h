@@ -29,7 +29,7 @@
 
 namespace OHOS {
 namespace Media {
-class RecorderEngineGstImpl : public IRecorderEngine {
+class RecorderEngineGstImpl : public IRecorderEngine, public NoCopyable {
 public:
     RecorderEngineGstImpl();
     ~RecorderEngineGstImpl();
@@ -48,8 +48,6 @@ public:
     int32_t Reset() override;
     int32_t SetParameter(int32_t sourceId, const RecorderParam &recParam) override;
     sptr<Surface> GetSurface(int32_t sourceId) override;
-
-    DISALLOW_COPY_AND_MOVE(RecorderEngineGstImpl);
 
 private:
     int32_t BuildPipeline();
