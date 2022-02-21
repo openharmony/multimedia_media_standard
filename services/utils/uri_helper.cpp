@@ -16,6 +16,7 @@
 #include "uri_helper.h"
 #include <cstring>
 #include <climits>
+#include <sstream>
 #include "media_errors.h"
 #include "media_log.h"
 
@@ -134,9 +135,39 @@ bool UriHelper::AccessCheck(uint8_t flag) const
             return false;
         }
         return true;
+    } else if (type_ == URI_TYPE_FD) {
+        std::string rawUri = formattedUri_;
+        int fd = GetFdFromUri(rawUri);
+        CHECK_AND_RETURN_RET_LOG(fd > 0, false, "Fail to get file descriptor from uri");
+
+        int flags = fcntl(fd, F_GETFL);
+        CHECK_AND_RETURN_RET_LOG(flags != -1, false, "Fail to get File Status Flags");
+
+        return true;
     }
 
     return false; // Not implemented
+}
+
+std::string UriHelper::FormatFdToUri(int32_t fd, int64_t offset, int64_t size)
+{
+    std::stringstream fmt;
+    fmt << "fd://" << fd << "?offset=" << offset << "&size=" << size;
+    std::string uri = fmt.str();
+    return uri;
+}
+
+int UriHelper::GetFdFromUri(std::string rawUri) const
+{
+    size_t endPos = rawUri.find("?"); // find the position of separator '?'
+    CHECK_AND_RETURN_RET_LOG(endPos != std::string::npos, -1, "Can not find separator '?'");
+
+    size_t startPos = rawUri.find_last_of("/");
+    CHECK_AND_RETURN_RET_LOG(startPos != std::string::npos, -1, "Can not find start tag '/'");
+
+    size_t len = endPos - startPos - 1;
+    std::string fd = rawUri.substr(startPos + 1, len);
+    return std::stoi(fd);
 }
 }
 }

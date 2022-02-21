@@ -14,6 +14,7 @@
  */
 
 #include "player_service_stub.h"
+#include <unistd.h>
 #include "player_listener_proxy.h"
 #include "media_data_source_proxy.h"
 #include "media_server_manager.h"
@@ -55,6 +56,7 @@ int32_t PlayerServiceStub::Init()
     playerFuncs_[SET_LISTENER_OBJ] = &PlayerServiceStub::SetListenerObject;
     playerFuncs_[SET_SOURCE] = &PlayerServiceStub::SetSource;
     playerFuncs_[SET_MEDIA_DATA_SRC_OBJ] = &PlayerServiceStub::SetMediaDataSource;
+    playerFuncs_[SET_FD_SOURCE] = &PlayerServiceStub::SetFdSource;
     playerFuncs_[PLAY] = &PlayerServiceStub::Play;
     playerFuncs_[PREPARE] = &PlayerServiceStub::Prepare;
     playerFuncs_[PREPAREASYNC] = &PlayerServiceStub::PrepareAsync;
@@ -144,6 +146,12 @@ int32_t PlayerServiceStub::SetSource(const sptr<IRemoteObject> &object)
     CHECK_AND_RETURN_RET_LOG(mediaDataSrc != nullptr, MSERR_NO_MEMORY, "failed to new PlayerListenerCallback");
 
     return playerServer_->SetSource(mediaDataSrc);
+}
+
+int32_t PlayerServiceStub::SetSource(int32_t fd, int64_t offset, int64_t size)
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->SetSource(fd, offset, size);
 }
 
 int32_t PlayerServiceStub::Play()
@@ -304,6 +312,16 @@ int32_t PlayerServiceStub::SetMediaDataSource(MessageParcel &data, MessageParcel
 {
     sptr<IRemoteObject> object = data.ReadRemoteObject();
     reply.WriteInt32(SetSource(object));
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::SetFdSource(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t fd = data.ReadFileDescriptor();
+    int64_t offset = data.ReadInt64();
+    int64_t size = data.ReadInt64();
+    reply.WriteInt32(SetSource(fd, offset, size));
+    (void)::close(fd);
     return MSERR_OK;
 }
 

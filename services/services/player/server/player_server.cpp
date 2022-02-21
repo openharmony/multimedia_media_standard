@@ -14,9 +14,11 @@
  */
 
 #include "player_server.h"
+#include <unistd.h>
 #include "media_log.h"
 #include "media_errors.h"
 #include "engine_factory_repo.h"
+#include "uri_helper.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayerServer"};
@@ -75,6 +77,21 @@ int32_t PlayerServer::SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc
         looping_ = false;
         speedMode_ = SPEED_FORWARD_1_00_X;
     }
+    return ret;
+}
+
+int32_t PlayerServer::SetSource(int32_t fd, int64_t offset, int64_t size)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    ResetFdSource();
+    fd_ = dup(fd);
+    if (fd_ < 0) {
+        return MSERR_UNKNOWN;
+    }
+
+    std::string url = UriHelper::FormatFdToUri(fd_, offset, size);
+    int32_t ret = InitPlayEngine(url);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetSource Failed!");
     return ret;
 }
 
@@ -265,6 +282,7 @@ int32_t PlayerServer::OnReset()
     playerEngine_ = nullptr;
     dataSrc_ = nullptr;
     looping_ = false;
+    ResetFdSource();
     Format format;
     OnInfo(INFO_TYPE_STATE_CHANGE, PLAYER_IDLE, format);
     stopTimeMonitor_.FinishTime();
@@ -280,6 +298,14 @@ int32_t PlayerServer::Release()
     }
     (void)OnReset();
     return MSERR_OK;
+}
+
+void PlayerServer::ResetFdSource()
+{
+    if (fd_ >= 0) {
+        close(fd_);
+        fd_ = -1;
+    }
 }
 
 int32_t PlayerServer::SetVolume(float leftVolume, float rightVolume)

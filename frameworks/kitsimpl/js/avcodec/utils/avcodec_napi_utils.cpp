@@ -61,11 +61,12 @@ napi_value AVCodecNapiUtil::CreateInputCodecBuffer(napi_env env, uint32_t index,
     napi_status status = napi_create_object(env, &buffer);
     CHECK_AND_RETURN_RET(status == napi_ok, nullptr);
 
-    CHECK_AND_RETURN_RET(AddNumberProp(env, buffer, "timeMs", 0) == true, nullptr);
-    CHECK_AND_RETURN_RET(AddNumberProp(env, buffer, "index", static_cast<int32_t>(index)) == true, nullptr);
-    CHECK_AND_RETURN_RET(AddNumberProp(env, buffer, "offset", 0) == true, nullptr);
-    CHECK_AND_RETURN_RET(AddNumberProp(env, buffer, "length", mem->GetSize()) == true, nullptr);
-    CHECK_AND_RETURN_RET(AddNumberProp(env, buffer, "flags", 0) == true, nullptr);
+    CHECK_AND_RETURN_RET(CommonNapi::AddNumberPropInt32(env, buffer, "timeMs", 0) == true, nullptr);
+    CHECK_AND_RETURN_RET(CommonNapi::AddNumberPropInt32(env, buffer, "index",
+        static_cast<int32_t>(index)) == true, nullptr);
+    CHECK_AND_RETURN_RET(CommonNapi::AddNumberPropInt32(env, buffer, "offset", 0) == true, nullptr);
+    CHECK_AND_RETURN_RET(CommonNapi::AddNumberPropInt32(env, buffer, "length", mem->GetSize()) == true, nullptr);
+    CHECK_AND_RETURN_RET(CommonNapi::AddNumberPropInt32(env, buffer, "flags", 0) == true, nullptr);
 
     napi_value dataStr = nullptr;
     status = napi_create_string_utf8(env, "data", NAPI_AUTO_LENGTH, &dataStr);
@@ -95,11 +96,14 @@ napi_value AVCodecNapiUtil::CreateOutputCodecBuffer(napi_env env, uint32_t index
     CHECK_AND_RETURN_RET(status == napi_ok, nullptr);
 
     const int32_t msToUs = 1000;
-    CHECK_AND_RETURN_RET(AddNumberProp(env, buffer, "timeMs", info.presentationTimeUs / msToUs) == true, nullptr);
-    CHECK_AND_RETURN_RET(AddNumberProp(env, buffer, "index", static_cast<int32_t>(index)) == true, nullptr);
-    CHECK_AND_RETURN_RET(AddNumberProp(env, buffer, "offset", 0) == true, nullptr);
-    CHECK_AND_RETURN_RET(AddNumberProp(env, buffer, "length", info.size) == true, nullptr);
-    CHECK_AND_RETURN_RET(AddNumberProp(env, buffer, "flags", static_cast<int32_t>(flag)) == true, nullptr);
+    CHECK_AND_RETURN_RET(CommonNapi::AddNumberPropInt32(env, buffer, "timeMs",
+        info.presentationTimeUs / msToUs) == true, nullptr);
+    CHECK_AND_RETURN_RET(CommonNapi::AddNumberPropInt32(env, buffer, "index",
+        static_cast<int32_t>(index)) == true, nullptr);
+    CHECK_AND_RETURN_RET(CommonNapi::AddNumberPropInt32(env, buffer, "offset", 0) == true, nullptr);
+    CHECK_AND_RETURN_RET(CommonNapi::AddNumberPropInt32(env, buffer, "length", info.size) == true, nullptr);
+    CHECK_AND_RETURN_RET(CommonNapi::AddNumberPropInt32(env, buffer, "flags", static_cast<int32_t>(flag)) == true,
+        nullptr);
 
     if (memory != nullptr) {
         napi_value dataStr = nullptr;
@@ -125,34 +129,16 @@ napi_value AVCodecNapiUtil::CreateEmptyEOSBuffer(napi_env env)
     napi_status status = napi_create_object(env, &buffer);
     CHECK_AND_RETURN_RET(status == napi_ok, nullptr);
 
-    (void)AddNumberProp(env, buffer, "timeMs", -1);
-    (void)AddNumberProp(env, buffer, "index", -1);
-    (void)AddNumberProp(env, buffer, "offset", 0);
-    (void)AddNumberProp(env, buffer, "length", 0);
-    if (AddNumberProp(env, buffer, "flags", static_cast<int32_t>(AVCODEC_BUFFER_FLAG_EOS)) != true) {
+    (void)CommonNapi::AddNumberPropInt32(env, buffer, "timeMs", -1);
+    (void)CommonNapi::AddNumberPropInt32(env, buffer, "index", -1);
+    (void)CommonNapi::AddNumberPropInt32(env, buffer, "offset", 0);
+    (void)CommonNapi::AddNumberPropInt32(env, buffer, "length", 0);
+    if (CommonNapi::AddNumberPropInt32(env, buffer, "flags", static_cast<int32_t>(AVCODEC_BUFFER_FLAG_EOS)) != true) {
         MEDIA_LOGE("Failed to add eos flag for empty buffer");
         return nullptr;
     }
 
     return buffer;
-}
-
-bool AVCodecNapiUtil::AddNumberProp(napi_env env, napi_value obj, const std::string &key, int32_t value)
-{
-    CHECK_AND_RETURN_RET(obj != nullptr, false);
-
-    napi_value keyNapi = nullptr;
-    napi_status status = napi_create_string_utf8(env, key.c_str(), NAPI_AUTO_LENGTH, &keyNapi);
-    CHECK_AND_RETURN_RET(status == napi_ok, false);
-
-    napi_value valueNapi = nullptr;
-    status = napi_create_int32(env, value, &valueNapi);
-    CHECK_AND_RETURN_RET(status == napi_ok, false);
-
-    status = napi_set_property(env, obj, keyNapi, valueNapi);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, false, "Failed to set property");
-
-    return true;
 }
 
 bool AVCodecNapiUtil::ExtractCodecBuffer(napi_env env, napi_value buffer, int32_t &index,
