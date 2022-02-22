@@ -24,7 +24,8 @@ enum GstCodecRet : int32_t {
     GST_CODEC_OK,
     GST_CODEC_FORMAT_CHANGE,
     GST_CODEC_EOS,
-    GST_CODEC_FLUSH
+    GST_CODEC_FLUSH,
+    GST_CODEC_NO_BUFFER
 };
 
 enum GstCodecDirect : int32_t {
