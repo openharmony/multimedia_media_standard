@@ -52,7 +52,7 @@ private:
     int32_t CopyDefault(sptr<SurfaceBuffer> surfaceBuffer, const GstBuffer &buffer);
     int32_t CopyRgba(sptr<SurfaceBuffer> surfaceBuffer, const GstBuffer &buffer,
         const GstMapInfo &map, int32_t stride);
-
+    void KpiFpsLog();
     sptr<Surface> producerSurface_ = nullptr;
     GstElement *videoSink_ = nullptr;
     GstElement *audioSink_ = nullptr;
