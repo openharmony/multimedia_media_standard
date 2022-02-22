@@ -34,6 +34,7 @@ config("gst_surface_video_src_config") {
   ]
 
   include_dirs = [
+    "//drivers/peripheral/display/interfaces/include",
     "//utils/native/base/include",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
