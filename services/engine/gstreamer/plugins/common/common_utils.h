@@ -25,6 +25,7 @@ struct VideoFrameBuffer {
     uint64_t timeStamp;
     uint64_t duration;
     uint64_t size;
+    uint32_t pixelFormat;
     GstBuffer *gstBuffer;
 };
 
