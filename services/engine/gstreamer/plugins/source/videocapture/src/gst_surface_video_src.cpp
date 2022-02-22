@@ -18,6 +18,7 @@
 #include <gst/gst.h>
 #include "media_errors.h"
 #include "video_capture_factory.h"
+#include "display_type.h"
 
 static GstStaticPadTemplate gst_video_src_template =
 GST_STATIC_PAD_TEMPLATE("src",
@@ -135,6 +136,7 @@ static void gst_surface_video_src_init(GstSurfaceVideoSrc *src)
     src->need_codec_data = TRUE;
     src->is_eos = FALSE;
     src->is_flushing = FALSE;
+    src->reset_caps = TRUE;
 }
 
 static void gst_surface_video_src_finalize(GObject *object)
@@ -376,6 +378,45 @@ static gboolean gst_surface_video_src_negotiate(GstBaseSrc *basesrc)
     return gst_base_src_set_caps(basesrc, src->src_caps);
 }
 
+static gboolean reset_src_caps(GstSurfaceVideoSrc *src, uint32_t pixelFormat)
+{
+    g_return_val_if_fail(src != nullptr, FALSE);
+
+    if (src->src_caps != nullptr) {
+        gst_caps_unref(src->src_caps);
+    }
+
+    std::string format = "NV21";
+
+    switch (pixelFormat) {
+        case PIXEL_FMT_YCRCB_420_SP:
+            GST_INFO("input pixel foramt is nv21");
+            format = "NV21";
+            break;
+        case PIXEL_FMT_YCBCR_420_P:
+            GST_INFO("input pixel foramt is I420");
+            format = "I420";
+            return TRUE;
+        case PIXEL_FMT_YCBCR_420_SP:
+            GST_INFO("input pixel foramt is nv12");
+            format = "NV12";
+            break;
+        default:
+            break;
+    }
+
+    src->src_caps = gst_caps_new_simple("video/x-raw",
+        "format", G_TYPE_STRING, format.c_str(),
+        "framerate", GST_TYPE_FRACTION, src->video_frame_rate, 1,
+        "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1,
+        "width", G_TYPE_INT, src->video_width,
+        "height", G_TYPE_INT, src->video_height,
+        nullptr);
+
+    gst_base_src_set_caps(GST_BASE_SRC(src), src->src_caps);
+    return TRUE;
+}
+
 static GstFlowReturn gst_surface_video_src_create(GstPushSrc *psrc, GstBuffer **outbuf)
 {
     g_return_val_if_fail(psrc != nullptr, GST_FLOW_ERROR);
@@ -400,6 +441,11 @@ static GstFlowReturn gst_surface_video_src_create(GstPushSrc *psrc, GstBuffer **
         return GST_FLOW_FLUSHING;
     }
     g_return_val_if_fail(frame_buffer != nullptr, GST_FLOW_ERROR);
+
+    if (src->reset_caps && !src->need_codec_data) {
+        (void)reset_src_caps(src, frame_buffer->pixelFormat);
+        src->reset_caps = FALSE;
+    }
 
     gst_base_src_set_blocksize(GST_BASE_SRC_CAST(src), static_cast<guint>(frame_buffer->size));
 
