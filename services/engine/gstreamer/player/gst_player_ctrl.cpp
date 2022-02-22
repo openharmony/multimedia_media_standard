@@ -987,6 +987,7 @@ void GstPlayerCtrl::OnStateChanged(PlayerStates state)
     if (state == PLAYER_PREPARED) {
         InitDuration();
         GetAudioSink();
+        MEDIA_LOGW("KPI-TRACE: prepared");
     }
 
     currentState_ = state;

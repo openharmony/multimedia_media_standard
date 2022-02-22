@@ -207,6 +207,7 @@ GstPlayerVideoRendererCtrl::GstPlayerVideoRendererCtrl(const sptr<Surface> &surf
     SetSurfaceTimeFromSysPara();
     SetDumpFrameFromSysPara();
     SetDumpFrameInternalFromSysPara();
+    SetKpiLogFromSysPara();
 }
 
 GstPlayerVideoRendererCtrl::~GstPlayerVideoRendererCtrl()
@@ -249,6 +250,10 @@ int32_t GstPlayerVideoRendererCtrl::InitVideoSink(const GstElement *playbin)
 
         videoSink_ = GstPlayerVideoRendererCap::CreateVideoSink(videoCaps_, reinterpret_cast<gpointer>(this));
         CHECK_AND_RETURN_RET_LOG(videoSink_ != nullptr, MSERR_INVALID_OPERATION, "CreateVideoSink failed..");
+        if (audioSink_) {
+            g_object_set(GST_BASE_SINK_CAST(videoSink_), "audio-sink", audioSink_,
+                "enable-kpi-log", static_cast<gboolean>(kpiLogEnable_), nullptr);
+        }
 
         gulong signalId = g_signal_connect(G_OBJECT(videoSink_), "new_sample",
             G_CALLBACK(GstPlayerVideoRendererCap::VideoDataAvailableCb), reinterpret_cast<gpointer>(this));
@@ -313,15 +318,6 @@ int32_t GstPlayerVideoRendererCtrl::PullVideoBuffer()
 {
     CHECK_AND_RETURN_RET_LOG(videoSink_ != nullptr, MSERR_INVALID_OPERATION, "videoSink_ is nullptr..");
 
-    if (firstRenderFrame_) {
-        std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
-        if (tempObs != nullptr) {
-            Format format;
-            tempObs->OnInfo(INFO_TYPE_MESSAGE, PlayerMessageType::PLAYER_INFO_VIDEO_RENDERING_START, format);
-            firstRenderFrame_ = false;
-        }
-    }
-
     GstSample *sample = nullptr;
     g_signal_emit_by_name(G_OBJECT(videoSink_), "pull-sample", &sample);
     CHECK_AND_RETURN_RET_LOG(sample != nullptr, MSERR_INVALID_OPERATION, "sample is nullptr..");
@@ -336,6 +332,20 @@ int32_t GstPlayerVideoRendererCtrl::PullVideoBuffer()
     int32_t ret = UpdateSurfaceBuffer(*buf);
     if (ret != MSERR_OK) {
         MEDIA_LOGE("Failed to update surface buffer and please provide the sptr<Surface>!");
+        gst_sample_unref(sample);
+        return ret;
+    }
+
+    flushBufferNums_++;
+    KpiFpsLog();
+    if (firstRenderFrame_) {
+        std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
+        if (tempObs != nullptr) {
+            Format format;
+            tempObs->OnInfo(INFO_TYPE_MESSAGE, PlayerMessageType::PLAYER_INFO_VIDEO_RENDERING_START, format);
+            firstRenderFrame_ = false;
+            MEDIA_LOGW("KPI-TRACE: FIRST-VIDEO-FRAME rendered");
+        }
     }
 
     gst_sample_unref(sample);
@@ -345,6 +355,11 @@ int32_t GstPlayerVideoRendererCtrl::PullVideoBuffer()
 int32_t GstPlayerVideoRendererCtrl::PrerollVideoBuffer()
 {
     CHECK_AND_RETURN_RET_LOG(videoSink_ != nullptr, MSERR_INVALID_OPERATION, "videoSink_ is nullptr..");
+
+    if (firstRenderFrame_) {
+        MEDIA_LOGI("first frame, do not render it when preroll");
+        return MSERR_OK;
+    }
 
     GstSample *sample = nullptr;
     g_signal_emit_by_name(G_OBJECT(videoSink_), "pull-preroll", &sample);
@@ -397,6 +412,24 @@ void GstPlayerVideoRendererCtrl::SetDumpFrameFromSysPara()
         dumpFrameEnable_ = true;
     } else if (dumpFrameEnable == "false") {
         dumpFrameEnable_ = false;
+    }
+}
+
+void GstPlayerVideoRendererCtrl::SetKpiLogFromSysPara()
+{
+    std::string kpiLogEnable;
+    int32_t res = OHOS::system::GetStringParameter("sys.media.kpi.log.enable", kpiLogEnable, "");
+    if (res != 0 || kpiLogEnable.empty()) {
+        kpiLogEnable_ = false;
+        MEDIA_LOGD("sys.media.kpi.log.enable=false");
+        return;
+    }
+    MEDIA_LOGD("sys.media.kpi.log.enable=%{public}s", kpiLogEnable.c_str());
+
+    if (kpiLogEnable == "true") {
+        kpiLogEnable_ = true;
+    } else if (kpiLogEnable == "false") {
+        kpiLogEnable_ = false;
     }
 }
 
@@ -574,6 +607,25 @@ void GstPlayerVideoRendererCtrl::CopyToSurfaceBuffer(sptr<SurfaceBuffer> surface
 
         needFlush = true;
         gst_buffer_unmap(buf, &map);
+    }
+}
+
+void GstPlayerVideoRendererCtrl::KpiFpsLog()
+{
+    uint64_t curTime = g_get_monotonic_time();
+    if (flushBufferNums_ == 1) {
+        lastFlushBufferNums_ = flushBufferNums_;
+        lastFlushBufferTime_ = curTime;
+        return;
+    }
+    uint64_t diff = curTime > lastFlushBufferTime_ ? curTime - lastFlushBufferTime_ : 0;
+    if (diff >= GST_MSECOND) {
+        double timeSec = static_cast<double>(diff) / GST_MSECOND;
+        double fps = (flushBufferNums_ - lastFlushBufferNums_) / timeSec;
+        MEDIA_LOGW("KPI-TRACE: fps=%{public}f, timeSec=%{public}f, render nums=%{public}" PRIu64 "",
+            fps, timeSec, flushBufferNums_);
+        lastFlushBufferNums_ = flushBufferNums_;
+        lastFlushBufferTime_ = curTime;
     }
 }
 
