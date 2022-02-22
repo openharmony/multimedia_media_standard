@@ -559,14 +559,12 @@ std::string AVCodecInfo::GetMimeType()
 
 bool AVCodecInfo::IsHardwareAccelerated()
 {
-    // get from hdi plugin
-    return false;
+    return data_.isVendor;
 }
 
 bool AVCodecInfo::IsSoftwareOnly()
 {
-    // get from hdi plugin
-    return true;
+    return !data_.isVendor;
 }
 
 bool AVCodecInfo::IsVendor()
