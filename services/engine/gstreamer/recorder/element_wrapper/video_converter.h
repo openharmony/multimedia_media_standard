@@ -13,32 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef VIDEO_ENCODER_H
-#define VIDEO_ENCODER_H
+#ifndef VIDEO_CONVERTER_H
+#define VIDEO_CONVERTER_H
 
 #include "recorder_element.h"
 
 namespace OHOS {
 namespace Media {
-class VideoEncoder : public RecorderElement {
+class VideoConverter : public RecorderElement {
 public:
     using RecorderElement::RecorderElement;
-    ~VideoEncoder() = default;
+    ~VideoConverter() = default;
 
     int32_t Init() override;
-    int32_t Configure(const RecorderParam &recParam) override;
-    int32_t CheckConfigReady() override;
-    void Dump() override;
-protected:
-    RecorderMsgProcResult DoProcessMessage(GstMessage &rawMsg, RecorderMessage &prettyMsg) override;
-
-private:
-    std::string GetEncorderName(std::string mimeType);
-    int32_t CreateMpegElement();
-    int32_t CreateH264Element();
-    int32_t encoderFormat_;
-    int32_t bitRate_;
 };
 }
 }
+
 #endif
