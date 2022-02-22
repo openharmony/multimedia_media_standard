@@ -58,6 +58,7 @@ int32_t PlayerServer::Init()
 int32_t PlayerServer::SetSource(const std::string &url)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MEDIA_LOGW("KPI-TRACE: PlayerServer SetSource in(url)");
     int32_t ret = InitPlayEngine(url);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetSource Failed!");
     return ret;
@@ -67,6 +68,7 @@ int32_t PlayerServer::SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc
 {
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(dataSrc != nullptr, MSERR_INVALID_VAL, "data source is nullptr");
+    MEDIA_LOGW("KPI-TRACE: PlayerServer SetSource in(dataSrc)");
     dataSrc_ = dataSrc;
     std::string url = "MediaDataSource";
     int32_t ret = InitPlayEngine(url);
@@ -83,6 +85,7 @@ int32_t PlayerServer::SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc
 int32_t PlayerServer::SetSource(int32_t fd, int64_t offset, int64_t size)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MEDIA_LOGW("KPI-TRACE: PlayerServer SetSource in(fd)");
     ResetFdSource();
     fd_ = dup(fd);
     if (fd_ < 0) {
@@ -127,6 +130,7 @@ int32_t PlayerServer::InitPlayEngine(const std::string &url)
 
 int32_t PlayerServer::Prepare()
 {
+    MEDIA_LOGW("KPI-TRACE: PlayerServer Prepare in");
     return OnPrepare(false);
 }
 
@@ -170,7 +174,7 @@ int32_t PlayerServer::Play()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
-
+    MEDIA_LOGW("KPI-TRACE: PlayerServer Play in");
     if (status_ != PLAYER_PREPARED && status_ != PLAYER_PLAYBACK_COMPLETE &&
         status_ != PLAYER_PAUSED && status_ != PLAYER_STARTED) {
         MEDIA_LOGE("Can not Play, currentState is %{public}d", status_);
@@ -202,6 +206,7 @@ int32_t PlayerServer::Play()
 
 int32_t PlayerServer::PrepareAsync()
 {
+    MEDIA_LOGW("KPI-TRACE: PlayerServer PrepareAsync in");
     return OnPrepare(true);
 }
 
@@ -236,7 +241,7 @@ int32_t PlayerServer::Stop()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
-
+    MEDIA_LOGW("KPI-TRACE: PlayerServer Stop in");
     if (status_ == PLAYER_STATE_ERROR) {
         MEDIA_LOGE("Can not Stop, currentState is PLAYER_STATE_ERROR");
         return MSERR_INVALID_OPERATION;
@@ -265,6 +270,7 @@ int32_t PlayerServer::Stop()
 int32_t PlayerServer::Reset()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MEDIA_LOGW("KPI-TRACE: PlayerServer Reset in");
     return OnReset();
 }
 

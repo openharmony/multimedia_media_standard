@@ -78,6 +78,7 @@ PlayerImpl::~PlayerImpl()
 int32_t PlayerImpl::SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc)
 {
     CHECK_AND_RETURN_RET_LOG(dataSrc != nullptr, MSERR_INVALID_VAL, "failed to create data source");
+    MEDIA_LOGW("KPI-TRACE: PlayerImpl SetSource in(dataSrc)");
     return playerService_->SetSource(dataSrc);
 }
 
@@ -85,33 +86,35 @@ int32_t PlayerImpl::SetSource(const std::string &url)
 {
     CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
     CHECK_AND_RETURN_RET_LOG(!url.empty(), MSERR_INVALID_VAL, "url is empty..");
+    MEDIA_LOGW("KPI-TRACE: PlayerImpl SetSource in(url)");
     return playerService_->SetSource(url);
 }
 
 int32_t PlayerImpl::SetSource(int32_t fd, int64_t offset, int64_t size)
 {
     CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
+    MEDIA_LOGW("KPI-TRACE: PlayerImpl SetSource in(fd)");
     return playerService_->SetSource(fd, offset, size);
 }
 
 int32_t PlayerImpl::Play()
 {
     CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
-
+    MEDIA_LOGW("KPI-TRACE: PlayerImpl Play in");
     return playerService_->Play();
 }
 
 int32_t PlayerImpl::Prepare()
 {
     CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
-
+    MEDIA_LOGW("KPI-TRACE: PlayerImpl Prepare in");
     return playerService_->Prepare();
 }
 
 int32_t PlayerImpl::PrepareAsync()
 {
     CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
-
+    MEDIA_LOGW("KPI-TRACE: PlayerImpl PrepareAsync in");
     return playerService_->PrepareAsync();
 }
 
@@ -125,14 +128,14 @@ int32_t PlayerImpl::Pause()
 int32_t PlayerImpl::Stop()
 {
     CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
-
+    MEDIA_LOGW("KPI-TRACE: PlayerImpl Stop in");
     return playerService_->Stop();
 }
 
 int32_t PlayerImpl::Reset()
 {
     CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
-
+    MEDIA_LOGW("KPI-TRACE: PlayerImpl Reset in");
     return playerService_->Reset();
 }
 
