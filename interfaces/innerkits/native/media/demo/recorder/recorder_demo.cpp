@@ -184,12 +184,8 @@ void RecorderDemo::HDICreateESBuffer()
             (void)producerSurface_->CancelBuffer(buffer);
             break;
         }
-        errno_t mRet = memcpy_s(addr, *frameLenArray, tempBuffer, *frameLenArray);
-        if (mRet != EOK) {
-            (void)producerSurface_->CancelBuffer(buffer);
-            free(tempBuffer);
-            break;
-        }
+        (void)memcpy_s(addr, *frameLenArray, tempBuffer, *frameLenArray);
+
         if (isStart_.load()) {
             pts_= GetPts();
             isStart_.store(false);
@@ -237,13 +233,9 @@ void RecorderDemo::HDICreateYUVBuffer()
             (void)producerSurface_->CancelBuffer(buffer);
             break;
         }
-        errno_t mRet memset_s(tempBuffer, YUV_BUFFER_SIZE, color_, YUV_BUFFER_SIZE);
-        if (mRet != EOK) {
-            (void)producerSurface_->CancelBuffer(buffer);
-            free(tempBuffer);
-            break;
-        }
-        srand(time(0));
+        (void)memset_s(tempBuffer, YUV_BUFFER_SIZE, color_, YUV_BUFFER_SIZE);
+
+        srand((int)time(0));
         for (uint32_t i = 0; i < YUV_BUFFER_SIZE - 1; i += 100) {  // 100 is the steps between noise
             if (i >= YUV_BUFFER_SIZE - 1) {
                 break;
