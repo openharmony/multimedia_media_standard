@@ -79,6 +79,7 @@ protected:
     int32_t dataSize_ = 0;
     int64_t pts_ = 0;
     int32_t isCodecFrame_ = 0;
+    uint32_t pixelFormat_ = 0;
 
 private:
     void SetSurfaceUserData();
@@ -95,6 +96,7 @@ private:
     uint32_t framerate_ = 0;
     int64_t minInterval_ = 0;
     bool resourceLock_ = false;
+    bool isFirstBuffer_ = true;
 };
 }  // namespace Media
 }  // namespace OHOS
