@@ -258,7 +258,7 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
     g_mutex_lock(&priv->pool_lock);
     ON_SCOPE_EXIT(0) { g_mutex_unlock(&priv->pool_lock); };
 
-    do {
+    while (true) {
         gboolean repeat = FALSE;
         while (priv->available_buf_count == 0 && !priv->flushing && priv->start) {
             if (priv->repeat_interval == 0 || priv->cache_buffer == nullptr) {
@@ -299,7 +299,8 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
             }
         }
         cache_frame_if_necessary(surfacepool, surfacemem, *buffer);
-    } while (0);
+        break;
+    };
 
     return GST_FLOW_OK;
 }
