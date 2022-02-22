@@ -370,7 +370,9 @@ static void gst_surface_pool_src_init_surface_buffer(GstSurfacePoolSrc *surfaces
         buffers.push_back(buffer);
     }
     for (uint32_t i = 0; i < buffers.size(); ++i) {
-        surfacesrc->producerSurface->CancelBuffer(buffers[i]);
+        if (buffers[i] != nullptr) {
+            surfacesrc->producerSurface->CancelBuffer(buffers[i]);
+        }
     }
 }
 
