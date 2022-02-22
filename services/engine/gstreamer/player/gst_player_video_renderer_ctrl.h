@@ -45,6 +45,7 @@ private:
     std::string GetVideoSinkFormat() const;
     void SetSurfaceTimeFromSysPara();
     void SetDumpFrameFromSysPara();
+    void SetKpiLogFromSysPara();
     void SetDumpFrameInternalFromSysPara();
     void SaveFrameToFile(const unsigned char *buffer, size_t size);
     void CopyToSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer, const GstBuffer &buffer, bool &needFlush);
@@ -59,6 +60,7 @@ private:
     GstCaps *audioCaps_ = nullptr;
     bool surfaceTimeEnable_ = false;
     bool dumpFrameEnable_ = false;
+    bool kpiLogEnable_ = false;
     bool firstRenderFrame_ = true;
     uint32_t dumpFrameNum_ = 0;
     uint32_t dumpFrameInternal_ = 1;
@@ -66,6 +68,9 @@ private:
     TimeMonitor surfaceTimeMonitor_;
     std::vector<gulong> signalIds_;
     std::weak_ptr<IPlayerEngineObs> obs_;
+    uint64_t flushBufferNums_ = 0;
+    uint64_t lastFlushBufferNums_ = 0;
+    uint64_t lastFlushBufferTime_ = 0;
 };
 
 class GstPlayerVideoRendererFactory {
