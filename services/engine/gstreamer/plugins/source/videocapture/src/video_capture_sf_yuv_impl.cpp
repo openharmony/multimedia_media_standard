@@ -62,6 +62,7 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfYuvImpl::DoGetFrameBuffer()
     frameBuffer->timeStamp = static_cast<uint64_t>(pts_); // yuv timestamp from camera
     frameBuffer->gstBuffer = gstBuffer;
     frameBuffer->size = static_cast<uint64_t>(bufferSize);
+    frameBuffer->pixelFormat = pixelFormat_;
 
     CANCEL_SCOPE_EXIT_GUARD(1);
     return frameBuffer;
