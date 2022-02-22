@@ -52,6 +52,7 @@ static gboolean gst_vdec_base_propose_allocation(GstVideoDecoder *decoder, GstQu
 static gboolean gst_vdec_base_check_allocate_input(GstVdecBase *self);
 static gboolean gst_codec_return_is_ok(const GstVdecBase *decoder, gint ret,
     const char *error_name, gboolean need_report);
+static GstStateChangeReturn gst_vdec_base_change_state(GstElement *element, GstStateChange transition);
 
 enum {
     PROP_0,
@@ -84,6 +85,7 @@ static void gst_vdec_base_class_init(GstVdecBaseClass *klass)
     video_decoder_class->drain = gst_vdec_base_drain;
     video_decoder_class->decide_allocation = gst_vdec_base_decide_allocation;
     video_decoder_class->propose_allocation = gst_vdec_base_propose_allocation;
+    element_class->change_state = gst_vdec_base_change_state;
 
     g_object_class_install_property(gobject_class, PROP_VENDOR,
         g_param_spec_pointer("vendor", "Vendor property", "Vendor property",
@@ -220,6 +222,28 @@ static void gst_vdec_base_set_flushing(GstVdecBase *self, const gboolean flushin
     GST_OBJECT_UNLOCK(self);
 }
 
+static GstStateChangeReturn gst_vdec_base_change_state(GstElement *element, GstStateChange transition)
+{
+    g_return_val_if_fail(element != nullptr, GST_STATE_CHANGE_FAILURE);
+    GstVdecBase *self = GST_VDEC_BASE(element);
+    GstVideoDecoder *decoder = GST_VIDEO_DECODER(self);
+
+    GST_DEBUG_OBJECT(element, "change state %d", transition);
+    switch (transition) {
+        case GST_STATE_CHANGE_PAUSED_TO_READY :
+            if (self->decoder != nullptr) {
+                (void)self->decoder->Flush(GST_CODEC_ALL);
+            }
+            gst_vdec_base_set_flushing(self, TRUE);
+
+            gst_pad_stop_task(GST_VIDEO_DECODER_SRC_PAD(decoder));
+            break;
+        default :
+            break;
+    }
+    return GST_ELEMENT_CLASS(parent_class)->change_state(element, transition);
+}
+
 static gboolean gst_vdec_base_close(GstVideoDecoder *decoder)
 {
     GST_DEBUG_OBJECT(decoder, "Close");
@@ -301,6 +325,7 @@ static gboolean gst_vdec_base_stop(GstVideoDecoder *decoder)
     }
     self->prepared = FALSE;
     self->first_frame = TRUE;
+    gst_vdec_base_set_flushing(self, FALSE);
     GST_DEBUG_OBJECT(self, "Stop decoder end");
     if (self->input.dump_file != nullptr) {
         fclose(self->input.dump_file);
