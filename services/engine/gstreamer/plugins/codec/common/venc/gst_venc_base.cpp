@@ -197,6 +197,10 @@ static void gst_venc_base_init(GstVencBase *self)
     self->output.first_frame_time = 0;
     self->output.last_frame_time = 0;
     self->coding_outbuf_cnt = 0;
+    self->first_in_frame = TRUE;
+    self->first_out_frame = TRUE;
+    self->last_pts = GST_CLOCK_TIME_NONE;
+    self->first_frame_pts = GST_CLOCK_TIME_NONE;
 }
 
 static void gst_venc_base_finalize(GObject *object)
@@ -273,6 +277,7 @@ static gboolean gst_venc_base_start(GstVideoEncoder *encoder)
     self->output.frame_cnt = 0;
     self->output.first_frame_time = 0;
     self->output.last_frame_time = 0;
+    self->first_out_frame = TRUE;
     return TRUE;
 }
 
@@ -576,6 +581,11 @@ static GstFlowReturn gst_venc_base_handle_frame(GstVideoEncoder *encoder, GstVid
     }
     gst_buffer_unref(frame->input_buffer);
     frame->input_buffer = nullptr;
+    self->last_pts = frame->pts;
+    if (self->first_in_frame) {
+        self->first_in_frame = FALSE;
+        self->first_frame_pts = frame->pts;
+    }
     return ret;
 }
 
@@ -586,12 +596,19 @@ static GstFlowReturn gst_venc_base_finish_output_buffer(GstVencBase *self, GstBu
     g_return_val_if_fail(buffer != nullptr, GST_FLOW_ERROR);
     GstFlowReturn flow_ret = GST_FLOW_OK;
     gst_venc_debug_output_time(self);
+    if (self->first_out_frame) {
+        self->first_out_frame = FALSE;
+        GST_BUFFER_PTS(buffer) = self->first_frame_pts;
+        flow_ret = gst_pad_push(GST_VIDEO_ENCODER_SRC_PAD(self), buffer);
+        return flow_ret;
+    }
     GstVideoCodecFrame *frame = gst_video_encoder_get_oldest_frame(GST_VIDEO_ENCODER(self));
     if (frame != nullptr) {
         frame->output_buffer = buffer;
         flow_ret = gst_video_encoder_finish_frame(GST_VIDEO_ENCODER(self), frame);
     } else {
         GST_DEBUG_OBJECT(self, "No frame available");
+        GST_BUFFER_PTS(buffer) = self->last_pts;
         flow_ret = gst_pad_push(GST_VIDEO_ENCODER_SRC_PAD(self), buffer);
     }
     GST_DEBUG_OBJECT(self, "Finish output buffer end");
