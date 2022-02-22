@@ -165,7 +165,7 @@ napi_value MediaVideoCapsNapi::IsSizeSupported(napi_env env, napi_callback_info 
         (void)CommonNapi::GetPropertyInt32(env, args[0], "width", asyncCtx->width_);
         (void)CommonNapi::GetPropertyInt32(env, args[1], "height", asyncCtx->height_);
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[2]);
@@ -214,7 +214,7 @@ napi_value MediaVideoCapsNapi::GetSupportedFrameRate(napi_env env, napi_callback
         (void)CommonNapi::GetPropertyInt32(env, args[0], "width", asyncCtx->width_);
         (void)CommonNapi::GetPropertyInt32(env, args[1], "height", asyncCtx->height_);
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[2]);
@@ -263,7 +263,7 @@ napi_value MediaVideoCapsNapi::GetPreferredFrameRate(napi_env env, napi_callback
         (void)CommonNapi::GetPropertyInt32(env, args[0], "width", asyncCtx->width_);
         (void)CommonNapi::GetPropertyInt32(env, args[1], "height", asyncCtx->height_);
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[2]);
