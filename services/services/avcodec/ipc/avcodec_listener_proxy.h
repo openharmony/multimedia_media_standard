@@ -22,11 +22,11 @@
 
 namespace OHOS {
 namespace Media {
-class AVCodecListenerCallback : public AVCodecCallback {
+class AVCodecListenerCallback : public AVCodecCallback, public NoCopyable {
 public:
     explicit AVCodecListenerCallback(const sptr<IStandardAVCodecListener> &listener);
     virtual ~AVCodecListenerCallback();
-    DISALLOW_COPY_AND_MOVE(AVCodecListenerCallback);
+
     void OnError(AVCodecErrorType errorType, int32_t errorCode) override;
     void OnOutputFormatChanged(const Format &format) override;
     void OnInputBufferAvailable(uint32_t index) override;
@@ -36,11 +36,11 @@ private:
     sptr<IStandardAVCodecListener> listener_ = nullptr;
 };
 
-class AVCodecListenerProxy : public IRemoteProxy<IStandardAVCodecListener> {
+class AVCodecListenerProxy : public IRemoteProxy<IStandardAVCodecListener>, public NoCopyable {
 public:
     explicit AVCodecListenerProxy(const sptr<IRemoteObject> &impl);
     virtual ~AVCodecListenerProxy();
-    DISALLOW_COPY_AND_MOVE(AVCodecListenerProxy);
+
     void OnError(AVCodecErrorType errorType, int32_t errorCode) override;
     void OnOutputFormatChanged(const Format &format) override;
     void OnInputBufferAvailable(uint32_t index) override;

@@ -51,7 +51,7 @@ struct RecorderPipelineDesc {
     std::map<std::shared_ptr<RecorderElement>, LinkDesc> allLinkDescs;
 };
 
-class RecorderPipeline {
+class RecorderPipeline : public NoCopyable {
 public:
     explicit RecorderPipeline(std::shared_ptr<RecorderPipelineDesc> desc);
     ~RecorderPipeline();
@@ -67,8 +67,6 @@ public:
     int32_t GetParameter(int32_t sourceId, RecorderParam &recParam);
     void SetNotifier(RecorderMsgNotifier notifier);
     void Dump();
-
-    DISALLOW_COPY_AND_MOVE(RecorderPipeline);
 
 private:
     using ElemAction = std::function<int32_t(RecorderElement &)>;

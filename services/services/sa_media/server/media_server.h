@@ -25,7 +25,6 @@ namespace Media {
 class MediaServer : public SystemAbility, public MediaServiceStub {
     DECLARE_SYSTEM_ABILITY(MediaServer);
 public:
-    DISALLOW_COPY_AND_MOVE(MediaServer);
     explicit MediaServer(int32_t systemAbilityId, bool runOnCreate = true);
     ~MediaServer();
 

@@ -25,11 +25,11 @@
 
 namespace OHOS {
 namespace Media {
-class GstPlayerBuild {
+class GstPlayerBuild : public NoCopyable {
 public:
     GstPlayerBuild();
     ~GstPlayerBuild();
-    DISALLOW_COPY_AND_MOVE(GstPlayerBuild);
+
     std::shared_ptr<GstPlayerVideoRendererCtrl> BuildRendererCtrl(sptr<Surface> surface = nullptr);
     std::shared_ptr<GstPlayerCtrl> BuildPlayerCtrl();
     void CreateLoop();

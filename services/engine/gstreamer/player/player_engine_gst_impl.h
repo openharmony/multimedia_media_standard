@@ -28,11 +28,10 @@
 
 namespace OHOS {
 namespace Media {
-class PlayerEngineGstImpl : public IPlayerEngine {
+class PlayerEngineGstImpl : public IPlayerEngine, public NoCopyable {
 public:
     PlayerEngineGstImpl();
     ~PlayerEngineGstImpl();
-    DISALLOW_COPY_AND_MOVE(PlayerEngineGstImpl);
 
     int32_t SetSource(const std::string &url) override;
     int32_t SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc) override;

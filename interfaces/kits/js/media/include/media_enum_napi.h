@@ -21,11 +21,10 @@
 
 namespace OHOS {
 namespace Media {
-class MediaEnumNapi {
+class MediaEnumNapi : public NoCopyable {
 public:
     MediaEnumNapi() = default;
     ~MediaEnumNapi() = default;
-    DISALLOW_COPY_AND_MOVE(MediaEnumNapi);
     static napi_value Init(napi_env env, napi_value exports);
 
 private:

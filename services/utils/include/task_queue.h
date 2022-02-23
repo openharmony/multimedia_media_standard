@@ -112,7 +112,7 @@ private:
 };
 
 template <typename T>
-class TaskHandler : public ITaskHandler {
+class TaskHandler : public ITaskHandler, public NoCopyable {
 public:
     TaskHandler(std::function<T(void)> task, ITaskHandler::Attribute attr = {}) : task_(task), attribute_(attr) {}
     ~TaskHandler() = default;
@@ -174,8 +174,6 @@ public:
         return attribute_;
     }
 
-    DISALLOW_COPY_AND_MOVE(TaskHandler);
-
 private:
     TaskResult<T> ClearResult()
     {
@@ -213,7 +211,7 @@ private:
     ITaskHandler::Attribute attribute_; // task execute attribute.
 };
 
-class __attribute__((visibility("default"))) TaskQueue {
+class __attribute__((visibility("default"))) TaskQueue : public NoCopyable {
 public:
     explicit TaskQueue(const std::string &name) : name_(name) {}
     ~TaskQueue();
@@ -224,8 +222,6 @@ public:
     // delayUs cannot be gt 10000000ULL.
     int32_t EnqueueTask(const std::shared_ptr<ITaskHandler> &task,
         bool cancelNotExecuted = false, uint64_t delayUs = 0ULL);
-
-    DISALLOW_COPY_AND_MOVE(TaskQueue);
 
 private:
     struct TaskHandlerItem {

@@ -58,11 +58,11 @@ struct AudioRecorderConfig {
     OutputFormatType outPutFormat = FORMAT_M4A;
 };
 
-class RecorderDemo {
+class RecorderDemo : public NoCopyable {
 public:
     RecorderDemo() = default;
     virtual ~RecorderDemo() = default;
-    DISALLOW_COPY_AND_MOVE(RecorderDemo);
+
     void RunCase();
     void HDICreateESBuffer();
     void HDICreateYUVBuffer();
@@ -87,11 +87,11 @@ private:
     unsigned char color_ = 0xFF;
 };
 
-class RecorderCallbackDemo : public RecorderCallback {
+class RecorderCallbackDemo : public RecorderCallback, public NoCopyable {
 public:
     RecorderCallbackDemo() = default;
     virtual ~RecorderCallbackDemo() = default;
-    DISALLOW_COPY_AND_MOVE(RecorderCallbackDemo);
+
     void OnError(RecorderErrorType errorType, int32_t errorCode) override;
     void OnInfo(int32_t type, int32_t extra) override;
 };
