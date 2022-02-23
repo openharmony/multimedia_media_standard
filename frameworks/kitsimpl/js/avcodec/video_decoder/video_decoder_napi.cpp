@@ -164,7 +164,7 @@ napi_value VideoDecoderNapi::CreateVideoDecoderByMime(napi_env env, napi_callbac
     if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_string) {
         name = CommonNapi::GetStringArgument(env, args[0]);
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[1]);
@@ -203,7 +203,7 @@ napi_value VideoDecoderNapi::CreateVideoDecoderByName(napi_env env, napi_callbac
     if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_string) {
         name = CommonNapi::GetStringArgument(env, args[0]);
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[1]);
@@ -240,7 +240,7 @@ napi_value VideoDecoderNapi::Configure(napi_env env, napi_callback_info info)
     if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_object) {
         (void)AVCodecNapiUtil::ExtractMediaFormat(env, args[0], asyncCtx->format);
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[1]);
@@ -552,7 +552,7 @@ napi_value VideoDecoderNapi::QueueInput(napi_env env, napi_callback_info info)
     if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_object) {
         (void)AVCodecNapiUtil::ExtractCodecBuffer(env, args[0], asyncCtx->index, asyncCtx->info, asyncCtx->flag);
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
     CHECK_AND_RETURN_RET_LOG(asyncCtx->index >= 0, result, "Failed to check index");
 
@@ -608,14 +608,14 @@ napi_value VideoDecoderNapi::ReleaseOutput(napi_env env, napi_callback_info info
     if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_object) {
         (void)CommonNapi::GetPropertyInt32(env, args[0], "index", asyncCtx->index);
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
     valueType = napi_undefined;
     if (args[1] != nullptr && napi_typeof(env, args[1], &valueType) == napi_ok && valueType == napi_boolean) {
         (void)napi_get_value_bool(env, args[1], &asyncCtx->isRender);
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
     CHECK_AND_RETURN_RET_LOG(asyncCtx->index >= 0, result, "Failed to check index");
 
@@ -672,16 +672,16 @@ napi_value VideoDecoderNapi::SetOutputSurface(napi_env env, napi_callback_info i
         args[1] != nullptr && napi_typeof(env, args[1], &valueType) == napi_ok && valueType == napi_boolean) {
         std::string idStr = CommonNapi::GetStringArgument(env, args[0]);
         if (idStr == "") {
-            asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+            asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
         } else {
             auto mediaSurface = MediaSurfaceFactory::CreateMediaSurface();
             if (mediaSurface == nullptr) {
-                asyncCtx->SignError(MSERR_INVALID_VAL, "Failed to CreateMeidaSurface");
+                asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to CreateMeidaSurface");
             }
             asyncCtx->surface = mediaSurface->GetSurface(idStr);
         }
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[2]);
@@ -700,7 +700,7 @@ napi_value VideoDecoderNapi::SetOutputSurface(napi_env env, napi_callback_info i
                 return;
             }
             if (asyncCtx->napi->vdec_->SetOutputSurface(asyncCtx->surface) != MSERR_OK) {
-                asyncCtx->SignError(MSERR_UNKNOWN, "Failed to SetOutputSurface");
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to SetOutputSurface");
             } else {
                 asyncCtx->napi->isSurfaceMode_ = true;
             }
@@ -732,7 +732,7 @@ napi_value VideoDecoderNapi::SetParameter(napi_env env, napi_callback_info info)
     if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_object) {
         (void)AVCodecNapiUtil::ExtractMediaFormat(env, args[0], asyncCtx->format);
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[1]);
