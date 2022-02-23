@@ -19,9 +19,9 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "ProcessorVdecImpl"};
-    const uint32_t MAX_SIZE = 3150000; // 3MB
-    const uint32_t MAX_WIDTH = 8000;
-    const uint32_t MAX_HEIGHT = 5000;
+    constexpr uint32_t MAX_SIZE = 3150000; // 3MB
+    constexpr uint32_t MAX_WIDTH = 8000;
+    constexpr uint32_t MAX_HEIGHT = 5000;
 }
 
 namespace OHOS {
@@ -129,7 +129,7 @@ std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetOutputPortConfig()
         return nullptr;
     }
 
-    const uint32_t alignment = 16;
+    constexpr uint32_t alignment = 16;
     config->bufferSize_ = PixelBufferSize(static_cast<VideoPixelFormat>(pixelFormat_),
         static_cast<uint32_t>(width_), static_cast<uint32_t>(height_), alignment);
 

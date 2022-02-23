@@ -653,9 +653,9 @@ napi_value AudioPlayerNapi::On(napi_env env, napi_callback_info info)
     napi_value undefinedResult = nullptr;
     napi_get_undefined(env, &undefinedResult);
 
-    static const size_t MIN_REQUIRED_ARG_COUNT = 2;
-    size_t argCount = MIN_REQUIRED_ARG_COUNT;
-    napi_value args[MIN_REQUIRED_ARG_COUNT] = { nullptr, nullptr };
+    static constexpr size_t minArgCount = 2;
+    size_t argCount = minArgCount;
+    napi_value args[minArgCount] = { nullptr, nullptr };
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr || args[0] == nullptr || args[1] == nullptr) {

@@ -29,10 +29,10 @@ GST_DEBUG_CATEGORY_STATIC (gst_hdi_video_dec_debug_category);
 #define GST_1080P_STREAM_WIDTH (1920)
 #define GST_1080P_STREAM_HEIGHT (1088)
 
-static const guint GET_BUFFER_TIMEOUT_MS = 10u;
-static const gint DEFAULT_HDI_BUFFER_SIZE = 0;
-static const PixelFormat DEFAULT_HDI_PIXEL_FORMAT = YVU_SEMIPLANAR_420;
-static const gint RETRY_SLEEP_UTIME = 10000;
+static constexpr guint GET_BUFFER_TIMEOUT_MS = 10u;
+static constexpr gint DEFAULT_HDI_BUFFER_SIZE = 0;
+static constexpr PixelFormat DEFAULT_HDI_PIXEL_FORMAT = YVU_SEMIPLANAR_420;
+static constexpr gint RETRY_SLEEP_UTIME = 10000;
 
 static void gst_hdi_video_dec_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void gst_hdi_video_dec_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
@@ -738,7 +738,7 @@ static gint gst_hdi_finish_frame(GstHDIVideoDec *self, GstVideoCodecFrame *frame
             gst_buffer_unref(outbuf);
             gst_hdi_video_dec_loop_invalid_buffer_err(self);
             return ret;
-        }        
+        }
     }
     gst_buffer_unref(outbuf);
     gst_hdi_update_video_meta(self, frame->output_buffer);

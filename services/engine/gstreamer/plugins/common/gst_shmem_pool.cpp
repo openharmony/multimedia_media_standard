@@ -181,7 +181,7 @@ static gboolean gst_shmem_pool_set_config(GstBufferPool *pool, GstStructure *con
     guint size;
     guint minBuffers;
     guint maxBuffers;
-    static const guint DEFAULT_MAX_BUFFERS = 10;
+    static constexpr guint DEFAULT_MAX_BUFFERS = 10;
     if (!gst_buffer_pool_config_get_params(config, &caps, &size, &minBuffers, &maxBuffers)) {
         GST_ERROR("wrong config");
         return FALSE;
@@ -240,8 +240,8 @@ static gboolean gst_shmem_pool_start(GstBufferPool *pool)
         gst_shmem_pool_memory_available(pool);
     };
 
-    static const uint32_t alignBytes = 4;
-    gsize alignedPrefix = (spool->params.prefix + alignBytes - 1) & ~(alignBytes - 1);
+    static constexpr uint32_t ALIGN_BYTES = 4;
+    gsize alignedPrefix = (spool->params.prefix + ALIGN_BYTES - 1) & ~(ALIGN_BYTES - 1);
     OHOS::Media::AVSharedMemoryPool::InitializeOption option = {
         .preAllocMemCnt = spool->minBuffers,
         .memSize = spool->size + alignedPrefix,

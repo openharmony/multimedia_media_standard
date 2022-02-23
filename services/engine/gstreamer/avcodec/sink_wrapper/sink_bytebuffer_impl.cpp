@@ -141,7 +141,7 @@ void SinkBytebufferImpl::EosCb(GstMemSink *memSink, gpointer userData)
     CHECK_AND_RETURN(obs != nullptr);
 
     AVCodecBufferInfo info;
-    const uint32_t invalidIndex = 1000;
+    constexpr uint32_t invalidIndex = 1000;
     obs->OnOutputBufferAvailable(invalidIndex, info, AVCODEC_BUFFER_FLAG_EOS);
 }
 
@@ -174,7 +174,7 @@ int32_t SinkBytebufferImpl::HandleNewSampleCb(GstBuffer *buffer)
     AVCodecBufferInfo info;
     info.offset = 0;
     info.size = map.size;
-    const uint64_t nsToUs = 1000;
+    constexpr uint64_t nsToUs = 1000;
     info.presentationTimeUs = GST_BUFFER_PTS(buffer) / nsToUs;
     obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
 

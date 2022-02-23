@@ -484,8 +484,7 @@ int32_t PlayerServiceStub::SetVideoSurface(MessageParcel &data, MessageParcel &r
 
     std::string format = data.ReadString();
     MEDIA_LOGI("surfaceFormat is %{public}s!", format.c_str());
-    const std::string surfaceFormat = "SURFACE_FORMAT";
-    (void)surface->SetUserData(surfaceFormat, format);
+    (void)surface->SetUserData("SURFACE_FORMAT", format);
     reply.WriteInt32(SetVideoSurface(surface));
     return MSERR_OK;
 }

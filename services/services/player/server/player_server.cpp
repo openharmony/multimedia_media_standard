@@ -322,8 +322,8 @@ int32_t PlayerServer::SetVolume(float leftVolume, float rightVolume)
         return MSERR_INVALID_OPERATION;
     }
 
-    const float maxVolume = 1.0f;
-    if ((leftVolume < 0) || (leftVolume > maxVolume) || (rightVolume < 0) || (rightVolume > maxVolume)) {
+    constexpr float MAX_VOLUME = 1.0f;
+    if ((leftVolume < 0) || (leftVolume > MAX_VOLUME) || (rightVolume < 0) || (rightVolume > MAX_VOLUME)) {
         MEDIA_LOGE("SetVolume failed, the volume should be set to a value ranging from 0 to 5");
         return MSERR_INVALID_OPERATION;
     }
