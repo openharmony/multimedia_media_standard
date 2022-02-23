@@ -34,6 +34,7 @@ public:
     int32_t InitVideoSink(const GstElement *playbin);
     int32_t InitAudioSink(const GstElement *playbin);
     const GstElement *GetVideoSink() const;
+    const sptr<Surface> GetProducerSurface() const;
     int32_t PullVideoBuffer();
     int32_t PrerollVideoBuffer();
     sptr<SurfaceBuffer> RequestBuffer(const GstVideoMeta *videoMeta);
