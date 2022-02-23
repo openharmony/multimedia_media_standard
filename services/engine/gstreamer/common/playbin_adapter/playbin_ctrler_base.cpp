@@ -469,7 +469,7 @@ void PlayBinCtrlerBase::QueryDuration()
     gboolean ret = gst_element_query_duration(GST_ELEMENT_CAST(playbin_), GST_FORMAT_TIME, &duration);
     CHECK_AND_RETURN_LOG(ret, "query duration failed");
 
-    static const int32_t nanoSecPerUSec = 1000;
+    static constexpr int32_t nanoSecPerUSec = 1000;
     duration_ = duration / nanoSecPerUSec;
     MEDIA_LOGI("update the duration: %{public}" PRIi64 " microsecond", duration_);
 }

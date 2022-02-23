@@ -31,14 +31,14 @@ PARAM[*INDEX].size = sizeof(VAL); \
 
 GST_DEFINE_MINI_OBJECT_TYPE(GstHDICodec, gst_hdi_codec);
 static void gst_hdi_codec_free(GstHDICodec *codec);
-static const gint HDI_PARAM_MAX_NUM = 30;
-static const gint DEFUALT_BUFFER_NUM = 5;
+static constexpr gint HDI_PARAM_MAX_NUM = 30;
+static constexpr gint DEFUALT_BUFFER_NUM = 5;
 static GHashTable *caps_map = NULL;
 #ifdef GST_HDI_PARAM_PILE
-static const gint CODEC_TYPE_NUM = 2;
-static const gint CODEC_ATTR_NUM = 2;
+static constexpr gint CODEC_TYPE_NUM = 2;
+static constexpr gint CODEC_ATTR_NUM = 2;
 //the first row show the mine, the second row show the type
-static const gint TABLE_CODEC_TYPE[CODEC_TYPE_NUM][CODEC_ATTR_NUM] =
+static constexpr gint TABLE_CODEC_TYPE[CODEC_TYPE_NUM][CODEC_ATTR_NUM] =
 {
     {MEDIA_MIMETYPE_VIDEO_AVC, VIDEO_DECODER},
     {MEDIA_MIMETYPE_VIDEO_HEVC, VIDEO_DECODER}

@@ -20,9 +20,9 @@
 #include "mpi_sys.h"
 #include "sdk.h"
 
-static const gint DEFAULT_VB_SIZE = 3840 * 2160 * 4;
-static const gint DEFAULT_VB_COUNT = 3;
-static const gint DEFAULT_VB_POOL_COUNT = 2;
+static constexpr gint DEFAULT_VB_SIZE = 3840 * 2160 * 4;
+static constexpr gint DEFAULT_VB_COUNT = 3;
+static constexpr gint DEFAULT_VB_POOL_COUNT = 2;
 static void get_default_vb_config_param(VB_CONFIG_S *vb_config)
 {
     g_return_if_fail(vb_config != NULL);

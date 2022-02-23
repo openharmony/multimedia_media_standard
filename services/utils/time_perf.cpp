@@ -18,9 +18,9 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaTimePerf"};
-    static const int MICRO_SEC_PER_SEC = 1000000;
-    static const int64_t MAX_SEC = LLONG_MAX / MICRO_SEC_PER_SEC;
-    static const int INVALID_TIME = -1;
+    static constexpr int32_t MICRO_SEC_PER_SEC = 1000000;
+    static constexpr int64_t MAX_SEC = LLONG_MAX / MICRO_SEC_PER_SEC;
+    static constexpr int32_t INVALID_TIME = -1;
 }
 
 namespace OHOS {
@@ -56,7 +56,7 @@ void TimePerf::StartPerfRecord(uintptr_t obj, std::string_view tag)
     }
 
     struct timeval start {};
-    int ret = gettimeofday(&start, nullptr);
+    int32_t ret = gettimeofday(&start, nullptr);
     if (ret != 0) {
         MEDIA_LOGW("get time of day failed");
         return;
@@ -67,7 +67,7 @@ void TimePerf::StartPerfRecord(uintptr_t obj, std::string_view tag)
 void TimePerf::StopPerfRecord(uintptr_t obj, std::string_view tag)
 {
     struct timeval stop {};
-    int getTimeRet = gettimeofday(&stop, nullptr);
+    int32_t getTimeRet = gettimeofday(&stop, nullptr);
     if (getTimeRet != 0) {
         MEDIA_LOGW("get time of day failed");
     }

@@ -129,8 +129,7 @@ size_t CallbackWarp::GetArgsCount() const
 void CallbackWarp::SetResult(napi_value result)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    const int32_t refCount = 1;
-    napi_status status = napi_create_reference(env_, result, refCount, &result_);
+    napi_status status = napi_create_reference(env_, result, 1, &result_);
     CHECK_AND_RETURN_LOG(status == napi_ok, "create ref failed");
     resultValue_ = result;
     condVarResult_.notify_all();

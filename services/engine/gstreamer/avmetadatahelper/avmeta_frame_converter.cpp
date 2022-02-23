@@ -25,7 +25,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVMetaFrameConv"};
-    static const int32_t KEEP_ORIGINAL_WIDTH_OR_HEIGHT = -1;
+    static constexpr int32_t KEEP_ORIGINAL_WIDTH_OR_HEIGHT = -1;
 }
 
 namespace OHOS {
