@@ -17,7 +17,6 @@
 #define VIDEO_CAPTURE_SF_ES_AVC_IMPL_H
 
 #include "video_capture_sf_impl.h"
-#include "nocopyable.h"
 
 namespace OHOS {
 namespace Media {
@@ -25,7 +24,6 @@ class VideoCaptureSfEsAvcImpl : public VideoCaptureSfImpl {
 public:
     VideoCaptureSfEsAvcImpl();
     virtual ~VideoCaptureSfEsAvcImpl();
-    DISALLOW_COPY_AND_MOVE(VideoCaptureSfEsAvcImpl);
 
 protected:
     std::shared_ptr<EsAvcCodecBuffer> DoGetCodecBuffer() override;

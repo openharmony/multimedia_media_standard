@@ -21,11 +21,11 @@
 
 namespace OHOS {
 namespace Media {
-class MediaDeathRecipient : public IRemoteObject::DeathRecipient {
+class MediaDeathRecipient : public IRemoteObject::DeathRecipient, public NoCopyable {
 public:
     explicit MediaDeathRecipient(pid_t pid) : pid_(pid) {};
     virtual ~MediaDeathRecipient() = default;
-    DISALLOW_COPY_AND_MOVE(MediaDeathRecipient);
+
     void OnRemoteDied(const wptr<IRemoteObject> &remote)
     {
         (void)remote;

@@ -24,11 +24,11 @@
 
 namespace OHOS {
 namespace Media {
-class AVCodecListDemo {
+class AVCodecListDemo : public NoCopyable {
 public:
     AVCodecListDemo() = default;
     virtual ~AVCodecListDemo() = default;
-    DISALLOW_COPY_AND_MOVE(AVCodecListDemo);
+
     void RunCase(const std::string &path);
     void DoNext();
 

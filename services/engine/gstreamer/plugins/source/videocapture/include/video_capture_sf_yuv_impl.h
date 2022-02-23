@@ -17,7 +17,6 @@
 #define VIDEO_CAPTURE_SF_YUV_IMPL_H
 
 #include "video_capture_sf_impl.h"
-#include "nocopyable.h"
 
 namespace OHOS {
 namespace Media {
@@ -25,7 +24,6 @@ class VideoCaptureSfYuvImpl : public VideoCaptureSfImpl {
 public:
     VideoCaptureSfYuvImpl();
     virtual ~VideoCaptureSfYuvImpl();
-    DISALLOW_COPY_AND_MOVE(VideoCaptureSfYuvImpl);
 
 protected:
     std::shared_ptr<VideoFrameBuffer> DoGetFrameBuffer() override;

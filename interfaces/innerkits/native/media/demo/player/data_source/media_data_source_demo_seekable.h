@@ -22,12 +22,12 @@
 
 namespace OHOS {
 namespace Media {
-class MediaDataSourceDemoSeekable : public MediaDataSourceDemo {
+class MediaDataSourceDemoSeekable : public MediaDataSourceDemo, public NoCopyable {
 public:
     static std::shared_ptr<MediaDataSourceDemo> Create(const std::string &uri, int32_t size);
     MediaDataSourceDemoSeekable(const std::string &uri, int32_t size);
     ~MediaDataSourceDemoSeekable() override;
-    DISALLOW_COPY_AND_MOVE(MediaDataSourceDemoSeekable);
+
     int32_t ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
     int32_t ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
     int32_t GetSize(int64_t &size) override;

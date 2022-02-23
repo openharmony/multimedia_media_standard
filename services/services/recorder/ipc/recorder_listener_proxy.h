@@ -23,11 +23,11 @@
 
 namespace OHOS {
 namespace Media {
-class RecorderListenerCallback : public RecorderCallback {
+class RecorderListenerCallback : public RecorderCallback, public NoCopyable {
 public:
     explicit RecorderListenerCallback(const sptr<IStandardRecorderListener> &listener);
     virtual ~RecorderListenerCallback();
-    DISALLOW_COPY_AND_MOVE(RecorderListenerCallback);
+
     void OnError(RecorderErrorType errorType, int32_t errorCode) override;
     void OnInfo(int32_t type, int32_t extra) override;
 
@@ -35,11 +35,11 @@ private:
     sptr<IStandardRecorderListener> listener_ = nullptr;
 };
 
-class RecorderListenerProxy : public IRemoteProxy<IStandardRecorderListener> {
+class RecorderListenerProxy : public IRemoteProxy<IStandardRecorderListener>, public NoCopyable {
 public:
     explicit RecorderListenerProxy(const sptr<IRemoteObject> &impl);
     virtual ~RecorderListenerProxy();
-    DISALLOW_COPY_AND_MOVE(RecorderListenerProxy);
+
     void OnError(int32_t errorType, int32_t errorCode) override;
     void OnInfo(int32_t type, int32_t extra) override;
 

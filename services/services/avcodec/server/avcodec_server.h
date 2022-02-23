@@ -23,12 +23,11 @@
 
 namespace OHOS {
 namespace Media {
-class AVCodecServer : public IAVCodecService, public IAVCodecEngineObs {
+class AVCodecServer : public IAVCodecService, public IAVCodecEngineObs, public NoCopyable {
 public:
     static std::shared_ptr<IAVCodecService> Create();
     AVCodecServer();
     virtual ~AVCodecServer();
-    DISALLOW_COPY_AND_MOVE(AVCodecServer);
 
     enum AVCodecStatus {
         AVCODEC_UNINITIALIZED = 0,

@@ -28,12 +28,10 @@ namespace Media {
 class AVMetaMetaCollector;
 class AVMetaFrameExtractor;
 
-class AVMetadataHelperEngineGstImpl : public IAVMetadataHelperEngine {
+class AVMetadataHelperEngineGstImpl : public IAVMetadataHelperEngine, public NoCopyable {
 public:
     AVMetadataHelperEngineGstImpl();
     ~AVMetadataHelperEngineGstImpl();
-
-    DISALLOW_COPY_AND_MOVE(AVMetadataHelperEngineGstImpl);
 
     int32_t SetSource(const std::string &uri, int32_t usage) override;
     std::string ResolveMetadata(int32_t key) override;

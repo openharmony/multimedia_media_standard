@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace Media {
-class RecorderPipelineBuilder {
+class RecorderPipelineBuilder : public NoCopyable {
 public:
     RecorderPipelineBuilder();
     ~RecorderPipelineBuilder();
@@ -34,10 +34,7 @@ public:
     int32_t SetOutputFormat(OutputFormatType formatType);
     int32_t Configure(int32_t sourceId, const RecorderParam &param);
     std::shared_ptr<RecorderPipeline> Build();
-
     void Reset();
-
-    DISALLOW_COPY_AND_MOVE(RecorderPipelineBuilder);
 
 private:
     int32_t SetVideoSource(const RecorderSourceDesc &desc);

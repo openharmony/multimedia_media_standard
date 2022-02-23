@@ -21,11 +21,11 @@
 
 namespace OHOS {
 namespace Media {
-class AVCodecServiceProxy : public IRemoteProxy<IStandardAVCodecService> {
+class AVCodecServiceProxy : public IRemoteProxy<IStandardAVCodecService>, public NoCopyable {
 public:
     explicit AVCodecServiceProxy(const sptr<IRemoteObject> &impl);
     virtual ~AVCodecServiceProxy();
-    DISALLOW_COPY_AND_MOVE(AVCodecServiceProxy);
+
     int32_t SetListenerObject(const sptr<IRemoteObject> &object) override;
     int32_t InitParameter(AVCodecType type, bool isMimeType, const std::string &name) override;
     int32_t Configure(const Format &format) override;

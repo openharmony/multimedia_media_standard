@@ -29,11 +29,11 @@
 
 namespace OHOS {
 namespace Media {
-class MediaClient : public IMediaService {
+class MediaClient : public IMediaService, public NoCopyable {
 public:
     MediaClient();
     ~MediaClient();
-    DISALLOW_COPY_AND_MOVE(MediaClient);
+
     std::shared_ptr<IRecorderService> CreateRecorderService() override;
     std::shared_ptr<IPlayerService> CreatePlayerService() override;
     std::shared_ptr<IAVMetadataHelperService> CreateAVMetadataHelperService() override;

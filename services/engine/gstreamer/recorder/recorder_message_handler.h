@@ -70,7 +70,7 @@ enum class RecorderMsgProcResult : uint8_t {
  * The RecorderMsgHandlers should translate all the messages it receives as much as possible to give the
  * user a more friendly message prompt.
  */
-class RecorderMsgHandler {
+class RecorderMsgHandler : public NoCopyable {
 public:
     RecorderMsgHandler() = default;
     virtual ~RecorderMsgHandler() = default;
@@ -80,7 +80,6 @@ public:
     static RecorderMsgProcResult ProcessInfoMsgDefault(GstMessage &rawMsg, RecorderMessage &prettyMsg);
     static RecorderMsgProcResult ProcessWarningMsgDefault(GstMessage &rawMsg, RecorderMessage &prettyMsg);
     static RecorderMsgProcResult ProcessErrorMsgDefault(GstMessage &rawMsg, RecorderMessage &prettyMsg);
-    DISALLOW_COPY_AND_MOVE(RecorderMsgHandler);
 };
 
 // not MT-safe

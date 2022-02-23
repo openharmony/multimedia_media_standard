@@ -19,7 +19,6 @@
 #include <memory>
 #include "video_capture.h"
 #include "common_utils.h"
-#include "nocopyable.h"
 
 namespace OHOS {
 namespace Media {
@@ -30,7 +29,6 @@ public:
 private:
     VideoCaptureFactory() = delete;
     ~VideoCaptureFactory() = delete;
-    DISALLOW_COPY_AND_MOVE(VideoCaptureFactory);
 };
 }  // namespace Media
 }  // namespace OHOS

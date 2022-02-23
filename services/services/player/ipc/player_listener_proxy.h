@@ -23,12 +23,11 @@
 
 namespace OHOS {
 namespace Media {
-class PlayerListenerCallback : public PlayerCallback {
+class PlayerListenerCallback : public PlayerCallback, public NoCopyable {
 public:
     explicit PlayerListenerCallback(const sptr<IStandardPlayerListener> &listener);
     virtual ~PlayerListenerCallback();
 
-    DISALLOW_COPY_AND_MOVE(PlayerListenerCallback);
     void OnError(PlayerErrorType errorType, int32_t errorCode) override;
     void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody = {}) override;
 
@@ -36,11 +35,11 @@ private:
     sptr<IStandardPlayerListener> listener_ = nullptr;
 };
 
-class PlayerListenerProxy : public IRemoteProxy<IStandardPlayerListener> {
+class PlayerListenerProxy : public IRemoteProxy<IStandardPlayerListener>, public NoCopyable {
 public:
     explicit PlayerListenerProxy(const sptr<IRemoteObject> &impl);
     virtual ~PlayerListenerProxy();
-    DISALLOW_COPY_AND_MOVE(PlayerListenerProxy);
+
     void OnError(PlayerErrorType errorType, int32_t errorCode) override;
     void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody = {}) override;
 

@@ -22,13 +22,12 @@
 
 namespace OHOS {
 namespace Media {
-class __attribute__((visibility("default"))) CodecPluginsCapability {
+class __attribute__((visibility("default"))) CodecPluginsCapability : public NoCopyable {
 public:
     ~CodecPluginsCapability();
     static CodecPluginsCapability& GetInstance();
     void RegisterCapabilitys(std::vector<CapabilityData> data);
     std::vector<CapabilityData> GetCodecPluginsCapability();
-    DISALLOW_COPY_AND_MOVE(CodecPluginsCapability);
 
 private:
     CodecPluginsCapability();
