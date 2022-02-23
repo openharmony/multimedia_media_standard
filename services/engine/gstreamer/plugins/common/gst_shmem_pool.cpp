@@ -181,7 +181,7 @@ static gboolean gst_shmem_pool_set_config(GstBufferPool *pool, GstStructure *con
     guint size;
     guint minBuffers;
     guint maxBuffers;
-    static constexpr guint DEFAULT_MAX_BUFFERS = 10;
+    static constexpr guint maxBuffers = 10;
     if (!gst_buffer_pool_config_get_params(config, &caps, &size, &minBuffers, &maxBuffers)) {
         GST_ERROR("wrong config");
         return FALSE;
@@ -191,7 +191,7 @@ static gboolean gst_shmem_pool_set_config(GstBufferPool *pool, GstStructure *con
     GST_BUFFER_POOL_LOCK(spool);
 
     spool->minBuffers = minBuffers;
-    spool->maxBuffers = maxBuffers > 0 ? maxBuffers : DEFAULT_MAX_BUFFERS;
+    spool->maxBuffers = maxBuffers > 0 ? maxBuffers : maxBuffers;
     parse_caps_for_raw_video(spool, caps, &size);
     spool->size = size;
 
