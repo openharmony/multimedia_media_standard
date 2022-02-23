@@ -100,9 +100,9 @@ int32_t AudioCaptureAsImpl::GetCaptureParameter(uint32_t &bitrate, uint32_t &cha
     sampleRate = params.samplingRate;
     MEDIA_LOGD("get channels:%{public}u, sampleRate:%{public}u from audio server", channels, sampleRate);
     CHECK_AND_RETURN_RET(bufferSize_ > 0 && channels > 0 && sampleRate > 0, MSERR_UNKNOWN);
-    constexpr uint32_t BITS_PER_BYTE = 8;
+    constexpr uint32_t bitsPerByte = 8;
     bufferDurationNs_ = (bufferSize_ * SEC_TO_NANOSECOND) /
-        (sampleRate * (AudioStandard::SAMPLE_S16LE / BITS_PER_BYTE) * channels);
+        (sampleRate * (AudioStandard::SAMPLE_S16LE / bitsPerByte) * channels);
 
     MEDIA_LOGD("audio frame duration is (%{public}" PRIu64 ") ns", bufferDurationNs_);
     return MSERR_OK;
