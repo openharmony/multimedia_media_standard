@@ -206,8 +206,8 @@ bool Format::GetDoubleValue(const std::string_view &key, double &value) const
 
 bool Format::PutBuffer(const std::string_view &key, const uint8_t *addr, size_t size)
 {
-    constexpr size_t MAX_SIZE = 1 * 1024 * 1024;
-    if (size > MAX_SIZE) {
+    constexpr size_t sizeMax = 1 * 1024 * 1024;
+    if (size > sizeMax) {
         MEDIA_LOGE("PutBuffer input size failed. Key: %{public}s", key.data());
         return false;
     }
