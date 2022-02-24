@@ -57,10 +57,12 @@ int32_t AVMetadataHelperServiceProxy::SetSource(const std::string &uri, int32_t 
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(AVMetadataHelperServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     (void)data.WriteString(uri);
     (void)data.WriteInt32(usage);
 
@@ -77,10 +79,12 @@ std::string AVMetadataHelperServiceProxy::ResolveMetadata(int32_t key)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(AVMetadataHelperServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return "";
     }
+
     (void)data.WriteInt32(key);
 
     int error = Remote()->SendRequest(RESOLVE_METADATA, data, reply, option);
@@ -97,6 +101,7 @@ std::unordered_map<int32_t, std::string> AVMetadataHelperServiceProxy::ResolveMe
     MessageParcel reply;
     MessageOption option;
     std::unordered_map<int32_t, std::string> metadata;
+
     if (!data.WriteInterfaceToken(AVMetadataHelperServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return metadata;
@@ -136,6 +141,7 @@ std::shared_ptr<AVSharedMemory> AVMetadataHelperServiceProxy::FetchArtPicture()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(AVMetadataHelperServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return nullptr;
@@ -156,10 +162,12 @@ std::shared_ptr<AVSharedMemory> AVMetadataHelperServiceProxy::FetchFrameAtTime(i
     MessageParcel data;
     MessageParcel reply;
     MessageOption opt;
+
     if (!data.WriteInterfaceToken(AVMetadataHelperServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return nullptr;
     }
+
     (void)data.WriteInt64(timeUs);
     (void)data.WriteInt32(option);
     (void)data.WriteInt32(param.dstWidth);
@@ -179,10 +187,12 @@ void AVMetadataHelperServiceProxy::Release()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(AVMetadataHelperServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return;
     }
+
     int error = Remote()->SendRequest(RELEASE, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Release failed, error: %{public}d", error);

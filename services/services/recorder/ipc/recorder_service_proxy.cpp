@@ -40,10 +40,12 @@ int32_t RecorderServiceProxy::SetListenerObject(const sptr<IRemoteObject> &objec
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     (void)data.WriteRemoteObject(object);
     int error = Remote()->SendRequest(SET_LISTENER_OBJ, data, reply, option);
     if (error != MSERR_OK) {
@@ -58,10 +60,12 @@ int32_t RecorderServiceProxy::SetVideoSource(VideoSourceType source, int32_t &so
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteInt32(source);
     int error = Remote()->SendRequest(SET_VIDEO_SOURCE, data, reply, option);
     if (error != MSERR_OK) {
@@ -77,10 +81,12 @@ int32_t RecorderServiceProxy::SetVideoEncoder(int32_t sourceId, VideoCodecFormat
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteInt32(sourceId);
     data.WriteInt32(encoder);
     int error = Remote()->SendRequest(SET_VIDEO_ENCODER, data, reply, option);
@@ -97,10 +103,12 @@ int32_t RecorderServiceProxy::SetVideoSize(int32_t sourceId, int32_t width, int3
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteInt32(sourceId);
     data.WriteInt32(width);
     data.WriteInt32(height);
@@ -117,10 +125,12 @@ int32_t RecorderServiceProxy::SetVideoFrameRate(int32_t sourceId, int32_t frameR
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteInt32(sourceId);
     data.WriteInt32(frameRate);
     int error = Remote()->SendRequest(SET_VIDEO_FARAME_RATE, data, reply, option);
@@ -136,10 +146,12 @@ int32_t RecorderServiceProxy::SetVideoEncodingBitRate(int32_t sourceId, int32_t 
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteInt32(sourceId);
     data.WriteInt32(rate);
     int error = Remote()->SendRequest(SET_VIDEO_ENCODING_BIT_RATE, data, reply, option);
@@ -155,10 +167,12 @@ int32_t RecorderServiceProxy::SetCaptureRate(int32_t sourceId, double fps)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteInt32(sourceId);
     data.WriteDouble(fps);
     int error = Remote()->SendRequest(SET_CAPTURE_RATE, data, reply, option);
@@ -174,10 +188,12 @@ sptr<OHOS::Surface> RecorderServiceProxy::GetSurface(int32_t sourceId)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return nullptr;
     }
+
     data.WriteInt32(sourceId);
     int error = Remote()->SendRequest(GET_SURFACE, data, reply, option);
     if (error != MSERR_OK) {
@@ -205,10 +221,12 @@ int32_t RecorderServiceProxy::SetAudioSource(AudioSourceType source, int32_t &so
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteInt32(static_cast<int32_t>(source));
     int error = Remote()->SendRequest(SET_AUDIO_SOURCE, data, reply, option);
     if (error != MSERR_OK) {
@@ -224,10 +242,12 @@ int32_t RecorderServiceProxy::SetAudioEncoder(int32_t sourceId, AudioCodecFormat
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteInt32(sourceId);
     data.WriteInt32(static_cast<int32_t>(encoder));
     int error = Remote()->SendRequest(SET_AUDIO_ENCODER, data, reply, option);
@@ -243,10 +263,12 @@ int32_t RecorderServiceProxy::SetAudioSampleRate(int32_t sourceId, int32_t rate)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteInt32(sourceId);
     data.WriteInt32(rate);
     int error = Remote()->SendRequest(SET_AUDIO_SAMPLE_RATE, data, reply, option);
@@ -262,10 +284,12 @@ int32_t RecorderServiceProxy::SetAudioChannels(int32_t sourceId, int32_t num)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteInt32(sourceId);
     data.WriteInt32(num);
     int error = Remote()->SendRequest(SET_AUDIO_CHANNELS, data, reply, option);
@@ -281,10 +305,12 @@ int32_t RecorderServiceProxy::SetAudioEncodingBitRate(int32_t sourceId, int32_t 
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteInt32(sourceId);
     data.WriteInt32(bitRate);
     int error = Remote()->SendRequest(SET_AUDIO_ENCODING_BIT_RATE, data, reply, option);
@@ -300,10 +326,12 @@ int32_t RecorderServiceProxy::SetDataSource(DataSourceType dataType, int32_t &so
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteInt32(static_cast<int32_t>(dataType));
     int error = Remote()->SendRequest(SET_DATA_SOURCE, data, reply, option);
     if (error != MSERR_OK) {
@@ -319,10 +347,12 @@ int32_t RecorderServiceProxy::SetMaxDuration(int32_t duration)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteInt32(duration);
     int error = Remote()->SendRequest(SET_MAX_DURATION, data, reply, option);
     if (error != MSERR_OK) {
@@ -337,10 +367,12 @@ int32_t RecorderServiceProxy::SetOutputFormat(OutputFormatType format)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteInt32(static_cast<int32_t>(format));
     int error = Remote()->SendRequest(SET_OUTPUT_FORMAT, data, reply, option);
     if (error != MSERR_OK) {
@@ -355,10 +387,12 @@ int32_t RecorderServiceProxy::SetOutputPath(const std::string &path)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteString(path);
     int error = Remote()->SendRequest(SET_OUTPUT_PATH, data, reply, option);
     if (error != MSERR_OK) {
@@ -373,10 +407,12 @@ int32_t RecorderServiceProxy::SetOutputFile(int32_t fd)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     (void)data.WriteFileDescriptor(fd);
     int error = Remote()->SendRequest(SET_OUTPUT_FILE, data, reply, option);
     if (error != MSERR_OK) {
@@ -391,10 +427,12 @@ int32_t RecorderServiceProxy::SetNextOutputFile(int32_t fd)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     (void)data.WriteFileDescriptor(fd);
     int error = Remote()->SendRequest(SET_NEXT_OUTPUT_FILE, data, reply, option);
     if (error != MSERR_OK) {
@@ -409,10 +447,12 @@ int32_t RecorderServiceProxy::SetMaxFileSize(int64_t size)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteInt64(size);
     int error = Remote()->SendRequest(SET_MAX_FILE_SIZE, data, reply, option);
     if (error != MSERR_OK) {
@@ -427,10 +467,12 @@ int32_t RecorderServiceProxy::SetLocation(float latitude, float longitude)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteFloat(latitude);
     data.WriteFloat(longitude);
     int error = Remote()->SendRequest(SET_LOCATION, data, reply, option);
@@ -446,10 +488,12 @@ int32_t RecorderServiceProxy::SetOrientationHint(int32_t rotation)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteInt32(rotation);
     int error = Remote()->SendRequest(SET_ORIENTATION_HINT, data, reply, option);
     if (error != MSERR_OK) {
@@ -464,10 +508,12 @@ int32_t RecorderServiceProxy::Prepare()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     int error = Remote()->SendRequest(PREPARE, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("prepare failed, error: %{public}d", error);
@@ -481,10 +527,12 @@ int32_t RecorderServiceProxy::Start()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     int error = Remote()->SendRequest(START, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("start failed, error: %{public}d", error);
@@ -498,10 +546,12 @@ int32_t RecorderServiceProxy::Pause()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     int error = Remote()->SendRequest(PAUSE, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("pause failed, error: %{public}d", error);
@@ -515,10 +565,12 @@ int32_t RecorderServiceProxy::Resume()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     int error = Remote()->SendRequest(RESUME, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("resume failed, error: %{public}d", error);
@@ -532,11 +584,13 @@ int32_t RecorderServiceProxy::Stop(bool block)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    data.WriteBool(block);
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
+    data.WriteBool(block);
     int error = Remote()->SendRequest(STOP, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("stop failed, error: %{public}d", error);
@@ -550,10 +604,12 @@ int32_t RecorderServiceProxy::Reset()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     int error = Remote()->SendRequest(RESET, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("reset failed, error: %{public}d", error);
@@ -567,10 +623,12 @@ int32_t RecorderServiceProxy::Release()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     int error = Remote()->SendRequest(RELEASE, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("release failed, error: %{public}d", error);
@@ -584,10 +642,12 @@ int32_t RecorderServiceProxy::SetFileSplitDuration(FileSplitType type, int64_t t
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     data.WriteInt32(static_cast<int32_t>(type));
     data.WriteInt64(timestamp);
     data.WriteUint32(duration);
@@ -604,10 +664,12 @@ int32_t RecorderServiceProxy::DestroyStub()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     int error = Remote()->SendRequest(DESTROY, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("destroy failed, error: %{public}d", error);

@@ -40,10 +40,12 @@ std::string AVCodecListServiceProxy::FindVideoDecoder(const Format &format)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(AVCodecListServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return "";
     }
+
     (void)MediaParcel::Marshalling(data, format);
     int32_t ret = Remote()->SendRequest(FIND_VIDEO_DECODER, data, reply, option);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, "", "FindVideoDecoder failed");
@@ -55,10 +57,12 @@ std::string AVCodecListServiceProxy::FindVideoEncoder(const Format &format)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(AVCodecListServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return "";
     }
+
     (void)MediaParcel::Marshalling(data, format);
     int32_t ret = Remote()->SendRequest(FIND_VIDEO_ENCODER, data, reply, option);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, "", "FindVideoEncoder failed");
@@ -70,10 +74,12 @@ std::string AVCodecListServiceProxy::FindAudioDecoder(const Format &format)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(AVCodecListServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return "";
     }
+
     (void)MediaParcel::Marshalling(data, format);
     int32_t ret = Remote()->SendRequest(FIND_AUDIO_DECODER, data, reply, option);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, "", "FindAudioDecoder failed");
@@ -86,10 +92,12 @@ std::string AVCodecListServiceProxy::FindAudioEncoder(const Format &format)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(AVCodecListServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return "";
     }
+
     (void)MediaParcel::Marshalling(data, format);
     int32_t ret = Remote()->SendRequest(FIND_AUDIO_ENCODER, data, reply, option);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, "", "FindAudioEncoder failed");
@@ -104,10 +112,12 @@ std::vector<CapabilityData> AVCodecListServiceProxy::GetCodecCapabilityInfos()
     MessageOption option;
     Format profileFormat;
     std::vector<CapabilityData> capabilityDataArray;
+
     if (!data.WriteInterfaceToken(AVCodecListServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return capabilityDataArray;
     }
+
     int32_t ret = Remote()->SendRequest(GET_CAPABILITY_INFOS, data, reply, option);
     if (ret != MSERR_OK) {
         MEDIA_LOGE("GetCodecCapabilityInfos failed, error: %{public}d", ret);
@@ -122,10 +132,12 @@ int32_t AVCodecListServiceProxy::DestroyStub()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(AVCodecListServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     int32_t ret = Remote()->SendRequest(DESTROY, data, reply, option);
     if (ret != MSERR_OK) {
         MEDIA_LOGE("destroy failed, error: %{public}d", ret);
