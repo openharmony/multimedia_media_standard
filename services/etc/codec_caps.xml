@@ -40,11 +40,10 @@
                 <Item channels="1-2"/>
                 <Item mpegVersion="4"/>
                 <Item frameLength="0,480,512,960,1024,2048"/>
-                <Item format="F32LE"/>
+                <Item format="S16LE"/>
                 <Item sampleRate="8000,11025,12000,16000,22050,24000,32000,44100,48000,64000,88200,96000"/>
                 <Item streamFormat="adts,adif,raw"/>
                 <Item profiles="AAC_LC,AAC_HE,AAC_HE_V2,AAC_LD,AAC_ELD"/>
-                <Item complexity="0-3"/>
                 <Item layout="non-interleaved"/>
             </AudioDecoder>
             <AudioDecoder>
@@ -54,7 +53,7 @@
                 <Item isVendor="false" />
                 <Item bitrate="1-384000"/>
                 <Item channels="1-7"/>
-                <Item format="S16LE,S24LE,S32LE,S16BE,S24BE,S32BE"/>
+                <Item format="S16LE"/>
                 <Item sampleRate="8000,11025,12000,16000,22050,24000,32000,44100,48000,64000,88200,96000,176400,192000"/>
             </AudioDecoder>
             <AudioDecoder>
@@ -65,7 +64,7 @@
                 <Item bitrate="1-384000"/>
                 <Item channels="1-2"/>
                 <Item framed="true"/>
-                <Item format="S16LE,S32LE"/>
+                <Item format="S16LE"/>
                 <Item layout="interleaved,non-interleaved"/>
                 <Item sampleRate="8000,11025,12000,16000,22050,24000,32000,44100,48000,64000,88200,96000"/>
             </AudioDecoder>
@@ -91,14 +90,14 @@
                 <Item mimeType="video/avc"/>
                 <Item isVendor="false"/>
                 <Item alignment="0-0"/>
-                <Item width="2-1920"/>
-                <Item height="2-1080"/>
+                <Item width="2-3840"/>
+                <Item height="2-2160"/>
                 <Item bitrate="1-3000000"/>
                 <Item frameRate="1-30"/>
                 <Item blockPerFrame="1-32768"/>
                 <Item blockPerSecond="1-244800"/>
                 <Item blockSize="16x16"/>
-                <Item format="YUVI420,NV12,NV21"/>
+                <Item format="NV12,NV21"/>
                 <Item profiles="AVCBaseline,AVCMain,AVCHigh"/>
                 <Item measuredFrameRate="1920x1080@1-30,640x480@1-30"/>
             </VideoDecoder>
@@ -108,13 +107,13 @@
                 <Item mimeType="video/h263"/>
                 <Item isVendor="false"/>
                 <Item alignment="0-0" />
-                <Item width="2-1920"/>
-                <Item height="2-1080"/>
+                <Item width="2-3840"/>
+                <Item height="2-2160"/>
                 <Item bitrate="1-3000000"/>
                 <Item frameRate="1-30"/>
                 <Item blockSize="16x16"/>
                 <Item blockPerSecond="1-244800"/>
-                <Item format="YUVI420"/>
+                <Item format="NV12,NV21"/>
                 <Item profiles="H263Baseline,H263ISWV2,H263HighCompression"/>
                 <Item measuredFrameRate="1920x1080@1-30,640x480@1-30"/>
             </VideoDecoder>
@@ -124,13 +123,13 @@
                 <Item mimeType="video/mpeg2"/>
                 <Item isVendor="false"/>
                 <Item alignment="0-0"/>
-                <Item width="2-1920"/>
-                <Item height="2-1080"/>
+                <Item width="2-3840"/>
+                <Item height="2-2160"/>
                 <Item bitrate="1-3000000"/>
                 <Item frameRate="1-30"/>
                 <Item blockPerSecond="1-244800"/>
                 <Item blockSize="16x16"/>
-                <Item format="YUVI420,NV12,NV21"/>
+                <Item format="NV12,NV21"/>
                 <Item profiles="MPEG2Main,MPEG2Simple"/>
                 <Item measuredFrameRate="1920x1080@1-30,640x480@1-30"/>
             </VideoDecoder>
@@ -140,32 +139,15 @@
                 <Item mimeType="video/mp4v-es"/>
                 <Item isVendor="false"/>
                 <Item alignment="0-0"/>
-                <Item width="2-1920"/>
-                <Item height="2-1080"/>
+                <Item width="2-3840"/>
+                <Item height="2-2160"/>
                 <Item bitrate="1-3000000"/>
                 <Item frameRate="1-30"/>
                 <Item blockPerSecond="12-244800"/>
                 <Item blockSize="16x16"/>
-                <Item format="YUVI420"/>
+                <Item format="NV12,NV21"/>
                 <Item profiles="MPEG4Simple,MPEG4AdvancedSimple"/>
                 <Item measuredFrameRate="1920x1080@1-30,640x480@1-30"/>
-            </VideoDecoder>
-            <VideoDecoder>
-                <Item codecName="avdec_vp8"/>
-                <Item codecType="VIDEO_DECODER"/>
-                <Item mimeType="video/x-vnd.on2.vp8"/>
-                <Item isVendor="false"/>
-                <Item alignment="0-0"/>
-                <Item width="2-1920"/>
-                <Item height="2-1080"/>
-                <Item bitrate="1-3000000"/>
-                <Item frameRate="1-30"/>
-                <Item blockPerFrame="1-16384"/>
-                <Item blockPerSecond="1-244800"/>
-                <Item blockSize="16x16"/>
-                <Item format="YUVI420,NV12,NV21"/>
-                <Item profiles="VP8Main"/>
-                <Item measuredFrameRate="1920x1080@1-30"/>
             </VideoDecoder>
             <VideoEncoder>
                 <Item codecName="avenc_mpeg4"/>
@@ -180,9 +162,9 @@
                 <Item frameRate="1-30"/>
                 <Item blockPerSecond="1-36000"/>
                 <Item blockSize="16x16"/>
-                <Item format="YUVI420"/>
+                <Item format="YUVI420,NV21"/>
                 <Item profiles="MPEG4Simple,MPEG4AdvancedSimple"/>
-                <Item measuredFrameRate="1920x1080@1-4,640x480@1-30"/>
+                <Item measuredFrameRate="720x480@1-40"/>
             </VideoEncoder>
     </VideoCodecs>
 </Codecs>
