@@ -31,14 +31,14 @@ using namespace std;
 namespace {
 const std::string SURFACE_STRIDE_ALIGNMENT = "SURFACE_STRIDE_ALIGNMENT";
 const std::string SURFACE_FORMAT_KEY = "SURFACE_FORMAT";
-const float EPSINON = 0.0001;
-const float SPEED_0_75_X = 0.75;
-const float SPEED_1_00_X = 1.00;
-const float SPEED_1_25_X = 1.25;
-const float SPEED_1_75_X = 1.75;
-const float SPEED_2_00_X = 2.00;
-const int32_t PERCENT = 1;
-const int32_t TIME = 2;
+constexpr float EPSINON = 0.0001;
+constexpr float SPEED_0_75_X = 0.75;
+constexpr float SPEED_1_00_X = 1.00;
+constexpr float SPEED_1_25_X = 1.25;
+constexpr float SPEED_1_75_X = 1.75;
+constexpr float SPEED_2_00_X = 2.00;
+constexpr int32_t PERCENT = 1;
+constexpr int32_t TIME = 2;
 }
 
 // PlayerCallback override

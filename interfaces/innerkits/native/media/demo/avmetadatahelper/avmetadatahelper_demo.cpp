@@ -28,24 +28,24 @@
 
 namespace OHOS {
 namespace Media {
-static const int RGBA8888_PIXEL_BYTES = 4;
-static const int RGB888_PIXEL_BYTES = 3;
-static const int RGB565_PIXEL_BYTES = 2;
-static const unsigned short RGB565_MASK_RED = 0x001F;
-static const unsigned short RGB565_MASK_GREEN = 0x07E0;
-static const unsigned short RGB565_MASK_BLUE = 0xF800;
-static const unsigned int RGBA8888_MASK_RED = 0x00FF0000;
-static const unsigned int RGBA8888_MASK_GREEN = 0x0000FF00;
-static const unsigned int RGBA8888_MASK_BLUE = 0x000000FF;
-static const unsigned char SHIFT_2_BIT = 2;
-static const unsigned char SHITF_3_BIT = 3;
-static const unsigned char SHIFT_5_BIT = 5;
-static const unsigned char SHIFT_8_BIT = 8;
-static const unsigned char SHIFT_11_BIT = 11;
-static const unsigned char SHIFT_16_BIT = 16;
-static const unsigned char R_INDEX = 2;
-static const unsigned char G_INDEX = 1;
-static const unsigned char B_INDEX = 0;
+static constexpr int32_t RGBA8888_PIXEL_BYTES = 4;
+static constexpr int32_t RGB888_PIXEL_BYTES = 3;
+static constexpr int32_t RGB565_PIXEL_BYTES = 2;
+static constexpr uint16_t RGB565_MASK_RED = 0x001F;
+static constexpr uint16_t RGB565_MASK_GREEN = 0x07E0;
+static constexpr uint16_t RGB565_MASK_BLUE = 0xF800;
+static constexpr uint32_t RGBA8888_MASK_RED = 0x00FF0000;
+static constexpr uint32_t RGBA8888_MASK_GREEN = 0x0000FF00;
+static constexpr uint32_t RGBA8888_MASK_BLUE = 0x000000FF;
+static constexpr uint8_t SHIFT_2_BIT = 2;
+static constexpr uint8_t SHITF_3_BIT = 3;
+static constexpr uint8_t SHIFT_5_BIT = 5;
+static constexpr uint8_t SHIFT_8_BIT = 8;
+static constexpr uint8_t SHIFT_11_BIT = 11;
+static constexpr uint8_t SHIFT_16_BIT = 16;
+static constexpr uint8_t R_INDEX = 2;
+static constexpr uint8_t G_INDEX = 1;
+static constexpr uint8_t B_INDEX = 0;
 
 #define AVMETA_KEY_TO_STRING_MAP_ITEM(key) { key, #key }
 static const std::unordered_map<int32_t, std::string_view> AVMETA_KEY_TO_STRING_MAP = {
@@ -69,7 +69,7 @@ static const std::unordered_map<int32_t, std::string_view> AVMETA_KEY_TO_STRING_
 static struct jpeg_compress_struct jpeg;
 static struct jpeg_error_mgr jerr;
 
-static int Rgb888ToJpeg(const std::string_view &filename, const uint8_t *rgbData, int width, int height)
+static int32_t Rgb888ToJpeg(const std::string_view &filename, const uint8_t *rgbData, int32_t width, int32_t height)
 {
     if (rgbData == nullptr) {
         std::cout << "rgbData is nullptr" << std::endl;
@@ -78,13 +78,13 @@ static int Rgb888ToJpeg(const std::string_view &filename, const uint8_t *rgbData
 
     jpeg.err = jpeg_std_error(&jerr);
     jpeg_create_compress(&jpeg);
-    jpeg.image_width = static_cast<unsigned int>(width);
-    jpeg.image_height = static_cast<unsigned int>(height);
+    jpeg.image_width = static_cast<uint32_t>(width);
+    jpeg.image_height = static_cast<uint32_t>(height);
     jpeg.input_components = RGB888_PIXEL_BYTES;
     jpeg.in_color_space = JCS_RGB;
     jpeg_set_defaults(&jpeg);
 
-    static const int quality = 100;
+    static constexpr int32_t quality = 100;
     jpeg_set_quality(&jpeg, quality, TRUE);
 
     FILE *file = fopen(filename.data(), "wb");
@@ -109,7 +109,7 @@ static int Rgb888ToJpeg(const std::string_view &filename, const uint8_t *rgbData
 }
 
 // only valid for little-endian order.
-static int RGB565ToRGB888(const unsigned short *rgb565Buf, int rgb565Size, unsigned char *rgb888Buf, int rgb888Size)
+static int32_t RGB565ToRGB888(const uint16_t *rgb565Buf, int32_t rgb565Size, uint8_t *rgb888Buf, int32_t rgb888Size)
 {
     if (rgb565Buf == nullptr || rgb565Size <= 0 || rgb888Buf == nullptr || rgb888Size <= 0) {
         return -1;
@@ -119,7 +119,7 @@ static int RGB565ToRGB888(const unsigned short *rgb565Buf, int rgb565Size, unsig
         return -1;
     }
 
-    for (int i = 0; i < rgb565Size; i++) {
+    for (int32_t i = 0; i < rgb565Size; i++) {
         rgb888Buf[i * RGB888_PIXEL_BYTES + R_INDEX] = (rgb565Buf[i] & RGB565_MASK_RED);
         rgb888Buf[i * RGB888_PIXEL_BYTES + G_INDEX] = (rgb565Buf[i] & RGB565_MASK_GREEN) >> SHIFT_5_BIT;
         rgb888Buf[i * RGB888_PIXEL_BYTES + B_INDEX] = (rgb565Buf[i] & RGB565_MASK_BLUE) >> SHIFT_11_BIT;
@@ -131,7 +131,8 @@ static int RGB565ToRGB888(const unsigned short *rgb565Buf, int rgb565Size, unsig
     return 0;
 }
 
-static int RGBA8888ToRGB888(const unsigned int *rgba8888Buf, int rgba8888Size, unsigned char *rgb888Buf, int rgb888Size)
+static int32_t RGBA8888ToRGB888(const uint32_t *rgba8888Buf, int32_t rgba8888Size,
+    uint8_t *rgb888Buf, int32_t rgb888Size)
 {
     if (rgba8888Buf == nullptr || rgba8888Size <= 0 || rgb888Buf == nullptr || rgb888Size <= 0) {
         return -1;
@@ -141,7 +142,7 @@ static int RGBA8888ToRGB888(const unsigned int *rgba8888Buf, int rgba8888Size, u
         return -1;
     }
 
-    for (int i = 0; i < rgba8888Size; i++) {
+    for (int32_t i = 0; i < rgba8888Size; i++) {
         rgb888Buf[i * RGB888_PIXEL_BYTES + R_INDEX] = (rgba8888Buf[i] & RGBA8888_MASK_RED) >> SHIFT_16_BIT;
         rgb888Buf[i * RGB888_PIXEL_BYTES + G_INDEX] = (rgba8888Buf[i] & RGBA8888_MASK_GREEN) >> SHIFT_8_BIT;
         rgb888Buf[i * RGB888_PIXEL_BYTES + B_INDEX] = rgba8888Buf[i] & RGBA8888_MASK_BLUE;
@@ -228,7 +229,7 @@ void AVMetadataHelperDemo::GetMetadata(std::queue<std::string_view> &options)
     }
 }
 
-static int SaveRGB565Image(const std::shared_ptr<PixelMap> &frame, const std::string_view &filepath)
+static int32_t SaveRGB565Image(const std::shared_ptr<PixelMap> &frame, const std::string_view &filepath)
 {
     int32_t rgb888Size = (frame->GetByteCount() / RGB565_PIXEL_BYTES) * RGB888_PIXEL_BYTES;
     uint8_t *rgb888 = new (std::nothrow) uint8_t[rgb888Size];
@@ -237,7 +238,7 @@ static int SaveRGB565Image(const std::shared_ptr<PixelMap> &frame, const std::st
         return -1;
     }
     const uint16_t *rgb565Data = reinterpret_cast<const uint16_t *>(frame->GetPixels());
-    int ret = RGB565ToRGB888(rgb565Data, frame->GetByteCount() / RGB565_PIXEL_BYTES, rgb888, rgb888Size);
+    int32_t ret = RGB565ToRGB888(rgb565Data, frame->GetByteCount() / RGB565_PIXEL_BYTES, rgb888, rgb888Size);
     if (ret != 0) {
         std::cout << "convert rgb565 to rgb888 failed" << std::endl;
         delete [] rgb888;
@@ -250,7 +251,7 @@ static int SaveRGB565Image(const std::shared_ptr<PixelMap> &frame, const std::st
     return ret;
 }
 
-static int SaveRGBA8888Image(const std::shared_ptr<PixelMap> &frame, const std::string_view &filepath)
+static int32_t SaveRGBA8888Image(const std::shared_ptr<PixelMap> &frame, const std::string_view &filepath)
 {
     int32_t rgb888Size = (frame->GetByteCount() / RGBA8888_PIXEL_BYTES) * RGB888_PIXEL_BYTES;
     uint8_t *rgb888 = new (std::nothrow) uint8_t[rgb888Size];
@@ -259,7 +260,7 @@ static int SaveRGBA8888Image(const std::shared_ptr<PixelMap> &frame, const std::
         return -1;
     }
     const uint32_t *rgba8888Data = reinterpret_cast<const uint32_t *>(frame->GetPixels());
-    int ret = RGBA8888ToRGB888(rgba8888Data, frame->GetByteCount() / RGBA8888_PIXEL_BYTES, rgb888, rgb888Size);
+    int32_t ret = RGBA8888ToRGB888(rgba8888Data, frame->GetByteCount() / RGBA8888_PIXEL_BYTES, rgb888, rgb888Size);
     if (ret != 0) {
         std::cout << "convert rgba8888 to rgb888 failed" << std::endl;
         delete [] rgb888;
@@ -280,7 +281,7 @@ void AVMetadataHelperDemo::DoFetchFrame(int64_t timeUs, int32_t queryOption, con
         return;
     }
 
-    const uint8_t maxFilePathLength = 255;
+    constexpr uint8_t maxFilePathLength = 255;
     char filePath[maxFilePathLength];
     auto ret = sprintf_s(filePath, maxFilePathLength,
         "/data/media/test/time_%" PRIi64 "_option_%d_width_%d_height_%d_color_%d.jpg",
