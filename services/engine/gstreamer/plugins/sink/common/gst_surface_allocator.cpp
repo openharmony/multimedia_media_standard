@@ -14,6 +14,7 @@
  */
 
 #include "gst_surface_allocator.h"
+#include <sync_fence.h>
 #include "media_log.h"
 
 #define gst_surface_allocator_parent_class parent_class
@@ -50,6 +51,10 @@ GstSurfaceMemory *gst_surface_allocator_alloc(GstSurfaceAllocator *allocator,
     }
     if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK || surface_buffer == nullptr) {
         return nullptr;
+    }
+    OHOS::sptr<OHOS::SyncFence> autoFence = new(std::nothrow) OHOS::SyncFence(release_fence);
+    if (autoFence != nullptr) {
+        autoFence->Wait(100); // 100ms
     }
 
     GstSurfaceMemory *memory = reinterpret_cast<GstSurfaceMemory *>(g_slice_alloc0(sizeof(GstSurfaceMemory)));

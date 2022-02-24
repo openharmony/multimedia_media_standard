@@ -14,6 +14,7 @@
  */
 
 #include "gst_dec_surface.h"
+#include <sync_fence.h>
 #include "dec_surface_buffer_wrapper.h"
 #include "display_type.h"
 
@@ -90,6 +91,10 @@ extern "C" GstBuffer *SurfaceBufferToGstBuffer(void *surface, guint width, guint
     if (ret != SURFACE_ERROR_OK) {
         GST_ERROR_OBJECT(nullptr, "Failed to get surface output buffer");
         return nullptr;
+    }
+    sptr<SyncFence> autoFence = new(std::nothrow) SyncFence(releaseFence);
+    if (autoFence != nullptr) {
+        autoFence->Wait(100); // 100ms
     }
     Media::DecSurfaceBufferWrapper *surfaceBufferWrap =
         new(std::nothrow) Media::DecSurfaceBufferWrapper(producerSurface, surfaceBuffer);
