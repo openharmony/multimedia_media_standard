@@ -42,10 +42,10 @@ enum RecorderSourceKind : int32_t {
 };
 
 struct RecorderSourceDesc {
-    static const uint32_t RECORDER_SOURCE_KIND_MASK = 0xF00;
-    static const uint32_t RECORDER_VIDEO_SOURCE_KIND_MASK = 0x100;
-    static const uint32_t RECORDER_AUDIO_SOURCE_KIND_MASK = 0x200;
-    static const uint32_t RECORDER_SOURCE_INDEX_MASK = 0xFF;
+    static constexpr uint32_t RECORDER_SOURCE_KIND_MASK = 0xF00;
+    static constexpr uint32_t RECORDER_VIDEO_SOURCE_KIND_MASK = 0x100;
+    static constexpr uint32_t RECORDER_AUDIO_SOURCE_KIND_MASK = 0x200;
+    static constexpr uint32_t RECORDER_SOURCE_INDEX_MASK = 0xFF;
     /**
       Handle is currently represented as int32_t, and internal descripted as source kind mask + index :
       high 20bits(reserverd) + 4bits(source kind mask) + 8bits(index).

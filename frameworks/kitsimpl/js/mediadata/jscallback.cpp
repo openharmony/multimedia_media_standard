@@ -24,8 +24,7 @@ namespace Media {
 std::shared_ptr<JsCallback> JsCallback::Create(napi_env env, napi_value callback, const std::string &callbackName)
 {
     napi_ref ref = nullptr;
-    const int32_t refCount = 1;
-    napi_status status = napi_create_reference(env, callback, refCount, &ref);
+    napi_status status = napi_create_reference(env, callback, 1, &ref);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "create ref failed");
     std::shared_ptr<JsCallback> jsCallback = std::make_shared<JsCallback>(env, ref, callbackName);
     CHECK_AND_RETURN_RET_LOG(jsCallback != nullptr, nullptr, "failed to new jsCallback");

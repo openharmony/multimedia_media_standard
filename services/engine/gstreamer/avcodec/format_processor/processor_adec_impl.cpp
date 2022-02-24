@@ -19,7 +19,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "ProcessorAdecImpl"};
-    const uint32_t DEFAULT_BUFFER_SIZE = 30000;
+    constexpr uint32_t DEFAULT_BUFFER_SIZE = 30000;
     static const GstAudioChannelPosition CHANNEL_POSITION[6][6] = {
     {
         GST_AUDIO_CHANNEL_POSITION_MONO

@@ -24,7 +24,7 @@ G_DEFINE_TYPE(GstShMemAllocator, gst_shmem_allocator, GST_TYPE_ALLOCATOR);
 GST_DEBUG_CATEGORY_STATIC(gst_shmem_allocator_debug_category);
 #define GST_CAT_DEFAULT gst_shmem_allocator_debug_category
 
-static const uint32_t ALIGN_BYTES = 4;
+static constexpr uint32_t ALIGN_BYTES = 4;
 
 GstShMemAllocator *gst_shmem_allocator_new()
 {

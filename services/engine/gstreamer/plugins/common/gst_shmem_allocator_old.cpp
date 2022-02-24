@@ -23,7 +23,7 @@
 #define gst_shmem_allocator_old_parent_class parent_class
 G_DEFINE_TYPE(GstShMemAllocatorOld, gst_shmem_allocator_old, GST_TYPE_ALLOCATOR);
 
-static const uint32_t ALIGN_BYTES = 4;
+static constexpr uint32_t ALIGN_BYTES = 4;
 
 static GstMemory *gst_shmem_allocator_old_alloc(GstAllocator *allocator, gsize size, GstAllocationParams *params)
 {
