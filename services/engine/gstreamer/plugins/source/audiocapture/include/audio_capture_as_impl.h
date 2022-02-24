@@ -37,6 +37,7 @@ public:
     std::shared_ptr<AudioBuffer> GetBuffer() override;
 
 private:
+    uint64_t GetCurrentTime();
     std::unique_ptr<OHOS::AudioStandard::AudioCapturer> audioCapturer_ = nullptr;
     size_t bufferSize_ = 0; // minimum size of each buffer acquired from AudioServer
     uint64_t bufferDurationNs_ = 0; // each buffer
