@@ -184,6 +184,7 @@ int32_t AudioCaptureAsImpl::StopAudioCapture()
 
 uint64_t AudioCaptureAsImpl::GetCurrentTime()
 {
+    constexpr uint32_t SEC_TO_NS = 1000000000; // second to nano second
     struct timespec timestamp = {0, 0};
     clock_gettime(CLOCK_MONOTONIC, &timestamp);
     uint64_t time = (uint64_t)timestamp.tv_sec * SEC_TO_NS + (uint64_t)timestamp.tv_nsec;
