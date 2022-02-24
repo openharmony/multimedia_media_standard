@@ -230,8 +230,7 @@ const GstElement *GstPlayerVideoRendererCtrl::GetVideoSink() const
 int32_t GstPlayerVideoRendererCtrl::InitVideoSink(const GstElement *playbin)
 {
     if (videoCaps_ == nullptr) {
-        std::string formatName = GetVideoSinkFormat();
-        videoCaps_ = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, formatName.c_str(), nullptr);
+        videoCaps_ = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
         CHECK_AND_RETURN_RET_LOG(videoCaps_ != nullptr, MSERR_INVALID_OPERATION, "gst_caps_new_simple failed..");
 
         videoSink_ = GstPlayerVideoRendererCap::CreateVideoSink(videoCaps_, reinterpret_cast<gpointer>(this));
@@ -248,23 +247,6 @@ int32_t GstPlayerVideoRendererCtrl::InitVideoSink(const GstElement *playbin)
         queueSize_ = DEFAULT_BUFFER_NUM;
     }
     return MSERR_OK;
-}
-
-std::string GstPlayerVideoRendererCtrl::GetVideoSinkFormat() const
-{
-    std::string formatName = "NV12";
-    if (producerSurface_ != nullptr) {
-        const std::string surfaceFormat = "SURFACE_FORMAT";
-        std::string format = producerSurface_->GetUserData(surfaceFormat);
-        MEDIA_LOGD("surfaceFormat is %{public}s!", format.c_str());
-        if (format == std::to_string(PIXEL_FMT_RGBA_8888)) {
-            formatName = "RGBA";
-        } else {
-            formatName = "NV12";
-        }
-    }
-    MEDIA_LOGI("gst_caps_new_simple format is %{public}s!", formatName.c_str());
-    return formatName;
 }
 
 const sptr<Surface> GstPlayerVideoRendererCtrl::GetProducerSurface() const

@@ -43,7 +43,6 @@ public:
 
 private:
     BufferRequestConfig UpdateRequestConfig(const GstVideoMeta *videoMeta) const;
-    std::string GetVideoSinkFormat() const;
     void SetSurfaceTimeFromSysPara();
     void SetDumpFrameFromSysPara();
     void SetKpiLogFromSysPara();
