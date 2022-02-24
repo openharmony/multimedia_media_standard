@@ -182,10 +182,19 @@ int32_t AudioCaptureAsImpl::StopAudioCapture()
     return MSERR_OK;
 }
 
+uint64_t AudioCaptureAsImpl::GetCurrentTime()
+{
+    constexpr uint32_t SEC_TO_NS = 1000000000; // second to nano second
+    struct timespec timestamp = {0, 0};
+    clock_gettime(CLOCK_MONOTONIC, &timestamp);
+    uint64_t time = (uint64_t)timestamp.tv_sec * SEC_TO_NS + (uint64_t)timestamp.tv_nsec;
+    return time;
+}
+
 int32_t AudioCaptureAsImpl::PauseAudioCapture()
 {
     MEDIA_LOGD("PauseAudioCapture");
-    pausedTime_ = timestamp_;
+    pausedTime_ = GetCurrentTime();
 
     CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, MSERR_INVALID_OPERATION);
     if (audioCapturer_->GetStatus() == AudioStandard::CapturerState::CAPTURER_RUNNING) {
@@ -199,7 +208,7 @@ int32_t AudioCaptureAsImpl::PauseAudioCapture()
 int32_t AudioCaptureAsImpl::ResumeAudioCapture()
 {
     MEDIA_LOGD("ResumeAudioCapture");
-    resumeTime_ = timestamp_;
+    resumeTime_ = GetCurrentTime();
 
     if (resumeTime_ < pausedTime_) {
         MEDIA_LOGW("get wrong timestamp from audio services!");
