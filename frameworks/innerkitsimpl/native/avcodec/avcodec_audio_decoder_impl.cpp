@@ -107,10 +107,7 @@ int32_t AudioDecoderImpl::Reset()
 int32_t AudioDecoderImpl::Release()
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");
-    int32_t ret = codecService_->Release();
-    (void)MediaServiceFactory::GetInstance().DestroyAVCodecService(codecService_);
-    codecService_ = nullptr;
-    return ret;
+    return codecService_->Release();
 }
 
 std::shared_ptr<AVSharedMemory> AudioDecoderImpl::GetInputBuffer(uint32_t index)
