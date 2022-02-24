@@ -15,6 +15,7 @@
 
 #include "avcodec_venc_demo.h"
 #include <iostream>
+#include <sync_fence.h>
 #include "securec.h"
 #include "demo_log.h"
 #include "display_type.h"
@@ -104,6 +105,9 @@ void VEncDemo::GenerateData(uint32_t count, uint32_t fps)
             continue;
         }
         DEMO_CHECK_AND_BREAK_LOG(buffer != nullptr, "Fatal: SurfaceBuffer is nullptr");
+
+        sptr<SyncFence> tempFence = new SyncFence(fence);
+        tempFence->Wait(100); // 100ms
 
         auto addr = static_cast<uint8_t *>(buffer->GetVirAddr());
         if (addr == nullptr) {
