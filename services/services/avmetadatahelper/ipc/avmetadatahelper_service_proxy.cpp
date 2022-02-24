@@ -40,6 +40,7 @@ int32_t AVMetadataHelperServiceProxy::DestroyStub()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(AVMetadataHelperServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;

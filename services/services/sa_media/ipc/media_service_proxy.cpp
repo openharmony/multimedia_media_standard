@@ -39,10 +39,12 @@ sptr<IRemoteObject> MediaServiceProxy::GetSubSystemAbility(IStandardMediaService
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(MediaServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return nullptr;
     }
+
     data.WriteInt32(static_cast<int32_t>(subSystemId));
     int error = Remote()->SendRequest(MediaServiceMsg::GET_SUBSYSTEM, data, reply, option);
     if (error != MSERR_OK) {
@@ -58,10 +60,12 @@ int32_t MediaServiceProxy::SetListenerObject(const sptr<IRemoteObject> &object)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(MediaServiceProxy::GetDescriptor())) {
         MEDIA_LOGE("Failed to write descriptor");
         return MSERR_UNKNOWN;
     }
+
     (void)data.WriteRemoteObject(object);
     int error = Remote()->SendRequest(SET_LISTENER_OBJ, data, reply, option);
     if (error != MSERR_OK) {
