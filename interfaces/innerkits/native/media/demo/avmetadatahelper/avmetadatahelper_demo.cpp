@@ -131,7 +131,8 @@ static int32_t RGB565ToRGB888(const uint16_t *rgb565Buf, int32_t rgb565Size, uin
     return 0;
 }
 
-static int32_t RGBA8888ToRGB888(const uint32_t *rgba8888Buf, int32_t rgba8888Size, uint8_t *rgb888Buf, int32_t rgb888Size)
+static int32_t RGBA8888ToRGB888(const uint32_t *rgba8888Buf, int32_t rgba8888Size,
+    uint8_t *rgb888Buf, int32_t rgb888Size)
 {
     if (rgba8888Buf == nullptr || rgba8888Size <= 0 || rgb888Buf == nullptr || rgb888Size <= 0) {
         return -1;
