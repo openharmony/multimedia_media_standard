@@ -23,6 +23,7 @@
 #include "media_data_source_callback.h"
 #include "media_surface.h"
 #include "surface_utils.h"
+#include "string_ex.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "VideoPlayerNapi"};
@@ -221,7 +222,7 @@ napi_value VideoPlayerNapi::SetUrl(napi_env env, napi_callback_info info)
     if (jsPlayer->url_.find(fdHead) != std::string::npos) {
         std::string inputFd = jsPlayer->url_.substr(fdHead.size());
         if (!StrToInt(inputFd, fd) || fd < 0) {
-            jsPlayer->ErrorCallback(MSERR_EXT_INVALID_VAL);
+            jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
             return undefinedResult;
         }
 
@@ -231,7 +232,7 @@ napi_value VideoPlayerNapi::SetUrl(napi_env env, napi_callback_info info)
     }
 
     if (ret != MSERR_OK) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->OnErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
 
