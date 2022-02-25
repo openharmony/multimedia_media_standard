@@ -1,6 +1,6 @@
 {
     "name": "@ohos/multimedia_media_standard",
-    "description": "Media standard provides atomic capabilities: Player/Recorder/AVcodec/Demux/AVSplit/Metadata/Thumbnail",
+    "description": "Media standard provides atomic capabilities",
     "version": "3.1",
     "license": "Apache License 2.0",
     "publishAs": "code-segment",
@@ -10,7 +10,7 @@
     "dirs": {},
     "scripts": {},
     "component": {
-      "name": "media_standard",
+      "name": "multimedia_media_standard",
       "subsystem": "multimedia",
       "syscap": [ "SystemCapability.Multimedia.Media" ],
       "features": [],
