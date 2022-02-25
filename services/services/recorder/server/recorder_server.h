@@ -78,7 +78,6 @@ public:
 private:
     int32_t Init();
     bool CheckPermission();
-    bool GetSystemParam();
 
     std::unique_ptr<IRecorderEngine> recorderEngine_ = nullptr;
     std::shared_ptr<RecorderCallback> recorderCb_ = nullptr;
