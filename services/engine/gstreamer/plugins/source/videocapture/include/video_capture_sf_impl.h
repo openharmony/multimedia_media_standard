@@ -81,6 +81,7 @@ protected:
 
 private:
     void SetSurfaceUserData();
+    uint64_t GetCurrentTime();
     int32_t AcquireSurfaceBuffer();
     std::shared_ptr<VideoFrameBuffer> GetFrameBufferInner();
     void ProbeStreamType();

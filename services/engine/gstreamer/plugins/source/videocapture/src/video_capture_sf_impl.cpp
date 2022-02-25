@@ -84,16 +84,25 @@ int32_t VideoCaptureSfImpl::Start()
     return MSERR_OK;
 }
 
+uint64_t VideoCaptureSfImpl::GetCurrentTime()
+{
+    constexpr uint32_t SEC_TO_NS = 1000000000; // second to nano second
+    struct timespec timestamp = {0, 0};
+    clock_gettime(CLOCK_MONOTONIC, &timestamp);
+    uint64_t time = (uint64_t)timestamp.tv_sec * SEC_TO_NS + (uint64_t)timestamp.tv_nsec;
+    return time;
+}
+
 int32_t VideoCaptureSfImpl::Pause()
 {
-    pauseTime_ = pts_;
+    pauseTime_ = GetCurrentTime();
     pauseCount_++;
     return MSERR_OK;
 }
 
 int32_t VideoCaptureSfImpl::Resume()
 {
-    resumeTime_ = pts_;
+    resumeTime_ = GetCurrentTime();
     if (resumeTime_ < pauseTime_) {
         MEDIA_LOGW("get wrong timestamp from HDI!");
     }
