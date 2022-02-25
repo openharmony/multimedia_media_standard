@@ -220,9 +220,8 @@ napi_value VideoPlayerNapi::SetUrl(napi_env env, napi_callback_info info)
     MEDIA_LOGE("input url is %{public}s!", jsPlayer->url_.c_str());
     if (jsPlayer->url_.find(fdHead) != std::string::npos) {
         std::string inputFd = jsPlayer->url_.substr(fdHead.size());
-        if (!StrToInt(inputFd, fd) &|| fd < 0) {
-            
-            jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        if (!StrToInt(inputFd, fd) || fd < 0) {
+            jsPlayer->ErrorCallback(MSERR_EXT_INVALID_VAL);
             return undefinedResult;
         }
 
