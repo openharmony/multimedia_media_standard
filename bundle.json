@@ -5,77 +5,75 @@
     "license": "Apache License 2.0",
     "publishAs": "code-segment",
     "segment": {
-        "destPath": "foundation/multimedia/media_standard"
+      "destPath": "foundation/multimedia/media_standard"
     },
     "dirs": {},
     "scripts": {},
     "component": {
-        "name": "media_standard",
-        "subsystem": "multimedia",
-        "syscap": [],
-        "features": [],
-        "adapted_system_type": [
-            "media_standard"
+      "name": "media_standard",
+      "subsystem": "multimedia",
+      "syscap": [ "SystemCapability.Multimedia.Media" ],
+      "features": [],
+      "adapted_system_type": [ "standard" ],
+      "rom": "10000KB",
+      "ram": "10000KB",
+      "deps": {
+        "components": [
+          "ace_napi",
+          "ipc_core",
+          "libhilog",
+          "samgr_proxy",
+          "system_ability_fwk",
+          "libaccesstoken_sdk",
+          "bytrace_core",
+          "surface",
+          "sync_fence",
+          "image_native",
+          "audio_client"
         ],
-        "rom": "",
-        "ram": "",
-        "deps": {
-          "components": [
-              "ace_napi",
-              "ipc_core",
-              "libhilog",
-              "samgr_proxy",
-              "system_ability_fwk",
-              "libaccesstoken_sdk",
-              "bytrace_core",
-              "surface",
-              "sync_fence",
-              "image_native",
-              "audio_client"
-            ],
-            "third_party": [
-              "glib",
-              "gstreamer",
-              "libffi",
-              "ffmpeg",
-              "libsoup",
-              "libpsl",
-              "libgettext"
-            ]
-        },
-        "build": {
-          "sub_component": [
-            "//foundation/multimedia/media_standard/services:media_services_package",
-            "//foundation/multimedia/media_standard/sa_profile:media_service_sa_profile",
-            "//foundation/multimedia/media_standard/interfaces/kits/js/media:media",
-            "//foundation/multimedia/media_standard/interfaces/kits/js/media:media_js",
-            "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager",
-            "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/demo:media_demo"
-          ],
-          "inner_kits": [
-            {
-              "type": "none",
-              "name": "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_client",
-              "header": {
-                "header_files": [
-                    "player.h",
-                    "recorder.h",
-                    "avcodec_list.h"
-                ],
-                "header_base": "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include"
-              }
-            },
-            {
-              "type": "none",
-              "name": "//foundation/multimedia/media_standard/interfaces/kits/js/media:media",
-              "header": {
-                "header_files": [
-                     "native_module_ohos_media.h"
-                ],
-                "header_base": "//foundation/multimedia/media_standard/interfaces/kits/js/media/include"
-              }
+        "third_party": [
+          "glib",
+          "gstreamer",
+          "libffi",
+          "ffmpeg",
+          "libsoup",
+          "libpsl",
+          "libgettext"
+        ]
+      },
+      "build": {
+        "sub_component": [
+          "//foundation/multimedia/media_standard/services:media_services_package",
+          "//foundation/multimedia/media_standard/sa_profile:media_service_sa_profile",
+          "//foundation/multimedia/media_standard/interfaces/kits/js/media:media",
+          "//foundation/multimedia/media_standard/interfaces/kits/js/media:media_js",
+          "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager",
+          "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/demo:media_demo"
+        ],
+        "inner_kits": [
+          {
+            "type": "none",
+            "name": "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_client",
+            "header": {
+              "header_files": [
+                  "player.h",
+                  "recorder.h",
+                  "avcodec_list.h"
+              ],
+              "header_base": "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include"
             }
-          ]
-        }
+          },
+          {
+            "type": "none",
+            "name": "//foundation/multimedia/media_standard/interfaces/kits/js/media:media",
+            "header": {
+              "header_files": [
+                    "native_module_ohos_media.h"
+              ],
+              "header_base": "//foundation/multimedia/media_standard/interfaces/kits/js/media/include"
+            }
+          }
+        ]
+      }
     }
-}
+  }
