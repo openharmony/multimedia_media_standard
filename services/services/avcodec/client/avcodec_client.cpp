@@ -144,7 +144,10 @@ int32_t AVCodecClient::Release()
     CHECK_AND_RETURN_RET_LOG(codecProxy_ != nullptr, MSERR_NO_MEMORY, "codec service does not exist.");
 
     MEDIA_LOGD("Release");
-    return codecProxy_->Release();
+    int32_t ret = codecProxy_->Release();
+    (void)codecProxy_->DestroyStub();
+    codecProxy_ = nullptr;
+    return ret;
 }
 
 sptr<OHOS::Surface> AVCodecClient::CreateInputSurface()
