@@ -33,8 +33,8 @@ G_BEGIN_DECLS
     (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_SHMEM_WRAP_ALLOCATOR))
 #define GST_SHMEM_WRAP_ALLOCATOR_CAST(obj) ((GstShMemWrapAllocator*)(obj))
 
-typedef struct _GstShMemWrapAllocator GstShMemWrapAllocator;
-typedef struct _GstShMemWrapAllocatorClass GstShMemWrapAllocatorClass;
+using GstShMemWrapAllocator = struct _GstShMemWrapAllocator;
+using GstShMemWrapAllocatorClass = struct _GstShMemWrapAllocatorClass;
 
 struct _GstShMemWrapAllocator {
     GstAllocator parent;
@@ -46,7 +46,7 @@ struct _GstShMemWrapAllocatorClass {
 
 GType gst_shmem_wrap_allocator_get_type(void);
 
-GstShMemWrapAllocator *gst_shmem_wrap_allocator_new();
+GstShMemWrapAllocator *gst_shmem_wrap_allocator_new(void);
 GstMemory *gst_shmem_wrap(GstAllocator *allocator, std::shared_ptr<OHOS::Media::AVSharedMemory> shmem);
 
 G_END_DECLS
