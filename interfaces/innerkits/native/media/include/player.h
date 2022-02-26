@@ -172,7 +172,7 @@ public:
     virtual ~Player() = default;
 
     /**
-     * @brief Sets the playback source for the player. The corresponding source can be local file url
+     * @brief Sets the playback source for the player. The corresponding source can be http url
      *
      * @param url Indicates the playback source.
      * @return Returns {@link MSERR_OK} if the url is set successfully; returns an error code defined
@@ -204,7 +204,7 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    virtual int32_t SetSource(int32_t fd, int64_t offset, int64_t size) = 0;
+    virtual int32_t SetSource(int32_t fd, int64_t offset = 0, int64_t size = 0) = 0;
 
     /**
      * @brief Start playback.
