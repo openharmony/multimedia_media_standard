@@ -57,6 +57,17 @@ int32_t ProcessorVencImpl::ProcessOptional(const Format &format)
         (void)format.GetIntValue("codec_profile", profile_);
     }
 
+    switch (codecName_) {
+        case CODEC_MIMIE_TYPE_VIDEO_MPEG4:
+            gstProfile_ = MPEG4ProfileToGst(static_cast<MPEG4Profile>(profile_));
+            break;
+        case CODEC_MIMIE_TYPE_VIDEO_AVC:
+            gstProfile_ = AVCProfileToGst(static_cast<AVCProfile>(profile_));
+            break;
+        default:
+            break;
+    }
+
     return MSERR_OK;
 }
 
@@ -97,10 +108,11 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetOutputPortConfig()
             caps = gst_caps_new_simple("video/mpeg",
                 "mpegversion", G_TYPE_INT, 4,
                 "systemstream", G_TYPE_BOOLEAN, FALSE,
-                "profile", G_TYPE_STRING, "simple", nullptr);
+                "profile", G_TYPE_STRING, gstProfile_.c_str(), nullptr);
             break;
         case CODEC_MIMIE_TYPE_VIDEO_AVC:
             caps = gst_caps_new_simple("video/x-h264",
+                "profile", G_TYPE_STRING, gstProfile_.c_str(),
                 "stream-format", G_TYPE_STRING, "byte-stream", nullptr);
             break;
         default:

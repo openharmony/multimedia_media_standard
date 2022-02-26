@@ -42,6 +42,7 @@ private:
     int32_t profile_ = 0;
     int32_t bitrateMode_ = 0;
     std::string gstPixelFormat_;
+    std::string gstProfile_;
 };
 } // Media
 } // OHOS
