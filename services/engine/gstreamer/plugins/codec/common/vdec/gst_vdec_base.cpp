@@ -226,17 +226,17 @@ static GstStateChangeReturn gst_vdec_base_change_state(GstElement *element, GstS
 {
     g_return_val_if_fail(element != nullptr, GST_STATE_CHANGE_FAILURE);
     GstVdecBase *self = GST_VDEC_BASE(element);
-    GstVideoDecoder *decoder = GST_VIDEO_DECODER(self);
 
     GST_DEBUG_OBJECT(element, "change state %d", transition);
     switch (transition) {
         case GST_STATE_CHANGE_PAUSED_TO_READY :
+            GST_VIDEO_DECODER_STREAM_LOCK(self);
             if (self->decoder != nullptr) {
                 (void)self->decoder->Flush(GST_CODEC_ALL);
             }
             gst_vdec_base_set_flushing(self, TRUE);
 
-            gst_pad_stop_task(GST_VIDEO_DECODER_SRC_PAD(decoder));
+            GST_VIDEO_DECODER_STREAM_UNLOCK(self);
             break;
         default :
             break;
