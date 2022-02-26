@@ -20,7 +20,7 @@
 #define gst_shmem_wrap_allocator_parent_class parent_class
 G_DEFINE_TYPE(GstShMemWrapAllocator, gst_shmem_wrap_allocator, GST_TYPE_ALLOCATOR);
 
-GstShMemWrapAllocator *gst_shmem_wrap_allocator_new()
+GstShMemWrapAllocator *gst_shmem_wrap_allocator_new(void)
 {
     GstShMemWrapAllocator *alloc = GST_SHMEM_WRAP_ALLOCATOR_CAST(g_object_new(
         GST_TYPE_SHMEM_WRAP_ALLOCATOR, "name", "ShMemWrapAllocator", nullptr));
@@ -47,12 +47,12 @@ GstMemory *gst_shmem_wrap(GstAllocator *allocator, std::shared_ptr<OHOS::Media::
     return GST_MEMORY_CAST(memory);
 }
 
-GstMemory *gst_shmem_wrap_allocator_alloc(GstAllocator *allocator, gsize size, GstAllocationParams *params)
+static GstMemory *gst_shmem_wrap_allocator_alloc(GstAllocator *allocator, gsize size, GstAllocationParams *params)
 {
     return nullptr;
 }
 
-void gst_shmem_wrap_allocator_free(GstAllocator *allocator, GstMemory *memory)
+static void gst_shmem_wrap_allocator_free(GstAllocator *allocator, GstMemory *memory)
 {
     g_return_if_fail(memory != nullptr && allocator != nullptr);
     g_return_if_fail(gst_is_shmem_memory(memory));

@@ -20,17 +20,16 @@
 #include "gstappsrc.h"
 #include "gstbaseparse.h"
 
-enum
-{
-  PROP_0,
-  PROP_PATH,
-  PROP_FD,
-  PROP_MUX,
-  PROP_DEGREES,
-  PROP_LATITUDE,
-  PROP_LONGITUDE,
-  PROP_VIDEOPARSE_FLAG,
-  PROP_AUDIOPARSE_FLAG,
+enum {
+    PROP_0,
+    PROP_PATH,
+    PROP_FD,
+    PROP_MUX,
+    PROP_DEGREES,
+    PROP_LATITUDE,
+    PROP_LONGITUDE,
+    PROP_VIDEOPARSE_FLAG,
+    PROP_AUDIOPARSE_FLAG,
 };
 
 #define gst_mux_bin_parent_class parent_class
