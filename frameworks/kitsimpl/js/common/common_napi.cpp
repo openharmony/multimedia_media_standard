@@ -141,7 +141,7 @@ bool CommonNapi::GetFdArgument(napi_env env, napi_value value, AVFileDescriptor 
         rawFd.length = -1; // -1 means use default value
     }
 
-    MEDIA_LOGD("check fd argument, fd = %{public}d, offset = %{public}" PRIi64 ", size = %{public}" PRIi64 "",
+    MEDIA_LOGD("get fd argument, fd = %{public}d, offset = %{public}" PRIi64 ", size = %{public}" PRIi64 "",
         rawFd.fd, rawFd.offset, rawFd.length);
 
     return true;
