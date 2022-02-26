@@ -226,7 +226,7 @@ napi_value VideoPlayerNapi::SetUrl(napi_env env, napi_callback_info info)
             return undefinedResult;
         }
 
-        ret = jsPlayer->nativePlayer_->SetSource(fd, 0, 0);
+        ret = jsPlayer->nativePlayer_->SetSource(fd, 0, -1);
     } else if (jsPlayer->url_.find(httpHead) != std::string::npos) {
         ret = jsPlayer->nativePlayer_->SetSource(jsPlayer->url_);
     }
