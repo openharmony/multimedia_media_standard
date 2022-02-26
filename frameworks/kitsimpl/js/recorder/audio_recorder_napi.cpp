@@ -118,13 +118,17 @@ napi_value AudioRecorderNapi::Constructor(napi_env env, napi_callback_info info)
 
     recorderNapi->env_ = env;
     recorderNapi->recorderImpl_ = RecorderFactory::CreateRecorder();
-    CHECK_AND_RETURN_RET_LOG(recorderNapi->recorderImpl_ != nullptr, nullptr, "No memory");
+    if (recorderNapi->recorderImpl_ == nullptr) {
+        MEDIA_LOGE("failed to CreateRecorder");
+    }
 
     recorderNapi->taskQue_ = std::make_unique<TaskQueue>("RecorderNapi");
     (void)recorderNapi->taskQue_->Start();
 
-    recorderNapi->callbackNapi_ = std::make_shared<RecorderCallbackNapi>(env);
-    (void)recorderNapi->recorderImpl_->SetRecorderCallback(recorderNapi->callbackNapi_);
+    if (recorderNapi->callbackNapi_ == nullptr && recorderNapi->recorderImpl_ != nullptr) {
+        recorderNapi->callbackNapi_ = std::make_shared<RecorderCallbackNapi>(env);
+        (void)recorderNapi->recorderImpl_->SetRecorderCallback(recorderNapi->callbackNapi_);
+    }
 
     status = napi_wrap(env, jsThis, reinterpret_cast<void *>(recorderNapi),
         AudioRecorderNapi::Destructor, nullptr, &(recorderNapi->wrapper_));
