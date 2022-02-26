@@ -67,6 +67,7 @@ private:
     int32_t InitPlayEngine(const std::string &url);
     int32_t OnPrepare(bool async);
     void ResetFdSource();
+    bool CheckFdArgument(int64_t &offset, int64_t &size);
 
     std::unique_ptr<IPlayerEngine> playerEngine_ = nullptr;
     std::shared_ptr<PlayerCallback> playerCb_ = nullptr;
