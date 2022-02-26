@@ -124,9 +124,11 @@ napi_value VideoPlayerNapi::Constructor(napi_env env, napi_callback_info info)
 
     jsPlayer->env_ = env;
     jsPlayer->nativePlayer_ = PlayerFactory::CreatePlayer();
-    CHECK_AND_RETURN_RET_LOG(jsPlayer->nativePlayer_ != nullptr, nullptr, "failed to CreatePlayer");
+    if (jsPlayer->nativePlayer_ == nullptr) {
+        MEDIA_LOGE("failed to CreatePlayer");
+    }
 
-    if (jsPlayer->jsCallback_ == nullptr) {
+    if (jsPlayer->jsCallback_ == nullptr && jsPlayer->nativePlayer_ != nullptr) {
         jsPlayer->jsCallback_ = std::make_shared<VideoCallbackNapi>(env);
         (void)jsPlayer->nativePlayer_->SetPlayerCallback(jsPlayer->jsCallback_);
     }
@@ -764,28 +766,28 @@ napi_value VideoPlayerNapi::Release(napi_env env, napi_callback_info info)
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
         asyncContext->SignError(MSERR_EXT_INVALID_VAL, "failed to napi_get_cb_info");
-    }
+    } else {
+        asyncContext->callbackRef = CommonNapi::CreateReference(env, args[0]);
+        asyncContext->deferred = CommonNapi::CreatePromise(env, asyncContext->callbackRef, result);
 
-    asyncContext->callbackRef = CommonNapi::CreateReference(env, args[0]);
-    asyncContext->deferred = CommonNapi::CreatePromise(env, asyncContext->callbackRef, result);
+        // get jsPlayer
+        (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncContext->jsPlayer));
+        if (asyncContext->jsPlayer == nullptr || asyncContext->jsPlayer->nativePlayer_ == nullptr) {
+            asyncContext->SignError(MSERR_EXT_NO_MEMORY, "jsPlayer or nativePlayer_ is nullptr");
+        }
+        asyncContext->jsPlayer->ReleaseDataSource(asyncContext->jsPlayer->dataSrcCallBack_);
+        int32_t ret = asyncContext->jsPlayer->nativePlayer_->Release();
+        if (ret != MSERR_OK) {
+            asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to release");
+        }
 
-    // get jsPlayer
-    (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncContext->jsPlayer));
-    if (asyncContext->jsPlayer == nullptr || asyncContext->jsPlayer->nativePlayer_ == nullptr) {
-        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "jsPlayer or nativePlayer_ is nullptr");
-    }
-    asyncContext->jsPlayer->ReleaseDataSource(asyncContext->jsPlayer->dataSrcCallBack_);
-    int32_t ret = asyncContext->jsPlayer->nativePlayer_->Release();
-    if (ret != MSERR_OK) {
-        asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to release");
-    }
+        asyncContext->jsPlayer->jsCallback_ = nullptr;
+        asyncContext->jsPlayer->url_.clear();
 
-    asyncContext->jsPlayer->jsCallback_ = nullptr;
-    asyncContext->jsPlayer->url_.clear();
-
-    auto mediaSurface = MediaSurfaceFactory::CreateMediaSurface();
-    if (mediaSurface != nullptr) {
-        mediaSurface->Release();
+        auto mediaSurface = MediaSurfaceFactory::CreateMediaSurface();
+        if (mediaSurface != nullptr) {
+            mediaSurface->Release();
+        }
     }
 
     // async work
