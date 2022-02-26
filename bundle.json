@@ -1,5 +1,5 @@
 {
-    "name": "@ohos/multimedia_media_standard",
+    "name": "@ohos/media_standard",
     "description": "Media standard provides atomic capabilities",
     "version": "3.1",
     "license": "Apache License 2.0",
