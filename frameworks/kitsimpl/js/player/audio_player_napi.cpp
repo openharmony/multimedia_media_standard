@@ -235,7 +235,7 @@ napi_value AudioPlayerNapi::SetSrc(napi_env env, napi_callback_info info)
             return undefinedResult;
         }
 
-        ret = player->nativePlayer_->SetSource(fd, 0, 0);
+        ret = player->nativePlayer_->SetSource(fd, 0, -1);
     } else if (player->uri_.find(httpHead) != std::string::npos) {
         ret = player->nativePlayer_->SetSource(player->uri_);
     }
