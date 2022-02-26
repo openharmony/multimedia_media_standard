@@ -18,7 +18,7 @@
 
 namespace OHOS {
 namespace Media {
-const std::map<VideoPixelFormat, std::string> PIEXEL_TO_STRING = {
+const std::map<VideoPixelFormat, std::string> PIXEL_TO_STRING = {
     {YUVI420, "I420"},
     {NV12, "NV12"},
     {NV21, "NV21"},
@@ -44,6 +44,37 @@ const std::map<AudioRawFormat, std::string> PCM_TO_STRING = {
     {AUDIO_PCM_F32_LE, "F32LE"},
 };
 
+const std::map<MPEG4Profile, std::string> MPEG4_PROFILE_TO_STRING = {
+    {MPEG4_PROFILE_ADVANCED_CODING, "advanced-coding-efficiency"},
+    {MPEG4_PROFILE_ADVANCED_CORE, "advanced-core"},
+    {MPEG4_PROFILE_ADVANCED_REAL_TIME, "advanced-real-time"},
+    {MPEG4_PROFILE_ADVANCED_SCALABLE, "advanced-scalable-texture"},
+    {MPEG4_PROFILE_ADVANCED_SIMPLE, "advanced-simple"},
+    {MPEG4_PROFILE_BASIC_ANIMATED, "basic-animated-texture"},
+    {MPEG4_PROFILE_CORE, "core"},
+    {MPEG4_PROFILE_CORE_SCALABLE, "core-scalable"},
+    {MPEG4_PROFILE_HYBRID, "hybrid"},
+    {MPEG4_PROFILE_MAIN, "main"},
+    {MPEG4_PROFILE_NBIT, "n-bit"},
+    {MPEG4_PROFILE_SCALABLE_TEXTURE, "scalable"},
+    {MPEG4_PROFILE_SIMPLE, "simple"},
+    {MPEG4_PROFILE_SIMPLE_FBA, "simple-fba"},
+    {MPEG4_PROFILE_SIMPLE_FACE, "simple-face"},
+    {MPEG4_PROFILE_SIMPLE_SCALABLE, "simple-scalable"},
+};
+
+const std::map<AVCProfile, std::string> AVC_PROFILE_TO_STRING = {
+    {AVC_PROFILE_BASELINE, "baseline"},
+    {AVC_PROFILE_CONSTRAINED_BASELINE, "constrained-baseline"},
+    {AVC_PROFILE_CONSTRAINED_HIGH, "constrained-high"},
+    {AVC_PROFILE_EXTENDED, "extended"},
+    {AVC_PROFILE_HIGH, "high"},
+    {AVC_PROFILE_HIGH_10, "high-10"},
+    {AVC_PROFILE_HIGH_422, "high-4:2:2"},
+    {AVC_PROFILE_HIGH_444, "high-4:4:4"},
+    {AVC_PROFILE_MAIN, "main"},
+};
+
 const std::map<std::string, CodecMimeType> MIME_TO_CODEC_NAME = {
     {"video/h263", CODEC_MIMIE_TYPE_VIDEO_H263},
     {"video/avc", CODEC_MIMIE_TYPE_VIDEO_AVC},
@@ -58,8 +89,24 @@ const std::map<std::string, CodecMimeType> MIME_TO_CODEC_NAME = {
 
 std::string PixelFormatToGst(VideoPixelFormat pixel)
 {
-    if (PIEXEL_TO_STRING.count(pixel) != 0) {
-        return PIEXEL_TO_STRING.at(pixel);
+    if (PIXEL_TO_STRING.count(pixel) != 0) {
+        return PIXEL_TO_STRING.at(pixel);
+    }
+    return "Invalid";
+}
+
+std::string MPEG4ProfileToGst(MPEG4Profile profile)
+{
+    if (MPEG4_PROFILE_TO_STRING.count(profile) != 0) {
+        return MPEG4_PROFILE_TO_STRING.at(profile);
+    }
+    return "Invalid";
+}
+
+std::string AVCProfileToGst(AVCProfile profile)
+{
+    if (AVC_PROFILE_TO_STRING.count(profile) != 0) {
+        return AVC_PROFILE_TO_STRING.at(profile);
     }
     return "Invalid";
 }
