@@ -113,9 +113,11 @@ napi_value AudioPlayerNapi::Constructor(napi_env env, napi_callback_info info)
 
     playerNapi->env_ = env;
     playerNapi->nativePlayer_ = PlayerFactory::CreatePlayer();
-    CHECK_AND_RETURN_RET_LOG(playerNapi->nativePlayer_ != nullptr, nullptr, "No memory");
+    if (playerNapi->nativePlayer_ == nullptr) {
+        MEDIA_LOGE("failed to CreatePlayer");
+    }
 
-    if (playerNapi->callbackNapi_ == nullptr) {
+    if (playerNapi->callbackNapi_ == nullptr && playerNapi->nativePlayer_ != nullptr) {
         playerNapi->callbackNapi_ = std::make_shared<PlayerCallbackNapi>(env);
         (void)playerNapi->nativePlayer_->SetPlayerCallback(playerNapi->callbackNapi_);
     }
