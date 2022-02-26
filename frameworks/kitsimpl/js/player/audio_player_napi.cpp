@@ -231,7 +231,7 @@ napi_value AudioPlayerNapi::SetSrc(napi_env env, napi_callback_info info)
     if (player->uri_.find(fdHead) != std::string::npos) {
         std::string inputFd = player->uri_.substr(fdHead.size());
         if (!StrToInt(inputFd, fd) || fd < 0) {
-            player->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+            player->ErrorCallback(MSERR_EXT_INVALID_VAL);
             return undefinedResult;
         }
 
