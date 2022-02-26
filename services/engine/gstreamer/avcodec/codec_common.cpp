@@ -188,7 +188,7 @@ uint32_t CompressedBufSize(uint32_t width, uint32_t height, bool isEncoder, Code
         compressRatio = 3;
     }
 
-    const uint32_t maxSize = 3150000; // 3MB
+    constexpr uint32_t maxSize = 3150000; // 3MB
     if ((UINT32_MAX / width) <= (height / compressRatio)) {
         return maxSize;
     }

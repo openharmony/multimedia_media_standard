@@ -202,7 +202,7 @@ napi_value MediaCapsNapi::FindAudioDecoder(napi_env env, napi_callback_info info
     if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_object) {
         (void)AVCodecNapiUtil::ExtractMediaFormat(env, args[0], asyncCtx->format);
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[1]);
@@ -293,7 +293,7 @@ napi_value MediaCapsNapi::FindAudioEncoder(napi_env env, napi_callback_info info
     if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_object) {
         (void)AVCodecNapiUtil::ExtractMediaFormat(env, args[0], asyncCtx->format);
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[1]);
@@ -384,7 +384,7 @@ napi_value MediaCapsNapi::FindVideoDecoder(napi_env env, napi_callback_info info
     if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_object) {
         (void)AVCodecNapiUtil::ExtractMediaFormat(env, args[0], asyncCtx->format);
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[1]);
@@ -475,7 +475,7 @@ napi_value MediaCapsNapi::FindVideoEncoder(napi_env env, napi_callback_info info
     if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_object) {
         (void)AVCodecNapiUtil::ExtractMediaFormat(env, args[0], asyncCtx->format);
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[1]);

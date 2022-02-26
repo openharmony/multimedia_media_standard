@@ -21,11 +21,10 @@
 
 namespace OHOS {
 namespace Media {
-class AVMetadataHelperImpl : public AVMetadataHelper {
+class AVMetadataHelperImpl : public AVMetadataHelper, public NoCopyable {
 public:
     AVMetadataHelperImpl();
     ~AVMetadataHelperImpl();
-    DISALLOW_COPY_AND_MOVE(AVMetadataHelperImpl);
 
     int32_t SetSource(const std::string &uri, int32_t usage) override;
     std::string ResolveMetadata(int32_t key) override;

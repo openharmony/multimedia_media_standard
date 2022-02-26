@@ -45,8 +45,7 @@ void VideoCallbackNapi::SaveCallbackReference(const std::string &callbackName, n
         (callbackName == VIDEO_SIZE_CHANGED_CALLBACK_NAME) ||
         (callbackName == PLAYBACK_COMPLETED_CALLBACK_NAME)) {
         napi_ref callback = nullptr;
-        const int32_t refCount = 1;
-        napi_status status = napi_create_reference(env_, args, refCount, &callback);
+        napi_status status = napi_create_reference(env_, args, 1, &callback);
         CHECK_AND_RETURN_LOG(status == napi_ok && callback != nullptr, "creating reference for callback fail");
         std::shared_ptr<AutoRef> cb = std::make_shared<AutoRef>(env_, callback);
         if (callbackName == START_RENDER_FRAME_CALLBACK_NAME) {

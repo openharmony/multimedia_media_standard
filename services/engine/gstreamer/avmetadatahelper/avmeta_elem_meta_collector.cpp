@@ -171,7 +171,7 @@ std::shared_ptr<AVSharedMemory> AVMetaElemMetaCollector::DoFetchArtPicture(const
     size_t size = 0;
     (void)innerMeta.GetBuffer(INNER_META_KEY_IMAGE, &addr, size);
 
-    static const size_t maxImageSize = 1 * 1024 * 1024;
+    static constexpr size_t maxImageSize = 1 * 1024 * 1024;
     if (addr == nullptr || size == 0 || size > maxImageSize) {
         MEDIA_LOGW("invalid param, size = %{public}zu", size);
         return nullptr;
@@ -380,8 +380,8 @@ void AVMetaElemMetaCollector::QueryDuration(GstPad &pad)
         duration_ = streamDuration;
         MEDIA_LOGI("update duration to %{public}" PRIi64 "", duration_);
 
-        static const int32_t NASEC_PER_HALF_MILLISEC = 500000;
-        static const int32_t NASEC_PER_MILLISEC = 1000000;
+        static constexpr int32_t NASEC_PER_HALF_MILLISEC = 500000;
+        static constexpr int32_t NASEC_PER_MILLISEC = 1000000;
 
         int64_t milliSecond;
         if ((std::numeric_limits<int64_t>::max() - NASEC_PER_HALF_MILLISEC) < duration_) {

@@ -30,7 +30,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-class GstEngineFactory : public IEngineFactory {
+class GstEngineFactory : public IEngineFactory, public NoCopyable {
 public:
     GstEngineFactory() = default;
     ~GstEngineFactory() = default;
@@ -41,8 +41,6 @@ public:
     std::unique_ptr<IAVMetadataHelperEngine> CreateAVMetadataHelperEngine() override;
     std::unique_ptr<IAVCodecEngine> CreateAVCodecEngine() override;
     std::unique_ptr<IAVCodecListEngine> CreateAVCodecListEngine() override;
-
-    DISALLOW_COPY_AND_MOVE(GstEngineFactory);
 };
 
 int32_t GstEngineFactory::Score(Scene scene, const std::string &uri)

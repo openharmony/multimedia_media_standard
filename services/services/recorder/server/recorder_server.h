@@ -23,12 +23,11 @@
 
 namespace OHOS {
 namespace Media {
-class RecorderServer : public IRecorderService, public IRecorderEngineObs {
+class RecorderServer : public IRecorderService, public IRecorderEngineObs, public NoCopyable {
 public:
     static std::shared_ptr<IRecorderService> Create();
     RecorderServer();
     ~RecorderServer();
-    DISALLOW_COPY_AND_MOVE(RecorderServer);
 
     enum RecStatus {
         REC_INITIALIZED = 0,
@@ -79,7 +78,6 @@ public:
 private:
     int32_t Init();
     bool CheckPermission();
-    bool GetSystemParam();
 
     std::unique_ptr<IRecorderEngine> recorderEngine_ = nullptr;
     std::shared_ptr<RecorderCallback> recorderCb_ = nullptr;

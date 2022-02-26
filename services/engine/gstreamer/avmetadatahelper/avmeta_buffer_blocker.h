@@ -29,7 +29,7 @@ namespace Media {
  * Utility for easy to process the work that block buffer on one element's pads.
  * Only avaliable for avmeta_meta_collector.
  */
-class AVMetaBufferBlocker : public std::enable_shared_from_this<AVMetaBufferBlocker> {
+class AVMetaBufferBlocker : public std::enable_shared_from_this<AVMetaBufferBlocker>, public NoCopyable {
 public:
     using BufferRecievedNotifier = std::function<void(void)>;
     // direction == true means block srcpads's buffer
@@ -42,7 +42,6 @@ public:
     void Remove();
     void Hide();
 
-    DISALLOW_COPY_AND_MOVE(AVMetaBufferBlocker);
 private:
     static GstPadProbeReturn BlockCallback(GstPad *pad, GstPadProbeInfo *info, gpointer usrdata);
     static void PadAdded(GstElement *elem, GstPad *pad, gpointer userdata);

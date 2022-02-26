@@ -22,11 +22,11 @@
 
 namespace OHOS {
 namespace Media {
-class MediaDataSourceStub : public IRemoteStub<IStandardMediaDataSource> {
+class MediaDataSourceStub : public IRemoteStub<IStandardMediaDataSource>, public NoCopyable {
 public:
     explicit MediaDataSourceStub(const std::shared_ptr<IMediaDataSource> &dataSrc);
     virtual ~MediaDataSourceStub();
-    DISALLOW_COPY_AND_MOVE(MediaDataSourceStub);
+
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
     int32_t ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
     int32_t ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;

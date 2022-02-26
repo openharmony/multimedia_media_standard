@@ -23,12 +23,11 @@
 
 namespace OHOS {
 namespace Media {
-class AVMetadataHelperServer : public IAVMetadataHelperService {
+class AVMetadataHelperServer : public IAVMetadataHelperService, public NoCopyable {
 public:
     static std::shared_ptr<IAVMetadataHelperService> Create();
     AVMetadataHelperServer();
     virtual ~AVMetadataHelperServer();
-    DISALLOW_COPY_AND_MOVE(AVMetadataHelperServer);
 
     int32_t SetSource(const std::string &uri, int32_t usage) override;
     std::string ResolveMetadata(int32_t key) override;

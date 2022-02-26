@@ -161,7 +161,7 @@ static const std::vector<struct JsEnumInt> g_videoEncodeBitrateMode = {
     { "CQ", VideoEncodeBitrateMode::CQ },
 };
 
-static const std::vector<struct JsEnumInt> g_videoPixelformat = {
+static const std::vector<struct JsEnumInt> g_videoPixelFormat = {
     { "YUVI420", VideoPixelFormat::YUVI420 },
     { "NV12", VideoPixelFormat::NV12 },
     { "NV21", VideoPixelFormat::NV21 },
@@ -263,9 +263,9 @@ static const std::vector<struct JsEnumString> g_mediaDescriptionKey = {
     { "MD_KEY_MAX_ENCODER_FPS", "max_encoder_fps" },
     { "MD_KEY_WIDTH", "width" },
     { "MD_KEY_HEIGHT", "height" },
-    { "MD_KEY_PIXEL_FORMAT", "pixelformat" },
+    { "MD_KEY_PIXEL_FORMAT", "pixel_format" },
     { "MD_KEY_AUDIO_RAW_FORMAT", "audio_raw_format" },
-    { "MD_KEY_FRAME_RATE", "framerate" },
+    { "MD_KEY_FRAME_RATE", "frame_rate" },
     { "MD_KEY_CAPTURE_RATE", "capture_rate" },
     { "MD_KEY_I_FRAME_INTERVAL", "i_frame_interval" },
     { "MD_KEY_REQUEST_I_FRAME", "req_i_frame" },
@@ -300,7 +300,7 @@ static const std::map<std::string, const std::vector<struct JsEnumInt>&> g_intEn
     { "AudioRawFormat", g_audioRawFormat },
     { "AACProfile", g_AACProfile },
     { "VideoEncodeBitrateMode", g_videoEncodeBitrateMode },
-    { "VideoPixelformat", g_videoPixelformat },
+    { "VideoPixelFormat", g_videoPixelFormat },
     { "AVCProfile", g_AVCProfile },
     { "HEVCProfile", g_HEVCProfile },
     { "MPEG2Profile", g_MPEG2Profile },

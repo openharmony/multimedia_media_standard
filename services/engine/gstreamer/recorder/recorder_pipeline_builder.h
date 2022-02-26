@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace Media {
-class RecorderPipelineBuilder {
+class RecorderPipelineBuilder : public NoCopyable {
 public:
     RecorderPipelineBuilder();
     ~RecorderPipelineBuilder();
@@ -34,10 +34,7 @@ public:
     int32_t SetOutputFormat(OutputFormatType formatType);
     int32_t Configure(int32_t sourceId, const RecorderParam &param);
     std::shared_ptr<RecorderPipeline> Build();
-
     void Reset();
-
-    DISALLOW_COPY_AND_MOVE(RecorderPipelineBuilder);
 
 private:
     int32_t SetVideoSource(const RecorderSourceDesc &desc);
@@ -52,10 +49,16 @@ private:
     std::shared_ptr<RecorderPipelineDesc> pipelineDesc_;
     std::shared_ptr<RecorderPipeline> pipeline_;
     std::shared_ptr<RecorderElement> muxSink_;
+    std::shared_ptr<RecorderElement> videoSrcElem_;
+    std::shared_ptr<RecorderElement> videoEncElem_;
+    std::shared_ptr<RecorderElement> videoParseElem_;
+    std::shared_ptr<RecorderElement> videoConverElem_;
+
     bool outputFormatConfiged_ = false;
     std::unique_ptr<RecorderPipelineLinkHelper> linkHelper_;
     size_t videoSrcCount_ = 0;
     size_t otherSrcCount_ = 0;
+    int32_t currentCodeFormat_ = 0;
 };
 }
 }

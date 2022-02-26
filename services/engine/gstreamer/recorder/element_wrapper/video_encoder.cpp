@@ -19,6 +19,7 @@
 #include "media_log.h"
 #include "recorder_private_param.h"
 #include "i_recorder_engine.h"
+#include "avcodeclist_engine_gst_impl.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "VideoEncoder"};
@@ -32,20 +33,52 @@ int32_t VideoEncoder::Init()
     return MSERR_OK;
 }
 
-int32_t VideoEncoder::CreateElement()
+std::string VideoEncoder::GetEncorderName(std::string mimeType)
+{
+    auto codecList = std::make_unique<AVCodecListEngineGstImpl>();
+    CHECK_AND_RETURN_RET(codecList != nullptr, "");
+
+    Format format;
+    format.PutStringValue("codec_mime", mimeType);
+
+    std::string pluginName = codecList->FindVideoEncoder(format);
+    MEDIA_LOGI("Found plugin nmae: %{public}s", pluginName.c_str());
+    return pluginName;
+}
+
+int32_t VideoEncoder::CreateMpegElement()
 {
     if (gstElem_ != nullptr) {
         gst_object_unref(gstElem_);
         gstElem_ = nullptr;
     }
-    gstElem_ = gst_element_factory_make("avenc_mpeg4", name_.c_str());
+
+    std::string encorderName = GetEncorderName("video/mp4v-es");
+    gstElem_ = gst_element_factory_make(encorderName.c_str(), name_.c_str());
     if (gstElem_ == nullptr) {
-        MEDIA_LOGE("Create avenc_mpeg4 gst_element failed! sourceId: %{public}d", desc_.handle_);
+        MEDIA_LOGE("Create mpeg encorder gst_element failed! sourceId: %{public}d", desc_.handle_);
         return MSERR_INVALID_OPERATION;
     }
 
-    MEDIA_LOGI("use avenc_mpeg4");
+    MEDIA_LOGI("use %{public}s", encorderName.c_str());
+    return MSERR_OK;
+}
 
+int32_t VideoEncoder::CreateH264Element()
+{
+    if (gstElem_ != nullptr) {
+        gst_object_unref(gstElem_);
+        gstElem_ = nullptr;
+    }
+
+    std::string encorderName = GetEncorderName("video/avc");
+    gstElem_ = gst_element_factory_make(encorderName.c_str(), name_.c_str());
+    if (gstElem_ == nullptr) {
+        MEDIA_LOGE("Create h264 encorder gst_element failed! sourceId: %{public}d", desc_.handle_);
+        return MSERR_INVALID_OPERATION;
+    }
+
+    MEDIA_LOGI("use %{public}s", encorderName.c_str());
     return MSERR_OK;
 }
 
@@ -57,8 +90,13 @@ int32_t VideoEncoder::Configure(const RecorderParam &recParam)
         switch (encoderFormat_) {
             case VideoCodecFormat::VIDEO_DEFAULT:
             case VideoCodecFormat::MPEG4: {
-                int32_t ret = CreateElement();
-                CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "create video encorder failed");
+                int32_t ret = CreateMpegElement();
+                CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "create Mpeg4 encorder failed");
+                break;
+            }
+            case VideoCodecFormat::H264: {
+                int32_t ret = CreateH264Element();
+                CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "create H264 encorder failed");
                 break;
             }
             default:

@@ -21,11 +21,11 @@
 
 namespace OHOS {
 namespace Media {
-class MediaServiceProxy : public IRemoteProxy<IStandardMediaService> {
+class MediaServiceProxy : public IRemoteProxy<IStandardMediaService>, public NoCopyable {
 public:
     explicit MediaServiceProxy(const sptr<IRemoteObject> &impl);
     virtual ~MediaServiceProxy();
-    DISALLOW_COPY_AND_MOVE(MediaServiceProxy);
+
     sptr<IRemoteObject> GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId) override;
     int32_t SetListenerObject(const sptr<IRemoteObject> &object) override;
 

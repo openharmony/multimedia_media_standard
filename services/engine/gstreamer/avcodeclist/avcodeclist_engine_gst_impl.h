@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace Media {
-class AVCodecListEngineGstImpl : public IAVCodecListEngine {
+class AVCodecListEngineGstImpl : public IAVCodecListEngine, public NoCopyable {
 public:
     AVCodecListEngineGstImpl();
     ~AVCodecListEngineGstImpl();
@@ -31,7 +31,6 @@ public:
     std::string FindAudioDecoder(const Format &format) override;
     std::string FindAudioEncoder(const Format &format) override;
     std::vector<CapabilityData> GetCodecCapabilityInfos() override;
-    DISALLOW_COPY_AND_MOVE(AVCodecListEngineGstImpl);
 
 private:
     std::string FindTargetCodec(const Format &format,

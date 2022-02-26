@@ -23,7 +23,7 @@
 
 namespace OHOS {
 namespace Media {
-class AVCodecNapiHelper {
+class AVCodecNapiHelper : public NoCopyable {
 public:
     AVCodecNapiHelper() = default;
     ~AVCodecNapiHelper() = default;
@@ -36,7 +36,6 @@ public:
     void PushWork(AVCodecJSCallback *work);
     void RemoveWork(AVCodecJSCallback *work);
     void CancelAllWorks();
-    DISALLOW_COPY_AND_MOVE(AVCodecNapiHelper);
 
 private:
     std::atomic<bool> isEos_ = false;

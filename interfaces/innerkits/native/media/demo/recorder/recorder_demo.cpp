@@ -17,6 +17,7 @@
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
+#include <sync_fence.h>
 #include "display_type.h"
 #include "securec.h"
 #include "demo_log.h"
@@ -30,9 +31,13 @@ namespace {
     constexpr uint32_t FRAME_RATE = 30000;
     constexpr uint32_t CODEC_BUFFER_WIDTH = 1024;
     constexpr uint32_t CODEC_BUFFER_HEIGHT = 25;
+    constexpr uint32_t YUV_BUFFER_WIDTH = 1280;
+    constexpr uint32_t YUV_BUFFER_HEIGHT = 768;
     constexpr uint32_t STRIDE_ALIGN = 8;
     constexpr uint32_t FRAME_DURATION = 40000000;
     constexpr uint32_t RECORDER_TIME = 5;
+    constexpr uint32_t YUV_BUFFER_SIZE = 1474560; // 1280 * 768 * 3 / 2
+    constexpr uint32_t SEC_TO_NS = 1000000000;
     const string PURE_VIDEO = "1";
     const string PURE_AUDIO = "2";
     const string AUDIO_VIDEO = "3";
@@ -55,7 +60,7 @@ static VideoRecorderConfig g_videoRecorderConfig;
 static AudioRecorderConfig g_audioRecorderConfig;
 
 // config for surface buffer flush to the queue
-static OHOS::BufferFlushConfig g_flushConfig = {
+static OHOS::BufferFlushConfig g_esFlushConfig = {
     .damage = {
         .x = 0,
         .y = 0,
@@ -66,11 +71,32 @@ static OHOS::BufferFlushConfig g_flushConfig = {
 };
 
 // config for surface buffer request from the queue
-static OHOS::BufferRequestConfig g_requestConfig = {
+static OHOS::BufferRequestConfig g_esRequestConfig = {
     .width = CODEC_BUFFER_WIDTH,
     .height = CODEC_BUFFER_HEIGHT,
     .strideAlignment = STRIDE_ALIGN,
     .format = PIXEL_FMT_RGBA_8888,
+    .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+    .timeout = 0
+};
+
+// config for surface buffer flush to the queue
+static OHOS::BufferFlushConfig g_yuvFlushConfig = {
+    .damage = {
+        .x = 0,
+        .y = 0,
+        .w = YUV_BUFFER_WIDTH,
+        .h = YUV_BUFFER_HEIGHT
+    },
+    .timestamp = 0
+};
+
+// config for surface buffer request from the queue
+static OHOS::BufferRequestConfig g_yuvRequestConfig = {
+    .width = YUV_BUFFER_WIDTH,
+    .height = YUV_BUFFER_HEIGHT,
+    .strideAlignment = STRIDE_ALIGN,
+    .format = PIXEL_FMT_YCRCB_420_SP,
     .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
     .timeout = 0
 };
@@ -117,7 +143,15 @@ int32_t RecorderDemo::GetStubFile()
     return MSERR_OK;
 }
 
-void RecorderDemo::HDICreateBuffer()
+uint64_t RecorderDemo::GetPts()
+{
+    struct timespec timestamp = {0, 0};
+    clock_gettime(CLOCK_MONOTONIC, &timestamp);
+    uint64_t time = (uint64_t)timestamp.tv_sec * SEC_TO_NS + (uint64_t)timestamp.tv_nsec;
+    return time;
+}
+
+void RecorderDemo::HDICreateESBuffer()
 {
     // camera hdi loop to requeset buffer
     const uint32_t *frameLenArray = HIGH_VIDEO_FRAME_SIZE;
@@ -126,9 +160,12 @@ void RecorderDemo::HDICreateBuffer()
         usleep(FRAME_RATE);
         OHOS::sptr<OHOS::SurfaceBuffer> buffer;
         int32_t releaseFence;
-        OHOS::SurfaceError ret = producerSurface_->RequestBuffer(buffer, releaseFence, g_requestConfig);
+        OHOS::SurfaceError ret = producerSurface_->RequestBuffer(buffer, releaseFence, g_esRequestConfig);
         DEMO_CHECK_AND_CONTINUE_LOG(ret != OHOS::SURFACE_ERROR_NO_BUFFER, "surface loop full, no buffer now");
         DEMO_CHECK_AND_BREAK_LOG(ret == SURFACE_ERROR_OK && buffer != nullptr, "RequestBuffer failed");
+
+        sptr<SyncFence> tempFence = new SyncFence(releaseFence);
+        tempFence->Wait(100); // 100ms
 
         auto addr = static_cast<uint8_t *>(buffer->GetVirAddr());
         if (addr == nullptr) {
@@ -147,19 +184,20 @@ void RecorderDemo::HDICreateBuffer()
             (void)producerSurface_->CancelBuffer(buffer);
             break;
         }
-        errno_t mRet = memcpy_s(addr, *frameLenArray, tempBuffer, *frameLenArray);
-        if (mRet != EOK) {
-            (void)producerSurface_->CancelBuffer(buffer);
-            free(tempBuffer);
-            break;
+        (void)memcpy_s(addr, *frameLenArray, tempBuffer, *frameLenArray);
+
+        if (isStart_.load()) {
+            pts_= GetPts();
+            isStart_.store(false);
         }
+
         (void)buffer->ExtraSet("dataSize", static_cast<int32_t>(*frameLenArray));
         (void)buffer->ExtraSet("timeStamp", pts_);
         (void)buffer->ExtraSet("isKeyFrame", isKeyFrame_);
         count_++;
         (count_ % 30) == 0 ? (isKeyFrame_ = 1) : (isKeyFrame_ = 0); // keyframe every 30fps
         pts_ += FRAME_DURATION;
-        (void)producerSurface_->FlushBuffer(buffer, -1, g_flushConfig);
+        (void)producerSurface_->FlushBuffer(buffer, -1, g_esFlushConfig);
         frameLenArray++;
         free(tempBuffer);
     }
@@ -168,6 +206,69 @@ void RecorderDemo::HDICreateBuffer()
         file_->close();
     }
 }
+
+void RecorderDemo::HDICreateYUVBuffer()
+{
+    // camera hdi loop to requeset buffer
+    while (count_ < STUB_STREAM_SIZE) {
+        DEMO_CHECK_AND_BREAK_LOG(!isExit_.load(), "close camera hdi thread");
+        usleep(FRAME_RATE);
+        OHOS::sptr<OHOS::SurfaceBuffer> buffer;
+        int32_t releaseFence;
+        OHOS::SurfaceError ret = producerSurface_->RequestBuffer(buffer, releaseFence, g_yuvRequestConfig);
+        DEMO_CHECK_AND_CONTINUE_LOG(ret != OHOS::SURFACE_ERROR_NO_BUFFER, "surface loop full, no buffer now");
+        DEMO_CHECK_AND_BREAK_LOG(ret == SURFACE_ERROR_OK && buffer != nullptr, "RequestBuffer failed");
+
+        sptr<SyncFence> tempFence = new SyncFence(releaseFence);
+        tempFence->Wait(100); // 100ms
+
+        auto addr = static_cast<uint8_t *>(buffer->GetVirAddr());
+        if (addr == nullptr) {
+            cout << "GetVirAddr failed" << endl;
+            (void)producerSurface_->CancelBuffer(buffer);
+            break;
+        }
+        char *tempBuffer = static_cast<char *>(malloc(sizeof(char) * YUV_BUFFER_SIZE));
+        if (tempBuffer == nullptr) {
+            (void)producerSurface_->CancelBuffer(buffer);
+            break;
+        }
+        (void)memset_s(tempBuffer, YUV_BUFFER_SIZE, color_, YUV_BUFFER_SIZE);
+
+        srand((int)time(0));
+        for (uint32_t i = 0; i < YUV_BUFFER_SIZE - 1; i += 100) {  // 100 is the steps between noise
+            if (i >= YUV_BUFFER_SIZE - 1) {
+                break;
+            }
+            tempBuffer[i] = (unsigned char)(rand() % 255); // 255 is the size of yuv, add noise
+        }
+
+        color_ = color_ - 3; // 3 is the step of the pic change
+
+        if (color_ <= 0) {
+            color_ = 0xFF;
+        }
+
+        errno_t mRet = memcpy_s(addr, YUV_BUFFER_SIZE, tempBuffer, YUV_BUFFER_SIZE);
+        if (mRet != EOK) {
+            (void)producerSurface_->CancelBuffer(buffer);
+            free(tempBuffer);
+            break;
+        }
+        // get time
+        pts_= GetPts();
+
+        (void)buffer->ExtraSet("dataSize", static_cast<int32_t>(YUV_BUFFER_SIZE));
+        (void)buffer->ExtraSet("timeStamp", pts_);
+        (void)buffer->ExtraSet("isKeyFrame", isKeyFrame_);
+        count_++;
+        (count_ % 30) == 0 ? (isKeyFrame_ = 1) : (isKeyFrame_ = 0); // keyframe every 30fps
+        (void)producerSurface_->FlushBuffer(buffer, -1, g_yuvFlushConfig);
+        free(tempBuffer);
+    }
+    cout << "exit camera hdi loop" << endl;
+}
+
 
 int32_t RecorderDemo::CameraServicesForVideo() const
 {
@@ -248,6 +349,52 @@ int32_t RecorderDemo::SetFormat(const std::string &recorderType) const
     return MSERR_OK;
 }
 
+void RecorderDemo::SetVideoSource()
+{
+    string source;
+    cout << "set input video source" << endl;
+    cout << "yuv source : 1" << endl;
+    cout << "es source : 2" << endl;
+    cout << "pure audio dont need videosource : 3" << endl;
+    (void)getline(cin, source);
+
+    if (source == "1") {
+        cout << "select yuv source" << endl;
+        g_videoRecorderConfig.vSource = VIDEO_SOURCE_SURFACE_YUV;
+    } else if (source == "2") {
+        cout << "select es source" << endl;
+        g_videoRecorderConfig.vSource = VIDEO_SOURCE_SURFACE_ES;
+    } else if (source == "3") {
+        cout << "pure audio recorder type" << endl;
+    } else {
+        cout << "wrong source type, use yuv source as default" << endl;
+        g_videoRecorderConfig.vSource = VIDEO_SOURCE_SURFACE_YUV;
+    }
+}
+
+void RecorderDemo::SetVideoEncodeMode()
+{
+    string encodeMode;
+    cout << "yuv source need video encode" << endl;
+    cout << "select mpeg4 format : 1" << endl;
+    cout << "select h264 foramt : 2" << endl;
+    cout << "pure audio & es stream dont need select : 3" << endl;
+    (void)getline(cin, encodeMode);
+
+    if (encodeMode == "1") {
+        cout << "select mpeg4" << endl;
+        g_videoRecorderConfig.videoFormat = MPEG4;
+    } else if (encodeMode == "2") {
+        cout << "select h264" << endl;
+        g_videoRecorderConfig.videoFormat = H264;
+    } else if (encodeMode == "3") {
+        cout << "pure audio recorder type" << endl;
+    } else {
+        cout << "wrong source type, use mpeg4 as default" << endl;
+        g_videoRecorderConfig.videoFormat = MPEG4;
+    }
+}
+
 void RecorderDemo::RunCase()
 {
     recorder_ = OHOS::Media::RecorderFactory::CreateRecorder();
@@ -263,6 +410,9 @@ void RecorderDemo::RunCase()
     cout << "audio/video enter :  3" << endl;
     (void)getline(cin, recorderType);
 
+    SetVideoSource();
+    SetVideoEncodeMode();
+
     int32_t ret = SetFormat(recorderType);
     DEMO_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "SetFormat failed ");
 
@@ -274,10 +424,15 @@ void RecorderDemo::RunCase()
         producerSurface_ = recorder_->GetSurface(g_videoRecorderConfig.videoSourceId);
         DEMO_CHECK_AND_RETURN_LOG(producerSurface_ != nullptr, "GetSurface failed ");
 
-        ret = GetStubFile();
-        DEMO_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "GetStubFile failed ");
+        if (g_videoRecorderConfig.vSource == VIDEO_SOURCE_SURFACE_ES) {
+            cout << "es source stream, get from file" << endl;
+            ret = GetStubFile();
+            DEMO_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "GetStubFile failed ");
 
-        camereHDIThread_.reset(new(std::nothrow) std::thread(&RecorderDemo::HDICreateBuffer, this));
+            camereHDIThread_.reset(new(std::nothrow) std::thread(&RecorderDemo::HDICreateESBuffer, this));
+        } else {
+            camereHDIThread_.reset(new(std::nothrow) std::thread(&RecorderDemo::HDICreateYUVBuffer, this));
+        }
     }
 
     ret = recorder_->Start();

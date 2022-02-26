@@ -32,9 +32,9 @@ namespace OHOS {
 namespace Media {
 napi_ref AudioRecorderNapi::constructor_ = nullptr;
 const std::string CLASS_NAME = "AudioRecorder";
-const int32_t DEFAULT_AUDIO_ENCODER_BIT_RATE = 48000;
-const int32_t DEFAULT_AUDIO_SAMPLE_RATE = 48000;
-const int32_t DEFAULT_NUMBER_OF_CHANNELS = 2;
+constexpr int32_t DEFAULT_AUDIO_ENCODER_BIT_RATE = 48000;
+constexpr int32_t DEFAULT_AUDIO_SAMPLE_RATE = 48000;
+constexpr int32_t DEFAULT_NUMBER_OF_CHANNELS = 2;
 
 AudioRecorderNapi::AudioRecorderProperties::AudioRecorderProperties()
     : sourceType(AUDIO_SOURCE_DEFAULT),
@@ -585,9 +585,9 @@ napi_value AudioRecorderNapi::On(napi_env env, napi_callback_info info)
     napi_value undefinedResult = nullptr;
     napi_get_undefined(env, &undefinedResult);
 
-    static const size_t MIN_REQUIRED_ARG_COUNT = 2;
-    size_t argCount = MIN_REQUIRED_ARG_COUNT;
-    napi_value args[MIN_REQUIRED_ARG_COUNT] = { nullptr };
+    static constexpr size_t minArgCount = 2;
+    size_t argCount = minArgCount;
+    napi_value args[minArgCount] = { nullptr, nullptr };
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr || args[0] == nullptr || args[1] == nullptr) {
