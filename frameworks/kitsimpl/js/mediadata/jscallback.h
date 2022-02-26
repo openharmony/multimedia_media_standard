@@ -23,12 +23,12 @@
 
 namespace OHOS {
 namespace Media {
-class JsCallback {
+class JsCallback : public NoCopyable {
 public:
     static std::shared_ptr<JsCallback> Create(napi_env env, napi_value callback, const std::string &callbackName);
     JsCallback(napi_env env, napi_ref ref, const std::string &callbackName);
     ~JsCallback();
-    DISALLOW_COPY_AND_MOVE(JsCallback);
+
     napi_value GetCallback() const;
     std::string GetName() const;
 

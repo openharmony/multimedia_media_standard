@@ -150,7 +150,7 @@ void SinkSurfaceImpl::EosCb(GstMemSink *memSink, gpointer userData)
     CHECK_AND_RETURN(obs != nullptr);
 
     AVCodecBufferInfo info;
-    const uint32_t invalidIndex = 1000;
+    constexpr uint32_t invalidIndex = 1000;
     obs->OnOutputBufferAvailable(invalidIndex, info, AVCODEC_BUFFER_FLAG_EOS);
 }
 
@@ -180,7 +180,7 @@ int32_t SinkSurfaceImpl::HandleNewSampleCb(GstBuffer *buffer)
     AVCodecBufferInfo info;
     info.offset = 0;
     info.size = 0;
-    const uint64_t nsToUs = 1000;
+    constexpr uint64_t nsToUs = 1000;
     info.presentationTimeUs = GST_BUFFER_PTS(buffer) / nsToUs;
     obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
 
@@ -199,20 +199,12 @@ int32_t SinkSurfaceImpl::FindBufferIndex(uint32_t &index, sptr<SurfaceBuffer> bu
     index = 0;
     for (auto it = bufferList_.begin(); it != bufferList_.end(); it++) {
         if ((*it) != nullptr && (*it)->surfaceBuffer_->GetVirAddr() == buffer->GetVirAddr()) {
-            if ((*it) != nullptr) {
-                MEDIA_LOGD("(*it) != nullptr");
-            }
-            if ((*it)->surfaceBuffer_->GetVirAddr() == buffer->GetVirAddr()) {
-                MEDIA_LOGD("(*it)->surfaceBuffer_->GetPhyAddr() == buffer->GetPhyAddr()");
-            }
             break;
         }
         index++;
     }
-    MEDIA_LOGD("index is: %{public}d", index);
 
     if (index == bufferList_.size()) {
-        MEDIA_LOGD("found new output buffer");
         auto bufWrap = std::make_shared<BufferWrapper>(BufferWrapper::SERVER);
         CHECK_AND_RETURN_RET(bufWrap != nullptr, MSERR_NO_MEMORY);
         bufWrap->surfaceBuffer_ = buffer;

@@ -21,11 +21,11 @@
 
 namespace OHOS {
 namespace Media {
-class MediaDataSourceNapi {
+class MediaDataSourceNapi : public NoCopyable {
 public:
     MediaDataSourceNapi();
     ~MediaDataSourceNapi();
-    DISALLOW_COPY_AND_MOVE(MediaDataSourceNapi);
+
     static napi_value Init(napi_env env, napi_value exports);
     int32_t ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem);
     int32_t ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem);

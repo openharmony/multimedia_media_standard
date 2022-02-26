@@ -54,6 +54,7 @@ struct _GstSurfaceVideoSrc {
     gboolean need_codec_data;
     gboolean is_eos;
     gboolean is_flushing;
+    gboolean reset_caps;
 };
 
 struct _GstSurfaceVideoSrcClass {

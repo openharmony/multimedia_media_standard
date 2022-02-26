@@ -21,12 +21,11 @@
 
 namespace OHOS {
 namespace Media {
-class AVMetadataHelperClient : public IAVMetadataHelperService {
+class AVMetadataHelperClient : public IAVMetadataHelperService, public NoCopyable {
 public:
     static std::shared_ptr<AVMetadataHelperClient> Create(const sptr<IStandardAVMetadataHelperService> &ipcProxy);
     explicit AVMetadataHelperClient(const sptr<IStandardAVMetadataHelperService> &ipcProxy);
     ~AVMetadataHelperClient();
-    DISALLOW_COPY_AND_MOVE(AVMetadataHelperClient);
 
     // IAVMetadataHelperService override
     int32_t SetSource(const std::string &uri, int32_t usage) override;

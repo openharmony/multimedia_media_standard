@@ -21,11 +21,10 @@
 
 namespace OHOS {
 namespace Media {
-class ProcessorVdecImpl : public ProcessorBase {
+class ProcessorVdecImpl : public ProcessorBase, public NoCopyable {
 public:
     ProcessorVdecImpl();
     ~ProcessorVdecImpl() override;
-    DISALLOW_COPY_AND_MOVE(ProcessorVdecImpl);
 
     std::shared_ptr<ProcessorConfig> GetInputPortConfig() override;
     std::shared_ptr<ProcessorConfig> GetOutputPortConfig() override;

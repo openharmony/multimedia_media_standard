@@ -21,11 +21,10 @@
 
 namespace OHOS {
 namespace Media {
-class ProcessorVencImpl : public ProcessorBase {
+class ProcessorVencImpl : public ProcessorBase, public NoCopyable {
 public:
     ProcessorVencImpl();
     ~ProcessorVencImpl() override;
-    DISALLOW_COPY_AND_MOVE(ProcessorVencImpl);
 
     std::shared_ptr<ProcessorConfig> GetInputPortConfig() override;
     std::shared_ptr<ProcessorConfig> GetOutputPortConfig() override;
@@ -40,6 +39,7 @@ private:
     int32_t pixelFormat_ = 0;
     int32_t frameRate_ = 0;
     int32_t profile_ = 0;
+    int32_t keyFrameInterval_ = 0;
     int32_t bitrateMode_ = 0;
     std::string gstPixelFormat_;
     std::string gstProfile_;

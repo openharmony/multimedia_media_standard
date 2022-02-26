@@ -162,10 +162,10 @@ napi_value MediaVideoCapsNapi::IsSizeSupported(napi_env env, napi_callback_info 
     napi_valuetype valueType = napi_undefined;
     if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_number &&
         args[1] != nullptr && napi_typeof(env, args[1], &valueType) == napi_ok && valueType == napi_number) {
-        (void)CommonNapi::GetPropertyInt32(env, args[0], "width", asyncCtx->width_);
-        (void)CommonNapi::GetPropertyInt32(env, args[1], "height", asyncCtx->height_);
+        (void)napi_get_value_int32(env, args[0], &asyncCtx->width_);
+        (void)napi_get_value_int32(env, args[1], &asyncCtx->height_);
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[2]);
@@ -211,10 +211,10 @@ napi_value MediaVideoCapsNapi::GetSupportedFrameRate(napi_env env, napi_callback
     napi_valuetype valueType = napi_undefined;
     if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_number &&
         args[1] != nullptr && napi_typeof(env, args[1], &valueType) == napi_ok && valueType == napi_number) {
-        (void)CommonNapi::GetPropertyInt32(env, args[0], "width", asyncCtx->width_);
-        (void)CommonNapi::GetPropertyInt32(env, args[1], "height", asyncCtx->height_);
+        (void)napi_get_value_int32(env, args[0], &asyncCtx->width_);
+        (void)napi_get_value_int32(env, args[1], &asyncCtx->height_);
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[2]);
@@ -260,10 +260,10 @@ napi_value MediaVideoCapsNapi::GetPreferredFrameRate(napi_env env, napi_callback
     napi_valuetype valueType = napi_undefined;
     if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_number &&
         args[1] != nullptr && napi_typeof(env, args[1], &valueType) == napi_ok && valueType == napi_number) {
-        (void)CommonNapi::GetPropertyInt32(env, args[0], "width", asyncCtx->width_);
-        (void)CommonNapi::GetPropertyInt32(env, args[1], "height", asyncCtx->height_);
+        (void)napi_get_value_int32(env, args[0], &asyncCtx->width_);
+        (void)napi_get_value_int32(env, args[1], &asyncCtx->height_);
     } else {
-        asyncCtx->SignError(MSERR_INVALID_VAL, "Illegal argument");
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[2]);

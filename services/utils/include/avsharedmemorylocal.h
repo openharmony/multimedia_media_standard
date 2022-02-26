@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace Media {
-class AVSharedMemoryLocal : public AVSharedMemory {
+class AVSharedMemoryLocal : public AVSharedMemory, public NoCopyable {
 public:
     AVSharedMemoryLocal(int32_t size, uint32_t flags, const std::string &name);
     ~AVSharedMemoryLocal();
@@ -35,8 +35,6 @@ public:
     uint8_t *GetBase() override;
     int32_t GetSize() override;
     uint32_t GetFlags() override;
-
-    DISALLOW_COPY_AND_MOVE(AVSharedMemoryLocal);
 
 private:
     uint8_t *base_;

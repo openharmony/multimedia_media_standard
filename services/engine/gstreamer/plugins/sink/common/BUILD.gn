@@ -39,6 +39,7 @@ config("gst_mem_sink_plugins_config") {
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
     "//foundation/multimedia/media_standard/services/utils/include",
+    "//foundation/graphic/standard/utils/sync_fence/export",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/gstreamer/gstplugins_base",
@@ -62,6 +63,7 @@ ohos_static_library("gst_mem_sink_plugins_common") {
 
   deps = [
     "//foundation/graphic/standard:libsurface",
+    "//foundation/graphic/standard/utils:sync_fence",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_plugins_common",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",

@@ -25,6 +25,7 @@
 #include "param_wrapper.h"
 #include "media_errors.h"
 #include "surface_buffer_impl.h"
+#include "gst_mem_sink.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "GstPlayerVideoRendererCtrl"};
@@ -46,9 +47,9 @@ public:
     using DataAvailableFunc = GstFlowReturn (*)(const GstElement *appsink, gpointer userData);
     static GstElement *CreateAudioSink(const GstCaps *caps, const DataAvailableFunc callback, const gpointer userData);
     static GstElement *CreateVideoSink(const GstCaps *caps, const gpointer userData);
-    static GstFlowReturn VideoDataAvailableCb(const GstElement *appsink, const gpointer userData);
-    static GstFlowReturn PrerollArrivedCb(const GstElement *appsink, const gpointer userData);
     static GstPadProbeReturn SinkPadProbeCb(GstPad *pad, GstPadProbeInfo *info, gpointer userData);
+    static void EosCb(GstMemSink *memSink, gpointer userData);
+    static GstFlowReturn NewSampleCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData);
 };
 
 struct _PlayerVideoRenderer {
@@ -135,47 +136,32 @@ GstElement *GstPlayerVideoRendererCap::CreateVideoSink(const GstCaps *caps, cons
     MEDIA_LOGI("CreateVideoSink in.");
     CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "input caps is nullptr..");
     CHECK_AND_RETURN_RET_LOG(userData != nullptr, nullptr, "input userData is nullptr..");
+    GstPlayerVideoRendererCtrl *rendererCtrl = reinterpret_cast<GstPlayerVideoRendererCtrl *>(userData);
 
-    auto sink = gst_element_factory_make("appsink", nullptr);
+    auto sink = gst_element_factory_make("surfacememsink", "sink");
     CHECK_AND_RETURN_RET_LOG(sink != nullptr, nullptr, "gst_element_factory_make failed..");
+    gst_base_sink_set_async_enabled(GST_BASE_SINK(sink), FALSE);
 
     g_object_set(G_OBJECT(sink), "caps", caps, nullptr);
-    g_object_set(G_OBJECT(sink), "emit-signals", TRUE, nullptr);
+    g_object_set(G_OBJECT(sink), "surface", static_cast<gpointer>(rendererCtrl->GetProducerSurface()), nullptr);
 
-    GstPad *pad = gst_element_get_static_pad(sink, "sink");
-    if (pad == nullptr) {
-        gst_object_unref(sink);
-        MEDIA_LOGE("gst_element_get_static_pad failed..");
-        return nullptr;
-    }
-
-    (void)gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_QUERY_DOWNSTREAM, SinkPadProbeCb, userData, nullptr);
+    GstMemSinkCallbacks sinkCallbacks = { EosCb, nullptr, NewSampleCb };
+    gst_mem_sink_set_callback(GST_MEM_SINK(sink), &sinkCallbacks, userData, nullptr);
     return sink;
 }
 
-GstFlowReturn GstPlayerVideoRendererCap::VideoDataAvailableCb(const GstElement *appsink, const gpointer userData)
+void GstPlayerVideoRendererCap::EosCb(GstMemSink *memSink, gpointer userData)
 {
-    (void)appsink;
-    CHECK_AND_RETURN_RET_LOG(userData != nullptr, GST_FLOW_ERROR, "userData is nullptr..");
-
-    auto ctrl = reinterpret_cast<GstPlayerVideoRendererCtrl *>(userData);
-    int32_t ret = ctrl->PullVideoBuffer();
-    if (ret != MSERR_OK) {
-        MEDIA_LOGE("Failed to PullVideoBuffer!");
-    }
-    return GST_FLOW_OK;
+    (void)memSink;
+    (void)userData;
+    MEDIA_LOGI("EOS in");
 }
 
-GstFlowReturn GstPlayerVideoRendererCap::PrerollArrivedCb(const GstElement *appsink, const gpointer userData)
+GstFlowReturn GstPlayerVideoRendererCap::NewSampleCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData)
 {
-    (void)appsink;
-    CHECK_AND_RETURN_RET_LOG(userData != nullptr, GST_FLOW_ERROR, "userData is nullptr..");
-
-    auto ctrl = reinterpret_cast<GstPlayerVideoRendererCtrl *>(userData);
-    int32_t ret = ctrl->PrerollVideoBuffer();
-    if (ret != MSERR_OK) {
-        MEDIA_LOGE("Failed to PrerollVideoBuffer!");
-    }
+    (void)userData;
+    MEDIA_LOGI("NewSampleCb in");
+    CHECK_AND_RETURN_RET(gst_mem_sink_app_render(memSink, sample) == GST_FLOW_OK, GST_FLOW_ERROR);
     return GST_FLOW_OK;
 }
 
@@ -207,6 +193,7 @@ GstPlayerVideoRendererCtrl::GstPlayerVideoRendererCtrl(const sptr<Surface> &surf
     SetSurfaceTimeFromSysPara();
     SetDumpFrameFromSysPara();
     SetDumpFrameInternalFromSysPara();
+    SetKpiLogFromSysPara();
 }
 
 GstPlayerVideoRendererCtrl::~GstPlayerVideoRendererCtrl()
@@ -243,20 +230,15 @@ const GstElement *GstPlayerVideoRendererCtrl::GetVideoSink() const
 int32_t GstPlayerVideoRendererCtrl::InitVideoSink(const GstElement *playbin)
 {
     if (videoCaps_ == nullptr) {
-        std::string formatName = GetVideoSinkFormat();
-        videoCaps_ = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, formatName.c_str(), nullptr);
+        videoCaps_ = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
         CHECK_AND_RETURN_RET_LOG(videoCaps_ != nullptr, MSERR_INVALID_OPERATION, "gst_caps_new_simple failed..");
 
         videoSink_ = GstPlayerVideoRendererCap::CreateVideoSink(videoCaps_, reinterpret_cast<gpointer>(this));
         CHECK_AND_RETURN_RET_LOG(videoSink_ != nullptr, MSERR_INVALID_OPERATION, "CreateVideoSink failed..");
-
-        gulong signalId = g_signal_connect(G_OBJECT(videoSink_), "new_sample",
-            G_CALLBACK(GstPlayerVideoRendererCap::VideoDataAvailableCb), reinterpret_cast<gpointer>(this));
-        signalIds_.push_back(signalId);
-
-        signalId = g_signal_connect(G_OBJECT(videoSink_), "new_preroll",
-            G_CALLBACK(GstPlayerVideoRendererCap::PrerollArrivedCb), reinterpret_cast<gpointer>(this));
-        signalIds_.push_back(signalId);
+        if (audioSink_) {
+            g_object_set(GST_BASE_SINK_CAST(videoSink_), "audio-sink", audioSink_,
+                "enable-kpi-log", static_cast<gboolean>(kpiLogEnable_), nullptr);
+        }
 
         g_object_set(const_cast<GstElement *>(playbin), "video-sink", videoSink_, nullptr);
     }
@@ -267,21 +249,9 @@ int32_t GstPlayerVideoRendererCtrl::InitVideoSink(const GstElement *playbin)
     return MSERR_OK;
 }
 
-std::string GstPlayerVideoRendererCtrl::GetVideoSinkFormat() const
+const sptr<Surface> GstPlayerVideoRendererCtrl::GetProducerSurface() const
 {
-    std::string formatName = "NV21";
-    if (producerSurface_ != nullptr) {
-        const std::string surfaceFormat = "SURFACE_FORMAT";
-        std::string format = producerSurface_->GetUserData(surfaceFormat);
-        MEDIA_LOGD("surfaceFormat is %{public}s!", format.c_str());
-        if (format == std::to_string(PIXEL_FMT_RGBA_8888)) {
-            formatName = "RGBA";
-        } else {
-            formatName = "NV21";
-        }
-    }
-    MEDIA_LOGI("gst_caps_new_simple format is %{public}s!", formatName.c_str());
-    return formatName;
+    return producerSurface_;
 }
 
 int32_t GstPlayerVideoRendererCtrl::InitAudioSink(const GstElement *playbin)
@@ -313,15 +283,6 @@ int32_t GstPlayerVideoRendererCtrl::PullVideoBuffer()
 {
     CHECK_AND_RETURN_RET_LOG(videoSink_ != nullptr, MSERR_INVALID_OPERATION, "videoSink_ is nullptr..");
 
-    if (firstRenderFrame_) {
-        std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
-        if (tempObs != nullptr) {
-            Format format;
-            tempObs->OnInfo(INFO_TYPE_MESSAGE, PlayerMessageType::PLAYER_INFO_VIDEO_RENDERING_START, format);
-            firstRenderFrame_ = false;
-        }
-    }
-
     GstSample *sample = nullptr;
     g_signal_emit_by_name(G_OBJECT(videoSink_), "pull-sample", &sample);
     CHECK_AND_RETURN_RET_LOG(sample != nullptr, MSERR_INVALID_OPERATION, "sample is nullptr..");
@@ -336,6 +297,20 @@ int32_t GstPlayerVideoRendererCtrl::PullVideoBuffer()
     int32_t ret = UpdateSurfaceBuffer(*buf);
     if (ret != MSERR_OK) {
         MEDIA_LOGE("Failed to update surface buffer and please provide the sptr<Surface>!");
+        gst_sample_unref(sample);
+        return ret;
+    }
+
+    flushBufferNums_++;
+    KpiFpsLog();
+    if (firstRenderFrame_) {
+        std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
+        if (tempObs != nullptr) {
+            Format format;
+            tempObs->OnInfo(INFO_TYPE_MESSAGE, PlayerMessageType::PLAYER_INFO_VIDEO_RENDERING_START, format);
+            firstRenderFrame_ = false;
+            MEDIA_LOGW("KPI-TRACE: FIRST-VIDEO-FRAME rendered");
+        }
     }
 
     gst_sample_unref(sample);
@@ -345,6 +320,11 @@ int32_t GstPlayerVideoRendererCtrl::PullVideoBuffer()
 int32_t GstPlayerVideoRendererCtrl::PrerollVideoBuffer()
 {
     CHECK_AND_RETURN_RET_LOG(videoSink_ != nullptr, MSERR_INVALID_OPERATION, "videoSink_ is nullptr..");
+
+    if (firstRenderFrame_) {
+        MEDIA_LOGI("first frame, do not render it when preroll");
+        return MSERR_OK;
+    }
 
     GstSample *sample = nullptr;
     g_signal_emit_by_name(G_OBJECT(videoSink_), "pull-preroll", &sample);
@@ -397,6 +377,24 @@ void GstPlayerVideoRendererCtrl::SetDumpFrameFromSysPara()
         dumpFrameEnable_ = true;
     } else if (dumpFrameEnable == "false") {
         dumpFrameEnable_ = false;
+    }
+}
+
+void GstPlayerVideoRendererCtrl::SetKpiLogFromSysPara()
+{
+    std::string kpiLogEnable;
+    int32_t res = OHOS::system::GetStringParameter("sys.media.kpi.log.enable", kpiLogEnable, "");
+    if (res != 0 || kpiLogEnable.empty()) {
+        kpiLogEnable_ = false;
+        MEDIA_LOGD("sys.media.kpi.log.enable=false");
+        return;
+    }
+    MEDIA_LOGD("sys.media.kpi.log.enable=%{public}s", kpiLogEnable.c_str());
+
+    if (kpiLogEnable == "true") {
+        kpiLogEnable_ = true;
+    } else if (kpiLogEnable == "false") {
+        kpiLogEnable_ = false;
     }
 }
 
@@ -574,6 +572,25 @@ void GstPlayerVideoRendererCtrl::CopyToSurfaceBuffer(sptr<SurfaceBuffer> surface
 
         needFlush = true;
         gst_buffer_unmap(buf, &map);
+    }
+}
+
+void GstPlayerVideoRendererCtrl::KpiFpsLog()
+{
+    uint64_t curTime = g_get_monotonic_time();
+    if (flushBufferNums_ == 1) {
+        lastFlushBufferNums_ = flushBufferNums_;
+        lastFlushBufferTime_ = curTime;
+        return;
+    }
+    uint64_t diff = curTime > lastFlushBufferTime_ ? curTime - lastFlushBufferTime_ : 0;
+    if (diff >= GST_MSECOND) {
+        double timeSec = static_cast<double>(diff) / GST_MSECOND;
+        double fps = (flushBufferNums_ - lastFlushBufferNums_) / timeSec;
+        MEDIA_LOGW("KPI-TRACE: fps=%{public}f, timeSec=%{public}f, render nums=%{public}" PRIu64 "",
+            fps, timeSec, flushBufferNums_);
+        lastFlushBufferNums_ = flushBufferNums_;
+        lastFlushBufferTime_ = curTime;
     }
 }
 

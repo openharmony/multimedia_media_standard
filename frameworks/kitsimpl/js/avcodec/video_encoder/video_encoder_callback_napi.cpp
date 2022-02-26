@@ -42,8 +42,7 @@ void VideoEncoderCallbackNapi::SaveCallbackReference(const std::string &callback
     std::lock_guard<std::mutex> lock(mutex_);
 
     napi_ref callback = nullptr;
-    const int32_t refCount = 1;
-    napi_status status = napi_create_reference(env_, args, refCount, &callback);
+    napi_status status = napi_create_reference(env_, args, 1, &callback);
     CHECK_AND_RETURN_LOG(status == napi_ok && callback != nullptr, "Failed to create callback reference");
 
     std::shared_ptr<AutoRef> cb = std::make_shared<AutoRef>(env_, callback);
@@ -195,9 +194,8 @@ void VideoEncoderCallbackNapi::OnJsErrorCallBack(VideoEncoderJsCallback *jsCb) c
             nstatus = CommonNapi::FillErrorArgs(env, static_cast<int32_t>(event->errorCode), args[0]);
             CHECK_AND_RETURN(nstatus == napi_ok);
 
-            const size_t argCount = 1;
             napi_value result = nullptr;
-            nstatus = napi_call_function(env, nullptr, jsCallback, argCount, args, &result);
+            nstatus = napi_call_function(env, nullptr, jsCallback, 1, args, &result);
             CHECK_AND_BREAK(nstatus == napi_ok);
         } while (0);
         delete event;
@@ -251,9 +249,8 @@ void VideoEncoderCallbackNapi::OnJsBufferCallBack(VideoEncoderJsCallback *jsCb, 
             }
             CHECK_AND_BREAK(args[0] != nullptr);
 
-            const size_t argCount = 1;
             napi_value result = nullptr;
-            nstatus = napi_call_function(env, nullptr, jsCallback, argCount, args, &result);
+            nstatus = napi_call_function(env, nullptr, jsCallback, 1, args, &result);
             CHECK_AND_BREAK(nstatus == napi_ok);
         } while (0);
         delete event;
@@ -301,9 +298,8 @@ void VideoEncoderCallbackNapi::OnJsFormatCallBack(VideoEncoderJsCallback *jsCb) 
             args[0] = CommonNapi::CreateFormatBuffer(env, event->format);
             CHECK_AND_BREAK(args[0] != nullptr);
 
-            const size_t argCount = 1;
             napi_value result = nullptr;
-            nstatus = napi_call_function(env, nullptr, jsCallback, argCount, args, &result);
+            nstatus = napi_call_function(env, nullptr, jsCallback, 1, args, &result);
             CHECK_AND_BREAK(nstatus == napi_ok);
         } while (0);
         delete event;

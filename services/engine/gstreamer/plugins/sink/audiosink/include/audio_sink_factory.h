@@ -19,7 +19,6 @@
 #include <memory>
 #include "audio_sink.h"
 #include "common_utils.h"
-#include "nocopyable.h"
 
 namespace OHOS {
 namespace Media {
@@ -28,8 +27,6 @@ public:
     AudioSinkFactory() = delete;
     ~AudioSinkFactory() = delete;
     static std::unique_ptr<AudioSink> CreateAudioSink();
-
-    DISALLOW_COPY_AND_MOVE(AudioSinkFactory);
 };
 }  // namespace Media
 }  // namespace OHOS

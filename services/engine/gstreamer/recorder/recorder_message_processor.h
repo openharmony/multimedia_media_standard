@@ -28,7 +28,7 @@ namespace OHOS {
 namespace Media {
 using MessageResCb = std::function<void(const RecorderMessage&)>;
 
-class RecorderMsgProcessor {
+class RecorderMsgProcessor : public NoCopyable {
 public:
     RecorderMsgProcessor(GstBus &gstBus, const MessageResCb &resCb);
     ~RecorderMsgProcessor();
@@ -44,8 +44,6 @@ private:
     void NotifyInternalError(RecorderMessage &msg);
     void ReportMsgProcResult(const RecorderMessage &msg);
     void ClearResource();
-
-    DISALLOW_COPY_AND_MOVE(RecorderMsgProcessor);
 
     GstBus *gstBus_ = nullptr;
     GMainLoop *mainLoop_ = nullptr;

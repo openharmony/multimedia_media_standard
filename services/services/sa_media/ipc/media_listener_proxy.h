@@ -22,11 +22,11 @@
 
 namespace OHOS {
 namespace Media {
-class MediaListenerProxy : public IRemoteProxy<IStandardMediaListener> {
+class MediaListenerProxy : public IRemoteProxy<IStandardMediaListener>, public NoCopyable {
 public:
     explicit MediaListenerProxy(const sptr<IRemoteObject> &impl);
     virtual ~MediaListenerProxy();
-    DISALLOW_COPY_AND_MOVE(MediaListenerProxy);
+
 private:
     static inline BrokerDelegator<MediaListenerProxy> delegator_;
 };

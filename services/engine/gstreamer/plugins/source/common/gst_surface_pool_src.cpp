@@ -14,9 +14,10 @@
  */
 
 #include "gst_surface_pool_src.h"
+#include <gst/video/video.h>
+#include <sync_fence.h>
 #include "gst_consumer_surface_pool.h"
 #include "gst_consumer_surface_allocator.h"
-#include <gst/video/video.h>
 #include "media_errors.h"
 #include "surface_buffer.h"
 #include "buffer_type_meta.h"
@@ -367,10 +368,18 @@ static void gst_surface_pool_src_init_surface_buffer(GstSurfacePoolSrc *surfaces
         OHOS::sptr<OHOS::SurfaceBuffer> buffer;
         int32_t releaseFence;
         (void)surfacesrc->producerSurface->RequestBuffer(buffer, releaseFence, g_requestConfig);
-        buffers.push_back(buffer);
+        sptr<OHOS::SyncFence> autoFence = new(std::nothrow) OHOS::SyncFence(releaseFence);
+        if (autoFence != nullptr) {
+            autoFence->Wait(100); // 100ms
+        }
+        if (buffer != nullptr) {
+            buffers.push_back(buffer);
+        }
     }
     for (uint32_t i = 0; i < buffers.size(); ++i) {
-        surfacesrc->producerSurface->CancelBuffer(buffers[i]);
+        if (buffers[i] != nullptr) {
+            surfacesrc->producerSurface->CancelBuffer(buffers[i]);
+        }
     }
 }
 

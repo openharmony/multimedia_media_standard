@@ -23,11 +23,10 @@
 
 namespace OHOS {
 namespace Media {
-class AVMetadataHelperDemo {
+class AVMetadataHelperDemo : public NoCopyable {
 public:
     AVMetadataHelperDemo() = default;
     ~AVMetadataHelperDemo() = default;
-    DISALLOW_COPY_AND_MOVE(AVMetadataHelperDemo);
     void RunCase(const std::string &pathOuter);
 
 private:

@@ -352,8 +352,7 @@ int32_t PlayerServiceProxy::SetVideoSurface(sptr<Surface> surface)
     sptr<IRemoteObject> object = producer->AsObject();
     CHECK_AND_RETURN_RET_LOG(object != nullptr, MSERR_NO_MEMORY, "object is nullptr");
 
-    const std::string surfaceFormat = "SURFACE_FORMAT";
-    std::string format = surface->GetUserData(surfaceFormat);
+    std::string format = surface->GetUserData("SURFACE_FORMAT");
     MEDIA_LOGI("surfaceFormat is %{public}s!", format.c_str());
     (void)data.WriteRemoteObject(object);
     data.WriteString(format);

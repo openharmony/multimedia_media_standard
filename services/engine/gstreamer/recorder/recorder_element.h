@@ -41,8 +41,6 @@ public:
     explicit RecorderElement(const CreateParam &createParam);
     virtual ~RecorderElement();
 
-    DISALLOW_COPY_AND_MOVE(RecorderElement);
-
     /**
      * @brief Get this element's sourceId
      * @return sourceId.
@@ -275,7 +273,7 @@ private:
 
 template<typename T,
          typename = std::enable_if_t<std::is_base_of_v<RecorderElement, std::decay_t<T>>>>
-class RecorderElementRegister {
+class RecorderElementRegister : public NoCopyable {
 public:
     RecorderElementRegister(const std::string &key)
     {
@@ -287,7 +285,6 @@ public:
     }
 
     ~RecorderElementRegister() = default;
-    DISALLOW_COPY_AND_MOVE(RecorderElementRegister);
 };
 
 /**

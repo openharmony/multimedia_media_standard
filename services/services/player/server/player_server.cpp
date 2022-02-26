@@ -15,6 +15,8 @@
 
 #include "player_server.h"
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "media_log.h"
 #include "media_errors.h"
 #include "engine_factory_repo.h"
@@ -58,6 +60,7 @@ int32_t PlayerServer::Init()
 int32_t PlayerServer::SetSource(const std::string &url)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MEDIA_LOGW("KPI-TRACE: PlayerServer SetSource in(url)");
     int32_t ret = InitPlayEngine(url);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetSource Failed!");
     return ret;
@@ -67,6 +70,7 @@ int32_t PlayerServer::SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc
 {
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(dataSrc != nullptr, MSERR_INVALID_VAL, "data source is nullptr");
+    MEDIA_LOGW("KPI-TRACE: PlayerServer SetSource in(dataSrc)");
     dataSrc_ = dataSrc;
     std::string url = "MediaDataSource";
     int32_t ret = InitPlayEngine(url);
@@ -83,9 +87,14 @@ int32_t PlayerServer::SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc
 int32_t PlayerServer::SetSource(int32_t fd, int64_t offset, int64_t size)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MEDIA_LOGW("KPI-TRACE: PlayerServer SetSource in(fd)");
     ResetFdSource();
     fd_ = dup(fd);
     if (fd_ < 0) {
+        return MSERR_UNKNOWN;
+    }
+
+    if (CheckFdArgument(offset, size) == false) {
         return MSERR_UNKNOWN;
     }
 
@@ -93,6 +102,29 @@ int32_t PlayerServer::SetSource(int32_t fd, int64_t offset, int64_t size)
     int32_t ret = InitPlayEngine(url);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetSource Failed!");
     return ret;
+}
+
+bool PlayerServer::CheckFdArgument(int64_t &offset, int64_t &size)
+{
+    struct stat64 buffer;
+    if (fstat64(fd_, &buffer) != 0) {
+        MEDIA_LOGE("can not get file state");
+        return false;
+    }
+    int64_t fdSize = static_cast<int64_t>(buffer.st_size);
+
+    MEDIA_LOGD("check fd argument, fd = %{public}d, offset = %{public}" PRIi64 ", size = %{public}" PRIi64 ","
+        "fdSize = %{public}" PRIi64 "", fd_, offset, size, fdSize);
+
+    if (offset < 0 || offset > fdSize) {
+        offset = 0;
+    }
+
+    if ((size <= 0) || (size > fdSize - offset)) {
+        size = fdSize - offset;
+    }
+
+    return true;
 }
 
 int32_t PlayerServer::InitPlayEngine(const std::string &url)
@@ -127,6 +159,7 @@ int32_t PlayerServer::InitPlayEngine(const std::string &url)
 
 int32_t PlayerServer::Prepare()
 {
+    MEDIA_LOGW("KPI-TRACE: PlayerServer Prepare in");
     return OnPrepare(false);
 }
 
@@ -170,7 +203,7 @@ int32_t PlayerServer::Play()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
-
+    MEDIA_LOGW("KPI-TRACE: PlayerServer Play in");
     if (status_ != PLAYER_PREPARED && status_ != PLAYER_PLAYBACK_COMPLETE &&
         status_ != PLAYER_PAUSED && status_ != PLAYER_STARTED) {
         MEDIA_LOGE("Can not Play, currentState is %{public}d", status_);
@@ -202,6 +235,7 @@ int32_t PlayerServer::Play()
 
 int32_t PlayerServer::PrepareAsync()
 {
+    MEDIA_LOGW("KPI-TRACE: PlayerServer PrepareAsync in");
     return OnPrepare(true);
 }
 
@@ -236,7 +270,7 @@ int32_t PlayerServer::Stop()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
-
+    MEDIA_LOGW("KPI-TRACE: PlayerServer Stop in");
     if (status_ == PLAYER_STATE_ERROR) {
         MEDIA_LOGE("Can not Stop, currentState is PLAYER_STATE_ERROR");
         return MSERR_INVALID_OPERATION;
@@ -265,6 +299,7 @@ int32_t PlayerServer::Stop()
 int32_t PlayerServer::Reset()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MEDIA_LOGW("KPI-TRACE: PlayerServer Reset in");
     return OnReset();
 }
 
@@ -316,7 +351,7 @@ int32_t PlayerServer::SetVolume(float leftVolume, float rightVolume)
         return MSERR_INVALID_OPERATION;
     }
 
-    const float maxVolume = 1.0f;
+    constexpr float maxVolume = 1.0f;
     if ((leftVolume < 0) || (leftVolume > maxVolume) || (rightVolume < 0) || (rightVolume > maxVolume)) {
         MEDIA_LOGE("SetVolume failed, the volume should be set to a value ranging from 0 to 5");
         return MSERR_INVALID_OPERATION;

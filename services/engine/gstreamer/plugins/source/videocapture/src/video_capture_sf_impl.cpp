@@ -84,16 +84,25 @@ int32_t VideoCaptureSfImpl::Start()
     return MSERR_OK;
 }
 
+uint64_t VideoCaptureSfImpl::GetCurrentTime()
+{
+    constexpr uint32_t SEC_TO_NS = 1000000000; // second to nano second
+    struct timespec timestamp = {0, 0};
+    clock_gettime(CLOCK_MONOTONIC, &timestamp);
+    uint64_t time = (uint64_t)timestamp.tv_sec * SEC_TO_NS + (uint64_t)timestamp.tv_nsec;
+    return time;
+}
+
 int32_t VideoCaptureSfImpl::Pause()
 {
-    pauseTime_ = pts_;
+    pauseTime_ = GetCurrentTime();
     pauseCount_++;
     return MSERR_OK;
 }
 
 int32_t VideoCaptureSfImpl::Resume()
 {
-    resumeTime_ = pts_;
+    resumeTime_ = GetCurrentTime();
     if (resumeTime_ < pauseTime_) {
         MEDIA_LOGW("get wrong timestamp from HDI!");
     }
@@ -127,6 +136,7 @@ int32_t VideoCaptureSfImpl::Stop()
     persistTime_ = 0;
     totalPauseTime_ = 0;
     pauseCount_ = 0;
+    isFirstBuffer_ = true;
     return MSERR_OK;
 }
 
@@ -275,7 +285,7 @@ bool VideoCaptureSfImpl::DropThisFrame(uint32_t fps, int64_t oldTimeStamp, int64
 int32_t VideoCaptureSfImpl::AcquireSurfaceBuffer()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    do {
+    while (1) {
         if (!started_ || (dataConSurface_ == nullptr)) {
             return MSERR_INVALID_OPERATION;
         }
@@ -293,6 +303,12 @@ int32_t VideoCaptureSfImpl::AcquireSurfaceBuffer()
             return MSERR_UNKNOWN;
         }
 
+        if (isFirstBuffer_) {
+            isFirstBuffer_ = false;
+            pixelFormat_ = surfaceBuffer_->GetFormat();
+            MEDIA_LOGI("the input pixel format is %{public}d", pixelFormat_);
+        }
+
         int32_t ret = GetSufferExtraData();
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "get ExtraData fail");
 
@@ -307,7 +323,7 @@ int32_t VideoCaptureSfImpl::AcquireSurfaceBuffer()
             previousTimestamp_ = pts_;
             break;
         }
-    } while (0);
+    };
     return MSERR_OK;
 }
 

@@ -22,11 +22,11 @@
 
 namespace OHOS {
 namespace Media {
-class RecorderImpl : public Recorder {
+class RecorderImpl : public Recorder, public NoCopyable {
 public:
     RecorderImpl();
     ~RecorderImpl();
-    DISALLOW_COPY_AND_MOVE(RecorderImpl);
+
     int32_t SetVideoSource(VideoSourceType source, int32_t &sourceId) override;
     int32_t SetVideoEncoder(int32_t sourceId, VideoCodecFormat encoder) override;
     int32_t SetVideoSize(int32_t sourceId, int32_t width, int32_t height) override;

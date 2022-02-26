@@ -51,12 +51,10 @@ EXPORT_API bool MatchElementByMeta(
     const GstElement &elem, const std::string_view &metaKey, const std::vector<std::string_view> &expectedMetaFields);
 
 template <typename T>
-class ThizWrapper {
+class ThizWrapper : public NoCopyable {
 public:
     explicit ThizWrapper(std::weak_ptr<T> thiz) : thiz_(thiz) {}
     ~ThizWrapper() = default;
-
-    DISALLOW_COPY_AND_MOVE(ThizWrapper);
 
     static std::shared_ptr<T> TakeStrongThiz(gpointer userdata)
     {

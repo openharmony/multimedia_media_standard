@@ -23,12 +23,12 @@
 
 namespace OHOS {
 namespace Media {
-class MediaDataSourceCallback : public IMediaDataSource {
+class MediaDataSourceCallback : public IMediaDataSource, public NoCopyable {
 public:
     static std::shared_ptr<MediaDataSourceCallback> Create(napi_env env, napi_value data);
     MediaDataSourceCallback(napi_env env, napi_ref ref, MediaDataSourceNapi &src);
     virtual ~MediaDataSourceCallback();
-    DISALLOW_COPY_AND_MOVE(MediaDataSourceCallback);
+
     int32_t ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
     int32_t ReadAt(uint32_t length, const std::shared_ptr<AVSharedMemory> &mem) override;
     int32_t GetSize(int64_t &size) override;
