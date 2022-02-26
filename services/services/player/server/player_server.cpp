@@ -15,6 +15,8 @@
 
 #include "player_server.h"
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "media_log.h"
 #include "media_errors.h"
 #include "engine_factory_repo.h"
@@ -92,10 +94,37 @@ int32_t PlayerServer::SetSource(int32_t fd, int64_t offset, int64_t size)
         return MSERR_UNKNOWN;
     }
 
+    if (CheckFdArgument(offset, size) == false) {
+        return MSERR_UNKNOWN;
+    }
+
     std::string url = UriHelper::FormatFdToUri(fd_, offset, size);
     int32_t ret = InitPlayEngine(url);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetSource Failed!");
     return ret;
+}
+
+bool PlayerServer::CheckFdArgument(int64_t &offset, int64_t &size)
+{
+    struct stat64 buffer;
+    if (fstat64(fd_, &buffer) != 0) {
+        MEDIA_LOGE("can not get file state");
+        return false;
+    }
+    int64_t fdSize = static_cast<int64_t>(buffer.st_size);
+
+    MEDIA_LOGD("check fd argument, fd = %{public}d, offset = %{public}" PRIi64 ", size = %{public}" PRIi64 ","
+        "fdSize = %{public}" PRIi64 "", fd_, offset, size, fdSize);
+
+    if (offset < 0 || offset > fdSize) {
+        offset = 0;
+    }
+
+    if ((size <= 0) || (size > fdSize - offset)) {
+        size = fdSize - offset;
+    }
+
+    return true;
 }
 
 int32_t PlayerServer::InitPlayEngine(const std::string &url)

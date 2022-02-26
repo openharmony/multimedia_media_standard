@@ -15,8 +15,6 @@
 
 #include "common_napi.h"
 #include <climits>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include "avcodec_list.h"
 #include "media_log.h"
 #include "media_errors.h"
@@ -139,27 +137,12 @@ bool CommonNapi::GetFdArgument(napi_env env, napi_value value, AVFileDescriptor 
         rawFd.offset = 0; // use default value
     }
 
-    if (rawFd.offset < 0) {
-        MEDIA_LOGE("get rawfd argument invalid, offset = %{public}" PRIi64, rawFd.offset);
-        return false;
-    }
-
-    struct stat64 buffer;
-    if (fstat64(rawFd.fd, &buffer) != 0) {
-        MEDIA_LOGE("can not get file state");
-        return false;
-    }
-    int64_t fdSize = static_cast<int64_t>(buffer.st_size);
-
     if (GetPropertyInt64(env, value, "length", rawFd.length) == false) {
-        rawFd.length = fdSize - rawFd.offset; // use default value
+        rawFd.length = -1; // -1 means use default value
     }
 
-    if ((rawFd.length < 0) || (rawFd.length > fdSize - rawFd.offset)) {
-        MEDIA_LOGE("get rawfd argument invalid, length = %{public}" PRIi64 ", offset = %{public}" PRIi64 ","
-            "fdSize = %{public}" PRIi64 "", rawFd.length, rawFd.offset, fdSize);
-        return false;
-    }
+    MEDIA_LOGD("check fd argument, fd = %{public}d, offset = %{public}" PRIi64 ", size = %{public}" PRIi64 "",
+        rawFd.fd, rawFd.offset, rawFd.length);
 
     return true;
 }
