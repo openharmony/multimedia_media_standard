@@ -233,7 +233,7 @@ napi_value VideoPlayerNapi::SetUrl(napi_env env, napi_callback_info info)
 
     if (ret != MSERR_OK) {
         MEDIA_LOGE("input url error!");
-        player->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
 
