@@ -14,11 +14,11 @@
 import("//build/ohos.gni")
 import("//build/ohos/ace/ace.gni")
 
-js_declaration("napi_demo_js") {
+js_declaration("media_demo_js") {
   part_name = "multimedia_media_standard"
 }
 
-ohos_shared_library("napidemo") {
+ohos_shared_library("mediademo") {
   include_dirs = [
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
     "//foundation/multimedia/media_standard/interfaces/kits/js/media/include",
