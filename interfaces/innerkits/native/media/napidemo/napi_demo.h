@@ -28,7 +28,7 @@
 
 namespace OHOS {
 namespace Media {
-class NapiDemo : public NoCopyable{
+class NapiDemo : public NoCopyable {
 public:
     static napi_value Init(napi_env env, napi_value exports);
 

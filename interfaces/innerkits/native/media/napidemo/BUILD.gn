@@ -29,8 +29,8 @@ ohos_shared_library("napidemo") {
   ]
 
   sources = [
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/napidemo/native_module_ohos_napidemo.cpp",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/napidemo/napi_demo.cpp",
+    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/napidemo/native_module_ohos_napidemo.cpp",
   ]
 
   cflags = [
