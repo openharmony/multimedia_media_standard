@@ -123,8 +123,8 @@ static void gst_mux_bin_init(GstMuxBin *mux_bin)
     mux_bin->degrees_ = 0;
     mux_bin->latitude_ = 0;
     mux_bin->longitude_ = 0;
-    mux_bin->videoParseFlag_ = nullptr;
-    mux_bin->audioParseFlag_ = nullptr;
+    mux_bin->videoParseName_ = nullptr;
+    mux_bin->audioParseName_ = nullptr;
     mux_bin->videoTrack_ = nullptr;
     mux_bin->audioTrack_ = nullptr;
 }
@@ -133,8 +133,8 @@ static void gst_mux_bin_finalize(GObject *object)
 {
     g_return_if_fail(object != nullptr);
     GstMuxBin *mux_bin = GST_MUX_BIN(object);
-    GST_INFO_OBJECT(mux_bin, "gst_mux_bin_finalize");
     g_return_if_fail(mux_bin != nullptr);
+    GST_INFO_OBJECT(mux_bin, "gst_mux_bin_finalize");
 
     if (mux_bin->outFd_ > 0) {
         (void)::close(mux_bin->outFd_);
@@ -145,10 +145,10 @@ static void gst_mux_bin_finalize(GObject *object)
     mux_bin->path_ = nullptr;
     g_free(mux_bin->mux_);
     mux_bin->mux_ = nullptr;
-    g_free(mux_bin->videoParseFlag_);
-    mux_bin->videoParseFlag_ = nullptr;
-    g_free(mux_bin->audioParseFlag_);
-    mux_bin->audioParseFlag_ = nullptr;
+    g_free(mux_bin->videoParseName_);
+    mux_bin->videoParseName_ = nullptr;
+    g_free(mux_bin->audioParseName_);
+    mux_bin->audioParseName_ = nullptr;
     g_free(mux_bin->videoTrack_);
     mux_bin->videoTrack_ = nullptr;
     GSList *iter = mux_bin->audioTrack_;
@@ -188,10 +188,10 @@ static void gst_mux_bin_set_property(GObject *object, guint prop_id,
             mux_bin->longitude_ = g_value_get_int(value);
             break;
         case PROP_VIDEOPARSE_FLAG:
-            mux_bin->videoParseFlag_ = g_strdup(g_value_get_string(value));
+            mux_bin->videoParseName_ = g_strdup(g_value_get_string(value));
             break;
         case PROP_AUDIOPARSE_FLAG:
-            mux_bin->audioParseFlag_ = g_strdup(g_value_get_string(value));
+            mux_bin->audioParseName_ = g_strdup(g_value_get_string(value));
             break;
         default:
             break;
@@ -226,10 +226,10 @@ static void gst_mux_bin_get_property(GObject *object, guint prop_id,
             g_value_set_int(value, mux_bin->longitude_);
             break;
         case PROP_VIDEOPARSE_FLAG:
-            g_value_set_string(value, mux_bin->videoParseFlag_);
+            g_value_set_string(value, mux_bin->videoParseName_);
             break;
         case PROP_AUDIOPARSE_FLAG:
-            g_value_set_string(value, mux_bin->audioParseFlag_);
+            g_value_set_string(value, mux_bin->audioParseName_);
             break;
         default:
             break;
@@ -238,6 +238,7 @@ static void gst_mux_bin_get_property(GObject *object, guint prop_id,
 
 static bool create_splitmuxsink(GstMuxBin *mux_bin)
 {
+    g_return_val_if_fail(mux_bin != nullptr, false);
     g_return_val_if_fail(mux_bin->path_ != nullptr || mux_bin->outFd_ >= 0, false);
     g_return_val_if_fail(mux_bin->mux_ != nullptr, false);
 
@@ -269,10 +270,11 @@ static bool create_splitmuxsink(GstMuxBin *mux_bin)
 
 static bool create_video_parse(GstMuxBin *mux_bin)
 {
-    if (strcmp(mux_bin->videoParseFlag_, "h264parse") == 0) {
+    g_return_val_if_fail(mux_bin != nullptr, false);
+    if (strcmp(mux_bin->videoParseName_, "h264parse") == 0) {
         mux_bin->videoParse_ = gst_element_factory_make("h264parse", "h264parse");
         g_return_val_if_fail(mux_bin->videoParse_ != nullptr, false);
-    } else if (strcmp(mux_bin->videoParseFlag_, "mpeg4videoparse") == 0) {
+    } else if (strcmp(mux_bin->videoParseName_, "mpeg4videoparse") == 0) {
         mux_bin->videoParse_ = gst_element_factory_make("mpeg4videoparse", "mpeg4parse");
         g_return_val_if_fail(mux_bin->videoParse_ != nullptr, false);
         g_object_set(mux_bin->videoParse_, "config-interval", -1, "drop", false, nullptr);
@@ -285,7 +287,8 @@ static bool create_video_parse(GstMuxBin *mux_bin)
 
 static bool create_audio_parse(GstMuxBin *mux_bin)
 {
-    if (strcmp(mux_bin->audioParseFlag_, "aacparse") == 0) {
+    g_return_val_if_fail(mux_bin != nullptr, false);
+    if (strcmp(mux_bin->audioParseName_, "aacparse") == 0) {
         mux_bin->audioParse_ = gst_element_factory_make("aacparse", "aacparse");
         g_return_val_if_fail(mux_bin->audioParse_ != nullptr, false);
     } else {
@@ -297,14 +300,15 @@ static bool create_audio_parse(GstMuxBin *mux_bin)
 
 static bool create_parse(GstMuxBin *mux_bin)
 {
-    if (mux_bin->videoParseFlag_ != nullptr) {
+    g_return_val_if_fail(mux_bin != nullptr, false);
+    if (mux_bin->videoParseName_ != nullptr) {
         if (!create_video_parse(mux_bin)) {
             GST_ERROR_OBJECT(mux_bin, "Failed to create vidioparse");
             return false;
         }
         gst_bin_add(GST_BIN(mux_bin), mux_bin->videoParse_);
     }
-    if (mux_bin->audioParseFlag_ != nullptr) {
+    if (mux_bin->audioParseName_ != nullptr) {
         if (!create_audio_parse(mux_bin)) {
             GST_ERROR_OBJECT(mux_bin, "Failed to create audioparse");
             return false;
@@ -317,6 +321,7 @@ static bool create_parse(GstMuxBin *mux_bin)
 
 static bool create_video_src(GstMuxBin *mux_bin)
 {
+    g_return_val_if_fail(mux_bin != nullptr, false);
     g_return_val_if_fail(mux_bin->videoTrack_ != nullptr, false);
 
     mux_bin->videoSrc_ = gst_element_factory_make("appsrc", mux_bin->videoTrack_);
@@ -328,6 +333,7 @@ static bool create_video_src(GstMuxBin *mux_bin)
 
 static bool create_audio_src(GstMuxBin *mux_bin)
 {
+    g_return_val_if_fail(mux_bin != nullptr, false);
     GSList *iter = mux_bin->audioTrack_;
     while (iter != nullptr) {
         GstElement *appSrc = gst_element_factory_make("appsrc", (gchar *)(iter->data));
@@ -342,6 +348,7 @@ static bool create_audio_src(GstMuxBin *mux_bin)
 
 static bool create_element(GstMuxBin *mux_bin)
 {
+    g_return_val_if_fail(mux_bin != nullptr, false);
     if (!create_splitmuxsink(mux_bin)) {
         GST_ERROR_OBJECT(mux_bin, "Failed to call create_splitmuxsink");
         return false;
@@ -362,6 +369,7 @@ static bool create_element(GstMuxBin *mux_bin)
 
 static bool add_element_to_bin(GstMuxBin *mux_bin)
 {
+    g_return_val_if_fail(mux_bin != nullptr, false);
     bool ret;
     if (mux_bin->videoTrack_ != nullptr) {
         ret = gst_bin_add(GST_BIN(mux_bin), mux_bin->videoSrc_);
@@ -381,6 +389,9 @@ static bool add_element_to_bin(GstMuxBin *mux_bin)
 
 static bool connect_video_parse(GstMuxBin *mux_bin, GstPad *upstream_pad, GstPad *downstream_pad)
 {
+    g_return_val_if_fail(mux_bin != nullptr, false);
+    g_return_val_if_fail(upstream_pad != nullptr, false);
+    g_return_val_if_fail(downstream_pad != nullptr, false);
     GstPad *parse_sink_pad = gst_element_get_static_pad(mux_bin->videoParse_, "sink");
     if (gst_pad_link(upstream_pad, parse_sink_pad) != GST_PAD_LINK_OK) {
         GST_ERROR_OBJECT(mux_bin, "Failed to link video_src_pad and parse_sink_pad");
@@ -397,6 +408,9 @@ static bool connect_video_parse(GstMuxBin *mux_bin, GstPad *upstream_pad, GstPad
 
 static bool connect_audio_parse(GstMuxBin *mux_bin, GstPad *upstream_pad, GstPad *downstream_pad)
 {
+    g_return_val_if_fail(mux_bin != nullptr, false);
+    g_return_val_if_fail(upstream_pad != nullptr, false);
+    g_return_val_if_fail(downstream_pad != nullptr, false);
     GstPad *parse_sink_pad = gst_element_get_static_pad(mux_bin->audioParse_, "sink");
     if (gst_pad_link(upstream_pad, parse_sink_pad) != GST_PAD_LINK_OK) {
         GST_ERROR_OBJECT(mux_bin, "Failed to link video_src_pad and parse_sink_pad");
@@ -413,10 +427,11 @@ static bool connect_audio_parse(GstMuxBin *mux_bin, GstPad *upstream_pad, GstPad
 
 static bool connect_element(GstMuxBin *mux_bin)
 {
+    g_return_val_if_fail(mux_bin != nullptr, false);
     if (mux_bin->videoTrack_ != nullptr) {
         GstPad *video_src_pad = gst_element_get_static_pad(mux_bin->videoSrc_, "src");
         GstPad *split_mux_sink_sink_pad = gst_element_get_request_pad(mux_bin->splitMuxSink_, "video");
-        if (mux_bin->videoParseFlag_ != nullptr) {
+        if (mux_bin->videoParseName_ != nullptr) {
             if (!connect_video_parse(mux_bin, video_src_pad, split_mux_sink_sink_pad)) {
                 GST_ERROR_OBJECT(mux_bin, "Failed to call connect_video_parse");
                 return false;
@@ -433,7 +448,7 @@ static bool connect_element(GstMuxBin *mux_bin)
     while (iter != nullptr) {
         GstPad *audio_src_pad = gst_element_get_static_pad(GST_ELEMENT_CAST(iter->data), "src");
         GstPad *split_mux_sink_sink_pad = gst_element_get_request_pad(mux_bin->splitMuxSink_, "audio_%u");
-        if (mux_bin->audioParseFlag_ != nullptr) {
+        if (mux_bin->audioParseName_ != nullptr) {
             if (!connect_audio_parse(mux_bin, audio_src_pad, split_mux_sink_sink_pad)) {
                 GST_ERROR_OBJECT(mux_bin, "Failed to call connect_audio_parse");
                 return false;
