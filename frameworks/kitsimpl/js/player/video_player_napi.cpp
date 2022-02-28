@@ -858,8 +858,11 @@ napi_value VideoPlayerNapi::Seek(napi_env env, napi_callback_info info)
             asyncContext->callbackRef = CommonNapi::CreateReference(env, args[1]);
         }
     }
-    if (args[2] != nullptr && napi_typeof(env, args[2], &valueType) == napi_ok && valueType == napi_function) {
-        asyncContext->callbackRef = CommonNapi::CreateReference(env, args[2]);
+
+    static constexpr size_t argCount = 2;
+    if (args[argCount] != nullptr &&
+        napi_typeof(env, args[argCount], &valueType) == napi_ok && valueType == napi_function) {
+        asyncContext->callbackRef = CommonNapi::CreateReference(env, args[argCount]);
     }
     asyncContext->deferred = CommonNapi::CreatePromise(env, asyncContext->callbackRef, result);
     // get jsPlayer
