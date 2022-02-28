@@ -50,8 +50,8 @@ struct _GstMuxBin {
     gint degrees_;
     gint latitude_;
     gint longitude_;
-    gchar *videoParseFlag_;
-    gchar *audioParseFlag_;
+    gchar *videoParseName_;
+    gchar *audioParseName_;
     gchar *videoTrack_;
     GSList *audioTrack_;
 };
