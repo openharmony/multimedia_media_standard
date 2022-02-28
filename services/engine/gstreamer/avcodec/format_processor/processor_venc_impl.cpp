@@ -111,13 +111,21 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetOutputPortConfig()
         case CODEC_MIMIE_TYPE_VIDEO_MPEG4:
             caps = gst_caps_new_simple("video/mpeg",
                 "mpegversion", G_TYPE_INT, 4,
-                "systemstream", G_TYPE_BOOLEAN, FALSE,
-                "profile", G_TYPE_STRING, gstProfile_.c_str(), nullptr);
+                "systemstream", G_TYPE_BOOLEAN, FALSE, nullptr);
+            if (profile_ != -1) {
+                GstStructure *struc = gst_caps_get_structure(caps, 0);
+                gst_structure_set(struc, "profile", G_TYPE_STRING, gstProfile_.c_str(), nullptr);
+                gst_caps_append_structure(caps, struc);
+            }
             break;
         case CODEC_MIMIE_TYPE_VIDEO_AVC:
             caps = gst_caps_new_simple("video/x-h264",
-                "profile", G_TYPE_STRING, gstProfile_.c_str(),
                 "stream-format", G_TYPE_STRING, "byte-stream", nullptr);
+            if (profile_ != -1) {
+                GstStructure *struc = gst_caps_get_structure(caps, 0);
+                gst_structure_set(struc, "profile", G_TYPE_STRING, gstProfile_.c_str(), nullptr);
+                gst_caps_append_structure(caps, struc);
+            }
             break;
         default:
             break;
