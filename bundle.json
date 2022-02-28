@@ -48,7 +48,9 @@
           "//foundation/multimedia/media_standard/interfaces/kits/js/media:media",
           "//foundation/multimedia/media_standard/interfaces/kits/js/media:media_js",
           "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager",
-          "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/demo:media_demo"
+          "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/demo:media_demo",
+          "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/napidemo:napi_demo_js",
+          "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/napidemo:napidemo"
         ],
         "inner_kits": [
           {
