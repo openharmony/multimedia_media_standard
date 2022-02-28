@@ -34,8 +34,7 @@ GType gst_mux_bin_get_type(void);
 #define GST_MUX_BIN_GET_CLASS(obj) \
     (G_TYPE_INSTANCE_GET_CLASS((obj), GST_TYPE_MUX_BIN, GstMuxBinClass))
 
-struct _GstTrackInfo
-{
+struct _GstTrackInfo {
     gchar *srcName_;
     gchar *parseName_;
     GstElement *src_;
