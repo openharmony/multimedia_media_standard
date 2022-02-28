@@ -69,7 +69,7 @@
                 <Item isVendor="false"/>
                 <Item bitrate="1-384000"/>
                 <Item channels="1-2"/>
-                <Item format="F32LE,S32LE"/>
+                <Item format="S32LE"/>
                 <Item mpegVersion="4"/>
                 <Item sampleRate="8000,11025,12000,16000,22050,24000,32000,44100,48000,64000,88200,96000"/>
                 <Item streamFormat="raw"/>
