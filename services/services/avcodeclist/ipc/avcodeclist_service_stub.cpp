@@ -72,6 +72,12 @@ int AVCodecListServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
 {
     MEDIA_LOGI("Stub: OnRemoteRequest of code: %{public}d is received", code);
 
+    auto remoteDescriptor = data.ReadInterfaceToken();
+    if (AVCodecListServiceStub::GetDescriptor() != remoteDescriptor) {
+        MEDIA_LOGE("Invalid descriptor");
+        return MSERR_INVALID_OPERATION;
+    }
+
     auto itFunc = codecListFuncs_.find(code);
     if (itFunc != codecListFuncs_.end()) {
         auto memberFunc = itFunc->second;
