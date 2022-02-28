@@ -41,6 +41,12 @@ int32_t PlayerServiceProxy::SetListenerObject(const sptr<IRemoteObject> &object)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     (void)data.WriteRemoteObject(object);
     int error = Remote()->SendRequest(SET_LISTENER_OBJ, data, reply, option);
     if (error != MSERR_OK) {
@@ -56,6 +62,12 @@ int32_t PlayerServiceProxy::SetSource(const std::string &url)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     data.WriteString(url);
     int error = Remote()->SendRequest(SET_SOURCE, data, reply, option);
     if (error != MSERR_OK) {
@@ -70,6 +82,12 @@ int32_t PlayerServiceProxy::SetSource(const sptr<IRemoteObject> &object)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     (void)data.WriteRemoteObject(object);
     int error = Remote()->SendRequest(SET_MEDIA_DATA_SRC_OBJ, data, reply, option);
     if (error != MSERR_OK) {
@@ -85,6 +103,12 @@ int32_t PlayerServiceProxy::SetSource(int32_t fd, int64_t offset, int64_t size)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     (void)data.WriteFileDescriptor(fd);
     (void)data.WriteInt64(offset);
     (void)data.WriteInt64(size);
@@ -101,6 +125,12 @@ int32_t PlayerServiceProxy::Play()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     int error = Remote()->SendRequest(PLAY, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Play failed, error: %{public}d", error);
@@ -114,6 +144,12 @@ int32_t PlayerServiceProxy::Prepare()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     int error = Remote()->SendRequest(PREPARE, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Prepare failed, error: %{public}d", error);
@@ -127,6 +163,12 @@ int32_t PlayerServiceProxy::PrepareAsync()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     int error = Remote()->SendRequest(PREPAREASYNC, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("PrepareAsync failed, error: %{public}d", error);
@@ -140,6 +182,12 @@ int32_t PlayerServiceProxy::Pause()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     int error = Remote()->SendRequest(PAUSE, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Pause failed, error: %{public}d", error);
@@ -153,6 +201,12 @@ int32_t PlayerServiceProxy::Stop()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     int error = Remote()->SendRequest(STOP, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Stop failed, error: %{public}d", error);
@@ -166,6 +220,12 @@ int32_t PlayerServiceProxy::Reset()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     int error = Remote()->SendRequest(RESET, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Reset failed, error: %{public}d", error);
@@ -179,6 +239,12 @@ int32_t PlayerServiceProxy::Release()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     int error = Remote()->SendRequest(RELEASE, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Release failed, error: %{public}d", error);
@@ -192,6 +258,12 @@ int32_t PlayerServiceProxy::SetVolume(float leftVolume, float rightVolume)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     data.WriteFloat(leftVolume);
     data.WriteFloat(rightVolume);
     int error = Remote()->SendRequest(SET_VOLUME, data, reply, option);
@@ -207,6 +279,12 @@ int32_t PlayerServiceProxy::Seek(int32_t mSeconds, PlayerSeekMode mode)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     data.WriteInt32(mSeconds);
     data.WriteInt32(mode);
     int error = Remote()->SendRequest(SEEK, data, reply, option);
@@ -222,6 +300,12 @@ int32_t PlayerServiceProxy::GetCurrentTime(int32_t &currentTime)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     int error = Remote()->SendRequest(GET_CURRENT_TIME, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Get current time failed, error: %{public}d", error);
@@ -236,6 +320,12 @@ int32_t PlayerServiceProxy::GetVideoTrackInfo(std::vector<Format> &videoTrack)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     int error = Remote()->SendRequest(GET_VIDEO_TRACK_INFO, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Get video track info failed, error: %{public}d", error);
@@ -255,6 +345,12 @@ int32_t PlayerServiceProxy::GetAudioTrackInfo(std::vector<Format> &audioTrack)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     int error = Remote()->SendRequest(GET_AUDIO_TRACK_INFO, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Get audio track info failed, error: %{public}d", error);
@@ -275,6 +371,12 @@ int32_t PlayerServiceProxy::GetVideoWidth()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     int error = Remote()->SendRequest(GET_VIDEO_WIDTH, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Get video width failed, error: %{public}d", error);
@@ -288,6 +390,12 @@ int32_t PlayerServiceProxy::GetVideoHeight()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     int error = Remote()->SendRequest(GET_VIDEO_HEIGHT, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Get video height failed, error: %{public}d", error);
@@ -301,6 +409,12 @@ int32_t PlayerServiceProxy::GetDuration(int32_t &duration)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     int error = Remote()->SendRequest(GET_DURATION, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Get current time failed, error: %{public}d", error);
@@ -315,6 +429,12 @@ int32_t PlayerServiceProxy::SetPlaybackSpeed(PlaybackRateMode mode)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     data.WriteInt32(mode);
     int error = Remote()->SendRequest(SET_PLAYERBACK_SPEED, data, reply, option);
     if (error != MSERR_OK) {
@@ -329,6 +449,12 @@ int32_t PlayerServiceProxy::GetPlaybackSpeed(PlaybackRateMode &mode)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     int error = Remote()->SendRequest(GET_PLAYERBACK_SPEED, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("GetPlaybackSpeed failed, error: %{public}d", error);
@@ -354,6 +480,12 @@ int32_t PlayerServiceProxy::SetVideoSurface(sptr<Surface> surface)
 
     std::string format = surface->GetUserData("SURFACE_FORMAT");
     MEDIA_LOGI("surfaceFormat is %{public}s!", format.c_str());
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     (void)data.WriteRemoteObject(object);
     data.WriteString(format);
     int error = Remote()->SendRequest(SET_VIDEO_SURFACE, data, reply, option);
@@ -369,6 +501,12 @@ bool PlayerServiceProxy::IsPlaying()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return false;
+    }
+
     int error = Remote()->SendRequest(IS_PLAYING, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Get is playing failed, error: %{public}d", error);
@@ -383,6 +521,12 @@ bool PlayerServiceProxy::IsLooping()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return false;
+    }
+
     int error = Remote()->SendRequest(IS_LOOPING, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Get is looping failed, error: %{public}d", error);
@@ -397,6 +541,12 @@ int32_t PlayerServiceProxy::SetLooping(bool loop)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     data.WriteBool(loop);
     int error = Remote()->SendRequest(SET_LOOPING, data, reply, option);
     if (error != MSERR_OK) {
@@ -411,6 +561,11 @@ int32_t PlayerServiceProxy::SetParameter(const Format &param)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
 
     MediaParcel::Marshalling(data, param);
 
@@ -428,6 +583,12 @@ int32_t PlayerServiceProxy::DestroyStub()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     int error = Remote()->SendRequest(DESTROY, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("destroy failed, error: %{public}d", error);
@@ -441,6 +602,12 @@ int32_t PlayerServiceProxy::SetPlayerCallback()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
     int error = Remote()->SendRequest(SET_CALLBACK, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("set callback failed, error: %{public}d", error);

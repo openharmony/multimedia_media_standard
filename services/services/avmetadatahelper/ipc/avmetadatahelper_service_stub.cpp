@@ -73,6 +73,12 @@ int AVMetadataHelperServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &d
 {
     MEDIA_LOGI("Stub: OnRemoteRequest of code: %{public}u is received", code);
 
+    auto remoteDescriptor = data.ReadInterfaceToken();
+    if (AVMetadataHelperServiceStub::GetDescriptor() != remoteDescriptor) {
+        MEDIA_LOGE("Invalid descriptor");
+        return MSERR_INVALID_OPERATION;
+    }
+
     auto itFunc = avMetadataHelperFuncs_.find(code);
     if (itFunc != avMetadataHelperFuncs_.end()) {
         auto memberFunc = itFunc->second;
