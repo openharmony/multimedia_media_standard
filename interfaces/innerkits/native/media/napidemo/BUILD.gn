@@ -1,0 +1,76 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//build/ohos/ace/ace.gni")
+
+js_declaration("napi_demo_js") {
+  part_name = "multimedia_media_standard"
+}
+
+ohos_shared_library("napidemo") {
+  include_dirs = [
+    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/media_standard/interfaces/kits/js/media/include",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/common",
+    "//foundation/multimedia/media_standard/services/utils/include",
+    "//foundation/graphic/standard/interfaces/innerkits/wmclient",
+    "//drivers/peripheral/display/interfaces/include",
+  ]
+
+  sources = [
+    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/napidemo/napi_demo.cpp",
+    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/napidemo/native_module_ohos_napidemo.cpp",
+  ]
+
+  cflags = [
+    "-std=c++17",
+    "-fno-rtti",
+    "-fno-exceptions",
+    "-Wall",
+    "-fno-common",
+    "-fstack-protector-strong",
+    "-Wshadow",
+    "-FPIC",
+    "-FS",
+    "-O2",
+    "-D_FORTIFY_SOURCE=2",
+    "-fvisibility=hidden",
+    "-Werror",
+    "-Wextra",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wdate-time",
+  ]
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/ace/napi:ace_napi",
+    "//foundation/graphic/standard/frameworks/surface:surface",
+    "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_client",
+    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_surface",
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//utils/native/base:utils",
+    "//utils/native/base:utilsecurec",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
+
+  relative_install_dir = "module/multimedia"
+  part_name = "multimedia_media_standard"
+  subsystem_name = "multimedia"
+}
