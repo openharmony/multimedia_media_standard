@@ -15,7 +15,6 @@
 
 #include "napi_demo.h"
 #include <random>
-#include <time.h>
 #include <sync_fence.h>
 #include "scope_guard.h"
 #include "media_errors.h"
@@ -371,7 +370,7 @@ void NapiDemo::BufferLoop()
         CHECK_AND_BREAK(bufferSize <= buffer->GetSize());
         CHECK_AND_BREAK(memset_s(addr, buffer->GetSize(), color_, bufferSize) == EOK);
 
-        srand((int32_t)time(0));
+        srand(static_cast<int32_t>(time(0)));
         constexpr uint32_t len = 100;
         for (uint32_t i = 0; i < bufferSize; i += len) {
             if (i >= bufferSize) {
