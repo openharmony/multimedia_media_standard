@@ -16,7 +16,7 @@
 #ifndef I_AVCODECLIST_SERVICE_H
 #define I_AVCODECLIST_SERVICE_H
 
-#include "av_common.h"
+#include "avcodec_info.h"
 #include "avsharedmemory.h"
 
 namespace OHOS {

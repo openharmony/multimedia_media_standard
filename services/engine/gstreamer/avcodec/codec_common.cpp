@@ -75,16 +75,16 @@ const std::map<AVCProfile, std::string> AVC_PROFILE_TO_STRING = {
     {AVC_PROFILE_MAIN, "main"},
 };
 
-const std::map<std::string, CodecMimeType> MIME_TO_CODEC_NAME = {
-    {"video/h263", CODEC_MIMIE_TYPE_VIDEO_H263},
-    {"video/avc", CODEC_MIMIE_TYPE_VIDEO_AVC},
-    {"video/hevc", CODEC_MIMIE_TYPE_VIDEO_HEVC},
-    {"video/mpeg2", CODEC_MIMIE_TYPE_VIDEO_MPEG2},
-    {"video/mp4v-es", CODEC_MIMIE_TYPE_VIDEO_MPEG4},
-    {"audio/vorbis", CODEC_MIMIE_TYPE_AUDIO_VORBIS},
-    {"audio/mpeg", CODEC_MIMIE_TYPE_AUDIO_MPEG},
-    {"audio/mp4a-latm", CODEC_MIMIE_TYPE_AUDIO_AAC},
-    {"audio/flac", CODEC_MIMIE_TYPE_AUDIO_FLAC},
+const std::map<std::string_view, InnerCodecMimeType> MIME_TO_CODEC_NAME = {
+    {CodecMimeType::VIDEO_H263, CODEC_MIMIE_TYPE_VIDEO_H263},
+    {CodecMimeType::VIDEO_AVC, CODEC_MIMIE_TYPE_VIDEO_AVC},
+    {CodecMimeType::VIDEO_HEVC, CODEC_MIMIE_TYPE_VIDEO_HEVC},
+    {CodecMimeType::VIDEO_MPEG2, CODEC_MIMIE_TYPE_VIDEO_MPEG2},
+    {CodecMimeType::VIDEO_MPEG4, CODEC_MIMIE_TYPE_VIDEO_MPEG4},
+    {CodecMimeType::AUDIO_VORBIS, CODEC_MIMIE_TYPE_AUDIO_VORBIS},
+    {CodecMimeType::AUDIO_MPEG, CODEC_MIMIE_TYPE_AUDIO_MPEG},
+    {CodecMimeType::AUDIO_AAC, CODEC_MIMIE_TYPE_AUDIO_AAC},
+    {CodecMimeType::AUDIO_FLAC, CODEC_MIMIE_TYPE_AUDIO_FLAC},
 };
 
 std::string PixelFormatToGst(VideoPixelFormat pixel)
@@ -119,7 +119,7 @@ std::string RawAudioFormatToGst(AudioRawFormat format)
     return "Invalid";
 }
 
-int32_t MapCodecMime(const std::string &mime, CodecMimeType &name)
+int32_t MapCodecMime(const std::string &mime, InnerCodecMimeType &name)
 {
     if (MIME_TO_CODEC_NAME.count(mime) != 0) {
         name =  MIME_TO_CODEC_NAME.at(mime);
@@ -176,7 +176,7 @@ uint32_t PixelBufferSize(VideoPixelFormat pixel, uint32_t width, uint32_t height
     return size;
 }
 
-uint32_t CompressedBufSize(uint32_t width, uint32_t height, bool isEncoder, CodecMimeType type)
+uint32_t CompressedBufSize(uint32_t width, uint32_t height, bool isEncoder, InnerCodecMimeType type)
 {
     if (width == 0 || height == 0) {
         return 0;
