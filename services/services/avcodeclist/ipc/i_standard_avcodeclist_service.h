@@ -20,7 +20,7 @@
 #include "iremote_broker.h"
 #include "iremote_proxy.h"
 #include "iremote_stub.h"
-#include "av_common.h"
+#include "avcodec_info.h"
 #include "avsharedmemory.h"
 
 namespace OHOS {

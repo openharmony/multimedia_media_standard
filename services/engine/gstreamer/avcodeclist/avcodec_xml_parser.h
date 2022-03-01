@@ -21,7 +21,7 @@
 #include <unordered_map>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
-#include "av_common.h"
+#include "avcodec_info.h"
 
 namespace OHOS {
 namespace Media {

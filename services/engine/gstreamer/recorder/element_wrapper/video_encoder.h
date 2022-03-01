@@ -33,7 +33,7 @@ protected:
     RecorderMsgProcResult DoProcessMessage(GstMessage &rawMsg, RecorderMessage &prettyMsg) override;
 
 private:
-    std::string GetEncorderName(std::string mimeType);
+    std::string GetEncorderName(std::string_view mimeType);
     int32_t CreateMpegElement();
     int32_t CreateH264Element();
     int32_t encoderFormat_;

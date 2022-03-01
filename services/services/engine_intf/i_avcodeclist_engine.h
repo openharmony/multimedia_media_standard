@@ -22,7 +22,7 @@
 #include <refbase.h>
 #include <vector>
 #include "nocopyable.h"
-#include "av_common.h"
+#include "avcodec_info.h"
 #include "avsharedmemory.h"
 #include "format.h"
 
