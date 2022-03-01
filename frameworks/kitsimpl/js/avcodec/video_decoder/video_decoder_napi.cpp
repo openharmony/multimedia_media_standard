@@ -20,8 +20,8 @@
 #include "media_log.h"
 #include "media_errors.h"
 #include "video_decoder_callback_napi.h"
-#include "media_surface.h"
 #include "scope_guard.h"
+#include "surface_utils.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "VideoDecoderNapi"};
@@ -674,14 +674,12 @@ napi_value VideoDecoderNapi::SetOutputSurface(napi_env env, napi_callback_info i
     if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_string &&
         args[1] != nullptr && napi_typeof(env, args[1], &valueType) == napi_ok && valueType == napi_boolean) {
         std::string idStr = CommonNapi::GetStringArgument(env, args[0]);
-        if (idStr == "") {
+        if (idStr == "" || idStr[0] < '0' || idStr[0] > '9') {
             asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
         } else {
-            auto mediaSurface = MediaSurfaceFactory::CreateMediaSurface();
-            if (mediaSurface == nullptr) {
-                asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to CreateMeidaSurface");
-            }
-            asyncCtx->surface = mediaSurface->GetSurface(idStr);
+            int32_t numBase = 10;
+            uint64_t id = strtoull(idStr.c_str(), nullptr, numBase);
+            asyncCtx->surface = SurfaceUtils::GetInstance()->GetSurface(id);
         }
     } else {
         asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");

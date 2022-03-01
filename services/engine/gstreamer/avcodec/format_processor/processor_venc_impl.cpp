@@ -57,6 +57,17 @@ int32_t ProcessorVencImpl::ProcessOptional(const Format &format)
         (void)format.GetIntValue("codec_profile", profile_);
     }
 
+    switch (codecName_) {
+        case CODEC_MIMIE_TYPE_VIDEO_MPEG4:
+            gstProfile_ = MPEG4ProfileToGst(static_cast<MPEG4Profile>(profile_));
+            break;
+        case CODEC_MIMIE_TYPE_VIDEO_AVC:
+            gstProfile_ = AVCProfileToGst(static_cast<AVCProfile>(profile_));
+            break;
+        default:
+            break;
+    }
+
     if (format.GetValueType(std::string_view("i_frame_interval")) == FORMAT_TYPE_INT32) {
         (void)format.GetIntValue("i_frame_interval", keyFrameInterval_);
     }
@@ -100,8 +111,7 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetOutputPortConfig()
         case CODEC_MIMIE_TYPE_VIDEO_MPEG4:
             caps = gst_caps_new_simple("video/mpeg",
                 "mpegversion", G_TYPE_INT, 4,
-                "systemstream", G_TYPE_BOOLEAN, FALSE,
-                "profile", G_TYPE_STRING, "simple", nullptr);
+                "systemstream", G_TYPE_BOOLEAN, FALSE, nullptr);
             break;
         case CODEC_MIMIE_TYPE_VIDEO_AVC:
             caps = gst_caps_new_simple("video/x-h264",
@@ -110,7 +120,14 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetOutputPortConfig()
         default:
             break;
     }
+
     CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "Unsupported format");
+    
+    if (profile_ != -1) {
+        GstStructure *struc = gst_caps_get_structure(caps, 0);
+        gst_structure_set(struc, "profile", G_TYPE_STRING, gstProfile_.c_str(), nullptr);
+        gst_caps_append_structure(caps, struc);
+    }
 
     auto config = std::make_shared<ProcessorConfig>(caps, true);
     if (config == nullptr) {
