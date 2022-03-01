@@ -168,10 +168,6 @@ void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, G
     CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
     CHECK_AND_RETURN_LOG(src != nullptr, "src is null");
 
-    if (playerGst->trackParse_->GetDemuxerElementFind() == true) {
-        return;
-    }
-
     const gchar *metadata = gst_element_get_metadata(src, GST_ELEMENT_METADATA_KLASS);
     if (metadata == nullptr) {
         MEDIA_LOGE("gst_element_get_metadata return nullptr");
@@ -185,6 +181,17 @@ void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, G
         playerGst->signalIds_.push_back(g_signal_connect(src,
             "pad-added", G_CALLBACK(GstPlayerTrackParse::OnPadAddedCb), playerGst->trackParse_.get()));
         playerGst->trackParse_->SetDemuxerElementFind(true);
+    }
+
+    if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {
+        playerGst->isHardWare_ = true;
+        return;
+    }
+
+    if (metaStr.find("Sink/Video") != std::string::npos && playerGst->isHardWare_) {
+        GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
+        g_object_set(G_OBJECT(src), "caps", caps, nullptr);
+        return;
     }
 }
 
