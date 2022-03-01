@@ -66,7 +66,6 @@ napi_value VideoPlayerNapi::Init(napi_env env, napi_value exports)
 
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("setDisplaySurface", SetDisplaySurface),
-        DECLARE_NAPI_FUNCTION("getDisplaySurface", GetDisplaySurface), // Informal external interface
         DECLARE_NAPI_FUNCTION("prepare", Prepare),
         DECLARE_NAPI_FUNCTION("play", Play),
         DECLARE_NAPI_FUNCTION("pause", Pause),
@@ -444,7 +443,7 @@ void VideoPlayerNapi::AsyncSetDisplaySurface(napi_env env, void *data)
 
     uint64_t surfaceId = 0;
     MEDIA_LOGD("get surface, surfaceStr = %{public}s", asyncContext->surface.c_str());
-    if (asyncContext->surface.empty() || (asyncContext->surface[0] < '0' && asyncContext->surface[0] > '9')) {
+    if (asyncContext->surface.empty() || asyncContext->surface[0] < '0' || asyncContext->surface[0] > '9') {
         asyncContext->SignError(MSERR_EXT_INVALID_VAL, "input surface id is invalid");
         return;
     }

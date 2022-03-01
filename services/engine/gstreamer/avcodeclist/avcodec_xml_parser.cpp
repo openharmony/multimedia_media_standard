@@ -68,7 +68,7 @@ const std::unordered_map<std::string, int> VIDEO_PROFILE_MAP = {
     {"MPEG4Hybrid", MPEG4_PROFILE_HYBRID},
     {"MPEG4Main", MPEG4_PROFILE_MAIN},
     {"MPEG4Nbit", MPEG4_PROFILE_NBIT},
-    {"MPEG4ScalableTexture", MPEG4_PROFILE_SCALABLE_TEXXTURE},
+    {"MPEG4ScalableTexture", MPEG4_PROFILE_SCALABLE_TEXTURE},
     {"MPEG4Simple", MPEG4_PROFILE_SIMPLE},
     {"MPEG4SimpleFBA", MPEG4_PROFILE_SIMPLE_FBA},
     {"MPEG4SimpleFace", MPEG4_PROFILE_SIMPLE_FACE},

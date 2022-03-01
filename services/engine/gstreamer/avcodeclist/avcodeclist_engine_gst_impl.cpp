@@ -20,7 +20,6 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecListEngineGstImpl"};
-    constexpr int32_t FRAME_RATE_TIMES = 100;
 }
 
 namespace OHOS {
@@ -99,15 +98,30 @@ bool AVCodecListEngineGstImpl::IsSupportPixelFormat(const Format &format, const 
 
 bool AVCodecListEngineGstImpl::IsSupportFrameRate(const Format &format, const CapabilityData &data)
 {
-    int32_t targetFrameRate;
     if (!format.ContainKey("frame_rate")) {
         MEDIA_LOGD("The frame_rate of the format are not specified");
         return true;
     }
-    (void)format.GetIntValue("frame_rate", targetFrameRate);
-    if (data.frameRate.minVal * FRAME_RATE_TIMES > targetFrameRate ||
-        data.frameRate.maxVal * FRAME_RATE_TIMES < targetFrameRate) {
-        return false;
+
+    switch (format.GetValueType(std::string_view("frame_rate"))) {
+        case FORMAT_TYPE_INT32:
+            int32_t targetFrameRateInt;
+            (void)format.GetIntValue("frame_rate", targetFrameRateInt);
+            if (data.frameRate.minVal > targetFrameRateInt ||
+                data.frameRate.maxVal < targetFrameRateInt) {
+                return false;
+            }
+            break;
+        case FORMAT_TYPE_DOUBLE:
+            double targetFrameRateDouble;
+            (void)format.GetDoubleValue("frame_rate", targetFrameRateDouble);
+            if (static_cast<double>(data.frameRate.minVal) > targetFrameRateDouble ||
+                static_cast<double>(data.frameRate.maxVal) < targetFrameRateDouble) {
+                return false;
+            }
+            break;
+        default:
+            break;
     }
     return true;
 }
