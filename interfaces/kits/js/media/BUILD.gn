@@ -73,6 +73,7 @@ ohos_shared_library("media") {
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/recorder/audio_recorder_napi.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/recorder/recorder_callback_napi.cpp",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/recorder/video_recorder_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/recorder/recorder_napi_utils.cpp",
   ]
 
   cflags = [

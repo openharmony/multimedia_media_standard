@@ -173,7 +173,7 @@ int32_t SrcBytebufferImpl::SetCallback(const std::weak_ptr<IAVCodecEngineObs> &o
 
 int32_t SrcBytebufferImpl::HandleCodecBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
 {
-    bool hasCodecFlag = static_cast<int32_t>(flag) & static_cast<int32_t>(AVCODEC_BUFFER_FLAG_CODEDC_DATA);
+    bool hasCodecFlag = static_cast<int32_t>(flag) & static_cast<int32_t>(AVCODEC_BUFFER_FLAG_CODEC_DATA);
     CHECK_AND_RETURN_RET_LOG(hasCodecFlag == true, MSERR_INVALID_VAL, "First buffer must be codec buffer");
 
     uint8_t *address = bufferList_[index]->mem_->GetBase();

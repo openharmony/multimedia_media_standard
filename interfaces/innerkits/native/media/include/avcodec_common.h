@@ -44,7 +44,7 @@ enum AVCodecBufferFlag : uint32_t {
     /* This indicates that the buffer only contains part of a frame */
     AVCODEC_BUFFER_FLAG_PARTIAL_FRAME = 1 << 2,
     /* This indicated that the buffer contains codec specific data */
-    AVCODEC_BUFFER_FLAG_CODEDC_DATA = 1 << 3,
+    AVCODEC_BUFFER_FLAG_CODEC_DATA = 1 << 3,
 };
 
 struct AVCodecBufferInfo {

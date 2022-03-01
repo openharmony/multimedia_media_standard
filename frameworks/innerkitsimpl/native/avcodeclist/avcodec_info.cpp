@@ -178,11 +178,11 @@ void VideoCaps::LoadLevelParams()
     if (this->GetCodecInfo()->IsSoftwareOnly() == true) {
         return;
     }
-    if (data_.mimeType == "video/avc") {
+    if (data_.mimeType == CodecMimeType::VIDEO_AVC) {
         LoadAVCLevelParams();
-    } else if (data_.mimeType == "video/mpeg2") {
+    } else if (data_.mimeType == CodecMimeType::VIDEO_MPEG2) {
         LoadMPEG2LevelParams();
-    } else if (data_.mimeType == "video/mp4v-es") {
+    } else if (data_.mimeType == CodecMimeType::VIDEO_MPEG4) {
         LoadMPEG4LevelParams();
     }
 }

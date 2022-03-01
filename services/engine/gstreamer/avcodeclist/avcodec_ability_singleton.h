@@ -17,7 +17,7 @@
 #define AVCODEABILITY_SINGLETON_H
 
 #include "format.h"
-#include "av_common.h"
+#include "avcodec_info.h"
 namespace OHOS {
 namespace Media {
 class AVCodecAbilitySingleton {

@@ -23,6 +23,7 @@
 #include "directory_ex.h"
 #include "string_ex.h"
 #include "common_napi.h"
+#include "recorder_napi_utils.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AudioRecorderNapi"};
@@ -262,18 +263,14 @@ int32_t AudioRecorderNapi::GetAudioEncAndFileFormat(napi_env env, napi_value arg
     bool ret = false;
     napi_status status = napi_has_named_property(env, args, "fileFormat", &ret);
     if (status == napi_ok && ret) {
-        ContainerFormatType tempCFT;
         std::string outputFile = CommonNapi::GetPropertyString(env, args, "fileFormat");
-        MapStringToContainerFormat(outputFile, tempCFT);
-        MapContainerFormatToOutputFormat(tempCFT, properties.outputFormatType);
+        (void)MapExtensionNameToOutputFormat(outputFile, properties.outputFormatType);
     }
 
     status = napi_has_named_property(env, args, "audioEncoderMime", &ret);
     if (status == napi_ok && ret) {
-        CodecMimeType tempCMT;
-        std::string audioCodec = CommonNapi::GetPropertyString(env, args, "audioEncoderMime");
-        MapStringToCodecMime(audioCodec, tempCMT);
-        MapCodecMimeToAudioCodec(tempCMT, properties.audioCodecFormat);
+        std::string audioMime = CommonNapi::GetPropertyString(env, args, "audioEncoderMime");
+        (void)MapMimeToAudioCodecFormat(audioMime, properties.audioCodecFormat);
     }
 
     return MSERR_OK;
