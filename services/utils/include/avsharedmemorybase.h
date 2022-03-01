@@ -22,23 +22,94 @@
 
 namespace OHOS {
 namespace Media {
-class __attribute__((visibility("default"))) AVSharedMemoryBase : public AVSharedMemory, public NoCopyable {
+class __attribute__((visibility("default"))) AVSharedMemoryBase
+    : public AVSharedMemory, public NoCopyable {
 public:
-    // only used for local process
-    AVSharedMemoryBase(int32_t size, uint32_t flags, const std::string &name);
-    // only used for remote process
-    AVSharedMemoryBase(int32_t fd, int32_t size, uint32_t flags, const std::string &name);
+    /**
+     * @brief Construct a new AVSharedMemoryBase object. This function should only be used in the
+     * local process.
+     *
+     * @param size the memory's size, bytes.
+     * @param flags the memory's accessible flags, refer to {@AVSharedMemory::Flags}.
+     * @param name the debug string
+     */
+    static std::shared_ptr<AVSharedMemory> CreateFromLocal(
+        int32_t size, uint32_t flags, const std::string &name);
+
+    /**
+     * @brief Construct a new AVSharedMemoryBase object. This function should only be used in the
+     * remote process.
+     *
+     * @param fd the memory's fd
+     * @param size the memory's size, bytes.
+     * @param flags the memory's accessible flags, refer to {@AVSharedMemory::Flags}.
+     * @param name the debug string
+     */
+    static std::shared_ptr<AVSharedMemory> CreateFromRemote(
+        int32_t fd, int32_t size, uint32_t flags, const std::string &name);
+
     ~AVSharedMemoryBase();
 
+    /**
+     * @brief Construct a new AVSharedMemoryBase object. This function should only be used in the
+     * local process.
+     *
+     * @param size the memory's size, bytes.
+     * @param flags the memory's accessible flags, refer to {@AVSharedMemory::Flags}.
+     * @param name the debug string
+     */
+    AVSharedMemoryBase(int32_t size, uint32_t flags, const std::string &name);
+
+    /**
+     * @brief Intialize the memory. Call this interface firstly before the other interface.
+     * @return MSERR_OK if success, otherwise the errcode.
+     */
     int32_t Init();
-    int32_t GetFd() const;
+
+    /**
+     * @brief Get the memory's fd, which only valid when the underlying memory
+     * chunk is allocated through the ashmem.
+     * @return the memory's fd if the memory is allocated through the ashmem, otherwise -1.
+     */
+    int32_t GetFd() const
+    {
+        return fd_;
+    }
+
     std::string GetName() const
     {
         return name_;
     }
-    uint8_t *GetBase() override;
-    int32_t GetSize() override;
-    uint32_t GetFlags() override;
+
+    /**
+     * @brief Get the memory's virtual address
+     * @return the memory's virtual address if the memory is valid, otherwise nullptr.
+     */
+    virtual uint8_t *GetBase() const override
+    {
+        return base_;
+    }
+
+    /**
+     * @brief Get the memory's size
+     * @return the memory's size if the memory is valid, otherwise -1.
+     */
+    virtual int32_t GetSize() const override
+    {
+        return (base_ != nullptr) ? size_ : -1;
+    }
+
+    /**
+     * @brief Get the memory's flags set by the creator, refer to {@Flags}
+     * @return the memory's flags if the memory is valid, otherwise 0.
+     */
+    virtual uint32_t GetFlags() const final
+    {
+        return (base_ != nullptr) ? flags_ : 0;
+    }
+
+protected:
+    AVSharedMemoryBase(int32_t fd, int32_t size, uint32_t flags, const std::string &name);
 
 private:
     int32_t MapMemory(bool isRemote);

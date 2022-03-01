@@ -51,10 +51,9 @@ std::shared_ptr<AVSharedMemory> ReadAVSharedMemoryFromParcel(MessageParcel &parc
     uint32_t flags = parcel.ReadUint32();
     std::string name = parcel.ReadString();
 
-    std::shared_ptr<AVSharedMemoryBase> memory = std::make_shared<AVSharedMemoryBase>(fd, size, flags, name);
-    int32_t ret = memory->Init();
-    if (ret != MSERR_OK || memory->GetBase() == nullptr) {
-        MEDIA_LOGE("create remote AVSharedMemoryBase failed, ret = %{public}d", ret);
+    std::shared_ptr<AVSharedMemory> memory = AVSharedMemoryBase::CreateFromRemote(fd, size, flags, name);
+    if (memory != nullptr || memory->GetBase() == nullptr) {
+        MEDIA_LOGE("create remote AVSharedMemoryBase failed");
         memory = nullptr;
     }
 

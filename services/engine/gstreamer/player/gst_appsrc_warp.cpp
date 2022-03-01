@@ -14,6 +14,7 @@
  */
 
 #include "gst_appsrc_warp.h"
+#include "avsharedmemorybase.h"
 #include "media_log.h"
 #include "media_errors.h"
 #include "player.h"
@@ -64,7 +65,8 @@ int32_t GstAppsrcWarp::Init()
     for (int i = 0; i < buffersNum_; ++i) {
         std::shared_ptr<AppsrcMemWarp> appSrcMem = std::make_shared<AppsrcMemWarp>();
         CHECK_AND_RETURN_RET_LOG(appSrcMem != nullptr, MSERR_NO_MEMORY, "init AppsrcMemWarp failed");
-        appSrcMem->mem = AVSharedMemory::Create(bufferSize_, AVSharedMemory::Flags::FLAGS_READ_WRITE, "appsrc");
+        appSrcMem->mem = AVSharedMemoryBase::CreateFromLocal(
+            bufferSize_, AVSharedMemory::Flags::FLAGS_READ_WRITE, "appsrc");
         CHECK_AND_RETURN_RET_LOG(appSrcMem->mem != nullptr, MSERR_NO_MEMORY, "init AVSharedMemory failed");
         (void)emptyBuffers_.emplace(appSrcMem);
     }
