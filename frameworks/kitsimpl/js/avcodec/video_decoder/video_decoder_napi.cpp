@@ -671,7 +671,7 @@ napi_value VideoDecoderNapi::SetOutputSurface(napi_env env, napi_callback_info i
     if (args[0] != nullptr && napi_typeof(env, args[0], &valueType) == napi_ok && valueType == napi_string &&
         args[1] != nullptr && napi_typeof(env, args[1], &valueType) == napi_ok && valueType == napi_boolean) {
         std::string idStr = CommonNapi::GetStringArgument(env, args[0]);
-        if (idStr == "") {
+        if (idStr == "" || idStr[0] < '0' || idStr[0] > '9') {
             asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
         } else {
             int32_t numBase = 10;
