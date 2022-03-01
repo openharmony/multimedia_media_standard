@@ -181,8 +181,6 @@ void AVCodecListDemo::SetMediaDescriptionToFormat(Format &format, std::string ke
         cout << "1:YUVI420" << endl;
         cout << "2:NV12" << endl;
         cout << "3:NV21" << endl;
-    } else if (key == "frame_rate") {
-        cout << "Please set the frame rate value as 100 times the actual frame rate" << endl;
     }
     (void)getline(cin, mediaDescription);
     if (mediaDescription == "") {
