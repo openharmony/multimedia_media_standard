@@ -61,8 +61,6 @@ static void gst_shmem_wrap_allocator_free(GstAllocator *allocator, GstMemory *me
     GST_DEBUG("free memory for size: %" G_GSIZE_FORMAT ", addr: 0x%06" PRIXPTR "",
         memory->maxsize, FAKE_POINTER(avSharedMem->mem->GetBase()));
 
-    // assign the nullptr will decrease the refcount, if the refcount is zero,
-    // the memory will be released back to pool.
     avSharedMem->mem = nullptr;
     g_slice_free(GstShMemMemory, avSharedMem);
 }

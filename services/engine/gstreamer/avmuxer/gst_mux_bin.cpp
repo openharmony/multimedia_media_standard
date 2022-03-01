@@ -122,23 +122,32 @@ static void gst_mux_bin_finalize(GObject *object)
         (void)::close(mux_bin->outFd_);
         mux_bin->outFd_ = -1;
     }
-
-    g_free(mux_bin->path_);
-    mux_bin->path_ = nullptr;
-    g_free(mux_bin->mux_);
-    mux_bin->mux_ = nullptr;
+    if (mux_bin->path_ != nullptr) {
+        g_free(mux_bin->path_);
+        mux_bin->path_ = nullptr;
+    }
+    if (mux_bin->mux_ != nullptr) {
+        g_free(mux_bin->mux_);
+        mux_bin->mux_ = nullptr;
+    }
     GSList *iter = mux_bin->videoSrcList_;
     while (iter != nullptr && iter->data != nullptr) {
         g_free(((GstTrackInfo *)(iter->data))->srcName_);
         g_free(((GstTrackInfo *)(iter->data))->parseName_);
+        ((GstTrackInfo *)(iter->data))->srcName_ = nullptr;
+        ((GstTrackInfo *)(iter->data))->parseName_ = nullptr;
         iter->data = nullptr;
+        iter = iter->next;
     }
 
     iter = mux_bin->audioSrcList_;
     while (iter != nullptr && iter->data != nullptr) {
         g_free(((GstTrackInfo *)(iter->data))->srcName_);
         g_free(((GstTrackInfo *)(iter->data))->parseName_);
+        ((GstTrackInfo *)(iter->data))->srcName_ = nullptr;
+        ((GstTrackInfo *)(iter->data))->parseName_ = nullptr;
         iter->data = nullptr;
+        iter = iter->next;
     }
 
     G_OBJECT_CLASS(parent_class)->finalize(object);
@@ -232,8 +241,8 @@ static bool create_splitmuxsink(GstMuxBin *mux_bin)
 
     GstElement *qtmux = gst_element_factory_make(mux_bin->mux_, mux_bin->mux_);
     g_return_val_if_fail(qtmux != nullptr, false);
-    g_object_set(qtmux, "streamable", true, "orientation-hint", mux_bin->degrees_,
-        "set-latitude", mux_bin->latitude_, "set-longitude", mux_bin->longitude_, nullptr);
+    g_object_set(qtmux, "orientation-hint", mux_bin->degrees_, "set-latitude", mux_bin->latitude_,
+        "set-longitude", mux_bin->longitude_, nullptr);
     g_object_set(mux_bin->splitMuxSink_, "muxer", qtmux, nullptr);
 
     return true;
