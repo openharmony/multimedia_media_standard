@@ -21,7 +21,7 @@
 #include "media_data_source.h"
 #include "player.h"
 #include "recorder.h"
-#include "av_common.h"
+#include "avcodec_info.h"
 #include "avcodec_common.h"
 
 namespace {
@@ -31,13 +31,13 @@ namespace {
 namespace OHOS {
 namespace Media {
 struct JsEnumInt {
-    std::string enumName;
+    std::string_view enumName;
     int32_t enumInt;
 };
 
 struct JsEnumString {
-    std::string enumName;
-    std::string enumString;
+    std::string_view enumName;
+    std::string_view enumString;
 };
 
 static const std::vector<struct JsEnumInt> g_mediaErrorCode = {
@@ -109,7 +109,7 @@ static const std::vector<struct JsEnumInt> g_frameFlags = {
     { "EOS_FRAME", AVCodecBufferFlag::AVCODEC_BUFFER_FLAG_EOS },
     { "SYNC_FRAME", AVCodecBufferFlag::AVCODEC_BUFFER_FLAG_SYNC_FRAME },
     { "PARTIAL_FRAME", AVCodecBufferFlag::AVCODEC_BUFFER_FLAG_PARTIAL_FRAME },
-    { "CODEC_DATA", AVCodecBufferFlag::AVCODEC_BUFFER_FLAG_CODEDC_DATA },
+    { "CODEC_DATA", AVCodecBufferFlag::AVCODEC_BUFFER_FLAG_CODEC_DATA },
 };
 
 static const std::vector<struct JsEnumInt> g_seekMode = {
@@ -236,21 +236,21 @@ static const std::vector<struct JsEnumString> g_containerFormatType = {
 };
 
 static const std::vector<struct JsEnumString> g_codecMimeType = {
-    { "VIDEO_H263", "video/h263" },
-    { "VIDEO_AVC", "video/avc" },
-    { "VIDEO_MPEG2", "video/mpeg2" },
-    { "VIDEO_HEVC", "video/hevc" },
-    { "VIDEO_MPEG4", "video/mp4v-es" },
-    { "VIDEO_VP8", "video/x-vnd.on2.vp8" },
-    { "VIDEO_VP9", "video/x-vnd.on2.vp9" },
-    { "AUDIO_AMR_NB", "audio/3gpp" },
-    { "AUDIO_AMR_WB", "audio/amr-wb" },
-    { "AUDIO_MPEG", "audio/mpeg" },
-    { "AUDIO_AAC", "audio/mp4a-latm" },
-    { "AUDIO_VORBIS", "audio/vorbis" },
-    { "AUDIO_OPUS", "audio/opus" },
-    { "AUDIO_FLAC", "audio/flac" },
-    { "AUDIO_RAW", "audio/raw" },
+    { "VIDEO_H263", CodecMimeType::VIDEO_H263 },
+    { "VIDEO_AVC", CodecMimeType::VIDEO_AVC },
+    { "VIDEO_MPEG2", CodecMimeType::VIDEO_MPEG2 },
+    { "VIDEO_HEVC", CodecMimeType::VIDEO_HEVC },
+    { "VIDEO_MPEG4", CodecMimeType::VIDEO_MPEG4 },
+    { "VIDEO_VP8", CodecMimeType::VIDEO_VP9 },
+    { "VIDEO_VP9", CodecMimeType::VIDEO_VP9 },
+    { "AUDIO_AMR_NB", CodecMimeType::AUDIO_AMR_NB },
+    { "AUDIO_AMR_WB", CodecMimeType::AUDIO_AMR_WB },
+    { "AUDIO_MPEG", CodecMimeType::AUDIO_MPEG },
+    { "AUDIO_AAC", CodecMimeType::AUDIO_AAC },
+    { "AUDIO_VORBIS", CodecMimeType::AUDIO_VORBIS },
+    { "AUDIO_OPUS", CodecMimeType::AUDIO_OPUS },
+    { "AUDIO_FLAC", CodecMimeType::AUDIO_FLAC },
+    { "AUDIO_RAW", CodecMimeType::AUDIO_RAW },
 };
 
 static const std::vector<struct JsEnumString> g_mediaDescriptionKey = {
@@ -284,7 +284,7 @@ static const std::vector<struct JsEnumString> g_mediaDescriptionKey = {
     { "MD_KEY_CUSTOM", "vendor.custom" },
 };
 
-static const std::map<std::string, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
+static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
     { "MediaErrorCode", g_mediaErrorCode },
     { "AVDataSourceError", g_avDataSourceError },
     { "BufferingInfoType", g_bufferingInfoType },
@@ -309,7 +309,7 @@ static const std::map<std::string, const std::vector<struct JsEnumInt>&> g_intEn
     { "VP8Profile", g_VP8Profile },
 };
 
-static const std::map<std::string, const std::vector<struct JsEnumString>&> g_stringEnumClassMap = {
+static const std::map<std::string_view, const std::vector<struct JsEnumString>&> g_stringEnumClassMap = {
     { "MediaDescriptionKey", g_mediaDescriptionKey },
     { "ContainerFormatType", g_containerFormatType },
     { "CodecMimeType", g_codecMimeType },
@@ -331,7 +331,7 @@ napi_value MediaEnumNapi::JsEnumIntInit(napi_env env, napi_value exports)
         property.resize(vecSize);
         for (int32_t index = 0; index < vecSize; ++index) {
             property[index] = napi_property_descriptor DECLARE_NAPI_STATIC_PROPERTY(
-                enumItemVec[index].enumName.c_str(), value[index]);
+                enumItemVec[index].enumName.data(), value[index]);
         }
 
         auto constructor = [](napi_env env, napi_callback_info info) {
@@ -341,11 +341,11 @@ napi_value MediaEnumNapi::JsEnumIntInit(napi_env env, napi_value exports)
         };
 
         napi_value result = nullptr;
-        napi_status status = napi_define_class(env, enumClassName.c_str(), NAPI_AUTO_LENGTH, constructor,
+        napi_status status = napi_define_class(env, enumClassName.data(), NAPI_AUTO_LENGTH, constructor,
             nullptr, property.size(), property.data(), &result);
         CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "Failed to define enum");
 
-        status = napi_set_named_property(env, exports, enumClassName.c_str(), result);
+        status = napi_set_named_property(env, exports, enumClassName.data(), result);
         CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "Failed to set result");
     }
     return exports;
@@ -360,14 +360,14 @@ napi_value MediaEnumNapi::JsEnumStringInit(napi_env env, napi_value exports)
         std::vector<napi_value> value;
         value.resize(vecSize);
         for (int32_t index = 0; index < vecSize; ++index) {
-            napi_create_string_utf8(env, enumItemVec[index].enumString.c_str(), NAPI_AUTO_LENGTH, &value[index]);
+            napi_create_string_utf8(env, enumItemVec[index].enumString.data(), NAPI_AUTO_LENGTH, &value[index]);
         }
 
         std::vector<napi_property_descriptor> property;
         property.resize(vecSize);
         for (int32_t index = 0; index < vecSize; ++index) {
             property[index] = napi_property_descriptor DECLARE_NAPI_STATIC_PROPERTY(
-                enumItemVec[index].enumName.c_str(), value[index]);
+                enumItemVec[index].enumName.data(), value[index]);
         }
 
         auto constructor = [](napi_env env, napi_callback_info info) {
@@ -377,11 +377,11 @@ napi_value MediaEnumNapi::JsEnumStringInit(napi_env env, napi_value exports)
         };
 
         napi_value result = nullptr;
-        napi_status status = napi_define_class(env, enumClassName.c_str(), NAPI_AUTO_LENGTH, constructor,
+        napi_status status = napi_define_class(env, enumClassName.data(), NAPI_AUTO_LENGTH, constructor,
             nullptr, property.size(), property.data(), &result);
         CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "Failed to define enum");
 
-        status = napi_set_named_property(env, exports, enumClassName.c_str(), result);
+        status = napi_set_named_property(env, exports, enumClassName.data(), result);
         CHECK_AND_RETURN_RET_LOG(status == napi_ok, nullptr, "Failed to set result");
     }
     return exports;

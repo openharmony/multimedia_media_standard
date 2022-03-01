@@ -194,7 +194,7 @@ void VDecDemo::InputFunc()
 
         int32_t ret = MSERR_OK;
         if (isFirstFrame_) {
-            ret = vdec_->QueueInputBuffer(index, info, AVCODEC_BUFFER_FLAG_CODEDC_DATA);
+            ret = vdec_->QueueInputBuffer(index, info, AVCODEC_BUFFER_FLAG_CODEC_DATA);
             isFirstFrame_ = false;
         } else {
             ret = vdec_->QueueInputBuffer(index, info, AVCODEC_BUFFER_FLAG_NONE);

@@ -23,7 +23,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-int32_t ProcessorBase::Init(const CodecMimeType &name, bool isSoftWare)
+int32_t ProcessorBase::Init(const InnerCodecMimeType &name, bool isSoftWare)
 {
     codecName_ = name;
     isSoftWare_ = isSoftWare;

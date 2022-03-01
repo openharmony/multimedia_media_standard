@@ -22,17 +22,6 @@
 
 namespace OHOS {
 namespace Media {
-/**
- * @brief Error type of AVCodecList
- *
- * @since 3.1
- * @version 3.1
- */
-enum AVCodecListErrorType : int32_t {
-    AVCODECLIST_ERROR_INTERNAL,
-    AVCODECLIST_ERROR_EXTEND_START = 0X10000,
-};
-
 class AVCodecList {
 public:
     virtual ~AVCodecList() = default;

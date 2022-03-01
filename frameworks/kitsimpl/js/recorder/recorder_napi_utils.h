@@ -13,26 +13,20 @@
  * limitations under the License.
  */
 
-#ifndef CODEC_PLUGINS_CAPABILITY_H
-#define CODEC_PLUGINS_CAPABILITY_H
+#ifndef RECORDER_NAPI_UTILS_H
+#define RECORDER_NAPI_UTILS_H
 
-#include "format.h"
+#include "av_common.h"
 #include "avcodec_info.h"
-#include "nocopyable.h"
+#include "avcontainer_types.h"
+#include "recorder.h"
 
 namespace OHOS {
 namespace Media {
-class __attribute__((visibility("default"))) CodecPluginsCapability : public NoCopyable {
-public:
-    ~CodecPluginsCapability();
-    static CodecPluginsCapability& GetInstance();
-    void RegisterCapabilitys(std::vector<CapabilityData> data);
-    std::vector<CapabilityData> GetCodecPluginsCapability();
+int32_t MapMimeToAudioCodecFormat(const std::string &mime, AudioCodecFormat &audioCodecFormat);
+int32_t MapMimeToVideoCodecFormat(const std::string &mime, VideoCodecFormat &audioCodecFormat);
+int32_t MapExtensionNameToOutputFormat(const std::string &extension, OutputFormatType &type);
+}
+}
 
-private:
-    CodecPluginsCapability();
-    std::vector<CapabilityData> capabilityDataArray_;
-};
-}
-}
-#endif // CODEC_PLUGINS_CAPABILITY_H
+#endif

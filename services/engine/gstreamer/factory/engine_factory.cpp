@@ -14,15 +14,15 @@
  */
 
 #include "i_engine_factory.h"
-#include "nocopyable.h"
-#include "media_errors.h"
-#include "media_log.h"
-#include "player_engine_gst_impl.h"
-#include "recorder_engine_gst_impl.h"
-#include "avmetadatahelper_engine_gst_impl.h"
 #include "avcodec_engine_gst_impl.h"
 #include "avcodeclist_engine_gst_impl.h"
+#include "avmetadatahelper_engine_gst_impl.h"
 #include "gst_loader.h"
+#include "media_errors.h"
+#include "media_log.h"
+#include "nocopyable.h"
+#include "player_engine_gst_impl.h"
+#include "recorder_engine_gst_impl.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "GstEngineFactory"};
