@@ -21,6 +21,7 @@
 #include "media_errors.h"
 #include "video_decoder_callback_napi.h"
 #include "media_surface.h"
+#include "scope_guard.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "VideoDecoderNapi"};
@@ -101,6 +102,8 @@ napi_value VideoDecoderNapi::Constructor(napi_env env, napi_callback_info info)
     VideoDecoderNapi *vdecNapi = new(std::nothrow) VideoDecoderNapi();
     CHECK_AND_RETURN_RET(vdecNapi != nullptr, result);
 
+    ON_SCOPE_EXIT(0) { delete vdecNapi; };
+
     vdecNapi->env_ = env;
     std::string name = CommonNapi::GetStringArgument(env, args[0]);
 
@@ -122,11 +125,9 @@ napi_value VideoDecoderNapi::Constructor(napi_env env, napi_callback_info info)
 
     status = napi_wrap(env, jsThis, reinterpret_cast<void *>(vdecNapi),
         VideoDecoderNapi::Destructor, nullptr, &(vdecNapi->wrap_));
-    if (status != napi_ok) {
-        delete vdecNapi;
-        MEDIA_LOGE("Failed to wrap native instance");
-        return result;
-    }
+    CHECK_AND_RETURN_RET(status == napi_ok, result);
+
+    CANCEL_SCOPE_EXIT_GUARD(0);
 
     MEDIA_LOGD("Constructor success");
     return jsThis;
@@ -170,6 +171,7 @@ napi_value VideoDecoderNapi::CreateVideoDecoderByMime(napi_env env, napi_callbac
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[1]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
     asyncCtx->JsResult = std::make_unique<AVCodecJsResultCtor>(constructor_, 1, name);
+    asyncCtx->ctorFlag = true;
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "CreateVideoDecoderByMime", NAPI_AUTO_LENGTH, &resource);
@@ -209,6 +211,7 @@ napi_value VideoDecoderNapi::CreateVideoDecoderByName(napi_env env, napi_callbac
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[1]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
     asyncCtx->JsResult = std::make_unique<AVCodecJsResultCtor>(constructor_, 0, name);
+    asyncCtx->ctorFlag = true;
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "CreateVideoDecoderByName", NAPI_AUTO_LENGTH, &resource);
