@@ -59,7 +59,7 @@ public:
     /**
      * Key for max input size, value type is uint32_t
      */
-    static constexpr std::string_view MD_KEY_MAX_INPUT_SIZE = "max-input-size";
+    static constexpr std::string_view MD_KEY_MAX_INPUT_SIZE = "max_input_size";
 
     /**
      * Key for video width, value type is uint32_t
@@ -74,17 +74,17 @@ public:
     /**
      * Key for video pixelformat, value type is int32_t, see {link @MediaPixelFormat}
      */
-    static constexpr std::string_view MD_KEY_PIXEL_FORMAT = "pixel-format";
+    static constexpr std::string_view MD_KEY_PIXEL_FORMAT = "pixel_format";
 
     /**
      * Key for video frame rate, value type is double.
      */
-    static constexpr std::string_view MD_KEY_FRAME_RATE = "frame-rate";
+    static constexpr std::string_view MD_KEY_FRAME_RATE = "frame_rate";
 
     /**
      * Key for video capture rate, value type is double
      */
-    static constexpr std::string_view MD_KEY_CAPTURE_RATE = "capture-rate";
+    static constexpr std::string_view MD_KEY_CAPTURE_RATE = "capture_rate";
 
     /**
      * Key for the interval of key frame. value type is int32_t, the unit is milliseconds.
@@ -101,27 +101,27 @@ public:
     /**
      * Key for audio channel count, value type is uint32_t
      */
-    static constexpr std::string_view MD_KEY_CHANNEL_COUNT = "channel-count";
+    static constexpr std::string_view MD_KEY_CHANNEL_COUNT = "channel_count";
 
     /**
      * Key for audio sample rate, value type is uint32_t
      */
-    static constexpr std::string_view MD_KEY_SAMPLE_RATE = "sample-rate";
+    static constexpr std::string_view MD_KEY_SAMPLE_RATE = "sample_rate";
 
     /**
      * Key for track count in the container, value type is uint32_t
      */
-    static constexpr std::string_view MD_KEY_TRACK_COUNT = "track-count";
+    static constexpr std::string_view MD_KEY_TRACK_COUNT = "track_count";
 
     /**
      * Key for container format type, value type is string
      */
-    static constexpr std::string_view MD_KEY_CONTAINER_FORMAT = "container-format";
+    static constexpr std::string_view MD_KEY_CONTAINER_FORMAT = "container_format";
 
     /**
      * custom key prefix, media service will pass through to HAL.
      */
-    static constexpr std::string_view MD_KEY_CUSTOM_PREFIX = "vendor.";
+    static constexpr std::string_view MD_KEY_CUSTOM_PREFIX = "vendor.custom";
 
 private:
     MediaDescriptionKey() = delete;
