@@ -20,6 +20,7 @@
 #include "media_capability_utils.h"
 #include "media_log.h"
 #include "media_errors.h"
+#include "scope_guard.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AudioEncoderNapi"};
@@ -99,6 +100,8 @@ napi_value AudioEncoderNapi::Constructor(napi_env env, napi_callback_info info)
     AudioEncoderNapi *aencNapi = new(std::nothrow) AudioEncoderNapi();
     CHECK_AND_RETURN_RET(aencNapi != nullptr, result);
 
+    ON_SCOPE_EXIT(0) { delete aencNapi; };
+
     aencNapi->env_ = env;
     std::string name = CommonNapi::GetStringArgument(env, args[0]);
 
@@ -120,11 +123,9 @@ napi_value AudioEncoderNapi::Constructor(napi_env env, napi_callback_info info)
 
     status = napi_wrap(env, jsThis, reinterpret_cast<void *>(aencNapi),
         AudioEncoderNapi::Destructor, nullptr, &(aencNapi->wrap_));
-    if (status != napi_ok) {
-        delete aencNapi;
-        MEDIA_LOGE("Failed to wrap native instance");
-        return result;
-    }
+    CHECK_AND_RETURN_RET(status == napi_ok, result);
+
+    CANCEL_SCOPE_EXIT_GUARD(0);
 
     MEDIA_LOGD("Constructor success");
     return jsThis;
@@ -168,6 +169,7 @@ napi_value AudioEncoderNapi::CreateAudioEncoderByMime(napi_env env, napi_callbac
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[1]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
     asyncCtx->JsResult = std::make_unique<AVCodecJsResultCtor>(constructor_, 1, name);
+    asyncCtx->ctorFlag = true;
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "CreateAudioEncoderByMime", NAPI_AUTO_LENGTH, &resource);
@@ -207,6 +209,7 @@ napi_value AudioEncoderNapi::CreateAudioEncoderByName(napi_env env, napi_callbac
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[1]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
     asyncCtx->JsResult = std::make_unique<AVCodecJsResultCtor>(constructor_, 0, name);
+    asyncCtx->ctorFlag = true;
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "CreateAudioEncoderByName", NAPI_AUTO_LENGTH, &resource);
