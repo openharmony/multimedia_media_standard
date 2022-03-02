@@ -449,7 +449,6 @@ declare namespace media {
     /**
      * Audio output uri.support two kind of uri now.
      * format like: scheme + "://" + "context".
-     * file:  file://path
      * fd:    fd://fd
      * @since 6
      * @syscap SystemCapability.Multimedia.Media.AudioRecorder
@@ -1300,7 +1299,6 @@ declare namespace media {
     /**
      * video output uri.support two kind of uri now.
      * format like: scheme + "://" + "context".
-     * file:  file://path
      * fd:    fd://fd
      * @since 8
      * @syscap SystemCapability.Multimedia.Media.VideoRecorder
