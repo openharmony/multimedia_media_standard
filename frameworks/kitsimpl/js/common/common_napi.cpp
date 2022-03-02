@@ -501,8 +501,11 @@ void MediaAsyncContext::CompleteCallback(napi_env env, napi_status status, void 
         MEDIA_LOGD("async callback success");
         if (asyncContext->JsResult != nullptr) {
             asyncContext->JsResult->GetJsResult(env, result);
+            CheckCtorResult(env, result, asyncContext, args[0]);
         }
-        args[1] = result;
+        if (!asyncContext->errFlag) {
+            args[1] = result;
+        }
     }
 
     if (asyncContext->deferred) {
@@ -529,6 +532,20 @@ void MediaAsyncContext::CompleteCallback(napi_env env, napi_status status, void 
     if (asyncContext->delFlag) {
         delete asyncContext;
         asyncContext = nullptr;
+    }
+}
+
+void MediaAsyncContext::CheckCtorResult(napi_env env, napi_value &result, MediaAsyncContext *ctx, napi_value &args)
+{
+    CHECK_AND_RETURN(ctx != nullptr);
+    if (ctx->ctorFlag) {
+        void *instance = nullptr;
+        if (napi_unwrap(env, result, reinterpret_cast<void **>(&instance)) != napi_ok || instance == nullptr) {
+            MEDIA_LOGE("Failed to create instance");
+            ctx->errFlag = true;
+            (void)CommonNapi::CreateError(env, MSERR_EXT_UNKNOWN, "Failed to create instance", result);
+            args = result;
+        }
     }
 }
 }
