@@ -123,7 +123,8 @@ GstSurfacePool *gst_surface_pool_new()
 static const gchar **gst_surface_pool_get_options (GstBufferPool *pool)
 {
     // add buffer type meta option at here
-    static const gchar *options[] = { GST_BUFFER_POOL_OPTION_VIDEO_META, nullptr };
+    static const gchar *options[] = { GST_BUFFER_POOL_OPTION_VIDEO_META, GST_BUFFER_POOL_OPTION_VIDEO_ALIGNMENT,
+        nullptr };
     return options;
 }
 
@@ -348,14 +349,21 @@ static GstFlowReturn gst_surface_pool_alloc_buffer(GstBufferPool *pool,
 
     gst_buffer_append_memory(*buffer, reinterpret_cast<GstMemory *>(memory));
 
-    GstVideoInfo *info = &spool->info;
-    gst_buffer_add_video_meta(*buffer, GST_VIDEO_FRAME_FLAG_NONE, GST_VIDEO_INFO_FORMAT(info),
-        GST_VIDEO_INFO_WIDTH(info), GST_VIDEO_INFO_HEIGHT(info));
     // add buffer type meta at here.
     OHOS::sptr<OHOS::SurfaceBuffer> buf = memory->buf;
-    intptr_t buffer_handle = reinterpret_cast<intptr_t>(buf->GetBufferHandle());
-    gst_buffer_add_buffer_handle_meta(*buffer, buffer_handle, memory->fence, 0);
+    auto buffer_handle = buf->GetBufferHandle();
+    g_return_val_if_fail(buffer_handle != nullptr, GST_FLOW_ERROR);
+    int32_t stride = buffer_handle->stride;
+    gst_buffer_add_buffer_handle_meta(*buffer, reinterpret_cast<intptr_t>(buffer_handle), memory->fence, 0);
 
+    GstVideoInfo *info = &spool->info;
+    g_return_val_if_fail(info != nullptr && info->finfo != nullptr, GST_FLOW_ERROR);
+    for (int plane = 0; plane < info->finfo->n_planes; ++plane) {
+        info->stride[plane] = stride;
+        GST_DEBUG("new stride %d", stride);
+    }
+    gst_buffer_add_video_meta_full(*buffer, GST_VIDEO_FRAME_FLAG_NONE, GST_VIDEO_INFO_FORMAT(info),
+        GST_VIDEO_INFO_WIDTH(info), GST_VIDEO_INFO_HEIGHT(info), info->finfo->n_planes, info->offset, info->stride);
     return GST_FLOW_OK;
 }
 
