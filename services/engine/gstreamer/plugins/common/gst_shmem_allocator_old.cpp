@@ -41,9 +41,9 @@ static GstMemory *gst_shmem_allocator_old_alloc(GstAllocator *allocator, gsize s
 
     g_return_val_if_fail(allocSize < INT32_MAX, nullptr);
 
-    auto avSharedMem = std::make_shared<OHOS::Media::AVSharedMemoryBase>(
+    auto avSharedMem = OHOS::Media::AVSharedMemoryBase::CreateFromLocal(
         static_cast<int32_t>(allocSize), OHOS::Media::AVSharedMemory::FLAGS_READ_ONLY, "GstShMemAllocatorOld");
-    g_return_val_if_fail(avSharedMem->Init() == OHOS::Media::MSERR_OK, nullptr);
+    g_return_val_if_fail(avSharedMem != nullptr, nullptr);
 
     GstShMemMemory *mem = reinterpret_cast<GstShMemMemory *>(g_slice_alloc0(sizeof(GstShMemMemory)));
     g_return_val_if_fail(mem != nullptr, nullptr);
