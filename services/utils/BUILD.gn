@@ -40,18 +40,13 @@ ohos_shared_library("media_service_utils") {
   install_enable = true
 
   sources = [
+    "avsharedmemorybase.cpp",
     "avsharedmemorypool.cpp",
     "task_queue.cpp",
     "time_monitor.cpp",
     "time_perf.cpp",
     "uri_helper.cpp",
   ]
-
-  if (defined(ohos_lite)) {
-    sources += [ "avsharedmemorylocal.cpp" ]
-  } else {
-    sources += [ "avsharedmemorybase.cpp" ]
-  }
 
   include_dirs = [
     "//utils/native/base/include",

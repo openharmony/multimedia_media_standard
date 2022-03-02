@@ -54,17 +54,22 @@ public:
     };
 
     /**
-     * @brief Create a new AVSharedMemory instance containing a chunk of shared memory.
-     * @param size the desired shared memory size in bytes.
-     * @param flags the flag to control the memory attributes, see {@link Flags}
-     * @param name the optional argument used to facilitate debug info displaying.
-     * @return The AVSharedMemory instance containing a chunk of shared memory
+     * @brief Get the memory's virtual address
+     * @return the memory's virtual address if the memory is valid, otherwise nullptr.
      */
-    static std::shared_ptr<AVSharedMemory> Create(int32_t size, uint32_t flags, const std::string &name);
+    virtual uint8_t *GetBase() const = 0;
 
-    virtual uint8_t *GetBase() = 0;
-    virtual int32_t GetSize() = 0;
-    virtual uint32_t GetFlags() = 0;
+    /**
+     * @brief Get the memory's size
+     * @return the memory's size if the memory is valid, otherwise -1.
+     */
+    virtual int32_t GetSize() const = 0;
+
+    /**
+     * @brief Get the memory's flags set by the creator, refer to {@Flags}
+     * @return the memory's flags if the memory is valid, otherwise 0.
+     */
+    virtual uint32_t GetFlags() const = 0;
 };
 }
 }

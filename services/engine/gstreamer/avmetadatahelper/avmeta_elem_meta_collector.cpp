@@ -17,11 +17,12 @@
 #include <string_view>
 #include <limits>
 #include "avmetadatahelper.h"
-#include "media_errors.h"
-#include "media_log.h"
+#include "avsharedmemorybase.h"
 #include "av_common.h"
 #include "gst_meta_parser.h"
 #include "gst_utils.h"
+#include "media_errors.h"
+#include "media_log.h"
 #include "securec.h"
 
 namespace {
@@ -177,7 +178,7 @@ std::shared_ptr<AVSharedMemory> AVMetaElemMetaCollector::DoFetchArtPicture(const
         return nullptr;
     }
 
-    auto artPicMem = AVSharedMemory::Create(
+    auto artPicMem = AVSharedMemoryBase::CreateFromLocal(
         static_cast<int32_t>(size), AVSharedMemory::FLAGS_READ_ONLY, "artpic");
     CHECK_AND_RETURN_RET_LOG(artPicMem != nullptr, nullptr, "create art pic failed");
 
