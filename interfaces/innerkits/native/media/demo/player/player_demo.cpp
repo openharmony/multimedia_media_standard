@@ -124,7 +124,7 @@ void PlayerCallbackDemo::PrintBufferingUpdate(const Format &infoBody) const
             cout << "OnBufferingPercent update is " << value << "%" << endl;
         }
     } else if (infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_CACHED_DURATION), value)) {
-        if (((static_cast<uint32_t>(bufferingOut_) & TIME) == TIME) {
+        if ((static_cast<uint32_t>(bufferingOut_) & TIME) == TIME) {
             cout << "OnCachedDuration update is " << value << "ms" << endl;
         }
     }
