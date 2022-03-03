@@ -152,7 +152,7 @@ int32_t SrcBytebufferImpl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo in
         MEDIA_LOGE("Invalid pts: too big, use 0 as default");
         GST_BUFFER_PTS(bufWrapper->gstBuffer_) = 0;
     } else {
-        GST_BUFFER_PTS(bufWrapper->gstBuffer_) = info.presentationTimeUs * usToNs;
+        GST_BUFFER_PTS(bufWrapper->gstBuffer_) = static_cast<uint64_t>(info.presentationTimeUs * usToNs);
     }
 
     CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
@@ -173,7 +173,7 @@ int32_t SrcBytebufferImpl::SetCallback(const std::weak_ptr<IAVCodecEngineObs> &o
 
 int32_t SrcBytebufferImpl::HandleCodecBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
 {
-    bool hasCodecFlag = static_cast<int32_t>(flag) & static_cast<int32_t>(AVCODEC_BUFFER_FLAG_CODEC_DATA);
+    bool hasCodecFlag = static_cast<uint32_t>(flag) & static_cast<uint32_t>(AVCODEC_BUFFER_FLAG_CODEC_DATA);
     CHECK_AND_RETURN_RET_LOG(hasCodecFlag == true, MSERR_INVALID_VAL, "First buffer must be codec buffer");
 
     uint8_t *address = bufferList_[index]->mem_->GetBase();

@@ -356,7 +356,7 @@ int32_t GstAppsrcWarp::GetAndPushMem()
         int32_t allocSize = streamType_ == GST_APP_STREAM_TYPE_STREAM ? size : needDataSize_;
         buffer = gst_buffer_new_allocate(nullptr, static_cast<gsize>(allocSize), nullptr);
         CHECK_AND_RETURN_RET_LOG(buffer != nullptr, MSERR_NO_MEMORY, "no mem");
-        GST_BUFFER_OFFSET(buffer) = appSrcMem->pos + appSrcMem->offset;
+        GST_BUFFER_OFFSET(buffer) = appSrcMem->pos + static_cast<uint64_t>(appSrcMem->offset);
         bufferWarp_->buffer = buffer;
         bufferWarp_->offset = 0;
         bufferWarp_->size = allocSize;

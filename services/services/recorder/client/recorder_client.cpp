@@ -251,7 +251,6 @@ void RecorderClient::SetLocation(float latitude, float longitude)
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_LOG(recorderProxy_ != nullptr, "recorder service does not exist.");
 
-    MEDIA_LOGD ("SetLocation latitude: %{public}f, longitude: %{public}f", latitude, longitude);
     recorderProxy_->SetLocation(latitude, longitude);
 }
 
