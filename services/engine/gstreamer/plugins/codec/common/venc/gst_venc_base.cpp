@@ -953,7 +953,6 @@ static gboolean gst_venc_base_propose_allocation(GstVideoEncoder *encoder, GstQu
     gboolean update_pool = FALSE;
     guint pool_num = gst_query_get_n_allocation_pools(query);
     if (pool_num > 0) {
-        GST_DEBUG_OBJECT(encoder, "Get bufferpool num %u query %p", pool_num, query);
         update_pool = TRUE;
     }
     gst_query_add_allocation_meta(query, GST_VIDEO_META_API_TYPE, nullptr);

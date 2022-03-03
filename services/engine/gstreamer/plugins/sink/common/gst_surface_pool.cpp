@@ -131,7 +131,7 @@ static const gchar **gst_surface_pool_get_options (GstBufferPool *pool)
 static gboolean parse_caps_info(GstCaps *caps, GstVideoInfo *info, PixelFormat *format)
 {
     if (!gst_video_info_from_caps(info, caps)) {
-        GST_ERROR("wrong caps, %" GST_PTR_FORMAT, caps);
+        GST_ERROR("wrong caps");
         return FALSE;
     }
 

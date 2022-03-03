@@ -206,8 +206,7 @@ int32_t MuxSinkBin::ConfigureGeoLocation(const RecorderParam &recParam)
     if (param.latitude < MIN_LATITUDE || param.latitude > MAX_LATITUDE || param.longitude < MIN_LONGITUDE
         || param.longitude > MAX_LONGITUDE) {
             setLocationToMux = false;
-            MEDIA_LOGE("Invalid GeoLocation, latitude: %{public}f, longitude: %{public}f",
-                param.latitude, param.longitude);
+            MEDIA_LOGE("Invalid GeoLocation!");
         }
 
     MarkParameter(recParam.type);
@@ -216,8 +215,6 @@ int32_t MuxSinkBin::ConfigureGeoLocation(const RecorderParam &recParam)
     if (setLocationToMux) {
         g_object_set(gstMuxer_, "set-latitude", latitudex10000, nullptr);
         g_object_set(gstMuxer_, "set-longitude", longitudex10000, nullptr);
-        MEDIA_LOGI("set GeoLocation x 10000, latitude %{public}d, longitude %{public}d",
-            latitudex10000, longitudex10000);
     }
     return MSERR_OK;
 }
