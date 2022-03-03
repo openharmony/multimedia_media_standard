@@ -117,7 +117,7 @@ static GstMemory *gst_shmem_allocator_mem_copy(GstShMemMemory *mem, gssize offse
         GST_ERROR("invalid offset");
         return nullptr;
     } else {
-        realOffset = mem->parent.offset + offset;
+        realOffset = static_cast<gssize>(mem->parent.offset) + offset;
     }
     g_return_val_if_fail(realOffset >= 0, nullptr);
 
@@ -176,7 +176,7 @@ static GstShMemMemory *gst_shmem_allocator_mem_share(GstMemory *mem, gssize offs
         parent = GST_MEMORY_CAST(mem);
     }
     if (size == -1) {
-        size = mem->size - offset;
+        size = static_cast<gssize>(mem->size) - offset;
     }
 
     GstShMemMemory *sub = reinterpret_cast<GstShMemMemory *>(g_slice_alloc0(sizeof(GstShMemMemory)));

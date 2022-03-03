@@ -300,8 +300,8 @@ static void gst_surface_pool_src_init_surface(GstSurfacePoolSrc *src)
         GstVideoInfo info;
         gst_video_info_init(&info);
         gst_video_info_from_caps(&info, memsrc->caps);
-        width = info.width;
-        height = info.height;
+        width = static_cast<guint>(info.width);
+        height = static_cast<guint>(info.height);
     }
     GST_OBJECT_UNLOCK(memsrc);
     SurfaceError ret = surface->SetUserData("video_width", std::to_string(width));
@@ -360,7 +360,7 @@ static void gst_surface_pool_src_init_surface_buffer(GstSurfacePoolSrc *surfaces
     OHOS::BufferRequestConfig g_requestConfig;
     g_requestConfig.width = width;
     g_requestConfig.height = height;
-    g_requestConfig.strideAlignment = surfacesrc->stride;
+    g_requestConfig.strideAlignment = static_cast<gint>(surfacesrc->stride);
     g_requestConfig.format = format;
     g_requestConfig.usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
     g_requestConfig.timeout = 0;

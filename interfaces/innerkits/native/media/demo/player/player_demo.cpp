@@ -37,8 +37,8 @@ constexpr float SPEED_1_00_X = 1.00;
 constexpr float SPEED_1_25_X = 1.25;
 constexpr float SPEED_1_75_X = 1.75;
 constexpr float SPEED_2_00_X = 2.00;
-constexpr int32_t PERCENT = 1;
-constexpr int32_t TIME = 2;
+constexpr uint32_t PERCENT = 1;
+constexpr uint32_t TIME = 2;
 }
 
 // PlayerCallback override
@@ -120,11 +120,11 @@ void PlayerCallbackDemo::PrintBufferingUpdate(const Format &infoBody) const
     } else if (infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_END), value)) {
         cout << "PlayerCallback: OnMessage is buffering end" << endl;
     } else if (infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_PERCENT), value)) {
-        if ((bufferingOut_ & PERCENT) == PERCENT) {
+        if ((static_cast<uint32_t>(bufferingOut_) & PERCENT) == PERCENT) {
             cout << "OnBufferingPercent update is " << value << "%" << endl;
         }
     } else if (infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_CACHED_DURATION), value)) {
-        if ((bufferingOut_ & TIME) == TIME) {
+        if ((static_cast<uint32_t>(bufferingOut_) & TIME) == TIME) {
             cout << "OnCachedDuration update is " << value << "ms" << endl;
         }
     }
