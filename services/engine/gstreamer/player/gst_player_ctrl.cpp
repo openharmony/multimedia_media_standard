@@ -865,7 +865,7 @@ void GstPlayerCtrl::ProcessBufferingTime(const GstPlayer *cbPlayer, guint64 buff
     if (mqBufferingTime_.size() != mqNumUseBuffering_) {
         return;
     }
-    
+
     guint64 mqBufferingTime = BUFFER_TIME_DEFAULT;
     for (auto iter = mqBufferingTime_.begin(); iter != mqBufferingTime_.end(); ++iter) {
         if (iter->second < mqBufferingTime) {
@@ -1164,7 +1164,9 @@ bool GstPlayerCtrl::SetAudioRendererInfo(const Format &param)
     if (param.GetIntValue(PlayerKeys::CONTENT_TYPE, contentType) &&
         param.GetIntValue(PlayerKeys::STREAM_USAGE, streamUsage)) {
         int32_t rendererInfo(0);
-        rendererInfo |= (contentType | (streamUsage << AudioStandard::RENDERER_STREAM_USAGE_SHIFT));
+        CHECK_AND_RETURN_RET(streamUsage >= 0 && contentType >= 0, false);
+        rendererInfo |= (contentType | (static_cast<uint32_t>(streamUsage) <<
+            AudioStandard::RENDERER_STREAM_USAGE_SHIFT));
         g_object_set(audioSink_, "audio-renderer-desc", rendererInfo, nullptr);
         return true;
     } else {
