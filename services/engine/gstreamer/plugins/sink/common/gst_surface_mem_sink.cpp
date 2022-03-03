@@ -45,6 +45,7 @@ static void gst_surface_mem_sink_set_property(GObject *object, guint prop_id, co
 static void gst_surface_mem_sink_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec);
 static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, GstQuery *query);
 static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, GstBuffer *buffer);
+static GstStateChangeReturn gst_surface_mem_sink_change_state(GstElement *element, GstStateChange transition);
 
 #define gst_surface_mem_sink_parent_class parent_class
 G_DEFINE_TYPE_WITH_CODE(GstSurfaceMemSink, gst_surface_mem_sink,
@@ -64,6 +65,7 @@ static void gst_surface_mem_sink_class_init(GstSurfaceMemSinkClass *klass)
     gobject_class->finalize = gst_surface_mem_sink_finalize;
     gobject_class->set_property = gst_surface_mem_sink_set_property;
     gobject_class->get_property = gst_surface_mem_sink_get_property;
+    element_class->change_state = gst_surface_mem_sink_change_state;
 
     gst_element_class_set_static_metadata(element_class,
         "SurfaceMemSink", "Sink/Video",
@@ -90,6 +92,26 @@ static void gst_surface_mem_sink_init(GstSurfaceMemSink *sink)
     sink->priv->pool = GST_SURFACE_POOL_CAST(gst_surface_pool_new());
     GstMemSink *memSink = GST_MEM_SINK_CAST(sink);
     memSink->max_pool_capacity = DEFAULT_SURFACE_MAX_POOL_CAPACITY;
+}
+
+static GstStateChangeReturn gst_surface_mem_sink_change_state(GstElement *element, GstStateChange transition)
+{
+    GstSurfaceMemSink *surface_sink = GST_SURFACE_MEM_SINK(element);
+    g_return_val_if_fail(surface_sink != nullptr, GST_STATE_CHANGE_FAILURE);
+    GstSurfaceMemSinkPrivate *priv = surface_sink->priv;
+    g_return_val_if_fail(priv != nullptr, GST_STATE_CHANGE_FAILURE);
+    switch (transition) {
+        case GST_STATE_CHANGE_READY_TO_PAUSED:
+            g_return_val_if_fail(priv->surface != nullptr, GST_STATE_CHANGE_FAILURE);
+            GST_DEBUG_OBJECT(surface_sink, "clean cache");
+            (void)priv->surface->CleanCache();
+            break;
+        default:
+            break;
+    }
+
+    GstStateChangeReturn ret = GST_ELEMENT_CLASS(parent_class)->change_state(element, transition);
+    return ret;
 }
 
 static void gst_surface_mem_sink_dispose(GObject *obj)
