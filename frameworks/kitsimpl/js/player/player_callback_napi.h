@@ -57,7 +57,7 @@ private:
     void OnSeekDoneCb(int32_t currentPositon) const;
     void OnEosCb(int32_t isLooping) const;
     void OnStateChangeCb(PlayerStates state);
-    void OnPositionUpdateCb(int32_t postion) const;
+    void OnPositionUpdateCb(int32_t position) const;
     void OnMessageCb(int32_t type) const;
     void OnVolumeChangeCb();
     void OnBufferingUpdateCb(const Format &infoBody) const;
