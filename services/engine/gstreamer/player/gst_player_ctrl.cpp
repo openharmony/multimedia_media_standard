@@ -69,7 +69,7 @@ GstPlayerCtrl::GstPlayerCtrl(GstPlayer *gstPlayer)
     (void)taskQue_.Start();
     trackParse_ = GstPlayerTrackParse::Create();
     if (trackParse_ == nullptr) {
-        MEDIA_LOGE("creat track parse fail");
+        MEDIA_LOGE("create track parse fail");
     }
 }
 

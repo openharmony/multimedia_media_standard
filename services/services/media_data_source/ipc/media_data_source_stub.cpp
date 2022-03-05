@@ -33,7 +33,7 @@ MediaDataSourceStub::MediaDataSourceStub(const std::shared_ptr<IMediaDataSource>
 
 MediaDataSourceStub::~MediaDataSourceStub()
 {
-    MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destory", FAKE_POINTER(this));
+    MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
 int MediaDataSourceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,

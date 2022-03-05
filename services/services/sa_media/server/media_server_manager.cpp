@@ -183,7 +183,7 @@ void MediaServerManager::DestroyStubObject(StubType type, sptr<IRemoteObject> ob
         case RECORDER: {
             for (auto it = recorderStubMap_.begin(); it != recorderStubMap_.end(); it++) {
                 if (it->first == object) {
-                    MEDIA_LOGD("destory recorder stub services(%{public}zu) pid(%{public}d).",
+                    MEDIA_LOGD("destroy recorder stub services(%{public}zu) pid(%{public}d).",
                         recorderStubMap_.size(), pid);
                     (void)recorderStubMap_.erase(it);
                     return;
@@ -195,7 +195,7 @@ void MediaServerManager::DestroyStubObject(StubType type, sptr<IRemoteObject> ob
         case PLAYER: {
             for (auto it = playerStubMap_.begin(); it != playerStubMap_.end(); it++) {
                 if (it->first == object) {
-                    MEDIA_LOGD("destory player stub services(%{public}zu) pid(%{public}d).",
+                    MEDIA_LOGD("destroy player stub services(%{public}zu) pid(%{public}d).",
                         playerStubMap_.size(), pid);
                     (void)playerStubMap_.erase(it);
                     return;
@@ -207,7 +207,7 @@ void MediaServerManager::DestroyStubObject(StubType type, sptr<IRemoteObject> ob
         case AVMETADATAHELPER: {
             for (auto it = avMetadataHelperStubMap_.begin(); it != avMetadataHelperStubMap_.end(); it++) {
                 if (it->first == object) {
-                    MEDIA_LOGD("destory avmetadatahelper stub services(%{public}zu) pid(%{public}d).",
+                    MEDIA_LOGD("destroy avmetadatahelper stub services(%{public}zu) pid(%{public}d).",
                         avMetadataHelperStubMap_.size(), pid);
                     (void)avMetadataHelperStubMap_.erase(it);
                     return;
@@ -219,7 +219,7 @@ void MediaServerManager::DestroyStubObject(StubType type, sptr<IRemoteObject> ob
         case AVCODEC: {
             for (auto it = avCodecStubMap_.begin(); it != avCodecStubMap_.end(); it++) {
                 if (it->first == object) {
-                    MEDIA_LOGD("destory avcodec stub services(%{public}zu) pid(%{public}d).",
+                    MEDIA_LOGD("destroy avcodec stub services(%{public}zu) pid(%{public}d).",
                         avCodecStubMap_.size(), pid);
                     (void)avCodecStubMap_.erase(it);
                     return;
@@ -231,7 +231,7 @@ void MediaServerManager::DestroyStubObject(StubType type, sptr<IRemoteObject> ob
         case AVCODECLIST: {
             for (auto it = avCodecListStubMap_.begin(); it != avCodecListStubMap_.end(); it++) {
                 if (it->first == object) {
-                    MEDIA_LOGD("destory avcodeclist stub services(%{public}zu) pid(%{public}d).",
+                    MEDIA_LOGD("destroy avcodeclist stub services(%{public}zu) pid(%{public}d).",
                         avCodecListStubMap_.size(), pid);
                     (void)avCodecListStubMap_.erase(it);
                     return;

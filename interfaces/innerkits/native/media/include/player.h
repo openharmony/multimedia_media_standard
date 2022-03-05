@@ -87,7 +87,7 @@ enum PlayerOnInfoType : int32_t {
     INFO_TYPE_EOS,
     /* return the message when PlayerStates changed.  */
     INFO_TYPE_STATE_CHANGE,
-    /* return the current posion of playback automaticly.  */
+    /* return the current posion of playback automatically.  */
     INFO_TYPE_POSITION_UPDATE,
     /* return the playback message.  */
     INFO_TYPE_MESSAGE,
@@ -384,7 +384,7 @@ public:
      * @brief set the player playback rate
      *
      * @param mode the rate mode {@link PlaybackRateMode} which can set.
-     * @return Returns {@link MSERR_OK} if the playback rate is set successfull; returns an error code defined
+     * @return Returns {@link MSERR_OK} if the playback rate is set successful; returns an error code defined
      * in {@link media_errors.h} otherwise.
      * @since 1.0
      * @version 1.0

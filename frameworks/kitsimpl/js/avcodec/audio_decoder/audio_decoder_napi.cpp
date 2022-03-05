@@ -565,8 +565,8 @@ napi_value AudioDecoderNapi::QueueInput(napi_env env, napi_callback_info info)
 
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
 
-    if (asyncCtx->napi->codecHelper_->IsEos() || asyncCtx->napi->codecHelper_->IsStop() ||
-        asyncCtx->napi->codecHelper_->IsFlushing()) {
+    if (asyncCtx->napi == nullptr || asyncCtx->napi->codecHelper_ == nullptr || asyncCtx->napi->codecHelper_->IsEos()
+        || asyncCtx->napi->codecHelper_->IsStop() || asyncCtx->napi->codecHelper_->IsFlushing()) {
         MEDIA_LOGD("Eos or stop or flushing, queue buffer failed");
         return result;
     }
@@ -621,7 +621,8 @@ napi_value AudioDecoderNapi::ReleaseOutput(napi_env env, napi_callback_info info
 
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
 
-    if (asyncCtx->napi->codecHelper_->IsStop() || asyncCtx->napi->codecHelper_->IsFlushing()) {
+    if (asyncCtx->napi == nullptr || asyncCtx->napi->codecHelper_ == nullptr ||
+        asyncCtx->napi->codecHelper_->IsStop() || asyncCtx->napi->codecHelper_->IsFlushing()) {
         MEDIA_LOGD("Stop already or flushing, release output failed");
         return result;
     }

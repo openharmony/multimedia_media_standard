@@ -70,7 +70,7 @@ private:
     void OnPlaybackCompleteCb() const;
     void OnVideoSizeChangedCb(const Format &infoBody);
     void OnStateChangeCb(PlayerStates state);
-    void OnSeekDoneCb(int32_t positon);
+    void OnSeekDoneCb(int32_t position);
     void OnSpeedDoneCb(int32_t speedMode);
     void OnVolumeDoneCb();
     void DequeueAsyncWork();

@@ -249,6 +249,7 @@ void VEncDemoCallback::OnOutputFormatChanged(const Format &format)
 
 void VEncDemoCallback::OnInputBufferAvailable(uint32_t index)
 {
+    (void)index;
 }
 
 void VEncDemoCallback::OnOutputBufferAvailable(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
