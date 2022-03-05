@@ -104,6 +104,7 @@ static void gst_consumer_surface_allocator_free(GstAllocator *allocator, GstMemo
 
 static gpointer gst_consumer_surface_allocator_mem_map(GstMemory *mem, gsize maxsize, GstMapFlags flags)
 {
+    (void)flags;
     g_return_val_if_fail(mem != nullptr, nullptr);
     g_return_val_if_fail(gst_is_consumer_surface_memory(mem), nullptr);
 

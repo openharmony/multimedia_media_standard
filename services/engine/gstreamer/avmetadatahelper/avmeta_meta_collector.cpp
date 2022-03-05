@@ -324,7 +324,7 @@ void AVMetaMetaCollector::AddElemBlocker(GstElement &source, uint8_t type)
     /**
      * After the demuxer or parser plugin of gstreamer complete the metadata resolve work,
      * them will send one frame buffer to downstream. If there is decoder at the downstream,
-     * the decode will happened, which is unneccesary and wastefully for metadata resolving.
+     * the decode will happened, which is unnecessary and wastefully for metadata resolving.
      * We can block the downstream pads of demuxer to prevent the decode process happened.
      *
      * One kind of possible sequence of element setuped to the pipeline is :
@@ -377,7 +377,7 @@ void AVMetaMetaCollector::AddElemBlocker(GstElement &source, uint8_t type)
     if (type == GstElemType::PARSER) {
         /**
          * If there is a demuxer, we can not add blocker at the parser's srcpad, the parser
-         * maybe need to wait serveral packets of buffer to autoplug the decoder, which will
+         * maybe need to wait several packets of buffer to autoplug the decoder, which will
          * leads to no buffer can arrived at the srcpad of parser due to the MultiQueueCutOut.
          * Insteadly, we add the blocker at the parser's sinkpad to fix this issue.
          *

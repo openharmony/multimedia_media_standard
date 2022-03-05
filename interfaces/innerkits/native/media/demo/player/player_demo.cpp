@@ -70,7 +70,7 @@ void PlayerCallbackDemo::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
             break;
         case INFO_TYPE_POSITION_UPDATE:
             if (updateCount_ == POSITION_UPDATE_INTERVAL) {
-                cout << "OnPositionUpdated positon is " << extra << endl;
+                cout << "OnPositionUpdated position is " << extra << endl;
                 updateCount_ = 0;
             }
             updateCount_++;
@@ -557,7 +557,7 @@ int32_t PlayerDemo::SelectSource(const string &pathOuter)
         cout << "source mode is FD" << endl;
         ret = SetFdSource(path);
     } else {
-        cout << "unknow mode" << endl;
+        cout << "unknown mode" << endl;
     }
     return ret;
 }

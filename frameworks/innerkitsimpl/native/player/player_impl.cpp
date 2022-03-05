@@ -26,7 +26,7 @@ namespace OHOS {
 namespace Media {
 const std::map<PlayerErrorType, std::string> PLAYER_ERRTYPE_INFOS = {
     {PLAYER_ERROR, "internal player error"},
-    {PLAYER_ERROR_UNKNOWN, "unknow player error"},
+    {PLAYER_ERROR_UNKNOWN, "unknown player error"},
     {PLAYER_ERROR_EXTEND_START, "player extend start error type"},
 };
 

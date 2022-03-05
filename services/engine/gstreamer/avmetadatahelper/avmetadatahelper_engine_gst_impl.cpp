@@ -151,7 +151,7 @@ std::shared_ptr<AVSharedMemory> AVMetadataHelperEngineGstImpl::FetchFrameAtTime(
     MEDIA_LOGD("enter");
 
     if (usage_ != AVMetadataUsage::AV_META_USAGE_PIXEL_MAP) {
-        MEDIA_LOGE("current instance is unavaiable for fetch frame, check usage !");
+        MEDIA_LOGE("current instance is unavailable for fetch frame, check usage !");
         return nullptr;
     }
 

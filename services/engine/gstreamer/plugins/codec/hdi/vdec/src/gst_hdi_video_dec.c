@@ -99,6 +99,7 @@ static void gst_hdi_video_dec_set_property(GObject *object, guint property_id, c
 
 static void gst_hdi_video_dec_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
 {
+    (void)value;
     g_return_if_fail(object != NULL);
     switch (property_id) {
         default: {

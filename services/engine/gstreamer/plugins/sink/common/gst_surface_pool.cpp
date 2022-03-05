@@ -401,7 +401,7 @@ static GstFlowReturn gst_surface_pool_acquire_buffer(GstBufferPool *pool,
         GST_BUFFER_POOL_WAIT(spool, 0);
     }
     while (TRUE) {
-        // when pool is set flusing or set inactive, the flusing state is true, refer to GstBufferPool
+        // when pool is set flushing or set inactive, the flushing state is true, refer to GstBufferPool
         if (GST_BUFFER_POOL_IS_FLUSHING(pool)) {
             ret = GST_FLOW_FLUSHING;
             GST_INFO("pool is flushing");

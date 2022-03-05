@@ -62,7 +62,7 @@ int32_t CallbackWorks::Remove(uv_work_t *work)
         std::unique_lock<std::mutex> lock(mutex_);
         auto iter = works_.find(work);
         if (iter == works_.end()) {
-            MEDIA_LOGE("unknow error work is not in the works");
+            MEDIA_LOGE("unknown error work is not in the works");
             return MSERR_NO_MEMORY;
         }
         (void)works_.erase(iter);
@@ -127,10 +127,10 @@ int32_t CallbackWorks::Run(uv_work_t *work)
 
     uv_queue_work(loop, work, [] (uv_work_t *work) {}, [] (uv_work_t *work, int status) {
         CallbackWorkData *callbackWorkData = reinterpret_cast<CallbackWorkData *>(work->data);
-        CHECK_AND_RETURN_LOG(callbackWorkData != nullptr, "unknow error, work data is null");
+        CHECK_AND_RETURN_LOG(callbackWorkData != nullptr, "unknown error, work data is null");
         std::shared_ptr<CallbackWarp> callbackWarp = callbackWorkData->cWarp;
         std::shared_ptr<CallbackWorks> callbackWorks = callbackWorkData->cWorks;
-        CHECK_AND_RETURN_LOG(callbackWarp != nullptr && callbackWorks != nullptr, "unknow error, null mem");
+        CHECK_AND_RETURN_LOG(callbackWarp != nullptr && callbackWorks != nullptr, "unknown error, null mem");
         do {
             // Js Thread
             CHECK_AND_BREAK_LOG(status != UV_ECANCELED, "work canceled");
@@ -144,7 +144,7 @@ int32_t CallbackWorks::Run(uv_work_t *work)
             CHECK_AND_BREAK_LOG(nstatus == napi_ok, "%{public}s fail to napi call function", request.c_str());
             callbackWarp->SetResult(result);
         } while (0);
-        CHECK_AND_RETURN_LOG(callbackWorks->Remove(work) == MSERR_OK, "unknow error, work not in works");
+        CHECK_AND_RETURN_LOG(callbackWorks->Remove(work) == MSERR_OK, "unknown error, work not in works");
     });
     reinterpret_cast<NativeEngine*>(env_)->Loop(LOOP_ONCE);
     return MSERR_OK;
