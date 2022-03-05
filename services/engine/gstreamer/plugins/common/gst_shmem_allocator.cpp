@@ -126,7 +126,7 @@ static GstMemory *gst_shmem_allocator_mem_copy(GstShMemMemory *mem, gssize offse
             GST_ERROR("invalid size");
             return nullptr;
         } else {
-            size = mem->parent.size - offset;
+            size = static_cast<gssize>(mem->parent.size) - offset;
         }
     }
     g_return_val_if_fail(size > 0, nullptr);
