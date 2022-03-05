@@ -337,5 +337,5 @@ int32_t AVCodecEngineGstImpl::QueryIsSoftPlugin(const std::string &name, bool &i
 
     return MSERR_OK;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

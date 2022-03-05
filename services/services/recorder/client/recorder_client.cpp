@@ -351,5 +351,5 @@ int32_t RecorderClient::SetParameter(int32_t sourceId, const Format &format)
 {
     return MSERR_INVALID_OPERATION;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

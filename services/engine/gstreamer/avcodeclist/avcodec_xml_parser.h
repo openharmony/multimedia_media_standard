@@ -103,5 +103,5 @@ private:
         };
 };
 } // Medias
-} // OHOS
+} // namespace OHOS
 #endif // AVCODEC_XML_PARSER_H

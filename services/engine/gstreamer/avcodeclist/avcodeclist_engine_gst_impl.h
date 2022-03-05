@@ -45,5 +45,5 @@ private:
     std::mutex mutex_;
 };
 } // Medias
-} // OHOS
+} // namespace OHOS
 #endif // AVCODECLIST_ENGINE_GST_IMPL_H

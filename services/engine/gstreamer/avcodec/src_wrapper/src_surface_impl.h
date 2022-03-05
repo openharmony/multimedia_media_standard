@@ -31,6 +31,6 @@ public:
     sptr<Surface> CreateInputSurface(std::shared_ptr<ProcessorConfig> inputConfig) override;
     int32_t SetParameter(const Format &format) override;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // SRC_SURFACE_IMPL_H

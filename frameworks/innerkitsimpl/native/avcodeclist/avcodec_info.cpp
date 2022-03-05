@@ -576,5 +576,5 @@ bool AVCodecInfo::IsVendor()
 {
     return data_.isVendor;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

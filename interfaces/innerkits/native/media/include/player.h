@@ -473,6 +473,6 @@ private:
     ~PlayerFactory() = default;
 };
 __attribute__((visibility("default"))) std::string PlayerErrorTypeToString(PlayerErrorType type);
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif

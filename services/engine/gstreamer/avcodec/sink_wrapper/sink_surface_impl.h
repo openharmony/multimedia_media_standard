@@ -49,6 +49,6 @@ private:
     bool isFirstFrame_ = true;
     Format bufferFormat_;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // SINK_SURFACE_IMPL_H

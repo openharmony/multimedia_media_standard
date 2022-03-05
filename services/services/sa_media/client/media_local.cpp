@@ -85,5 +85,5 @@ int32_t MediaLocal::DestroyAVCodecListService(std::shared_ptr<IAVCodecListServic
     (void)avCodecList;
     return MSERR_OK;
 }
-} // Media
-} // OHOS
+}  // namespace Media
+} // namespace OHOS

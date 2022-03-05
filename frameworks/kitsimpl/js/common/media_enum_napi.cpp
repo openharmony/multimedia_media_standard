@@ -393,5 +393,5 @@ napi_value MediaEnumNapi::Init(napi_env env, napi_value exports)
     JsEnumStringInit(env, exports);
     return exports;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

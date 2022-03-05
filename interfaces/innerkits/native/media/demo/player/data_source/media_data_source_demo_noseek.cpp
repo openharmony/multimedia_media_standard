@@ -119,5 +119,5 @@ int32_t MediaDataSourceDemoNoSeek::GetSize(int64_t &size)
     size = -1;
     return MSERR_OK;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

@@ -471,5 +471,5 @@ int32_t PlayerEngineGstImpl::SetVolume(float leftVolume, float rightVolume)
     }
     return MSERR_OK;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
