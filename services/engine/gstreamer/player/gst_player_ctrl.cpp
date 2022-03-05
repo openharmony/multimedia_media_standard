@@ -1174,5 +1174,5 @@ bool GstPlayerCtrl::SetAudioRendererInfo(const Format &param)
         return false;
     }
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

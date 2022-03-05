@@ -95,6 +95,6 @@ public:
     void OnError(RecorderErrorType errorType, int32_t errorCode) override;
     void OnInfo(int32_t type, int32_t extra) override;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // RECORDER_DEMO_H

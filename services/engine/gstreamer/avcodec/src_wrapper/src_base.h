@@ -93,6 +93,6 @@ public:
 protected:
     GstElement *src_ = nullptr;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // SRC_BASE_H

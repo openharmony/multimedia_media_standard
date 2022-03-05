@@ -100,6 +100,6 @@ public:
 };
 
 __attribute__((visibility("default"))) std::string AVCodecErrorTypeToString(AVCodecErrorType type);
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // AVCODEC_COMMOM_H

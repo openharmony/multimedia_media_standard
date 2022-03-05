@@ -148,5 +148,5 @@ void AVCodecListImpl::SelectTargetCapabilityDataArray(std::vector<CapabilityData
         }
     }
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

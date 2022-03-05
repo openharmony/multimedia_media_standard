@@ -37,6 +37,6 @@ public:
     virtual std::string FindAudioEncoder(const Format &format) = 0;
     virtual std::vector<CapabilityData> GetCodecCapabilityInfos() = 0;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // IAVCODECLIST_ENGINE_H

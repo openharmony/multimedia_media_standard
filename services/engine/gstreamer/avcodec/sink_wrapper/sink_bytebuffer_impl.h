@@ -52,6 +52,6 @@ private:
     Format bufferFormat_;
     bool isEos_ = false;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // SINK_BYTEBUFFER_IMPL_H

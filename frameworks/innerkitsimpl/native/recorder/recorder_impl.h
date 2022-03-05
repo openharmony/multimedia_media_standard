@@ -63,6 +63,6 @@ public:
 private:
     std::shared_ptr<IRecorderService> recorderService_ = nullptr;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // RECORDER_IMPL_H

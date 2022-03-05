@@ -166,6 +166,6 @@ public:
      */
     virtual int32_t SetParameter(int32_t sourceId, const RecorderParam &recParam) = 0;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif

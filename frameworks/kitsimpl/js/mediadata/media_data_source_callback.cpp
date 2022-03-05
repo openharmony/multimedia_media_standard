@@ -91,5 +91,5 @@ int32_t MediaDataSourceCallback::GetSize(int64_t &size)
 {
     return dataSrc_.GetSize(size);
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

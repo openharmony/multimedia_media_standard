@@ -80,6 +80,6 @@ private:
     int64_t timeStamp_ = 0;
     uint32_t frameCount_ = 0;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // AVCODEC_VDEC_DEMO_H

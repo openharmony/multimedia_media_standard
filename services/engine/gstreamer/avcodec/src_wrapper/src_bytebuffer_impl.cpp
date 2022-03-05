@@ -263,5 +263,5 @@ int32_t SrcBytebufferImpl::FindBufferIndex(uint32_t &index, std::shared_ptr<AVSh
 
     return MSERR_OK;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

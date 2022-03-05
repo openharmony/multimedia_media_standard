@@ -265,5 +265,5 @@ int32_t RecorderImpl::SetParameter(int32_t sourceId, const Format &format)
     CHECK_AND_RETURN_RET_LOG(recorderService_ != nullptr, MSERR_INVALID_OPERATION, "recorder service does not exist..");
     return recorderService_->SetParameter(sourceId, format);
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

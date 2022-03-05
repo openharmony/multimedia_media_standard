@@ -40,6 +40,6 @@ public:
 
     DECLARE_INTERFACE_DESCRIPTOR(u"IStandardMediaDataSource");
 };
-} // OHOS
+} // namespace Media
 } // namespace OHOS
 #endif // I_STANDARD__LISTENER_H

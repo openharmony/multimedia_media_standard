@@ -229,6 +229,6 @@ private:
     VideoDecoderFactory() = default;
     ~VideoDecoderFactory() = default;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // AVCODEC_VIDEO_DECODER_H

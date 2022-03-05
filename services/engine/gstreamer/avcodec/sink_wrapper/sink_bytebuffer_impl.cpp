@@ -212,5 +212,5 @@ int32_t SinkBytebufferImpl::FindBufferIndex(uint32_t &index, std::shared_ptr<AVS
 
     return MSERR_OK;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

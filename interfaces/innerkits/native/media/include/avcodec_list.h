@@ -103,6 +103,6 @@ private:
     AVCodecListFactory() = default;
     ~AVCodecListFactory() = default;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // AVCODEC_LIST_H

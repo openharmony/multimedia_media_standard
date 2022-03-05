@@ -300,5 +300,5 @@ void MediaServerManager::DestroyStubObjectForPid(pid_t pid)
     }
     MEDIA_LOGD("avcodeclist stub services(%{public}zu).", avCodecListStubMap_.size());
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

@@ -211,5 +211,5 @@ napi_status MediaJsVideoCapsDynamic::GetJsResult(napi_env env, napi_value &resul
 
     return napi_ok;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

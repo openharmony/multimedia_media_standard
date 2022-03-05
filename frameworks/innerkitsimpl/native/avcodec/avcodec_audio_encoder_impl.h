@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef AVCODEC_AUDIO_ENCODER_IMPL_H
 #define AVCODEC_AUDIO_ENCODER_IMPL_H
 
@@ -46,6 +47,6 @@ public:
 private:
     std::shared_ptr<IAVCodecService> codecService_ = nullptr;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // AVCODEC_AUDIO_ENCODER_IMPL_H
