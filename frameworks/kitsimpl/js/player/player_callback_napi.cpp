@@ -240,9 +240,9 @@ void PlayerCallbackNapi::OnStateChangeCb(PlayerStates state)
     return OnJsCallBack(cb);
 }
 
-void PlayerCallbackNapi::OnPositionUpdateCb(int32_t postion) const
+void PlayerCallbackNapi::OnPositionUpdateCb(int32_t position) const
 {
-    MEDIA_LOGD("OnPositionUpdateCb is called, postion: %{public}d", postion);
+    MEDIA_LOGD("OnPositionUpdateCb is called, position: %{public}d", position);
 }
 
 void PlayerCallbackNapi::OnMessageCb(int32_t type) const
