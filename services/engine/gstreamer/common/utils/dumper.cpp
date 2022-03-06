@@ -129,12 +129,13 @@ GstPadProbeReturn Dumper::DumpGstBuffer(GstPad *pad, GstPadProbeInfo *info, gpoi
     if (fp != nullptr) {
         (void)fwrite(mapInfo.data, mapInfo.size, 1, fp);
         (void)fflush(fp);
+        (void)fclose(fp);
+        fp = nullptr;
     } else {
         MEDIA_LOGE("open path failed, %{public}s", fullPath);
     }
 
     gst_buffer_unmap(buf, &mapInfo);
-    (void)fclose(fp);
 
     MEDIA_LOGD("wrote buffer to %{public}s", fullPath);
     return GST_PAD_PROBE_OK;

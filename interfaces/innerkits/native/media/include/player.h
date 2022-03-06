@@ -97,7 +97,7 @@ enum PlayerOnInfoType : int32_t {
     INFO_TYPE_RESOLUTION_CHANGE,
     /* return multiqueue buffering time. */
     INFO_TYPE_BUFFERING_UPDATE,
-    /* return the message with extra infomation in format. */
+    /* return the message with extra information in format. */
     INFO_TYPE_EXTRA_FORMAT
 };
 

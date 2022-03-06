@@ -60,9 +60,7 @@ void AVCodecNapiHelper::PushWork(AVCodecJSCallback *work)
     }
 
     std::lock_guard<std::mutex> lock(mutex_);
-    if (works_.find(work) == works_.end()) {
-        works_.emplace(work);
-    }
+    works_.emplace(work);
 }
 
 void AVCodecNapiHelper::RemoveWork(AVCodecJSCallback *work)

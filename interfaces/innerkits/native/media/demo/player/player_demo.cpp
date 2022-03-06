@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2021 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License\n");
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -221,7 +221,7 @@ sptr<Surface> PlayerDemo::GetVideoSurface()
     return producerSurface;
 }
 
-void PlayerDemo::Seek(const std::string cmd)
+void PlayerDemo::Seek(const std::string &cmd)
 {
     int32_t time = -1;
     if (!StrToInt(cmd, time) || time < 0) {
@@ -363,7 +363,7 @@ int32_t PlayerDemo::GetPlaybackSpeed() const
     return 0;
 }
 
-void PlayerDemo::SetPlaybackSpeed(const std::string cmd) const
+void PlayerDemo::SetPlaybackSpeed(const std::string &cmd) const
 {
     PlaybackRateMode mode;
     if (!cmd.empty()) {
@@ -381,7 +381,7 @@ void PlayerDemo::SetPlaybackSpeed(const std::string cmd) const
     }
 }
 
-void PlayerDemo::SetLoop(const std::string cmd)
+void PlayerDemo::SetLoop(const std::string &cmd)
 {
     int32_t loopEn = -1;
     if (!StrToInt(cmd, loopEn)) {

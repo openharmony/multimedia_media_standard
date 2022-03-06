@@ -50,9 +50,9 @@ public:
 
 private:
     void DoNext();
-    void Seek(const std::string cmd);
-    void SetLoop(const std::string cmd);
-    void SetPlaybackSpeed(const std::string cmd) const;
+    void Seek(const std::string &cmd);
+    void SetLoop(const std::string &cmd);
+    void SetPlaybackSpeed(const std::string &cmd) const;
     int32_t GetPlaying();
     int32_t GetLooping();
     void GetCurrentTime();

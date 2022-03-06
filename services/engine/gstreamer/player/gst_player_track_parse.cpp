@@ -285,7 +285,7 @@ void GstPlayerTrackParse::ParseTag(const GstTagList *tagList, guint tagIndex,
 }
 
 void GstPlayerTrackParse::ParseTagAndSaveTrackInfo(const GstPad *pad, const GstTagList *tagList,
-    std::vector<std::string_view> expectedTagFields,
+    const std::vector<std::string_view> &expectedTagFields,
     std::vector<std::unordered_map<GstPad *, std::unordered_map<std::string, std::string>>> &trackInfoVec)
 {
     std::unordered_map<std::string, std::string> *trackInfoMap;

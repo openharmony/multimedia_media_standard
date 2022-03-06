@@ -156,7 +156,7 @@ private:
 
 class AVCodecJsResultCtor : public MediaJsResult {
 public:
-    explicit AVCodecJsResultCtor(const napi_ref &constructor, int32_t isMimeType, const std::string &name)
+    AVCodecJsResultCtor(const napi_ref &constructor, int32_t isMimeType, const std::string &name)
         : constructor_(constructor),
           isMimeType_(isMimeType),
           name_(name)

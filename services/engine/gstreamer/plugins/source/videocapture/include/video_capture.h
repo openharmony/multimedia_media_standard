@@ -173,7 +173,7 @@ public:
      * @brief Lock or UnLock any pending access to the resource.
      *
      * This function will be invoked to notify that the data source is or not end-of-stream or flush-start. For
-     * the data source is externel, process the notification properly is neccessary to avoid to be blocked
+     * the data source is external, process the notification properly is necessary to avoid to be blocked
      * in the GetFrameBuffer or GetCodecBuffer.
      */
     virtual void UnLock(bool start) = 0;
