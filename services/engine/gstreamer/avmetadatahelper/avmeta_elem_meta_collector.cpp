@@ -41,7 +41,7 @@ static const std::unordered_map<int32_t, std::string_view> AVMETA_KEY_TO_X_MAP =
     AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_COMPOSER, INNER_META_KEY_COMPOSER),
     /**
      * The most of gst plugins don't send the GST_TAG_DURATION, we obtain this
-     * infomation from duration query.
+     * information from duration query.
      */
     AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_DURATION, ""),
     AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_GENRE, INNER_META_KEY_GENRE),

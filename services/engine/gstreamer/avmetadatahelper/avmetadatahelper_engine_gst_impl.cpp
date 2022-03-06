@@ -351,7 +351,7 @@ void AVMetadataHelperEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
                 frameExtractor_->Reset();
             }
             cond_.notify_all();
-            MEDIA_LOGE("error happended, cancel inprocessing job");
+            MEDIA_LOGE("error happened, cancel inprocessing job");
             break;
         }
         case PLAYBIN_MSG_SEEKDONE: {

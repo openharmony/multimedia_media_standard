@@ -262,7 +262,10 @@ napi_value VideoEncoderNapi::Configure(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoEncoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -304,7 +307,10 @@ napi_value VideoEncoderNapi::Prepare(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoEncoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -350,7 +356,10 @@ napi_value VideoEncoderNapi::Start(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoEncoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -392,7 +401,10 @@ napi_value VideoEncoderNapi::Stop(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoEncoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -434,7 +446,10 @@ napi_value VideoEncoderNapi::Flush(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoEncoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -476,7 +491,10 @@ napi_value VideoEncoderNapi::Reset(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoEncoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -526,7 +544,10 @@ napi_value VideoEncoderNapi::Release(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoEncoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -574,7 +595,10 @@ napi_value VideoEncoderNapi::QueueInput(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoEncoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -623,7 +647,10 @@ napi_value VideoEncoderNapi::ReleaseOutput(napi_env env, napi_callback_info info
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoEncoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -666,7 +693,10 @@ napi_value VideoEncoderNapi::GetInputSurface(napi_env env, napi_callback_info in
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoEncoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -725,7 +755,10 @@ napi_value VideoEncoderNapi::SetParameter(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<VideoEncoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }

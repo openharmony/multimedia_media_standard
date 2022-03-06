@@ -254,7 +254,10 @@ napi_value AudioDecoderNapi::Configure(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<AudioDecoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -296,7 +299,10 @@ napi_value AudioDecoderNapi::Prepare(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<AudioDecoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -339,7 +345,10 @@ napi_value AudioDecoderNapi::Start(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<AudioDecoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -384,7 +393,10 @@ napi_value AudioDecoderNapi::Stop(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<AudioDecoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -429,7 +441,10 @@ napi_value AudioDecoderNapi::Flush(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<AudioDecoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -477,7 +492,10 @@ napi_value AudioDecoderNapi::Reset(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<AudioDecoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -522,7 +540,10 @@ napi_value AudioDecoderNapi::Release(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<AudioDecoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -678,7 +699,10 @@ napi_value AudioDecoderNapi::SetParameter(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<AudioDecoderAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->adec_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
