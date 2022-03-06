@@ -30,4 +30,4 @@ public:
 };
 } // namespace Media
 } // namespace OHOS
-#endif // PLAYBIN_SINK_PROVIDER_H
+#endif
