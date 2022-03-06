@@ -344,5 +344,5 @@ void AVMetaBufferBlocker::AddPadProbe(GstPad &pad, GstPadProbeType type)
         (void)padInfos_.emplace_back(PadInfo { &pad, probeId, false, blocked });
     }
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

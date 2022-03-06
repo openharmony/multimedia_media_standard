@@ -97,6 +97,6 @@ private:
     bool resourceLock_ = false;
     bool isFirstBuffer_ = true;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // VIDEO_CAPTURE_AS_IMPL_H

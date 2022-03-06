@@ -67,6 +67,6 @@ private:
     bool direction_;
     BufferRecievedNotifier notifier_;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVMETA_BUFFER_BLOCKER_H

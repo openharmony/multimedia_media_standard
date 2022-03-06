@@ -42,6 +42,6 @@ private:
     uint32_t codecDataSize_ = 0;
     uint32_t nalSize_ = 0;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // VIDEO_CAPTURE_SF_ES_AVC_IMPL_H

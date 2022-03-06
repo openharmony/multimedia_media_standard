@@ -32,7 +32,6 @@ public:
     static std::unique_ptr<SinkBase> CreateSink(SinkType type);
     static std::unique_ptr<SrcBase> CreateSrc(SrcType type);
 };
-}  // namespace Media
-}  // namespace OHOS
-
+} // namespace Media
+} // namespace OHOS
 #endif // AVCODEC_ENGINE_FACTORY_H

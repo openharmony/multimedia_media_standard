@@ -199,5 +199,5 @@ void RecorderPipelineCtrler::Notify(const RecorderMessage &msg)
     int ret = msgQ_->EnqueueTask(notifyTask);
     CHECK_AND_RETURN_LOG(ret == MSERR_OK, "Enqueue message failed !");
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

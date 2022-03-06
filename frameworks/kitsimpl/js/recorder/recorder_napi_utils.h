@@ -26,7 +26,6 @@ namespace Media {
 int32_t MapMimeToAudioCodecFormat(const std::string &mime, AudioCodecFormat &audioCodecFormat);
 int32_t MapMimeToVideoCodecFormat(const std::string &mime, VideoCodecFormat &audioCodecFormat);
 int32_t MapExtensionNameToOutputFormat(const std::string &extension, OutputFormatType &type);
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // RECORDER_NAPI_UTILS_H

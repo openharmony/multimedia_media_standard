@@ -83,6 +83,6 @@ private:
     std::shared_ptr<RecorderCallback> callbackNapi_ = nullptr;
     std::unique_ptr<TaskQueue> taskQue_;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // AUDIO_RECORDER_NAPI_H_

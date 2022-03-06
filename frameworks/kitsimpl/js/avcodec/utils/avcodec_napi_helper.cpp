@@ -89,5 +89,5 @@ void AVCodecNapiHelper::CancelAllWorks()
     std::unordered_set<AVCodecJSCallback *> tmp;
     tmp.swap(works_);
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

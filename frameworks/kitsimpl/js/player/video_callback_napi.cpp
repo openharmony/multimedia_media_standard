@@ -324,5 +324,5 @@ void VideoCallbackNapi::OnStateChangeCb(PlayerStates state)
             break;
     }
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

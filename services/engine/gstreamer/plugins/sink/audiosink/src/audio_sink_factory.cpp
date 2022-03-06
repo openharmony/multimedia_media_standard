@@ -23,5 +23,5 @@ std::unique_ptr<AudioSink> AudioSinkFactory::CreateAudioSink()
 {
     return std::make_unique<AudioSinkSvImpl>();
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

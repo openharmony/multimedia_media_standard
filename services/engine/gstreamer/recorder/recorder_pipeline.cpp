@@ -462,5 +462,5 @@ int32_t RecorderPipeline::BypassOneSource(int32_t sourceId)
 
     return MSERR_OK;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

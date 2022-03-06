@@ -42,7 +42,7 @@ private:
     std::shared_ptr<IAVCodecListService> codecListService_ = nullptr;
     void SelectTargetCapabilityDataArray(std::vector<CapabilityData> &capabilityArray, const AVCodecType &codecType);
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif // AVCODEC_LIST_IMPL_H
 

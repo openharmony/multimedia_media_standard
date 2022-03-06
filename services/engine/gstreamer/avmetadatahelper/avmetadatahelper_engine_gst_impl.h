@@ -65,7 +65,6 @@ private:
     int32_t status_ = PLAYBIN_STATE_IDLE;
     bool firstFetch_ = true;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVMETADATAHELPER_ENGINE_GST_IMPL_H

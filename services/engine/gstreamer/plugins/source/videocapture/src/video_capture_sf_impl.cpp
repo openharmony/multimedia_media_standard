@@ -349,5 +349,5 @@ void VideoCaptureSfImpl::ProbeStreamType()
     streamTypeUnknown_ = false;
     // Identify whether it is an ES stream or a YUV stream from the code stream or from the buffer.
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

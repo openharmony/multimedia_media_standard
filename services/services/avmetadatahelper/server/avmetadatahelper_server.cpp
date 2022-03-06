@@ -95,5 +95,5 @@ void AVMetadataHelperServer::Release()
     std::lock_guard<std::mutex> lock(mutex_);
     avMetadataHelperEngine_ = nullptr;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

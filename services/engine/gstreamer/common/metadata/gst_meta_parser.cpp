@@ -328,5 +328,5 @@ static bool ImageMetaSetter(const GValue &gval, const std::string_view &key, For
     gst_buffer_unmap(imageBuf, &mapInfo);
     return ret;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

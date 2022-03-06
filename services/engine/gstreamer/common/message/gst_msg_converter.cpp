@@ -128,5 +128,5 @@ int32_t GstMsgConverterDefault::ConvertToInnerMsg(GstMessage &gstMsg, InnerMessa
 
     return MSG_CONV_FUNC_TABLE.at(gstMsg.type)(gstMsg, innerMsg);
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

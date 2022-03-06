@@ -452,5 +452,5 @@ void AVMetadataHelperDemo::RunCase(const std::string &pathOuter)
 
     DoNext();
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

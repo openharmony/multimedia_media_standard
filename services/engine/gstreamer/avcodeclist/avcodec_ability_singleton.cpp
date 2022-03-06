@@ -75,5 +75,5 @@ bool AVCodecAbilitySingleton::IsParsered()
 {
     return this->isParsered_;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

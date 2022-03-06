@@ -165,5 +165,5 @@ bool Dumper::IsEnableDumpGstBuffer()
 
     return true;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

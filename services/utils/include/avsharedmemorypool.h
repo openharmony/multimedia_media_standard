@@ -105,7 +105,7 @@ private:
     MemoryAvailableNotifier notifier_;
     bool forceNonBlocking_ = false;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 
 #endif

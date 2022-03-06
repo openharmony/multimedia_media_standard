@@ -521,5 +521,5 @@ void PlayBinCtrlerBase::ReportMessage(const PlayBinMessage &msg)
                    msg.type, msg.subType, msg.code);
     };
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

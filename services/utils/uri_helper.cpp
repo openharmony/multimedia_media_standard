@@ -169,5 +169,5 @@ int UriHelper::GetFdFromUri(std::string rawUri) const
     std::string fd = rawUri.substr(startPos + 1, len);
     return std::stoi(fd);
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

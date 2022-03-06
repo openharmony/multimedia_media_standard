@@ -259,5 +259,5 @@ int32_t PlayerImpl::SetParameter(const Format &param)
     CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
     return playerService_->SetParameter(param);
 }
-} // nmamespace Media
+} // namespace Media
 } // namespace OHOS

@@ -59,6 +59,6 @@ private:
     std::vector<std::unordered_map<GstPad *, std::unordered_map<std::string, std::string>>> audioTrackInfo_;
     std::unordered_map<GstPad *, gulong> padProbes_;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // GST_PLAYER_TRACK_PARSE_H

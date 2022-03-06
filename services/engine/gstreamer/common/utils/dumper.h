@@ -32,7 +32,6 @@ private:
     Dumper() = default;
     ~Dumper() = default;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // OHOS_GST_DUMPER_H

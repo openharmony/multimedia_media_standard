@@ -678,5 +678,5 @@ void AudioRecorderNapi::StateCallback(const std::string &callbackName)
         napiCb->SendStateCallback(callbackName);
     }
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

@@ -121,7 +121,7 @@ private:
     std::string name_;
     int32_t fd_;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 
 #endif

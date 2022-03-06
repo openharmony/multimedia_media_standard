@@ -349,5 +349,5 @@ void MuxSinkBin::Dump()
 }
 
 REGISTER_RECORDER_ELEMENT(MuxSinkBin);
-}
-}
+} // namespace Media
+} // namespace OHOS

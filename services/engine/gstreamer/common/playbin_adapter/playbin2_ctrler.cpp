@@ -55,5 +55,5 @@ int32_t PlayBin2Ctrler::OnInit()
 
     return MSERR_OK;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

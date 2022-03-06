@@ -169,5 +169,5 @@ void VideoEncoder::Dump()
 }
 
 REGISTER_RECORDER_ELEMENT(VideoEncoder);
-}
-}
+} // namespace Media
+} // namespace OHOS

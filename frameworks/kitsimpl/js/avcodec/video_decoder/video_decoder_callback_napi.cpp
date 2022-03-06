@@ -309,5 +309,5 @@ void VideoDecoderCallbackNapi::OnJsFormatCallBack(VideoDecoderJsCallback *jsCb) 
         delete work;
     }
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

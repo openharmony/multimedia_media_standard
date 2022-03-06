@@ -162,5 +162,5 @@ void VideoSource::Dump()
 }
 
 REGISTER_RECORDER_ELEMENT(VideoSource);
-}
-}
+} // namespace Media
+} // namespace OHOS

@@ -236,5 +236,5 @@ void GstMsgProcessor::ProcessGstMessage(GstMessage &msg)
         notifier_(innerMsg);
     }
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

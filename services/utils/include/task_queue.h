@@ -238,6 +238,6 @@ private:
     std::condition_variable cond_;
     std::string name_;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif

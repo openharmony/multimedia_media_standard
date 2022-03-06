@@ -75,6 +75,6 @@ private:
     std::shared_ptr<AutoRef> volumeChangeCallback_ = nullptr; // volumedone
     std::shared_ptr<AutoRef> bufferingUpdateCallback_ = nullptr; // buffering update
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // PLAYER_CALLBACK_NAPI_H_

@@ -548,5 +548,5 @@ void MediaAsyncContext::CheckCtorResult(napi_env env, napi_value &result, MediaA
         }
     }
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

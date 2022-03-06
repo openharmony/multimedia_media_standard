@@ -414,5 +414,5 @@ void AVMetaMetaCollector::StopBlocker(bool unlock)
     }
     mqCutOut_ = nullptr; // restore the mq's cache limit
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

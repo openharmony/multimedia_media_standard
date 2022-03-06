@@ -36,6 +36,6 @@ protected:
 private:
     int32_t encoderFormat_;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AUDIO_ENCORDER_H

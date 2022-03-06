@@ -1313,5 +1313,5 @@ void VideoPlayerNapi::OnErrorCallback(MediaServiceExtErrCode errCode)
         cb->SendErrorCallback(errCode);
     }
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

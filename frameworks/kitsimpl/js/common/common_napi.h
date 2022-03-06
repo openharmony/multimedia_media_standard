@@ -246,6 +246,6 @@ struct AVFileDescriptor {
     int64_t offset = 0;
     int64_t length = 0;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // COMMON_NAPI_H

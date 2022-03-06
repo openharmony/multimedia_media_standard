@@ -102,6 +102,6 @@ private:
         "measuredFrameRate",
         };
 };
-} // Medias
+} // namespace Media
 } // namespace OHOS
 #endif // AVCODEC_XML_PARSER_H

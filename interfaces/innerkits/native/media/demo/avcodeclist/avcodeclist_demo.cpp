@@ -274,5 +274,5 @@ void AVCodecListDemo::RunCase(const string &path)
 
     DoNext();
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

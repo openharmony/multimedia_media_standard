@@ -41,7 +41,6 @@ struct InnerMessage {
 };
 
 using InnerMsgNotifier = std::function<void(const InnerMessage &)>;
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // INNER_MSG_DEFINE_H
