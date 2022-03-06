@@ -75,6 +75,6 @@ private:
     std::string name_;
     bool isDecoder_;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif

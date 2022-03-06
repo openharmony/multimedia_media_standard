@@ -71,6 +71,6 @@ public:
      */
     virtual uint32_t GetFlags() const = 0;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVSHAREDMEMORY_H

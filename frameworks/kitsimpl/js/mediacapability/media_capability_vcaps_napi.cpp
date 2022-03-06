@@ -595,5 +595,5 @@ napi_value MediaVideoCapsNapi::SupportedComplexity(napi_env env, napi_callback_i
 
     return jsResult;
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

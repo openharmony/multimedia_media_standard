@@ -224,5 +224,5 @@ int32_t AudioCaptureAsImpl::ResumeAudioCapture()
         PRIu64 "", pausedCount_, persistTime_, totalPauseTime_);
     return MSERR_OK;
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

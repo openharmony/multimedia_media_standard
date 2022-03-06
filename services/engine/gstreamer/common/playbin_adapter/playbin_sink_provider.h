@@ -28,7 +28,6 @@ public:
     virtual SinkPtr CreateVideoSink() = 0;
     virtual SinkPtr CreateAudioSink() = 0;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // PLAYBIN_SINK_PROVIDER_H

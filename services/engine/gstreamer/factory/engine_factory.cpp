@@ -85,8 +85,8 @@ std::unique_ptr<IAVCodecListEngine> GstEngineFactory::CreateAVCodecListEngine()
     GstLoader::Instance().UpdateLogLevel();
     return std::make_unique<AVCodecListEngineGstImpl>();
 }
-}
-}
+} // namespace Media
+} // namespace OHOS
 
 #ifdef __cplusplus
 extern "C" {

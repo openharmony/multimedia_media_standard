@@ -60,6 +60,6 @@ private:
     std::vector<int32_t> sourceCount_;
     std::mutex mutex_;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif

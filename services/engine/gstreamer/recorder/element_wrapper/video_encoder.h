@@ -39,6 +39,6 @@ private:
     int32_t encoderFormat_;
     int32_t bitRate_;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // VIDEO_ENCODER_H

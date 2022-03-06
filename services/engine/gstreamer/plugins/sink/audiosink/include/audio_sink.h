@@ -48,7 +48,7 @@ public:
     virtual int32_t SetParameter(int32_t &param) = 0;
     virtual bool Writeable() const;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 
 #endif // AUDIO_SINK_H

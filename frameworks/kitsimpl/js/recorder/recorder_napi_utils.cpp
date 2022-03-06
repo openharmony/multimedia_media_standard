@@ -57,5 +57,5 @@ int32_t MapExtensionNameToOutputFormat(const std::string &extension, OutputForma
     }
     return MSERR_INVALID_VAL;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

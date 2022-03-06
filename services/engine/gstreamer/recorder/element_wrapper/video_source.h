@@ -41,6 +41,6 @@ private:
     int32_t frameRate_ = 0;
     double capRate_ = 0;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // VIDEO_SOURCE_H

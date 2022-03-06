@@ -174,5 +174,5 @@ int32_t PlayBinTaskMgr::Reset()
     MEDIA_LOGD("exit");
     return MSERR_OK;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

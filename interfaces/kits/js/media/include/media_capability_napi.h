@@ -57,6 +57,6 @@ struct MediaCapsAsyncContext : public MediaAsyncContext {
     MediaCapsNapi *napi = nullptr;
     Format format;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // MEDIA_CAPABILITY_NAPI_H

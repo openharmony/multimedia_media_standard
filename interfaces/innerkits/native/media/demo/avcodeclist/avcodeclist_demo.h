@@ -43,6 +43,6 @@ private:
     void GetPreferredFrameRateDemo();
     ImgSize SetSize();
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVCODECLIST_DEMO_H

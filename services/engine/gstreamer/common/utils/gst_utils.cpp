@@ -52,5 +52,5 @@ bool MatchElementByMeta(
 
     return false;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

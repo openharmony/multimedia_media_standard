@@ -373,5 +373,5 @@ void AVMetadataHelperEngineGstImpl::OnNotifyElemSetup(GstElement &elem)
         metaCollector_->AddMetaSource(elem);
     }
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

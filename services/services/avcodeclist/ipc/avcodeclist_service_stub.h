@@ -53,6 +53,6 @@ private:
     std::map<uint32_t, AVCodecListStubFunc> codecListFuncs_;
     std::mutex mutex_;
 };
-}
+} // namespace Media
 } // namespace OHOS
 #endif // AVCODECLIST_SERVICE_STUB_H

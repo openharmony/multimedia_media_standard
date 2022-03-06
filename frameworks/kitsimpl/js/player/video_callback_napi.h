@@ -88,6 +88,6 @@ private:
     int32_t width_ = 0;
     int32_t height_ = 0;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif // VIDEO_CALLBACK_NAPI_H_

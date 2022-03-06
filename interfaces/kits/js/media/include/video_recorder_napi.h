@@ -119,4 +119,4 @@ struct VideoRecorderAsyncContext : public MediaAsyncContext {
 };
 } // namespace Media
 } // namespace OHOS
-#endif /* VIDERECORDER_NAPI_H_ */
+#endif // VIDERECORDER_NAPI_H_

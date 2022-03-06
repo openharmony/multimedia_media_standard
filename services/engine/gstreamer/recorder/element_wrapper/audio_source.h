@@ -39,6 +39,6 @@ private:
     int32_t channels_;
     int32_t bitRate_;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AUDIO_SOURCE_H

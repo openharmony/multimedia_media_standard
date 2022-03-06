@@ -77,4 +77,4 @@ public:
 };
 } // namespace Media
 } // namespace OHOS
-#endif /* MEDIA_DATA_SOURCE_H_ */
+#endif // MEDIA_DATA_SOURCE_H_

@@ -36,5 +36,5 @@ int32_t AudioConverter::Init()
 }
 
 REGISTER_RECORDER_ELEMENT(AudioConverter);
-}
-}
+} // namespace Media
+} // namespace OHOS

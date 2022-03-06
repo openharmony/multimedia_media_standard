@@ -27,7 +27,7 @@ public:
 
     int32_t Init() override;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 
-#endif
+#endif // VIDEO_CONVERTER_H

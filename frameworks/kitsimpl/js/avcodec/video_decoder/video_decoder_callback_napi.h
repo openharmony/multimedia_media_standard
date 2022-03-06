@@ -70,6 +70,6 @@ private:
     std::shared_ptr<AutoRef> outputCallback_ = nullptr;
     std::shared_ptr<AVCodecNapiHelper> codecHelper_ = nullptr;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // VIDEO_DECODER_CALLBACK_NAPI_H

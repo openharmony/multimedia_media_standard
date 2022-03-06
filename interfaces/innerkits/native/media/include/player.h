@@ -475,4 +475,4 @@ private:
 __attribute__((visibility("default"))) std::string PlayerErrorTypeToString(PlayerErrorType type);
 } // namespace Media
 } // namespace OHOS
-#endif
+#endif // PLAYER_H

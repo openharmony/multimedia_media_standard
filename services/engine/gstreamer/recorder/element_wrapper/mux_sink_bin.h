@@ -55,6 +55,6 @@ private:
     int32_t maxDuration_ = -1;
     int64_t maxSize_ = -1;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // MUX_SINK_BIN_H

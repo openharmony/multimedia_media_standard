@@ -906,5 +906,5 @@ void VideoEncoderNapi::ErrorCallback(MediaServiceExtErrCode errCode)
         napiCb->SendErrorCallback(errCode);
     }
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

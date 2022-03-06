@@ -154,5 +154,5 @@ std::shared_ptr<IEngineFactory> EngineFactoryRepo::GetEngineFactory(
     MEDIA_LOGI("Selected factory: 0x%{public}06" PRIXPTR ", score: %{public}d", FAKE_POINTER(target.get()), maxScore);
     return target;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

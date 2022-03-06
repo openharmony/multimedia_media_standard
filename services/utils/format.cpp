@@ -276,5 +276,5 @@ const Format::FormatDataMap &Format::GetFormatMap() const
 {
     return formatMap_;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

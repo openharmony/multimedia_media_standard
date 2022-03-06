@@ -80,6 +80,6 @@ struct VideoEncoderAsyncContext : public MediaAsyncContext {
     // used by format
     Format format;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // VIDEO_ENCODER_NAPI_H

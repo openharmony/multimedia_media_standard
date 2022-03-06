@@ -531,5 +531,5 @@ napi_value MediaCapsNapi::FindVideoEncoder(napi_env env, napi_callback_info info
 
     return result;
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

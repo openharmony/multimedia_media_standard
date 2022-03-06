@@ -507,5 +507,5 @@ void ParserMetaCollector::AddMetaSource(GstElement &elem)
 {
     (void)AddProbeToPadList(*elem.srcpads);
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

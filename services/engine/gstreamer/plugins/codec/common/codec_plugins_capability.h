@@ -33,6 +33,6 @@ private:
     CodecPluginsCapability();
     std::vector<CapabilityData> capabilityDataArray_;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif // CODEC_PLUGINS_CAPABILITY_H

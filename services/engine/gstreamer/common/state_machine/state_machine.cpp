@@ -59,5 +59,5 @@ std::shared_ptr<State> StateMachine::GetCurrState()
     std::unique_lock<std::recursive_mutex> lock(recMutex_);
     return currState_;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

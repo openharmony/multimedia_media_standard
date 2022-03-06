@@ -171,7 +171,6 @@ private:
     AVSpliterFactory() = default;
     ~AVSpliterFactory() = default;
 };
-}  // namespace Media
-}  // namespace OHOS
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVSPLITER_H

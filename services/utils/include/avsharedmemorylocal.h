@@ -42,7 +42,7 @@ private:
     uint32_t flags_;
     std::string name_;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 
 #endif

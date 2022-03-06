@@ -55,6 +55,6 @@ private:
     void InitChannelRange(GstCaps *caps) const;
     void InitRateRange(GstCaps *caps) const;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // AUDIO_SINK_SV_IMPL_H

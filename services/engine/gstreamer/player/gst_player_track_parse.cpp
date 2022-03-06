@@ -389,5 +389,5 @@ bool GstPlayerTrackParse::GetDemuxerElementFind()
 {
     return demuxerElementFind_;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

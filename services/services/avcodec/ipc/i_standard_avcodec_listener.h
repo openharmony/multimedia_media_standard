@@ -44,6 +44,6 @@ public:
 
     DECLARE_INTERFACE_DESCRIPTOR(u"IStandardAVCodecListener");
 };
-} // namespace OHOS
+} // namespace Media
 } // namespace OHOS
 #endif // I_STANDARD_AVCODEC_LISTENER_H

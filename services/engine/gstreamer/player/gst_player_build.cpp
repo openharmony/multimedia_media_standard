@@ -192,5 +192,5 @@ void GstPlayerBuild::Release()
         context_ = nullptr;
     }
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

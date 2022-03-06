@@ -178,6 +178,6 @@ public:
      */
     virtual void UnLock(bool start) = 0;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // VIDEO_CAPTURE_H

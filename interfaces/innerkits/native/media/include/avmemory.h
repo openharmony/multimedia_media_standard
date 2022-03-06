@@ -79,6 +79,6 @@ private:
     size_t capacity_ = 0;
     bool ownership = false;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVMEMORY_H

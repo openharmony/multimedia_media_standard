@@ -96,6 +96,6 @@ private:
     int32_t bufferingOut_ = 0;
     PlayerStates state_ = PLAYER_STATE_ERROR;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // PLAYER_DEMO_H
