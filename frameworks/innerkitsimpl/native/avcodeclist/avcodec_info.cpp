@@ -167,7 +167,7 @@ Range VideoCaps::GetSupportedFrameRatesFor(int32_t width, int32_t height)
         return frameRatesRange;
     }
     UpdateParams();
-    int64_t blockPerFrame = static_cast<int64_t>(DivCeil(width, blockWidth_) * DivCeil(height, blockHeight_));
+    int64_t blockPerFrame = DivCeil(width, blockWidth_) * static_cast<int64_t>(DivCeil(height, blockHeight_));
     frameRatesRange = Range(
         std::max(static_cast<int32_t>(blockPerSecondRange_.minVal / blockPerFrame), frameRateRange_.minVal),
         std::min(static_cast<int32_t>(blockPerSecondRange_.maxVal / blockPerFrame), frameRateRange_.maxVal));
@@ -415,27 +415,27 @@ Range VideoCaps::GetPreferredFrameRate(int32_t width, int32_t height)
         MEDIA_LOGD("can not match measuredFrameRate of %{public}d x  %{public}d :", width, width);
         return range;
     }
-    int64_t targetBlockNum = static_cast<int64_t>(DivCeil(width, blockWidth_) * DivCeil(height, blockHeight_));
-    int64_t closestBlockNum = static_cast<int64_t>(
-        DivCeil(closestSize.width, blockWidth_) * DivCeil(closestSize.height, blockHeight_));
+    int64_t targetBlockNum = DivCeil(width, blockWidth_) * static_cast<int64_t>(DivCeil(height, blockHeight_));
+    int64_t closestBlockNum = DivCeil(closestSize.width, blockWidth_) * 
+        static_cast<int64_t>(DivCeil(closestSize.height, blockHeight_));
     Range closestFrameRate = data_.measuredFrameRate.at(closestSize);
     int64_t minTargetBlockNum = 1;
-    double factor = static_cast<double>(closestBlockNum / std::max(targetBlockNum, minTargetBlockNum));
+    double factor = static_cast<double>(closestBlockNum) / std::max(targetBlockNum, minTargetBlockNum);
     return Range(closestFrameRate.minVal * factor, closestFrameRate.maxVal * factor);
 }
 
 ImgSize VideoCaps::MatchClosestSize(const ImgSize &imgSize)
 {
-    int64_t targetBlockNum = static_cast<int64_t>(
-        DivCeil(imgSize.width, blockWidth_) * DivCeil(imgSize.height, blockHeight_));
+    int64_t targetBlockNum = DivCeil(imgSize.width, blockWidth_) * 
+        static_cast<int64_t>(DivCeil(imgSize.height, blockHeight_));
     int64_t blockNum;
     int64_t diffBlockNum = INT32_MAX;
     int64_t minDiffBlockNum = INT32_MAX;
 
     ImgSize closestSize;
     for (auto iter = data_.measuredFrameRate.begin(); iter != data_.measuredFrameRate.end(); iter++) {
-        blockNum = static_cast<int64_t>(
-            DivCeil(iter->first.width, blockWidth_) * DivCeil(iter->first.height, blockHeight_));
+        blockNum = DivCeil(iter->first.width, blockWidth_) * 
+            static_cast<int64_t>(DivCeil(iter->first.height, blockHeight_));
         diffBlockNum = abs(targetBlockNum - blockNum);
         if (minDiffBlockNum > diffBlockNum) {
             minDiffBlockNum = diffBlockNum;
