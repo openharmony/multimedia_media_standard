@@ -31,6 +31,7 @@ GST_DEBUG_CATEGORY_STATIC(gst_vdec_base_debug_category);
 #define DEFAULT_MAX_QUEUE_SIZE 10
 #define DEFAULT_WIDTH 1920
 #define DEFAULT_HEIGHT 1080
+#define BLOCKING_ACQUIRE_BUFFER_THRESHOLD 3
 
 static void gst_vdec_base_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void gst_vdec_base_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
@@ -949,7 +950,7 @@ static gboolean gst_vdec_base_push_out_buffers(GstVdecBase *self)
     gint codec_ret = GST_CODEC_OK;
     GstBufferPoolAcquireParams params;
     g_return_val_if_fail(memset_s(&params, sizeof(params), 0, sizeof(params)) == EOK, FALSE);
-    if (self->coding_outbuf_cnt != 0) {
+    if (self->coding_outbuf_cnt > BLOCKING_ACQUIRE_BUFFER_THRESHOLD) {
         params.flags = GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT;
     }
     while (flow == GST_FLOW_OK) {

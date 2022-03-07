@@ -33,11 +33,14 @@ namespace {
 
 #define GST_BUFFER_POOL_LOCK(pool)   (g_mutex_lock(&pool->lock))
 #define GST_BUFFER_POOL_UNLOCK(pool) (g_mutex_unlock(&pool->lock))
-#define GST_BUFFER_POOL_WAIT(pool, endtime) (g_cond_wait_until(&pool->cond, &pool->lock, endtime))
+#define GST_BUFFER_POOL_WAIT(pool) (g_cond_wait(&pool->cond, &pool->lock))
 #define GST_BUFFER_POOL_NOTIFY(pool) (g_cond_signal(&pool->cond))
 
 #define gst_surface_pool_parent_class parent_class
 G_DEFINE_TYPE (GstSurfacePool, gst_surface_pool, GST_TYPE_BUFFER_POOL);
+
+GST_DEBUG_CATEGORY_STATIC(gst_surface_pool_debug_category);
+#define GST_CAT_DEFAULT gst_surface_pool_debug_category
 
 static void gst_surface_pool_finalize(GObject *obj);
 static const gchar **gst_surface_pool_get_options (GstBufferPool *pool);
@@ -50,6 +53,20 @@ static void gst_surface_pool_free_buffer(GstBufferPool *pool, GstBuffer *buffer)
 static GstFlowReturn gst_surface_pool_acquire_buffer(GstBufferPool *pool,
     GstBuffer **buffer, GstBufferPoolAcquireParams *params);
 static void gst_surface_pool_release_buffer(GstBufferPool *pool, GstBuffer *buffer);
+static void gst_surface_pool_flush_start(GstBufferPool *pool);
+
+static void clear_preallocated_buffer(GstSurfacePool *spool)
+{
+    for (GList *node = g_list_first(spool->preAllocated); node != nullptr; node = g_list_next(node)) {
+        GstBuffer *buffer = GST_BUFFER_CAST(node->data);
+        if (buffer == nullptr) {
+            continue;
+        }
+        gst_surface_pool_free_buffer(GST_BUFFER_POOL_CAST(spool), buffer);
+    }
+    g_list_free(spool->preAllocated);
+    spool->preAllocated = nullptr;
+}
 
 static void gst_surface_pool_class_init (GstSurfacePoolClass *klass)
 {
@@ -66,11 +83,14 @@ static void gst_surface_pool_class_init (GstSurfacePoolClass *klass)
     poolClass->alloc_buffer = gst_surface_pool_alloc_buffer;
     poolClass->release_buffer = gst_surface_pool_release_buffer;
     poolClass->free_buffer = gst_surface_pool_free_buffer;
+    poolClass->flush_start = gst_surface_pool_flush_start;
 }
 
 static void gst_surface_pool_init (GstSurfacePool *pool)
 {
     g_return_if_fail(pool != nullptr);
+
+    GST_DEBUG_CATEGORY_INIT(gst_surface_pool_debug_category, "surfacepool", 0, "gst surface pool for sink");
 
     pool->surface = nullptr;
     pool->started = FALSE;
@@ -80,11 +100,12 @@ static void gst_surface_pool_init (GstSurfacePool *pool)
     pool->preAllocated = nullptr;
     pool->minBuffers = 0;
     pool->maxBuffers = 0;
-    pool->waittime = 0;
     pool->format = PixelFormat::PIXEL_FMT_BUTT;
     pool->usage = 0;
     gst_video_info_init(&pool->info);
     gst_allocation_params_init(&pool->params);
+    pool->task = nullptr;
+    g_rec_mutex_init(&pool->taskLock);
 }
 
 static void gst_surface_pool_finalize(GObject *obj)
@@ -92,21 +113,19 @@ static void gst_surface_pool_finalize(GObject *obj)
     g_return_if_fail(obj != nullptr);
     GstSurfacePool *spool = GST_SURFACE_POOL_CAST(obj);
     g_return_if_fail(spool != nullptr);
-    GstBufferPool *pool = GST_BUFFER_POOL_CAST(spool);
 
-    while (spool->preAllocated != nullptr) {
-        if (spool->preAllocated->data != nullptr) {
-            GstBuffer *buffer = GST_BUFFER_CAST(spool->preAllocated->data);
-            gst_surface_pool_free_buffer(pool, buffer);
-        }
-        spool->preAllocated = g_list_delete_link(spool->preAllocated, spool->preAllocated);
-    }
+    clear_preallocated_buffer(spool);
 
     spool->surface = nullptr;
     gst_object_unref(spool->allocator);
     spool->allocator = nullptr;
     g_mutex_clear(&spool->lock);
     g_cond_clear(&spool->cond);
+    g_rec_mutex_clear(&spool->taskLock);
+    if (spool->task != nullptr) {
+        gst_object_unref(spool->task);
+        spool->task = nullptr;
+    }
 
     G_OBJECT_CLASS(parent_class)->finalize(obj);
 }
@@ -149,7 +168,7 @@ static gboolean parse_config_usage(GstSurfacePool *spool, GstStructure *config)
     g_return_val_if_fail(spool != nullptr, FALSE);
     g_return_val_if_fail(config != nullptr, FALSE);
     if (!gst_structure_get_int(config, "usage", &spool->usage)) {
-        GST_INFO("no usage available");
+        GST_INFO_OBJECT(spool, "no usage available");
         spool->usage = 0;
     }
     return TRUE;
@@ -166,7 +185,7 @@ static gboolean gst_surface_pool_set_config(GstBufferPool *pool, GstStructure *c
     guint min_buffers;
     guint max_buffers;
     if (!gst_buffer_pool_config_get_params(config, &caps, &size, &min_buffers, &max_buffers)) {
-        GST_ERROR("wrong config");
+        GST_ERROR_OBJECT(spool, "wrong config");
         return FALSE;
     }
     g_return_val_if_fail(min_buffers <= max_buffers, FALSE);
@@ -186,7 +205,7 @@ static gboolean gst_surface_pool_set_config(GstBufferPool *pool, GstStructure *c
     spool->minBuffers = min_buffers;
     spool->maxBuffers = max_buffers;
 
-    GST_INFO("set config, width: %d, height: %d, format: %d, min_bufs: %u, max_bufs: %u",
+    GST_INFO_OBJECT(spool, "set config, width: %d, height: %d, format: %d, min_bufs: %u, max_bufs: %u",
         GST_VIDEO_INFO_WIDTH(&info), GST_VIDEO_INFO_HEIGHT(&info), format, min_buffers, max_buffers);
 
     GstAllocator *allocator = nullptr;
@@ -200,13 +219,13 @@ static gboolean gst_surface_pool_set_config(GstBufferPool *pool, GstStructure *c
     spool->allocator = GST_SURFACE_ALLOCATOR_CAST(allocator);
     spool->params = params;
 
-    GST_INFO("update allocator and params");
+    GST_INFO_OBJECT(spool, "update allocator and params");
 
     GST_BUFFER_POOL_UNLOCK(spool);
     return TRUE;
 }
 
-gboolean gst_surface_pool_set_surface(GstSurfacePool *pool, OHOS::sptr<OHOS::Surface> surface, guint waittime)
+gboolean gst_surface_pool_set_surface(GstSurfacePool *pool, OHOS::sptr<OHOS::Surface> surface)
 {
     g_return_val_if_fail(surface != nullptr, FALSE);
     g_return_val_if_fail(pool != nullptr, FALSE);
@@ -214,24 +233,54 @@ gboolean gst_surface_pool_set_surface(GstSurfacePool *pool, OHOS::sptr<OHOS::Sur
     GST_BUFFER_POOL_LOCK(pool);
 
     if (pool->started) {
-        GST_INFO("started already, reject to set surface");
+        GST_INFO_OBJECT(pool, "started already, reject to set surface");
         GST_BUFFER_POOL_UNLOCK(pool);
         return FALSE;
     }
 
     if (pool->surface != nullptr) {
-        GST_INFO("surface has already been set");
+        GST_INFO_OBJECT(pool, "surface has already been set");
         GST_BUFFER_POOL_UNLOCK(pool);
         return FALSE;
     }
 
-    static const guint max_wait_time = 5000; // microsecond
-    pool->waittime = (waittime == 0) ? max_wait_time : waittime;
     pool->surface = surface;
-    GST_DEBUG("set waittime: %u", pool->waittime);
 
     GST_BUFFER_POOL_UNLOCK(pool);
     return TRUE;
+}
+
+static void gst_surface_pool_request_loop(GstSurfacePool *spool)
+{
+    g_return_if_fail(spool != nullptr);
+    GstBufferPool *pool = GST_BUFFER_POOL_CAST(spool);
+    GST_DEBUG_OBJECT(spool, "Loop In");
+
+    GST_BUFFER_POOL_LOCK(spool);
+    if (!spool->started) {
+        GST_BUFFER_POOL_UNLOCK(spool);
+        GST_DEBUG_OBJECT(spool, "task is paused, exit");
+        gst_task_pause(spool->task);
+        return;
+    }
+    GST_BUFFER_POOL_UNLOCK(spool);
+
+    GstBuffer *buffer = nullptr;
+    GstFlowReturn ret = gst_surface_pool_alloc_buffer(pool, &buffer, nullptr);
+    if (ret != GST_FLOW_OK) {
+        GST_DEBUG_OBJECT(spool, "alloc bufer failed, exit");
+        gst_task_pause(spool->task);
+        return;
+    }
+
+    GST_BUFFER_POOL_LOCK(spool);
+    if (!spool->started) {
+        gst_surface_pool_free_buffer(pool, buffer);
+    } else {
+        spool->preAllocated = g_list_append(spool->preAllocated, buffer);
+        GST_BUFFER_POOL_NOTIFY(spool);
+    }
+    GST_BUFFER_POOL_UNLOCK(spool);
 }
 
 static gboolean gst_surface_pool_start(GstBufferPool *pool)
@@ -240,38 +289,45 @@ static gboolean gst_surface_pool_start(GstBufferPool *pool)
     GstSurfacePool *spool = GST_SURFACE_POOL_CAST(pool);
     g_return_val_if_fail(spool != nullptr, FALSE);
 
-    GST_DEBUG("pool start");
+    GST_DEBUG_OBJECT(spool, "pool start");
 
     GST_BUFFER_POOL_LOCK(spool);
     if (spool->surface == nullptr) {
         GST_BUFFER_POOL_UNLOCK(spool);
-        GST_ERROR("not set surface");
+        GST_ERROR_OBJECT(spool, "not set surface");
         return FALSE;
     }
 
     OHOS::SurfaceError err = spool->surface->SetQueueSize(spool->maxBuffers);
     if (err != OHOS::SurfaceError::SURFACE_ERROR_OK) {
         GST_BUFFER_POOL_UNLOCK(spool);
-        GST_ERROR("set queue size to %u failed", spool->maxBuffers);
+        GST_ERROR_OBJECT(spool, "set queue size to %u failed", spool->maxBuffers);
         return FALSE;
     }
 
+    clear_preallocated_buffer(spool);
+    spool->surface->CleanCache();
+
     gst_surface_allocator_set_surface(spool->allocator, spool->surface);
-    spool->started = TRUE;
-    GST_INFO("Set pool minbuf %d maxbuf %d", spool->minBuffers, spool->maxBuffers);
+    GST_INFO_OBJECT(spool, "Set pool minbuf %d maxbuf %d", spool->minBuffers, spool->maxBuffers);
+
     spool->freeBufCnt = spool->maxBuffers;
-    GstFlowReturn ret = GST_FLOW_OK;
-    for (guint i = 0; i < spool->minBuffers; i++) {
-        GstBuffer *buffer = nullptr;
-        ret = gst_surface_pool_alloc_buffer(pool, &buffer, nullptr);
-        if (ret != GST_FLOW_OK) {
-            GST_BUFFER_POOL_UNLOCK(spool);
-            GST_ERROR("alloc buffer failed");
-            return FALSE;
-        }
-        spool->preAllocated = g_list_append(spool->preAllocated, buffer);
+    GST_BUFFER_POOL_UNLOCK(spool);
+
+    if (spool->task == nullptr) {
+        spool->task = gst_task_new((GstTaskFunction)gst_surface_pool_request_loop, spool, nullptr);
+        g_return_val_if_fail(spool->task != nullptr, FALSE);
+        gst_task_set_lock(spool->task, &spool->taskLock);
+        gst_object_set_name(GST_OBJECT_CAST(spool->task), "surface_pool_req");
     }
 
+    GST_BUFFER_POOL_LOCK(spool);
+    spool->started = TRUE;
+    if (!gst_task_set_state(spool->task, GST_TASK_STARTED)) {
+        spool->started = FALSE;
+        GST_BUFFER_POOL_UNLOCK(spool);
+        return FALSE;
+    }
     GST_BUFFER_POOL_UNLOCK(spool);
     return TRUE;
 }
@@ -282,26 +338,27 @@ static gboolean gst_surface_pool_stop(GstBufferPool *pool)
     GstSurfacePool *spool = GST_SURFACE_POOL_CAST(pool);
     g_return_val_if_fail(spool != nullptr, FALSE);
 
-    GST_DEBUG("pool stop");
+    GST_DEBUG_OBJECT(spool, "pool stop");
 
     GST_BUFFER_POOL_LOCK(spool);
     spool->started = FALSE;
-
-    for (GList *node = g_list_first(spool->preAllocated); node != nullptr; node = g_list_next(node)) {
-        GstBuffer *buffer = GST_BUFFER_CAST(node->data);
-        if (buffer == nullptr) {
-            continue;
-        }
-        gst_surface_pool_free_buffer(pool, buffer);
-    }
-    g_list_free(spool->preAllocated);
-    spool->preAllocated = nullptr;
-
+    clear_preallocated_buffer(spool);
     GST_BUFFER_POOL_NOTIFY(spool); // wakeup immediately
+    if (spool->surface != nullptr) {
+        spool->surface->CleanCache();
+    }
+    (void)gst_task_stop(spool->task);
 
     // leave all configuration unchanged.
     gboolean ret = (spool->freeBufCnt == spool->maxBuffers);
     GST_BUFFER_POOL_UNLOCK(spool);
+
+    g_rec_mutex_lock(&spool->taskLock);
+    GST_INFO_OBJECT(spool, "surface pool req task lock got");
+    g_rec_mutex_unlock(&spool->taskLock);
+    (void)gst_task_join(spool->task);
+    gst_object_unref(spool->task);
+    spool->task = nullptr;
 
     return ret;
 }
@@ -310,14 +367,13 @@ static GstFlowReturn do_alloc_memory_locked(GstSurfacePool *spool,
     GstBufferPoolAcquireParams *params, GstSurfaceMemory **memory)
 {
     GstVideoInfo *info = &spool->info;
-    *memory = nullptr;
+    GstSurfaceAllocParam allocParam = {
+        GST_VIDEO_INFO_WIDTH(info), GST_VIDEO_INFO_HEIGHT(info), spool->format, spool->usage,
+        (params != nullptr ? ((params->flags & GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT) != 0) : FALSE)
+    };
 
-    if (spool->freeBufCnt > 0) {
-        GST_DEBUG("do_alloc_memory_locked");
-        *memory = gst_surface_allocator_alloc(spool->allocator, GST_VIDEO_INFO_WIDTH(info),
-            GST_VIDEO_INFO_HEIGHT(info), spool->format, spool->usage);
-    }
-
+    GST_DEBUG_OBJECT(spool, "do_alloc_memory_locked");
+    *memory = gst_surface_allocator_alloc(spool->allocator, allocParam);
     if (*memory == nullptr) {
         return GST_FLOW_EOS;
     }
@@ -342,7 +398,7 @@ static GstFlowReturn gst_surface_pool_alloc_buffer(GstBufferPool *pool,
 
     *buffer = gst_buffer_new();
     if (*buffer == nullptr) {
-        GST_ERROR("alloc gst buffer failed");
+        GST_ERROR_OBJECT(spool, "alloc gst buffer failed");
         gst_allocator_free(reinterpret_cast<GstAllocator*>(spool->allocator), reinterpret_cast<GstMemory*>(memory));
         return GST_FLOW_ERROR;
     }
@@ -360,7 +416,7 @@ static GstFlowReturn gst_surface_pool_alloc_buffer(GstBufferPool *pool,
     g_return_val_if_fail(info != nullptr && info->finfo != nullptr, GST_FLOW_ERROR);
     for (int plane = 0; plane < info->finfo->n_planes; ++plane) {
         info->stride[plane] = stride;
-        GST_DEBUG("new stride %d", stride);
+        GST_DEBUG_OBJECT(spool, "new stride %d", stride);
     }
     gst_buffer_add_video_meta_full(*buffer, GST_VIDEO_FRAME_FLAG_NONE, GST_VIDEO_INFO_FORMAT(info),
         GST_VIDEO_INFO_WIDTH(info), GST_VIDEO_INFO_HEIGHT(info), info->finfo->n_planes, info->offset, info->stride);
@@ -381,47 +437,31 @@ static GstFlowReturn gst_surface_pool_acquire_buffer(GstBufferPool *pool,
     GstSurfacePool *spool = GST_SURFACE_POOL_CAST(pool);
     g_return_val_if_fail(spool != nullptr, GST_FLOW_ERROR);
     GstFlowReturn ret = GST_FLOW_OK;
-    gint64 retries = 0;
 
-    GST_DEBUG("acquire buffer");
+    GST_DEBUG_OBJECT(spool, "acquire buffer");
     GST_BUFFER_POOL_LOCK(spool);
 
-    GList *node = g_list_first(spool->preAllocated);
-    if (node != nullptr) {
-        *buffer = GST_BUFFER_CAST(node->data);
-        g_return_val_if_fail(*buffer != nullptr, GST_FLOW_ERROR);
-        spool->preAllocated = g_list_delete_link(spool->preAllocated, node);
-        GST_DEBUG("acquire buffer from preallocated buffers");
-
-        spool->freeBufCnt -= 1;
-        GST_BUFFER_POOL_UNLOCK(spool);
-        return GST_FLOW_OK;
-    }
-    if (spool->freeBufCnt == 0 && (params != nullptr) && (params->flags & GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT)) {
-        GST_BUFFER_POOL_WAIT(spool, 0);
-    }
     while (TRUE) {
         // when pool is set flushing or set inactive, the flushing state is true, refer to GstBufferPool
         if (GST_BUFFER_POOL_IS_FLUSHING(pool)) {
             ret = GST_FLOW_FLUSHING;
-            GST_INFO("pool is flushing");
+            GST_INFO_OBJECT(spool, "pool is flushing");
             break;
         }
 
-        /**
-         * Although we maybe able to request buffer from Surface if the surface buffer is flushed
-         * back to Surface, but we still require the GstBuffer to be released back to the pool
-         * before we allow to acquire a GstBuffer again, for avoiding the user to hold two different
-         * GstBuffer which pointer to same SurfaceBuffer.
-         */
-        if (spool->freeBufCnt > 0) {
-            GST_DEBUG("Gst_surface_allocator_alloc");
-            // Rather than keeping a idlelist for surface buffer by ourself, we request buffer
-            // from the Surface directly.
-            GstFlowReturn ret = gst_surface_pool_alloc_buffer(pool, buffer, params);
-            if (ret == GST_FLOW_OK && *buffer != nullptr) {
+        GList *node = g_list_first(spool->preAllocated);
+        if (node != nullptr) {
+            *buffer = GST_BUFFER_CAST(node->data);
+            if (*buffer == nullptr) {
+                ret = GST_FLOW_ERROR;
+                GST_ERROR_OBJECT(spool, "buffer is nullptr");
                 break;
             }
+            spool->preAllocated = g_list_delete_link(spool->preAllocated, node);
+            GST_DEBUG_OBJECT(spool, "acquire buffer from preallocated buffers");
+            spool->freeBufCnt -= 1;
+            ret = GST_FLOW_OK;
+            break;
         }
 
         if ((params != nullptr) && (params->flags & GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT)) {
@@ -429,22 +469,11 @@ static GstFlowReturn gst_surface_pool_acquire_buffer(GstBufferPool *pool,
             break;
         }
 
-        retries += 1;
-        GST_DEBUG("already try %" G_GINT64_FORMAT " times", retries);
-
-        if (!GST_BUFFER_POOL_IS_FLUSHING(pool)) {
-            GST_DEBUG("before sleep currtime: %" G_GINT64_FORMAT, g_get_monotonic_time());
-            gint64 endTime = g_get_monotonic_time() + static_cast<gint64>(spool->waittime);
-            GST_BUFFER_POOL_WAIT(spool, endTime);
-            GST_DEBUG("after sleep currtime: %" G_GINT64_FORMAT, g_get_monotonic_time());
-        }
-    }
-    if (ret == GST_FLOW_OK) {
-        spool->freeBufCnt -= 1;
+        GST_BUFFER_POOL_WAIT(spool);
     }
 
     if (ret == GST_FLOW_EOS) {
-        GST_DEBUG("no more buffers");
+        GST_DEBUG_OBJECT(spool, "no more buffers");
     }
 
     // The GstBufferPool will add the GstBuffer's pool ref to this pool.
@@ -458,22 +487,10 @@ static void gst_surface_pool_release_buffer(GstBufferPool *pool, GstBuffer *buff
 
     GstSurfacePool *spool = GST_SURFACE_POOL_CAST(pool);
     g_return_if_fail(spool != nullptr);
-    GST_DEBUG("release buffer 0x%06" PRIXPTR "", FAKE_POINTER(buffer));
+    GST_DEBUG_OBJECT(spool, "release buffer 0x%06" PRIXPTR "", FAKE_POINTER(buffer));
 
     if (G_UNLIKELY(!gst_buffer_is_all_memory_writable(buffer))) {
-        GST_WARNING("buffer is not writable, 0x%06" PRIXPTR, FAKE_POINTER(buffer));
-    }
-
-    gboolean need_notify = FALSE;
-    for (guint i = 0; i < gst_buffer_n_memory(buffer); i++) {
-        GstMemory *memory = gst_buffer_peek_memory(buffer, i);
-        if (gst_is_surface_memory(memory)) {
-            GstSurfaceMemory *surfaceMem = reinterpret_cast<GstSurfaceMemory *>(memory);
-            // the needRender is set by the surface sink
-            if (!surfaceMem->needRender) {
-                need_notify = TRUE;
-            }
-        }
+        GST_WARNING_OBJECT(spool, "buffer is not writable, 0x%06" PRIXPTR, FAKE_POINTER(buffer));
     }
 
     // we dont queue the buffer to the idlelist. the memory rotation reuse feature
@@ -483,10 +500,14 @@ static void gst_surface_pool_release_buffer(GstBufferPool *pool, GstBuffer *buff
     GST_BUFFER_POOL_LOCK(spool);
     spool->freeBufCnt += 1;
     GST_BUFFER_POOL_UNLOCK(spool);
+}
 
-    // if there is GstSurfaceMemory that does not need to be rendered, we can
-    // notify the waiters to wake up and retry to acquire buffer.
-    if (need_notify) {
-        GST_BUFFER_POOL_NOTIFY(spool);
-    }
+static void gst_surface_pool_flush_start(GstBufferPool *pool)
+{
+    GstSurfacePool *spool = GST_SURFACE_POOL_CAST(pool);
+    g_return_if_fail(spool != nullptr);
+
+    GST_BUFFER_POOL_LOCK(spool);
+    GST_BUFFER_POOL_NOTIFY(spool);
+    GST_BUFFER_POOL_UNLOCK(spool);
 }
