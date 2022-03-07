@@ -45,6 +45,7 @@ G_BEGIN_DECLS
 typedef struct _GstVdecBase GstVdecBase;
 typedef struct _GstVdecBaseClass GstVdecBaseClass;
 typedef struct _GstVdecBasePort GstVdecBasePort;
+typedef struct _DisplayRect DisplayRect;
 
 struct _GstVdecBasePort {
     gint frame_rate;
@@ -61,6 +62,13 @@ struct _GstVdecBasePort {
     gint64 last_frame_time;
     gboolean enable_dump;
     FILE *dump_file;
+};
+
+struct _DisplayRect {
+    gint x;
+    gint y;
+    gint width;
+    gint height;
 };
 
 struct _GstVdecBase {
@@ -95,6 +103,9 @@ struct _GstVdecBase {
     GstClockTime last_pts;
     gboolean flushing_stoping;
     gboolean decoder_start;
+    gint stride;
+    gint stride_height;
+    DisplayRect rect;
 };
 
 struct _GstVdecBaseClass {

@@ -166,6 +166,9 @@ static void gst_vdec_base_init(GstVdecBase *self)
     self->last_pts = GST_CLOCK_TIME_NONE;
     self->flushing_stoping = FALSE;
     self->decoder_start = FALSE;
+    self->stride = 0;
+    self->stride_height = 0;
+    self->rect = {0};
 }
 
 static void gst_vdec_base_finalize(GObject *object)
@@ -192,6 +195,8 @@ static void gst_vdec_base_finalize(GObject *object)
         gst_object_unref(self->outpool);
         self->outpool = nullptr;
     }
+    self->input.av_shmem_pool = nullptr;
+    self->output.av_shmem_pool = nullptr;
     G_OBJECT_CLASS(parent_class)->finalize(object);
 }
 
@@ -843,14 +848,14 @@ static GstFlowReturn push_output_buffer(GstVdecBase *self, GstBuffer *buffer)
 static gboolean gst_vdec_check_out_format_change(GstVdecBase *self)
 {
     gboolean is_format_change = FALSE;
-    is_format_change = is_format_change || self->width != self->output.width;
-    is_format_change = is_format_change || self->height != self->output.height;
+    is_format_change = is_format_change || self->width != self->rect.width;
+    is_format_change = is_format_change || self->height != self->rect.height;
 
     if (is_format_change) {
         GST_INFO_OBJECT(self, "Format change width %d to %d, height %d to %d",
             self->width, self->output.width, self->height, self->output.height);
-        self->width = self->output.width;
-        self->height = self->output.height;
+        self->width = self->rect.width;
+        self->height = self->rect.height;
     }
     return is_format_change;
 }
@@ -946,6 +951,7 @@ static gboolean gst_vdec_base_push_out_buffers(GstVdecBase *self)
     g_return_val_if_fail(self->decoder != nullptr, FALSE);
     GstBuffer *buffer = nullptr;
     GstBufferPool *pool = gst_video_decoder_get_buffer_pool(GST_VIDEO_DECODER(self));
+    ON_SCOPE_EXIT(0) { gst_object_unref(pool); };
     GstFlowReturn flow = GST_FLOW_OK;
     gint codec_ret = GST_CODEC_OK;
     GstBufferPoolAcquireParams params;

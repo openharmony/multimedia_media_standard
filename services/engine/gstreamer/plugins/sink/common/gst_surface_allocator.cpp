@@ -138,6 +138,7 @@ static void gst_surface_allocator_finalize(GObject *obj)
     GstSurfaceAllocator *allocator = GST_SURFACE_ALLOCATOR_CAST(obj);
     g_return_if_fail(allocator != nullptr);
 
+    allocator->surface = nullptr;
     GST_DEBUG_OBJECT(allocator, "finalize allocator 0x%06" PRIXPTR "", FAKE_POINTER(allocator));
     G_OBJECT_CLASS(parent_class)->finalize(obj);
 }
