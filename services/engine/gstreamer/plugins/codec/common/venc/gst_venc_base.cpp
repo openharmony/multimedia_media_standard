@@ -225,6 +225,8 @@ static void gst_venc_base_finalize(GObject *object)
     g_mutex_clear(&self->drain_lock);
     g_cond_clear(&self->drain_cond);
     g_mutex_clear(&self->lock);
+    self->input.av_shmem_pool = nullptr;
+    self->output.av_shmem_pool = nullptr;
     G_OBJECT_CLASS(parent_class)->finalize(object);
 }
 
