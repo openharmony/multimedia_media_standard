@@ -93,6 +93,8 @@ struct _GstVdecBase {
     gboolean first_frame;
     std::list<GstClockTime> pts_list;
     GstClockTime last_pts;
+    gboolean flushing_stoping;
+    gboolean decoder_start;
 };
 
 struct _GstVdecBaseClass {
