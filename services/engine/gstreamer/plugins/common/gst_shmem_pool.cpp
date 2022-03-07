@@ -277,7 +277,7 @@ static gboolean gst_shmem_pool_stop(GstBufferPool *pool)
     GstShMemPool *spool = GST_SHMEM_POOL_CAST(pool);
     g_return_val_if_fail(spool != nullptr, FALSE);
     if (spool->end) {
-        return TRUE;
+        return GST_BUFFER_POOL_CLASS(parent_class)->stop(pool);
     }
 
     GST_DEBUG("pool stop");

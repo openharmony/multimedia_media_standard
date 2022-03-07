@@ -122,12 +122,6 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetOutputPortConfig()
     }
 
     CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "Unsupported format");
-    
-    if (profile_ != -1) {
-        GstStructure *struc = gst_caps_get_structure(caps, 0);
-        gst_structure_set(struc, "profile", G_TYPE_STRING, gstProfile_.c_str(), nullptr);
-        gst_caps_append_structure(caps, struc);
-    }
 
     auto config = std::make_shared<ProcessorConfig>(caps, true);
     if (config == nullptr) {
