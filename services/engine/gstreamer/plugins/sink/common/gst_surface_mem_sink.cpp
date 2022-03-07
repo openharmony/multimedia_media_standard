@@ -249,7 +249,7 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     GstSurfacePool *pool = surface_sink->priv->pool;
     g_return_val_if_fail(pool != nullptr, FALSE);
     g_return_val_if_fail(gst_buffer_pool_set_active(GST_BUFFER_POOL(pool), FALSE), FALSE);
-    (void)gst_surface_pool_set_surface(pool, surface_sink->priv->surface, memsink->wait_time);
+    (void)gst_surface_pool_set_surface(pool, surface_sink->priv->surface);
 
     GstVideoInfo info;
     GST_DEBUG("begin gst_video_info_from_caps");

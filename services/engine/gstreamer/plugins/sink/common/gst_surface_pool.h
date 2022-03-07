@@ -48,12 +48,13 @@ struct _GstSurfacePool {
     GstVideoInfo info;
     guint minBuffers;
     guint maxBuffers;
-    guint waittime;
     GMutex lock;
     GCond cond;
     GList *preAllocated;
     guint freeBufCnt;
     gint usage;
+    GstTask *task;
+    GRecMutex taskLock;
 };
 
 struct _GstSurfacePoolClass {
@@ -64,8 +65,7 @@ GType gst_surface_pool_get_type(void);
 
 GstSurfacePool *gst_surface_pool_new();
 
-GST_API gboolean gst_surface_pool_set_surface(GstSurfacePool *pool,
-    OHOS::sptr<OHOS::Surface> surface, guint waittime);
+GST_API gboolean gst_surface_pool_set_surface(GstSurfacePool *pool, OHOS::sptr<OHOS::Surface> surface);
 
 G_END_DECLS
 
