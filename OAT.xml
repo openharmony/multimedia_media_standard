@@ -14,7 +14,7 @@
      limitations under the License.
 
      Notes:
-     This is project config file for OpenHarmony OSS Audit Tool, if you have any questions or concerns, please email chenyaxun@huawei.com.
+     This is project config file for OpenHarmony OSS Audit Tool, if you have any questions or concerns, please email chenyaxun.
 -->
 <!-- OAT(OSS Audit Tool) configuration guide:
 basedir: Root dir, the basedir + project path is the real source file location.

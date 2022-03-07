@@ -44,6 +44,6 @@ private:
     std::mutex mutex_;
     std::unordered_set<AVCodecJSCallback *> works_;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVCODEC_NAPI_HELPER_H

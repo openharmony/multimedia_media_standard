@@ -55,6 +55,6 @@ private:
     std::unique_ptr<TaskQueue> errorProcQ_;
     std::mutex mutex_;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif

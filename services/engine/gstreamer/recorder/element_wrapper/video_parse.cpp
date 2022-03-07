@@ -36,5 +36,5 @@ int32_t VideoParse::Init()
 }
 
 REGISTER_RECORDER_ELEMENT(VideoParse);
-}
-}
+} // namespace Media
+} // namespace OHOS

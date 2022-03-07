@@ -78,6 +78,6 @@ private:
     std::unique_ptr<std::thread> playerThread_;
     std::shared_ptr<GstAppsrcWarp> appsrcWarp_ = nullptr;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // PLAYER_ENGINE_GST_IMPL

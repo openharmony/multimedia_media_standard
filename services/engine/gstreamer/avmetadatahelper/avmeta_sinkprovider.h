@@ -37,7 +37,6 @@ private:
     GstElement *audSink_ = nullptr;
     GstElement *vidSink_ = nullptr;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVMETA_SINKPROVIDER_H

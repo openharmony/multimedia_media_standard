@@ -49,6 +49,6 @@ private:
     std::unique_ptr<TaskQueue> cmdQ_;
     std::unique_ptr<TaskQueue> msgQ_;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif

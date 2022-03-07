@@ -214,5 +214,5 @@ std::vector<CapabilityData> AVCodecListEngineGstImpl::GetCodecCapabilityInfos()
     }
     return codecAbilityInstance.capabilityDataArray_;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

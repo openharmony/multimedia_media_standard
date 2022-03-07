@@ -38,6 +38,6 @@ protected:
 private:
     int32_t ProcessVendor(const Format &format);
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // FORMAT_PROCESSOR_BASE_H

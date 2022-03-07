@@ -97,6 +97,6 @@ private:
     using PlayerStubFunc = int32_t(PlayerServiceStub::*)(MessageParcel &data, MessageParcel &reply);
     std::map<uint32_t, PlayerStubFunc> playerFuncs_;
 };
-}
+} // namespace Media
 } // namespace OHOS
 #endif // PLAYER_SERVICE_STUB_H

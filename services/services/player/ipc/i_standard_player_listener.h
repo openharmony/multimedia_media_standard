@@ -37,6 +37,6 @@ public:
 
     DECLARE_INTERFACE_DESCRIPTOR(u"IStandardPlayerListener");
 };
-} // OHOS
+} // namespace Media
 } // namespace OHOS
 #endif // I_STANDARD_PLAYER_LISTENER_H

@@ -191,5 +191,5 @@ void TimePerf::TimeVal2USec(const struct timeval &time, int64_t &usec)
 
     usec = static_cast<int64_t>(time.tv_sec) * MICRO_SEC_PER_SEC + time.tv_usec;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

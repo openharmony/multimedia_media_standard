@@ -40,6 +40,6 @@ public:
         AVCodecBufferFlag &flag);
     static bool ExtractMediaFormat(napi_env env, napi_value mediaFormat, Format &format);
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVCODEC_NAPI_UTILS_H

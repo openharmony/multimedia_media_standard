@@ -26,7 +26,7 @@ namespace OHOS {
 namespace Media {
 const std::map<PlayerErrorType, std::string> PLAYER_ERRTYPE_INFOS = {
     {PLAYER_ERROR, "internal player error"},
-    {PLAYER_ERROR_UNKNOWN, "unknow player error"},
+    {PLAYER_ERROR_UNKNOWN, "unknown player error"},
     {PLAYER_ERROR_EXTEND_START, "player extend start error type"},
 };
 
@@ -259,5 +259,5 @@ int32_t PlayerImpl::SetParameter(const Format &param)
     CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
     return playerService_->SetParameter(param);
 }
-} // nmamespace Media
+} // namespace Media
 } // namespace OHOS

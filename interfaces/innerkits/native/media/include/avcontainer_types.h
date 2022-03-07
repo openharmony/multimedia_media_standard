@@ -53,6 +53,6 @@ struct TrackSampleInfo {
      */
     AVCodecBufferFlag flags;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVCONTAINER_TYPES_H

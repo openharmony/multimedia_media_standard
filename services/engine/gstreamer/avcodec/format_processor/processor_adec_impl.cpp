@@ -158,5 +158,5 @@ std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetOutputPortConfig()
 
     return config;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

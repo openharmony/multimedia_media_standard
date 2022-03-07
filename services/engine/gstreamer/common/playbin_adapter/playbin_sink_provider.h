@@ -28,7 +28,6 @@ public:
     virtual SinkPtr CreateVideoSink() = 0;
     virtual SinkPtr CreateAudioSink() = 0;
 };
-}
-}
-
+} // namespace Media
+} // namespace OHOS
 #endif

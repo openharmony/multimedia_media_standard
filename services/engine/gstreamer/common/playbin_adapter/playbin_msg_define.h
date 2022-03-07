@@ -65,7 +65,6 @@ struct PlayBinMessage {
 };
 
 using PlayBinMsgNotifier = std::function<void(const PlayBinMessage &)>;
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // PLAYBIN_MSG_DEFINE_H

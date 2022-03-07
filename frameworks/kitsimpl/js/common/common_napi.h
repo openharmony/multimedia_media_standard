@@ -156,7 +156,7 @@ private:
 
 class AVCodecJsResultCtor : public MediaJsResult {
 public:
-    explicit AVCodecJsResultCtor(const napi_ref &constructor, int32_t isMimeType, const std::string &name)
+    AVCodecJsResultCtor(const napi_ref &constructor, int32_t isMimeType, const std::string &name)
         : constructor_(constructor),
           isMimeType_(isMimeType),
           name_(name)
@@ -182,7 +182,7 @@ public:
             return ret;
         }
 
-        return napi_new_instance(env, constructor, 2, args, &result);
+        return napi_new_instance(env, constructor, 2, args, &result); // The number of parameters is 2
     }
 
 private:
@@ -246,6 +246,6 @@ struct AVFileDescriptor {
     int64_t offset = 0;
     int64_t length = 0;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // COMMON_NAPI_H

@@ -30,7 +30,7 @@ namespace Media {
  * @brief A simple pool implementation for shared memory.
  *
  * This pool support multi configuration:
- * @preAllocMemCnt: The number of memory blocks allocated when the pool is intialized.
+ * @preAllocMemCnt: The number of memory blocks allocated when the pool is initialized.
  * @memSize: the size of the preallocated memory blocks.
  * @maxMemCnt: the total number of memory blocks in the pool.
  * @flags: the shared memory access property, refer to {@AVSharedMemory::Flags}.
@@ -105,7 +105,7 @@ private:
     MemoryAvailableNotifier notifier_;
     bool forceNonBlocking_ = false;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 
 #endif

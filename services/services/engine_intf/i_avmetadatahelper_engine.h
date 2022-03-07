@@ -78,7 +78,7 @@ public:
     virtual std::shared_ptr<AVSharedMemory> FetchFrameAtTime(
         int64_t timeUs, int32_t option, const OutputConfiguration &param) = 0;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 
 #endif

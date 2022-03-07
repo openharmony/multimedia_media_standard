@@ -514,5 +514,5 @@ std::vector<CapabilityData> AVCodecXmlParser::GetCapabilityDataArray()
 {
     return this->capabilityDataArray_;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

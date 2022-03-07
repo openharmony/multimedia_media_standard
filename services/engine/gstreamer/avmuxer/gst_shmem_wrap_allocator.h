@@ -51,4 +51,4 @@ GstMemory *gst_shmem_wrap(GstAllocator *allocator, std::shared_ptr<OHOS::Media::
 
 G_END_DECLS
 
-#endif
+#endif // GST_SHMEM_WRAP_ALLOCATOR_H

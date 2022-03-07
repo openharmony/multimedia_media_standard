@@ -307,5 +307,5 @@ bool RecorderEngineGstImpl::CheckParamType(int32_t sourceId, const RecorderParam
     MEDIA_LOGE("unknown error !");
     return false;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

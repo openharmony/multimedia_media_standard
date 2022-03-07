@@ -72,6 +72,6 @@ struct MediaVideoCapsAsyncCtx : public MediaAsyncContext {
     int32_t width_ = 0;
     int32_t height_ = 0;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // MEDIA_CAPABILITY_VCAPS_NAPI_H

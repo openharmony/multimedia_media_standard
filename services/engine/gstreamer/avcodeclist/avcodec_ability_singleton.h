@@ -36,6 +36,6 @@ private:
     bool isParsered_ = false;
     AVCodecAbilitySingleton();
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif // AVCODEABILITY_SINGLETON_H

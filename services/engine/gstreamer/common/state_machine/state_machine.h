@@ -60,7 +60,6 @@ private:
     std::recursive_mutex recMutex_;
     std::shared_ptr<State> currState_;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // STATE_MACHINE_H

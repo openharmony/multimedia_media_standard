@@ -48,7 +48,7 @@ private:
     uint64_t persistTime_ = 0;
     uint64_t totalPauseTime_ = 0;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 
 #endif // AUDIO_CAPTURE_AS_IMPL_H

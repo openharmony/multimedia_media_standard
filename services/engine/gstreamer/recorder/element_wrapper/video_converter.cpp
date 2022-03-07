@@ -36,5 +36,5 @@ int32_t VideoConverter::Init()
 }
 
 REGISTER_RECORDER_ELEMENT(VideoConverter);
-}
-}
+} // namespace Media
+} // namespace OHOS

@@ -40,6 +40,6 @@ struct OutputFormat : public RecorderParam {
     ~OutputFormat() = default;
     int32_t format_;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif

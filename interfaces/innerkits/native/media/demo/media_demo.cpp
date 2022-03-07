@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
     if (argc >= minRequiredArgCount && argv[1] != nullptr) {
         path = argv[1];
     }
-    cout << "Please select a demo scenario number(defult player): " << endl;
+    cout << "Please select a demo scenario number(default player): " << endl;
     cout << "0:player" << endl;
     cout << "1:recorder" << endl;
     cout << "2:avmetadatahelper" << endl;

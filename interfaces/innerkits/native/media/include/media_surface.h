@@ -35,6 +35,6 @@ public:
     MediaSurfaceFactory() = delete;
     ~MediaSurfaceFactory() = delete;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif // MEDIA_SURFACE_H

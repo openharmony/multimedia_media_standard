@@ -52,4 +52,4 @@ private:
 };
 } // namespace Media
 } // namespace OHOS
-#endif /* MEDIA_DATA_SOURCE_NAPI_H_ */
+#endif // MEDIA_DATA_SOURCE_NAPI_H_

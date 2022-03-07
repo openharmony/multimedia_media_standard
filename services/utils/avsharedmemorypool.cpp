@@ -243,5 +243,5 @@ void AVSharedMemoryPool::Reset()
     cond_.notify_all();
     // for busylist, the memory will be released when the refcount of shared_ptr is zero.
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

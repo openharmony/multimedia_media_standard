@@ -28,7 +28,6 @@ public:
 protected:
     int32_t OnInit() override;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // PLAYBIN2_CTRLER_H

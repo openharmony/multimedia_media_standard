@@ -46,6 +46,6 @@ public:
 private:
     std::shared_ptr<IAVCodecService> codecService_ = nullptr;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // AVCODEC_AUDIO_DECODER_IMPL_H

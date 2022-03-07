@@ -37,6 +37,6 @@ private:
     void DoNext();
     std::shared_ptr<AVMetadataHelper> avMetadataHelper_;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVMETADATAHELPER_DEMO_H

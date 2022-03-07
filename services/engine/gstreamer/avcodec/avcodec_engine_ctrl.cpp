@@ -366,5 +366,5 @@ GstBusSyncReply AVCodecEngineCtrl::BusSyncHandler(GstBus *bus, GstMessage *messa
     }
     return GST_BUS_PASS;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

@@ -281,5 +281,5 @@ void MediaDataSourceNapi::Release()
     CHECK_AND_RETURN_LOG(callbackWorks_ != nullptr, "callbackwork is null");
     callbackWorks_->CancelAll();
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

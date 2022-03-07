@@ -87,5 +87,5 @@ std::unique_ptr<SrcBase> AVCodecEngineFactory::CreateSrc(SrcType type)
     }
     return src;
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

@@ -110,6 +110,7 @@ static void gst_venc_base_class_init(GstVencBaseClass *klass)
 
 static void gst_venc_base_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
+    (void)pspec;
     GST_DEBUG_OBJECT(object, "Set Property");
     GstVencBase *self = GST_VENC_BASE(object);
     g_return_if_fail(value != nullptr);
@@ -155,6 +156,7 @@ static void gst_venc_base_set_property(GObject *object, guint prop_id, const GVa
 
 static void gst_venc_base_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
+    (void)pspec;
     GST_DEBUG_OBJECT(object, "Get Property");
     g_return_if_fail(object != nullptr);
     GstVencBase *self = GST_VENC_BASE(object);

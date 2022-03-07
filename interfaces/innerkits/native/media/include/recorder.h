@@ -657,6 +657,6 @@ private:
 };
 
 __attribute__((visibility("default"))) std::string RecorderErrorTypeToString(RecorderErrorType type);
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // RECORDER_H

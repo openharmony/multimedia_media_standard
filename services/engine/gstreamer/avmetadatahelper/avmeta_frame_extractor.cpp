@@ -236,5 +236,5 @@ GstFlowReturn AVMetaFrameExtractor::OnNewPrerollArrived(GstElement *sink, AVMeta
     thiz->cond_.notify_all();
     return GST_FLOW_OK;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS
