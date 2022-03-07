@@ -139,7 +139,7 @@ public:
      * @brief Seek all track to specified time position according the given seek mode.
      *
      * @param timeUs the time position in microseconds where the sample will be read.
-     * @param mode the hint about how to seek to the specified time positon.
+     * @param mode the hint about how to seek to the specified time position.
      * @return Returns {@link MSERR_OK} if the seek is success, returns an error code
      * otherwise.
      */
@@ -171,7 +171,6 @@ private:
     AVSpliterFactory() = default;
     ~AVSpliterFactory() = default;
 };
-}  // namespace Media
-}  // namespace OHOS
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVSPLITER_H

@@ -335,5 +335,5 @@ void PlayBinCtrlerBase::StoppedState::ProcessMessage(const InnerMessage &msg)
         }
     }
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

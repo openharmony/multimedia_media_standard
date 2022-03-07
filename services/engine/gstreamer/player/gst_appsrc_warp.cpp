@@ -331,7 +331,7 @@ void GstAppsrcWarp::EosAndCheckSize(int32_t size)
             break;
         default:
             OnError(MSERR_DATA_SOURCE_ERROR_UNKNOWN);
-            MEDIA_LOGE("unknow error %{public}d", size);
+            MEDIA_LOGE("unknown error %{public}d", size);
             break;
     }
 }

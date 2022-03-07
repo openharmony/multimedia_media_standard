@@ -640,5 +640,5 @@ void GstPlayerVideoRendererFactory::Destroy(GstPlayerVideoRenderer *renderer)
     CHECK_AND_RETURN_LOG(renderer != nullptr, "renderer is nullptr");
     gst_object_unref(renderer);
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

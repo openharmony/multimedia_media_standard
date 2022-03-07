@@ -127,7 +127,6 @@ private:
     MediaDescriptionKey() = delete;
     ~MediaDescriptionKey() = delete;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // MEDIA_DESCRIPTION_H

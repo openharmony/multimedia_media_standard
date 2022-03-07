@@ -303,5 +303,5 @@ void RecorderMsgProcessor::ReportMsgProcResult(const RecorderMessage &msg)
     int32_t ret = errorProcQ_->EnqueueTask(errorProc);
     CHECK_AND_RETURN_LOG(ret == MSERR_OK, "unable to async process error msg !");
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

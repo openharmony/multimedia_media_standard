@@ -34,7 +34,6 @@ public:
     ~GstMsgConverterDefault() = default;
     int32_t ConvertToInnerMsg(GstMessage &gstMsg, InnerMessage &innerMsg) const override;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // GST_MSG_CONVERTER_DEFAULT_H

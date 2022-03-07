@@ -165,6 +165,6 @@ struct NextOutFd : public RecorderParam {
     explicit NextOutFd(int32_t nextOutFd) : RecorderParam(RecorderPublicParamType::NEXT_OUT_FD), fd(nextOutFd) {}
     int32_t fd;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif

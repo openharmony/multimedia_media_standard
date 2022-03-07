@@ -27,7 +27,7 @@ namespace OHOS {
 namespace Media {
 /**
  * Utility for easy to process the work that block buffer on one element's pads.
- * Only avaliable for avmeta_meta_collector.
+ * Only available for avmeta_meta_collector.
  */
 class AVMetaBufferBlocker : public std::enable_shared_from_this<AVMetaBufferBlocker>, public NoCopyable {
 public:
@@ -67,6 +67,6 @@ private:
     bool direction_;
     BufferRecievedNotifier notifier_;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVMETA_BUFFER_BLOCKER_H

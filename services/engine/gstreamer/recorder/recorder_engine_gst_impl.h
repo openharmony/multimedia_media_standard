@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RECORDER_ENGINE_HST_IMPL
-#define RECORDER_ENGINE_HST_IMPL
+#ifndef RECORDER_ENGINE_GST_IMPL
+#define RECORDER_ENGINE_GST_IMPL
 
 #include <map>
 #include <vector>
@@ -60,6 +60,6 @@ private:
     std::vector<int32_t> sourceCount_;
     std::mutex mutex_;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif

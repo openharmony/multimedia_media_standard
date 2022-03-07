@@ -66,7 +66,6 @@ public:
     using ElemSetupListener = std::function<void(GstElement &elem)>;
     virtual void SetElemSetupListener(ElemSetupListener listener) = 0;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // I_PLAYBIN_CTRLER_H

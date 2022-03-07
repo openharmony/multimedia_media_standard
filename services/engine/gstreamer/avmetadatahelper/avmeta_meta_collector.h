@@ -63,7 +63,6 @@ private:
     using BufferBlockerVec = std::vector<std::shared_ptr<AVMetaBufferBlocker>>;
     std::unordered_map<uint8_t, BufferBlockerVec> blockers_;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVMETA_META_COLLECTOR_H

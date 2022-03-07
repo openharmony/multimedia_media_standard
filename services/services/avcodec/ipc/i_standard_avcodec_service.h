@@ -80,6 +80,6 @@ public:
 
     DECLARE_INTERFACE_DESCRIPTOR(u"IStandardAVCodecService");
 };
-} // OHOS
+} // namespace Media
 } // namespace OHOS
 #endif // I_STANDARD_AVCODEC_SERVICE_H

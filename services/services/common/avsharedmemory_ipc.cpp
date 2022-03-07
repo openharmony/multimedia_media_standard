@@ -60,5 +60,5 @@ std::shared_ptr<AVSharedMemory> ReadAVSharedMemoryFromParcel(MessageParcel &parc
     (void)::close(fd);
     return memory;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

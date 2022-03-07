@@ -33,6 +33,6 @@ public:
 private:
     std::shared_ptr<RecorderCallback> callback_ = nullptr;
 };
-}
+} // namespace Media
 } // namespace OHOS
 #endif // RECORDER_LISTENER_STUB_H

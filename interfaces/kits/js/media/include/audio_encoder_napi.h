@@ -78,6 +78,6 @@ struct AudioEncoderAsyncContext : public MediaAsyncContext {
     // used by format
     Format format;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // AUDIO_ENCODER_NAPI_H

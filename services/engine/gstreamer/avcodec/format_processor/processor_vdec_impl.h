@@ -41,6 +41,6 @@ private:
     std::string gstPixelFormat_;
     int32_t maxInputSize_ = 0;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // PROCESSOR_VDEC_IMPL_H

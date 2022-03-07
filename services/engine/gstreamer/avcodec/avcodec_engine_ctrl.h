@@ -63,6 +63,6 @@ private:
     bool flushAtStart_ = false;
     bool isStart_ = false;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // AVCODEC_ENGINE_CTRL_H

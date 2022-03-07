@@ -43,6 +43,6 @@ private:
     std::map<std::string, wptr<Surface>> surfaceMap_;
     sptr<Surface> producerSurface_ = nullptr;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif // MEDIA_SURFACE_IMPL_H

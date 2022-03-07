@@ -37,6 +37,6 @@ public:
 private:
     std::weak_ptr<PlayerCallback> callback_;
 };
-}
+} // namespace Media
 } // namespace OHOS
 #endif // PLAYER_LISTENER_STUB_H

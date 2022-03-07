@@ -362,7 +362,7 @@ double PlayerEngineGstImpl::ChangeModeToSpeed(const PlaybackRateMode &mode) cons
         return SPEED_2_00_X;
     }
 
-    MEDIA_LOGW("unknow mode:%{public}d, return default speed(SPEED_1_00_X)", mode);
+    MEDIA_LOGW("unknown mode:%{public}d, return default speed(SPEED_1_00_X)", mode);
 
     return SPEED_1_00_X;
 }
@@ -385,7 +385,7 @@ PlaybackRateMode PlayerEngineGstImpl::ChangeSpeedToMode(double rate) const
         return SPEED_FORWARD_2_00_X;
     }
 
-    MEDIA_LOGW("unknow rate:%{public}lf, return default speed(SPEED_FORWARD_1_00_X)", rate);
+    MEDIA_LOGW("unknown rate:%{public}lf, return default speed(SPEED_FORWARD_1_00_X)", rate);
 
     return  SPEED_FORWARD_1_00_X;
 }
@@ -471,5 +471,5 @@ int32_t PlayerEngineGstImpl::SetVolume(float leftVolume, float rightVolume)
     }
     return MSERR_OK;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

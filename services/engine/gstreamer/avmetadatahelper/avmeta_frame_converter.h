@@ -61,7 +61,6 @@ private:
     bool startConverting_ = false;
     std::vector<GstBuffer *> allResults_;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVMETA_FRAME_CONVERTER_H

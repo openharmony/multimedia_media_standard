@@ -65,6 +65,6 @@ private:
     Format format_;
     CapabilityData capData_;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // AVCODEC_ENGINE_GST_IMPL_H

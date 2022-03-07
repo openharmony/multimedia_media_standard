@@ -39,6 +39,6 @@ private:
     std::vector<std::shared_ptr<IEngineFactory>> factorys_;
     std::vector<void*> factoryLibs_;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif

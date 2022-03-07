@@ -275,10 +275,10 @@ static gboolean gst_shmem_pool_stop(GstBufferPool *pool)
 {
     g_return_val_if_fail(pool != nullptr, FALSE);
     GstShMemPool *spool = GST_SHMEM_POOL_CAST(pool);
+    g_return_val_if_fail(spool != nullptr, FALSE);
     if (spool->end) {
         return TRUE;
     }
-    g_return_val_if_fail(spool != nullptr, FALSE);
 
     GST_DEBUG("pool stop");
     GST_BUFFER_POOL_LOCK(spool);
@@ -386,7 +386,6 @@ static GstFlowReturn gst_shmem_pool_acquire_buffer(GstBufferPool *pool,
 static void gst_shmem_pool_release_buffer(GstBufferPool *pool, GstBuffer *buffer)
 {
     // The GstBufferPool has already cleared the GstBuffer's pool ref to this pool.
-
     GstShMemPool *spool = GST_SHMEM_POOL_CAST(pool);
     g_return_if_fail(spool != nullptr);
     GST_LOG("release buffer 0x%06" PRIXPTR " to pool 0x%06" PRIXPTR " %s",
@@ -407,7 +406,7 @@ static void gst_shmem_pool_memory_available(GstBufferPool *pool)
     GstFlowReturn ret = gst_shmem_pool_acquire_buffer(pool, &buffer, &params);
 
     GST_DEBUG("memory available, fake acquire ret: %s", gst_flow_get_name(ret));
-    // Get bufer maybe fail f there ary any others getting buffer concurringly.
+    // Get buffer maybe fail f there ary any others getting buffer concurringly.
     if (ret != GST_FLOW_OK) {
         return;
     }

@@ -81,6 +81,6 @@ struct RecorderSourceDesc {
                ((static_cast<uint32_t>(handle_) & RECORDER_SOURCE_KIND_MASK) == RECORDER_VIDEO_SOURCE_KIND_MASK));
     }
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif

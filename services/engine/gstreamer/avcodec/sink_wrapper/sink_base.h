@@ -72,6 +72,6 @@ public:
 protected:
     GstElement *sink_ = nullptr;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // SINK_BASE_H

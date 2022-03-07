@@ -42,5 +42,5 @@ int32_t ProcessorBase::ProcessVendor(const Format &format)
 {
     return MSERR_OK;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

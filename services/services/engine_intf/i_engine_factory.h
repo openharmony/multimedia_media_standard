@@ -48,6 +48,6 @@ protected:
     static constexpr int32_t MAX_SCORE = 100;
     static constexpr int32_t MIN_SCORE = 0;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif

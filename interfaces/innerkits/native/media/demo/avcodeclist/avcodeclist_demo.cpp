@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2021 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License\n");
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -173,7 +173,7 @@ bool AVCodecListDemo::BuildFormat(Format &format)
     return true;
 }
 
-void AVCodecListDemo::SetMediaDescriptionToFormat(Format &format, std::string key)
+void AVCodecListDemo::SetMediaDescriptionToFormat(Format &format, const std::string &key)
 {
     cout << "Set the " << key << " :" << endl;
     string mediaDescription;
@@ -274,5 +274,5 @@ void AVCodecListDemo::RunCase(const string &path)
 
     DoNext();
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

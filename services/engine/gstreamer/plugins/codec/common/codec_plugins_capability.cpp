@@ -47,5 +47,5 @@ std::vector<CapabilityData> CodecPluginsCapability::GetCodecPluginsCapability()
 {
     return capabilityDataArray_;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

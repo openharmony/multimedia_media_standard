@@ -33,7 +33,7 @@ PlayerServiceProxy::PlayerServiceProxy(const sptr<IRemoteObject> &impl)
 
 PlayerServiceProxy::~PlayerServiceProxy()
 {
-    MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destory", FAKE_POINTER(this));
+    MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
 int32_t PlayerServiceProxy::SetListenerObject(const sptr<IRemoteObject> &object)

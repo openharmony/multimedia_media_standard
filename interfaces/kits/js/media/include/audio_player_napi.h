@@ -71,4 +71,4 @@ private:
 };
 } // namespace Media
 } // namespace OHOS
-#endif /* AUDIO_PLAYER_NAPI_H_ */
+#endif // AUDIO_PLAYER_NAPI_H_

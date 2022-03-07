@@ -301,5 +301,5 @@ int32_t AudioSinkSvImpl::GetLatency(uint64_t &latency) const
     CHECK_AND_RETURN_RET(audioRenderer_->GetLatency(latency) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
     return MSERR_OK;
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

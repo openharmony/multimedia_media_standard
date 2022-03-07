@@ -268,5 +268,5 @@ void AVCodecServer::OnOutputBufferAvailable(uint32_t index, AVCodecBufferInfo in
     }
     codecCb_->OnOutputBufferAvailable(index, info, flag);
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

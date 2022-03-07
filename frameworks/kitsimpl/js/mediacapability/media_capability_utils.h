@@ -48,7 +48,7 @@ private:
 
 class MediaJsVideoCapsDynamic : public MediaJsResult {
 public:
-    explicit MediaJsVideoCapsDynamic(std::string name, bool isDecoder)
+    MediaJsVideoCapsDynamic(const std::string &name, const bool &isDecoder)
         : name_(name),
           isDecoder_(isDecoder)
     {
@@ -63,7 +63,7 @@ private:
 
 class MediaJsAudioCapsDynamic : public MediaJsResult {
 public:
-    explicit MediaJsAudioCapsDynamic(std::string name, bool isDecoder)
+    MediaJsAudioCapsDynamic(const std::string &name, const bool &isDecoder)
         : name_(name),
           isDecoder_(isDecoder)
     {
@@ -75,6 +75,6 @@ private:
     std::string name_;
     bool isDecoder_;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif

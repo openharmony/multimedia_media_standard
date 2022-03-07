@@ -114,5 +114,5 @@ sptr<Surface> MediaSurfaceImpl::GetSurface()
     MEDIA_LOGD("Create MediaSurfaceImpl Surface");
     return producerSurface_;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

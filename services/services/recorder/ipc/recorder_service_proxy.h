@@ -61,6 +61,6 @@ public:
 private:
     static inline BrokerDelegator<RecorderServiceProxy> delegator_;
 };
-}
+} // namespace Media
 } // namespace OHOS
 #endif // RECORDER_SERVICE_PROXY_H

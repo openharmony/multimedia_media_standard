@@ -52,6 +52,6 @@ private:
     napi_ref wrapper_ = nullptr;
     std::shared_ptr<AVMuxer> avmuxerImpl_ = nullptr;
 };
-}  // namespace Media
-}  // namespace OHOS
-#endif /* AVMUXER_NAPI_H */
+} // namespace Media
+} // namespace OHOS
+#endif // AVMUXER_NAPI_H

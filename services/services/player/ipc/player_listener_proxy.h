@@ -46,6 +46,6 @@ public:
 private:
     static inline BrokerDelegator<PlayerListenerProxy> delegator_;
 };
-}
+} // namespace Media
 } // namespace OHOS
 #endif // PLAYER_LISTENER_PROXY_H

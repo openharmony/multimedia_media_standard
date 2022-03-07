@@ -63,6 +63,6 @@ public:
     virtual int32_t SetParameter(const Format &format) = 0;
     virtual int32_t SetObs(const std::weak_ptr<IAVCodecEngineObs> &obs) = 0;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // IAVCODEC_ENGINE_H

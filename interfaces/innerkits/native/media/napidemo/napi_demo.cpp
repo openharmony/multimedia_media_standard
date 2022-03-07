@@ -397,5 +397,5 @@ void NapiDemo::BufferLoop()
         (void)producerSurface_->FlushBuffer(buffer, -1, flushConfig_);
     }
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

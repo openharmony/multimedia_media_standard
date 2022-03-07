@@ -141,5 +141,5 @@ void AVSharedMemoryBase::Close() noexcept
         fd_ = -1;
     }
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

@@ -130,6 +130,6 @@ private:                                                                \
 GST_MSG_PARSER_DEFINE(info, Info);
 GST_MSG_PARSER_DEFINE(warning, Warning);
 GST_MSG_PARSER_DEFINE(error, Error);
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif

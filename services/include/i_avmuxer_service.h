@@ -39,6 +39,6 @@ public:
     virtual int32_t Stop() = 0;
     virtual void Release() = 0;
 };
-}  // namespace Media
-}  // namespace OHOS
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // I_AVMUXER_SERVICE_H

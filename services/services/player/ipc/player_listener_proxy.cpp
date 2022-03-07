@@ -74,7 +74,7 @@ PlayerListenerCallback::PlayerListenerCallback(const sptr<IStandardPlayerListene
 
 PlayerListenerCallback::~PlayerListenerCallback()
 {
-    MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destory", FAKE_POINTER(this));
+    MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
 void PlayerListenerCallback::OnError(PlayerErrorType errorType, int32_t errorCode)

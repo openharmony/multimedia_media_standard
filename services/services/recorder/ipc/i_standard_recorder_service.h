@@ -97,6 +97,6 @@ public:
 
     DECLARE_INTERFACE_DESCRIPTOR(u"IStandardRecorderService");
 };
-} // OHOS
+} // namespace Media
 } // namespace OHOS
 #endif // I_STANDARD_RECORDER_SERVICE_H

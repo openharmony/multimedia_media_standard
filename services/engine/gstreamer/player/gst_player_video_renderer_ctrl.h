@@ -80,6 +80,6 @@ public:
     static GstPlayerVideoRenderer *Create(const std::shared_ptr<GstPlayerVideoRendererCtrl> &rendererCtrl);
     static void Destroy(GstPlayerVideoRenderer *renderer);
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // GST_PLAYER_VIDEO_RENDERER_CTRL_H

@@ -216,6 +216,6 @@ private:
     AudioEncoderFactory() = default;
     ~AudioEncoderFactory() = default;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // AVCODEC_AUDIO_ENCODER_H

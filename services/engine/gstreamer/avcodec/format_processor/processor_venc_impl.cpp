@@ -140,5 +140,5 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetOutputPortConfig()
 
     return config;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
