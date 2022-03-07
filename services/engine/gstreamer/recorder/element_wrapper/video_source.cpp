@@ -28,7 +28,6 @@ static const std::unordered_map<int32_t, int32_t> SOURCE_TYPE_STREAM_TYPE = {
     { VideoSourceType::VIDEO_SOURCE_SURFACE_ES, VideoStreamType::VIDEO_STREAM_TYPE_ES_AVC },
     { VideoSourceType::VIDEO_SOURCE_SURFACE_YUV, VideoStreamType::VIDEO_STREAM_TYPE_YUV_420 },
 };
-constexpr double EPSINON = 0.000001;
 }
 
 namespace OHOS {
@@ -111,7 +110,7 @@ int32_t VideoSource::ConfigureCaptureRate(const RecorderParam &recParam)
     }
 
     const CaptureRate &param = static_cast<const CaptureRate &>(recParam);
-    if (param.capRate <= EPSINON) {
+    if (param.capRate < 0.0) {
         MEDIA_LOGE("Invalid video capture rate: %{public}lf", param.capRate);
         return MSERR_INVALID_VAL;
     }
