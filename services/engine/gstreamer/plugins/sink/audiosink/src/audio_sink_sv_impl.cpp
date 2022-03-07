@@ -95,7 +95,7 @@ int32_t AudioSinkSvImpl::SetVolume(float volume)
 
 int32_t AudioSinkSvImpl::SetParameter(int32_t &param)
 {
-    int32_t contentType = (param & 0x0000FFFF);
+    int32_t contentType = (static_cast<uint32_t>(param) & 0x0000FFFF);
     int32_t streamUsage = static_cast<uint32_t>(param) >> AudioStandard::RENDERER_STREAM_USAGE_SHIFT;
 
     CHECK_AND_RETURN_RET_LOG(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION, "audioRenderer_ is nullptr");
