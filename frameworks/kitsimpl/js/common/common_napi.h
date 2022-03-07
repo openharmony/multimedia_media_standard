@@ -182,7 +182,7 @@ public:
             return ret;
         }
 
-        return napi_new_instance(env, constructor, 2, args, &result);
+        return napi_new_instance(env, constructor, 2, args, &result); // The number of parameters is 2
     }
 
 private:
