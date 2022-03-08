@@ -39,6 +39,11 @@ void RecorderListenerProxy::OnError(int32_t errorType, int32_t errorCode)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
+
+    if (!data.WriteInterfaceToken(RecorderListenerProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return;
+    }
     data.WriteInt32(errorType);
     data.WriteInt32(errorCode);
     int error = Remote()->SendRequest(RecorderListenerMsg::ON_ERROR, data, reply, option);
@@ -52,6 +57,11 @@ void RecorderListenerProxy::OnInfo(int32_t type, int32_t extra)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
+
+    if (!data.WriteInterfaceToken(RecorderListenerProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return;
+    }
     data.WriteInt32(static_cast<int>(type));
     data.WriteInt32(static_cast<int>(extra));
     int error = Remote()->SendRequest(RecorderListenerMsg::ON_INFO, data, reply, option);
