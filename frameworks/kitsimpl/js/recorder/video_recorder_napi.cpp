@@ -638,7 +638,7 @@ int32_t VideoRecorderNapi::GetVideoRecorderProperties(napi_env env, napi_value a
     (void)MapExtensionNameToOutputFormat(outputFile, properties.profile.outputFormat);
     (void)CommonNapi::GetPropertyInt32(env, item, "videoBitrate", properties.profile.videoBitrate);
     std::string videoCodec = CommonNapi::GetPropertyString(env, item, "videoCodec");
-    (void)MapMimeToVideoCodecFormat(audioCodec, properties.profile.videoCodecFormat);
+    (void)MapMimeToVideoCodecFormat(videoCodec, properties.profile.videoCodecFormat);
     (void)CommonNapi::GetPropertyInt32(env, item, "videoFrameWidth", properties.profile.videoFrameWidth);
     (void)CommonNapi::GetPropertyInt32(env, item, "videoFrameHeight", properties.profile.videoFrameHeight);
     (void)CommonNapi::GetPropertyInt32(env, item, "videoFrameRate", properties.profile.videoFrameRate);
