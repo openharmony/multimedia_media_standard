@@ -110,7 +110,7 @@ int32_t VideoSource::ConfigureCaptureRate(const RecorderParam &recParam)
     }
 
     const CaptureRate &param = static_cast<const CaptureRate &>(recParam);
-    if (param.capRate <= 0.0) {
+    if (param.capRate < 0.0) {
         MEDIA_LOGE("Invalid video capture rate: %{public}lf", param.capRate);
         return MSERR_INVALID_VAL;
     }
@@ -161,5 +161,5 @@ void VideoSource::Dump()
 }
 
 REGISTER_RECORDER_ELEMENT(VideoSource);
-}
-}
+} // namespace Media
+} // namespace OHOS

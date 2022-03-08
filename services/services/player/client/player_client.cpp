@@ -274,5 +274,5 @@ int32_t PlayerClient::SetPlayerCallback(const std::shared_ptr<PlayerCallback> &c
     CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
     return playerProxy_->SetPlayerCallback();
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

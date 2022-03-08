@@ -44,6 +44,6 @@ private:
     bool IsSupportChannel(const Format &format, const CapabilityData &data);
     std::mutex mutex_;
 };
-} // Medias
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // AVCODECLIST_ENGINE_GST_IMPL_H

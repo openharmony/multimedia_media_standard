@@ -44,6 +44,6 @@ private:
     std::string gstPixelFormat_;
     std::string gstProfile_;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // PROCESSOR_VENC_IMPL_H

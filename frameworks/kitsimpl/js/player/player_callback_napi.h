@@ -57,7 +57,7 @@ private:
     void OnSeekDoneCb(int32_t currentPositon) const;
     void OnEosCb(int32_t isLooping) const;
     void OnStateChangeCb(PlayerStates state);
-    void OnPositionUpdateCb(int32_t postion) const;
+    void OnPositionUpdateCb(int32_t position) const;
     void OnMessageCb(int32_t type) const;
     void OnVolumeChangeCb();
     void OnBufferingUpdateCb(const Format &infoBody) const;
@@ -75,6 +75,6 @@ private:
     std::shared_ptr<AutoRef> volumeChangeCallback_ = nullptr; // volumedone
     std::shared_ptr<AutoRef> bufferingUpdateCallback_ = nullptr; // buffering update
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // PLAYER_CALLBACK_NAPI_H_

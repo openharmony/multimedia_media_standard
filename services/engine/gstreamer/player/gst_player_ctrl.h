@@ -147,7 +147,8 @@ private:
     std::shared_ptr<GstPlayerTrackParse> trackParse_ = nullptr;
     int32_t videoWidth_ = 0;
     int32_t videoHeight_ = 0;
+    bool isHardWare_ = false;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // GST_PLAYER_CTRL_H

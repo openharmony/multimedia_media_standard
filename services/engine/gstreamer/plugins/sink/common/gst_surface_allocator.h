@@ -51,8 +51,15 @@ GstSurfaceAllocator *gst_surface_allocator_new();
 
 gboolean gst_surface_allocator_set_surface(GstSurfaceAllocator *allocator, OHOS::sptr<OHOS::Surface> surface);
 
-GstSurfaceMemory *gst_surface_allocator_alloc(GstSurfaceAllocator *allocator,
-    gint width, gint height, PixelFormat format, gint usage);
+typedef struct _GstSurfaceAllocParam {
+    gint width;
+    gint height;
+    PixelFormat format;
+    gint usage;
+    gboolean dont_wait;
+} GstSurfaceAllocParam;
+
+GstSurfaceMemory *gst_surface_allocator_alloc(GstSurfaceAllocator *allocator, GstSurfaceAllocParam param);
 
 void gst_surface_allocator_free(GstSurfaceAllocator *allocator, GstSurfaceMemory *memory);
 

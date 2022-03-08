@@ -17,7 +17,7 @@
 #define CODEC_PLUGINS_CAPABILITY_H
 
 #include "format.h"
-#include "av_common.h"
+#include "avcodec_info.h"
 #include "nocopyable.h"
 
 namespace OHOS {
@@ -33,6 +33,6 @@ private:
     CodecPluginsCapability();
     std::vector<CapabilityData> capabilityDataArray_;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif // CODEC_PLUGINS_CAPABILITY_H

@@ -21,7 +21,7 @@
 #include <unordered_map>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
-#include "av_common.h"
+#include "avcodec_info.h"
 
 namespace OHOS {
 namespace Media {
@@ -102,6 +102,6 @@ private:
         "measuredFrameRate",
         };
 };
-} // Medias
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // AVCODEC_XML_PARSER_H

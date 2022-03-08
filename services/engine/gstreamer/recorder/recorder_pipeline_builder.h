@@ -60,6 +60,6 @@ private:
     size_t otherSrcCount_ = 0;
     int32_t currentCodeFormat_ = 0;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif

@@ -230,7 +230,7 @@ const GstElement *GstPlayerVideoRendererCtrl::GetVideoSink() const
 int32_t GstPlayerVideoRendererCtrl::InitVideoSink(const GstElement *playbin)
 {
     if (videoCaps_ == nullptr) {
-        videoCaps_ = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
+        videoCaps_ = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGBA", nullptr);
         CHECK_AND_RETURN_RET_LOG(videoCaps_ != nullptr, MSERR_INVALID_OPERATION, "gst_caps_new_simple failed..");
 
         videoSink_ = GstPlayerVideoRendererCap::CreateVideoSink(videoCaps_, reinterpret_cast<gpointer>(this));
@@ -640,5 +640,5 @@ void GstPlayerVideoRendererFactory::Destroy(GstPlayerVideoRenderer *renderer)
     CHECK_AND_RETURN_LOG(renderer != nullptr, "renderer is nullptr");
     gst_object_unref(renderer);
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

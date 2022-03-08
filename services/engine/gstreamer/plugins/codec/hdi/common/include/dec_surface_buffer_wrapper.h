@@ -64,6 +64,6 @@ private:
     uint32_t size_ = 0;
     bool bufferIsFlush_ = false;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif /* GST_DEC_SURFACE_WRAPPER_H */

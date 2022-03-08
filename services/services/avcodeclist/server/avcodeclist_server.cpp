@@ -95,5 +95,5 @@ std::vector<CapabilityData> AVCodecListServer::GetCodecCapabilityInfos()
     std::lock_guard<std::mutex> lock(mutex_);
     return codecListEngine_->GetCodecCapabilityInfos();
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

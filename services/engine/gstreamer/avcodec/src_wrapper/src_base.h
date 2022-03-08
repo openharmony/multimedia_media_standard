@@ -72,27 +72,33 @@ public:
 
     virtual std::shared_ptr<AVSharedMemory> GetInputBuffer(uint32_t index)
     {
+        (void)index;
         return nullptr;
     }
 
     virtual int32_t QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
     {
+        (void)index;
+        (void)info;
+        (void)flag;
         return MSERR_INVALID_OPERATION;
     }
 
     virtual int32_t SetParameter(const Format &format)
     {
+        (void)format;
         return MSERR_OK;
     }
 
     virtual int32_t SetCallback(const std::weak_ptr<IAVCodecEngineObs> &obs)
     {
+        (void)obs;
         return MSERR_OK;
     }
 
 protected:
     GstElement *src_ = nullptr;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // SRC_BASE_H

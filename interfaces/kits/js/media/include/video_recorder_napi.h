@@ -22,7 +22,7 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "common_napi.h"
-
+#include "recorder_napi_utils.h"
 
 namespace OHOS {
 namespace Media {
@@ -39,12 +39,9 @@ struct VideoRecorderAsyncContext;
 
 constexpr int32_t DEFAULT_AUDIO_BIT_RATE = 48000;
 constexpr int32_t DEFAULT_AUDIO_CHANNELS = 2;
-constexpr CodecMimeType DEFAULT_AUDIO_CODEC = CODEC_MIMIE_TYPE_AUDIO_AAC;
 constexpr int32_t DEFAULT_AUDIO_SAMPLE_RATE = 48000;
 constexpr int32_t DEFAULT_DURATION = 5;
-constexpr ContainerFormatType DEFAULT_CFT = CFT_MPEG_4;
 constexpr int32_t DEFAULT_VIDEO_BIT_RATE = 48000;
-constexpr CodecMimeType DEFAULT_VIDOE_CODEC = CODEC_MIMIE_TYPE_DEFAULT;
 constexpr int32_t DEFAULT_FRAME_HEIGHT = -1;
 constexpr int32_t DEFAULT_FRAME_WIDTH = -1;
 constexpr int32_t DEFAULT_FRAME_RATE = 30;
@@ -74,12 +71,12 @@ private:
     struct VideoRecorderProfile {
         int32_t audioBitrate = DEFAULT_AUDIO_BIT_RATE;
         int32_t audioChannels = DEFAULT_AUDIO_CHANNELS;
-        CodecMimeType audioCodec = DEFAULT_AUDIO_CODEC;
+        AudioCodecFormat audioCodecFormat = AudioCodecFormat::AUDIO_DEFAULT;
         int32_t auidoSampleRate = DEFAULT_AUDIO_SAMPLE_RATE;
         int32_t duration = DEFAULT_DURATION;
-        ContainerFormatType fileFormat = DEFAULT_CFT;
+        OutputFormatType outputFormat = OutputFormatType::FORMAT_DEFAULT;
         int32_t videoBitrate = DEFAULT_VIDEO_BIT_RATE;
-        CodecMimeType videoCodec = DEFAULT_VIDOE_CODEC;
+        VideoCodecFormat videoCodecFormat = VideoCodecFormat::VIDEO_DEFAULT;
         int32_t videoFrameWidth = DEFAULT_FRAME_HEIGHT;
         int32_t videoFrameHeight = DEFAULT_FRAME_WIDTH;
         int32_t videoFrameRate = DEFAULT_FRAME_RATE;
@@ -122,4 +119,4 @@ struct VideoRecorderAsyncContext : public MediaAsyncContext {
 };
 } // namespace Media
 } // namespace OHOS
-#endif /* VIDERECORDER_NAPI_H_ */
+#endif // VIDERECORDER_NAPI_H_

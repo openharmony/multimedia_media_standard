@@ -26,6 +26,6 @@ public:
     MediaListenerStub();
     virtual ~MediaListenerStub();
 };
-}
+} // namespace Media
 } // namespace OHOS
 #endif // MEDIA_LISTENER_STUB_H

@@ -70,7 +70,6 @@ private:
     std::thread::id taskThreadId_;
     std::mutex mutex_;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // PLAYBIN_TASK_MGR_H

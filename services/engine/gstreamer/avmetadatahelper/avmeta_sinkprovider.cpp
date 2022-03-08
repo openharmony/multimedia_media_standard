@@ -71,5 +71,5 @@ PlayBinSinkProvider::SinkPtr AVMetaSinkProvider::CreateVideoSink()
 
     return GST_ELEMENT_CAST(gst_object_ref(vidSink_));
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

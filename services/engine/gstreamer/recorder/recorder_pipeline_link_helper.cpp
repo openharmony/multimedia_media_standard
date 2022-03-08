@@ -143,5 +143,5 @@ void RecorderPipelineLinkHelper::Clear()
     pipeline_ = nullptr;
     desc_ = nullptr;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

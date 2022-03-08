@@ -106,6 +106,6 @@ private:
     std::shared_ptr<PausedState> pausedState_;
     std::shared_ptr<StoppedState> stoppedState_;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // PLAYBIN_CTRLER_BASE_H

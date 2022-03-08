@@ -95,8 +95,8 @@ int32_t AudioSinkSvImpl::SetVolume(float volume)
 
 int32_t AudioSinkSvImpl::SetParameter(int32_t &param)
 {
-    int32_t contentType = (param & 0x0000FFFF);
-    int32_t streamUsage = param >> AudioStandard::RENDERER_STREAM_USAGE_SHIFT;
+    int32_t contentType = (static_cast<uint32_t>(param) & 0x0000FFFF);
+    int32_t streamUsage = static_cast<uint32_t>(param) >> AudioStandard::RENDERER_STREAM_USAGE_SHIFT;
 
     CHECK_AND_RETURN_RET_LOG(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION, "audioRenderer_ is nullptr");
 
@@ -301,5 +301,5 @@ int32_t AudioSinkSvImpl::GetLatency(uint64_t &latency) const
     CHECK_AND_RETURN_RET(audioRenderer_->GetLatency(latency) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
     return MSERR_OK;
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

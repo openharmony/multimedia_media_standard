@@ -151,7 +151,7 @@ std::shared_ptr<AVSharedMemory> AVMetadataHelperEngineGstImpl::FetchFrameAtTime(
     MEDIA_LOGD("enter");
 
     if (usage_ != AVMetadataUsage::AV_META_USAGE_PIXEL_MAP) {
-        MEDIA_LOGE("current instance is unavaiable for fetch frame, check usage !");
+        MEDIA_LOGE("current instance is unavailable for fetch frame, check usage !");
         return nullptr;
     }
 
@@ -351,7 +351,7 @@ void AVMetadataHelperEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
                 frameExtractor_->Reset();
             }
             cond_.notify_all();
-            MEDIA_LOGE("error happended, cancel inprocessing job");
+            MEDIA_LOGE("error happened, cancel inprocessing job");
             break;
         }
         case PLAYBIN_MSG_SEEKDONE: {
@@ -373,5 +373,5 @@ void AVMetadataHelperEngineGstImpl::OnNotifyElemSetup(GstElement &elem)
         metaCollector_->AddMetaSource(elem);
     }
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

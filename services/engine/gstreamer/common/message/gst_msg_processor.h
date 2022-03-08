@@ -65,7 +65,6 @@ private:
     std::shared_ptr<IGstMsgConverter> msgConverter_;
     std::vector<std::string> filters_;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // GST_MSG_PROCESSOR_H

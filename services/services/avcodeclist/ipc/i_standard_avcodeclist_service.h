@@ -20,7 +20,7 @@
 #include "iremote_broker.h"
 #include "iremote_proxy.h"
 #include "iremote_stub.h"
-#include "av_common.h"
+#include "avcodec_info.h"
 #include "avsharedmemory.h"
 
 namespace OHOS {
@@ -50,6 +50,6 @@ public:
 
     DECLARE_INTERFACE_DESCRIPTOR(u"IStandardAVCodecListService");
 };
-} // OHOS
+} // namespace Media
 } // namespace OHOS
 #endif // I_STANDARD_AVCODECLIST_SERVICE_H

@@ -51,7 +51,7 @@ private:
         std::unordered_map<std::string, std::string> *trackInfoMap);
     static std::string GetSerializedValue(const GValue *value);
     static void ParseTagAndSaveTrackInfo(const GstPad *pad, const GstTagList *tagList,
-        std::vector<std::string_view> expectedTagFields,
+        const std::vector<std::string_view> &expectedTagFields,
         std::vector<std::unordered_map<GstPad *, std::unordered_map<std::string, std::string>>> &trackInfoVec);
     int32_t trackIndex_ = 0;
     bool demuxerElementFind_ = false;
@@ -59,6 +59,6 @@ private:
     std::vector<std::unordered_map<GstPad *, std::unordered_map<std::string, std::string>>> audioTrackInfo_;
     std::unordered_map<GstPad *, gulong> padProbes_;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // GST_PLAYER_TRACK_PARSE_H

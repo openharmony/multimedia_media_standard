@@ -151,7 +151,7 @@ void VideoCallbackNapi::OnInfo(PlayerOnInfoType type, int32_t extra, const Forma
     MEDIA_LOGD("send OnInfo callback success");
 }
 
-void VideoCallbackNapi::OnSeekDoneCb(int32_t positon)
+void VideoCallbackNapi::OnSeekDoneCb(int32_t position)
 {
     if (contextSeekQue_.empty()) {
         MEDIA_LOGD("OnSeekDoneCb is called, But contextSeekQue_ is empty");
@@ -161,7 +161,7 @@ void VideoCallbackNapi::OnSeekDoneCb(int32_t positon)
     VideoPlayerAsyncContext *context = contextSeekQue_.front();
     CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
     contextSeekQue_.pop();
-    context->JsResult = std::make_unique<MediaJsResultInt>(positon);
+    context->JsResult = std::make_unique<MediaJsResultInt>(position);
 
     // Switch Napi threads
     napi_value resource = nullptr;
@@ -324,5 +324,5 @@ void VideoCallbackNapi::OnStateChangeCb(PlayerStates state)
             break;
     }
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

@@ -75,6 +75,6 @@ private:
     sptr<Surface> surface_ = nullptr;
     int64_t timestampNs_ = 0;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // AVCODEC_VENC_DEMO_H

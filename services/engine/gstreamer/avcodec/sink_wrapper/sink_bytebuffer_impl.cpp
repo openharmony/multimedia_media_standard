@@ -173,9 +173,14 @@ int32_t SinkBytebufferImpl::HandleNewSampleCb(GstBuffer *buffer)
 
     AVCodecBufferInfo info;
     info.offset = 0;
-    info.size = map.size;
+    if (map.size >= INT32_MAX) {
+        MEDIA_LOGE("Invalid size");
+        gst_buffer_unmap(buffer, &map);
+        return MSERR_UNKNOWN;
+    }
+    info.size = static_cast<int32_t>(map.size);
     constexpr uint64_t nsToUs = 1000;
-    info.presentationTimeUs = GST_BUFFER_PTS(buffer) / nsToUs;
+    info.presentationTimeUs = static_cast<int64_t>(GST_BUFFER_PTS(buffer) / nsToUs);
     obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
 
     MEDIA_LOGD("OutputBufferAvailable, index:%{public}d", index);
@@ -207,5 +212,5 @@ int32_t SinkBytebufferImpl::FindBufferIndex(uint32_t &index, std::shared_ptr<AVS
 
     return MSERR_OK;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

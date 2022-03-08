@@ -21,6 +21,8 @@ namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecInfo"};
     constexpr int32_t FRAME_RATE_30 = 30;
     constexpr int32_t BLOCK_SIZE_MIN = 2;
+    constexpr int32_t BASE_BLOCK_PER_FRAME = 99;
+    constexpr int32_t BASE_BLOCK_PER_SECOND = 1485;
 }
 namespace OHOS {
 namespace Media {
@@ -167,9 +169,10 @@ Range VideoCaps::GetSupportedFrameRatesFor(int32_t width, int32_t height)
         return frameRatesRange;
     }
     UpdateParams();
-    int32_t blockPerFrame = DivCeil(width, blockWidth_) * DivCeil(height, blockHeight_);
-    frameRatesRange = Range(std::max(blockPerSecondRange_.minVal / blockPerFrame, frameRateRange_.minVal),
-                            std::min(blockPerSecondRange_.maxVal / blockPerFrame, frameRateRange_.maxVal));
+    int64_t blockPerFrame = DivCeil(width, blockWidth_) * static_cast<int64_t>(DivCeil(height, blockHeight_));
+    frameRatesRange = Range(
+        std::max(static_cast<int32_t>(blockPerSecondRange_.minVal / blockPerFrame), frameRateRange_.minVal),
+        std::min(static_cast<int32_t>(blockPerSecondRange_.maxVal / blockPerFrame), frameRateRange_.maxVal));
     return frameRatesRange;
 }
 
@@ -178,19 +181,19 @@ void VideoCaps::LoadLevelParams()
     if (this->GetCodecInfo()->IsSoftwareOnly() == true) {
         return;
     }
-    if (data_.mimeType == "video/avc") {
+    if (data_.mimeType == CodecMimeType::VIDEO_AVC) {
         LoadAVCLevelParams();
-    } else if (data_.mimeType == "video/mpeg2") {
+    } else if (data_.mimeType == CodecMimeType::VIDEO_MPEG2) {
         LoadMPEG2LevelParams();
-    } else if (data_.mimeType == "video/mp4v-es") {
+    } else if (data_.mimeType == CodecMimeType::VIDEO_MPEG4) {
         LoadMPEG4LevelParams();
     }
 }
 
 void VideoCaps::LoadAVCLevelParams()
 {
-    int32_t maxBlockPerFrame = 99;
-    int32_t maxBlockPerSecond = 1485;
+    int32_t maxBlockPerFrame = BASE_BLOCK_PER_FRAME;
+    int32_t maxBlockPerSecond = BASE_BLOCK_PER_SECOND;
     for (auto iter = data_.profileLevelsMap.begin(); iter != data_.profileLevelsMap.end(); iter++) {
         for (auto levelIter = iter->second.begin(); levelIter != iter->second.end(); levelIter++) {
             if (AVC_PARAMS_MAP.find(*levelIter) != AVC_PARAMS_MAP.end()) {
@@ -207,8 +210,8 @@ void VideoCaps::LoadAVCLevelParams()
 void VideoCaps::LoadMPEG2LevelParams()
 {
     std::map<int32_t, LevelParams> PARAMS_MAP;
-    int32_t maxBlockPerFrame = 99;
-    int32_t maxBlockPerSecond = 1485;
+    int32_t maxBlockPerFrame = BASE_BLOCK_PER_FRAME;
+    int32_t maxBlockPerSecond = BASE_BLOCK_PER_SECOND;
     int32_t maxFrameRate = 0;
     int32_t maxWidth = 0;
     int32_t maxHeight = 0;
@@ -240,8 +243,8 @@ void VideoCaps::LoadMPEG2LevelParams()
 void VideoCaps::LoadMPEG4LevelParams()
 {
     std::map<int32_t, LevelParams> PARAMS_MAP;
-    int32_t maxBlockPerFrame = 99;
-    int32_t maxBlockPerSecond = 1485;
+    int32_t maxBlockPerFrame = BASE_BLOCK_PER_FRAME;
+    int32_t maxBlockPerSecond = BASE_BLOCK_PER_SECOND;
     int32_t maxFrameRate = 0;
     int32_t maxWidth = 0;
     int32_t maxHeight = 0;
@@ -275,18 +278,18 @@ void VideoCaps::UpdateBlockParams(const int32_t &blockWidth, const int32_t &bloc
 {
     int32_t factor;
     if (blockWidth > blockWidth_ && blockHeight > blockHeight_) {
-        if (blockWidth_ == 0 || blockWidth_ == 0) {
+        if (blockWidth_ == 0 || blockHeight_ == 0) {
             return;
         }
-        factor = blockWidth * blockHeight / blockWidth_ / blockWidth_;
+        factor = blockWidth * blockHeight / blockWidth_ / blockHeight_;
         blockPerFrameRange_ = DivRange(blockPerFrameRange_, factor);
         horizontalBlockRange_ = DivRange(horizontalBlockRange_, blockWidth / blockWidth_);
         verticalBlockRange_ = DivRange(verticalBlockRange_, blockHeight / blockHeight_);
     } else if (blockWidth < blockWidth_ && blockHeight < blockHeight_) {
-        if (blockWidth == 0 || blockWidth == 0) {
+        if (blockWidth == 0 || blockHeight == 0) {
             return;
         }
-        factor = blockWidth_ * blockHeight_ / blockWidth / blockWidth;
+        factor = blockWidth_ * blockHeight_ / blockWidth / blockHeight;
         blockPerFrameRange = DivRange(blockPerFrameRange, factor);
         blockPerSecondRange = DivRange(blockPerSecondRange, factor);
     }
@@ -314,7 +317,7 @@ void VideoCaps::InitParams()
     if (data_.frameRate.minVal == 0 || data_.frameRate.maxVal == 0) {
         data_.frameRate = Range(1, FRAME_RATE_30);
     }
-    if (data_.blockSize.width == 0 || data_.blockSize.width == 0) {
+    if (data_.blockSize.width == 0 || data_.blockSize.height == 0) {
         data_.blockSize.width = BLOCK_SIZE_MIN;
         data_.blockSize.height = BLOCK_SIZE_MIN;
     }
@@ -414,23 +417,27 @@ Range VideoCaps::GetPreferredFrameRate(int32_t width, int32_t height)
         MEDIA_LOGD("can not match measuredFrameRate of %{public}d x  %{public}d :", width, width);
         return range;
     }
-    int32_t targetBlockNum = DivCeil(width, blockWidth_) * DivCeil(height, blockHeight_);
-    int32_t closestBlockNum = DivCeil(closestSize.width, blockWidth_) * DivCeil(closestSize.height, blockHeight_);
+    int64_t targetBlockNum = DivCeil(width, blockWidth_) * static_cast<int64_t>(DivCeil(height, blockHeight_));
+    int64_t closestBlockNum = DivCeil(closestSize.width, blockWidth_) * 
+        static_cast<int64_t>(DivCeil(closestSize.height, blockHeight_));
     Range closestFrameRate = data_.measuredFrameRate.at(closestSize);
-    double factor = (double) closestBlockNum / std::max(targetBlockNum, 1);
+    int64_t minTargetBlockNum = 1;
+    double factor = static_cast<double>(closestBlockNum) / std::max(targetBlockNum, minTargetBlockNum);
     return Range(closestFrameRate.minVal * factor, closestFrameRate.maxVal * factor);
 }
 
 ImgSize VideoCaps::MatchClosestSize(const ImgSize &imgSize)
 {
-    int32_t targetBlockNum = DivCeil(imgSize.width, blockWidth_) * DivCeil(imgSize.height, blockHeight_);
-    int32_t blockNum;
-    int32_t diffBlockNum = INT32_MAX;
-    int32_t minDiffBlockNum = INT32_MAX;
+    int64_t targetBlockNum = DivCeil(imgSize.width, blockWidth_) * 
+        static_cast<int64_t>(DivCeil(imgSize.height, blockHeight_));
+    int64_t blockNum;
+    int64_t diffBlockNum = INT32_MAX;
+    int64_t minDiffBlockNum = INT32_MAX;
 
     ImgSize closestSize;
     for (auto iter = data_.measuredFrameRate.begin(); iter != data_.measuredFrameRate.end(); iter++) {
-        blockNum = DivCeil(iter->first.width, blockWidth_) * DivCeil(iter->first.height, blockHeight_);
+        blockNum = DivCeil(iter->first.width, blockWidth_) * 
+            static_cast<int64_t>(DivCeil(iter->first.height, blockHeight_));
         diffBlockNum = abs(targetBlockNum - blockNum);
         if (minDiffBlockNum > diffBlockNum) {
             minDiffBlockNum = diffBlockNum;
@@ -571,5 +578,5 @@ bool AVCodecInfo::IsVendor()
 {
     return data_.isVendor;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

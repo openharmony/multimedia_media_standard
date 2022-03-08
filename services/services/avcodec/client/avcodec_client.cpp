@@ -241,5 +241,5 @@ int32_t AVCodecClient::SetCallback(const std::shared_ptr<AVCodecCallback> &callb
     listenerStub_->SetCallback(callback);
     return MSERR_OK;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

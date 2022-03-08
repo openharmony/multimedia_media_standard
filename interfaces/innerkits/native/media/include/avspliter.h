@@ -18,7 +18,7 @@
 
 #include <string>
 #include "avmemory.h"
-#include "media_defs.h"
+#include "avcontainer_types.h"
 #include "media_data_source.h"
 #include "media_description.h"
 
@@ -42,27 +42,6 @@ enum TrackSelectMode : uint8_t {
      * be read from zero timestamp.
      */
     TRACK_TIME_INDEPENDENT,
-};
-
-/**
- * @brief Enumerates the seek mode for avspliter.
- */
-enum AVSpliterSeekMode : uint8_t {
-    /**
-     * @brief this mode is used to seek to a key frame that is located right or before at
-     * the given timestamp.
-     */
-    AVSPLITER_SEEK_PREV_SYNC = 0,
-    /**
-     * @brief this mode is used to seek to a key frame that is located right or after at
-     * the given timestamp.
-     */
-    AVSPLITER_SEEK_NEXT_SYNC = 1,
-    /**
-     * @brief this mode is used to seek to a key frame that is located right or closest at
-     * the given timestamp.
-     */
-    AVSPLITER_SEEK_CLOSEST_SYNC = 2,
 };
 
 /**
@@ -147,7 +126,7 @@ public:
      * buffer starting at the given offset. All sample will be read in sequence based on
      * timestamps. If no track selected, the default track for supported media type will
      * be read. If the Codec Specific Data exists, it will be output before any frame data.
-     * Such data would be marked using the flag {@link FrameFlags::CODEC_DATA}.
+     * Such data would be marked using the flag {@link AVCodecBufferFlag::AVCODEC_BUFFER_FLAG_CODEC_DATA}.
      *
      * @param buffer the destination output buffer, see{@link AVMemory}.
      * @param info the sample's description information, see {@link TrackSampleInfo}.
@@ -160,11 +139,11 @@ public:
      * @brief Seek all track to specified time position according the given seek mode.
      *
      * @param timeUs the time position in microseconds where the sample will be read.
-     * @param mode the hint about how to seek to the specified time positon.
+     * @param mode the hint about how to seek to the specified time position.
      * @return Returns {@link MSERR_OK} if the seek is success, returns an error code
      * otherwise.
      */
-    virtual int32_t Seek(int64_t timeUs, AVSpliterSeekMode mode) = 0;
+    virtual int32_t Seek(int64_t timeUs, AVSeekMode mode) = 0;
 
     /**
      * @brief Get the an current estimate of how much data is cached in memory, and
@@ -192,7 +171,6 @@ private:
     AVSpliterFactory() = default;
     ~AVSpliterFactory() = default;
 };
-}  // namespace Media
-}  // namespace OHOS
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVSPLITER_H

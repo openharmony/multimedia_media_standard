@@ -85,6 +85,6 @@ private:
     std::unique_ptr<AVCodecBufferCache> inputBufferCache_;
     std::unique_ptr<AVCodecBufferCache> outputBufferCache_;
 };
-}
+} // namespace Media
 } // namespace OHOS
 #endif // AVCODEC_SERVICE_STUB_H

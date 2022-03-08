@@ -122,5 +122,5 @@ int32_t MediaDataSourceDemoSeekable::GetSize(int64_t &size)
     size_ = size;
     return MSERR_OK;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

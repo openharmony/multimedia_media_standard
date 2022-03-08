@@ -163,7 +163,6 @@ public:
 
     void AddMetaSource(GstElement &elem) override;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVMETA_ELEM_META_COLLECTOR_H

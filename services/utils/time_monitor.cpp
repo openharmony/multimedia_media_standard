@@ -67,5 +67,5 @@ int64_t TimeMonitor::Timeval2Sec(const timeval &tv, TimeValType valType) const
     }
     return -1;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

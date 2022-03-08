@@ -36,6 +36,6 @@ public:
 private:
     std::shared_ptr<IAVMetadataHelperService> avMetadataHelperService_ = nullptr;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // AVMETADATAHELPER_IMPL_H

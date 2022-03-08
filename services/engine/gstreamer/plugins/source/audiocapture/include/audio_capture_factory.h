@@ -31,7 +31,7 @@ private:
     AudioCaptureFactory() = delete;
     ~AudioCaptureFactory() = delete;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 
 #endif // AUDIO_CAPTURE_FACTORY_H

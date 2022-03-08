@@ -70,7 +70,7 @@ private:
     void OnPlaybackCompleteCb() const;
     void OnVideoSizeChangedCb(const Format &infoBody);
     void OnStateChangeCb(PlayerStates state);
-    void OnSeekDoneCb(int32_t positon);
+    void OnSeekDoneCb(int32_t position);
     void OnSpeedDoneCb(int32_t speedMode);
     void OnVolumeDoneCb();
     void DequeueAsyncWork();
@@ -88,6 +88,6 @@ private:
     int32_t width_ = 0;
     int32_t height_ = 0;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif // VIDEO_CALLBACK_NAPI_H_

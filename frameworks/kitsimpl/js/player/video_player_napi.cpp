@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -443,7 +442,7 @@ void VideoPlayerNapi::AsyncSetDisplaySurface(napi_env env, void *data)
 
     uint64_t surfaceId = 0;
     MEDIA_LOGD("get surface, surfaceStr = %{public}s", asyncContext->surface.c_str());
-    if (asyncContext->surface.empty() || (asyncContext->surface[0] < '0' && asyncContext->surface[0] > '9')) {
+    if (asyncContext->surface.empty() || asyncContext->surface[0] < '0' || asyncContext->surface[0] > '9') {
         asyncContext->SignError(MSERR_EXT_INVALID_VAL, "input surface id is invalid");
         return;
     }
@@ -1314,5 +1313,5 @@ void VideoPlayerNapi::OnErrorCallback(MediaServiceExtErrCode errCode)
         cb->SendErrorCallback(errCode);
     }
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

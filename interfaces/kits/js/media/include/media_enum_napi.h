@@ -33,4 +33,4 @@ private:
 };
 } // namespace Media
 } // namespace OHOS
-#endif /* MEDIA_ENUM_NAPI_H_ */
+#endif // MEDIA_ENUM_NAPI_H_

@@ -94,5 +94,5 @@ void AVMetadataHelperClient::Release()
     CHECK_AND_RETURN_LOG(avMetadataHelperProxy_ != nullptr, "avmetadatahelper service does not exist.");
     avMetadataHelperProxy_->Release();
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

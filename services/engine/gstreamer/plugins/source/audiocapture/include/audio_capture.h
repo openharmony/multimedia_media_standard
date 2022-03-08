@@ -125,6 +125,6 @@ public:
      */
     virtual std::shared_ptr<AudioBuffer> GetBuffer() = 0;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // AUDIO_CAPTURE_H

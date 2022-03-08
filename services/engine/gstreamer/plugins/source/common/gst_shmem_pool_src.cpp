@@ -310,7 +310,7 @@ static gboolean gst_shmem_pool_src_stop_task(GstShmemPoolSrc *shmemsrc)
     g_mutex_lock(&priv->priv_lock);
     shmemsrc->priv->task_start = FALSE;
     if (priv->pool != nullptr) {
-        // will set the pool at flusing state, the task loop will go to pause
+        // will set the pool at flushing state, the task loop will go to pause
         gst_buffer_pool_set_active(priv->pool, FALSE);
     }
     g_cond_signal(&shmemsrc->priv->task_condition);

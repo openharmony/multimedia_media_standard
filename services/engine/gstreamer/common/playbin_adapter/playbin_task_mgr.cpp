@@ -62,6 +62,7 @@ int32_t PlayBinTaskMgr::Init()
 
 int32_t PlayBinTaskMgr::LaunchTask(const std::shared_ptr<ITaskHandler> &task, PlayBinTaskType type, uint64_t delayUs)
 {
+    (void)delayUs;
     if (type >= PlayBinTaskType::BUTT) {
         MEDIA_LOGE("invalid task type");
         return MSERR_INVALID_VAL;
@@ -173,5 +174,5 @@ int32_t PlayBinTaskMgr::Reset()
     MEDIA_LOGD("exit");
     return MSERR_OK;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

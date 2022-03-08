@@ -255,5 +255,5 @@ void VideoCaptureSfEsAvcImpl::GetCodecData(const uint8_t *data, int32_t len,
         pBegin = pEnd;
     }
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

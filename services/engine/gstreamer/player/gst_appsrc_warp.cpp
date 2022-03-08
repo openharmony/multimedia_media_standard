@@ -14,6 +14,7 @@
  */
 
 #include "gst_appsrc_warp.h"
+#include "avsharedmemorybase.h"
 #include "media_log.h"
 #include "media_errors.h"
 #include "player.h"
@@ -64,7 +65,8 @@ int32_t GstAppsrcWarp::Init()
     for (int i = 0; i < buffersNum_; ++i) {
         std::shared_ptr<AppsrcMemWarp> appSrcMem = std::make_shared<AppsrcMemWarp>();
         CHECK_AND_RETURN_RET_LOG(appSrcMem != nullptr, MSERR_NO_MEMORY, "init AppsrcMemWarp failed");
-        appSrcMem->mem = AVSharedMemory::Create(bufferSize_, AVSharedMemory::Flags::FLAGS_READ_WRITE, "appsrc");
+        appSrcMem->mem = AVSharedMemoryBase::CreateFromLocal(
+            bufferSize_, AVSharedMemory::Flags::FLAGS_READ_WRITE, "appsrc");
         CHECK_AND_RETURN_RET_LOG(appSrcMem->mem != nullptr, MSERR_NO_MEMORY, "init AVSharedMemory failed");
         (void)emptyBuffers_.emplace(appSrcMem);
     }
@@ -329,7 +331,7 @@ void GstAppsrcWarp::EosAndCheckSize(int32_t size)
             break;
         default:
             OnError(MSERR_DATA_SOURCE_ERROR_UNKNOWN);
-            MEDIA_LOGE("unknow error %{public}d", size);
+            MEDIA_LOGE("unknown error %{public}d", size);
             break;
     }
 }
@@ -354,7 +356,7 @@ int32_t GstAppsrcWarp::GetAndPushMem()
         int32_t allocSize = streamType_ == GST_APP_STREAM_TYPE_STREAM ? size : needDataSize_;
         buffer = gst_buffer_new_allocate(nullptr, static_cast<gsize>(allocSize), nullptr);
         CHECK_AND_RETURN_RET_LOG(buffer != nullptr, MSERR_NO_MEMORY, "no mem");
-        GST_BUFFER_OFFSET(buffer) = appSrcMem->pos + appSrcMem->offset;
+        GST_BUFFER_OFFSET(buffer) = appSrcMem->pos + static_cast<uint64_t>(appSrcMem->offset);
         bufferWarp_->buffer = buffer;
         bufferWarp_->offset = 0;
         bufferWarp_->size = allocSize;

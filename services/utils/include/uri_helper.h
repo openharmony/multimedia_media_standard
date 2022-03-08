@@ -65,7 +65,7 @@ private:
     std::string formattedUri_ = "";
     uint8_t type_ = 0;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 
 #endif

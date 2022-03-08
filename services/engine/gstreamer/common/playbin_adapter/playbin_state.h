@@ -133,7 +133,6 @@ protected:
     void ProcessMessage(const InnerMessage &msg) override;
     void StateEnter() override;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // PLAYBIN_STATE_H

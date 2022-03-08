@@ -19,13 +19,42 @@
 #include <string>
 #include <gst/audio/audio.h>
 #include <gst/gst.h>
-#include "av_common.h"
+#include "avcodec_info.h"
+#include "avcodec_common.h"
 #include "avsharedmemory.h"
 #include "format.h"
 #include "surface.h"
 
 namespace OHOS {
 namespace Media {
+/**
+ * @brief Enumerates the codec mime type.
+ *
+ * @since 3.1
+ * @version 3.1
+ */
+enum InnerCodecMimeType : int32_t {
+    CODEC_MIMIE_TYPE_DEFAULT = -1,
+    /** H263 */
+    CODEC_MIMIE_TYPE_VIDEO_H263,
+    /** H264 */
+    CODEC_MIMIE_TYPE_VIDEO_AVC,
+    /** MPEG2 */
+    CODEC_MIMIE_TYPE_VIDEO_MPEG2,
+    /** HEVC */
+    CODEC_MIMIE_TYPE_VIDEO_HEVC,
+    /** MPEG4 */
+    CODEC_MIMIE_TYPE_VIDEO_MPEG4,
+    /** MP3 */
+    CODEC_MIMIE_TYPE_AUDIO_MPEG,
+    /** AAC */
+    CODEC_MIMIE_TYPE_AUDIO_AAC,
+    /** VORBIS */
+    CODEC_MIMIE_TYPE_AUDIO_VORBIS,
+    /** FLAC */
+    CODEC_MIMIE_TYPE_AUDIO_FLAC,
+};
+
 enum VideoEncoderBitrateMode : int32_t {
     VIDEO_ENCODER_BITRATE_MODE_CBR = 0,
     VIDEO_ENCODER_BITRATE_MODE_VBR,
@@ -79,10 +108,10 @@ std::string PixelFormatToGst(VideoPixelFormat pixel);
 std::string MPEG4ProfileToGst(MPEG4Profile profile);
 std::string AVCProfileToGst(AVCProfile profile);
 std::string RawAudioFormatToGst(AudioRawFormat format);
-int32_t MapCodecMime(const std::string &mime, CodecMimeType &name);
+int32_t MapCodecMime(const std::string &mime, InnerCodecMimeType &name);
 int32_t CapsToFormat(GstCaps *caps, Format &format);
 uint32_t PixelBufferSize(VideoPixelFormat pixel, uint32_t width, uint32_t height, uint32_t alignment);
-uint32_t CompressedBufSize(uint32_t width, uint32_t height, bool isEncoder, CodecMimeType type);
-} // Media
-} // OHOS
+uint32_t CompressedBufSize(uint32_t width, uint32_t height, bool isEncoder, InnerCodecMimeType type);
+} // namespace Media
+} // namespace OHOS
 #endif // CODEC_COMMON_H

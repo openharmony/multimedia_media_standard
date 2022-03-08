@@ -197,7 +197,7 @@ int32_t AVMetaFrameConverter::Reset()
 
     /**
      * Must flush before change state and delete the msgProcessor, otherwise deadlock will
-     * happend when try to destory the msgprocessor.
+     * happend when try to destroy the msgprocessor.
      */
     auto tempMsgProc = std::move(msgProcessor_);
     lock.unlock();
@@ -391,5 +391,5 @@ GstFlowReturn AVMetaFrameConverter::OnNotifyNewSample(GstElement *elem, AVMetaFr
     thiz->cond_.notify_all();
     return GST_FLOW_OK;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

@@ -16,7 +16,7 @@
 #ifndef I_AVCODECLIST_SERVICE_H
 #define I_AVCODECLIST_SERVICE_H
 
-#include "av_common.h"
+#include "avcodec_info.h"
 #include "avsharedmemory.h"
 
 namespace OHOS {
@@ -31,7 +31,6 @@ public:
     virtual std::string FindAudioEncoder(const Format &format) = 0;
     virtual std::vector<CapabilityData> GetCodecCapabilityInfos() = 0;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif
-// new

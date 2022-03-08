@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef PLAYER_IMPL_H
 #define PLAYER_IMPL_H
 
@@ -56,6 +57,6 @@ public:
 private:
     std::shared_ptr<IPlayerService> playerService_ = nullptr;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // PLAYER_IMPL_H

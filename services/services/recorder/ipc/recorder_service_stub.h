@@ -103,6 +103,6 @@ private:
     std::map<uint32_t, RecorderStubFunc> recFuncs_;
     std::mutex mutex_;
 };
-}
+} // namespace Media
 } // namespace OHOS
 #endif // RECORDER_SERVICE_STUB_H

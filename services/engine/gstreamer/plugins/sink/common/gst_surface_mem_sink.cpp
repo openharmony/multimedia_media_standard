@@ -50,6 +50,9 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
 G_DEFINE_TYPE_WITH_CODE(GstSurfaceMemSink, gst_surface_mem_sink,
                         GST_TYPE_MEM_SINK, G_ADD_PRIVATE(GstSurfaceMemSink));
 
+GST_DEBUG_CATEGORY_STATIC(gst_surface_mem_sink_debug_category);
+#define GST_CAT_DEFAULT gst_surface_mem_sink_debug_category
+
 static void gst_surface_mem_sink_class_init(GstSurfaceMemSinkClass *klass)
 {
     g_return_if_fail(klass != nullptr);
@@ -77,6 +80,8 @@ static void gst_surface_mem_sink_class_init(GstSurfaceMemSinkClass *klass)
 
     mem_sink_class->do_propose_allocation = gst_surface_mem_sink_do_propose_allocation;
     mem_sink_class->do_app_render = gst_surface_mem_sink_do_app_render;
+
+    GST_DEBUG_CATEGORY_INIT(gst_surface_mem_sink_debug_category, "surfacesink", 0, "surfacesink class");
 }
 
 static void gst_surface_mem_sink_init(GstSurfaceMemSink *sink)
@@ -227,7 +232,7 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     GstSurfacePool *pool = surface_sink->priv->pool;
     g_return_val_if_fail(pool != nullptr, FALSE);
     g_return_val_if_fail(gst_buffer_pool_set_active(GST_BUFFER_POOL(pool), FALSE), FALSE);
-    (void)gst_surface_pool_set_surface(pool, surface_sink->priv->surface, memsink->wait_time);
+    (void)gst_surface_pool_set_surface(pool, surface_sink->priv->surface);
 
     GstVideoInfo info;
     GST_DEBUG("begin gst_video_info_from_caps");

@@ -50,6 +50,6 @@ private:
     std::condition_variable cond_;
     bool needWaiting_ = true;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // GST_PLAYER_BUILD_H

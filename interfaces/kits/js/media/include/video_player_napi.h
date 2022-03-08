@@ -169,4 +169,4 @@ private:
 };
 } // namespace Media
 } // namespace OHOS
-#endif /* VIDEO_PLAYER_NAPI_H_ */
+#endif // VIDEO_PLAYER_NAPI_H_

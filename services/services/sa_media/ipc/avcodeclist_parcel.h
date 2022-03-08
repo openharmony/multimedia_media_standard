@@ -18,7 +18,7 @@
 
 #include <vector>
 #include "message_parcel.h"
-#include "av_common.h"
+#include "avcodec_info.h"
 
 namespace OHOS {
 namespace Media {

@@ -27,9 +27,29 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-std::shared_ptr<AVSharedMemory> AVSharedMemory::Create(int32_t size, uint32_t flags, const std::string &name)
+struct AVSharedMemoryBaseImpl : public AVSharedMemoryBase {
+public:
+    AVSharedMemoryBaseImpl(int32_t fd, int32_t size, uint32_t flags, const std::string &name)
+        : AVSharedMemoryBase(fd, size, flags, name) {}
+};
+
+std::shared_ptr<AVSharedMemory> AVSharedMemoryBase::CreateFromLocal(
+    int32_t size, uint32_t flags, const std::string &name)
 {
     std::shared_ptr<AVSharedMemoryBase> memory = std::make_shared<AVSharedMemoryBase>(size, flags, name);
+    int32_t ret = memory->Init();
+    if (ret != MSERR_OK) {
+        MEDIA_LOGE("Create avsharedmemory failed, ret = %{public}d", ret);
+        return nullptr;
+    }
+
+    return memory;
+}
+
+std::shared_ptr<AVSharedMemory> AVSharedMemoryBase::CreateFromRemote(
+    int32_t fd, int32_t size, uint32_t flags, const std::string &name)
+{
+    std::shared_ptr<AVSharedMemoryBase> memory = std::make_shared<AVSharedMemoryBaseImpl>(fd, size, flags, name);
     int32_t ret = memory->Init();
     if (ret != MSERR_OK) {
         MEDIA_LOGE("Create avsharedmemory failed, ret = %{public}d", ret);
@@ -121,25 +141,5 @@ void AVSharedMemoryBase::Close() noexcept
         fd_ = -1;
     }
 }
-
-uint8_t *AVSharedMemoryBase::GetBase()
-{
-    return base_;
-}
-
-int32_t AVSharedMemoryBase::GetSize()
-{
-    return size_;
-}
-
-uint32_t AVSharedMemoryBase::GetFlags()
-{
-    return flags_;
-}
-
-int32_t AVSharedMemoryBase::GetFd() const
-{
-    return fd_;
-}
-}
-}
+} // namespace Media
+} // namespace OHOS

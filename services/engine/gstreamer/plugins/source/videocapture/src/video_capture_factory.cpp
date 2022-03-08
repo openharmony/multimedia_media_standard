@@ -33,5 +33,5 @@ std::unique_ptr<VideoCapture> VideoCaptureFactory::CreateVideoCapture(VideoStrea
 
     return nullptr;
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
