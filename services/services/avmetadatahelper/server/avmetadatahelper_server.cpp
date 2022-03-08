@@ -17,6 +17,7 @@
 #include "media_log.h"
 #include "media_errors.h"
 #include "engine_factory_repo.h"
+#include "uri_helper.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVMetadataHelperServer"};
@@ -41,20 +42,52 @@ AVMetadataHelperServer::~AVMetadataHelperServer()
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
     std::lock_guard<std::mutex> lock(mutex_);
     avMetadataHelperEngine_ = nullptr;
+    uriHelper_ = nullptr;
 }
 
 int32_t AVMetadataHelperServer::SetSource(const std::string &uri, int32_t usage)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGD("Current uri is : %{public}s %{public}u", uri.c_str(), usage);
-    auto engineFactory = EngineFactoryRepo::Instance().GetEngineFactory(IEngineFactory::Scene::SCENE_AVMETADATA, uri);
+
+    uriHelper_ = std::make_unique<UriHelper>(uri);
+    if (uriHelper_->AccessCheck(UriHelper::URI_READ)) {
+        MEDIA_LOGE("Failed to read the file");
+        return MSERR_INVALID_VAL;
+    }
+
+    auto engineFactory = EngineFactoryRepo::Instance().GetEngineFactory(
+        IEngineFactory::Scene::SCENE_AVMETADATA, uriHelper_->FormattedUri());
     CHECK_AND_RETURN_RET_LOG(engineFactory != nullptr, MSERR_CREATE_AVMETADATAHELPER_ENGINE_FAILED,
         "Failed to get engine factory");
     avMetadataHelperEngine_ = engineFactory->CreateAVMetadataHelperEngine();
     CHECK_AND_RETURN_RET_LOG(avMetadataHelperEngine_ != nullptr, MSERR_CREATE_AVMETADATAHELPER_ENGINE_FAILED,
         "Failed to create avmetadatahelper engine");
 
-    int32_t ret = avMetadataHelperEngine_->SetSource(uri, usage);
+    int32_t ret = avMetadataHelperEngine_->SetSource(uriHelper_->FormattedUri(), usage);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "SetSource failed!");
+
+    return MSERR_OK;
+}
+
+int32_t AVMetadataHelperServer::SetSource(int32_t fd, int64_t offset, int64_t size, int32_t usage)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    MEDIA_LOGD("Current is fd source, offset: %{public}" PRIi64 ", size: %{public}" PRIi64 " usage: %{public}u",
+               offset, size, usage);
+
+    uriHelper_ = std::make_unique<UriHelper>(fd, offset, size);
+    CHECK_AND_RETURN_RET_LOG(uriHelper_->AccessCheck(UriHelper::URI_READ), MSERR_INVALID_VAL, "Failed to read the fd");
+
+    auto engineFactory = EngineFactoryRepo::Instance().GetEngineFactory(
+        IEngineFactory::Scene::SCENE_AVMETADATA, uriHelper_->FormattedUri());
+    CHECK_AND_RETURN_RET_LOG(engineFactory != nullptr, MSERR_CREATE_AVMETADATAHELPER_ENGINE_FAILED,
+        "Failed to get engine factory");
+    avMetadataHelperEngine_ = engineFactory->CreateAVMetadataHelperEngine();
+    CHECK_AND_RETURN_RET_LOG(avMetadataHelperEngine_ != nullptr, MSERR_CREATE_AVMETADATAHELPER_ENGINE_FAILED,
+        "Failed to create avmetadatahelper engine");
+
+    int32_t ret = avMetadataHelperEngine_->SetSource(uriHelper_->FormattedUri(), usage);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "SetSource failed!");
 
     return MSERR_OK;
@@ -94,6 +127,7 @@ void AVMetadataHelperServer::Release()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     avMetadataHelperEngine_ = nullptr;
+    uriHelper_ = nullptr;
 }
 } // namespace Media
 } // namespace OHOS

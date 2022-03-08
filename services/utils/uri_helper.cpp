@@ -16,7 +16,9 @@
 #include "uri_helper.h"
 #include <cstring>
 #include <climits>
-#include <sstream>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <type_traits>
 #include "media_errors.h"
 #include "media_log.h"
 
@@ -26,7 +28,14 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-static bool PathToRealPath(const std::string_view &path, std::string &realPath)
+static const std::map<std::string_view, uint8_t> g_validUriTypes = {
+    {"", UriHelper::UriType::URI_TYPE_FILE }, // empty uri head is treated as the file type uri.
+    {"file", UriHelper::UriType::URI_TYPE_FILE},
+    {"fd", UriHelper::UriType::URI_TYPE_FD},
+    {"http", UriHelper::UriType::URI_TYPE_HTTP}
+};
+
+static bool PathToRealFileUrl(const std::string_view &path, std::string &realPath)
 {
     if (path.empty()) {
         MEDIA_LOGE("path is empty!");
@@ -44,19 +53,132 @@ static bool PathToRealPath(const std::string_view &path, std::string &realPath)
         return false;
     }
 
-    realPath = tmpPath;
-    if (access(realPath.c_str(), F_OK) != 0) {
-        MEDIA_LOGE("check realpath (%{private}s) error", realPath.c_str());
+    if (access(tmpPath, F_OK) != 0) {
+        MEDIA_LOGE("check realpath (%{private}s) error", tmpPath);
         return false;
     }
+
+    realPath = std::string("file://") + tmpPath;
     return true;
+}
+
+template<typename T, typename = std::enable_if_t<std::is_same_v<int64_t, T> || std::is_same_v<int32_t, T>>>
+bool StrToInt(const std::string_view& str, T& value)
+{
+    if (str.empty() || (!isdigit(str.front()) && (str.front() != '-'))) {
+        return false;
+    }
+
+    std::string valStr(str);
+    char* end = nullptr;
+    errno = 0;
+    const char* addr = valStr.c_str();
+    long long result = strtoll(addr, &end, 10); /* 10 means decimal */
+    if ((end == addr) || (end[0] != '\0') || (errno == ERANGE) ||
+            (result > LLONG_MAX) || (result < LLONG_MIN)) {
+        MEDIA_LOGE("call StrToInt func false,  input str is: %{public}s!", valStr.c_str());
+        return false;
+    }
+
+    if constexpr (std::is_same<int32_t, T>::value) {
+        if ((result > INT_MAX) || (result < INT_MIN)) {
+            MEDIA_LOGE("call StrToInt func false,  input str is: %{public}s!", valStr.c_str());
+            return false;
+        }
+        value = static_cast<int32_t>(result);
+        return true;
+    }
+
+    value = result;
+    return true;
+}
+
+std::pair<std::string_view, std::string_view> SplitUriHeadAndBody(const std::string_view &str)
+{
+    std::string_view::size_type start = str.find_first_not_of(' ');
+    std::string_view::size_type end = str.find_last_not_of(' ');
+    std::pair<std::string_view, std::string_view> result;
+    std::string_view noSpaceStr;
+
+    if (end == std::string_view::npos) {
+        noSpaceStr = str.substr(start);
+    } else {
+        noSpaceStr = str.substr(start, end - start + 1);
+    }
+
+    std::string_view delimiter = "://";
+    std::string_view::size_type pos = noSpaceStr.find(delimiter);
+    if (pos == std::string_view::npos) {
+        result.first = "";
+        result.second = noSpaceStr;
+    } else {
+        result.first = noSpaceStr.substr(0, pos);
+        result.second = noSpaceStr.substr(pos + delimiter.size());
+    }
+
+    return result;
+}
+
+void UriHelper::Swap(UriHelper &&rhs) noexcept
+{
+    formattedUri_.swap(rhs.formattedUri_);
+    type_ = rhs.type_;
+    rawFileUri_ = rhs.rawFileUri_;
+    std::swap(fd_, rhs.fd_);
+    offset_ = rhs.offset_;
+    size_ = rhs.size_;
+}
+
+void UriHelper::Copy(const UriHelper &rhs) noexcept
+{
+    formattedUri_ = rhs.formattedUri_;
+    type_ = rhs.type_;
+    if (type_ == UriHelper::URI_TYPE_FILE) {
+        rawFileUri_ = formattedUri_;
+        rawFileUri_ = rawFileUri_.substr(strlen("file://"));
+    }
+    if (rhs.fd_ > 0) {
+        fd_ = ::dup(rhs.fd_);
+    }
+    offset_ = rhs.offset_;
+    size_ = rhs.size_;
+}
+
+UriHelper::UriHelper(const std::string_view &uri)
+{
+    FormatMeForUri(uri);
+}
+
+UriHelper::UriHelper(int32_t fd, int64_t offset, int64_t size) : fd_(fd), offset_(offset), size_(size)
+{
+    FormatMeForFd();
+}
+
+UriHelper::~UriHelper()
+{
+    if (fd_ > 0) {
+        (void)::close(fd_);
+    }
+}
+
+UriHelper::UriHelper(const UriHelper &rhs)
+{
+    Copy(rhs);
+}
+
+UriHelper &UriHelper::operator=(const UriHelper &rhs)
+{
+    if (&rhs == this) {
+        return *this;
+    }
+
+    Copy(rhs);
+    return *this;
 }
 
 UriHelper::UriHelper(UriHelper &&rhs) noexcept
 {
-    uri_.swap(rhs.uri_);
-    formattedUri_.swap(rhs.formattedUri_);
-    type_ = rhs.type_;
+    Swap(std::forward<UriHelper &&>(rhs));
 }
 
 UriHelper &UriHelper::operator=(UriHelper &&rhs) noexcept
@@ -65,52 +187,95 @@ UriHelper &UriHelper::operator=(UriHelper &&rhs) noexcept
         return *this;
     }
 
-    uri_.swap(rhs.uri_);
-    formattedUri_.swap(rhs.formattedUri_);
-    type_ = rhs.type_;
-
+    Swap(std::forward<UriHelper &&>(rhs));
     return *this;
 }
 
-UriHelper &UriHelper::FormatMe()
+void UriHelper::FormatMeForUri(const std::string_view &uri) noexcept
 {
-    static const std::map<std::string_view, uint8_t> VALID_URI_HEAD_MAP = {
-        {"file", URI_TYPE_FILE}, {"fd", URI_TYPE_FD}, {"http", URI_TYPE_HTTP}
-    };
-
     if (!formattedUri_.empty()) {
-        return *this;
+        return;
     }
 
-    std::string_view::size_type start = uri_.find_first_not_of(' ');
-    std::string_view::size_type end = uri_.find_last_not_of(' ');
-    if (end == std::string_view::npos) {
-        formattedUri_ = uri_.substr(start);
-    } else {
-        formattedUri_ = uri_.substr(start, end - start + 1);
+    auto [head, body] = SplitUriHeadAndBody(uri);
+    if (g_validUriTypes.count(head) == 0) {
+        return;
     }
-    std::string_view rawUri = formattedUri_;
-    type_ = URI_TYPE_UNKNOWN;
+    type_ = g_validUriTypes.at(head);
 
-    std::string_view delimiter = "://";
-    std::string_view::size_type pos = rawUri.find(delimiter);
-    if (pos == std::string_view::npos) {
-        return *this;
-    }
-
-    std::string_view head = rawUri.substr(0, pos);
-    rawUri = rawUri.substr(pos + delimiter.size());
-    if (VALID_URI_HEAD_MAP.count(head) == 0) {
-        return *this;
-    }
-
-    type_ = VALID_URI_HEAD_MAP.at(head);
-    if (type_ == URI_TYPE_FILE) {
-        if (PathToRealPath(rawUri, formattedUri_)) {
-            (void)formattedUri_.insert(0, "file://");
+    // verify whether the uri is readable and generate the formatted uri.
+    switch (type_) {
+        case URI_TYPE_FILE: {
+            if (!PathToRealFileUrl(body, formattedUri_)) {
+                type_ = URI_TYPE_UNKNOWN;
+                formattedUri_ = body;
+            }
+            rawFileUri_ = formattedUri_;
+            rawFileUri_ = rawFileUri_.substr(strlen("file://"));
+            break;
         }
+        case URI_TYPE_FD: {
+            if (!ParseFdUri(body)) {
+                type_ = URI_TYPE_UNKNOWN;
+                formattedUri_ = "";
+            }
+            break;
+        }
+        default:
+            formattedUri_ = std::string(head);
+            formattedUri_ += body;
+            break;
     }
-    return *this;
+
+    MEDIA_LOGI("formatted uri: %{public}s", formattedUri_.c_str());
+}
+
+void UriHelper::FormatMeForFd() noexcept
+{
+    if (!formattedUri_.empty()) {
+        return;
+    }
+
+    type_ = URI_TYPE_FD;
+    (void)CorrectFdParam();
+}
+
+bool UriHelper::CorrectFdParam()
+{
+    int flags = fcntl(fd_, F_GETFL);
+    CHECK_AND_RETURN_RET_LOG(flags != -1, false, "Fail to get File Status Flags");
+
+    struct stat64 st;
+    if (fstat64(fd_, &st) != 0) {
+        MEDIA_LOGE("can not get file state");
+        return false;
+    }
+
+    int64_t fdSize = static_cast<int64_t>(st.st_size);
+    if (offset_ < 0 || offset_ > fdSize) {
+        offset_ = 0;
+    }
+
+    if ((size_ <= 0) || (size_ > fdSize - offset_)) {
+        size_ = fdSize - offset_;
+    }
+
+    fd_ = ::dup(fd_);
+    formattedUri_ = std::string("fd://") + std::to_string(fd_) + "?offset=" +
+        std::to_string(offset_) + "&size=" + std::to_string(size_);
+    return true;
+}
+
+bool UriHelper::ParseFdUri(int32_t &fd, int64_t &offset, int64_t size)
+{
+    if (type_ != URI_TYPE_FD) {
+        return false;
+    }
+
+    fd = fd_;
+    offset = offset_;
+    size = size_;
+    return true;
 }
 
 uint8_t UriHelper::UriType() const
@@ -125,45 +290,62 @@ std::string UriHelper::FormattedUri() const
 
 bool UriHelper::AccessCheck(uint8_t flag) const
 {
+    if (type_ == URI_TYPE_UNKNOWN) {
+        return false;
+    }
+
     if (type_ == URI_TYPE_FILE) {
         uint32_t mode = (flag & URI_READ) ? R_OK : 0;
         mode |= (flag & URI_WRITE) ? W_OK : 0;
-        std::string_view rawUri = formattedUri_;
-        rawUri = rawUri.substr(strlen("file://"));
-        return access(rawUri.data(), static_cast<int>(mode)) == 0;
+        int ret = access(rawFileUri_.data(), static_cast<int>(mode));
+        if (ret != 0) {
+            MEDIA_LOGE("Fail to access path: %{public}s", rawFileUri_.data());
+            return false;
+        }
+        return true;
     } else if (type_ == URI_TYPE_FD) {
-        std::string rawUri = formattedUri_;
-        int fd = GetFdFromUri(rawUri);
-        CHECK_AND_RETURN_RET_LOG(fd > 0, false, "Fail to get file descriptor from uri");
+        CHECK_AND_RETURN_RET_LOG(fd_ > 0, false, "Fail to get file descriptor from uri");
 
-        int flags = fcntl(fd, F_GETFL);
+        int flags = fcntl(fd_, F_GETFL);
         CHECK_AND_RETURN_RET_LOG(flags != -1, false, "Fail to get File Status Flags");
 
+        uint32_t mode = (flag & URI_WRITE) ? O_RDWR : O_RDONLY;
+        if ((static_cast<unsigned int>(flags) & mode) != mode) {
+            return false;
+        }
         return true;
     }
 
-    return false; // Not implemented
+    return true; // Not implemented, defaultly return true.
 }
 
-std::string UriHelper::FormatFdToUri(int32_t fd, int64_t offset, int64_t size)
+bool UriHelper::ParseFdUri(std::string_view uri)
 {
-    std::stringstream fmt;
-    fmt << "fd://" << fd << "?offset=" << offset << "&size=" << size;
-    std::string uri = fmt.str();
-    return uri;
-}
+    static constexpr std::string_view::size_type delim1Len = std::string_view("?offset=").size();
+    static constexpr std::string_view::size_type delim2Len = std::string_view("&size=").size();
+    std::string_view::size_type delim1 = uri.find("?");
+    std::string_view::size_type delim2 = uri.find("&");
 
-int UriHelper::GetFdFromUri(std::string rawUri) const
-{
-    size_t endPos = rawUri.find("?"); // find the position of separator '?'
-    CHECK_AND_RETURN_RET_LOG(endPos != std::string::npos, -1, "Can not find separator '?'");
+    if (delim1 == std::string_view::npos && delim1 == std::string_view::npos) {
+        CHECK_AND_RETURN_RET_LOG(StrToInt(uri, fd_), false, "Invalid fd url");
+    } else if (delim1 != std::string_view::npos && delim2 != std::string_view::npos) {
+        std::string_view fdstr = uri.substr(0, delim1);
+        int32_t fd = -1;
+        CHECK_AND_RETURN_RET_LOG(StrToInt(fdstr, fd), false, "Invalid fd url");
+        std::string_view offsetStr = uri.substr(delim1 + delim1Len, delim2 - delim1 - delim1Len);
+        CHECK_AND_RETURN_RET_LOG(StrToInt(offsetStr, offset_), false, "Invalid fd url");
+        std::string_view sizeStr = uri.substr(delim2 + delim2Len);
+        CHECK_AND_RETURN_RET_LOG(StrToInt(sizeStr, size_), false, "Invalid fd url");
+        fd_ = fd;
+    } else {
+        MEDIA_LOGE("invalid fd uri: %{public}s", uri.data());
+        return false;
+    }
 
-    size_t startPos = rawUri.find_last_of("/");
-    CHECK_AND_RETURN_RET_LOG(startPos != std::string::npos, -1, "Can not find start tag '/'");
+    MEDIA_LOGD("parse fd uri, fd: %{public}d, offset: %{public}" PRIi64 ", size: %{public}" PRIi64,
+               fd_, offset_, size_);
 
-    size_t len = endPos - startPos - 1;
-    std::string fd = rawUri.substr(startPos + 1, len);
-    return std::stoi(fd);
+    return CorrectFdParam();
 }
 } // namespace Media
 } // namespace OHOS
