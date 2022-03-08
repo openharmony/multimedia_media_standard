@@ -30,7 +30,7 @@ private:
     VideoCaptureFactory() = delete;
     ~VideoCaptureFactory() = delete;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 
 #endif // VIDEO_CAPTURE_FACTORY_H

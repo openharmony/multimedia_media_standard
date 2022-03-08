@@ -40,6 +40,6 @@ private:
     int32_t profile_ = 0;
     std::string gstRawFormat_;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // PROCESSOR_AENC_IMPL_H

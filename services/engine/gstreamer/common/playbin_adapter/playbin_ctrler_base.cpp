@@ -298,7 +298,7 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
         ExitInitializedState();
         PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_ERROR, 0, MSERR_UNKNOWN };
         ReportMessage(msg);
-        MEDIA_LOGE("enter intialized state failed");
+        MEDIA_LOGE("enter initialized state failed");
     };
 
     int32_t ret = OnInit();
@@ -521,5 +521,5 @@ void PlayBinCtrlerBase::ReportMessage(const PlayBinMessage &msg)
                    msg.type, msg.subType, msg.code);
     };
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

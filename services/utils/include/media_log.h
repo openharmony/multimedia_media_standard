@@ -94,5 +94,5 @@ namespace OHOS {
 
 #define POINTER_MASK 0x00FFFFFF
 #define FAKE_POINTER(addr) (POINTER_MASK & reinterpret_cast<uintptr_t>(addr))
-} // OHOS
+} // namespace OHOS
 #endif // OHOS_MEDIA_LOG_H

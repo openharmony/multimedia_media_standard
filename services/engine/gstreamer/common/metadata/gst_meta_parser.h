@@ -70,7 +70,6 @@ private:
     GstMetaParser() = default;
     ~GstMetaParser() = default;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // GST_META_PARSER_H

@@ -194,5 +194,5 @@ bool AVCodecNapiUtil::ExtractMediaFormat(napi_env env, napi_value mediaFormat, F
 
     return true;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

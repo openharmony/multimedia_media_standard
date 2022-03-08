@@ -222,5 +222,5 @@ void AVMetadataHelperImpl::Release()
     (void)MediaServiceFactory::GetInstance().DestroyAVMetadataHelperService(avMetadataHelperService_);
     avMetadataHelperService_ = nullptr;
 }
-} // nmamespace Media
+} // namespace Media
 } // namespace OHOS

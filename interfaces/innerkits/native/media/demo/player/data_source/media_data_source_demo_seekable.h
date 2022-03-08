@@ -43,4 +43,4 @@ private:
 };
 } // namespace Media
 } // namespace OHOS
-#endif /* MEDIA_DATA_SOURCE_DEMO_SEEKABLE_H_ */
+#endif // MEDIA_DATA_SOURCE_DEMO_SEEKABLE_H_

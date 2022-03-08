@@ -32,7 +32,7 @@ AVMetadataHelperServiceProxy::AVMetadataHelperServiceProxy(const sptr<IRemoteObj
 
 AVMetadataHelperServiceProxy::~AVMetadataHelperServiceProxy()
 {
-    MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destory", FAKE_POINTER(this));
+    MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
 int32_t AVMetadataHelperServiceProxy::DestroyStub()

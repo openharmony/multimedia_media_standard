@@ -69,7 +69,7 @@ GstPlayerCtrl::GstPlayerCtrl(GstPlayer *gstPlayer)
     (void)taskQue_.Start();
     trackParse_ = GstPlayerTrackParse::Create();
     if (trackParse_ == nullptr) {
-        MEDIA_LOGE("creat track parse fail");
+        MEDIA_LOGE("create track parse fail");
     }
 }
 
@@ -168,10 +168,6 @@ void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, G
     CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
     CHECK_AND_RETURN_LOG(src != nullptr, "src is null");
 
-    if (playerGst->trackParse_->GetDemuxerElementFind() == true) {
-        return;
-    }
-
     const gchar *metadata = gst_element_get_metadata(src, GST_ELEMENT_METADATA_KLASS);
     if (metadata == nullptr) {
         MEDIA_LOGE("gst_element_get_metadata return nullptr");
@@ -182,9 +178,22 @@ void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, G
     std::string metaStr(metadata);
 
     if (metaStr.find("Codec/Demuxer") != std::string::npos || metaStr.find("Codec/Parser") != std::string::npos) {
-        playerGst->signalIds_.push_back(g_signal_connect(src,
-            "pad-added", G_CALLBACK(GstPlayerTrackParse::OnPadAddedCb), playerGst->trackParse_.get()));
-        playerGst->trackParse_->SetDemuxerElementFind(true);
+        if (playerGst->trackParse_->GetDemuxerElementFind() == false) {
+            playerGst->signalIds_.push_back(g_signal_connect(src,
+                "pad-added", G_CALLBACK(GstPlayerTrackParse::OnPadAddedCb), playerGst->trackParse_.get()));
+            playerGst->trackParse_->SetDemuxerElementFind(true);
+        }
+    }
+
+    if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {
+        playerGst->isHardWare_ = true;
+        return;
+    }
+
+    if (metaStr.find("Sink/Video") != std::string::npos && playerGst->isHardWare_) {
+        GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
+        g_object_set(G_OBJECT(src), "caps", caps, nullptr);
+        return;
     }
 }
 
@@ -856,7 +865,7 @@ void GstPlayerCtrl::ProcessBufferingTime(const GstPlayer *cbPlayer, guint64 buff
     if (mqBufferingTime_.size() != mqNumUseBuffering_) {
         return;
     }
-    
+
     guint64 mqBufferingTime = BUFFER_TIME_DEFAULT;
     for (auto iter = mqBufferingTime_.begin(); iter != mqBufferingTime_.end(); ++iter) {
         if (iter->second < mqBufferingTime) {
@@ -1155,7 +1164,9 @@ bool GstPlayerCtrl::SetAudioRendererInfo(const Format &param)
     if (param.GetIntValue(PlayerKeys::CONTENT_TYPE, contentType) &&
         param.GetIntValue(PlayerKeys::STREAM_USAGE, streamUsage)) {
         int32_t rendererInfo(0);
-        rendererInfo |= (contentType | (streamUsage << AudioStandard::RENDERER_STREAM_USAGE_SHIFT));
+        CHECK_AND_RETURN_RET(streamUsage >= 0 && contentType >= 0, false);
+        rendererInfo |= (contentType | (static_cast<uint32_t>(streamUsage) <<
+            AudioStandard::RENDERER_STREAM_USAGE_SHIFT));
         g_object_set(audioSink_, "audio-renderer-desc", rendererInfo, nullptr);
         return true;
     } else {
@@ -1163,5 +1174,5 @@ bool GstPlayerCtrl::SetAudioRendererInfo(const Format &param)
         return false;
     }
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

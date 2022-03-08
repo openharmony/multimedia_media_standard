@@ -70,7 +70,7 @@ int32_t AVCodecListServiceStub::DestroyStub()
 int AVCodecListServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
-    MEDIA_LOGI("Stub: OnRemoteRequest of code: %{public}d is received", code);
+    MEDIA_LOGI("Stub: OnRemoteRequest of code: %{public}u is received", code);
 
     auto remoteDescriptor = data.ReadInterfaceToken();
     if (AVCodecListServiceStub::GetDescriptor() != remoteDescriptor) {

@@ -98,4 +98,4 @@ private:
 };
 } // namespace Media
 } // namespace OHOS
-#endif /* GST_APPSRC_WARP_H_ */
+#endif // GST_APPSRC_WARP_H_

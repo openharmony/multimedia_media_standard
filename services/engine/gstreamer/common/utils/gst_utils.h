@@ -77,7 +77,6 @@ public:
 private:
     std::weak_ptr<T> thiz_;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // GST_UTILS_H

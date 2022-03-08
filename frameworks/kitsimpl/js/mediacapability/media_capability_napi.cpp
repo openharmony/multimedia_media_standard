@@ -169,7 +169,10 @@ napi_value MediaCapsNapi::GetAudioDecoderCaps(napi_env env, napi_callback_info i
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<MediaCapsAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -215,7 +218,10 @@ napi_value MediaCapsNapi::FindAudioDecoder(napi_env env, napi_callback_info info
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<MediaCapsAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -260,7 +266,10 @@ napi_value MediaCapsNapi::GetAudioEncoderCaps(napi_env env, napi_callback_info i
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<MediaCapsAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -306,7 +315,10 @@ napi_value MediaCapsNapi::FindAudioEncoder(napi_env env, napi_callback_info info
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<MediaCapsAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -351,7 +363,10 @@ napi_value MediaCapsNapi::GetVideoDecoderCaps(napi_env env, napi_callback_info i
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<MediaCapsAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -397,7 +412,10 @@ napi_value MediaCapsNapi::FindVideoDecoder(napi_env env, napi_callback_info info
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<MediaCapsAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -442,7 +460,10 @@ napi_value MediaCapsNapi::GetVideoEncoderCaps(napi_env env, napi_callback_info i
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<MediaCapsAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -488,7 +509,10 @@ napi_value MediaCapsNapi::FindVideoEncoder(napi_env env, napi_callback_info info
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<MediaCapsAsyncContext *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -507,5 +531,5 @@ napi_value MediaCapsNapi::FindVideoEncoder(napi_env env, napi_callback_info info
 
     return result;
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

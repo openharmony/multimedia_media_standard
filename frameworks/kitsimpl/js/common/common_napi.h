@@ -156,7 +156,7 @@ private:
 
 class AVCodecJsResultCtor : public MediaJsResult {
 public:
-    explicit AVCodecJsResultCtor(const napi_ref &constructor, int32_t isMimeType, const std::string &name)
+    AVCodecJsResultCtor(const napi_ref &constructor, int32_t isMimeType, const std::string &name)
         : constructor_(constructor),
           isMimeType_(isMimeType),
           name_(name)
@@ -182,7 +182,7 @@ public:
             return ret;
         }
 
-        return napi_new_instance(env, constructor, 2, args, &result);
+        return napi_new_instance(env, constructor, 2, args, &result); // The number of parameters is 2
     }
 
 private:
@@ -212,6 +212,7 @@ struct MediaAsyncContext {
     explicit MediaAsyncContext(napi_env env) : env(env) {}
     virtual ~MediaAsyncContext() = default;
     static void CompleteCallback(napi_env env, napi_status status, void *data);
+    static void CheckCtorResult(napi_env env, napi_value &result, MediaAsyncContext *ctx, napi_value &args);
     void SignError(int32_t code, std::string message, bool del = true);
     napi_env env;
     napi_async_work work = nullptr;
@@ -222,6 +223,7 @@ struct MediaAsyncContext {
     int32_t errCode = 0;
     std::string errMessage = "";
     bool delFlag = true;
+    bool ctorFlag = false;
 };
 
 struct AutoRef {
@@ -244,6 +246,6 @@ struct AVFileDescriptor {
     int64_t offset = 0;
     int64_t length = 0;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // COMMON_NAPI_H

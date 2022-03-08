@@ -50,9 +50,9 @@ public:
 
 private:
     void DoNext();
-    void Seek(const std::string cmd);
-    void SetLoop(const std::string cmd);
-    void SetPlaybackSpeed(const std::string cmd) const;
+    void Seek(const std::string &cmd);
+    void SetLoop(const std::string &cmd);
+    void SetPlaybackSpeed(const std::string &cmd) const;
     int32_t GetPlaying();
     int32_t GetLooping();
     void GetCurrentTime();
@@ -96,6 +96,6 @@ private:
     int32_t bufferingOut_ = 0;
     PlayerStates state_ = PLAYER_STATE_ERROR;
 };
-}
-}
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // PLAYER_DEMO_H

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2021 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License\n");
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -54,7 +54,7 @@ void VDecDemo::RunCase()
     DEMO_CHECK_AND_RETURN_LOG(SetSurface() == MSERR_OK, "Fatal: SetSurface fail");
     DEMO_CHECK_AND_RETURN_LOG(Prepare() == MSERR_OK, "Fatal: Prepare fail");
     DEMO_CHECK_AND_RETURN_LOG(Start() == MSERR_OK, "Fatal: Start fail");
-    sleep(3);
+    sleep(3); // start run 3s
     DEMO_CHECK_AND_RETURN_LOG(Stop() == MSERR_OK, "Fatal: Stop fail");
     DEMO_CHECK_AND_RETURN_LOG(Release() == MSERR_OK, "Fatal: Release fail");
 }
@@ -194,7 +194,7 @@ void VDecDemo::InputFunc()
 
         int32_t ret = MSERR_OK;
         if (isFirstFrame_) {
-            ret = vdec_->QueueInputBuffer(index, info, AVCODEC_BUFFER_FLAG_CODEDC_DATA);
+            ret = vdec_->QueueInputBuffer(index, info, AVCODEC_BUFFER_FLAG_CODEC_DATA);
             isFirstFrame_ = false;
         } else {
             ret = vdec_->QueueInputBuffer(index, info, AVCODEC_BUFFER_FLAG_NONE);

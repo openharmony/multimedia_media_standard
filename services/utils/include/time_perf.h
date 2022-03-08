@@ -86,7 +86,7 @@ struct __attribute__((visibility("default"))) AutoPerf : public NoCopyable {
     uintptr_t obj_;
     std::string_view tag_;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 
 #endif

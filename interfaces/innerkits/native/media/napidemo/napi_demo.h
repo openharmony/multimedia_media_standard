@@ -65,6 +65,6 @@ private:
     OHOS::BufferRequestConfig requestConfig_;
     std::unique_ptr<std::thread> bufferThread_;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // NAPI_DEMO_H

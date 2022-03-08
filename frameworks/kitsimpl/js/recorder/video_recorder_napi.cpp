@@ -21,6 +21,7 @@
 #include "directory_ex.h"
 #include "string_ex.h"
 #include "surface_utils.h"
+#include "recorder_napi_utils.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "VideoRecorderNapi"};
@@ -630,14 +631,14 @@ int32_t VideoRecorderNapi::GetVideoRecorderProperties(napi_env env, napi_value a
     (void)CommonNapi::GetPropertyInt32(env, item, "audioBitrate", properties.profile.audioBitrate);
     (void)CommonNapi::GetPropertyInt32(env, item, "audioChannels", properties.profile.audioChannels);
     std::string audioCodec = CommonNapi::GetPropertyString(env, item, "audioCodec");
-    MapStringToCodecMime(audioCodec, properties.profile.audioCodec);
+    (void)MapMimeToAudioCodecFormat(audioCodec, properties.profile.audioCodecFormat);
     (void)CommonNapi::GetPropertyInt32(env, item, "audioSampleRate", properties.profile.auidoSampleRate);
     (void)CommonNapi::GetPropertyInt32(env, item, "durationTime", properties.profile.duration);
     std::string outputFile = CommonNapi::GetPropertyString(env, item, "fileFormat");
-    MapStringToContainerFormat(outputFile, properties.profile.fileFormat);
+    (void)MapExtensionNameToOutputFormat(outputFile, properties.profile.outputFormat);
     (void)CommonNapi::GetPropertyInt32(env, item, "videoBitrate", properties.profile.videoBitrate);
     std::string videoCodec = CommonNapi::GetPropertyString(env, item, "videoCodec");
-    MapStringToCodecMime(videoCodec, properties.profile.videoCodec);
+    (void)MapMimeToVideoCodecFormat(audioCodec, properties.profile.videoCodecFormat);
     (void)CommonNapi::GetPropertyInt32(env, item, "videoFrameWidth", properties.profile.videoFrameWidth);
     (void)CommonNapi::GetPropertyInt32(env, item, "videoFrameHeight", properties.profile.videoFrameHeight);
     (void)CommonNapi::GetPropertyInt32(env, item, "videoFrameRate", properties.profile.videoFrameRate);
@@ -658,14 +659,10 @@ int32_t VideoRecorderNapi::SetVideoRecorderProperties(std::unique_ptr<VideoRecor
         ret = recorder_->SetVideoSource(properties.videoSourceType, ctx->napi->videoSourceID);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set VideoSource");
 
-        OutputFormatType outputFile;
-        MapContainerFormatToOutputFormat(properties.profile.fileFormat, outputFile);
-        ret = recorder_->SetOutputFormat(outputFile);
+        ret = recorder_->SetOutputFormat(properties.profile.outputFormat);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set OutputFormat");
 
-        AudioCodecFormat audioCodec;
-        MapCodecMimeToAudioCodec(properties.profile.audioCodec, audioCodec);
-        ret = recorder_->SetAudioEncoder(ctx->napi->audioSourceID, audioCodec);
+        ret = recorder_->SetAudioEncoder(ctx->napi->audioSourceID, properties.profile.audioCodecFormat);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set audioCodec");
 
         ret = recorder_->SetAudioSampleRate(ctx->napi->audioSourceID, properties.profile.auidoSampleRate);
@@ -680,14 +677,10 @@ int32_t VideoRecorderNapi::SetVideoRecorderProperties(std::unique_ptr<VideoRecor
         ret = recorder_->SetVideoSource(properties.videoSourceType, ctx->napi->videoSourceID);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set VideoSource");
 
-        OutputFormatType outputFile;
-        MapContainerFormatToOutputFormat(properties.profile.fileFormat, outputFile);
-        ret = recorder_->SetOutputFormat(outputFile);
+        ret = recorder_->SetOutputFormat(properties.profile.outputFormat);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set OutputFormat");
     }
-    VideoCodecFormat videoCodec;
-    MapCodecMimeToVideoCodec(properties.profile.videoCodec, videoCodec);
-    ret = recorder_->SetVideoEncoder(ctx->napi->videoSourceID, videoCodec);
+    ret = recorder_->SetVideoEncoder(ctx->napi->videoSourceID, properties.profile.videoCodecFormat);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Fail to set videoCodec");
 
     ret = recorder_->SetVideoSize(ctx->napi->videoSourceID, properties.profile.videoFrameWidth,

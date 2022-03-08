@@ -55,7 +55,6 @@ private:
     std::unique_ptr<AVMetaFrameConverter> frameConverter_;
     std::vector<gulong> signalIds_;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVMETA_FRAME_EXTRACTOR_H

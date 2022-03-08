@@ -209,5 +209,5 @@ bool RecorderElement::CheckAnyParamConfiged(const std::set<int32_t> &expectedPar
 
     return false;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

@@ -67,6 +67,6 @@ private:
     std::shared_ptr<AutoRef> resetCallback_ = nullptr;
     std::shared_ptr<AutoRef> releaseCallback_ = nullptr;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // RECORDER_CALLBACK_NAPI_H_

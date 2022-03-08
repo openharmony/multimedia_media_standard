@@ -35,6 +35,6 @@ public:
 private:
     std::shared_ptr<AVCodecCallback> callback_ = nullptr;
 };
-}
+} // namespace Media
 } // namespace OHOS
 #endif // AVCODEC_LISTENER_STUB_H

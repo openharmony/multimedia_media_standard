@@ -421,5 +421,5 @@ int32_t RecorderServer::SetParameter(int32_t sourceId, const Format &format)
     (void)format;
     return MSERR_OK;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

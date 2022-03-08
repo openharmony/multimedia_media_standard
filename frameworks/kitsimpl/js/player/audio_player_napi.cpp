@@ -966,5 +966,5 @@ napi_value AudioPlayerNapi::GetTrackDescription(napi_env env, napi_callback_info
     asyncContext.release();
     return result;
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

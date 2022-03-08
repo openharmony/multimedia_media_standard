@@ -39,6 +39,6 @@ private:
     int32_t audioRawFormat_ = 0;
     std::string gstRawFormat_;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // PROCESSOR_ADEC_IMPL_H

@@ -238,7 +238,6 @@ private:
     AVMetadataHelperFactory() = default;
     ~AVMetadataHelperFactory() = default;
 };
-}
-}
-
-#endif
+} // namespace Media
+} // namespace OHOS
+#endif // AVMETADATAHELPER_H

@@ -115,5 +115,5 @@ void AudioEncoder::Dump()
 }
 
 REGISTER_RECORDER_ELEMENT(AudioEncoder);
-}
-}
+} // namespace Media
+} // namespace OHOS

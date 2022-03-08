@@ -305,5 +305,5 @@ void RecorderPipelineBuilder::Reset()
 
     outputFormatConfiged_ = false;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

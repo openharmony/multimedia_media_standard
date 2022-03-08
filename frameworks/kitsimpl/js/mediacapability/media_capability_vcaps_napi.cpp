@@ -178,7 +178,10 @@ napi_value MediaVideoCapsNapi::IsSizeSupported(napi_env env, napi_callback_info 
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<MediaVideoCapsAsyncCtx *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi_ == nullptr || asyncCtx->napi_->caps_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi_ == nullptr || asyncCtx->napi_->caps_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -227,7 +230,10 @@ napi_value MediaVideoCapsNapi::GetSupportedFrameRate(napi_env env, napi_callback
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<MediaVideoCapsAsyncCtx *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi_ == nullptr || asyncCtx->napi_->caps_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi_ == nullptr || asyncCtx->napi_->caps_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -276,7 +282,10 @@ napi_value MediaVideoCapsNapi::GetPreferredFrameRate(napi_env env, napi_callback
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void* data) {
             auto asyncCtx = reinterpret_cast<MediaVideoCapsAsyncCtx *>(data);
-            if (asyncCtx == nullptr || asyncCtx->napi_ == nullptr || asyncCtx->napi_->caps_ == nullptr) {
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi_ == nullptr || asyncCtx->napi_->caps_ == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
                 return;
             }
@@ -586,5 +595,5 @@ napi_value MediaVideoCapsNapi::SupportedComplexity(napi_env env, napi_callback_i
 
     return jsResult;
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

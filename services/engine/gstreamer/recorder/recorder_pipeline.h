@@ -101,6 +101,6 @@ private:
     std::atomic<bool> errorState_ { false };
     std::set<bool> errorSources_;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif

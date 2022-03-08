@@ -23,5 +23,5 @@ std::unique_ptr<AudioCapture> AudioCaptureFactory::CreateAudioCapture(AudioStrea
     (void)streamType;
     return std::make_unique<AudioCaptureAsImpl>();
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

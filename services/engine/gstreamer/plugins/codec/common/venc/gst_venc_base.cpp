@@ -110,6 +110,7 @@ static void gst_venc_base_class_init(GstVencBaseClass *klass)
 
 static void gst_venc_base_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
+    (void)pspec;
     GST_DEBUG_OBJECT(object, "Set Property");
     GstVencBase *self = GST_VENC_BASE(object);
     g_return_if_fail(value != nullptr);
@@ -155,6 +156,7 @@ static void gst_venc_base_set_property(GObject *object, guint prop_id, const GVa
 
 static void gst_venc_base_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
+    (void)pspec;
     GST_DEBUG_OBJECT(object, "Get Property");
     g_return_if_fail(object != nullptr);
     GstVencBase *self = GST_VENC_BASE(object);
@@ -223,6 +225,8 @@ static void gst_venc_base_finalize(GObject *object)
     g_mutex_clear(&self->drain_lock);
     g_cond_clear(&self->drain_cond);
     g_mutex_clear(&self->lock);
+    self->input.av_shmem_pool = nullptr;
+    self->output.av_shmem_pool = nullptr;
     G_OBJECT_CLASS(parent_class)->finalize(object);
 }
 
@@ -953,7 +957,6 @@ static gboolean gst_venc_base_propose_allocation(GstVideoEncoder *encoder, GstQu
     gboolean update_pool = FALSE;
     guint pool_num = gst_query_get_n_allocation_pools(query);
     if (pool_num > 0) {
-        GST_DEBUG_OBJECT(encoder, "Get bufferpool num %u query %p", pool_num, query);
         update_pool = TRUE;
     }
     gst_query_add_allocation_meta(query, GST_VIDEO_META_API_TYPE, nullptr);

@@ -33,7 +33,7 @@ int32_t VideoEncoder::Init()
     return MSERR_OK;
 }
 
-std::string VideoEncoder::GetEncorderName(std::string mimeType)
+std::string VideoEncoder::GetEncorderName(std::string_view mimeType)
 {
     auto codecList = std::make_unique<AVCodecListEngineGstImpl>();
     CHECK_AND_RETURN_RET(codecList != nullptr, "");
@@ -53,7 +53,7 @@ int32_t VideoEncoder::CreateMpegElement()
         gstElem_ = nullptr;
     }
 
-    std::string encorderName = GetEncorderName("video/mp4v-es");
+    std::string encorderName = GetEncorderName(CodecMimeType::VIDEO_MPEG4);
     gstElem_ = gst_element_factory_make(encorderName.c_str(), name_.c_str());
     if (gstElem_ == nullptr) {
         MEDIA_LOGE("Create mpeg encorder gst_element failed! sourceId: %{public}d", desc_.handle_);
@@ -71,7 +71,7 @@ int32_t VideoEncoder::CreateH264Element()
         gstElem_ = nullptr;
     }
 
-    std::string encorderName = GetEncorderName("video/avc");
+    std::string encorderName = GetEncorderName(CodecMimeType::VIDEO_AVC);
     gstElem_ = gst_element_factory_make(encorderName.c_str(), name_.c_str());
     if (gstElem_ == nullptr) {
         MEDIA_LOGE("Create h264 encorder gst_element failed! sourceId: %{public}d", desc_.handle_);
@@ -169,5 +169,5 @@ void VideoEncoder::Dump()
 }
 
 REGISTER_RECORDER_ELEMENT(VideoEncoder);
-}
-}
+} // namespace Media
+} // namespace OHOS

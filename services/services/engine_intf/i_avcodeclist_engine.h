@@ -22,7 +22,7 @@
 #include <refbase.h>
 #include <vector>
 #include "nocopyable.h"
-#include "av_common.h"
+#include "avcodec_info.h"
 #include "avsharedmemory.h"
 #include "format.h"
 
@@ -37,6 +37,6 @@ public:
     virtual std::string FindAudioEncoder(const Format &format) = 0;
     virtual std::vector<CapabilityData> GetCodecCapabilityInfos() = 0;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // IAVCODECLIST_ENGINE_H

@@ -157,5 +157,5 @@ void TaskQueue::TaskProcessor()
     }
     MEDIA_LOGI("Leave TaskProcessor [%{public}s]", name_.c_str());
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

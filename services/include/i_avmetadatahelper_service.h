@@ -118,7 +118,7 @@ public:
      */
     virtual void Release() = 0;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 
 #endif

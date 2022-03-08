@@ -345,5 +345,5 @@ void AudioDecoderCallbackNapi::OnJsFormatCallBack(AudioDecoderJsCallback *jsCb) 
         delete work;
     }
 }
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS

@@ -82,5 +82,5 @@ uint32_t AVSharedMemoryLocal::GetFlags()
 {
     return flags_;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

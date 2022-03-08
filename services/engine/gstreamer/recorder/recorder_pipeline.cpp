@@ -202,7 +202,7 @@ int32_t RecorderPipeline::SyncWaitChangeState(GstState targetState)
     std::unique_lock<std::mutex> lock(gstPipeMutex_);
     gstPipeCond_.wait(lock, [this, targetState] { return currState_ == targetState || errorState_.load(); });
     if (errorState_.load()) {
-        MEDIA_LOGE("error happended, change state to %{public}d failed !", targetState);
+        MEDIA_LOGE("error happened, change state to %{public}d failed !", targetState);
         return MSERR_INVALID_STATE;
     }
     MEDIA_LOGI("finish change gstpipeline state to %{public}d..........", targetState);
@@ -263,7 +263,7 @@ bool RecorderPipeline::SyncWaitEOS()
     std::unique_lock<std::mutex> lock(gstPipeMutex_);
     gstPipeCond_.wait(lock, [this] { return eosDone_ || errorState_.load(); });
     if (!eosDone_) {
-        MEDIA_LOGE("error happended, wait eos done failed !");
+        MEDIA_LOGE("error happened, wait eos done failed !");
         return false;
     }
     eosDone_ = false;
@@ -428,7 +428,7 @@ bool RecorderPipeline::CheckStopForError(const RecorderMessage &msg)
 
 void RecorderPipeline::StopForError(const RecorderMessage &msg)
 {
-    MEDIA_LOGE("Fatal error happended, stop recording. Error code: %{public}d, detail: %{public}d",
+    MEDIA_LOGE("Fatal error happened, stop recording. Error code: %{public}d, detail: %{public}d",
                msg.code, msg.detail);
 
     errorState_.store(true);
@@ -444,7 +444,7 @@ void RecorderPipeline::StopForError(const RecorderMessage &msg)
 
 int32_t RecorderPipeline::BypassOneSource(int32_t sourceId)
 {
-    MEDIA_LOGE("recorder source[0x%{public}x] has error happended, bypass it", sourceId);
+    MEDIA_LOGE("recorder source[0x%{public}x] has error happened, bypass it", sourceId);
 
     auto srcElemIter = desc_->srcElems.find(sourceId);
     if (srcElemIter == desc_->srcElems.end() || srcElemIter->second == nullptr) {
@@ -462,5 +462,5 @@ int32_t RecorderPipeline::BypassOneSource(int32_t sourceId)
 
     return MSERR_OK;
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

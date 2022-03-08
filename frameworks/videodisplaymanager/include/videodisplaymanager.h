@@ -30,6 +30,7 @@ public:
         surface_ = impl;
         layerId_ = id;
         preBuffer = nullptr;
+        timestamp = 0;
     }
 
     ~Listener();

@@ -41,6 +41,6 @@ private:
     std::shared_ptr<RecorderPipelineDesc> desc_;
     std::map<GstElement *, std::vector<GstPad *>> requestedPads_;
 };
-}
-}
+} // namespace Media
+} // namespace OHOS
 #endif

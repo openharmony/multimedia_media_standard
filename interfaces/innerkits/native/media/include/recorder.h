@@ -68,6 +68,54 @@ enum DataSourceType : int32_t {
 };
 
 /**
+ * @brief Enumerates output format types.
+ *
+ * @since 3.1
+ * @version 3.1
+ */
+enum OutputFormatType : int32_t {
+    /** Default format */
+    FORMAT_DEFAULT = 0,
+    /** MPEG4 format */
+    FORMAT_MPEG_4 = 2,
+    /** M4A format */
+    FORMAT_M4A = 6,
+    /** BUTT */
+    FORMAT_BUTT,
+};
+
+/**
+ * @brief Enumerates video codec formats.
+ *
+ * @since 3.1
+ * @version 3.1
+ */
+enum VideoCodecFormat : int32_t {
+    /** Default format */
+    VIDEO_DEFAULT = 0,
+    /** H.264 */
+    H264 = 2,
+    /** MPEG4 */
+    MPEG4 = 6,
+    VIDEO_CODEC_FORMAT_BUTT,
+};
+
+/**
+ * @brief Enumerates audio codec formats.
+ *
+ * @since 3.1
+ * @version 3.1
+ */
+enum AudioCodecFormat : int32_t {
+    /** Default format */
+    AUDIO_DEFAULT = 0,
+    /** Advanced Audio Coding Low Complexity (AAC-LC) */
+    AAC_LC      =   3,
+    /** Invalid value */
+    AUDIO_CODEC_FORMAT_BUTT,
+};
+
+/**
  * Unsupported App Usage.
  * @brief Enumerates file split types.
  *
@@ -609,6 +657,6 @@ private:
 };
 
 __attribute__((visibility("default"))) std::string RecorderErrorTypeToString(RecorderErrorType type);
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // RECORDER_H

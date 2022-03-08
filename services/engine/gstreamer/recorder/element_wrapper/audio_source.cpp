@@ -123,5 +123,5 @@ void AudioSource::Dump()
 }
 
 REGISTER_RECORDER_ELEMENT(AudioSource);
-}
-}
+} // namespace Media
+} // namespace OHOS

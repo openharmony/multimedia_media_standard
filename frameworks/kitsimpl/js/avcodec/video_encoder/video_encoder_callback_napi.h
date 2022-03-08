@@ -68,6 +68,6 @@ private:
     std::shared_ptr<AutoRef> inputCallback_ = nullptr;
     std::shared_ptr<AutoRef> outputCallback_ = nullptr;
 };
-}  // namespace Media
-}  // namespace OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // VIDEO_ENCODER_CALLBACK_NAPI_H

@@ -181,7 +181,7 @@ int32_t SinkSurfaceImpl::HandleNewSampleCb(GstBuffer *buffer)
     info.offset = 0;
     info.size = 0;
     constexpr uint64_t nsToUs = 1000;
-    info.presentationTimeUs = GST_BUFFER_PTS(buffer) / nsToUs;
+    info.presentationTimeUs = static_cast<int64_t>(GST_BUFFER_PTS(buffer) / nsToUs);
     obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
 
     MEDIA_LOGD("OutputBufferAvailable, index:%{public}d", index);
@@ -216,5 +216,5 @@ int32_t SinkSurfaceImpl::FindBufferIndex(uint32_t &index, sptr<SurfaceBuffer> bu
     CHECK_AND_RETURN_RET(index < bufferList_.size(), MSERR_UNKNOWN);
     return MSERR_OK;
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS

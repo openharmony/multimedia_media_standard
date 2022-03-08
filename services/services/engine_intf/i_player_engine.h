@@ -61,6 +61,6 @@ public:
     virtual int32_t SetParameter(const Format &param) = 0;
     virtual int32_t SetObs(const std::weak_ptr<IPlayerEngineObs> &obs) = 0;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // I_PLAYER_ENGINE_H

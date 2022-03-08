@@ -50,6 +50,6 @@ private:
     std::weak_ptr<IAVCodecEngineObs> obs_;
     bool start_ = false;
 };
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
 #endif // SRC_BYTEBUFFER_IMPL_H

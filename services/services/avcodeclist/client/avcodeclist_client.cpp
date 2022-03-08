@@ -89,5 +89,5 @@ std::vector<CapabilityData> AVCodecListClient::GetCodecCapabilityInfos()
         "codeclist service does not exist.");
     return codecListProxy_->GetCodecCapabilityInfos();
 }
-} // Media
-} // OHOS
+} // namespace Media
+} // namespace OHOS
