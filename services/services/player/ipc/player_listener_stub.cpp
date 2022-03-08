@@ -37,6 +37,12 @@ PlayerListenerStub::~PlayerListenerStub()
 int PlayerListenerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
+    auto remoteDescriptor = data.ReadInterfaceToken();
+    if (PlayerListenerStub::GetDescriptor() != remoteDescriptor) {
+        MEDIA_LOGE("Invalid descriptor");
+        return MSERR_INVALID_OPERATION;
+    }
+
     switch (code) {
         case PlayerListenerMsg::ON_ERROR: {
             int32_t errorType = data.ReadInt32();

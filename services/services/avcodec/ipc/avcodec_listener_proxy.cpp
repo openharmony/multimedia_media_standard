@@ -40,6 +40,10 @@ void AVCodecListenerProxy::OnError(AVCodecErrorType errorType, int32_t errorCode
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(AVCodecListenerProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return;
+    }
     data.WriteInt32(static_cast<int32_t>(errorType));
     data.WriteInt32(errorCode);
     int error = Remote()->SendRequest(AVCodecListenerMsg::ON_ERROR, data, reply, option);
@@ -53,6 +57,10 @@ void AVCodecListenerProxy::OnOutputFormatChanged(const Format &format)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(AVCodecListenerProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return;
+    }
     (void)MediaParcel::Marshalling(data, format);
     int error = Remote()->SendRequest(AVCodecListenerMsg::ON_OUTPUT_FORMAT_CHANGED, data, reply, option);
     if (error != MSERR_OK) {
@@ -65,6 +73,10 @@ void AVCodecListenerProxy::OnInputBufferAvailable(uint32_t index)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(AVCodecListenerProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return;
+    }
     data.WriteUint32(index);
     int error = Remote()->SendRequest(AVCodecListenerMsg::ON_INPUT_BUFFER_AVAILABLE, data, reply, option);
     if (error != MSERR_OK) {
@@ -77,6 +89,10 @@ void AVCodecListenerProxy::OnOutputBufferAvailable(uint32_t index, AVCodecBuffer
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(AVCodecListenerProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return;
+    }
     data.WriteUint32(index);
     data.WriteInt64(info.presentationTimeUs);
     data.WriteInt32(info.size);
