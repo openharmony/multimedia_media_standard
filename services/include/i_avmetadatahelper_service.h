@@ -72,6 +72,20 @@ public:
     virtual int32_t SetSource(const std::string &uri, int32_t usage) = 0;
 
     /**
+     * @brief Sets the media file descriptor source to resolve. Calling this method
+     * before the reset of the methods in this class. This method maybe time consuming.
+     * @param fd Indicates the file descriptor of media source.
+     * @param offset Indicates the offset of media source in file descriptor.
+     * @param size Indicates the size of media source.
+     * @param usage Indicates which scene the avmedatahelper's instance will
+     * be used to, see {@link AVMetadataUsage}. If the usage need to be changed,
+     * this method must be called again.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns
+     * an error code otherwise.
+     */
+    virtual int32_t SetSource(int32_t fd, int64_t offset, int64_t size, int32_t usage) = 0;
+
+    /**
      * Retrieve the meta data associated with the specified key. This method can be
      * called after the SetSource.
      * @param key One of the constants listed above at the definition of {@link AVMetadataCode}.
