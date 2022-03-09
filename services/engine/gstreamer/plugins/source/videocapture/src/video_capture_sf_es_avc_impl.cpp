@@ -157,7 +157,7 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfEsAvcImpl::DoGetFrameBuffer()
     ON_SCOPE_EXIT(1) { gst_buffer_unref(gstBuffer); };
 
     gsize size = gst_buffer_fill(gstBuffer, 0, (char *)buffer, bufferSize);
-    CHECK_AND_RETURN_RET_LOG(size == static_cast<gsize>(bufferSize), nullptr, "unkonwn error during gst_buffer_fill");
+    CHECK_AND_RETURN_RET_LOG(size == static_cast<gsize>(bufferSize), nullptr, "unknown error during gst_buffer_fill");
 
     std::shared_ptr<VideoFrameBuffer> frameBuffer = std::make_shared<VideoFrameBuffer>();
     frameBuffer->keyFrameFlag = 0;
@@ -197,7 +197,7 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfEsAvcImpl::GetIDRFrame()
     }
 
     gsize size = gst_buffer_fill(gstBuffer, 0, codecData_ + codecDataSize_, bufferSize);
-    CHECK_AND_RETURN_RET_LOG(size == static_cast<gsize>(bufferSize), nullptr, "unkonwn error during gst_buffer_fill");
+    CHECK_AND_RETURN_RET_LOG(size == static_cast<gsize>(bufferSize), nullptr, "unknown error during gst_buffer_fill");
 
     std::shared_ptr<VideoFrameBuffer> frameBuffer = std::make_shared<VideoFrameBuffer>();
     frameBuffer->keyFrameFlag = 0;

@@ -124,7 +124,7 @@ void EngineFactoryRepo::LoadLib(const std::string &libPath)
 
     std::shared_ptr<IEngineFactory> factory = std::shared_ptr<IEngineFactory>(entry());
     if (factory == nullptr) {
-        MEDIA_LOGE("failed to create engine factory for lib: %{public}s", libPath.c_str());
+        MEDIA_LOGE("failed to create engine factory for lib: %{private}s", libPath.c_str());
         (void)dlclose(handle);
         return;
     }

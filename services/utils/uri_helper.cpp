@@ -40,7 +40,7 @@ static bool PathToRealPath(const std::string_view &path, std::string &realPath)
 
     char tmpPath[PATH_MAX] = {0};
     if (realpath(path.data(), tmpPath) == nullptr) {
-        MEDIA_LOGE("path to realpath error, %{public}s", path.data());
+        MEDIA_LOGE("path to realpath error, %{private}s", path.data());
         return false;
     }
 
@@ -130,11 +130,7 @@ bool UriHelper::AccessCheck(uint8_t flag) const
         mode |= (flag & URI_WRITE) ? W_OK : 0;
         std::string_view rawUri = formattedUri_;
         rawUri = rawUri.substr(strlen("file://"));
-        int ret = access(rawUri.data(), static_cast<int>(mode));
-        if (ret != 0) {
-            return false;
-        }
-        return true;
+        return access(rawUri.data(), static_cast<int>(mode)) == 0;
     } else if (type_ == URI_TYPE_FD) {
         std::string rawUri = formattedUri_;
         int fd = GetFdFromUri(rawUri);
