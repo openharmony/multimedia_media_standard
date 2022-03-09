@@ -247,7 +247,7 @@ int32_t AVMetaFrameConverter::SetupConvPipeline()
     CHECK_AND_RETURN_RET(conv != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(gst_bin_add(bin, conv), MSERR_INVALID_OPERATION);
 
-    vidShMemSink_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("vidshmemsink", "conv_sink")));
+    vidShMemSink_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("sharedmemsink", "conv_sink")));
     CHECK_AND_RETURN_RET(vidShMemSink_ != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(gst_bin_add(bin, vidShMemSink_), MSERR_INVALID_OPERATION);
 
@@ -299,7 +299,7 @@ int32_t AVMetaFrameConverter::SetupConvSink(const OutputConfiguration &outConfig
     gst_caps_unref(caps);
     caps = nullptr;
 
-    g_object_set(G_OBJECT(vidShMemSink_), "mem-prefix", sizeof(OutputFrame), nullptr);
+    g_object_set(G_OBJECT(vidShMemSink_), "mem-prefix-size", sizeof(OutputFrame), nullptr);
     (void)g_signal_connect(G_OBJECT(vidShMemSink_), "new-sample", G_CALLBACK(OnNotifyNewSample), this);
 
     outConfig_ = outConfig;
