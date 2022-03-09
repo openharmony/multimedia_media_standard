@@ -243,6 +243,7 @@ static GstStateChangeReturn gst_vdec_base_change_state(GstElement *element, GstS
                 (void)self->decoder->Flush(GST_CODEC_ALL);
             }
             gst_vdec_base_set_flushing(self, TRUE);
+            gst_buffer_pool_set_active(self->outpool, FALSE);
 
             GST_VIDEO_DECODER_STREAM_UNLOCK(self);
             break;
