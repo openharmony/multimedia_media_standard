@@ -24,8 +24,8 @@ namespace OHOS {
 namespace Media {
 /*
  * Declare the type enum value valid range for different kind of RecorderParam.
- * The "Public" means externally visable.
- * The "Private" means internally visable.
+ * The "Public" means externally visible.
+ * The "Private" means internally visible.
  */
 enum RecorderParamSectionStart {
     PUBLIC_PARAM_SECTION_START = 0,
