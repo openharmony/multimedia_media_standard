@@ -37,6 +37,12 @@ AVCodecListenerStub::~AVCodecListenerStub()
 int AVCodecListenerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
+    auto remoteDescriptor = data.ReadInterfaceToken();
+    if (AVCodecListenerStub::GetDescriptor() != remoteDescriptor) {
+        MEDIA_LOGE("Invalid descriptor");
+        return MSERR_INVALID_OPERATION;
+    }
+
     switch (code) {
         case AVCodecListenerMsg::ON_ERROR: {
             int32_t errorType = data.ReadInt32();

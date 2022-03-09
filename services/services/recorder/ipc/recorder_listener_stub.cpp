@@ -36,6 +36,12 @@ RecorderListenerStub::~RecorderListenerStub()
 int RecorderListenerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
+    auto remoteDescriptor = data.ReadInterfaceToken();
+    if (RecorderListenerStub::GetDescriptor() != remoteDescriptor) {
+        MEDIA_LOGE("Invalid descriptor");
+        return MSERR_INVALID_OPERATION;
+    }
+
     switch (code) {
         case RecorderListenerMsg::ON_ERROR: {
             int errorType = data.ReadInt32();
