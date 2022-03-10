@@ -21,6 +21,7 @@
 #include <gst/gst.h>
 #include "avcodec_info.h"
 #include "avcodec_common.h"
+#include "audio_info.h"
 #include "avsharedmemory.h"
 #include "format.h"
 #include "surface.h"
@@ -107,7 +108,7 @@ struct ProcessorConfig {
 std::string PixelFormatToGst(VideoPixelFormat pixel);
 std::string MPEG4ProfileToGst(MPEG4Profile profile);
 std::string AVCProfileToGst(AVCProfile profile);
-std::string RawAudioFormatToGst(AudioRawFormat format);
+std::string RawAudioFormatToGst(AudioStandard::AudioSampleFormat format);
 int32_t MapCodecMime(const std::string &mime, InnerCodecMimeType &name);
 int32_t CapsToFormat(GstCaps *caps, Format &format);
 uint32_t PixelBufferSize(VideoPixelFormat pixel, uint32_t width, uint32_t height, uint32_t alignment);
