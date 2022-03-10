@@ -241,7 +241,7 @@ static const std::vector<struct JsEnumString> g_codecMimeType = {
     { "VIDEO_MPEG2", CodecMimeType::VIDEO_MPEG2 },
     { "VIDEO_HEVC", CodecMimeType::VIDEO_HEVC },
     { "VIDEO_MPEG4", CodecMimeType::VIDEO_MPEG4 },
-    { "VIDEO_VP8", CodecMimeType::VIDEO_VP9 },
+    { "VIDEO_VP8", CodecMimeType::VIDEO_VP8 },
     { "VIDEO_VP9", CodecMimeType::VIDEO_VP9 },
     { "AUDIO_AMR_NB", CodecMimeType::AUDIO_AMR_NB },
     { "AUDIO_AMR_WB", CodecMimeType::AUDIO_AMR_WB },
