@@ -215,7 +215,7 @@ int32_t RecorderClient::SetOutputPath(const std::string &path)
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(recorderProxy_ != nullptr, MSERR_NO_MEMORY, "recorder service does not exist.");
 
-    MEDIA_LOGD("SetOutputPath path(%{private}s)", path.c_str());
+    MEDIA_LOGD("SetOutputPath path(%{public}s)", path.c_str());
     return recorderProxy_->SetOutputPath(path);
 }
 

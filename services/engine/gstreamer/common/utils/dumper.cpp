@@ -49,7 +49,7 @@ void Dumper::DumpDotGraph(GstPipeline &pipeline, int32_t oldState, int32_t newSt
     }
 
     std::string realPath;
-    CHECK_AND_RETURN_LOG(PathToRealPath(dumpDir, realPath), "invalid dump path: %{private}s", dumpDir.c_str());
+    CHECK_AND_RETURN_LOG(PathToRealPath(dumpDir, realPath), "invalid dump path: %{public}s", dumpDir.c_str());
 
     struct timeval tv;
     int ret = gettimeofday(&tv, nullptr);
@@ -79,7 +79,7 @@ void Dumper::DumpDotGraph(GstPipeline &pipeline, int32_t oldState, int32_t newSt
     }
 
     FILE *fp = fopen(fullPath, "wb");
-    CHECK_AND_RETURN_LOG(fp != nullptr, "open path failed, %{private}s", fullPath);
+    CHECK_AND_RETURN_LOG(fp != nullptr, "open path failed, %{public}s", fullPath);
 
     gchar *buf = gst_debug_bin_to_dot_data(GST_BIN(&pipeline), GST_DEBUG_GRAPH_SHOW_ALL);
     if (buf != nullptr) {
@@ -90,7 +90,7 @@ void Dumper::DumpDotGraph(GstPipeline &pipeline, int32_t oldState, int32_t newSt
     }
 
     (void)fclose(fp);
-    MEDIA_LOGD("wrote pipeline graph to : '%{private}s'", fullPath);
+    MEDIA_LOGD("wrote pipeline graph to : '%{public}s'", fullPath);
 }
 
 GstPadProbeReturn Dumper::DumpGstBuffer(GstPad *pad, GstPadProbeInfo *info, gpointer user_data)
