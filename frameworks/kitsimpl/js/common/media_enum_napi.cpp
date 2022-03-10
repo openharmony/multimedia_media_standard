@@ -126,25 +126,6 @@ static const std::vector<struct JsEnumInt> g_AVCodecType = {
     { "AVCODEC_TYPE_AUDIO_DECODER", AVCodecType::AVCODEC_TYPE_AUDIO_DECODER },
 };
 
-static const std::vector<struct JsEnumInt> g_audioRawFormat = {
-    { "AUDIO_PCM_S8", AudioRawFormat::AUDIO_PCM_S8 },
-    { "AUDIO_PCM_8", AudioRawFormat::AUDIO_PCM_8 },
-    { "AUDIO_PCM_S16_BE", AudioRawFormat::AUDIO_PCM_S16_BE },
-    { "AUDIO_PCM_S16_LE", AudioRawFormat::AUDIO_PCM_S16_LE },
-    { "AUDIO_PCM_16_BE", AudioRawFormat::AUDIO_PCM_16_BE },
-    { "AUDIO_PCM_16_LE", AudioRawFormat::AUDIO_PCM_16_LE },
-    { "AUDIO_PCM_S24_BE", AudioRawFormat::AUDIO_PCM_S24_BE },
-    { "AUDIO_PCM_S24_LE", AudioRawFormat::AUDIO_PCM_S24_LE },
-    { "AUDIO_PCM_24_BE", AudioRawFormat::AUDIO_PCM_24_BE },
-    { "AUDIO_PCM_24_LE", AudioRawFormat::AUDIO_PCM_24_LE },
-    { "AUDIO_PCM_S32_BE", AudioRawFormat::AUDIO_PCM_S32_BE },
-    { "AUDIO_PCM_S32_LE", AudioRawFormat::AUDIO_PCM_S32_LE },
-    { "AUDIO_PCM_32_BE", AudioRawFormat::AUDIO_PCM_32_BE },
-    { "AUDIO_PCM_32_LE", AudioRawFormat::AUDIO_PCM_32_LE },
-    { "AUDIO_PCM_F32_BE", AudioRawFormat::AUDIO_PCM_F32_BE },
-    { "AUDIO_PCM_F32_LE", AudioRawFormat::AUDIO_PCM_F32_LE },
-};
-
 static const std::vector<struct JsEnumInt> g_AACProfile = {
     { "AAC_PROFILE_LC", AACProfile::AAC_PROFILE_LC },
     { "AAC_PROFILE_ELD", AACProfile::AAC_PROFILE_ELD },
@@ -297,7 +278,6 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "FrameFlags", g_frameFlags },
     { "SeekMode", g_seekMode },
     { "AVCodecType", g_AVCodecType },
-    { "AudioRawFormat", g_audioRawFormat },
     { "AACProfile", g_AACProfile },
     { "VideoEncodeBitrateMode", g_videoEncodeBitrateMode },
     { "VideoPixelFormat", g_videoPixelFormat },
