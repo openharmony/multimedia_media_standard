@@ -181,7 +181,12 @@ namespace OHOS {
     {
         VIDEO_DISPLAY_ENTER();
         surface_ = surface;
-        listener = new Listener(surface_, layerId);
+        listener = new (std::nothrow) Listener(surface_, layerId);
+        if (listener == nullptr) {
+            VLOGFE("Failed to create listener");
+            return nullptr;
+        }
+
         surface_->RegisterConsumerListener(listener);
         VIDEO_DISPLAY_EXIT();
         return surface_->GetProducer();

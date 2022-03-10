@@ -634,7 +634,7 @@ static GstBuffer *DequeueBuffer(GstVideoShMemSink *vidShMemSink)
     do {
         obj = GST_MINI_OBJECT_CAST(gst_queue_array_pop_head(priv->queue));
         if (GST_IS_BUFFER(obj)) {
-            GST_INFO_OBJECT(vidShMemSink, "dequeued bffer 0x%06" PRIXPTR "", FAKE_POINTER(obj));
+            GST_INFO_OBJECT(vidShMemSink, "dequeued buffer 0x%06" PRIXPTR "", FAKE_POINTER(obj));
             priv->numBuffers--;
             buffer = GST_BUFFER_CAST(obj);
             break;

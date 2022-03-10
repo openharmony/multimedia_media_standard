@@ -19,8 +19,8 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "ProcessorVencImpl"};
-    constexpr uint32_t MAX_WIDTH = 8000;
-    constexpr uint32_t MAX_HEIGHT = 5000;
+    constexpr int32_t MAX_WIDTH = 8000;
+    constexpr int32_t MAX_HEIGHT = 5000;
 }
 
 namespace OHOS {
