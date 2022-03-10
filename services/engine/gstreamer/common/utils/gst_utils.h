@@ -29,7 +29,7 @@ namespace OHOS {
 namespace Media {
 #define EXPORT_API __attribute__((visibility("default")))
 
-#define ELEM_NAME(elem) (GST_ELEMENT_NAME(elem) != nullptr) ? GST_ELEMENT_NAME(elem) : "unkonwn"
+#define ELEM_NAME(elem) (GST_ELEMENT_NAME(elem) != nullptr) ? GST_ELEMENT_NAME(elem) : "unknown"
 
 #define PAD_NAME(pad) (GST_PAD_NAME(pad) != nullptr) ? GST_PAD_NAME(pad) : "unknown"
 
