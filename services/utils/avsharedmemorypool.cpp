@@ -93,7 +93,7 @@ AVSharedMemory *AVSharedMemoryPool::AllocMemory(int32_t size)
 
 void AVSharedMemoryPool::ReleaseMemory(AVSharedMemory *memory)
 {
-    CHECK_AND_RETURN_RET_LOG(memory != nullptr, nullptr, "memory is nullptr");
+    CHECK_AND_RETURN_LOG(memory != nullptr, "memory is nullptr");
     std::unique_lock<std::mutex> lock(mutex_);
 
     for (auto iter = busyList_.begin(); iter != busyList_.end(); ++iter) {
