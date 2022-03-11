@@ -94,7 +94,7 @@ const std::unordered_map<std::string, int> VIDEO_FORMAT_MAP = {
 };
 
 const std::unordered_map<std::string, int> AUDIO_FORMAT_MAP = {
-    {"8", AudioStandard::SAMPLE_U8},
+    {"U8", AudioStandard::SAMPLE_U8},
     {"S16LE", AudioStandard::SAMPLE_S16LE},
     {"S24LE", AudioStandard::SAMPLE_S24LE},
     {"S32LE", AudioStandard::SAMPLE_S32LE},
