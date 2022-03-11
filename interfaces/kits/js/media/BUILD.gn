@@ -42,6 +42,7 @@ ohos_shared_library("media") {
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/common",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//third_party/libuv/include",
+    "//third_party/bounds_checking_function/include",
   ]
 
   sources = [
