@@ -53,11 +53,23 @@ int32_t AVSharedMemoryPool::Init(const InitializeOption &option)
                "maxMemCnt = %{public}u, enableFixedSize = %{public}d",
                name_.c_str(), option_.preAllocMemCnt, option_.memSize, option_.maxMemCnt,
                option_.enableFixedSize);
-
+    bool ret = true;
     for (uint32_t i = 0; i < option_.preAllocMemCnt; ++i) {
         auto memory = AllocMemory(option_.memSize);
-        CHECK_AND_RETURN_RET_LOG(memory != nullptr, MSERR_NO_MEMORY, "alloc memory failed");
+        if (memory == nullptr) {
+            MEDIA_LOGE("alloc memory failed");
+            ret = false;
+            break;
+        }
         idleList_.push_back(memory);
+    }
+    
+    if (!ret) {
+        for (auto iter = idleList_.begin(); iter != idleList_.end(); ++iter) {
+            delete *iter;
+            *iter = nullptr;
+        }
+        return MSERR_NO_MEMORY;
     }
 
     inited_ = true;
@@ -72,6 +84,7 @@ AVSharedMemory *AVSharedMemoryPool::AllocMemory(int32_t size)
 
     if (memory->Init() != MSERR_OK) {
         delete memory;
+        memory = nullptr;
         MEDIA_LOGE("init avsharedmemorybase failed");
     }
 
@@ -80,6 +93,7 @@ AVSharedMemory *AVSharedMemoryPool::AllocMemory(int32_t size)
 
 void AVSharedMemoryPool::ReleaseMemory(AVSharedMemory *memory)
 {
+    CHECK_AND_RETURN_RET_LOG(memory != nullptr, nullptr, "memory is nullptr");
     std::unique_lock<std::mutex> lock(mutex_);
 
     for (auto iter = busyList_.begin(); iter != busyList_.end(); ++iter) {
