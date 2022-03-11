@@ -28,8 +28,8 @@ const std::map<VideoPixelFormat, std::string> PIXEL_TO_STRING = {
 const std::map<AudioStandard::AudioSampleFormat, std::string> PCM_TO_STRING = {
     {AudioStandard::SAMPLE_U8, "U8"},
     {AudioStandard::SAMPLE_S16LE, "S16LE"},
-    {AudioStandard::SAMPLE_S24LE, "U24LE"},
-    {AudioStandard::SAMPLE_S32LE, "U32LE"},
+    {AudioStandard::SAMPLE_S24LE, "S24LE"},
+    {AudioStandard::SAMPLE_S32LE, "S32LE"},
 };
 
 const std::map<MPEG4Profile, std::string> MPEG4_PROFILE_TO_STRING = {
