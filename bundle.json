@@ -12,7 +12,16 @@
     "component": {
       "name": "multimedia_media_standard",
       "subsystem": "multimedia",
-      "syscap": [ "SystemCapability.Multimedia.Media" ],
+      "syscap": [
+        "SystemCapability.Multimedia.Media.Core",
+        "SystemCapability.Multimedia.Media.AudioPlayer",
+        "SystemCapability.Multimedia.Media.VideoPlayer",
+        "SystemCapability.Multimedia.Media.AudioRecorder",
+        "SystemCapability.Multimedia.Media.VideoRecorder",
+        "SystemCapability.Multimedia.Media.Codec",
+        "SystemCapability.Multimedia.Media.Spliter",
+        "SystemCapability.Multimedia.Media.Muxer"
+      ],
       "features": [],
       "adapted_system_type": [ "standard" ],
       "rom": "10000KB",
