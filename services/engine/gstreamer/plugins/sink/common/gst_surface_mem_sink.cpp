@@ -190,7 +190,7 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
         };
         OHOS::SurfaceError ret = priv->surface->FlushBuffer(surface_mem->buf, surface_mem->fence, flushConfig);
         if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
-            GST_ERROR_OBJECT(surface_sink, "flush buffer to surface failed, %d", ret);  // if is paused, then play, this buffer is render by preroll, so it's ok
+            GST_ERROR_OBJECT(surface_sink, "flush buffer to surface failed, %d", ret);  // if it's paused, then play, this buffer is render by preroll, so it's ok
         }
     }
 
