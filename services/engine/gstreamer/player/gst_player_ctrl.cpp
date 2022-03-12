@@ -1056,7 +1056,7 @@ void GstPlayerCtrl::OnEndOfStream()
         MEDIA_LOGI("On EndOfStream: loop is %{public}d", enableLooping_);
         std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
         Format format;
-        if (tempObs != nullptr) {
+        if (tempObs != nullptr && !enableLooping_) {
             tempObs->OnInfo(INFO_TYPE_EOS, static_cast<int32_t>(enableLooping_), format);
         }
         endOfStreamCb_ = false;
