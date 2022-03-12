@@ -50,6 +50,7 @@ public:
     static GstPadProbeReturn SinkPadProbeCb(GstPad *pad, GstPadProbeInfo *info, gpointer userData);
     static void EosCb(GstMemSink *memSink, gpointer userData);
     static GstFlowReturn NewSampleCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData);
+    static GstFlowReturn NewPrerollCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData);
 };
 
 struct _PlayerVideoRenderer {
@@ -145,7 +146,7 @@ GstElement *GstPlayerVideoRendererCap::CreateVideoSink(const GstCaps *caps, cons
     g_object_set(G_OBJECT(sink), "caps", caps, nullptr);
     g_object_set(G_OBJECT(sink), "surface", static_cast<gpointer>(rendererCtrl->GetProducerSurface()), nullptr);
 
-    GstMemSinkCallbacks sinkCallbacks = { EosCb, nullptr, NewSampleCb };
+    GstMemSinkCallbacks sinkCallbacks = { EosCb, NewPrerollCb, NewSampleCb };
     gst_mem_sink_set_callback(GST_MEM_SINK(sink), &sinkCallbacks, userData, nullptr);
     return sink;
 }
@@ -162,6 +163,14 @@ GstFlowReturn GstPlayerVideoRendererCap::NewSampleCb(GstMemSink *memSink, GstBuf
     (void)userData;
     MEDIA_LOGI("NewSampleCb in");
     CHECK_AND_RETURN_RET(gst_mem_sink_app_render(memSink, sample) == GST_FLOW_OK, GST_FLOW_ERROR);
+    return GST_FLOW_OK;
+}
+
+GstFlowReturn GstPlayerVideoRendererCap::NewPrerollCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData)
+{
+    (void)userData;
+    MEDIA_LOGI("NewPrerollCb in");
+    CHECK_AND_RETURN_RET(gst_mem_sink_app_preroll_render(memSink, sample) == GST_FLOW_OK, GST_FLOW_ERROR);
     return GST_FLOW_OK;
 }
 
