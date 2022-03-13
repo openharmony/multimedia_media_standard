@@ -316,7 +316,7 @@ bool CommonNapi::SetPropertyInt32(napi_env env, napi_value &obj, const std::stri
     CHECK_AND_RETURN_RET(status == napi_ok, false);
 
     status = napi_set_property(env, obj, keyNapi, valueNapi);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, false, "faile to set property");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, false, "failed to set property");
 
     return true;
 }
@@ -334,7 +334,7 @@ bool CommonNapi::SetPropertyInt64(napi_env env, napi_value &obj, const std::stri
     CHECK_AND_RETURN_RET(status == napi_ok, false);
 
     status = napi_set_property(env, obj, keyNapi, valueNapi);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, false, "faile to set property");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, false, "failed to set property");
 
     return true;
 }
@@ -352,7 +352,7 @@ bool CommonNapi::SetPropertyString(napi_env env, napi_value &obj, const std::str
     CHECK_AND_RETURN_RET(status == napi_ok, false);
 
     status = napi_set_property(env, obj, keyNapi, valueNapi);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, false, "faile to set property");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, false, "failed to set property");
 
     return true;
 }
