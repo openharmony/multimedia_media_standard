@@ -362,7 +362,8 @@ static GstFlowReturn do_allocate_buffer(GstSharedMemSink *shmem_sink, GstBuffer 
     g_mutex_lock(&priv->mutex);
 
     while (!priv->flushing) {
-        GstMemory *memory = gst_allocator_alloc(GST_ALLOCATOR_CAST(priv->allocator), priv->mem_size, &priv->alloc_params);
+        GstMemory *memory = gst_allocator_alloc(GST_ALLOCATOR_CAST(priv->allocator),
+            priv->mem_size, &priv->alloc_params);
         if (memory != nullptr) {
             g_mutex_unlock(&priv->mutex);
             *buffer = gst_buffer_new();
