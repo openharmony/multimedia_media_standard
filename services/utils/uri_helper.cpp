@@ -130,11 +130,7 @@ bool UriHelper::AccessCheck(uint8_t flag) const
         mode |= (flag & URI_WRITE) ? W_OK : 0;
         std::string_view rawUri = formattedUri_;
         rawUri = rawUri.substr(strlen("file://"));
-        int ret = access(rawUri.data(), static_cast<int>(mode));
-        if (ret != 0) {
-            return false;
-        }
-        return true;
+        return access(rawUri.data(), static_cast<int>(mode)) == 0;
     } else if (type_ == URI_TYPE_FD) {
         std::string rawUri = formattedUri_;
         int fd = GetFdFromUri(rawUri);

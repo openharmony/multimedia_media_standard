@@ -44,15 +44,16 @@ void TimeMonitor::StartTime()
 
 void TimeMonitor::FinishTime()
 {
-    if (isStart_) {
-        int ret = gettimeofday(&finishTime_, nullptr);
-        if (ret == -1) {
-            MEDIA_LOGE("get current time failed!");
-        }
-        MEDIA_LOGD("%{public}s: elapsed time = %{public}" PRId64 " ms", objectName_.c_str(),
-            (Timeval2Sec(finishTime_, TIME_VAL_MS) - Timeval2Sec(startTime_, TIME_VAL_MS)));
-        isStart_ = false;
+    if (!isStart_) {
+        return;
     }
+    int ret = gettimeofday(&finishTime_, nullptr);
+    if (ret == -1) {
+        MEDIA_LOGE("get current time failed!");
+    }
+    MEDIA_LOGD("%{public}s: elapsed time = %{public}" PRId64 " ms", objectName_.c_str(),
+        (Timeval2Sec(finishTime_, TIME_VAL_MS) - Timeval2Sec(startTime_, TIME_VAL_MS)));
+    isStart_ = false;
 }
 
 int64_t TimeMonitor::Timeval2Sec(const timeval &tv, TimeValType valType) const
