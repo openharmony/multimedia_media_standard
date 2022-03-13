@@ -110,10 +110,10 @@ static gpointer gst_surface_allocator_mem_map(GstMemory *mem, gsize maxsize, Gst
     g_return_val_if_fail(mem != nullptr, nullptr);
     g_return_val_if_fail(gst_is_surface_memory(mem), nullptr);
 
-    GstSurfaceMemory *surfaceMem = reinterpret_cast<GstSurfaceMemory *>(mem);
-    g_return_val_if_fail(surfaceMem->buf != nullptr, nullptr);
+    GstSurfaceMemory *surface_mem = reinterpret_cast<GstSurfaceMemory *>(mem);
+    g_return_val_if_fail(surface_mem->buf != nullptr, nullptr);
 
-    return surfaceMem->buf->GetVirAddr();
+    return surface_mem->buf->GetVirAddr();
 }
 
 static void gst_surface_allocator_mem_unmap(GstMemory *mem)
