@@ -106,7 +106,6 @@ static void gst_surface_pool_init (GstSurfacePool *pool)
     gst_allocation_params_init(&pool->params);
     pool->task = nullptr;
     g_rec_mutex_init(&pool->taskLock);
-    pool->surfaceError = FALSE;
 }
 
 static void gst_surface_pool_finalize(GObject *obj)
@@ -270,8 +269,10 @@ static void gst_surface_pool_request_loop(GstSurfacePool *spool)
     if (ret != GST_FLOW_OK) {
         GST_WARNING_OBJECT(spool, "alloc bufer failed, exit");
         gst_task_pause(spool->task);
-        spool->surfaceError = TRUE;
+        GST_BUFFER_POOL_LOCK(spool);
+        spool->started = FALSE;
         GST_BUFFER_POOL_NOTIFY(spool);
+        GST_BUFFER_POOL_UNLOCK(spool);
         return;
     }
 
@@ -307,9 +308,6 @@ static gboolean gst_surface_pool_start(GstBufferPool *pool)
         return FALSE;
     }
 
-    clear_preallocated_buffer(spool);
-    spool->surface->CleanCache();
-
     gst_surface_allocator_set_surface(spool->allocator, spool->surface);
     GST_INFO_OBJECT(spool, "Set pool minbuf %d maxbuf %d", spool->minBuffers, spool->maxBuffers);
 
@@ -344,12 +342,14 @@ static gboolean gst_surface_pool_stop(GstBufferPool *pool)
 
     GST_BUFFER_POOL_LOCK(spool);
     spool->started = FALSE;
-    clear_preallocated_buffer(spool);
     GST_BUFFER_POOL_NOTIFY(spool); // wakeup immediately
     if (spool->surface != nullptr) {
         spool->surface->CleanCache();
     }
+    GST_BUFFER_POOL_UNLOCK(spool);
     (void)gst_task_stop(spool->task);
+    GST_BUFFER_POOL_LOCK(spool);
+    clear_preallocated_buffer(spool);
 
     // leave all configuration unchanged.
     gboolean ret = (spool->freeBufCnt == spool->maxBuffers);
@@ -442,9 +442,9 @@ static GstFlowReturn gst_surface_pool_acquire_buffer(GstBufferPool *pool,
             GST_INFO_OBJECT(spool, "pool is flushing");
             break;
         }
-        if (spool->surfaceError == TRUE) {
+        if (spool->started == FALSE) {
             ret = GST_FLOW_ERROR;
-            GST_ERROR_OBJECT(spool, "surface is in error");
+            GST_ERROR_OBJECT(spool, "surface pool is not started");
             break;
         }
         GList *node = g_list_first(spool->preAllocated);
