@@ -93,7 +93,7 @@ static void gst_surface_mem_sink_init(GstSurfaceMemSink *sink)
     sink->priv = priv;
     sink->priv->surface = nullptr;
     sink->priv->pool = GST_SURFACE_POOL_CAST(gst_surface_pool_new());
-    sink->prorellBuffer = nullptr;
+    sink->prerollBuffer = nullptr;
     sink->firstRenderFrame = TRUE;
     GstMemSink *memSink = GST_MEM_SINK_CAST(sink);
     memSink->max_pool_capacity = DEFAULT_SURFACE_MAX_POOL_CAPACITY;
