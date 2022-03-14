@@ -172,7 +172,7 @@ public:
     virtual ~AVMetadataHelper() = default;
 
     /**
-     * Set the media source uri to use. Calling this method before the reset
+     * Set the media source uri to resolve. Calling this method before the reset
      * of the methods in this class. This method maybe time consuming.
      * @param uri the URI of input media source.
      * @param usage indicates which scene the avmedatahelper's instance will
@@ -182,6 +182,21 @@ public:
      * an error code otherwise.
      */
     virtual int32_t SetSource(const std::string &uri, int32_t usage = AVMetadataUsage::AV_META_USAGE_PIXEL_MAP) = 0;
+
+    /**
+     * @brief Sets the media file descriptor source to resolve. Calling this method
+     * before the reset of the methods in this class. This method maybe time consuming.
+     * @param fd Indicates the file descriptor of media source.
+     * @param offset Indicates the offset of media source in file descriptor.
+     * @param size Indicates the size of media source.
+     * @param usage Indicates which scene the avmedatahelper's instance will
+     * be used to, see {@link AVMetadataUsage}. If the usage need to be changed,
+     * this method must be called again.
+     * @return Returns {@link MSERR_OK} if the setting is successful; returns
+     * an error code otherwise.
+     */
+    virtual int32_t SetSource(int32_t fd, int64_t offset = 0, int64_t size = 0,
+        int32_t usage = AVMetadataUsage::AV_META_USAGE_PIXEL_MAP) = 0;
 
     /**
      * Retrieve the meta data associated with the specified key. This method must be

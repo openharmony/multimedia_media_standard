@@ -29,6 +29,7 @@ class IStandardAVMetadataHelperService : public IRemoteBroker {
 public:
     virtual ~IStandardAVMetadataHelperService() = default;
     virtual int32_t SetSource(const std::string &uri, int32_t usage) = 0;
+    virtual int32_t SetSource(int32_t fd, int64_t offset, int64_t size, int32_t usage) = 0;
     virtual std::string ResolveMetadata(int32_t key) = 0;
     virtual std::unordered_map<int32_t, std::string> ResolveMetadataMap() = 0;
     virtual std::shared_ptr<AVSharedMemory> FetchArtPicture() = 0;
@@ -41,7 +42,8 @@ public:
      * IPC code ID
      */
     enum AVMetadataHelperServiceMsg {
-        SET_SOURCE = 0,
+        SET_URI_SOURCE = 0,
+        SET_FD_SOURCE,
         RESOLVE_METADATA,
         RESOLVE_METADATA_MAP,
         FETCH_ART_PICTURE,
