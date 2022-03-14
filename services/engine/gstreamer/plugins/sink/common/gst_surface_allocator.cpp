@@ -41,7 +41,7 @@ GstSurfaceMemory *gst_surface_allocator_alloc(GstSurfaceAllocator *allocator, Gs
     int32_t wait_time = param.dont_wait ? 0 : INT_MAX; // wait forever or no wait.
     OHOS::BufferRequestConfig request_config = {
         param.width, param.height, stride_alignment, param.format, static_cast<uint32_t>(param.usage) |
-        HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA, wait_time
+        HBM_USE_CPU_READ | HBM_USE_MEM_DMA, wait_time
     };
     int32_t release_fence = -1;
     OHOS::sptr<OHOS::SurfaceBuffer> surface_buffer = nullptr;
