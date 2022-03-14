@@ -195,20 +195,24 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
         GstSurfaceMemory *surface_mem = reinterpret_cast<GstSurfaceMemory *>(memory);
         surface_mem->needRender = TRUE;
 
+        bool needFlush = TRUE;
         if (isPreroll) {
             surface_sink->prerollBuffer = buffer;
         } else {
             if (surface_sink->prerollBuffer == buffer) {
                 // if it's paused, then play, this buffer is render by preroll
                 surface_sink->prerollBuffer = nullptr;
-            } else {
-                OHOS::BufferFlushConfig flushConfig = {
-                    { 0, 0, surface_mem->buf->GetWidth(), surface_mem->buf->GetHeight() },
-                };
-                OHOS::SurfaceError ret = priv->surface->FlushBuffer(surface_mem->buf, surface_mem->fence, flushConfig);
-                if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
-                    GST_ERROR_OBJECT(surface_sink, "flush buffer to surface failed, %d", ret);
-                }
+                needFlush = FALSE;
+            }
+        }
+
+        if (needFlush) {
+            OHOS::BufferFlushConfig flushConfig = {
+                { 0, 0, surface_mem->buf->GetWidth(), surface_mem->buf->GetHeight() },
+            };
+            OHOS::SurfaceError ret = priv->surface->FlushBuffer(surface_mem->buf, surface_mem->fence, flushConfig);
+            if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
+                GST_ERROR_OBJECT(surface_sink, "flush buffer to surface failed, %d", ret);
             }
         }
     }
