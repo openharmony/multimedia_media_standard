@@ -93,7 +93,8 @@ static void gst_surface_mem_sink_init(GstSurfaceMemSink *sink)
     sink->priv = priv;
     sink->priv->surface = nullptr;
     sink->priv->pool = GST_SURFACE_POOL_CAST(gst_surface_pool_new());
-    sink->prorell_buffer = nullptr;
+    sink->prorellBuffer = nullptr;
+    sink->firstRenderFrame = TRUE;
     GstMemSink *memSink = GST_MEM_SINK_CAST(sink);
     memSink->max_pool_capacity = DEFAULT_SURFACE_MAX_POOL_CAPACITY;
 }
@@ -176,6 +177,15 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
     g_return_val_if_fail(surface_sink != nullptr, GST_FLOW_ERROR);
     GstSurfaceMemSinkPrivate *priv = surface_sink->priv;
     GST_OBJECT_LOCK(surface_sink);
+
+    if (surface_sink->firstRenderFrame && isPreroll) {
+        surface_sink->firstRenderFrame = FALSE;
+        GST_DEBUG_OBJECT(surface_sink, "fisrt render frame");
+        GST_OBJECT_UNLOCK(surface_sink);
+        
+        return GST_FLOW_OK;  
+    }
+
     for (guint i = 0; i < gst_buffer_n_memory(buffer); i++) {
         GstMemory *memory = gst_buffer_peek_memory(buffer, i);
         if (!gst_is_surface_memory(memory)) {
@@ -187,15 +197,15 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
         surface_mem->needRender = TRUE;
 
         if (isPreroll) {
-            surface_sink->preroll_buffer = buffer;
+            surface_sink->prerollBuffer = buffer;
         }
 
         OHOS::BufferFlushConfig flushConfig = {
             { 0, 0, surface_mem->buf->GetWidth(), surface_mem->buf->GetHeight() },
         };
         OHOS::SurfaceError ret = priv->surface->FlushBuffer(surface_mem->buf, surface_mem->fence, flushConfig);
-        if (!isPreroll && (surface_sink->preroll_buffer == buffer)) {
-            surface_sink->preroll_buffer = nullptr;
+        if (!isPreroll && (surface_sink->prerollBuffer == buffer)) {
+            surface_sink->prerollBuffer = nullptr;
         } else if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
             // if it's paused, then play, this buffer is render by preroll, so it's ok
             GST_ERROR_OBJECT(surface_sink, "flush buffer to surface failed, %d", ret);
