@@ -19,6 +19,7 @@
 #include "gst_surface_pool.h"
 #include "buffer_type_meta.h"
 #include "media_log.h"
+#include "param_wrapper.h"
 
 namespace {
     constexpr guint32 DEFAULT_SURFACE_MAX_POOL_CAPACITY = 10; // 10 is surface queue max size
@@ -45,6 +46,10 @@ static void gst_surface_mem_sink_set_property(GObject *object, guint prop_id, co
 static void gst_surface_mem_sink_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec);
 static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, GstQuery *query);
 static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, GstBuffer *buffer, bool isPreroll);
+static void gst_surface_mem_sink_dump_from_sys_param(GstSurfaceMemSink *self);
+static void gst_surface_mem_sink_dump_buffer(GstSurfaceMemSink *self, GstBuffer *buffer);
+static GstStateChangeReturn gst_surface_mem_sink_change_state(GstElement *element, GstStateChange transition);
+static gboolean gst_surface_mem_sink_event(GstBaseSink *bsink, GstEvent *event);
 
 #define gst_surface_mem_sink_parent_class parent_class
 G_DEFINE_TYPE_WITH_CODE(GstSurfaceMemSink, gst_surface_mem_sink,
@@ -60,6 +65,7 @@ static void gst_surface_mem_sink_class_init(GstSurfaceMemSinkClass *klass)
     GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
     GstMemSinkClass *mem_sink_class = GST_MEM_SINK_CLASS(klass);
     GstElementClass *element_class = GST_ELEMENT_CLASS(klass);
+    GstBaseSinkClass *base_sink_class = GST_BASE_SINK_CLASS(klass);
 
     gst_element_class_add_static_pad_template (element_class, &g_sinktemplate);
 
@@ -67,6 +73,7 @@ static void gst_surface_mem_sink_class_init(GstSurfaceMemSinkClass *klass)
     gobject_class->finalize = gst_surface_mem_sink_finalize;
     gobject_class->set_property = gst_surface_mem_sink_set_property;
     gobject_class->get_property = gst_surface_mem_sink_get_property;
+    element_class->change_state = gst_surface_mem_sink_change_state;
 
     gst_element_class_set_static_metadata(element_class,
         "SurfaceMemSink", "Sink/Video",
@@ -80,6 +87,7 @@ static void gst_surface_mem_sink_class_init(GstSurfaceMemSinkClass *klass)
 
     mem_sink_class->do_propose_allocation = gst_surface_mem_sink_do_propose_allocation;
     mem_sink_class->do_app_render = gst_surface_mem_sink_do_app_render;
+    base_sink_class->event = gst_surface_mem_sink_event;
 
     GST_DEBUG_CATEGORY_INIT(gst_surface_mem_sink_debug_category, "surfacesink", 0, "surfacesink class");
 }
@@ -95,8 +103,11 @@ static void gst_surface_mem_sink_init(GstSurfaceMemSink *sink)
     sink->priv->pool = GST_SURFACE_POOL_CAST(gst_surface_pool_new());
     sink->prerollBuffer = nullptr;
     sink->firstRenderFrame = TRUE;
+    sink->dump.enable_dump = FALSE;
+    sink->dump.dump_file = nullptr;
     GstMemSink *memSink = GST_MEM_SINK_CAST(sink);
     memSink->max_pool_capacity = DEFAULT_SURFACE_MAX_POOL_CAPACITY;
+    gst_surface_mem_sink_dump_from_sys_param(sink);
 }
 
 static void gst_surface_mem_sink_dispose(GObject *obj)
@@ -210,6 +221,7 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
             OHOS::BufferFlushConfig flushConfig = {
                 { 0, 0, surface_mem->buf->GetWidth(), surface_mem->buf->GetHeight() },
             };
+            gst_surface_mem_sink_dump_buffer(surface_sink, buffer);
             OHOS::SurfaceError ret = priv->surface->FlushBuffer(surface_mem->buf, surface_mem->fence, flushConfig);
             if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
                 GST_ERROR_OBJECT(surface_sink, "flush buffer to surface failed, %d", ret);
@@ -285,3 +297,102 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     GST_OBJECT_UNLOCK(surface_sink);
     return ret;
 }
+
+void gst_surface_mem_sink_dump_from_sys_param(GstSurfaceMemSink *self)
+{
+    std::string dump_enable;
+    self->dump.enable_dump = FALSE;
+    int32_t res = OHOS::system::GetStringParameter("sys.media.dump.frame.enable", dump_enable, "");
+    if (res != 0 || dump_enable.empty()) {
+        GST_ERROR_OBJECT(self, "sys.media.dump.frame.enable");
+        return;
+    }
+    GST_DEBUG_OBJECT(self, "sys.media.dump.frame.enable=%s", dump_enable.c_str());
+
+    if (dump_enable == "true") {
+        self->dump.enable_dump = TRUE;
+    }
+}
+
+static gboolean gst_surface_mem_sink_event(GstBaseSink *bsink, GstEvent *event)
+{
+    GstSurfaceMemSink *surface_mem_sink = GST_SURFACE_MEM_SINK(bsink);
+    g_return_val_if_fail(surface_mem_sink != nullptr, FALSE);
+
+    GST_DEBUG_OBJECT(surface_mem_sink, "event->type %d", event->type);
+    switch (event->type) {
+        case GST_EVENT_CAPS : {
+            GstCaps *caps;
+            gst_event_parse_caps(event, &caps);
+            surface_mem_sink->caps = caps;
+        }
+        default :
+            break;
+    }
+    return GST_BASE_SINK_CLASS(parent_class)->event(bsink, event);
+}
+
+static void gst_surface_mem_sink_dump_buffer(GstSurfaceMemSink *self, GstBuffer *buffer)
+{
+    g_return_if_fail(self != nullptr);
+    g_return_if_fail(buffer != nullptr);
+    if (self->dump.enable_dump == FALSE) {
+        return;
+    }
+    GST_DEBUG_OBJECT(self, "Dump yuv buffer");
+
+    if (self->dump.dump_file == nullptr) {
+        GST_ERROR_OBJECT(self, "file not opened");
+        return;
+    }
+
+    GstVideoMeta *video_meta = gst_buffer_get_video_meta(buffer);
+    g_return_if_fail(video_meta != nullptr);
+    GstStructure *struc = gst_caps_get_structure(self->caps, 0);
+    g_return_if_fail(struc != nullptr);
+    const gchar *format = gst_structure_get_string(struc, "format");
+    g_return_if_fail(format != nullptr);
+
+    GstMapInfo info = GST_MAP_INFO_INIT;
+    g_return_if_fail(gst_buffer_map(buffer, &info, GST_MAP_READ));
+
+    if (g_str_equal(format, "NV12") || g_str_equal(format, "NV21")) {
+        info.size = (video_meta->offset[1] * 3) / 2;  // 3 2 : NV12和NV21 size比例大小
+    }
+    GST_DEBUG_OBJECT(self, "format %s, stride width %d, stride size %d, info.size %d",
+        format, video_meta->offset[0], video_meta->offset[1], info.size);
+
+    (void)fwrite(info.data, info.size, 1, self->dump.dump_file);
+    (void)fflush(self->dump.dump_file);
+    gst_buffer_unmap(buffer, &info);
+}
+
+static GstStateChangeReturn gst_surface_mem_sink_change_state(GstElement *element, GstStateChange transition)
+{
+    g_return_val_if_fail(element != nullptr, GST_STATE_CHANGE_FAILURE);
+    GstSurfaceMemSink *self = GST_SURFACE_MEM_SINK(element);
+
+    GST_DEBUG_OBJECT(element, "change state %d", transition);
+    switch (transition) {
+        case GST_STATE_CHANGE_READY_TO_PAUSED :
+            if (self->dump.enable_dump == TRUE) {
+                static std::string dump_file = "/data/media/dump.yuv";
+                if (self->dump.dump_file == nullptr) {
+                    self->dump.dump_file = fopen(dump_file.c_str(), "wb+");
+                }
+            }
+            break;
+        case GST_STATE_CHANGE_PAUSED_TO_READY :
+            if (self->dump.enable_dump == TRUE) {
+                if (self->dump.dump_file != nullptr) {
+                    fclose(self->dump.dump_file);
+                    self->dump.dump_file = nullptr;
+                }
+            }
+            break;
+        default :
+            break;
+    }
+    return GST_ELEMENT_CLASS(parent_class)->change_state(element, transition);
+}
+

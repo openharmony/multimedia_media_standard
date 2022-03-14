@@ -16,6 +16,7 @@
 #ifndef GST_SURFACE_MEM_SINK_H
 #define GST_SURFACE_MEM_SINK_H
 
+#include <stdio.h>
 #include "gst_mem_sink.h"
 
 G_BEGIN_DECLS
@@ -34,6 +35,12 @@ G_BEGIN_DECLS
 typedef struct _GstSurfaceMemSink GstSurfaceMemSink;
 typedef struct _GstSurfaceMemSinkClass GstSurfaceMemSinkClass;
 typedef struct _GstSurfaceMemSinkPrivate GstSurfaceMemSinkPrivate;
+typedef struct _GstSurfaceMemSinkDump GstSurfaceMemSinkDump;
+
+struct _GstSurfaceMemSinkDump {
+    gboolean enable_dump;
+    FILE *dump_file;
+};
 
 struct _GstSurfaceMemSink {
     GstMemSink memsink;
@@ -41,6 +48,8 @@ struct _GstSurfaceMemSink {
     bool firstRenderFrame;
     /* < private > */
     GstSurfaceMemSinkPrivate *priv;
+    GstSurfaceMemSinkDump dump;
+    GstCaps *caps;
 };
 
 struct _GstSurfaceMemSinkClass {
