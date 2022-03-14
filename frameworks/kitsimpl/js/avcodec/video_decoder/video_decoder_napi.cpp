@@ -625,8 +625,8 @@ napi_value VideoDecoderNapi::ReleaseOutput(napi_env env, napi_callback_info info
     auto asyncCtx = std::make_unique<VideoDecoderAsyncContext>(env);
 
     napi_value jsThis = nullptr;
-    napi_value args[3] = {nullptr};
-    size_t argCount = 3;
+    napi_value args[2] = {nullptr};
+    size_t argCount = 2;
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
         asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to napi_get_cb_info");
@@ -684,8 +684,8 @@ napi_value VideoDecoderNapi::RenderOutputData(napi_env env, napi_callback_info i
     auto asyncCtx = std::make_unique<VideoDecoderAsyncContext>(env);
 
     napi_value jsThis = nullptr;
-    napi_value args[3] = {nullptr};
-    size_t argCount = 3;
+    napi_value args[2] = {nullptr};
+    size_t argCount = 2;
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
         asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to napi_get_cb_info");
