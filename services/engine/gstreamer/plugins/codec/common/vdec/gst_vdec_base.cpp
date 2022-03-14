@@ -981,6 +981,11 @@ static void gst_vdec_base_loop(GstVdecBase *self)
     g_return_if_fail(self->decoder != nullptr);
 
     GstBuffer *gst_buffer = nullptr;
+    if (gst_vdec_base_push_out_buffers(self) != TRUE) {
+        gst_vdec_base_pause_loop(self);
+        return;
+    }
+    GST_DEBUG_OBJECT(self, "coding buffers %u", self->coding_outbuf_cnt);
     gint codec_ret = self->decoder->PullOutputBuffer(&gst_buffer);
     gint flow_ret = GST_FLOW_OK;
     GST_DEBUG_OBJECT(self, "Pull ret %d", codec_ret);
@@ -988,9 +993,6 @@ static void gst_vdec_base_loop(GstVdecBase *self)
         case GST_CODEC_OK:
             self->coding_outbuf_cnt--;
             flow_ret = push_output_buffer(self, gst_buffer);
-            break;
-        case GST_CODEC_NO_BUFFER:
-            flow_ret = GST_FLOW_OK;
             break;
         case GST_CODEC_FORMAT_CHANGE:
             flow_ret = gst_vdec_base_format_change(self);
@@ -1011,10 +1013,7 @@ static void gst_vdec_base_loop(GstVdecBase *self)
     }
     switch (flow_ret) {
         case GST_FLOW_OK:
-            if (gst_vdec_base_push_out_buffers(self)) {
-                return;
-            }
-            break;
+            return;
         case GST_FLOW_FLUSHING:
             GST_DEBUG_OBJECT(self, "Flushing");
             break;
