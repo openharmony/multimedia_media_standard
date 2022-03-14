@@ -37,7 +37,8 @@ typedef struct _GstSurfaceMemSinkPrivate GstSurfaceMemSinkPrivate;
 
 struct _GstSurfaceMemSink {
     GstMemSink memsink;
-
+    GstBuffer *prerollBuffer;
+    bool firstRenderFrame;
     /* < private > */
     GstSurfaceMemSinkPrivate *priv;
 };
