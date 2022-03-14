@@ -71,6 +71,7 @@ ohos_executable("media_demo") {
     "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
     "//foundation/graphic/standard/utils:sync_fence",
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//foundation/windowmanager/wm:libwm",
     "//third_party/libjpeg:libjpeg_static",
     "//utils/native/base:utils",

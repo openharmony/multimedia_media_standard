@@ -30,6 +30,7 @@ public:
 
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
     int32_t SetSource(const std::string &uri, int32_t usage) override;
+    int32_t SetSource(int32_t fd, int64_t offset, int64_t size, int32_t usage) override;
     std::string ResolveMetadata(int32_t key) override;
     std::unordered_map<int32_t, std::string> ResolveMetadataMap() override;
     std::shared_ptr<AVSharedMemory> FetchArtPicture() override;
@@ -41,7 +42,8 @@ public:
 private:
     AVMetadataHelperServiceStub();
     int32_t Init();
-    int32_t SetSource(MessageParcel &data, MessageParcel &reply);
+    int32_t SetUriSource(MessageParcel &data, MessageParcel &reply);
+    int32_t SetFdSource(MessageParcel &data, MessageParcel &reply);
     int32_t ResolveMetadata(MessageParcel &data, MessageParcel &reply);
     int32_t ResolveMetadataMap(MessageParcel &data, MessageParcel &reply);
     int32_t FetchArtPicture(MessageParcel &data, MessageParcel &reply);
