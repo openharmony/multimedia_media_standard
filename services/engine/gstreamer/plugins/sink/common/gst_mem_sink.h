@@ -63,7 +63,6 @@ struct _GstMemSinkClass {
     gboolean (*do_propose_allocation) (GstMemSink *sink, GstQuery *query);
     GstFlowReturn (*do_stream_render) (GstMemSink *sink, GstBuffer **buffer);
     GstFlowReturn (*do_app_render) (GstMemSink *sink, GstBuffer *buffer, bool isPreroll);
-    GstFlowReturn (*do_app_preroll_render) (GstMemSink *sink, GstBuffer *buffer, bool isPreroll);
 };
 
 GST_API_EXPORT GType gst_mem_sink_get_type(void);
