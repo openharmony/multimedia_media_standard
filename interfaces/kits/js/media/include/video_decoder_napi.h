@@ -46,6 +46,7 @@ private:
     static napi_value Release(napi_env env, napi_callback_info info);
     static napi_value QueueInput(napi_env env, napi_callback_info info);
     static napi_value ReleaseOutput(napi_env env, napi_callback_info info);
+    static napi_value RenderOutputData(napi_env env, napi_callback_info info);
     static napi_value SetOutputSurface(napi_env env, napi_callback_info info);
     static napi_value SetParameter(napi_env env, napi_callback_info info);
     static napi_value GetOutputMediaDescription(napi_env env, napi_callback_info info);
@@ -77,7 +78,6 @@ struct VideoDecoderAsyncContext : public MediaAsyncContext {
     int32_t createByMime = 1;
     // used by buffer function
     int32_t index = 0;
-    bool isRender = false;
     AVCodecBufferInfo info;
     AVCodecBufferFlag flag = AVCODEC_BUFFER_FLAG_NONE;
     // used by format
