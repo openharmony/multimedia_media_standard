@@ -245,7 +245,7 @@ static const std::vector<struct JsEnumString> g_mediaDescriptionKey = {
     { "MD_KEY_WIDTH", "width" },
     { "MD_KEY_HEIGHT", "height" },
     { "MD_KEY_PIXEL_FORMAT", "pixel_format" },
-    { "MD_KEY_AUDIO_RAW_FORMAT", "audio_sample_format" },
+    { "MD_KEY_AUDIO_SAMPLE_FORMAT", "audio_sample_format" },
     { "MD_KEY_FRAME_RATE", "frame_rate" },
     { "MD_KEY_CAPTURE_RATE", "capture_rate" },
     { "MD_KEY_I_FRAME_INTERVAL", "i_frame_interval" },
