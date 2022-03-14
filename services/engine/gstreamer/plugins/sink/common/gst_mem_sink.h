@@ -62,7 +62,8 @@ struct _GstMemSinkClass {
 
     gboolean (*do_propose_allocation) (GstMemSink *sink, GstQuery *query);
     GstFlowReturn (*do_stream_render) (GstMemSink *sink, GstBuffer **buffer);
-    GstFlowReturn (*do_app_render) (GstMemSink *sink, GstBuffer *buffer);
+    GstFlowReturn (*do_app_render) (GstMemSink *sink, GstBuffer *buffer, bool isPreroll);
+    GstFlowReturn (*do_app_preroll_render) (GstMemSink *sink, GstBuffer *buffer, bool isPreroll);
 };
 
 GST_API_EXPORT GType gst_mem_sink_get_type(void);
@@ -91,6 +92,17 @@ GST_API_EXPORT void gst_mem_sink_set_callback(GstMemSink *mem_sink,
  * @return GST_FLOW_OK if success, or error code.
  */
 GST_API_EXPORT GstFlowReturn gst_mem_sink_app_render(GstMemSink *mem_sink, GstBuffer *buffer);
+
+/**
+ * @brief call this interface to indicate the app ends up the access of buffer, then
+ * the buffer can be release back to buffer pool. Call this function is not necessary,
+ * it is up to the sink and pool implementation and underlying memory type.
+ *
+ * @param mem_sink the sink element instance
+ * @param buffer the buffer will be rendered, allowd to be nullptr at certain situation.
+ * @return GST_FLOW_OK if success, or error code.
+ */
+GST_API_EXPORT GstFlowReturn gst_mem_sink_app_preroll_render(GstMemSink *mem_sink, GstBuffer *buffer);
 
 #ifdef G_DEFINE_AUTOPTR_CLEANUP_FUNC
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GstMemSink, gst_object_unref)
