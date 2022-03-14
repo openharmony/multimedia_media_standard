@@ -998,6 +998,7 @@ static void gst_vdec_base_loop(GstVdecBase *self)
             flow_ret = gst_vdec_base_format_change(self);
             return;
         case GST_CODEC_EOS:
+            self->coding_outbuf_cnt--;
             flow_ret = gst_vdec_base_codec_eos(self);
             break;
         case GST_CODEC_FLUSH:
