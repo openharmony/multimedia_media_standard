@@ -55,7 +55,6 @@ struct _GstSurfacePool {
     gint usage;
     GstTask *task;
     GRecMutex taskLock;
-    gboolean surfaceError = FALSE;
 };
 
 struct _GstSurfacePoolClass {
