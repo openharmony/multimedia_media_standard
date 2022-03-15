@@ -610,7 +610,7 @@ void VideoRecorderNapi::GetConfig(napi_env env, napi_value args,
     (void)CommonNapi::GetPropertyInt32(env, args, "videoSourceType", videoSource);
     properties.videoSourceType = static_cast<VideoSourceType>(videoSource);
 
-    (void)CommonNapi::GetPropertyInt32(env, args, "orientationHint", properties.orientationHint);
+    (void)CommonNapi::GetPropertyInt32(env, args, "rotation", properties.orientationHint);
 
     napi_value geoLocation = nullptr;
     napi_get_named_property(env, args, "location", &geoLocation);

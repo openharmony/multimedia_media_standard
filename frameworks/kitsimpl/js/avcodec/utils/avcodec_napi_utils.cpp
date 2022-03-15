@@ -24,7 +24,7 @@ namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecNapiUtil"};
     const std::map<std::string, OHOS::Media::FormatDataType> FORMAT = {
         {"codec_mime", OHOS::Media::FORMAT_TYPE_STRING},
-        {"audio_raw_format", OHOS::Media::FORMAT_TYPE_INT32},
+        {"audio_sample_format", OHOS::Media::FORMAT_TYPE_INT32},
         {"bitrate", OHOS::Media::FORMAT_TYPE_INT32},
         {"max_input_size", OHOS::Media::FORMAT_TYPE_INT32},
         {"max_encoder_fps", OHOS::Media::FORMAT_TYPE_INT32},
