@@ -94,22 +94,10 @@ const std::unordered_map<std::string, int> VIDEO_FORMAT_MAP = {
 };
 
 const std::unordered_map<std::string, int> AUDIO_FORMAT_MAP = {
-    {"S8", AUDIO_PCM_S8},
-    {"8", AUDIO_PCM_8},
-    {"S16BE", AUDIO_PCM_S16_BE},
-    {"S16LE", AUDIO_PCM_S16_LE},
-    {"16BE", AUDIO_PCM_16_BE},
-    {"16LE", AUDIO_PCM_16_LE},
-    {"S24BE", AUDIO_PCM_S24_BE},
-    {"S24LE", AUDIO_PCM_S24_LE},
-    {"24BE", AUDIO_PCM_24_BE},
-    {"24LE", AUDIO_PCM_24_LE},
-    {"S32BE", AUDIO_PCM_S32_BE},
-    {"S32LE", AUDIO_PCM_S32_LE},
-    {"32BE", AUDIO_PCM_32_BE},
-    {"32LE", AUDIO_PCM_32_LE},
-    {"F32BE", AUDIO_PCM_F32_BE},
-    {"F32LE", AUDIO_PCM_F32_LE},
+    {"U8", AudioStandard::SAMPLE_U8},
+    {"S16LE", AudioStandard::SAMPLE_S16LE},
+    {"S24LE", AudioStandard::SAMPLE_S24LE},
+    {"S32LE", AudioStandard::SAMPLE_S32LE},
 };
 
 const std::unordered_map<std::string, int> BITRATE_MODE_MAP = {
