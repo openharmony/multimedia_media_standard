@@ -72,6 +72,7 @@ ohos_static_library("gst_mem_sink_plugins_common") {
   configs = [ ":gst_mem_sink_plugins_config" ]
 
   deps = [
+    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard/utils:sync_fence",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_plugins_common",
