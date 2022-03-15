@@ -446,7 +446,7 @@ public:
 
     /**
      * @brief Get supported audio raw format range.
-     * @return Returns the range of supported audio raw format. For details, see {@link AudioRawFormat}.
+     * @return Returns the range of supported audio raw format. For details, see {@link AudioSampleFormat}.
      * @since 3.1
      * @version 3.1
      */
@@ -695,79 +695,6 @@ enum MPEG4Level {
     MPEG4_LEVEL_4 = 5,
     MPEG4_LEVEL_4A = 6,
     MPEG4_LEVEL_5 = 7,
-};
-
-/**
- * @brief
- *
- * @since 3.1
- * @version 3.1
- */
-enum AudioRawFormat {
-    /**
-     * signed 8 bits.
-     */
-    AUDIO_PCM_S8 = 1,
-    /**
-     * unsigned 8 bits.
-     */
-    AUDIO_PCM_8 = 2,
-    /**
-     * signed 16 bits in big endian.
-     */
-    AUDIO_PCM_S16_BE = 3,
-    /**
-     * signed 16 bits in little endian.
-     */
-    AUDIO_PCM_S16_LE = 4,
-    /**
-     * unsigned 16 bits in big endian.
-     */
-    AUDIO_PCM_16_BE = 5,
-    /**
-     * unsigned 16 bits in little endian.
-     */
-    AUDIO_PCM_16_LE = 6,
-    /**
-     * signed 24 bits in big endian.
-     */
-    AUDIO_PCM_S24_BE = 7,
-    /**
-     * signed 24 bits in little endian.
-     */
-    AUDIO_PCM_S24_LE = 8,
-    /**
-     * unsigned 24 bits in big endian.
-     */
-    AUDIO_PCM_24_BE = 9,
-    /**
-     * unsigned 24 bits in little endian.
-     */
-    AUDIO_PCM_24_LE = 10,
-    /**
-     * signed 32 bits in big endian.
-     */
-    AUDIO_PCM_S32_BE = 11,
-    /**
-     * signed 32 bits in little endian.
-     */
-    AUDIO_PCM_S32_LE = 12,
-    /**
-     * unsigned 32 bits in big endian.
-     */
-    AUDIO_PCM_32_BE = 13,
-    /**
-     * unsigned 32 bits in little endian.
-     */
-    AUDIO_PCM_32_LE = 14,
-    /**
-     * float 32 bits in big endian.
-     */
-    AUDIO_PCM_F32_BE = 15,
-    /**
-     * float 32 bits in little endian.
-     */
-    AUDIO_PCM_F32_LE = 16,
 };
 
 /**

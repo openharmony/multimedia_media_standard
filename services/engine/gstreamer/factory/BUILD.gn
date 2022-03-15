@@ -50,6 +50,7 @@ config("media_engine_gst_factory_config") {
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
+    "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiocommon/include",
     "//third_party/glib/glib",
     "//third_party/glib",
     "//third_party/gstreamer/gstreamer",
