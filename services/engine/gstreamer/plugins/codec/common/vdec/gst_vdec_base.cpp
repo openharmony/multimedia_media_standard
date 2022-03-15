@@ -790,6 +790,9 @@ static void update_video_meta(const GstVdecBase *self, GstBuffer *buffer)
     } else {
         video_meta->width = self->width;
         video_meta->height = self->height;
+        video_meta->offset[0] = 0;
+        video_meta->stride[0] = self->stride;
+        video_meta->offset[1] = video_meta->stride[0] * self->stride_height;
     }
 }
 
