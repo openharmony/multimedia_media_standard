@@ -63,14 +63,7 @@ int32_t SinkSurfaceImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 int32_t SinkSurfaceImpl::Flush()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    for (auto it = bufferList_.begin(); it != bufferList_.end(); it++) {
-        if ((*it)->owner_ != BufferWrapper::DOWNSTREAM) {
-            (*it)->owner_ = BufferWrapper::DOWNSTREAM;
-            if ((*it)->gstBuffer_ != nullptr) {
-                gst_buffer_unref((*it)->gstBuffer_);
-            }
-        }
-    }
+    bufferList_.clear();
     isFirstFrame_ = true;
     return MSERR_OK;
 }
@@ -86,22 +79,6 @@ int32_t SinkSurfaceImpl::SetOutputSurface(sptr<Surface> surface)
 
 int32_t SinkSurfaceImpl::SetParameter(const Format &format)
 {
-    int32_t value = 0;
-    if (format.GetIntValue("rect_top", value) == true) {
-        g_object_set(sink_, "rect-top", value, nullptr);
-    }
-
-    if (format.GetIntValue("rect_bottom", value) == true) {
-        g_object_set(sink_, "rect-top", value, nullptr);
-    }
-
-    if (format.GetIntValue("rect_left", value) == true) {
-        g_object_set(sink_, "rect-top", value, nullptr);
-    }
-
-    if (format.GetIntValue("rect_right", value) == true) {
-        g_object_set(sink_, "rect-top", value, nullptr);
-    }
     return MSERR_OK;
 }
 
@@ -118,6 +95,7 @@ int32_t SinkSurfaceImpl::ReleaseOutputBuffer(uint32_t index, bool render)
 
     bufferList_[index]->owner_ = BufferWrapper::DOWNSTREAM;
     gst_buffer_unref(bufferList_[index]->gstBuffer_);
+    bufferList_[index]->gstBuffer_ = nullptr;
     return MSERR_OK;
 }
 
@@ -157,7 +135,6 @@ void SinkSurfaceImpl::EosCb(GstMemSink *memSink, gpointer userData)
 int32_t SinkSurfaceImpl::HandleNewSampleCb(GstBuffer *buffer)
 {
     CHECK_AND_RETURN_RET(buffer != nullptr, MSERR_UNKNOWN);
-    ON_SCOPE_EXIT(0) { gst_buffer_unref(buffer); };
 
     GstMemory *memory = gst_buffer_peek_memory(buffer, 0);
     CHECK_AND_RETURN_RET(memory != nullptr, MSERR_UNKNOWN);
@@ -187,7 +164,6 @@ int32_t SinkSurfaceImpl::HandleNewSampleCb(GstBuffer *buffer)
     MEDIA_LOGD("OutputBufferAvailable, index:%{public}d", index);
     bufferList_[index]->owner_ = BufferWrapper::SERVER;
     gst_buffer_ref(buffer);
-    CANCEL_SCOPE_EXIT_GUARD(0);
 
     return MSERR_OK;
 }
@@ -198,7 +174,8 @@ int32_t SinkSurfaceImpl::FindBufferIndex(uint32_t &index, sptr<SurfaceBuffer> bu
 
     index = 0;
     for (auto it = bufferList_.begin(); it != bufferList_.end(); it++) {
-        if ((*it) != nullptr && (*it)->surfaceBuffer_->GetVirAddr() == buffer->GetVirAddr()) {
+        if ((*it) != nullptr && (*it)->surfaceBuffer_ != nullptr &&
+            (*it)->surfaceBuffer_->GetVirAddr() == buffer->GetVirAddr()) {
             break;
         }
         index++;
@@ -210,8 +187,6 @@ int32_t SinkSurfaceImpl::FindBufferIndex(uint32_t &index, sptr<SurfaceBuffer> bu
         bufWrap->surfaceBuffer_ = buffer;
         bufferList_.push_back(bufWrap);
     }
-
-    MEDIA_LOGD("bufferList_ size is: %{public}zu", bufferList_.size());
 
     CHECK_AND_RETURN_RET(index < bufferList_.size(), MSERR_UNKNOWN);
     return MSERR_OK;
