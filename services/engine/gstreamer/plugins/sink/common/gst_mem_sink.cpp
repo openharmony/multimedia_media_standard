@@ -525,7 +525,25 @@ GstFlowReturn gst_mem_sink_app_render(GstMemSink *mem_sink, GstBuffer *buffer)
 
     GstFlowReturn ret = GST_FLOW_OK;
     if (mem_sink_class->do_app_render != nullptr) {
-        ret = mem_sink_class->do_app_render(mem_sink, buffer);
+        ret = mem_sink_class->do_app_render(mem_sink, buffer, FALSE);
+    }
+
+    return ret;
+}
+
+GstFlowReturn gst_mem_sink_app_preroll_render(GstMemSink *mem_sink, GstBuffer *buffer)
+{
+    g_return_val_if_fail(mem_sink != nullptr, GST_FLOW_ERROR);
+    GstMemSinkPrivate *priv = mem_sink->priv;
+    g_return_val_if_fail(priv != nullptr, GST_FLOW_ERROR);
+    GstMemSinkClass *mem_sink_class = GST_MEM_SINK_GET_CLASS(mem_sink);
+    g_return_val_if_fail(mem_sink_class != nullptr, GST_FLOW_ERROR);
+
+    GST_INFO_OBJECT(mem_sink, "app preroll render buffer 0x%06" PRIXPTR "", FAKE_POINTER(buffer));
+
+    GstFlowReturn ret = GST_FLOW_OK;
+    if (mem_sink_class->do_app_render != nullptr) {
+        ret = mem_sink_class->do_app_render(mem_sink, buffer, TRUE);
     }
 
     return ret;

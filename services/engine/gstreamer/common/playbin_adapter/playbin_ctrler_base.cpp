@@ -106,17 +106,10 @@ int32_t PlayBinCtrlerBase::Init()
 
 int32_t PlayBinCtrlerBase::SetSource(const std::string &url)
 {
-    UriHelper uriHeper = UriHelper(url).FormatMe();
-    if (((uriHeper.UriType() != UriHelper::URI_TYPE_FILE) && (uriHeper.UriType() != UriHelper::URI_TYPE_FD)) ||
-        !uriHeper.AccessCheck(UriHelper::URI_READ)) {
-        MEDIA_LOGE("Invalid url : %{public}s", url.c_str());
-        return MSERR_UNSUPPORT;
-    }
-
     std::unique_lock<std::mutex> lock(mutex_);
-    uri_ = uriHeper.FormattedUri();
+    uri_ = url;
 
-    MEDIA_LOGI("Set source: %{public}s", uriHeper.FormattedUri().c_str());
+    MEDIA_LOGI("Set source: %{public}s", url.c_str());
     return MSERR_OK;
 }
 

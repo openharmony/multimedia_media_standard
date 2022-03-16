@@ -229,10 +229,9 @@ void VideoCallbackNapi::OnStartRenderFrameCb() const
 
 void VideoCallbackNapi::OnVideoSizeChangedCb(const Format &infoBody)
 {
-    MEDIA_LOGD("OnVideoSizeChangedCb is called");
     (void)infoBody.GetIntValue(PlayerKeys::PLAYER_WIDTH, width_);
     (void)infoBody.GetIntValue(PlayerKeys::PLAYER_HEIGHT, height_);
-
+    MEDIA_LOGD("OnVideoSizeChangedCb is called, width = %{public}d, height = %{public}d", width_, height_);
     CHECK_AND_RETURN_LOG(videoSizeChangedCallback_ != nullptr,
         "Cannot find the reference of videoSizeChanged callback");
     PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();

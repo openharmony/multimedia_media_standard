@@ -52,7 +52,7 @@ void TimeMonitor::FinishTime()
         MEDIA_LOGE("get current time failed!");
     }
     MEDIA_LOGD("%{public}s: elapsed time = %{public}" PRId64 " ms", objectName_.c_str(),
-        (Timeval2Sec(finishTime_, TIME_VAL_MS) - Timeval2Sec(startTime_, TIME_VAL_MS)));
+               (Timeval2Sec(finishTime_, TIME_VAL_MS) - Timeval2Sec(startTime_, TIME_VAL_MS)));
     isStart_ = false;
 }
 

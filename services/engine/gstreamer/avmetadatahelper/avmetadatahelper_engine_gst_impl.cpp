@@ -86,7 +86,8 @@ int32_t AVMetadataHelperEngineGstImpl::SetSource(const std::string &uri, int32_t
         return MSERR_INVALID_VAL;
     }
 
-    if (UriHelper(uri).FormatMe().UriType() != UriHelper::URI_TYPE_FILE) {
+    UriHelper uriHelper(uri);
+    if (uriHelper.UriType() != UriHelper::URI_TYPE_FILE && uriHelper.UriType() != UriHelper::URI_TYPE_FD) {
         MEDIA_LOGE("Unsupported uri type : %{public}s", uri.c_str());
         return MSERR_UNSUPPORT;
     }

@@ -51,7 +51,8 @@ int32_t AVMetadataHelperServiceStub::Init()
     CHECK_AND_RETURN_RET_LOG(avMetadateHelperServer_ != nullptr, MSERR_NO_MEMORY,
         "failed to create AVMetadataHelper Service");
 
-    avMetadataHelperFuncs_[SET_SOURCE] = &AVMetadataHelperServiceStub::SetSource;
+    avMetadataHelperFuncs_[SET_URI_SOURCE] = &AVMetadataHelperServiceStub::SetUriSource;
+    avMetadataHelperFuncs_[SET_FD_SOURCE] = &AVMetadataHelperServiceStub::SetFdSource;
     avMetadataHelperFuncs_[RESOLVE_METADATA] = &AVMetadataHelperServiceStub::ResolveMetadata;
     avMetadataHelperFuncs_[RESOLVE_METADATA_MAP] = &AVMetadataHelperServiceStub::ResolveMetadataMap;
     avMetadataHelperFuncs_[FETCH_ART_PICTURE] = &AVMetadataHelperServiceStub::FetchArtPicture;
@@ -101,6 +102,12 @@ int32_t AVMetadataHelperServiceStub::SetSource(const std::string &uri, int32_t u
     return avMetadateHelperServer_->SetSource(uri, usage);
 }
 
+int32_t AVMetadataHelperServiceStub::SetSource(int32_t fd, int64_t offset, int64_t size, int32_t usage)
+{
+    CHECK_AND_RETURN_RET_LOG(avMetadateHelperServer_ != nullptr, MSERR_NO_MEMORY, "avmetadatahelper server is nullptr");
+    return avMetadateHelperServer_->SetSource(fd, offset, size, usage);
+}
+
 std::string AVMetadataHelperServiceStub::ResolveMetadata(int32_t key)
 {
     CHECK_AND_RETURN_RET_LOG(avMetadateHelperServer_ != nullptr, "", "avmetadatahelper server is nullptr");
@@ -132,11 +139,22 @@ void AVMetadataHelperServiceStub::Release()
     return avMetadateHelperServer_->Release();
 }
 
-int32_t AVMetadataHelperServiceStub::SetSource(MessageParcel &data, MessageParcel &reply)
+int32_t AVMetadataHelperServiceStub::SetUriSource(MessageParcel &data, MessageParcel &reply)
 {
     std::string uri = data.ReadString();
     int32_t usage = data.ReadInt32();
     reply.WriteInt32(SetSource(uri, usage));
+    return MSERR_OK;
+}
+
+int32_t AVMetadataHelperServiceStub::SetFdSource(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t fd = data.ReadFileDescriptor();
+    int64_t offset = data.ReadInt64();
+    int64_t size = data.ReadInt64();
+    int32_t usage = data.ReadInt32();
+    reply.WriteInt32(SetSource(fd, offset, size, usage));
+    (void)::close(fd);
     return MSERR_OK;
 }
 
