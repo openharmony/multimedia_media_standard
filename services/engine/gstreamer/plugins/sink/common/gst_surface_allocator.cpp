@@ -68,7 +68,7 @@ GstSurfaceMemory *gst_surface_allocator_alloc(GstSurfaceAllocator *allocator, Gs
         surface_buffer->GetSize(), 0, 0, surface_buffer->GetSize());
 
     memory->buf = surface_buffer;
-    memory->fence = release_fence;
+    memory->fence = -1;
     memory->needRender = FALSE;
     GST_DEBUG("alloc surface buffer for width: %d, height: %d, format: %d, size: %u",
         param.width, param.height, param.format, surface_buffer->GetSize());
