@@ -35,42 +35,17 @@ public:
     int32_t InitAudioSink(const GstElement *playbin);
     const GstElement *GetVideoSink() const;
     const sptr<Surface> GetProducerSurface() const;
-    int32_t PullVideoBuffer();
-    int32_t PrerollVideoBuffer();
-    sptr<SurfaceBuffer> RequestBuffer(const GstVideoMeta *videoMeta);
-    int32_t UpdateSurfaceBuffer(const GstBuffer &buffer);
     int32_t SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs);
 
 private:
-    BufferRequestConfig UpdateRequestConfig(const GstVideoMeta *videoMeta) const;
-    void SetSurfaceTimeFromSysPara();
-    void SetDumpFrameFromSysPara();
-    void SetKpiLogFromSysPara();
-    void SetDumpFrameInternalFromSysPara();
-    void SaveFrameToFile(const unsigned char *buffer, size_t size);
-    void CopyToSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer, const GstBuffer &buffer, bool &needFlush);
-    int32_t CopyDefault(sptr<SurfaceBuffer> surfaceBuffer, const GstBuffer &buffer);
-    int32_t CopyRgba(sptr<SurfaceBuffer> surfaceBuffer, const GstBuffer &buffer,
-        const GstMapInfo &map, int32_t stride);
-    void KpiFpsLog();
     sptr<Surface> producerSurface_ = nullptr;
     GstElement *videoSink_ = nullptr;
     GstElement *audioSink_ = nullptr;
     GstCaps *videoCaps_ = nullptr;
     GstCaps *audioCaps_ = nullptr;
-    bool surfaceTimeEnable_ = false;
-    bool dumpFrameEnable_ = false;
-    bool kpiLogEnable_ = false;
-    bool firstRenderFrame_ = true;
-    uint32_t dumpFrameNum_ = 0;
-    uint32_t dumpFrameInternal_ = 1;
     uint32_t queueSize_ = 0;
-    TimeMonitor surfaceTimeMonitor_;
     std::vector<gulong> signalIds_;
     std::weak_ptr<IPlayerEngineObs> obs_;
-    uint64_t flushBufferNums_ = 0;
-    uint64_t lastFlushBufferNums_ = 0;
-    uint64_t lastFlushBufferTime_ = 0;
 };
 
 class GstPlayerVideoRendererFactory {

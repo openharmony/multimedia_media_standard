@@ -176,6 +176,16 @@ int32_t AVMetadataHelperImpl::SetSource(const std::string &uri, int32_t usage)
     return avMetadataHelperService_->SetSource(uri, usage);
 }
 
+int32_t AVMetadataHelperImpl::SetSource(int32_t fd, int64_t offset, int64_t size, int32_t usage)
+{
+    CHECK_AND_RETURN_RET_LOG(avMetadataHelperService_ != nullptr, MSERR_NO_MEMORY,
+        "avmetadatahelper service does not exist..");
+
+    CHECK_AND_RETURN_RET_LOG(fd > 0 && offset >= 0 && size > 0, MSERR_INVALID_VAL, "invalid param");
+
+    return avMetadataHelperService_->SetSource(fd, offset, size, usage);
+}
+
 std::string AVMetadataHelperImpl::ResolveMetadata(int32_t key)
 {
     CHECK_AND_RETURN_RET_LOG(avMetadataHelperService_ != nullptr, "",

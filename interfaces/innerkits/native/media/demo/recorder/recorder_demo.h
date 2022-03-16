@@ -70,7 +70,7 @@ public:
     int32_t CameraServicesForAudio() const;
     int32_t SetFormat(const std::string &type) const;
     int32_t GetStubFile();
-    uint64_t GetPts();
+    int64_t GetPts();
 
 private:
     void SetVideoSource();
