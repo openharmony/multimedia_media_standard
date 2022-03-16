@@ -14,13 +14,9 @@
  */
 
 #include "player_server.h"
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include "media_log.h"
 #include "media_errors.h"
 #include "engine_factory_repo.h"
-#include "uri_helper.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayerServer"};
@@ -88,43 +84,12 @@ int32_t PlayerServer::SetSource(int32_t fd, int64_t offset, int64_t size)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGW("KPI-TRACE: PlayerServer SetSource in(fd)");
-    ResetFdSource();
-    fd_ = dup(fd);
-    if (fd_ < 0) {
-        return MSERR_UNKNOWN;
-    }
-
-    if (CheckFdArgument(offset, size) == false) {
-        return MSERR_UNKNOWN;
-    }
-
-    std::string url = UriHelper::FormatFdToUri(fd_, offset, size);
-    int32_t ret = InitPlayEngine(url);
+    auto uriHelper = std::make_unique<UriHelper>(fd, offset, size);
+    CHECK_AND_RETURN_RET_LOG(uriHelper->AccessCheck(UriHelper::URI_READ), MSERR_INVALID_VAL, "Failed to read the fd");
+    int32_t ret = InitPlayEngine(uriHelper->FormattedUri());
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetSource Failed!");
+    uriHelper_ = std::move(uriHelper);
     return ret;
-}
-
-bool PlayerServer::CheckFdArgument(int64_t &offset, int64_t &size)
-{
-    struct stat64 buffer;
-    if (fstat64(fd_, &buffer) != 0) {
-        MEDIA_LOGE("can not get file state");
-        return false;
-    }
-    int64_t fdSize = static_cast<int64_t>(buffer.st_size);
-
-    MEDIA_LOGD("check fd argument, fd = %{public}d, offset = %{public}" PRIi64 ", size = %{public}" PRIi64 ","
-        "fdSize = %{public}" PRIi64 "", fd_, offset, size, fdSize);
-
-    if (offset < 0 || offset > fdSize) {
-        offset = 0;
-    }
-
-    if ((size <= 0) || (size > fdSize - offset)) {
-        size = fdSize - offset;
-    }
-
-    return true;
 }
 
 int32_t PlayerServer::InitPlayEngine(const std::string &url)
@@ -317,7 +282,7 @@ int32_t PlayerServer::OnReset()
     playerEngine_ = nullptr;
     dataSrc_ = nullptr;
     looping_ = false;
-    ResetFdSource();
+    uriHelper_ = nullptr;
     Format format;
     OnInfo(INFO_TYPE_STATE_CHANGE, PLAYER_IDLE, format);
     stopTimeMonitor_.FinishTime();
@@ -333,14 +298,6 @@ int32_t PlayerServer::Release()
     }
     (void)OnReset();
     return MSERR_OK;
-}
-
-void PlayerServer::ResetFdSource()
-{
-    if (fd_ >= 0) {
-        close(fd_);
-        fd_ = -1;
-    }
 }
 
 int32_t PlayerServer::SetVolume(float leftVolume, float rightVolume)

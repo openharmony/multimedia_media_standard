@@ -17,6 +17,7 @@
 #include <iostream>
 #include <string>
 #include <string_view>
+#include <sys/stat.h>
 #include <vector>
 #include <cstdint>
 #include <cstdlib>
@@ -25,6 +26,7 @@
 #include "jpeglib.h"
 #include "string_ex.h"
 #include "securec.h"
+#include "uri_helper.h"
 
 namespace OHOS {
 namespace Media {
@@ -427,14 +429,8 @@ void AVMetadataHelperDemo::DoNext()
     } while (1);
 }
 
-void AVMetadataHelperDemo::RunCase(const std::string &pathOuter)
+int32_t AVMetadataHelperDemo::SetSource(const std::string &pathOuter)
 {
-    avMetadataHelper_ = OHOS::Media::AVMetadataHelperFactory::CreateAVMetadataHelper();
-    if (avMetadataHelper_ == nullptr) {
-        std::cout << "avMetadataHelper_ is null" << std::endl;
-        return;
-    }
-
     std::string path;
     if (pathOuter == "") {
         std::cout << "Please enter the video/audio path: " << std::endl;
@@ -444,9 +440,48 @@ void AVMetadataHelperDemo::RunCase(const std::string &pathOuter)
     }
     std::cout << "Path is " << path << std::endl;
 
-    int32_t ret = avMetadataHelper_->SetSource(path, AVMetadataUsage::AV_META_USAGE_PIXEL_MAP);
+    UriHelper uriHelper(path);
+    if (uriHelper.UriType() != UriHelper::URI_TYPE_FILE && !uriHelper.AccessCheck(UriHelper::URI_READ)) {
+        std::cout << "Invalid file Path" << std::endl;
+        return -1;
+    }
+
+    std::string rawFile = uriHelper.FormattedUri();
+    rawFile = rawFile.substr(strlen("file://"));
+    int32_t fd = open(rawFile.c_str(), O_RDONLY);
+    if (fd <= 0) {
+        std::cout << "Open file failed" << std::endl;
+        return -1;
+    }
+
+    struct stat64 st;
+    if (fstat64(fd, &st) != 0) {
+        std::cout << "Get file state failed" << std::endl;
+        (void)close(fd);
+        return -1;
+    }
+    int64_t length = static_cast<int64_t>(st.st_size);
+
+    int32_t ret = avMetadataHelper_->SetSource(fd, 0, length, AVMetadataUsage::AV_META_USAGE_PIXEL_MAP);
     if (ret != 0) {
         std::cout << "SetSource fail" << std::endl;
+        (void)close(fd);
+        return -1;
+    }
+
+    (void)close(fd);
+    return 0;
+}
+
+void AVMetadataHelperDemo::RunCase(const std::string &pathOuter)
+{
+    avMetadataHelper_ = OHOS::Media::AVMetadataHelperFactory::CreateAVMetadataHelper();
+    if (avMetadataHelper_ == nullptr) {
+        std::cout << "avMetadataHelper_ is null" << std::endl;
+        return;
+    }
+
+    if (SetSource(pathOuter) != 0) {
         return;
     }
 

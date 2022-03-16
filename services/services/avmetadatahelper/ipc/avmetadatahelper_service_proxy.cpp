@@ -67,7 +67,31 @@ int32_t AVMetadataHelperServiceProxy::SetSource(const std::string &uri, int32_t 
     (void)data.WriteString(uri);
     (void)data.WriteInt32(usage);
 
-    int error = Remote()->SendRequest(SET_SOURCE, data, reply, option);
+    int error = Remote()->SendRequest(SET_URI_SOURCE, data, reply, option);
+    if (error != MSERR_OK) {
+        MEDIA_LOGE("Set Source failed, error: %{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AVMetadataHelperServiceProxy::SetSource(int32_t fd, int64_t offset, int64_t size, int32_t usage)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(AVMetadataHelperServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
+    (void)data.WriteFileDescriptor(fd);
+    (void)data.WriteInt64(offset);
+    (void)data.WriteInt64(size);
+    (void)data.WriteInt32(usage);
+
+    int error = Remote()->SendRequest(SET_FD_SOURCE, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Set Source failed, error: %{public}d", error);
         return error;
