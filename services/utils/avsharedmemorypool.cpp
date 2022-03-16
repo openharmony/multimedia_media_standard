@@ -64,6 +64,14 @@ int32_t AVSharedMemoryPool::Init(const InitializeOption &option)
         }
         idleList_.push_back(memory);
     }
+    
+    if (!ret) {
+        for (auto iter = idleList_.begin(); iter != idleList_.end(); ++iter) {
+            delete *iter;
+            *iter = nullptr;
+        }
+        return MSERR_NO_MEMORY;
+    }
 
     if (!ret) {
         for (auto iter = idleList_.begin(); iter != idleList_.end(); ++iter) {

@@ -76,7 +76,6 @@ int32_t ProcessorAdecImpl::ProcessMandatory(const Format &format)
         channels_, sampleRate_, audioSampleFormat_);
 
     gstRawFormat_ = RawAudioFormatToGst(static_cast<AudioStandard::AudioSampleFormat>(audioSampleFormat_));
-
     return MSERR_OK;
 }
 

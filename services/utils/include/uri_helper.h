@@ -27,8 +27,6 @@ namespace OHOS {
 namespace Media {
 /**
  * The simple utility is designed to facilitate the uri processing.
- *
- * Multi-thread Unsafe and Only Stack Local Avaiable
  */
 class __attribute__((visibility("default"))) UriHelper {
 public:
@@ -44,26 +42,34 @@ public:
         URI_WRITE = 1 << 1,
     };
 
-    UriHelper(std::string_view uri) : uri_(uri) {}
-    ~UriHelper() = default;
+    UriHelper(const std::string_view &uri);
+    UriHelper(int32_t fd, int64_t offset, int64_t size);
+    ~UriHelper();
 
     UriHelper(UriHelper &&rhs) noexcept;
     UriHelper &operator=(UriHelper &&rhs) noexcept;
-    UriHelper(const UriHelper &rhs) = default;
-    UriHelper &operator=(const UriHelper &rhs) = default;
+    UriHelper(const UriHelper &rhs);
+    UriHelper &operator=(const UriHelper &rhs);
 
-    UriHelper &FormatMe();
     uint8_t UriType() const;
     std::string FormattedUri() const;
     bool AccessCheck(uint8_t flag) const;
-    static std::string FormatFdToUri(int32_t fd, int64_t offset, int64_t size);
+    bool ParseFdUri(int32_t &fd, int64_t &offset, int64_t size);
 
 private:
-    int GetFdFromUri(std::string rawUri) const;
+    void FormatMeForUri(const std::string_view &uri) noexcept;
+    void FormatMeForFd() noexcept;
+    bool ParseFdUri(std::string_view uri);
+    bool CorrectFdParam();
+    void Swap(UriHelper &&rhs) noexcept;
+    void Copy(const UriHelper &rhs) noexcept;
 
-    std::string_view uri_;
     std::string formattedUri_ = "";
+    std::string_view rawFileUri_ = "";
     uint8_t type_ = 0;
+    int32_t fd_ = -1;
+    int64_t offset_ = 0;
+    int64_t size_ = 0;
 };
 } // namespace Media
 } // namespace OHOS
