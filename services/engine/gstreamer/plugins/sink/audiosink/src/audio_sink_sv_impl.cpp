@@ -286,7 +286,7 @@ int32_t AudioSinkSvImpl::Write(uint8_t *buffer, size_t size)
     while (bytesWritten < size) {
         bytesSingle = audioRenderer_->Write(buffer + bytesWritten, size - bytesWritten);
         bytesWritten += bytesSingle;
-        CHECK_AND_RETURN_RET(bytesSingle > 0 && bytesWritten > bytesSingle, MSERR_UNKNOWN);
+        CHECK_AND_RETURN_RET(bytesSingle > 0 && bytesWritten >= bytesSingle, MSERR_UNKNOWN);
     }
     return MSERR_OK;
 }
