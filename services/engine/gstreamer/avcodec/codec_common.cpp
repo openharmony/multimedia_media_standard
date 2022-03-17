@@ -159,7 +159,7 @@ uint32_t PixelBufferSize(VideoPixelFormat pixel, uint32_t width, uint32_t height
             size = width * height * 3 / 2;
             break;
         case RGBA:
-            size = width * height * 3;
+            size = width * height * 4;
         default:
             break;
     }
