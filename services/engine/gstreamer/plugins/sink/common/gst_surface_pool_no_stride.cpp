@@ -407,13 +407,25 @@ static GstFlowReturn gst_surface_pool_alloc_buffer(GstBufferPool *pool,
 
     gst_buffer_append_memory(*buffer, reinterpret_cast<GstMemory *>(memory));
 
-    GstVideoInfo *info = &spool->info;
-    gst_buffer_add_video_meta(*buffer, GST_VIDEO_FRAME_FLAG_NONE, GST_VIDEO_INFO_FORMAT(info),
-        GST_VIDEO_INFO_WIDTH(info), GST_VIDEO_INFO_HEIGHT(info));
     // add buffer type meta at here.
     OHOS::sptr<OHOS::SurfaceBuffer> buf = memory->buf;
-    intptr_t buffer_handle = reinterpret_cast<intptr_t>(buf->GetBufferHandle());
-    gst_buffer_add_buffer_handle_meta(*buffer, buffer_handle, memory->fence, 0);
+    auto buffer_handle = buf->GetBufferHandle();
+    int32_t stride = buffer_handle->stride;
+    GstVideoInfo *info = &spool->info;
+
+    if (buf->GetFormat() == PIXEL_FMT_RGBA_8888) {
+        for (int plane = 0; plane < info->finfo->n_planes; ++plane) {
+            info->stride[plane] = stride;
+            GST_DEBUG_OBJECT(spool, "new stride %d", stride);
+        }
+        gst_buffer_add_video_meta_full(*buffer, GST_VIDEO_FRAME_FLAG_NONE, GST_VIDEO_INFO_FORMAT(info),
+            GST_VIDEO_INFO_WIDTH(info), GST_VIDEO_INFO_HEIGHT(info), info->finfo->n_planes, info->offset, info->stride);
+    } else {
+        gst_buffer_add_video_meta(*buffer, GST_VIDEO_FRAME_FLAG_NONE, GST_VIDEO_INFO_FORMAT(info),
+            GST_VIDEO_INFO_WIDTH(info), GST_VIDEO_INFO_HEIGHT(info));
+    }
+
+    gst_buffer_add_buffer_handle_meta(*buffer, reinterpret_cast<intptr_t>(buffer_handle), memory->fence, 0);
     return GST_FLOW_OK;
 }
 
