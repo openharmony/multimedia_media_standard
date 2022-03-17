@@ -393,7 +393,7 @@ bool VideoCaps::IsSizeAndRateSupported(int32_t width, int32_t height, double fra
         MEDIA_LOGD("The %{public}s can not support of:%{public}d * %{public}d", data_.codecName.c_str(), width, height);
         return false;
     }
-    if (data_.frameRate.minVal > frameRate || data_.frameRate.maxVal < frameRate) {
+    if (fabs(data_.frameRate.minVal - frameRate) > 1e-6 || fabs(frameRate - data_.frameRate.maxVal) > 1e-6) {
         MEDIA_LOGD("The %{public}s can not support frameRate:%{public}lf", data_.codecName.c_str(), frameRate);
         return false;
     }
