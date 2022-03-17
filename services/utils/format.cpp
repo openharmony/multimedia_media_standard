@@ -218,6 +218,7 @@ bool Format::PutBuffer(const std::string_view &key, const uint8_t *addr, size_t 
     errno_t err = memcpy_s(reinterpret_cast<void *>(data.addr), size, reinterpret_cast<const void *>(addr), size);
     if (err != EOK) {
         MEDIA_LOGE("PutBuffer memcpy addr failed. Key: %{public}s", key.data());
+        free(data.addr);
         return false;
     }
 

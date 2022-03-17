@@ -508,6 +508,7 @@ int32_t PlayerDemo::SetFdSource(const string &path)
     int32_t fd = open(path.c_str(), O_RDONLY);
     if (fd < 0) {
         cout << "Open file failed" << endl;
+        (void)close(fd);
         return -1;
     }
     int32_t offset = 0;

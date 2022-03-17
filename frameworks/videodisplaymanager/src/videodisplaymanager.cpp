@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-#include <hilog/log.h>
-#include "surface_buffer_impl.h"
 #include "videodisplaymanager.h"
-
+#include <hilog/log.h>
 #include <iremote_proxy.h>
+#include "surface_buffer_impl.h"
 #include "idisplay_layer.h"
 
 using namespace OHOS::HDI::Display::V1_0;
@@ -80,6 +79,9 @@ namespace OHOS {
             return;
         }
         bufferImpl = SurfaceBufferImpl::FromBase(buffer);
+        if (bufferImpl == nullptr) {
+            VLOGFE("bufferImpl is null");
+        }
         if (g_layerService != nullptr) {
             auto bufferHandle = bufferImpl->GetBufferHandle();
             g_layerService->SetLayerBuffer(0, layerId_, *bufferHandle, fence);

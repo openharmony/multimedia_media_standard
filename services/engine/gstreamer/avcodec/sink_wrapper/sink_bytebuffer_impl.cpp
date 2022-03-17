@@ -64,6 +64,7 @@ int32_t SinkBytebufferImpl::Flush()
 {
     std::unique_lock<std::mutex> lock(mutex_);
     for (auto it = bufferList_.begin(); it != bufferList_.end(); it++) {
+        CHECK_AND_RETURN_RET(*it != nullptr, MSERR_INVALID_VAL);
         if ((*it)->owner_ != BufferWrapper::DOWNSTREAM) {
             (*it)->owner_ = BufferWrapper::DOWNSTREAM;
             if ((*it)->gstBuffer_ != nullptr) {
@@ -81,6 +82,7 @@ std::shared_ptr<AVSharedMemory> SinkBytebufferImpl::GetOutputBuffer(uint32_t ind
 {
     std::unique_lock<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET(index <= bufferList_.size(), nullptr);
+    CHECK_AND_RETURN_RET(bufferList_[index] != nullptr, nullptr);
     CHECK_AND_RETURN_RET(bufferList_[index]->owner_ == BufferWrapper::SERVER, nullptr);
 
     GstMemory *memory = gst_buffer_peek_memory(bufferList_[index]->gstBuffer_, 0);
@@ -96,6 +98,7 @@ int32_t SinkBytebufferImpl::ReleaseOutputBuffer(uint32_t index, bool render)
     (void)render;
     std::unique_lock<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET(index < bufferList_.size(), MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(bufferList_[index] != nullptr, MSERR_INVALID_VAL);
     CHECK_AND_RETURN_RET(bufferList_[index]->owner_ == BufferWrapper::APP, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(bufferList_[index]->gstBuffer_ != nullptr, MSERR_UNKNOWN);
 

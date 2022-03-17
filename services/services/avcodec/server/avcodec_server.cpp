@@ -48,9 +48,9 @@ AVCodecServer::~AVCodecServer()
 int32_t AVCodecServer::Init()
 {
     auto engineFactory = EngineFactoryRepo::Instance().GetEngineFactory(IEngineFactory::Scene::SCENE_AVCODEC);
-    CHECK_AND_RETURN_RET_LOG(engineFactory != nullptr, MSERR_CREATE_REC_ENGINE_FAILED, "failed to get factory");
+    CHECK_AND_RETURN_RET_LOG(engineFactory != nullptr, MSERR_CREATE_AVCODEC_ENGINE_FAILED, "failed to get factory");
     codecEngine_ = engineFactory->CreateAVCodecEngine();
-    CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_CREATE_REC_ENGINE_FAILED,
+    CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_CREATE_AVCODEC_ENGINE_FAILED,
         "Failed to create codec engine");
     status_ = AVCODEC_INITIALIZED;
     return MSERR_OK;
