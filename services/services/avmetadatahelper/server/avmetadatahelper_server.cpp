@@ -51,7 +51,7 @@ int32_t AVMetadataHelperServer::SetSource(const std::string &uri, int32_t usage)
     MEDIA_LOGD("Current uri is : %{public}s %{public}u", uri.c_str(), usage);
 
     uriHelper_ = std::make_unique<UriHelper>(uri);
-    if (uriHelper_->AccessCheck(UriHelper::URI_READ)) {
+    if (!uriHelper_->AccessCheck(UriHelper::URI_READ)) {
         MEDIA_LOGE("Failed to read the file");
         return MSERR_INVALID_VAL;
     }

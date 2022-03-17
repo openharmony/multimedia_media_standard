@@ -138,7 +138,7 @@ bool AVMetaBufferBlocker::CheckUpStreamBlocked(GstPad &pad)
 
         GList *node = g_list_first(elem->sinkpads);
         if (node != nullptr && node->data != nullptr) {
-            upstreamPad = gst_pad_get_peer(GST_PAD_CAST(node->data));
+            upstreamPad = GST_PAD_CAST(gst_object_ref(GST_PAD_CAST(node->data)));
         }
 
         gst_object_unref(elem);
