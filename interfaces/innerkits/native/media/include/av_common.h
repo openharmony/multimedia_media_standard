@@ -65,6 +65,10 @@ enum VideoPixelFormat {
      * format from surface.
      */
     SURFACE_FORMAT = 4,
+    /**
+     * RGBA.
+     */
+    RGBA = 5,
 };
 
 /**
