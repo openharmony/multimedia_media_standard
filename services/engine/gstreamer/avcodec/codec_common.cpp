@@ -23,6 +23,7 @@ const std::map<VideoPixelFormat, std::string> PIXEL_TO_STRING = {
     {NV12, "NV12"},
     {NV21, "NV21"},
     {SURFACE_FORMAT, "NV21"},
+    {RGBA, "RGBA"},
 };
 
 const std::map<AudioStandard::AudioSampleFormat, std::string> PCM_TO_STRING = {
@@ -156,11 +157,17 @@ uint32_t PixelBufferSize(VideoPixelFormat pixel, uint32_t width, uint32_t height
             // fall-through
         case NV21:
             size = width * height * 3 / 2;
-            size = (size + alignment - 1) & ~(alignment - 1);
             break;
+        case RGBA:
+            size = width * height * 3;
         default:
             break;
     }
+
+    if (size > 0) {
+        size = (size + alignment - 1) & ~(alignment - 1);
+    }
+
     return size;
 }
 
