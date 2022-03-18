@@ -62,6 +62,8 @@ config("media_client_public_config") {
     "//utils/native/base/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
     "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiocommon/include",
+    "//foundation/multimedia/audio_standard/interfaces/kits/js/audio_capturer/include",
+    "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiocapturer/include",
   ]
 
   cflags = [
