@@ -180,6 +180,8 @@ static void ChangeAudioFormat(int32_t &format) {
         case 3:
             format = AudioStandard::SAMPLE_S32LE;
             break;
+        default:
+            break;
     }
 }
 
