@@ -19,6 +19,7 @@
 #include "common_napi.h"
 #include "media_log.h"
 #include "media_errors.h"
+#include "audio_info.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecNapiUtil"};
@@ -162,6 +163,26 @@ bool AVCodecNapiUtil::ExtractCodecBuffer(napi_env env, napi_value buffer, int32_
     return true;
 }
 
+static void ChangeAudioFormat(int32_t &format) {
+    switch (format) {
+        case -1:
+            format = AudioStandard::INVALID_WIDTH;
+            break;
+        case 0:
+            format = AudioStandard::SAMPLE_U8;
+            break;
+        case 1:
+            format = AudioStandard::SAMPLE_S16LE;
+            break;
+        case 2:
+            format = AudioStandard::SAMPLE_S24LE;
+            break;
+        case 3:
+            format = AudioStandard::SAMPLE_S32LE;
+            break;
+    }
+}
+
 bool AVCodecNapiUtil::ExtractMediaFormat(napi_env env, napi_value mediaFormat, Format &format)
 {
     CHECK_AND_RETURN_RET(mediaFormat != nullptr, false);
@@ -179,6 +200,9 @@ bool AVCodecNapiUtil::ExtractMediaFormat(napi_env env, napi_value mediaFormat, F
         } else if (it->second == FORMAT_TYPE_INT32) {
             int32_t result = 0;
             (void)napi_get_value_int32(env, item, &result);
+            if (it->first == "audio_sample_format") {
+                ChangeAudioFormat(result);
+            }
             format.PutIntValue(it->first, result);
         } else if (it->second == FORMAT_TYPE_DOUBLE) {
             double result = 0;
