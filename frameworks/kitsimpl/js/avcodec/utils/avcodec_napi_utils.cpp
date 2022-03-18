@@ -172,9 +172,14 @@ bool AVCodecNapiUtil::ExtractCodecBuffer(napi_env env, napi_value buffer, int32_
     return true;
 }
 
-static  OHOS::AudioStandard::AudioSampleFormat ChangeAudioFormat(int32_t format)
+static bool ChangeAudioFormat(int32_t &format)
 {
-    return SAMPLE_FORMAT_MAP.at(static_cast<OHOS::AudioStandard::AudioCapturerNapi::AudioSampleFormat>(format));
+    if (SAMPLE_FORMAT_MAP.find(
+        static_cast<OHOS::AudioStandard::AudioCapturerNapi::AudioSampleFormat>(format)) == SAMPLE_FORMAT_MAP.end()) {
+        return false;
+    }
+    format = SAMPLE_FORMAT_MAP.at(static_cast<OHOS::AudioStandard::AudioCapturerNapi::AudioSampleFormat>(format));
+    return true;
 }
 
 bool AVCodecNapiUtil::ExtractMediaFormat(napi_env env, napi_value mediaFormat, Format &format)
@@ -195,7 +200,8 @@ bool AVCodecNapiUtil::ExtractMediaFormat(napi_env env, napi_value mediaFormat, F
             int32_t result = 0;
             (void)napi_get_value_int32(env, item, &result);
             if (it->first == "audio_sample_format") {
-                result = ChangeAudioFormat(result);
+                bool ret = ChangeAudioFormat(result);
+                CHECK_AND_RETURN_RET(ret == true, false);
             }
             format.PutIntValue(it->first, result);
         } else if (it->second == FORMAT_TYPE_DOUBLE) {
