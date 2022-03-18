@@ -50,6 +50,10 @@ namespace {
         {"sample_rate", OHOS::Media::FORMAT_TYPE_INT32},
         {"vendor.custom", OHOS::Media::FORMAT_TYPE_ADDR},
     };
+    const int32_t AUDIO_FORMAT_U8 = 0;
+    const int32_t AUDIO_FORMAT_S16 = 1;
+    const int32_t AUDIO_FORMAT_S24 = 2;
+    const int32_t AUDIO_FORMAT_S32 = 3;
 }
 
 namespace OHOS {
@@ -165,15 +169,13 @@ bool AVCodecNapiUtil::ExtractCodecBuffer(napi_env env, napi_value buffer, int32_
 
 static bool ChangeAudioFormat(int32_t &format)
 {
-    if (format == -1) {
-        format = AudioStandard::INVALID_WIDTH;
-    } else if (format == 0) {
+    if (format == AUDIO_FORMAT_U8) {
         format = AudioStandard::SAMPLE_U8;
-    } else if (format == 1) {
+    } else if (format == AUDIO_FORMAT_S16) {
         format = AudioStandard::SAMPLE_S16LE;
-    } else if (format == 2) {
+    } else if (format == AUDIO_FORMAT_S24) {
         format = AudioStandard::SAMPLE_S24LE;
-    } else if (format == 3) {
+    } else if (format == AUDIO_FORMAT_S32) {
         format = AudioStandard::SAMPLE_S32LE;
     } else {
         MEDIA_LOGE("Failed check format");
