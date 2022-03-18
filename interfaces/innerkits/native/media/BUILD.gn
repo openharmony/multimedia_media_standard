@@ -61,6 +61,7 @@ config("media_client_public_config") {
     "//utils/system/safwk/native/include",
     "//utils/native/base/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
+    "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiocommon/include",
   ]
 
   cflags = [
