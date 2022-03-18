@@ -163,26 +163,24 @@ bool AVCodecNapiUtil::ExtractCodecBuffer(napi_env env, napi_value buffer, int32_
     return true;
 }
 
-static void ChangeAudioFormat(int32_t &format) {
-    switch (format) {
-        case -1:
-            format = AudioStandard::INVALID_WIDTH;
-            break;
-        case 0:
-            format = AudioStandard::SAMPLE_U8;
-            break;
-        case 1:
-            format = AudioStandard::SAMPLE_S16LE;
-            break;
-        case 2:
-            format = AudioStandard::SAMPLE_S24LE;
-            break;
-        case 3:
-            format = AudioStandard::SAMPLE_S32LE;
-            break;
-        default:
-            break;
+static bool ChangeAudioFormat(int32_t &format)
+{
+    if (format == -1) {
+        format = AudioStandard::INVALID_WIDTH;
+    } else if (format == 0) {
+        format = AudioStandard::SAMPLE_U8;
+    } else if (format == 1) {
+        format = AudioStandard::SAMPLE_S16LE;
+    } else if (format == 2) {
+        format = AudioStandard::SAMPLE_S24LE;
+    } else if (format == 3) {
+        format = AudioStandard::SAMPLE_S32LE;
+    } else {
+        MEDIA_LOGE("Failed check format");
+        return false;
     }
+
+    return true;
 }
 
 bool AVCodecNapiUtil::ExtractMediaFormat(napi_env env, napi_value mediaFormat, Format &format)
@@ -203,7 +201,7 @@ bool AVCodecNapiUtil::ExtractMediaFormat(napi_env env, napi_value mediaFormat, F
             int32_t result = 0;
             (void)napi_get_value_int32(env, item, &result);
             if (it->first == "audio_sample_format") {
-                ChangeAudioFormat(result);
+                (void)ChangeAudioFormat(result);
             }
             format.PutIntValue(it->first, result);
         } else if (it->second == FORMAT_TYPE_DOUBLE) {
