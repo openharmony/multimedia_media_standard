@@ -20,6 +20,7 @@
 #include "media_log.h"
 #include "media_errors.h"
 #include "audio_info.h"
+#include "audio_capturer_napi.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecNapiUtil"};
@@ -50,10 +51,14 @@ namespace {
         {"sample_rate", OHOS::Media::FORMAT_TYPE_INT32},
         {"vendor.custom", OHOS::Media::FORMAT_TYPE_ADDR},
     };
-    const int32_t AUDIO_FORMAT_U8 = 0;
-    const int32_t AUDIO_FORMAT_S16 = 1;
-    const int32_t AUDIO_FORMAT_S24 = 2;
-    const int32_t AUDIO_FORMAT_S32 = 3;
+    const std::map<OHOS::AudioStandard::AudioCapturerNapi::AudioSampleFormat,
+        OHOS::AudioStandard::AudioSampleFormat> SAMPLE_FORMAT_MAP = {
+        {OHOS::AudioStandard::AudioCapturerNapi::SAMPLE_FORMAT_INVALID, OHOS::AudioStandard::INVALID_WIDTH},
+        {OHOS::AudioStandard::AudioCapturerNapi::SAMPLE_FORMAT_U8, OHOS::AudioStandard::SAMPLE_U8},
+        {OHOS::AudioStandard::AudioCapturerNapi::SAMPLE_FORMAT_S16LE, OHOS::AudioStandard::SAMPLE_S16LE},
+        {OHOS::AudioStandard::AudioCapturerNapi::SAMPLE_FORMAT_S24LE, OHOS::AudioStandard::SAMPLE_S24LE},
+        {OHOS::AudioStandard::AudioCapturerNapi::SAMPLE_FORMAT_S32LE, OHOS::AudioStandard::SAMPLE_S32LE},
+    };
 }
 
 namespace OHOS {
@@ -167,22 +172,9 @@ bool AVCodecNapiUtil::ExtractCodecBuffer(napi_env env, napi_value buffer, int32_
     return true;
 }
 
-static bool ChangeAudioFormat(int32_t &format)
+static  OHOS::AudioStandard::AudioSampleFormat ChangeAudioFormat(int32_t format)
 {
-    if (format == AUDIO_FORMAT_U8) {
-        format = AudioStandard::SAMPLE_U8;
-    } else if (format == AUDIO_FORMAT_S16) {
-        format = AudioStandard::SAMPLE_S16LE;
-    } else if (format == AUDIO_FORMAT_S24) {
-        format = AudioStandard::SAMPLE_S24LE;
-    } else if (format == AUDIO_FORMAT_S32) {
-        format = AudioStandard::SAMPLE_S32LE;
-    } else {
-        MEDIA_LOGE("Failed check format");
-        return false;
-    }
-
-    return true;
+    return SAMPLE_FORMAT_MAP.at(static_cast<OHOS::AudioStandard::AudioCapturerNapi::AudioSampleFormat>(format));
 }
 
 bool AVCodecNapiUtil::ExtractMediaFormat(napi_env env, napi_value mediaFormat, Format &format)
@@ -203,7 +195,7 @@ bool AVCodecNapiUtil::ExtractMediaFormat(napi_env env, napi_value mediaFormat, F
             int32_t result = 0;
             (void)napi_get_value_int32(env, item, &result);
             if (it->first == "audio_sample_format") {
-                (void)ChangeAudioFormat(result);
+                result = ChangeAudioFormat(result);
             }
             format.PutIntValue(it->first, result);
         } else if (it->second == FORMAT_TYPE_DOUBLE) {
