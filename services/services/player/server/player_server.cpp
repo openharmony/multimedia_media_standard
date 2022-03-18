@@ -84,10 +84,11 @@ int32_t PlayerServer::SetSource(int32_t fd, int64_t offset, int64_t size)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGW("KPI-TRACE: PlayerServer SetSource in(fd)");
-    uriHelper_ = std::make_unique<UriHelper>(fd, offset, size);
-    CHECK_AND_RETURN_RET_LOG(uriHelper_->AccessCheck(UriHelper::URI_READ), MSERR_INVALID_VAL, "Failed to read the fd");
-    int32_t ret = InitPlayEngine(uriHelper_->FormattedUri());
+    auto uriHelper = std::make_unique<UriHelper>(fd, offset, size);
+    CHECK_AND_RETURN_RET_LOG(uriHelper->AccessCheck(UriHelper::URI_READ), MSERR_INVALID_VAL, "Failed to read the fd");
+    int32_t ret = InitPlayEngine(uriHelper->FormattedUri());
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetSource Failed!");
+    uriHelper_ = std::move(uriHelper);
     return ret;
 }
 
