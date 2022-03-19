@@ -14,7 +14,7 @@
  */
 
 #include "avcodec_info.h"
-#include "math.h"
+#include <cmath>
 #include "media_log.h"
 #include "media_errors.h"
 
