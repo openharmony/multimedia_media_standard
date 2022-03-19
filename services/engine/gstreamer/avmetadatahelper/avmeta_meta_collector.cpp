@@ -62,9 +62,9 @@ public:
         MEDIA_LOGI("mq curr maxBytes: %{public}u, maxBuffers: %{public}u, maxTimes: %{public}" PRIu64,
             maxBytes_, maxBytes_, maxTimes_);
 
-        static constexpr uint32_t maxBytes = 20 * 1024;
+        static constexpr uint32_t maxBytes = 2 * 1024 * 1024;
         static constexpr uint32_t maxBuffers = 5;
-        static constexpr uint64_t maxTimes = 200 * GST_MSECOND;
+        static constexpr uint64_t maxTimes = 2 * GST_SECOND;
         g_object_set(mq_, "max-size-bytes", maxBytes, "max-size-buffers",
             maxBuffers, "max-size-time", maxTimes, nullptr);
     }
