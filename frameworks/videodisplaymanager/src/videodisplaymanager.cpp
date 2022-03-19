@@ -81,6 +81,7 @@ namespace OHOS {
         bufferImpl = SurfaceBufferImpl::FromBase(buffer);
         if (bufferImpl == nullptr) {
             VLOGFE("bufferImpl is null");
+            return;
         }
         if (g_layerService != nullptr) {
             auto bufferHandle = bufferImpl->GetBufferHandle();
