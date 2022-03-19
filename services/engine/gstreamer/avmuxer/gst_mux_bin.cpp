@@ -44,6 +44,7 @@ void gst_mux_bin_add_track(GstMuxBin *mux_bin, const char *srcName, const char *
     g_return_if_fail(srcName != nullptr);
     g_return_if_fail(parseName != nullptr);
     GstTrackInfo *info = g_new(GstTrackInfo, 1);
+    g_return_if_fail(info != nullptr);
     info->srcName_ = g_strdup((char *)srcName);
     info->parseName_ = g_strdup((char *)parseName);
     if (isVideo) {
