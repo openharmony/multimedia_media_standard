@@ -19,6 +19,8 @@
 #include "common_napi.h"
 #include "media_log.h"
 #include "media_errors.h"
+#include "audio_info.h"
+#include "audio_capturer_napi.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecNapiUtil"};
@@ -48,6 +50,14 @@ namespace {
         {"channel_count", OHOS::Media::FORMAT_TYPE_INT32},
         {"sample_rate", OHOS::Media::FORMAT_TYPE_INT32},
         {"vendor.custom", OHOS::Media::FORMAT_TYPE_ADDR},
+    };
+    const std::map<OHOS::AudioStandard::AudioCapturerNapi::AudioSampleFormat,
+        OHOS::AudioStandard::AudioSampleFormat> SAMPLE_FORMAT_MAP = {
+        {OHOS::AudioStandard::AudioCapturerNapi::SAMPLE_FORMAT_INVALID, OHOS::AudioStandard::INVALID_WIDTH},
+        {OHOS::AudioStandard::AudioCapturerNapi::SAMPLE_FORMAT_U8, OHOS::AudioStandard::SAMPLE_U8},
+        {OHOS::AudioStandard::AudioCapturerNapi::SAMPLE_FORMAT_S16LE, OHOS::AudioStandard::SAMPLE_S16LE},
+        {OHOS::AudioStandard::AudioCapturerNapi::SAMPLE_FORMAT_S24LE, OHOS::AudioStandard::SAMPLE_S24LE},
+        {OHOS::AudioStandard::AudioCapturerNapi::SAMPLE_FORMAT_S32LE, OHOS::AudioStandard::SAMPLE_S32LE},
     };
 }
 
@@ -162,6 +172,16 @@ bool AVCodecNapiUtil::ExtractCodecBuffer(napi_env env, napi_value buffer, int32_
     return true;
 }
 
+static bool ChangeAudioFormat(int32_t &format)
+{
+    if (SAMPLE_FORMAT_MAP.find(
+        static_cast<OHOS::AudioStandard::AudioCapturerNapi::AudioSampleFormat>(format)) == SAMPLE_FORMAT_MAP.end()) {
+        return false;
+    }
+    format = SAMPLE_FORMAT_MAP.at(static_cast<OHOS::AudioStandard::AudioCapturerNapi::AudioSampleFormat>(format));
+    return true;
+}
+
 bool AVCodecNapiUtil::ExtractMediaFormat(napi_env env, napi_value mediaFormat, Format &format)
 {
     CHECK_AND_RETURN_RET(mediaFormat != nullptr, false);
@@ -179,6 +199,10 @@ bool AVCodecNapiUtil::ExtractMediaFormat(napi_env env, napi_value mediaFormat, F
         } else if (it->second == FORMAT_TYPE_INT32) {
             int32_t result = 0;
             (void)napi_get_value_int32(env, item, &result);
+            if (it->first == "audio_sample_format") {
+                bool ret = ChangeAudioFormat(result);
+                CHECK_AND_RETURN_RET(ret == true, false);
+            }
             format.PutIntValue(it->first, result);
         } else if (it->second == FORMAT_TYPE_DOUBLE) {
             double result = 0;
