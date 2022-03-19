@@ -23,6 +23,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "VideoEncoder"};
+    constexpr uint32_t DEFAULT_I_FRAME_INTERVAL = 25;
 }
 
 namespace OHOS {
@@ -77,6 +78,7 @@ int32_t VideoEncoder::CreateH264Element()
         MEDIA_LOGE("Create h264 encoder gst_element failed! sourceId: %{public}d", desc_.handle_);
         return MSERR_INVALID_OPERATION;
     }
+    g_object_set(gstElem_, "i-frame-interval", DEFAULT_I_FRAME_INTERVAL, nullptr);
 
     MEDIA_LOGI("use %{public}s", encorderName.c_str());
     return MSERR_OK;
