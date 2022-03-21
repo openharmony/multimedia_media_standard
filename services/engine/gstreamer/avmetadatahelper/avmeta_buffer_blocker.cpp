@@ -168,7 +168,7 @@ bool AVMetaBufferBlocker::IsBufferDetected()
     std::unique_lock<std::mutex> lock(mutex_);
 
     for (auto &item : padInfos_) {
-        if (item.hasBuffer) {
+        if (item.detected) {
             continue;
         }
 
@@ -177,7 +177,7 @@ bool AVMetaBufferBlocker::IsBufferDetected()
 
         /**
          * if the upstream is blocked, we can not wait buffer arriving at this pad.
-         * Thus, we just remove the probe at this pad and set the hasBuffer to true.
+         * Thus, we just remove the probe at this pad and set the detected to true.
          * This operation maybe remove this block probe too early, but the upstream's
          * blocker will guarantee at least receiving one frame of buffer to finish the meta
          * extracting process.
@@ -187,7 +187,7 @@ bool AVMetaBufferBlocker::IsBufferDetected()
                        ELEM_NAME(&elem_), PAD_NAME(item.pad));
             gst_pad_remove_probe(item.pad, item.probeId);
             item.probeId = 0;
-            item.hasBuffer = true;
+            item.detected = true;
             continue;
         }
 
@@ -233,10 +233,40 @@ void AVMetaBufferBlocker::Hide()
     isHidden_ = true;
 }
 
-GstPadProbeReturn AVMetaBufferBlocker::OnBlockCallback(GstPad &pad, GstPadProbeInfo &info)
+bool AVMetaBufferBlocker::CheckBufferDetected(GstPadProbeInfo &info)
 {
     auto type = static_cast<unsigned int>(info.type);
-    if ((type & (GST_PAD_PROBE_TYPE_BUFFER | GST_PAD_PROBE_TYPE_BUFFER_LIST)) == 0) {
+    if ((type & (GST_PAD_PROBE_TYPE_BUFFER | GST_PAD_PROBE_TYPE_BUFFER_LIST)) != 0) {
+        MEDIA_LOGD("buffer detected");
+        return true;
+    }
+
+    if ((type & GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM) != 0) {
+        GstEvent *event = gst_pad_probe_info_get_event(&info);
+        if (event == nullptr) {
+            return false;
+        }
+
+        if (GST_EVENT_TYPE(event) != GST_EVENT_GAP && GST_EVENT_TYPE(event) != GST_EVENT_EOS) {
+            return false;
+        }
+
+        MEDIA_LOGD("gap or eos detected");
+        const GstStructure *struc = gst_event_get_structure(event);
+        gchar *prettyString = gst_structure_to_string(struc);
+        if (prettyString != nullptr) {
+            MEDIA_LOGD("event: %{public}s", prettyString);
+            g_free(prettyString);
+        }
+        return true;
+    }
+
+    return false;
+}
+
+GstPadProbeReturn AVMetaBufferBlocker::OnBlockCallback(GstPad &pad, GstPadProbeInfo &info)
+{
+    if (!CheckBufferDetected(info)) {
         return probeRet_;
     }
 
@@ -251,8 +281,8 @@ GstPadProbeReturn AVMetaBufferBlocker::OnBlockCallback(GstPad &pad, GstPadProbeI
             return GST_PAD_PROBE_REMOVE;
         }
 
-        padInfo.hasBuffer = true;
-        MEDIA_LOGD("buffer arrived at %{public}s's pad %{public}s", PAD_PARENT_NAME(&pad), PAD_NAME(&pad));
+        padInfo.detected = true;
+        MEDIA_LOGD("something arrived at %{public}s's pad %{public}s", PAD_PARENT_NAME(&pad), PAD_NAME(&pad));
         lock.unlock(); // ???
 
         if (notifier_ != nullptr) {
