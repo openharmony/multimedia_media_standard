@@ -111,7 +111,10 @@ std::vector<std::shared_ptr<AVSharedMemory>> AVMetaFrameExtractor::ExtractIntern
     std::vector<std::shared_ptr<AVSharedMemory>> outFrames;
 
     std::unique_lock<std::mutex> lock(mutex_);
-    cond_.wait(lock, [this]() { return !originalFrames_.empty() || !startExtracting_; });
+    static constexpr int32_t timeout = 5;
+    cond_.wait_for(lock, std::chrono::seconds(timeout), [this]() {
+        return !originalFrames_.empty() || !startExtracting_;
+    });
     CHECK_AND_RETURN_RET_LOG(startExtracting_, outFrames, "cancelled, exit frame extract");
     CHECK_AND_RETURN_RET_LOG(!originalFrames_.empty(), outFrames, "no more frames");
 
@@ -157,7 +160,10 @@ int32_t AVMetaFrameExtractor::StartExtract(
     ret = frameConverter_->Init(param);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "init failed, cancel extract frames");
 
-    cond_.wait(lock, [this]() { return seekDone_ || !startExtracting_; });
+    static constexpr int32_t timeout = 5;
+    cond_.wait_for(lock, std::chrono::seconds(timeout), [this]() {
+        return seekDone_ || !startExtracting_;
+    });
     CHECK_AND_RETURN_RET(startExtracting_, MSERR_INVALID_OPERATION);
 
     // no next sync frame, change to find the prev sync frame
