@@ -154,8 +154,11 @@ void AVMetaMetaCollector::Stop(bool unlock) /* false */
 
 std::unordered_map<int32_t, std::string> AVMetaMetaCollector::GetMetadata()
 {
+    static constexpr int32_t timeout = 2;
     std::unique_lock<std::mutex> lock(mutex_);
-    cond_.wait(lock, [this]() { return CheckCollectCompleted() || stopCollecting_; });
+    cond_.wait_for(lock, std::chrono::seconds(timeout), [this]() {
+        return CheckCollectCompleted() || stopCollecting_;
+    });
 
     AdjustMimeType();
     PopulateMeta(allMeta_);
@@ -165,8 +168,9 @@ std::unordered_map<int32_t, std::string> AVMetaMetaCollector::GetMetadata()
 
 std::string AVMetaMetaCollector::GetMetadata(int32_t key)
 {
+    static constexpr int32_t timeout = 2;
     std::unique_lock<std::mutex> lock(mutex_);
-    cond_.wait(lock, [this, key]() {
+    cond_.wait_for(lock, std::chrono::seconds(timeout), [this, key]() {
         return stopCollecting_ || allMeta_.HasMeta(key) || CheckCollectCompleted();
     });
 
@@ -175,6 +179,12 @@ std::string AVMetaMetaCollector::GetMetadata(int32_t key)
     std::string result;
     (void)allMeta_.TryGetMeta(key, result);
     return result;
+}
+
+bool AVMetaMetaCollector::IsCollecteCompleted()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    return collectCompleted_;
 }
 
 std::shared_ptr<AVSharedMemory> AVMetaMetaCollector::FetchArtPicture()
@@ -195,7 +205,7 @@ std::shared_ptr<AVSharedMemory> AVMetaMetaCollector::FetchArtPicture()
     return result;
 }
 
-bool AVMetaMetaCollector::CheckCollectCompleted() const
+bool AVMetaMetaCollector::CheckCollectCompleted()
 {
     if (elemCollectors_.size() == 0 || blockers_.size() == 0) {
         return false;
@@ -222,6 +232,7 @@ bool AVMetaMetaCollector::CheckCollectCompleted() const
         }
     }
 
+    collectCompleted_ = true;
     MEDIA_LOGI("collect metadata finished !");
     return true;
 }

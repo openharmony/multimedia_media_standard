@@ -230,7 +230,10 @@ int32_t AVMetadataHelperEngineGstImpl::PrepareInternel(bool async)
 
     if (!async) {
         metaCollector_->Stop(true);
-        cond_.wait(lock, [this]() { return status_ == PLAYBIN_STATE_PREPARED || errHappened_; });
+        static constexpr int32_t timeout = 5;
+        cond_.wait_for(lock, std::chrono::seconds(timeout), [this]() {
+            return status_ == PLAYBIN_STATE_PREPARED || errHappened_;
+        });
         CHECK_AND_RETURN_RET_LOG(!errHappened_, MSERR_UNKNOWN, "prepare failed");
     }
 
@@ -258,6 +261,11 @@ int32_t AVMetadataHelperEngineGstImpl::FetchFrameInternel(int64_t timeUsOrIndex,
         collectedMeta_[AV_KEY_HAS_VIDEO] != "yes") {
         MEDIA_LOGE("There is no video track in the current media source !");
         return MSERR_INVALID_OPERATION;
+    }
+
+    if (!metaCollector_->IsCollecteCompleted()) {
+        MEDIA_LOGE("extract meta failed, exit");
+        return MSERR_UNKNOWN;
     }
 
     ret = PrepareInternel(false);
