@@ -92,6 +92,7 @@ struct _GstVencBase {
     gboolean first_out_frame;
     GstClockTime last_pts;
     GstClockTime first_frame_pts;
+    guint i_frame_interval;
 };
 
 struct _GstVencBaseClass {
