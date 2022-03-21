@@ -626,13 +626,6 @@ static GstFlowReturn gst_venc_base_codec_eos(GstVencBase *self)
     g_return_val_if_fail(GST_VIDEO_ENCODER_SRC_PAD(self) != nullptr, GST_FLOW_ERROR);
     g_mutex_lock(&self->drain_lock);
     if (self->draining) {
-        GstQuery *query = gst_query_new_drain();
-
-        if (!gst_pad_peer_query(GST_VIDEO_ENCODER_SRC_PAD(self), query)) {
-            GST_WARNING_OBJECT(self, "drain query failed");
-        }
-        gst_query_unref(query);
-
         GST_DEBUG_OBJECT(self, "Drained");
         self->draining = FALSE;
         g_cond_broadcast(&self->drain_cond);
