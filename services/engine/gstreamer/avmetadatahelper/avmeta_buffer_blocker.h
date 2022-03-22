@@ -49,11 +49,12 @@ private:
     void OnPadAdded(GstElement &elem, GstPad &pad);
     bool CheckUpStreamBlocked(GstPad &pad);
     void AddPadProbe(GstPad &pad, GstPadProbeType type);
+    bool CheckBufferDetected(GstPadProbeInfo &info);
 
     struct PadInfo {
         GstPad *pad;
         gulong probeId;
-        bool hasBuffer;
+        bool detected;
         bool blocked;
     };
 
