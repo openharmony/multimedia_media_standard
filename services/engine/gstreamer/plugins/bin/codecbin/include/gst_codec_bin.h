@@ -62,7 +62,7 @@ struct _GstCodecBinClass {
 using GstCodecBin = struct _GstCodecBin;
 using GstCodecBinClass = struct _GstCodecBinClass;
 
-G_GNUC_INTERNAL GType gst_codec_bin_get_type (void);
+G_GNUC_INTERNAL GType gst_codec_bin_get_type(void);
 
 G_END_DECLS
 #endif // GST_CODEC_BIN_H

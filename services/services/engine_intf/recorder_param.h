@@ -113,7 +113,7 @@ struct AudEnc : public RecorderParam {
 };
 
 struct AudSampleRate : public RecorderParam {
-    AudSampleRate(int32_t sr) : RecorderParam(RecorderPublicParamType::AUD_SAMPLERATE), sampleRate(sr) {}
+    explicit AudSampleRate(int32_t sr) : RecorderParam(RecorderPublicParamType::AUD_SAMPLERATE), sampleRate(sr) {}
     int32_t sampleRate;
 };
 

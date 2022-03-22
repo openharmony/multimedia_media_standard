@@ -15,14 +15,14 @@
 
 #include "gst_hdi_h265_dec.h"
 
-GST_DEBUG_CATEGORY_STATIC (gst_hdi_h265_dec_debug_category);
+GST_DEBUG_CATEGORY_STATIC(gst_hdi_h265_dec_debug_category);
 #define GST_CAT_DEFAULT gst_hdi_h265_dec_debug_category
 
 #define DEBUG_INIT \
-  GST_DEBUG_CATEGORY_INIT (gst_hdi_h265_dec_debug_category, "hdih265dec", 0, \
+  GST_DEBUG_CATEGORY_INIT(gst_hdi_h265_dec_debug_category, "hdih265dec", 0, \
       "debug category for gst-hdi video decoder base class");
 
-G_DEFINE_TYPE_WITH_CODE (GstHDIH265Dec, gst_hdi_h265_dec, GST_TYPE_HDI_VIDEO_DEC, DEBUG_INIT);
+G_DEFINE_TYPE_WITH_CODE(GstHDIH265Dec, gst_hdi_h265_dec, GST_TYPE_HDI_VIDEO_DEC, DEBUG_INIT);
 
 static void gst_hdi_h265_dec_class_init(GstHDIH265DecClass *klass)
 {
@@ -46,7 +46,7 @@ static void gst_hdi_h265_dec_class_init(GstHDIH265DecClass *klass)
     gst_hdi_class_pad_caps_init(&self->cdata, element_class);
 }
 
-static void gst_hdi_h265_dec_init (GstHDIH265Dec *self)
+static void gst_hdi_h265_dec_init(GstHDIH265Dec *self)
 {
     (void)self;
 }

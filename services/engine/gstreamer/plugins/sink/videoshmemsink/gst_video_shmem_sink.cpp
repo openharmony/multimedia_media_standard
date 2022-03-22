@@ -112,7 +112,7 @@ static void gst_video_shmem_sink_setup_gobject_class(GObjectClass *gobjectClass)
     gobjectClass->get_property = gst_video_shmem_sink_get_property;
 
     g_object_class_install_property(gobjectClass, PROP_CAPS,
-        g_param_spec_boxed ("caps", "Caps",
+        g_param_spec_boxed("caps", "Caps",
             "The allowed caps for the sink pad", GST_TYPE_CAPS,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
@@ -137,7 +137,7 @@ static void gst_video_shmem_sink_class_init(GstVideoShMemSinkClass *klass)
     GstBaseSinkClass *baseSinkClass = GST_BASE_SINK_CLASS(klass);
     GstElementClass *elementClass = GST_ELEMENT_CLASS(klass);
 
-    gst_element_class_add_static_pad_template (elementClass, &g_sinktemplate);
+    gst_element_class_add_static_pad_template(elementClass, &g_sinktemplate);
 
     gst_element_class_set_static_metadata(elementClass,
         "VideoShMemSink", "Sink/Video",
@@ -250,8 +250,8 @@ static void gst_video_shmem_sink_finalize(GObject *obj)
     GstVideoShMemSinkPrivate *priv = vidShmemSink->priv;
     g_return_if_fail(priv != nullptr);
 
-    g_mutex_clear (&priv->mutex);
-    g_cond_clear (&priv->cond);
+    g_mutex_clear(&priv->mutex);
+    g_cond_clear(&priv->cond);
     gst_queue_array_free(priv->queue);
 
     G_OBJECT_CLASS(parent_class)->finalize(obj);

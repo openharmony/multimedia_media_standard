@@ -32,8 +32,8 @@ public:
     void SetDemuxerElementFind(bool isFind);
     bool GetDemuxerElementFind();
     static void OnPadAddedCb(const GstElement *element, const GstPad *pad, GstPlayerTrackParse *playerTrackInfo);
-    GstPlayerTrackParse() {};
-    ~GstPlayerTrackParse() {};
+    GstPlayerTrackParse() {}
+    ~GstPlayerTrackParse() {}
 
 private:
     static void ParseStreamStruc(const GstPad *pad, GstPlayerTrackParse *playerTrackInfo);

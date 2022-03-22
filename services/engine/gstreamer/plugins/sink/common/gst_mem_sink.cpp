@@ -78,7 +78,7 @@ static void gst_mem_sink_class_init(GstMemSinkClass *klass)
     GstBaseSinkClass *base_sink_class = GST_BASE_SINK_CLASS(klass);
     GstElementClass *element_class = GST_ELEMENT_CLASS(klass);
 
-    gst_element_class_add_static_pad_template (element_class, &g_sinktemplate);
+    gst_element_class_add_static_pad_template(element_class, &g_sinktemplate);
 
     gst_element_class_set_static_metadata(element_class,
         "MemSink", "Generic/Sink",
@@ -91,7 +91,7 @@ static void gst_mem_sink_class_init(GstMemSinkClass *klass)
     gobject_class->get_property = gst_mem_sink_get_property;
 
     g_object_class_install_property(gobject_class, PROP_CAPS,
-        g_param_spec_boxed ("caps", "Caps",
+        g_param_spec_boxed("caps", "Caps",
             "The allowed caps for the sink pad", GST_TYPE_CAPS,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
@@ -172,7 +172,7 @@ static void gst_mem_sink_finalize(GObject *obj)
     GstMemSinkPrivate *priv = mem_sink->priv;
     g_return_if_fail(priv != nullptr);
 
-    g_mutex_clear (&priv->mutex);
+    g_mutex_clear(&priv->mutex);
 
     G_OBJECT_CLASS(parent_class)->finalize(obj);
 }

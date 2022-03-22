@@ -149,6 +149,7 @@ bool AVSharedMemoryPool::DoAcquireMemory(int32_t size, AVSharedMemory **outMemor
 
         if (!option_.enableFixedSize && minSizeIdleMem != idleList_.end()) {
             delete *minSizeIdleMem;
+            *minSizeIdleMem = nullptr;
             idleList_.erase(minSizeIdleMem);
             result = AllocMemory(size);
             CHECK_AND_RETURN_RET(result != nullptr, false);
@@ -224,6 +225,7 @@ std::shared_ptr<AVSharedMemory> AVSharedMemoryPool::AcquireMemory(int32_t size, 
         } else {
             MEDIA_LOGI("release memory 0x%{public}06" PRIXPTR ", but the pool is destroyed", FAKE_POINTER(memory));
             delete memory;
+            free(memory);
         }
     });
 

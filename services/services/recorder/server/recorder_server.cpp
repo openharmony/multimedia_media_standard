@@ -300,7 +300,6 @@ void RecorderServer::SetOrientationHint(int32_t rotation)
     CHECK_AND_RETURN_LOG(recorderEngine_ != nullptr, "engine is nullptr");
     RotationAngle rotationAngle(rotation);
     recorderEngine_->Configure(DUMMY_SOURCE_ID, rotationAngle);
-    return;
 }
 
 int32_t RecorderServer::SetRecorderCallback(const std::shared_ptr<RecorderCallback> &callback)

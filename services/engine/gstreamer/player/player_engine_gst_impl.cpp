@@ -48,10 +48,7 @@ PlayerEngineGstImpl::~PlayerEngineGstImpl()
 
 bool PlayerEngineGstImpl::IsFileUrl(const std::string &url) const
 {
-    if (url.find("://") == std::string::npos || url.find("file://") == 0) {
-        return true;
-    }
-    return false;
+    return url.find("://") == std::string::npos || url.find("file://") == 0;
 }
 
 int32_t PlayerEngineGstImpl::GetRealPath(const std::string &url, std::string &realUrlPath) const
@@ -346,23 +343,20 @@ int32_t PlayerEngineGstImpl::GetDuration(int32_t &duration)
 
 double PlayerEngineGstImpl::ChangeModeToSpeed(const PlaybackRateMode &mode) const
 {
-    if (mode == SPEED_FORWARD_0_75_X) {
-        return SPEED_0_75_X;
+    switch (mode) {
+        case SPEED_FORWARD_0_75_X:
+            return SPEED_0_75_X;
+        case SPEED_FORWARD_1_00_X:
+            return SPEED_1_00_X;
+        case SPEED_FORWARD_1_25_X:
+            return SPEED_1_25_X;
+        case SPEED_FORWARD_1_75_X:
+            return SPEED_1_75_X;
+        case SPEED_FORWARD_2_00_X:
+            return SPEED_2_00_X;
+        default:
+            MEDIA_LOGW("unknown mode:%{public}d, return default speed(SPEED_1_00_X)", mode);
     }
-    if (mode == SPEED_FORWARD_1_00_X) {
-        return SPEED_1_00_X;
-    }
-    if (mode == SPEED_FORWARD_1_25_X) {
-        return SPEED_1_25_X;
-    }
-    if (mode == SPEED_FORWARD_1_75_X) {
-        return SPEED_1_75_X;
-    }
-    if (mode == SPEED_FORWARD_2_00_X) {
-        return SPEED_2_00_X;
-    }
-
-    MEDIA_LOGW("unknown mode:%{public}d, return default speed(SPEED_1_00_X)", mode);
 
     return SPEED_1_00_X;
 }

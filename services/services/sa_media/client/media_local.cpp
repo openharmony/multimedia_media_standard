@@ -13,15 +13,14 @@
  * limitations under the License.
  */
 
-#include "avcodec_server.h"
-#include "avmetadatahelper_server.h"
+#include "media_local.h"
 #include "media_errors.h"
 #include "media_log.h"
+#include "avcodec_server.h"
+#include "avmetadatahelper_server.h"
 #include "player_server.h"
 #include "recorder_server.h"
 #include "avcodeclist_server.h"
-#include "avmetadatahelper_server.h"
-#include "media_local.h"
 
 namespace OHOS {
 namespace Media {

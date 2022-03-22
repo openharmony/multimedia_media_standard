@@ -66,7 +66,7 @@ struct _GstAudioServerSinkClass {
 using GstAudioServerSink = struct _GstAudioServerSink;
 using GstAudioServerSinkClass = struct _GstAudioServerSinkClass;
 
-G_GNUC_INTERNAL GType gst_audio_server_sink_get_type (void);
+G_GNUC_INTERNAL GType gst_audio_server_sink_get_type(void);
 
 G_END_DECLS
 

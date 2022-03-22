@@ -62,6 +62,7 @@ GstBuffer *VideoCaptureSfEsAvcImpl::AVCDecoderConfiguration(std::vector<uint8_t>
     map.data[offset++] = (sps.size() >> 8) & 0xff; // sequenceParameterSetLength high 8 bits
     map.data[offset++] = sps.size() & 0xff; // sequenceParameterSetLength low 8 bits
     // sequenceParameterSetNALUnit
+    CHECK_AND_RETURN_RET_LOG(codecBufferSize - offset > 0, nullptr, "invalid codecBufferSize or offset");
     CHECK_AND_RETURN_RET_LOG(memcpy_s(map.data + offset, codecBufferSize - offset, &sps[0], sps.size()) == EOK,
                              nullptr, "memcpy_s fail");
     offset += sps.size();
@@ -70,6 +71,7 @@ GstBuffer *VideoCaptureSfEsAvcImpl::AVCDecoderConfiguration(std::vector<uint8_t>
     map.data[offset++] = (pps.size() >> 8) & 0xff; // pictureParameterSetLength  high 8 bits
     map.data[offset++] = pps.size() & 0xff; // pictureParameterSetLength  low 8 bits
     // pictureParameterSetNALUnit
+    CHECK_AND_RETURN_RET_LOG(codecBufferSize - offset > 0, nullptr, "invalid codecBufferSize or offset");
     CHECK_AND_RETURN_RET_LOG(memcpy_s(map.data + offset, codecBufferSize - offset, &pps[0], pps.size()) == EOK,
                              nullptr, "memcpy_s fail");
     CANCEL_SCOPE_EXIT_GUARD(0);
@@ -136,6 +138,7 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfEsAvcImpl::DoGetFrameBuffer()
         buffer = (char *)buffer + codecDataSize_;
     }
 
+    CHECK_AND_RETURN_RET_LOG(bufferSize >= nalSize_, nullptr, "invalid bufferSize or nalSize");
     uint32_t frameSize = bufferSize - nalSize_;
     // there is two kind of nal head. four byte 0x00000001 or three byte 0x000001
     // standard es_avc stream should begin with frame size
@@ -184,6 +187,7 @@ std::shared_ptr<VideoFrameBuffer> VideoCaptureSfEsAvcImpl::GetIDRFrame()
     // there is two kind of nal head. four byte 0x00000001 or three byte 0x000001
     // standard es_avc stream should begin with frame size
     // change the nal head to frame size.
+    CHECK_AND_RETURN_RET_LOG(bufferSize >= nalSize_, nullptr, "invalid bufferSize or nalSize");
     uint32_t frameSize = bufferSize - nalSize_;
     if (nalSize_ == 4) { // 0x00000001
         codecData_[codecDataSize_] = (char)((frameSize >> 24) & 0xff);

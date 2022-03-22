@@ -37,9 +37,9 @@ GType gst_buffer_type_meta_api_get_type(void)
 {
     static volatile GType type = 0;
     static const gchar *tags[] = { GST_META_TAG_MEMORY_STR, NULL };
-    if (g_once_init_enter (&type)) {
-        GType _type = gst_meta_api_type_register ("GstBufferTypeMetaAPI", tags);
-        g_once_init_leave (&type, _type);
+    if (g_once_init_enter(&type)) {
+        GType _type = gst_meta_api_type_register("GstBufferTypeMetaAPI", tags);
+        g_once_init_leave(&type, _type);
     }
     return type;
 }
@@ -54,7 +54,7 @@ static gboolean gst_buffer_type_meta_transform(GstBuffer *dest, GstMeta *meta,
     GstBufferTypeMeta *dMeta, *sMeta;
     sMeta = (GstBufferTypeMeta *)meta;
 
-    if (GST_META_TRANSFORM_IS_COPY (type)) {
+    if (GST_META_TRANSFORM_IS_COPY(type)) {
         GstMetaTransformCopy *copy = data;
 
         if (!copy->region) {
@@ -81,11 +81,11 @@ const GstMetaInfo *gst_buffer_type_meta_get_info(void)
 {
     static const GstMetaInfo *buffer_type_meta_info = NULL;
 
-    if (g_once_init_enter ((GstMetaInfo **)&buffer_type_meta_info)) {
+    if (g_once_init_enter((GstMetaInfo **)&buffer_type_meta_info)) {
         const GstMetaInfo *meta = gst_meta_register(GST_BUFFER_TYPE_META_API_TYPE, "GstBufferTypeMeta",
             sizeof(GstBufferTypeMeta), (GstMetaInitFunction)gst_buffer_type_meta_init,
             (GstMetaFreeFunction)NULL, gst_buffer_type_meta_transform);
-        g_once_init_leave ((GstMetaInfo **)&buffer_type_meta_info, (GstMetaInfo *)meta);
+        g_once_init_leave((GstMetaInfo **)&buffer_type_meta_info, (GstMetaInfo *)meta);
     }
     return buffer_type_meta_info;
 }
