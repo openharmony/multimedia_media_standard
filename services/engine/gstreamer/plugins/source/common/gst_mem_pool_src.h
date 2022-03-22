@@ -56,8 +56,8 @@ struct _GstMemPoolSrcClass {
     GstBaseSrcClass parent;
 
     // for API and action calling, subclass need accomplish it
-    GstBuffer *(*pull_buffer)(GstMemPoolSrc *memsrc);
-    GstFlowReturn (*push_buffer)(GstMemPoolSrc *memsrc, GstBuffer *buffer);
+    GstBuffer *(*pull_buffer) (GstMemPoolSrc *memsrc);
+    GstFlowReturn (*push_buffer) (GstMemPoolSrc *memsrc, GstBuffer *buffer);
 };
 
 // for subclass to use

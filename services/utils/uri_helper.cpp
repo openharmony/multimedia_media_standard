@@ -161,7 +161,6 @@ int UriHelper::GetFdFromUri(std::string rawUri) const
     size_t startPos = rawUri.find_last_of("/");
     CHECK_AND_RETURN_RET_LOG(startPos != std::string::npos, -1, "Can not find start tag '/'");
 
-    CHECK_AND_RETURN_RET_LOG(endPos - startPos - 1 >= 0, -1, "invalid endPos or startPos");
     size_t len = endPos - startPos - 1;
     std::string fd = rawUri.substr(startPos + 1, len);
     return std::stoi(fd);
