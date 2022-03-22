@@ -94,7 +94,7 @@ static void gst_shared_mem_sink_class_init(GstSharedMemSinkClass *klass)
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
     g_object_class_install_property(gobject_class, PROP_ENABLE_REMOTE_REFCOUNT,
-        g_param_spec_boolean ("enable-remote-refcount", "Enable Remote RefCount",
+        g_param_spec_boolean("enable-remote-refcount", "Enable Remote RefCount",
             "Enable the remote refcount at the allocated memory", DEFAULT_PROP_REMOTE_REFCOUNT,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 

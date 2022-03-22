@@ -275,7 +275,7 @@ template<typename T,
          typename = std::enable_if_t<std::is_base_of_v<RecorderElement, std::decay_t<T>>>>
 class RecorderElementRegister : public NoCopyable {
 public:
-    RecorderElementRegister(const std::string &key)
+    explicit RecorderElementRegister(const std::string &key)
     {
         (void)RecorderElementFactory::GetInstance().RegisterElement(
             key, [](const RecorderElement::CreateParam &param) {

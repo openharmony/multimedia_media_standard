@@ -53,6 +53,7 @@ void CopyFormatDataMap(const Format::FormatDataMap &from, Format::FormatDataMap 
         if (err != EOK) {
             MEDIA_LOGE("memcpy addr failed. Key: %{public}s", it->first.c_str());
             free(it->second.addr);
+            it->second.addr = nullptr;
             it = to.erase(it);
             continue;
         }

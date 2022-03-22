@@ -157,8 +157,6 @@ static void EnableGLog(GLogFunc func)
     // map glib default log handler, and gstreamer log hander to GLogMap
     (void)g_log_set_default_handler(func, nullptr);
     (void)g_log_set_handler("GStreamer", static_cast<GLogLevelFlags>(0xFFFFFFFF), func, nullptr);
-
-    return;
 }
 
 static void SetGstLogLevelFromSysPara()
@@ -166,7 +164,7 @@ static void SetGstLogLevelFromSysPara()
     std::string levelPara;
     int res = OHOS::system::GetStringParameter("sys.media.log.level", levelPara, "");
     if (res != 0 || levelPara.empty()) {
-        gst_debug_set_default_threshold (GST_LEVEL_WARNING);
+        gst_debug_set_default_threshold(GST_LEVEL_WARNING);
         MEDIA_LOGD("sys.media.log.level not find");
         return;
     }

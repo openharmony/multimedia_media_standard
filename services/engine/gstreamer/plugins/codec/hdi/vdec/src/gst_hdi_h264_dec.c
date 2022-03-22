@@ -22,7 +22,7 @@ GST_DEBUG_CATEGORY_STATIC(gst_hdi_h264_dec_debug_category);
 GST_DEBUG_CATEGORY_INIT(gst_hdi_h264_dec_debug_category, "hdih264dec", 0, \
     "debug category for gst-hdi video decoder base class");
 
-G_DEFINE_TYPE_WITH_CODE (GstHDIH264Dec, gst_hdi_h264_dec, GST_TYPE_HDI_VIDEO_DEC, DEBUG_INIT);
+G_DEFINE_TYPE_WITH_CODE(GstHDIH264Dec, gst_hdi_h264_dec, GST_TYPE_HDI_VIDEO_DEC, DEBUG_INIT);
 
 static void gst_hdi_h264_dec_class_init(GstHDIH264DecClass *klass)
 {

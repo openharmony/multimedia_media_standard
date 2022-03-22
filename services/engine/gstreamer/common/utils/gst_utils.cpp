@@ -46,11 +46,7 @@ bool MatchElementByMeta(
         }
     }
 
-    if (matchCnt == expectedMetaFields.size()) {
-        return true;
-    }
-
-    return false;
+    return matchCnt == expectedMetaFields.size();
 }
 } // namespace Media
 } // namespace OHOS

@@ -30,7 +30,7 @@ G_BEGIN_DECLS
 #define GST_MEM_POOL_SRC_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_MEM_POOL_SRC, GstMemPoolSrcClass))
 #define GST_MEM_POOL_SRC_GET_CLASS(obj) \
-    (G_TYPE_INSTANCE_GET_CLASS ((obj), GST_TYPE_MEM_POOL_SRC, GstMemPoolSrcClass))
+    (G_TYPE_INSTANCE_GET_CLASS((obj), GST_TYPE_MEM_POOL_SRC, GstMemPoolSrcClass))
 #define GST_IS_MEM_POOL_SRC(obj) \
     (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_MEM_POOL_SRC))
 #define GST_IS_MEM_POOL_SRC_CLASS(klass) \
@@ -56,8 +56,8 @@ struct _GstMemPoolSrcClass {
     GstBaseSrcClass parent;
 
     // for API and action calling, subclass need accomplish it
-    GstBuffer *(*pull_buffer) (GstMemPoolSrc *memsrc);
-    GstFlowReturn (*push_buffer) (GstMemPoolSrc *memsrc, GstBuffer *buffer);
+    GstBuffer *(*pull_buffer)(GstMemPoolSrc *memsrc);
+    GstFlowReturn (*push_buffer)(GstMemPoolSrc *memsrc, GstBuffer *buffer);
 };
 
 // for subclass to use

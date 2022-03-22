@@ -120,7 +120,7 @@ static void gst_consumer_surface_pool_finalize(GObject *obj)
 static void gst_consumer_surface_pool_class_init(GstConsumerSurfacePoolClass *klass)
 {
     g_return_if_fail(klass != nullptr);
-    GstBufferPoolClass *poolClass = GST_BUFFER_POOL_CLASS (klass);
+    GstBufferPoolClass *poolClass = GST_BUFFER_POOL_CLASS(klass);
     GObjectClass *gobjectClass = G_OBJECT_CLASS(klass);
     GST_DEBUG_CATEGORY_INIT(gst_consumer_surface_pool_debug_category, "surfacepool", 0, "surface pool");
     gobjectClass->set_property = gst_consumer_surface_pool_set_property;

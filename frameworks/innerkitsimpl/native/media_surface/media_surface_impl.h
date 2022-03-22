@@ -29,10 +29,10 @@ public:
     MediaSurfaceImpl();
     ~MediaSurfaceImpl();
 
-    virtual std::string GetSurfaceId(const sptr<Surface> &surface) override;
-    virtual sptr<Surface> GetSurface() override;
-    virtual sptr<Surface> GetSurface(const std::string &id) override;
-    virtual void Release() override;
+    std::string GetSurfaceId(const sptr<Surface> &surface) override;
+    sptr<Surface> GetSurface() override;
+    sptr<Surface> GetSurface(const std::string &id) override;
+    void Release() override;
 
 private:
     std::mutex mutex_;
