@@ -369,17 +369,14 @@ static gboolean gst_vdec_base_flush(GstVideoDecoder *decoder)
     g_return_val_if_fail(self->decoder != nullptr, FALSE);
     GST_DEBUG_OBJECT(self, "Flush start");
 
-    if (self->flushing_stoping) {
-        gint ret = self->decoder->Flush(GST_CODEC_OUTPUT);
-        (void)gst_codec_return_is_ok(self, ret, "flush", FALSE);
-    } else {
+    if (!self->flushing_stoping) {
         gst_vdec_base_set_flushing(self, TRUE);
         gint ret = self->decoder->Flush(GST_CODEC_ALL);
         (void)gst_codec_return_is_ok(self, ret, "flush", FALSE);
         gst_vdec_base_set_flushing(self, FALSE);
     }
-    GST_DEBUG_OBJECT(self, "Flush end");
 
+    GST_DEBUG_OBJECT(self, "Flush end");
     return TRUE;
 }
 
@@ -1126,7 +1123,7 @@ static gboolean gst_vdec_base_event(GstVideoDecoder *decoder, GstEvent *event)
                 gst_vdec_base_set_flushing(self, TRUE);
                 self->decoder_start = FALSE;
                 if (self->decoder != nullptr) {
-                    (void)self->decoder->Flush(GST_CODEC_INPUT);
+                    (void)self->decoder->Flush(GST_CODEC_ALL);
                 }
                 GST_VIDEO_DECODER_STREAM_UNLOCK(self);
             }
