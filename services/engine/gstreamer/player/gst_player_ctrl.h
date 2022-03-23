@@ -113,6 +113,7 @@ private:
     std::condition_variable condVarPauseSync_;
     std::condition_variable condVarStopSync_;
     std::condition_variable condVarSeekSync_;
+    std::condition_variable condVarPreparingSync_;
     GstPlayer *gstPlayer_ = nullptr;
     TaskQueue taskQue_;
     std::weak_ptr<IPlayerEngineObs> obs_;
@@ -131,6 +132,7 @@ private:
     uint32_t mqNumUseBuffering_ = 0;
     bool seekDoneNeedCb_ = false;
     bool endOfStreamCb_ = false;
+    bool preparing_ = false;
     std::vector<gulong> signalIds_;
     gulong signalIdVolume_ = 0;
     GstElement *audioSink_ = nullptr;
