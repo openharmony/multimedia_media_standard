@@ -24,6 +24,7 @@ namespace {
     constexpr int32_t BLOCK_SIZE_MIN = 2;
     constexpr int32_t BASE_BLOCK_PER_FRAME = 99;
     constexpr int32_t BASE_BLOCK_PER_SECOND = 1485;
+    constexpr double EPSLON = 1e-6;
 }
 namespace OHOS {
 namespace Media {
@@ -394,7 +395,7 @@ bool VideoCaps::IsSizeAndRateSupported(int32_t width, int32_t height, double fra
         MEDIA_LOGD("The %{public}s can not support of:%{public}d * %{public}d", data_.codecName.c_str(), width, height);
         return false;
     }
-    if (fabs(data_.frameRate.minVal - frameRate) > 1e-6 || fabs(frameRate - data_.frameRate.maxVal) > 1e-6) {
+    if (fabs(data_.frameRate.minVal - frameRate) > EPSLON || fabs(frameRate - data_.frameRate.maxVal) > EPSLON) {
         MEDIA_LOGD("The %{public}s can not support frameRate:%{public}lf", data_.codecName.c_str(), frameRate);
         return false;
     }
