@@ -225,7 +225,6 @@ std::shared_ptr<AVSharedMemory> AVSharedMemoryPool::AcquireMemory(int32_t size, 
         } else {
             MEDIA_LOGI("release memory 0x%{public}06" PRIXPTR ", but the pool is destroyed", FAKE_POINTER(memory));
             delete memory;
-            free(memory);
         }
     });
 
