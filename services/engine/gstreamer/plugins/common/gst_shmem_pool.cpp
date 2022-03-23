@@ -161,7 +161,7 @@ static gboolean parse_caps_for_raw_video(GstShMemPool *spool, GstCaps *caps, gui
         GstVideoInfo info;
         gboolean ret = gst_video_info_from_caps(&info, caps);
         g_return_val_if_fail(ret, FALSE);
-        *size = info.size;
+        *size = info.size > *size ? info.size : *size;
         GST_INFO("this is video raw scene");
         spool->info = info;
         spool->addVideoMeta = TRUE;
