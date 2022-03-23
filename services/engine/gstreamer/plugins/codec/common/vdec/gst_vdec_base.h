@@ -105,6 +105,8 @@ struct _GstVdecBase {
     gboolean decoder_start;
     gint stride;
     gint stride_height;
+    gint real_stride;
+    gint real_stride_height;
     DisplayRect rect;
 };
 
