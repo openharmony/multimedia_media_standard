@@ -579,7 +579,7 @@ static GstFlowReturn gst_venc_base_handle_frame(GstVideoEncoder *encoder, GstVid
     }
     GST_VIDEO_ENCODER_STREAM_UNLOCK(self);
     gst_venc_debug_input_time(self);
-    if (self->i_frame_interval != 0 && self->input.frame_cnt % self->i_frame_interval == 0) {
+    if (self->i_frame_interval != 0 && self->input.frame_cnt % (gint64)self->i_frame_interval == 0) {
         (void)self->encoder->SetParameter(GST_REQUEST_I_FRAME, GST_ELEMENT(self));
     }
     gint codec_ret = self->encoder->PushInputBuffer(frame->input_buffer);
