@@ -739,10 +739,6 @@ static GstFlowReturn gst_vdec_base_handle_frame(GstVideoDecoder *decoder, GstVid
     }
     gst_vdec_base_clean_all_frames(decoder);
     if (!self->prepared) {
-        if (!GST_VIDEO_CODEC_FRAME_IS_SYNC_POINT(frame)) {
-            gst_video_decoder_drop_frame(GST_VIDEO_DECODER(self), frame);
-            return GST_FLOW_OK;
-        }
         if (!gst_vdec_base_prepare(self)) {
             GST_WARNING_OBJECT(self, "hdi video dec enable failed");
             return GST_FLOW_ERROR;
@@ -870,6 +866,11 @@ static void copy_to_no_stride_buffer(GstVdecBase *self, GstVideoCodecFrame *fram
         src_offset += stride;
     }
     gst_buffer_add_video_meta(dts_buffer, GST_VIDEO_FRAME_FLAG_NONE, self->format, self->width, self->height);
+    gint rst_stride[GST_VIDEO_MAX_PLANES] = { self->width, self->width, 0, 0 };
+    gsize rst_offset[GST_VIDEO_MAX_PLANES] = { 0, self->width * self->height, 0, 0 };
+    static const gint nplane = 2; // nv12 or nv21 planes count
+    gst_buffer_add_video_meta_full(dts_buffer, GST_VIDEO_FRAME_FLAG_NONE, self->format,
+        self->width, self->height, nplane, rst_offset, rst_stride);
 }
 
 static GstFlowReturn push_output_buffer(GstVdecBase *self, GstBuffer *buffer)
