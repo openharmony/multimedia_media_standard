@@ -23,7 +23,7 @@ namespace OHOS {
 namespace Media {
 class MediaDeathRecipient : public IRemoteObject::DeathRecipient, public NoCopyable {
 public:
-    explicit MediaDeathRecipient(pid_t pid) : pid_(pid) {};
+    explicit MediaDeathRecipient(pid_t pid) : pid_(pid) {}
     virtual ~MediaDeathRecipient() = default;
 
     void OnRemoteDied(const wptr<IRemoteObject> &remote)

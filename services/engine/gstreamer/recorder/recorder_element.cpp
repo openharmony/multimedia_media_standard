@@ -145,7 +145,6 @@ RecorderMsgProcResult RecorderElement::OnMessageReceived(GstMessage &rawMsg, Rec
     }
 
     // if the message is extended format, translate it at here and return OK.
-
     RecorderMsgProcResult ret = DoProcessMessage(rawMsg, prettyMsg);
     prettyMsg.sourceId = GetSourceId();
 

@@ -31,7 +31,7 @@ G_BEGIN_DECLS
     (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_MEM_SINK))
 #define GST_MEM_SINK_CAST(obj) ((GstMemSink*)(obj))
 #define GST_MEM_SINK_GET_CLASS(obj) \
-    (G_TYPE_INSTANCE_GET_CLASS ((obj), GST_TYPE_MEM_SINK, GstMemSinkClass))
+    (G_TYPE_INSTANCE_GET_CLASS((obj), GST_TYPE_MEM_SINK, GstMemSinkClass))
 
 #ifndef GST_API_EXPORT
 #define GST_API_EXPORT __attribute__((visibility("default")))

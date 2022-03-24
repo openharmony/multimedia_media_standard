@@ -141,10 +141,7 @@ bool AVCodecXmlParser::Parse()
         MEDIA_LOGE("AVCodec xmlDocGetRootElement failed");
         return false;
     }
-    if (!ParseInternal(root)) {
-        return false;
-    }
-    return true;
+    return ParseInternal(root);
 }
 
 
@@ -249,7 +246,7 @@ std::vector<int32_t> AVCodecXmlParser::TransMapAsIntegerArray(
     std::vector<int32_t> res;
     for (auto iter = spilt.begin(); iter != spilt.end(); iter++) {
         if (capabilityMap.find(*iter) != capabilityMap.end()) {
-            res.push_back(capabilityMap.at(*iter));
+            res.emplace_back(capabilityMap.at(*iter));
         } else {
             MEDIA_LOGD("can not find %{public}s in capabilityMap", iter->c_str());
         }

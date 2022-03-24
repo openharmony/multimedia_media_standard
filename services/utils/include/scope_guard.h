@@ -28,7 +28,7 @@ namespace Detail {
 template<typename ExitAction>
 class ScopeGuard {
 public:
-    ScopeGuard(ExitAction &&action) : action_(action), enable_(true) {}
+    explicit ScopeGuard(ExitAction &&action) : action_(action), enable_(true) {}
     ~ScopeGuard()
     {
         if (enable_) {
