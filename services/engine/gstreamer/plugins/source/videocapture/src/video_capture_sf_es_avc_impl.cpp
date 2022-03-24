@@ -51,7 +51,6 @@ GstBuffer *VideoCaptureSfEsAvcImpl::AVCDecoderConfiguration(std::vector<uint8_t>
         gst_buffer_unmap(codec, &map);
     };
 
-    CHECK_AND_RETURN_RET_LOG(sps.size() >= 4, nullptr, "Invalid sps");
     uint32_t offset = 0;
     map.data[offset++] = 0x01; // configurationVersion
     map.data[offset++] = sps[1]; // AVCProfileIndication
