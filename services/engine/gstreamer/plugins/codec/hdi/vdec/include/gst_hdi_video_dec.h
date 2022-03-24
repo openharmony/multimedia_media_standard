@@ -24,15 +24,15 @@ G_BEGIN_DECLS
 #define GST_TYPE_HDI_VIDEO_DEC \
     (gst_hdi_video_dec_get_type())
 #define GST_HDI_VIDEO_DEC(obj) \
-    (G_TYPE_CHECK_INSTANCE_CAST((obj),GST_TYPE_HDI_VIDEO_DEC,GstHDIVideoDec))
+    (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_HDI_VIDEO_DEC,GstHDIVideoDec))
 #define GST_HDI_VIDEO_DEC_CLASS(klass) \
-    (G_TYPE_CHECK_CLASS_CAST((klass),GST_TYPE_HDI_VIDEO_DEC,GstHDIVideoDecClass))
+    (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_HDI_VIDEO_DEC,GstHDIVideoDecClass))
 #define GST_HDI_VIDEO_DEC_GET_CLASS(obj) \
-    (G_TYPE_INSTANCE_GET_CLASS((obj),GST_TYPE_HDI_VIDEO_DEC,GstHDIVideoDecClass))
+    (G_TYPE_INSTANCE_GET_CLASS((obj), GST_TYPE_HDI_VIDEO_DEC,GstHDIVideoDecClass))
 #define GST_IS_HDI_VIDEO_DEC(obj) \
-    (G_TYPE_CHECK_INSTANCE_TYPE((obj),GST_TYPE_HDI_VIDEO_DEC))
+    (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_HDI_VIDEO_DEC))
 #define GST_IS_HDI_VIDEO_DEC_CLASS(obj) \
-    (G_TYPE_CHECK_CLASS_TYPE((klass),GST_TYPE_HDI_VIDEO_DEC))
+    (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_HDI_VIDEO_DEC))
 
 typedef struct _GstHDIVideoDec GstHDIVideoDec;
 typedef struct _GstHDIVideoDecClass GstHDIVideoDecClass;
@@ -61,7 +61,7 @@ struct _GstHDIVideoDecClass {
     GstVideoDecoderClass parentClass;
     GstHDIClassData cdata;
     gboolean (*isFormatChange) (GstHDIVideoDec *self, GstVideoCodecState *state);
-    gboolean (*setFormat)       (GstHDIVideoDec *self, GstVideoCodecState *state);
+    gboolean (*setFormat) (GstHDIVideoDec *self, GstVideoCodecState *state);
 };
 
 GType gst_hdi_video_dec_get_type(void);

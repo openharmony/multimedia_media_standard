@@ -81,7 +81,7 @@ void MediaSurfaceImpl::Release()
 {
     MEDIA_LOGD("Release");
     producerSurface_ = nullptr;
-    mwindow_ =nullptr;
+    mwindow_ = nullptr;
     if (previewWindow_ != nullptr) {
         previewWindow_->Destroy();
     }

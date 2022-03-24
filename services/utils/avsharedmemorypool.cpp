@@ -149,6 +149,7 @@ bool AVSharedMemoryPool::DoAcquireMemory(int32_t size, AVSharedMemory **outMemor
 
         if (!option_.enableFixedSize && minSizeIdleMem != idleList_.end()) {
             delete *minSizeIdleMem;
+            *minSizeIdleMem = nullptr;
             idleList_.erase(minSizeIdleMem);
             result = AllocMemory(size);
             CHECK_AND_RETURN_RET(result != nullptr, false);

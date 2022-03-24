@@ -177,6 +177,7 @@ int32_t RecorderPipeline::SetParameter(int32_t sourceId, const RecorderParam &re
 int32_t RecorderPipeline::GetParameter(int32_t sourceId, RecorderParam &recParam)
 {
     CHECK_AND_RETURN_RET(!errorState_.load(), MSERR_INVALID_STATE);
+    CHECK_AND_RETURN_RET(desc_ != nullptr, MSERR_INVALID_STATE);
 
     if (desc_->srcElems.find(sourceId) == desc_->srcElems.end()) {
         MEDIA_LOGE("invalid sourceId %{public}d", sourceId);
@@ -419,11 +420,7 @@ bool RecorderPipeline::CheckStopForError(const RecorderMessage &msg)
     }
 
     (void)errorSources_.emplace(msg.sourceId);
-    if (errorSources_.size() == desc_->srcElems.size()) {
-        return true;
-    }
-
-    return false;
+    return errorSources_.size() == desc_->srcElems.size();
 }
 
 void RecorderPipeline::StopForError(const RecorderMessage &msg)

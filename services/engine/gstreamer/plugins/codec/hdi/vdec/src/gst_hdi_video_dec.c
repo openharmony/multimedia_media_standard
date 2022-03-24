@@ -20,11 +20,11 @@
 
 #define GST_HDI_VIDEO_DEC_SUPPORTED_FORMATS "{ NV21 }"
 
-GST_DEBUG_CATEGORY_STATIC (gst_hdi_video_dec_debug_category);
+GST_DEBUG_CATEGORY_STATIC(gst_hdi_video_dec_debug_category);
 #define GST_CAT_DEFAULT gst_hdi_video_dec_debug_category
 
 #define DEBUG_INIT \
-    GST_DEBUG_CATEGORY_INIT (gst_hdi_video_dec_debug_category, "hdivideodec", 0, \
+    GST_DEBUG_CATEGORY_INIT(gst_hdi_video_dec_debug_category, "hdivideodec", 0, \
         "debug category for gst-hdi video decoder base class");
 #define GST_1080P_STREAM_WIDTH (1920)
 #define GST_1080P_STREAM_HEIGHT (1088)
@@ -652,7 +652,7 @@ static gint gst_hdi_get_out_buffer(GstHDIVideoDec *self, GstBuffer **gst_buffer)
         done = TRUE;
 #ifdef GST_HDI_PARAM_PILE
         ret = gst_hdi_deque_output_buffer_and_format(self->dec, gst_buffer,
-            &self->hdi_video_out_format ,GET_BUFFER_TIMEOUT_MS);
+            &self->hdi_video_out_format, GET_BUFFER_TIMEOUT_MS);
 #else
         ret = gst_hdi_deque_output_buffer(self->dec, gst_buffer, GET_BUFFER_TIMEOUT_MS);
 #endif

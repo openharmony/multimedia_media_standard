@@ -17,9 +17,9 @@
 #include "gst_shmem_allocator_old.h"
 
 #define gst_video_shmem_pool_parent_class parent_class
-G_DEFINE_TYPE (GstVideoShMemPool, gst_video_shmem_pool, GST_TYPE_VIDEO_BUFFER_POOL);
+G_DEFINE_TYPE(GstVideoShMemPool, gst_video_shmem_pool, GST_TYPE_VIDEO_BUFFER_POOL);
 
-static const gchar **gst_video_shmem_pool_get_options (GstBufferPool *pool)
+static const gchar **gst_video_shmem_pool_get_options(GstBufferPool *pool)
 {
     (void)pool;
     static const gchar *options[] = { GST_BUFFER_POOL_OPTION_VIDEO_META, nullptr };
@@ -48,7 +48,7 @@ static void gst_video_shmem_pool_finalize(GObject *obj)
     G_OBJECT_CLASS(parent_class)->finalize(obj);
 }
 
-static void gst_video_shmem_pool_class_init (GstVideoShMemPoolClass *klass)
+static void gst_video_shmem_pool_class_init(GstVideoShMemPoolClass *klass)
 {
     g_return_if_fail(klass != nullptr);
     GstBufferPoolClass *poolClass = GST_BUFFER_POOL_CLASS(klass);
@@ -61,7 +61,7 @@ static void gst_video_shmem_pool_class_init (GstVideoShMemPoolClass *klass)
     poolClass->set_config = gst_video_shmem_pool_set_config;
 }
 
-static void gst_video_shmem_pool_init (GstVideoShMemPool *pool)
+static void gst_video_shmem_pool_init(GstVideoShMemPool *pool)
 {
     (void)pool;
 }

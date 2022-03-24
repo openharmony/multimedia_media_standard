@@ -37,7 +37,7 @@ namespace {
 #define GST_BUFFER_POOL_NOTIFY(pool) (g_cond_signal(&pool->cond))
 
 #define gst_surface_pool_parent_class parent_class
-G_DEFINE_TYPE (GstSurfacePool, gst_surface_pool, GST_TYPE_BUFFER_POOL);
+G_DEFINE_TYPE(GstSurfacePool, gst_surface_pool, GST_TYPE_BUFFER_POOL);
 
 GST_DEBUG_CATEGORY_STATIC(gst_surface_pool_debug_category);
 #define GST_CAT_DEFAULT gst_surface_pool_debug_category
@@ -68,7 +68,7 @@ static void clear_preallocated_buffer(GstSurfacePool *spool)
     spool->preAllocated = nullptr;
 }
 
-static void gst_surface_pool_class_init (GstSurfacePoolClass *klass)
+static void gst_surface_pool_class_init(GstSurfacePoolClass *klass)
 {
     g_return_if_fail(klass != nullptr);
     GstBufferPoolClass *poolClass = GST_BUFFER_POOL_CLASS (klass);

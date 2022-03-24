@@ -53,6 +53,7 @@ void CopyFormatDataMap(const Format::FormatDataMap &from, Format::FormatDataMap 
         if (err != EOK) {
             MEDIA_LOGE("memcpy addr failed. Key: %{public}s", it->first.c_str());
             free(it->second.addr);
+            it->second.addr = nullptr;
             it = to.erase(it);
             continue;
         }
@@ -215,9 +216,15 @@ bool Format::PutBuffer(const std::string_view &key, const uint8_t *addr, size_t 
     FormatData data;
     data.type = FORMAT_TYPE_ADDR;
     data.addr = reinterpret_cast<uint8_t *>(malloc(size));
+    if (data.addr == nullptr) {
+        MEDIA_LOGE("malloc addr failed. Key: %{public}s", key.data());
+        return false;
+    }
+
     errno_t err = memcpy_s(reinterpret_cast<void *>(data.addr), size, reinterpret_cast<const void *>(addr), size);
     if (err != EOK) {
         MEDIA_LOGE("PutBuffer memcpy addr failed. Key: %{public}s", key.data());
+        free(data.addr);
         return false;
     }
 

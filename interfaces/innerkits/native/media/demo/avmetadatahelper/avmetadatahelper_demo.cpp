@@ -365,7 +365,7 @@ void AVMetadataHelperDemo::FetchFrame(std::queue<std::string_view> &options)
         }
     }
     std::cout << "time: " << timeUs << " option: " << queryOption << " width: " << param.dstWidth
-         << " height:" << param.dstHeight << " color: " << (int32_t)param.colorFormat << std::endl;
+         << " height:" << param.dstHeight << " color: " << static_cast<int32_t>(param.colorFormat) << std::endl;
 
     DoFetchFrame(timeUs, queryOption, param);
 }
