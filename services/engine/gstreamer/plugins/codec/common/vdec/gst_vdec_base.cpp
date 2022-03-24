@@ -31,7 +31,7 @@ GST_DEBUG_CATEGORY_STATIC(gst_vdec_base_debug_category);
 #define DEFAULT_MAX_QUEUE_SIZE 10
 #define DEFAULT_WIDTH 1920
 #define DEFAULT_HEIGHT 1080
-#define BLOCKING_ACQUIRE_BUFFER_THRESHOLD 3
+#define BLOCKING_ACQUIRE_BUFFER_THRESHOLD 5
 
 static void gst_vdec_base_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void gst_vdec_base_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
