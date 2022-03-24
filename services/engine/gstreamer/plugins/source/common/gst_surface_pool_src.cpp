@@ -290,7 +290,7 @@ static void gst_surface_pool_src_destroy_surface(GstSurfacePoolSrc *src)
 
 static void gst_surface_pool_src_init_surface(GstSurfacePoolSrc *src)
 {
-    g_return_val_if_fail(src != nullptr && src->consumerSurface != nullptr);
+    g_return_if_fail(src != nullptr && src->consumerSurface != nullptr);
     // The internal function do not need judge whether it is empty
     GstMemPoolSrc *memsrc = GST_MEM_POOL_SRC(src);
     sptr<Surface> surface = src->consumerSurface;
