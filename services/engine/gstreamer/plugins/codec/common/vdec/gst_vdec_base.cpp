@@ -731,8 +731,7 @@ static void gst_vdec_base_get_frame_pts(GstVdecBase *self, GstVideoCodecFrame *f
 
 static GstFlowReturn gst_vdec_base_handle_frame(GstVideoDecoder *decoder, GstVideoCodecFrame *frame)
 {
-    g_return_val_if_fail(decoder != nullptr, GST_FLOW_ERROR);
-    g_return_val_if_fail(frame != nullptr, GST_FLOW_ERROR);
+    g_return_val_if_fail(decoder != nullptr && frame != nullptr, GST_FLOW_ERROR);
     GST_DEBUG_OBJECT(decoder, "Handle frame");
     GstVdecBase *self = GST_VDEC_BASE(decoder);
     ON_SCOPE_EXIT(0) { gst_video_codec_frame_unref(frame); };
