@@ -475,7 +475,7 @@ static gboolean check_need_copy(GstSharedMemSink *shmem_sink, GstBuffer *buffer)
 
 static GstFlowReturn gst_shared_mem_sink_do_stream_render(GstMemSink *memsink, GstBuffer **buffer)
 {
-    g_return_val_if_fail(memsink != nullptr && buffer != nullptr, FALSE);
+    g_return_val_if_fail(memsink != nullptr && buffer != nullptr, GST_FLOW_ERROR);
     GstSharedMemSink *shmem_sink = GST_SHARED_MEM_SINK_CAST(memsink);
     GstSharedMemSinkPrivate *priv = shmem_sink->priv;
     g_return_val_if_fail(priv != nullptr, GST_FLOW_ERROR);
