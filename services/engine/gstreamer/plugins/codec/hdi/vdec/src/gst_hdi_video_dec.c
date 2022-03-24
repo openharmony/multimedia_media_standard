@@ -59,6 +59,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE(GstHDIVideoDec, gst_hdi_video_dec, GST_TYPE_VID
 
 static void gst_hdi_video_dec_class_init(GstHDIVideoDecClass *klass)
 {
+    g_return_if_fail(klass != NULL);
     GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
     GstVideoDecoderClass *video_decoder_class = GST_VIDEO_DECODER_CLASS(klass);
     gobject_class->set_property = gst_hdi_video_dec_set_property;

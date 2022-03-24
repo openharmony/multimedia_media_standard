@@ -290,6 +290,7 @@ static void gst_surface_pool_src_destroy_surface(GstSurfacePoolSrc *src)
 
 static void gst_surface_pool_src_init_surface(GstSurfacePoolSrc *src)
 {
+    g_return_val_if_fail(src != nullptr && src->consumerSurface != nullptr);
     // The internal function do not need judge whether it is empty
     GstMemPoolSrc *memsrc = GST_MEM_POOL_SRC(src);
     sptr<Surface> surface = src->consumerSurface;
@@ -344,6 +345,7 @@ static int32_t gst_surface_pool_src_gstformat_to_surfaceformat(GstSurfacePoolSrc
 // it is necessary to apply for the buffers first.
 static void gst_surface_pool_src_init_surface_buffer(GstSurfacePoolSrc *surfacesrc)
 {
+    g_return_if_fail(surfacesrc != nullptr && surfacesrc->producerSurface != nullptr);
     GstMemPoolSrc *memsrc = GST_MEM_POOL_SRC(surfacesrc);
     gint width = DEFAULT_VIDEO_WIDTH;
     gint height = DEFAULT_VIDEO_HEIGHT;

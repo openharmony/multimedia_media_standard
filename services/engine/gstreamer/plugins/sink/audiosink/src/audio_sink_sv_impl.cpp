@@ -275,6 +275,7 @@ int32_t AudioSinkSvImpl::GetMinimumFrameCount(uint32_t &frameCount)
 
 bool AudioSinkSvImpl::Writeable() const
 {
+    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, false);
     return audioRenderer_->GetStatus() == AudioStandard::RENDERER_RUNNING;
 }
 

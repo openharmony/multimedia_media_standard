@@ -409,6 +409,7 @@ gint gst_hdi_queue_input_buffer(const GstHDICodec *codec, GstBuffer *gst_buffer,
     g_return_val_if_fail(codec->input_free_buffers != NULL, HDI_FAILURE);
     InputInfo *input_buffer = (InputInfo*)codec->input_free_buffers->data;
     g_return_val_if_fail(input_buffer != NULL, HDI_ERR_FRAME_BUF_EMPTY);
+    g_return_val_if_fail(input_buffer->buffers != NULL, HDI_ERR_FRAME_BUF_EMPTY);
     if (gst_buffer == NULL) {
         input_buffer->buffers->addr = NULL;
         input_buffer->buffers->length = 0;
@@ -486,6 +487,7 @@ gint gst_hdi_queue_output_buffer(const GstHDICodec *codec, GstBuffer *gst_buffer
 static void gst_hdi_move_outbuffer_to_dirty_list(GstHDIBuffer *buffer)
 {
     GstHDICodec *codec = buffer->codec;
+    g_return_if_fail(codec != NULL);
     codec->output_dirty_buffers = g_list_append(codec->output_dirty_buffers, buffer->output_info);
     g_slice_free(GstHDIBuffer, buffer);
 }

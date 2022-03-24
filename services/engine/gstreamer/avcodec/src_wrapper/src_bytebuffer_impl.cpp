@@ -52,6 +52,7 @@ int32_t SrcBytebufferImpl::Init()
 
 int32_t SrcBytebufferImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 {
+    CHECK_AND_RETURN_RET(config != nullptr, MSERR_UNKNOWN);
     CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
 
     g_object_set(G_OBJECT(src_), "buffer-num", DEFAULT_BUFFER_NUM, nullptr);
