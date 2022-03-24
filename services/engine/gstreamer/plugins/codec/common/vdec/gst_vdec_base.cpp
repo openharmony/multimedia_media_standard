@@ -836,9 +836,9 @@ static void copy_to_no_stride_buffer(GstVdecBase *self, GstVideoCodecFrame *fram
     frame->output_buffer = nullptr;
     ON_SCOPE_EXIT(0) { gst_buffer_unref(src_buffer); };
     // yuv buffer size
-    guint size = self->width * self->height * 3 / 2;
-    guint stride = self->real_stride == 0 ? self->stride : self->real_stride;
-    guint stride_height = self->real_stride_height == 0 ? self->stride_height : self->real_stride_height;
+    guint size = (guint)(self->width * self->height * 3 / 2);
+    guint stride = (guint)(self->real_stride == 0 ? self->stride : self->real_stride);
+    guint stride_height = (guint)(self->real_stride_height == 0 ? self->stride_height : self->real_stride_height);
     guint offset = stride * stride_height;
     GstBuffer *dts_buffer = gst_buffer_new_allocate(nullptr, size, nullptr);
     g_return_if_fail(dts_buffer != nullptr);
@@ -862,7 +862,7 @@ static void copy_to_no_stride_buffer(GstVdecBase *self, GstVideoCodecFrame *fram
     for (int pos = 0; pos < self->height; pos++) {
         ret = memcpy_s(dts_map.data + dts_offset, dts_map.size - dts_offset, src_map.data + src_offset, self->width);
         g_return_if_fail(ret == EOK);
-        dts_offset += self->width;
+        dts_offset += (guint)self->width;
         src_offset += stride;
     }
     src_offset = offset;
