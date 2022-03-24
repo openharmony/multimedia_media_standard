@@ -70,6 +70,7 @@ int32_t AVCodecEngineCtrl::Init(AVCodecType type, bool useSoftware, const std::s
 int32_t AVCodecEngineCtrl::Prepare(std::shared_ptr<ProcessorConfig> inputConfig,
     std::shared_ptr<ProcessorConfig> outputConfig)
 {
+    CHECK_AND_RETURN_RET(inputConfig != nullptr && outputConfig != nullptr, MSERR_UNKNOWN);
     if (src_ == nullptr) {
         MEDIA_LOGD("Use buffer src");
         src_ = AVCodecEngineFactory::CreateSrc(SrcType::SRC_TYPE_BYTEBUFFER);
@@ -328,6 +329,7 @@ int32_t AVCodecEngineCtrl::SetParameter(const Format &format)
 GstBusSyncReply AVCodecEngineCtrl::BusSyncHandler(GstBus *bus, GstMessage *message, gpointer userData)
 {
     CHECK_AND_RETURN_RET(message != nullptr, GST_BUS_DROP);
+    CHECK_AND_RETURN_RET(userData != nullptr, GST_BUS_DROP);
 
     auto self = reinterpret_cast<AVCodecEngineCtrl *>(userData);
     switch (GST_MESSAGE_TYPE(message)) {
