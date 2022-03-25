@@ -130,7 +130,8 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetOutputPortConfig()
         return nullptr;
     }
 
-    config->bufferSize_ = CompressedBufSize(width_, height_, true, codecName_);
+    constexpr uint32_t alignment = 16;
+    config->bufferSize_ = PixelBufferSize(static_cast<VideoPixelFormat>(pixelFormat_), width_, height_, alignment);
 
     return config;
 }
