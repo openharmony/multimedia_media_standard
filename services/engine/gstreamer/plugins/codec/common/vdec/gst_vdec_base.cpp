@@ -865,7 +865,6 @@ static void copy_to_no_stride_buffer(GstVdecBase *self, GstVideoCodecFrame *fram
         dts_offset += self->width;
         src_offset += stride;
     }
-    gst_buffer_add_video_meta(dts_buffer, GST_VIDEO_FRAME_FLAG_NONE, self->format, self->width, self->height);
     gint rst_stride[GST_VIDEO_MAX_PLANES] = { self->width, self->width, 0, 0 };
     gsize rst_offset[GST_VIDEO_MAX_PLANES] = { 0, self->width * self->height, 0, 0 };
     static const gint nplane = 2; // nv12 or nv21 planes count
