@@ -356,13 +356,25 @@ static void gst_surface_mem_sink_dump_buffer(GstSurfaceMemSink *self, GstBuffer 
     GstMapInfo info = GST_MAP_INFO_INIT;
     g_return_if_fail(gst_buffer_map(buffer, &info, GST_MAP_READ));
 
+    gint stride_width = 0;
+    gint stride_height = 0;
+    gint stride_size = 0;
     if (g_str_equal(format, "NV12") || g_str_equal(format, "NV21")) {
-        info.size = (video_meta->offset[1] * 3) / 2;  // 3 2 : NV12和NV21 size比例大小
+        stride_width = video_meta->stride[0];
+        if (stride_width != 0) {
+            stride_height = video_meta->offset[1] / stride_width;
+            if (stride_height % 32 != 0) { // 32 : 高对齐
+                stride_height = ((stride_height / 32) + 1) * 32; // 32 : 高对齐
+            }
+            stride_size = (stride_width * stride_height * 3) / 2;  // 3 2 : NV12和NV21 size比例大小
+        }
     }
-    GST_DEBUG_OBJECT(self, "format %s, stride width %d, stride size %d, info.size %d",
-        format, video_meta->offset[0], video_meta->offset[1], info.size);
-
-    (void)fwrite(info.data, info.size, 1, self->dump.dump_file);
+    GST_DEBUG_OBJECT(self, "format %s, stride width %d, stride height %d, stride_size %d, info.size %d",
+        format, stride_width, stride_height, stride_size, info.size);
+    if (stride_size > info.size) {
+        stride_size = info.size;
+    }
+    (void)fwrite(info.data, stride_size, 1, self->dump.dump_file);
     (void)fflush(self->dump.dump_file);
     gst_buffer_unmap(buffer, &info);
 }
