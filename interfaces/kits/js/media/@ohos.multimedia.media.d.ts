@@ -1413,6 +1413,20 @@ declare namespace media {
      * @syscap SystemCapability.Multimedia.Media.Core
      */
     AUDIO_FLAC = 'audio/flac',
+
+    /**
+     * amr_nb codec MIME type.
+     * @since 9
+     * @syscap SystemCapability.Multimedia.Media.Core
+     */
+    AUDIO_AMR_NB = 'audio/3gpp',
+
+    /**
+     * amr_wb codec MIME type.
+     * @since 9
+     * @syscap SystemCapability.Multimedia.Media.Core
+     */
+    AUDIO_AMR_WB = 'audio/amr-wb',
   }
 }
 export default media;
