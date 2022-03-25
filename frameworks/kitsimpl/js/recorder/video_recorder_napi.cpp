@@ -192,7 +192,6 @@ napi_value VideoRecorderNapi::Prepare(napi_env env, napi_callback_info info)
 
     // get recordernapi
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
-    CHECK_AND_RETURN_RET_LOG(asyncCtx->napi != nullptr, result, "get recorder napi error");
 
     // get param
     napi_valuetype valueType = napi_undefined;
