@@ -36,7 +36,7 @@ protected:
 private:
     int32_t channels_ = 0;
     int32_t sampleRate_ = 0;
-    int32_t AudioSampleFormat_ = 0;
+    int32_t audioSampleFormat_ = 0;
     int32_t profile_ = 0;
     std::string gstRawFormat_;
 };

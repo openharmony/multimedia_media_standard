@@ -71,11 +71,11 @@ int32_t ProcessorAencImpl::ProcessMandatory(const Format &format)
 {
     CHECK_AND_RETURN_RET(format.GetIntValue("channel_count", channels_) == true, MSERR_INVALID_VAL);
     CHECK_AND_RETURN_RET(format.GetIntValue("sample_rate", sampleRate_) == true, MSERR_INVALID_VAL);
-    CHECK_AND_RETURN_RET(format.GetIntValue("audio_sample_format", AudioSampleFormat_) == true, MSERR_INVALID_VAL);
+    CHECK_AND_RETURN_RET(format.GetIntValue("audio_sample_format", audioSampleFormat_) == true, MSERR_INVALID_VAL);
     MEDIA_LOGD("channels:%{public}d, sampleRate:%{public}d, pcm:%{public}d",
-        channels_, sampleRate_, AudioSampleFormat_);
+        channels_, sampleRate_, audioSampleFormat_);
 
-    gstRawFormat_ = RawAudioFormatToGst(static_cast<AudioStandard::AudioSampleFormat>(AudioSampleFormat_));
+    gstRawFormat_ = RawAudioFormatToGst(static_cast<AudioStandard::AudioSampleFormat>(audioSampleFormat_));
 
     return MSERR_OK;
 }
