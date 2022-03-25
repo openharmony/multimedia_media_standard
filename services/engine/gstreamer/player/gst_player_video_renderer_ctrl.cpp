@@ -99,10 +99,16 @@ GstElement *GstPlayerVideoRendererCap::CreateSink(GstPlayerVideoRenderer *render
     CHECK_AND_RETURN_RET_LOG(playbin != nullptr, nullptr, "playbin is nullptr..");
 
     (void)userData->InitAudioSink(playbin);
-    (void)userData->InitVideoSink(playbin);
-
+    if (userData->GetProducerSurface() != nullptr) {
+        (void)userData->InitVideoSink(playbin);
+    }
+    
     gst_object_unref(playbin);
-    return const_cast<GstElement *>(userData->GetVideoSink());
+    if (userData->GetProducerSurface() != nullptr) {
+        return const_cast<GstElement *>(userData->GetVideoSink());
+    } else {
+        return const_cast<GstElement *>(userData->GetAudioSink());
+    }
 }
 
 GstElement *GstPlayerVideoRendererCap::CreateAudioSink(const GstCaps *caps,
@@ -139,7 +145,9 @@ GstElement *GstPlayerVideoRendererCap::CreateVideoSink(const GstCaps *caps, cons
     gst_base_sink_set_async_enabled(GST_BASE_SINK(sink), FALSE);
 
     g_object_set(G_OBJECT(sink), "caps", caps, nullptr);
-    g_object_set(G_OBJECT(sink), "surface", static_cast<gpointer>(rendererCtrl->GetProducerSurface()), nullptr);
+    if (userData->GetProducerSurface() != nullptr) {
+        g_object_set(G_OBJECT(sink), "surface", static_cast<gpointer>(rendererCtrl->GetProducerSurface()), nullptr);
+    }
 
     GstMemSinkCallbacks sinkCallbacks = { EosCb, NewPrerollCb, NewSampleCb };
     gst_mem_sink_set_callback(GST_MEM_SINK(sink), &sinkCallbacks, userData, nullptr);
@@ -224,6 +232,11 @@ GstPlayerVideoRendererCtrl::~GstPlayerVideoRendererCtrl()
 const GstElement *GstPlayerVideoRendererCtrl::GetVideoSink() const
 {
     return videoSink_;
+}
+
+const GstElement *GstPlayerVideoRendererCtrl::GetAudioSink() const
+{
+    return audioSink_;
 }
 
 int32_t GstPlayerVideoRendererCtrl::InitVideoSink(const GstElement *playbin)

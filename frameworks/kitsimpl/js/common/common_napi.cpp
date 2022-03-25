@@ -25,6 +25,17 @@ namespace {
 
 namespace OHOS {
 namespace Media {
+MediaAsyncContext::MediaAsyncContext(napi_value env)
+    : env(env)
+{
+    MEDIA_LOGD("MediaAsyncContext Create 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
+}
+
+MediaAsyncContext::~MediaAsyncContext()
+{
+    MEDIA_LOGD("MediaAsyncContext Destroy 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
+}
+
 std::string CommonNapi::GetStringArgument(napi_env env, napi_value value)
 {
     std::string strValue = "";
@@ -484,6 +495,10 @@ void MediaAsyncContext::CompleteCallback(napi_env env, napi_status status, void 
     auto asyncContext = reinterpret_cast<MediaAsyncContext *>(data);
     CHECK_AND_RETURN_LOG(asyncContext != nullptr, "asyncContext is nullptr!");
 
+    std:string memoryTag = asyncContext->memoryTagHead + asyncContext->memoryTagTail;
+    MEDIA_LOGD("MediaAsyncContext Create 0x%{public}06" PRIXPTR " memoryTag = %{public}s",
+        FAKE_POINTER(data), memoryTag.c_str());
+
     if (status != napi_ok) {
         asyncContext->SignError(MSERR_EXT_UNKNOWN, "napi_create_async_work status != napi_ok");
     }
@@ -508,30 +523,36 @@ void MediaAsyncContext::CompleteCallback(napi_env env, napi_status status, void 
         }
     }
 
-    if (asyncContext->deferred) {
-        if (asyncContext->errFlag) {
-            MEDIA_LOGD("napi_reject_deferred");
-            napi_reject_deferred(env, asyncContext->deferred, args[0]);
-        } else {
-            MEDIA_LOGD("napi_resolve_deferred");
-            napi_resolve_deferred(env, asyncContext->deferred, args[1]);
-        }
-    } else {
-        MEDIA_LOGD("napi_call_function callback");
-        napi_value callback = nullptr;
-        napi_get_reference_value(env, asyncContext->callbackRef, &callback);
-        CHECK_AND_RETURN_LOG(callback != nullptr, "callbackRef is nullptr!");
-        constexpr size_t argCount = 2;
-        napi_value retVal;
-        napi_get_undefined(env, &retVal);
-        napi_call_function(env, nullptr, callback, argCount, args, &retVal);
-        napi_delete_reference(env, asyncContext->callbackRef);
-    }
+    Callback(env, asyncContext, args);
     napi_delete_async_work(env, asyncContext->work);
 
     if (asyncContext->delFlag) {
         delete asyncContext;
         asyncContext = nullptr;
+    }
+}
+
+void MediaAsyncContext::Callback(napi_env env, const MediaAsyncContext *context, const napi_value *args)
+{
+    if (context->deferred) {
+        if (context->errFlag) {
+            MEDIA_LOGD("napi_reject_deferred");
+            napi_reject_deferred(env, context->deferred, args[0]);
+        } else {
+            MEDIA_LOGD("napi_resolve_deferred");
+            napi_resolve_deferred(env, context->deferred, args[1]);
+        }
+    } else {
+        MEDIA_LOGD("napi_call_function callback");
+        napi_value callback = nullptr;
+        CHECK_AND_RETURN_LOG(context->callbackRef != nullptr, "callbackRef is nullptr!");
+        napi_get_reference_value(env, context->callbackRef, &callback);
+        CHECK_AND_RETURN_LOG(callback != nullptr, "callback is nullptr!");
+        constexpr size_t argCount = 2;
+        napi_value retVal;
+        napi_get_undefined(env, &retVal);
+        napi_call_function(env, nullptr, callback, argCount, args, &retVal);
+        napi_delete_reference(env, context->callbackRef);
     }
 }
 
