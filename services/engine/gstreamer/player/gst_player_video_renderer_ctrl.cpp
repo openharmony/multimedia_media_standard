@@ -145,7 +145,7 @@ GstElement *GstPlayerVideoRendererCap::CreateVideoSink(const GstCaps *caps, cons
     gst_base_sink_set_async_enabled(GST_BASE_SINK(sink), FALSE);
 
     g_object_set(G_OBJECT(sink), "caps", caps, nullptr);
-    if (userData->GetProducerSurface() != nullptr) {
+    if (rendererCtrl->GetProducerSurface() != nullptr) {
         g_object_set(G_OBJECT(sink), "surface", static_cast<gpointer>(rendererCtrl->GetProducerSurface()), nullptr);
     }
 
