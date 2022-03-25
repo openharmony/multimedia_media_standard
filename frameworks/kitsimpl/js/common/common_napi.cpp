@@ -25,17 +25,6 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-MediaAsyncContext::MediaAsyncContext(napi_value env)
-    : env(env)
-{
-    MEDIA_LOGD("MediaAsyncContext Create 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
-}
-
-MediaAsyncContext::~MediaAsyncContext()
-{
-    MEDIA_LOGD("MediaAsyncContext Destroy 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
-}
-
 std::string CommonNapi::GetStringArgument(napi_env env, napi_value value)
 {
     std::string strValue = "";
@@ -480,6 +469,17 @@ napi_status MediaJsResultArray::GetJsResult(napi_env env, napi_value &result)
     return napi_ok;
 }
 
+MediaAsyncContext::MediaAsyncContext(napi_env env)
+    : env(env)
+{
+    MEDIA_LOGD("MediaAsyncContext Create 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
+}
+
+MediaAsyncContext::~MediaAsyncContext()
+{
+    MEDIA_LOGD("MediaAsyncContext Destroy 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
+}
+
 void MediaAsyncContext::SignError(int32_t code, std::string message, bool del)
 {
     errMessage = message;
@@ -495,7 +495,7 @@ void MediaAsyncContext::CompleteCallback(napi_env env, napi_status status, void 
     auto asyncContext = reinterpret_cast<MediaAsyncContext *>(data);
     CHECK_AND_RETURN_LOG(asyncContext != nullptr, "asyncContext is nullptr!");
 
-    std:string memoryTag = asyncContext->memoryTagHead + asyncContext->memoryTagTail;
+    std::string memoryTag = asyncContext->memoryTagHead + asyncContext->memoryTagTail;
     MEDIA_LOGD("MediaAsyncContext Create 0x%{public}06" PRIXPTR " memoryTag = %{public}s",
         FAKE_POINTER(data), memoryTag.c_str());
 
