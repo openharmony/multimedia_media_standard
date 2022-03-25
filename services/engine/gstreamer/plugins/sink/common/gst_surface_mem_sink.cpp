@@ -190,11 +190,11 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
     GST_OBJECT_LOCK(surface_sink);
 
     if (surface_sink->firstRenderFrame && isPreroll) {
-        surface_sink->firstRenderFrame = FALSE;
-        GST_DEBUG_OBJECT(surface_sink, "fisrt render frame");
+        GST_WARNING_OBJECT(surface_sink, "fisrt render frame");
         GST_OBJECT_UNLOCK(surface_sink);
         return GST_FLOW_OK;
     }
+    surface_sink->firstRenderFrame = FALSE;
 
     for (guint i = 0; i < gst_buffer_n_memory(buffer); i++) {
         GstMemory *memory = gst_buffer_peek_memory(buffer, i);
