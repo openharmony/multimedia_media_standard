@@ -290,7 +290,6 @@ napi_value VideoPlayerNapi::SetDataSrc(napi_env env, napi_callback_info info)
     VideoPlayerNapi *jsPlayer = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&jsPlayer));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "get player napi error");
-    CHECK_AND_RETURN_RET_LOG(jsPlayer->nativePlayer_ != nullptr, undefinedResult, "nativePlayer_ is nullptr");
 
     if (jsPlayer->dataSrcCallBack_ != nullptr) {
         jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
@@ -1240,7 +1239,7 @@ napi_value VideoPlayerNapi::GetState(napi_env env, napi_callback_info info)
 
     VideoPlayerNapi *jsPlayer = nullptr;
     status = napi_unwrap(env, jsThis, (void **)&jsPlayer);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "Failed to retrieve instance");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "Failed to retrieve instance");
 
     std::string curState = VideoPlayState::STATE_ERROR;
     if (jsPlayer->jsCallback_ != nullptr) {
