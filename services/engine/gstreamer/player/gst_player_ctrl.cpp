@@ -313,6 +313,11 @@ int32_t GstPlayerCtrl::Seek(uint64_t position, const PlayerSeekMode mode)
         return MSERR_INVALID_OPERATION;
     }
 
+    if ((position == 0) && (position == GetPositionInner())) {
+        MEDIA_LOGW("Seek to the inner position");
+        return MSERR_OK;
+    }
+
     position = (position > sourceDuration_) ? sourceDuration_ : position;
     auto task = std::make_shared<TaskHandler<void>>([this, position, mode] { SeekSync(position, mode); });
     if (taskQue_.EnqueueTask(task) != 0) {
