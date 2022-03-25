@@ -232,6 +232,8 @@ static const std::vector<struct JsEnumString> g_codecMimeType = {
     { "AUDIO_OPUS", CodecMimeType::AUDIO_OPUS },
     { "AUDIO_FLAC", CodecMimeType::AUDIO_FLAC },
     { "AUDIO_RAW", CodecMimeType::AUDIO_RAW },
+    { "AUDIO_AMR_NB", CodecMimeType::AUDIO_AMR_NB },
+    { "AUDIO_AMR_WB", CodecMimeType::AUDIO_AMR_WB },
 };
 
 static const std::vector<struct JsEnumString> g_mediaDescriptionKey = {
