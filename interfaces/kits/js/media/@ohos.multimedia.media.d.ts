@@ -348,7 +348,7 @@ declare namespace media {
    * @import import media from '@ohos.multimedia.media'
    * @deprecated since 8
    */
-   enum AudioEncoder {
+  enum AudioEncoder {
     /**
      * Default audio encoding format, which is AMR-NB.
      * @since 6
@@ -392,7 +392,7 @@ declare namespace media {
    * @import import media from '@ohos.multimedia.media'
    * @deprecated since 8
    */
-   enum AudioOutputFormat {
+  enum AudioOutputFormat {
     /**
      * Default audio output format, which is Moving Pictures Expert Group 4 (MPEG-4).
      * @since 6
