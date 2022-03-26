@@ -180,7 +180,7 @@ Range VideoCaps::GetSupportedFrameRatesFor(int32_t width, int32_t height)
 
 void VideoCaps::LoadLevelParams()
 {
-    if (this->GetCodecInfo()->IsSoftwareOnly() == true) {
+    if (this->GetCodecInfo()->IsSoftwareOnly()) {
         return;
     }
     if (data_.mimeType == CodecMimeType::VIDEO_AVC) {

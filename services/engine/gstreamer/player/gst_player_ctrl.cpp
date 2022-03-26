@@ -180,7 +180,7 @@ void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, G
     std::string metaStr(metadata);
 
     if (metaStr.find("Codec/Demuxer") != std::string::npos || metaStr.find("Codec/Parser") != std::string::npos) {
-        if (playerGst->trackParse_->GetDemuxerElementFind() == false) {
+        if (!playerGst->trackParse_->GetDemuxerElementFind()) {
             playerGst->signalIds_.push_back(g_signal_connect(src,
                 "pad-added", G_CALLBACK(GstPlayerTrackParse::OnPadAddedCb), playerGst->trackParse_.get()));
             playerGst->trackParse_->SetDemuxerElementFind(true);

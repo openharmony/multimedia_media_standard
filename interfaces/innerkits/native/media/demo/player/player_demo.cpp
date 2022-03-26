@@ -495,7 +495,7 @@ int32_t PlayerDemo::SetDataSrc(const string &path, bool seekable)
     } else {
         cout << "buffer size:" << size << endl;
     }
-    if (seekable == true) {
+    if (seekable) {
         dataSrc_ = MediaDataSourceDemoSeekable::Create(path, size);
     } else {
         dataSrc_ = MediaDataSourceDemoNoSeek::Create(path, size);
