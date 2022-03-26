@@ -66,12 +66,18 @@ static const std::vector<struct JsEnumInt> g_bufferingInfoType = {
 };
 
 static const std::vector<struct JsEnumInt> g_recorderAudioEncoder = {
-    { "AUDIO_DEFAULT", AudioCodecFormat::AUDIO_DEFAULT },
+    { "DEFAULT", AudioCodecFormat::AUDIO_DEFAULT },
+    { "AMR_NB", 1 }, // Provides implementation only
+    { "AMR_WB", 2 }, // Provides implementation only
     { "AAC_LC", AudioCodecFormat::AAC_LC },
+    { "HE_AAC", 4 }, // Provides implementation only
 };
 
 static const std::vector<struct JsEnumInt> g_recorderAudioOutputFormat = {
+    { "DEFAULT", OutputFormatType::FORMAT_DEFAULT },
     { "MPEG_4", OutputFormatType::FORMAT_MPEG_4 },
+    { "AMR_NB", 3 }, // Provides implementation only
+    { "AMR_WB", 4 }, // Provides implementation only
     { "AAC_ADTS", OutputFormatType::FORMAT_M4A },
 };
 
