@@ -236,6 +236,7 @@ static gboolean process_caps_info(GstAudioCaptureSrc *src)
 
 static GstStateChangeReturn gst_state_change_forward_direction(GstAudioCaptureSrc *src, GstStateChange transition)
 {
+    g_return_val_if_fail(src != nullptr, GST_STATE_CHANGE_FAILURE);
     switch (transition) {
         case GST_STATE_CHANGE_NULL_TO_READY: {
             src->audio_capture = OHOS::Media::AudioCaptureFactory::CreateAudioCapture(src->stream_type);

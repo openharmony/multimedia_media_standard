@@ -348,6 +348,7 @@ static gboolean gst_mem_sink_event(GstBaseSink *bsink, GstEvent *event)
     g_return_val_if_fail(mem_sink != nullptr, FALSE);
     GstMemSinkPrivate *priv = mem_sink->priv;
     g_return_val_if_fail(priv != nullptr, FALSE);
+    g_return_val_if_fail(event != nullptr, FALSE);
 
     switch (event->type) {
         case GST_EVENT_EOS: {

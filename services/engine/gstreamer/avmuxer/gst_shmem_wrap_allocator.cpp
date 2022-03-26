@@ -84,8 +84,9 @@ static void gst_shmem_wrap_allocator_mem_unmap(GstMemory *mem)
     (void)mem;
 }
 
-static GstMemory *gst_shmem_wrap_allocator_mem_share (GstMemory *mem, gssize offset, gsize size)
+static GstMemory *gst_shmem_wrap_allocator_mem_share(GstMemory *mem, gssize offset, gsize size)
 {
+    g_return_val_if_fail(mem != nullptr, nullptr);
     GstShMemMemory *sub = nullptr;
     GstMemory *parent = nullptr;
     GST_DEBUG("offset is: %d, size is: %d", offset, size);

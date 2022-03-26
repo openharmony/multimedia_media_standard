@@ -22,6 +22,7 @@ static GstCaps *gst_venc_h265_get_caps(GstVencBase *self, GstVideoCodecState *st
 static void gst_venc_h265_class_init(GstVencH265Class *klass)
 {
     GST_DEBUG_OBJECT(klass, "Init h265 class");
+    g_return_if_fail(klass != nullptr);
     GstElementClass *element_class = GST_ELEMENT_CLASS(klass);
     GstVencBaseClass *base_class = GST_VENC_BASE_CLASS(klass);
     base_class->get_caps = gst_venc_h265_get_caps;

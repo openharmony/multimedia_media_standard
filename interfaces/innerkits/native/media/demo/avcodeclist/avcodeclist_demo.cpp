@@ -200,6 +200,10 @@ void AVCodecListDemo::PrintVideoCapsArray(const std::vector<std::shared_ptr<Vide
 {
     for (auto iter = videoCapsArray.begin(); iter != videoCapsArray.end(); iter++) {
         std::shared_ptr<VideoCaps> pVideoCaps = *iter;
+        if (pVideoCaps == nullptr) {
+            cout << "pVideoCaps is nullptr" << endl;
+            break;
+        }
         std::shared_ptr<AVCodecInfo> pVideoCodecCaps;
         pVideoCodecCaps = pVideoCaps->GetCodecInfo();
         cout << "This codec capability is :" << endl;
@@ -235,6 +239,10 @@ void AVCodecListDemo::PrintAudioCapsArray(const std::vector<std::shared_ptr<Audi
     for (auto iter = audioCapsArray.begin(); iter != audioCapsArray.end(); iter++) {
         std::shared_ptr<AudioCaps> pAudioCaps = *iter;
         std::shared_ptr<AVCodecInfo> pAudioCodecCaps = pAudioCaps->GetCodecInfo();
+        if (pAudioCodecCaps == nullptr) {
+            cout << "pAudioCodecCaps is nullptr" << endl;
+            break;
+        }
         cout << "This codec capability is :" << endl;
         cout << "GetName = "<< pAudioCodecCaps->GetName() << endl;
         cout << "GetType = "<< pAudioCodecCaps->GetType() << endl;
