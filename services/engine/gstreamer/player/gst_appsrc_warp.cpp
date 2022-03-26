@@ -241,6 +241,7 @@ void GstAppsrcWarp::SeekAndFreeBuffers(uint64_t pos)
     std::unique_lock<std::mutex> lock(mutex_);
     while (!filledBuffers_.empty()) {
         std::shared_ptr<AppsrcMemWarp> appSrcMem = filledBuffers_.front();
+        CHECK_AND_RETURN_LOG(appSrcMem != nullptr, "appSrcMem is nullptr");
         if (appSrcMem->size < 0) {
             filledBuffers_.pop();
             emptyBuffers_.push(appSrcMem);

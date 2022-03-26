@@ -44,7 +44,7 @@ int32_t SrcSurfaceImpl::Init()
 
 int32_t SrcSurfaceImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 {
-    CHECK_AND_RETURN_RET(config->caps_ != nullptr, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(config != nullptr && config->caps_ != nullptr, MSERR_UNKNOWN);
     g_object_set(G_OBJECT(src_), "caps", config->caps_, nullptr);
     return MSERR_OK;
 }

@@ -22,6 +22,7 @@ static GstCaps *gst_venc_mpeg4_get_caps(GstVencBase *self, GstVideoCodecState *s
 static void gst_venc_mpeg4_class_init(GstVencMpeg4Class *klass)
 {
     GST_DEBUG_OBJECT(klass, "Init mpeg4 class");
+    g_return_if_fail(klass != nullptr);
     GstElementClass *element_class = GST_ELEMENT_CLASS(klass);
     GstVencBaseClass *base_class = GST_VENC_BASE_CLASS(klass);
     base_class->get_caps = gst_venc_mpeg4_get_caps;
@@ -51,6 +52,7 @@ static void gst_venc_mpeg4_init(GstVencMpeg4 *self)
 
 static GstCaps *gst_venc_mpeg4_get_caps(GstVencBase *self, GstVideoCodecState *state)
 {
+    g_return_val_if_fail(self != nullptr, nullptr);
     GstCaps *caps = gst_caps_new_simple("video/mpeg",
         "mpegversion", G_TYPE_INT, 4,
         "systemstream", G_TYPE_BOOLEAN, FALSE,

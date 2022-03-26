@@ -26,6 +26,7 @@ G_DEFINE_TYPE_WITH_CODE(GstHDIH265Dec, gst_hdi_h265_dec, GST_TYPE_HDI_VIDEO_DEC,
 
 static void gst_hdi_h265_dec_class_init(GstHDIH265DecClass *klass)
 {
+    g_return_if_fail(klass != NULL);
     GstHDIVideoDecClass *self = GST_HDI_VIDEO_DEC_CLASS(klass);
     GstElementClass *element_class = GST_ELEMENT_CLASS(klass);
 

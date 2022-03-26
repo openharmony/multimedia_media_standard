@@ -80,6 +80,7 @@ void MediaDataSourceDemoSeekable::Reset()
 
 int32_t MediaDataSourceDemoSeekable::ReadAt(int64_t pos, uint32_t length, const std::shared_ptr<AVSharedMemory> &mem)
 {
+    CHECK_AND_RETURN_RET_LOG(mem != nullptr, MSERR_INVALID_VAL, "Mem is nullptr");
     if (pos != pos_) {
         (void)fseek(fd_, static_cast<long>(pos), SEEK_SET);
         pos_ = pos;
