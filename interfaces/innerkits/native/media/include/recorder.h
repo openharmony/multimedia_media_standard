@@ -110,7 +110,7 @@ enum AudioCodecFormat : int32_t {
     /** Default format */
     AUDIO_DEFAULT = 0,
     /** Advanced Audio Coding Low Complexity (AAC-LC) */
-    AAC_LC      =   3,
+    AAC_LC = 3,
     /** Invalid value */
     AUDIO_CODEC_FORMAT_BUTT,
 };
