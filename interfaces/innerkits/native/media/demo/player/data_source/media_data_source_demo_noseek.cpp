@@ -103,6 +103,10 @@ int32_t MediaDataSourceDemoNoSeek::ReadAt(uint32_t length, const std::shared_ptr
         return SOURCE_ERROR_IO;
     }
     readRet = fread(mem->GetBase(), static_cast<size_t>(length), 1, fd_);
+    if (ferror(fd_)) {
+        MEDIA_LOGI("Failed to call fread");
+        return SOURCE_ERROR_IO;
+    }
     if (readRet == 0) {
         realLen = static_cast<int32_t>(size_ - pos_);
     }

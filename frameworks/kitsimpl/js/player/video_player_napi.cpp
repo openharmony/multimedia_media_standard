@@ -371,7 +371,7 @@ napi_value VideoPlayerNapi::SetFdSrc(napi_env env, napi_callback_info info)
         return undefinedResult;
     }
 
-    if (CommonNapi::GetFdArgument(env, args[0], jsPlayer->rawFd_) == false) {
+    if (!CommonNapi::GetFdArgument(env, args[0], jsPlayer->rawFd_)) {
         MEDIA_LOGE("get rawfd argument failed!");
         jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;

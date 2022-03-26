@@ -598,7 +598,7 @@ void VideoRecorderNapi::GetConfig(napi_env env, napi_value args,
     int32_t audioSource, videoSource;
 
     bool ret = CommonNapi::GetPropertyInt32(env, args, "audioSourceType", audioSource);
-    if (ret == true) {
+    if (ret) {
         // audio + video
         properties.audioSourceType = static_cast<AudioSourceType>(audioSource);
     } else {
