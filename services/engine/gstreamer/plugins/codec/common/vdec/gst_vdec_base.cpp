@@ -991,7 +991,8 @@ static GstFlowReturn gst_vdec_base_codec_eos(GstVdecBase *self)
         g_cond_broadcast(&self->drain_cond);
     }
     g_mutex_unlock(&self->drain_lock);
-    return GST_FLOW_EOS;
+    gst_vdec_base_pause_loop(self);
+    return GST_FLOW_OK;
 }
 
 static void gst_vdec_base_pause_loop(GstVdecBase *self)
@@ -1083,6 +1084,7 @@ static void gst_vdec_base_loop(GstVdecBase *self)
             break;
         case GST_FLOW_EOS:
             GST_DEBUG_OBJECT(self, "Eos");
+            gst_pad_push_event(GST_VIDEO_DECODER_SRC_PAD(self), gst_event_new_eos());
             break;
         default:
             gst_pad_push_event(GST_VIDEO_DECODER_SRC_PAD(self), gst_event_new_eos());
