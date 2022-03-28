@@ -384,7 +384,7 @@ napi_value AudioPlayerNapi::SetFdSrc(napi_env env, napi_callback_info info)
         return undefinedResult;
     }
 
-    if (CommonNapi::GetFdArgument(env, args[0], player->rawFd_) == false) {
+    if (!CommonNapi::GetFdArgument(env, args[0], player->rawFd_)) {
         MEDIA_LOGE("get rawfd argument failed!");
         player->ErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
