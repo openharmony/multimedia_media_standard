@@ -270,5 +270,5 @@ void GstLoader::UpdateLogLevel() const
 {
     SetGstLogLevelFromSysPara();
 }
-}
-}
+} // namespace Media
+} // namespace OHOS

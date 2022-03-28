@@ -282,7 +282,7 @@ int32_t AudioRecorderNapi::GetAudioProperties(napi_env env, napi_value args, Aud
 
     int32_t fileFormat = 0;
     bool ret = CommonNapi::GetPropertyInt32(env, args, "format", fileFormat);
-    if (ret == false) {
+    if (!ret) {
         fileFormat = JS_DEFAULT_FILE_FORMAT;
     }
     switch (fileFormat) {
@@ -299,7 +299,7 @@ int32_t AudioRecorderNapi::GetAudioProperties(napi_env env, napi_value args, Aud
 
     int32_t audioEncoder = 0;
     ret = CommonNapi::GetPropertyInt32(env, args, "audioEncoder", audioEncoder);
-    if (ret == false) {
+    if (!ret) {
         fileFormat = JS_DEFAULT_ENCORD_TYPE;
     }
     switch (audioEncoder) {
