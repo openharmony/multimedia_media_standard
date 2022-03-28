@@ -59,7 +59,7 @@ static GType gst_audio_capture_src_source_type_get_type(void)
     static const GEnumValue source_types[] = {
         {AUDIO_SOURCE_TYPE_DEFAULT, "MIC", "MIC"},
         {AUDIO_SOURCE_TYPE_MIC, "MIC", "MIC"},
-        {AUDIO_SOURCE_TYPE_UNKNOWN, nullptr, nullptr}
+        {0, nullptr, nullptr}
     };
     if (!audio_capture_src_source_type) {
         audio_capture_src_source_type = g_enum_register_static("AudioSourceType", source_types);
