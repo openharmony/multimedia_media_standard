@@ -369,8 +369,8 @@ static void gst_surface_mem_sink_dump_buffer(GstSurfaceMemSink *self, GstBuffer 
             stride_size = (stride_width * stride_height * 3) / 2;  // 3 2 : NV12和NV21 size比例大小
         }
     }
-    GST_DEBUG_OBJECT(self, "format %s, stride width %d, stride height %d, stride_size %d, info.size %d",
-        format, stride_width, stride_height, stride_size, info.size);
+    GST_DEBUG_OBJECT(self, "format %s, stride width %d, stride height %d, stride_size %d, info.size %ld",
+        format, stride_width, stride_height, stride_size, (long)info.size);
     if (stride_size > info.size) {
         stride_size = info.size;
     }
