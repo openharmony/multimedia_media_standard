@@ -536,16 +536,15 @@ void MediaAsyncContext::Callback(napi_env env, const MediaAsyncContext *context,
 {
     if (context->deferred) {
         if (context->errFlag) {
-            MEDIA_LOGD("napi_reject_deferred");
+            MEDIA_LOGD("promise napi_reject_deferred");
             napi_reject_deferred(env, context->deferred, args[0]);
         } else {
-            MEDIA_LOGD("napi_resolve_deferred");
+            MEDIA_LOGD("promise napi_resolve_deferred");
             napi_resolve_deferred(env, context->deferred, args[1]);
         }
-    } else {
-        MEDIA_LOGD("napi_call_function callback");
+    } else if (context->callbackRef != nullptr) {
+        MEDIA_LOGD("callback napi_call_function");
         napi_value callback = nullptr;
-        CHECK_AND_RETURN_LOG(context->callbackRef != nullptr, "callbackRef is nullptr!");
         napi_get_reference_value(env, context->callbackRef, &callback);
         CHECK_AND_RETURN_LOG(callback != nullptr, "callback is nullptr!");
         constexpr size_t argCount = 2;
@@ -553,6 +552,8 @@ void MediaAsyncContext::Callback(napi_env env, const MediaAsyncContext *context,
         napi_get_undefined(env, &retVal);
         napi_call_function(env, nullptr, callback, argCount, args, &retVal);
         napi_delete_reference(env, context->callbackRef);
+    } else {
+        MEDIA_LOGD("invalid promise and callback");
     }
 }
 
