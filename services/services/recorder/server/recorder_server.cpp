@@ -322,7 +322,7 @@ int32_t RecorderServer::Prepare()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (status_ == REC_PREPARED) {
-        return MSERR_OK;
+        return MSERR_INVALID_OPERATION;
     }
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_CONFIGURED, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
