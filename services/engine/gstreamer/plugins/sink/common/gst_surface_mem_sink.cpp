@@ -300,7 +300,7 @@ void gst_surface_mem_sink_dump_from_sys_param(GstSurfaceMemSink *self)
     self->dump.enable_dump = FALSE;
     int32_t res = OHOS::system::GetStringParameter("sys.media.dump.frame.enable", dump_enable, "");
     if (res != 0 || dump_enable.empty()) {
-        GST_ERROR_OBJECT(self, "sys.media.dump.frame.enable");
+        GST_DEBUG_OBJECT(self, "sys.media.dump.frame.enable");
         return;
     }
     GST_DEBUG_OBJECT(self, "sys.media.dump.frame.enable=%s", dump_enable.c_str());

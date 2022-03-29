@@ -17,6 +17,7 @@
 #define VIDEO_CALLBACK_NAPI_H_
 
 #include <queue>
+#include <uv.h>
 #include "player_callback_napi.h"
 #include "video_player_napi.h"
 
@@ -74,6 +75,8 @@ private:
     void OnSpeedDoneCb(int32_t speedMode);
     void OnVolumeDoneCb();
     void DequeueAsyncWork();
+    static void UvWorkCallBack(uv_work_t *work, int status);
+    void OnJsCallBack(VideoPlayerAsyncContext *context) const;
 
     std::mutex mutex_;
     napi_env env_ = nullptr;
