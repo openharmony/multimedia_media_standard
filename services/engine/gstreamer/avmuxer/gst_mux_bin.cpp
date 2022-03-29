@@ -36,16 +36,16 @@ static void gst_mux_bin_set_property(GObject *object, guint prop_id, const GValu
 static void gst_mux_bin_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *param_spec);
 static GstStateChangeReturn gst_mux_bin_change_state(GstElement *element, GstStateChange transition);
 
-void gst_mux_bin_add_track(GstMuxBin *mux_bin, const char *srcName, const char *parseName, TrackType trackType)
+void gst_mux_bin_add_track(GstMuxBin *mux_bin, const char *src_name, const char *parse_name, TrackType track_type)
 {
     g_return_if_fail(mux_bin != nullptr);
-    g_return_if_fail(srcName != nullptr);
-    g_return_if_fail(parseName != nullptr);
+    g_return_if_fail(src_name != nullptr);
+    g_return_if_fail(parse_name != nullptr);
     GstTrackInfo *info = g_new(GstTrackInfo, 1);
     g_return_if_fail(info != nullptr);
-    info->srcName_ = g_strdup((char *)srcName);
-    info->parseName_ = g_strdup((char *)parseName);
-    switch (trackType) {
+    info->srcName_ = g_strdup((char *)src_name);
+    info->parseName_ = g_strdup((char *)parse_name);
+    switch (track_type) {
         case VIDEO:
             mux_bin->video_src_list = g_slist_append(mux_bin->video_src_list, info);
             break;
@@ -230,19 +230,19 @@ static bool create_splitmuxsink(GstMuxBin *mux_bin)
     return true;
 }
 
-static GstElement *create_parse(GstMuxBin *mux_bin, const char* parseName)
+static GstElement *create_parse(GstMuxBin *mux_bin, const char* parse_name)
 {
     GST_INFO_OBJECT(mux_bin, "create_parse");
     g_return_val_if_fail(mux_bin != nullptr, nullptr);
     GstElement *parse = nullptr;
-    if (strcmp(parseName, "h264parse") == 0) {
+    if (strcmp(parse_name, "h264parse") == 0) {
         parse = gst_element_factory_make("h264parse", "h264parse");
         g_return_val_if_fail(parse != nullptr, nullptr);
-    } else if (strcmp(parseName, "mpeg4videoparse") == 0) {
+    } else if (strcmp(parse_name, "mpeg4videoparse") == 0) {
         parse = gst_element_factory_make("mpeg4videoparse", "mpeg4parse");
         g_return_val_if_fail(parse != nullptr, nullptr);
         g_object_set(parse, "config-interval", -1, "drop", false, nullptr);
-    } else if (strcmp(parseName, "aacparse") == 0) {
+    } else if (strcmp(parse_name, "aacparse") == 0) {
         parse = gst_element_factory_make("aacparse", "aacparse");
         g_return_val_if_fail(parse != nullptr, nullptr);
     } else {
@@ -252,12 +252,12 @@ static GstElement *create_parse(GstMuxBin *mux_bin, const char* parseName)
     return parse;
 }
 
-static bool create_src(GstMuxBin *mux_bin, TrackType trackType)
+static bool create_src(GstMuxBin *mux_bin, TrackType track_type)
 {
     GST_INFO_OBJECT(mux_bin, "create_src");
     g_return_val_if_fail(mux_bin != nullptr, false);
     GSList *iter = nullptr;
-    switch (trackType) {
+    switch (track_type) {
         case VIDEO:
             iter = mux_bin->video_src_list;
             break;
