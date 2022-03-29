@@ -37,12 +37,11 @@ namespace {
     constexpr uint32_t MULTIPLY10000 = 10000;
     constexpr uint32_t MAX_VIDEO_TRACK_NUM = 1;
     constexpr uint32_t MAX_AUDIO_TRACK_NUM = 16;
-    constexpr uint32_t MSTONS = 1000000;
+    constexpr uint32_t BASE_TIME = 1000;
 }
 
 namespace OHOS {
 namespace Media {
-
 static void StartFeed(GstAppSrc *src, guint length, gpointer userData)
 {
     CHECK_AND_RETURN_LOG(src != nullptr, "AppSrc does not exist");
@@ -237,11 +236,8 @@ int32_t AVMuxerEngineGstImpl::WriteData(std::shared_ptr<AVSharedMemory> sampleDa
     GstBuffer *buffer = gst_buffer_new();
     CHECK_AND_RETURN_RET_LOG(buffer != nullptr, MSERR_NO_MEMORY, "Failed to call gst_buffer_new");
     gst_buffer_append_memory(buffer, mem);
-    GST_BUFFER_DTS(buffer) = static_cast<uint64_t>(sampleInfo.timeMs * MSTONS);
-    GST_BUFFER_PTS(buffer) = static_cast<uint64_t>(sampleInfo.timeMs * MSTONS);
-    if (sampleInfo.flags & AVCODEC_BUFFER_FLAG_SYNC_FRAME) {
-        gst_buffer_set_flags(buffer, GST_BUFFER_FLAG_DELTA_UNIT);
-    }
+    GST_BUFFER_DTS(buffer) = static_cast<uint64_t>(sampleInfo.timeMs * BASE_TIME);
+    GST_BUFFER_PTS(buffer) = static_cast<uint64_t>(sampleInfo.timeMs * BASE_TIME);
 
     GstFlowReturn ret = gst_app_src_push_buffer(src, buffer);
     CHECK_AND_RETURN_RET_LOG(ret == GST_FLOW_OK, MSERR_INVALID_OPERATION, "Failed to call gst_app_src_push_buffer");

@@ -358,7 +358,7 @@ static void gst_surface_mem_sink_dump_buffer(GstSurfaceMemSink *self, GstBuffer 
 
     gint stride_width = 0;
     gint stride_height = 0;
-    gint stride_size = 0;
+    gint stride_size = info.size;
     if (g_str_equal(format, "NV12") || g_str_equal(format, "NV21")) {
         stride_width = video_meta->stride[0];
         if (stride_width != 0) {
