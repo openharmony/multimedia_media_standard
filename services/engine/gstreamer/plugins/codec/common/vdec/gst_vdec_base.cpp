@@ -28,7 +28,7 @@ GST_DEBUG_CATEGORY_STATIC(gst_vdec_base_debug_category);
 #define GST_CAT_DEFAULT gst_vdec_base_debug_category
 #define gst_vdec_base_parent_class parent_class
 #define GST_VDEC_BASE_SUPPORTED_FORMATS "{ NV12, NV21 }"
-#define DEFAULT_MAX_QUEUE_SIZE 10
+#define DEFAULT_MAX_QUEUE_SIZE 30
 #define DEFAULT_WIDTH 1920
 #define DEFAULT_HEIGHT 1080
 #define BLOCKING_ACQUIRE_BUFFER_THRESHOLD 5
@@ -570,8 +570,8 @@ static gboolean gst_vdec_base_allocate_out_buffers(GstVdecBase *self)
     g_return_val_if_fail(self != nullptr, FALSE);
     g_return_val_if_fail(self->decoder != nullptr, FALSE);
     std::vector<GstBuffer*> buffers;
-    self->coding_outbuf_cnt = self->output.buffer_cnt;
-    for (guint i = 0; i < self->output.buffer_cnt; ++i) {
+    self->coding_outbuf_cnt = self->out_buffer_cnt;
+    for (guint i = 0; i < self->out_buffer_cnt; ++i) {
         GST_DEBUG_OBJECT(self, "Allocate output buffer %d", i);
         GstBuffer *buffer = gst_video_decoder_allocate_output_buffer(GST_VIDEO_DECODER(self));
         if (buffer == nullptr) {
