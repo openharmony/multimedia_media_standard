@@ -143,7 +143,7 @@ int32_t AVMuxerEngineGstImpl::SetLocation(float latitude, float longitude)
     return MSERR_OK;
 }
 
-int32_t AVMuxerEngineGstImpl::SetOrientationHint(int degrees)
+int32_t AVMuxerEngineGstImpl::SetOrientationHint(int32_t degrees)
 {
     MEDIA_LOGD("SetOrientationHint");
     CHECK_AND_RETURN_RET_LOG(muxBin_ != nullptr, MSERR_INVALID_OPERATION, "Muxbin does not exist");
@@ -261,7 +261,7 @@ int32_t AVMuxerEngineGstImpl::WriteTrackSample(std::shared_ptr<AVSharedMemory> s
     GstAppSrc *src = trackInfo_[sampleInfo.trackIdx].src_;
     CHECK_AND_RETURN_RET_LOG(src != nullptr, MSERR_INVALID_VAL, "Failed to get AppSrc");
 
-    if (sampleInfo.flags & AVCODEC_BUFFER_FLAG_CODEC_DATA &&
+    if ((sampleInfo.flags & AVCODEC_BUFFER_FLAG_CODEC_DATA) &&
         trackInfo_[sampleInfo.trackIdx].hasCodecData_ != true) {
         g_object_set(src, "caps", trackInfo_[sampleInfo.trackIdx].caps_, nullptr);
         ret = WriteData(sampleData, sampleInfo, src);
