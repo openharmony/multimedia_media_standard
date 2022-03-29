@@ -149,6 +149,25 @@ std::shared_ptr<AudioBuffer> AudioCaptureAsImpl::GetBuffer()
         return nullptr;
     }
 
+    {
+        std::lock_guard<std::mutex> lock(pauseMutex_);
+        if (isPause_) {
+            pausedTime_ = timestamp_;
+            isPause_ = false;
+            MEDIA_LOGD("audio pause timestamp %{public}" PRIu64 "", pausedTime_);
+        }
+
+        if (isResume_) {
+            resumeTime_ = timestamp_;
+            MEDIA_LOGD("audio resume timestamp %{public}" PRIu64 "", resumeTime_);
+            persistTime_ = std::fabs(resumeTime_ - pausedTime_);
+            totalPauseTime_ += persistTime_;
+            isResume_ = false;
+            MEDIA_LOGD("audio has %{public}d times pause, total PauseTime: %{public}" PRIu64 "",
+                pausedCount_ ,totalPauseTime_);
+        }
+    }
+
     buffer->timestamp = timestamp_ - totalPauseTime_;
     buffer->duration = bufferDurationNs_;
     buffer->dataLen = bufferSize_;
@@ -182,25 +201,20 @@ int32_t AudioCaptureAsImpl::StopAudioCapture()
     return MSERR_OK;
 }
 
-uint64_t AudioCaptureAsImpl::GetCurrentTime()
-{
-    constexpr uint32_t SEC_TO_NS = 1000000000; // second to nano second
-    struct timespec timestamp = {0, 0};
-    clock_gettime(CLOCK_MONOTONIC, &timestamp);
-    uint64_t time = (uint64_t)timestamp.tv_sec * SEC_TO_NS + (uint64_t)timestamp.tv_nsec;
-    return time;
-}
-
 int32_t AudioCaptureAsImpl::PauseAudioCapture()
 {
     MEDIA_LOGD("PauseAudioCapture");
-    pausedTime_ = GetCurrentTime();
+    {
+        std::lock_guard<std::mutex> lock(pauseMutex_);
+        isPause_ = true;
+        pausedCount_++; // add one pause time count
+    }
 
     CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, MSERR_INVALID_OPERATION);
     if (audioCapturer_->GetStatus() == AudioStandard::CapturerState::CAPTURER_RUNNING) {
         CHECK_AND_RETURN_RET(audioCapturer_->Stop(), MSERR_UNKNOWN);
     }
-    pausedCount_++; // add one pause time count
+
     MEDIA_LOGD("exit PauseAudioCapture");
     return MSERR_OK;
 }
@@ -208,20 +222,15 @@ int32_t AudioCaptureAsImpl::PauseAudioCapture()
 int32_t AudioCaptureAsImpl::ResumeAudioCapture()
 {
     MEDIA_LOGD("ResumeAudioCapture");
-    resumeTime_ = GetCurrentTime();
 
-    if (resumeTime_ < pausedTime_) {
-        MEDIA_LOGW("get wrong timestamp from audio services!");
+    {
+        std::lock_guard<std::mutex> lock(pauseMutex_);
+        isResume_ = true;
     }
 
-    persistTime_ = std::fabs(resumeTime_ - pausedTime_);
-
-    totalPauseTime_ += persistTime_;
     CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(audioCapturer_->Start(), MSERR_UNKNOWN);
 
-    MEDIA_LOGI("audio capture has %{public}d times paused, persistTime: %{public}" PRIu64 ",totalPauseTime: %{public}"
-        PRIu64 "", pausedCount_, persistTime_, totalPauseTime_);
     return MSERR_OK;
 }
 } // namespace Media
