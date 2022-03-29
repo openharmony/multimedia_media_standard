@@ -209,11 +209,13 @@ private:
 };
 
 struct MediaAsyncContext {
-    explicit MediaAsyncContext(napi_env env) : env(env) {}
-    virtual ~MediaAsyncContext() = default;
+    explicit MediaAsyncContext(napi_env env);
+    virtual ~MediaAsyncContext();
     static void CompleteCallback(napi_env env, napi_status status, void *data);
+    static void Callback(napi_env env, const MediaAsyncContext *context, const napi_value *args);
     static void CheckCtorResult(napi_env env, napi_value &result, MediaAsyncContext *ctx, napi_value &args);
     void SignError(int32_t code, std::string message, bool del = true);
+    std::string memoryTagHead = "safe";
     napi_env env;
     napi_async_work work = nullptr;
     napi_deferred deferred = nullptr;
@@ -224,6 +226,7 @@ struct MediaAsyncContext {
     std::string errMessage = "";
     bool delFlag = true;
     bool ctorFlag = false;
+    std::string memoryTagTail = "memory";
 };
 
 struct AutoRef {
