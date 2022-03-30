@@ -63,7 +63,8 @@ int32_t AVMuxerServer::Init()
 std::vector<std::string> AVMuxerServer::GetAVMuxerFormatList()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(avmuxerEngine_ != nullptr, std::vector<std::string>(), "AVMuxer engine does not exist");
+    CHECK_AND_RETURN_RET_LOG(avmuxerEngine_ != nullptr, std::vector<std::string>(),
+        "AVMuxer engine does not exist");
     std::vector<std::string> formatList = avmuxerEngine_->GetAVMuxerFormatList();
     return formatList;
 }
@@ -72,14 +73,15 @@ int32_t AVMuxerServer::SetOutput(int32_t fd, const std::string &format)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (curState_ != AVMUXER_IDEL && curState_ != AVMUXER_OUTPUT_SET) {
-       MEDIA_LOGE("Failed to call SetOutput, currentState is %{public}d", curState_);
-       return MSERR_INVALID_OPERATION;
+        MEDIA_LOGE("Failed to call SetOutput, currentState is %{public}d", curState_);
+        return MSERR_INVALID_OPERATION;
     }
 
     CHECK_AND_RETURN_RET_LOG(fd >= 0, MSERR_INVALID_VAL, "failed to get file descriptor");
     int32_t flags = fcntl(fd, F_GETFL);
     CHECK_AND_RETURN_RET_LOG(flags != -1, MSERR_INVALID_VAL, "failed to get file status flags");
-    CHECK_AND_RETURN_RET_LOG((static_cast<uint32_t>(flags) & O_WRONLY) == O_WRONLY, MSERR_INVALID_VAL, "Failed to check fd")
+    CHECK_AND_RETURN_RET_LOG((static_cast<uint32_t>(flags) & O_WRONLY) == O_WRONLY,
+        MSERR_INVALID_VAL, "Failed to check fd")
     
     int32_t ret = avmuxerEngine_->SetOutput(fd, format);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Failed to call SetOutput");
@@ -91,8 +93,8 @@ int32_t AVMuxerServer::SetLocation(float latitude, float longitude)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (curState_ != AVMUXER_OUTPUT_SET && curState_ != AVMUXER_PARAMETER_SET) {
-       MEDIA_LOGE("Failed to call SetLocation, currentState is %{public}d", curState_);
-       return MSERR_INVALID_OPERATION;
+        MEDIA_LOGE("Failed to call SetLocation, currentState is %{public}d", curState_);
+        return MSERR_INVALID_OPERATION;
     }
     CHECK_AND_RETURN_RET_LOG(avmuxerEngine_ != nullptr, MSERR_INVALID_OPERATION, "AVMuxer engine does not exist");
     int32_t ret = avmuxerEngine_->SetLocation(latitude, longitude);
@@ -105,8 +107,8 @@ int32_t AVMuxerServer::SetOrientationHint(int32_t degrees)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (curState_ != AVMUXER_OUTPUT_SET && curState_ != AVMUXER_PARAMETER_SET) {
-       MEDIA_LOGE("Failed to call SetOrientationHint, currentState is %{public}d", curState_);
-       return MSERR_INVALID_OPERATION;
+        MEDIA_LOGE("Failed to call SetOrientationHint, currentState is %{public}d", curState_);
+        return MSERR_INVALID_OPERATION;
     }
     CHECK_AND_RETURN_RET_LOG(avmuxerEngine_ != nullptr, MSERR_INVALID_OPERATION, "AVMuxer engine does not exist");
     int32_t ret = avmuxerEngine_->SetOrientationHint(degrees);
@@ -119,8 +121,8 @@ int32_t AVMuxerServer::AddTrack(const MediaDescription &trackDesc, int32_t &trac
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (curState_ != AVMUXER_OUTPUT_SET && curState_ != AVMUXER_PARAMETER_SET) {
-       MEDIA_LOGE("Failed to call AddTrack, currentState is %{public}d", curState_);
-       return MSERR_INVALID_OPERATION;
+        MEDIA_LOGE("Failed to call AddTrack, currentState is %{public}d", curState_);
+        return MSERR_INVALID_OPERATION;
     }
     CHECK_AND_RETURN_RET_LOG(avmuxerEngine_ != nullptr, MSERR_INVALID_OPERATION, "AVMuxer engine does not exist");
     int32_t ret = avmuxerEngine_->AddTrack(trackDesc, trackId);
@@ -134,8 +136,8 @@ int32_t AVMuxerServer::Start()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (curState_ != AVMUXER_PARAMETER_SET || trackNum_ == 0) {
-       MEDIA_LOGE("Failed to call Start, currentState is %{public}d", curState_);
-       return MSERR_INVALID_OPERATION;
+        MEDIA_LOGE("Failed to call Start, currentState is %{public}d", curState_);
+        return MSERR_INVALID_OPERATION;
     }
     CHECK_AND_RETURN_RET_LOG(avmuxerEngine_ != nullptr, MSERR_INVALID_OPERATION, "AVMuxer engine does not exist");
     int32_t ret = avmuxerEngine_->Start();
@@ -149,8 +151,8 @@ int32_t AVMuxerServer::WriteTrackSample(std::shared_ptr<AVSharedMemory> sampleDa
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(sampleData != nullptr, MSERR_INVALID_VAL, "sampleData is nullptr");
     if (curState_ != AVMUXER_STARTED && curState_ != AVMUXER_SAMPLE_WRITING) {
-       MEDIA_LOGE("Failed to call Start, currentState is %{public}d", curState_);
-       return MSERR_INVALID_OPERATION;
+        MEDIA_LOGE("Failed to call Start, currentState is %{public}d", curState_);
+        return MSERR_INVALID_OPERATION;
     }
     CHECK_AND_RETURN_RET_LOG(avmuxerEngine_ != nullptr, MSERR_INVALID_OPERATION, "AVMuxer engine does not exist");
     int32_t ret = avmuxerEngine_->WriteTrackSample(sampleData, info);

@@ -65,7 +65,8 @@ std::vector<std::string> AVMuxerServiceProxy::GetAVMuxerFormatList()
 
     std::vector<std::string> formatList;
     int error = Remote()->SendRequest(GET_MUXER_FORMAT_LIST, data, reply, option);
-    CHECK_AND_RETURN_RET_LOG(error == MSERR_OK, formatList, "Failed to call GetAVMuxerFormatList, error: %{public}d", error);
+    CHECK_AND_RETURN_RET_LOG(error == MSERR_OK, formatList,
+        "Failed to call GetAVMuxerFormatList, error: %{public}d", error);
     reply.ReadStringVector(&formatList);
     return formatList;
 }
@@ -174,7 +175,7 @@ int32_t AVMuxerServiceProxy::WriteTrackSample(std::shared_ptr<AVSharedMemory> sa
     (void)data.WriteInt32(sampleInfo.trackIdx);
     (void)data.WriteInt64(sampleInfo.timeMs);
     (void)data.WriteInt32(sampleInfo.size);
-    (void)data.WriteInt32(sampleInfo.flags);  
+    (void)data.WriteInt32(sampleInfo.flags);
     int error = Remote()->SendRequest(WRITE_TRACK_SAMPLE, data, reply, option);
     CHECK_AND_RETURN_RET_LOG(error == MSERR_OK, error, "Failed to call WriteTrackSample, error: %{public}d", error);
     return reply.ReadInt32();
