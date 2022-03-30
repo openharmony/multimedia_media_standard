@@ -38,7 +38,7 @@ const std::string STATE_PAUSED = "paused";
 const std::string STATE_STOPPED = "stopped";
 const std::string STATE_ERROR = "error";
 };
-napi_ref VideoPlayerNapi::constructor_ = nullptr;
+thread_local napi_ref VideoPlayerNapi::constructor_ = nullptr;
 const std::string CLASS_NAME = "VideoPlayer";
 
 VideoPlayerNapi::VideoPlayerNapi()
