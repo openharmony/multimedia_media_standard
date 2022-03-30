@@ -56,7 +56,7 @@ private:
     VideoEncoderNapi();
     ~VideoEncoderNapi();
 
-    static napi_ref constructor_;
+    static thread_local napi_ref constructor_;
     napi_env env_ = nullptr;
     napi_ref wrap_ = nullptr;
     sptr<Surface> surface_;

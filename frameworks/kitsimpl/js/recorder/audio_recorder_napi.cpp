@@ -31,7 +31,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-napi_ref AudioRecorderNapi::constructor_ = nullptr;
+thread_local napi_ref AudioRecorderNapi::constructor_ = nullptr;
 const std::string CLASS_NAME = "AudioRecorder";
 constexpr int32_t DEFAULT_AUDIO_ENCODER_BIT_RATE = 48000;
 constexpr int32_t DEFAULT_AUDIO_SAMPLE_RATE = 48000;
