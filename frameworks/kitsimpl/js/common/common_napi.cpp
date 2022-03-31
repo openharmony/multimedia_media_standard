@@ -155,11 +155,11 @@ bool CommonNapi::GetFdArgument(napi_env env, napi_value value, AVFileDescriptor 
 {
     CHECK_AND_RETURN_RET(GetPropertyInt32(env, value, "fd", rawFd.fd) == true, false);
 
-    if (GetPropertyInt64(env, value, "offset", rawFd.offset) == false) {
+    if (!GetPropertyInt64(env, value, "offset", rawFd.offset)) {
         rawFd.offset = 0; // use default value
     }
 
-    if (GetPropertyInt64(env, value, "length", rawFd.length) == false) {
+    if (!GetPropertyInt64(env, value, "length", rawFd.length)) {
         rawFd.length = -1; // -1 means use default value
     }
 
@@ -390,12 +390,12 @@ napi_value CommonNapi::CreateFormatBuffer(napi_env env, Format &format)
     for (auto &iter : format.GetFormatMap()) {
         switch (format.GetValueType(std::string_view(iter.first))) {
             case FORMAT_TYPE_INT32:
-                if (format.GetIntValue(iter.first, intValue) == true) {
+                if (format.GetIntValue(iter.first, intValue)) {
                     CHECK_AND_RETURN_RET(SetPropertyInt32(env, buffer, iter.first, intValue) == true, nullptr);
                 }
                 break;
             case FORMAT_TYPE_STRING:
-                if (format.GetStringValue(iter.first, strValue) == true) {
+                if (format.GetStringValue(iter.first, strValue)) {
                     CHECK_AND_RETURN_RET(SetPropertyString(env, buffer, iter.first, strValue) == true, nullptr);
                 }
                 break;
