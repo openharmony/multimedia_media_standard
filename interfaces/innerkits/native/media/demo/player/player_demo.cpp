@@ -142,38 +142,6 @@ PlayerDemo::~PlayerDemo()
     }
 }
 
-sptr<Surface> PlayerDemo::GetWindowSurface()
-{
-    if (SetSurfaceSize() != 0) {
-        cout << "SetSurface Size fail" << endl;
-        return nullptr;
-    }
-
-    sptr<WindowManager> wmi = WindowManager::GetInstance();
-    if (wmi == nullptr) {
-        cout << "WindowManager is null" << endl;
-        return nullptr;
-    }
-    wmi->Init();
-    sptr<WindowOption> option = WindowOption::Get();
-    if (option == nullptr) {
-        cout << "WindowOption is null" << endl;
-        return nullptr;
-    }
-    (void)option->SetWidth(width_);
-    (void)option->SetHeight(height_);
-    (void)option->SetX(0);
-    (void)option->SetY(0);
-    (void)option->SetWindowType(WINDOW_TYPE_NORMAL);
-    (void)wmi->CreateWindow(mwindow_, option);
-    if (mwindow_ == nullptr) {
-        cout << "mwindow_ is null" << endl;
-        return nullptr;
-    }
-
-    return mwindow_->GetSurface();
-}
-
 sptr<Surface> PlayerDemo::GetSubWindowSurface()
 {
     if (SetSurfaceSize() != 0) {
@@ -199,15 +167,12 @@ sptr<Surface> PlayerDemo::GetVideoSurface()
 {
     cout << "Please enter the number of mode(default no window):" << endl;
     cout << "0:no window" << endl;
-    cout << "1:window" << endl;
     cout << "2:sub window" << endl;
     string mode;
     (void)getline(cin, mode);
     sptr<Surface> producerSurface = nullptr;
     if (mode == "0" || mode == "") {
         return nullptr;
-    } else if (mode == "1") {
-        producerSurface = GetWindowSurface();
     } else if (mode == "2") {
         producerSurface = GetSubWindowSurface();
     }

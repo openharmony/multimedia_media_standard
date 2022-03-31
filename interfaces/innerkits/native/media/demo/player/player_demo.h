@@ -67,7 +67,6 @@ private:
     int32_t SelectBufferingOut();
     int32_t ChangeModeToSpeed(const PlaybackRateMode &mode, double &rate) const;
     int32_t ChangeSpeedToMode(const double &rate, PlaybackRateMode &mode) const;
-    sptr<Surface> GetWindowSurface();
     sptr<Surface> GetSubWindowSurface();
     void RegisterTable();
     sptr<Window> mwindow_ = nullptr;

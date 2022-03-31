@@ -59,7 +59,6 @@ ohos_shared_library("mediademo") {
     "//foundation/graphic/standard/frameworks/surface:surface",
     "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_client",
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_surface",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//utils/native/base:utils",
     "//utils/native/base:utilsecurec",

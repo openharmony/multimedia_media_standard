@@ -43,12 +43,6 @@ private:
      */
     static napi_value SetDisplaySurface(napi_env env, napi_callback_info info);
     /**
-     * Informal external interface to verify functionality
-     * getDisplaySurface(callback: AsyncCallback<surfaceId: string>): void
-     * getDisplaySurface(): Promise<surfaceId: string>
-     */
-    static napi_value GetDisplaySurface(napi_env env, napi_callback_info info);
-    /**
      * prepare(callback: AsyncCallback<void>): void
      * prepare(): Promise<void>
      */
@@ -150,7 +144,6 @@ private:
     static napi_value On(napi_env env, napi_callback_info info);
     static void AsyncGetTrackDescription(napi_env env, void *data);
     static void AsyncSetDisplaySurface(napi_env env, void *data);
-    static void AsyncGetDisplaySurface(napi_env env, void *data);
     static void CompleteAsyncWork(napi_env env, napi_status status, void *data);
     void OnErrorCallback(MediaServiceExtErrCode errCode);
     void ReleaseDataSource(std::shared_ptr<MediaDataSourceCallback> dataSourceCb);
