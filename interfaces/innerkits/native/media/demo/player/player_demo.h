@@ -18,12 +18,11 @@
 
 #include "securec.h"
 #include "player.h"
+#include "window.h"
 #include "surface.h"
 #include "display_type.h"
-#include "window_manager.h"
 #include "nocopyable.h"
 #include "media_data_source_demo.h"
-#include "foundation/windowmanager/interfaces/innerkits/wm/window.h"
 
 namespace MediaDemo {
     const int32_t POSITION_UPDATE_INTERVAL = 100;
@@ -69,7 +68,6 @@ private:
     int32_t ChangeSpeedToMode(const double &rate, PlaybackRateMode &mode) const;
     sptr<Surface> GetSubWindowSurface();
     void RegisterTable();
-    sptr<Window> mwindow_ = nullptr;
     sptr<Rosen::Window> previewWindow_ = nullptr;
     std::map<std::string, std::function<int32_t()>> playerTable_;
     std::shared_ptr<Player> player_ = nullptr;
