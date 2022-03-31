@@ -29,7 +29,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-napi_ref NapiDemo::constructor_ = nullptr;
+thread_local napi_ref NapiDemo::constructor_ = nullptr;
 const std::string CLASS_NAME = "MediaTest";
 
 NapiDemo::NapiDemo()

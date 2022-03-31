@@ -28,7 +28,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-napi_ref AudioEncoderNapi::constructor_ = nullptr;
+thread_local napi_ref AudioEncoderNapi::constructor_ = nullptr;
 const std::string CLASS_NAME = "AudioEncodeProcessor";
 
 AudioEncoderNapi::AudioEncoderNapi()
