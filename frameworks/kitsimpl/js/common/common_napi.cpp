@@ -66,6 +66,28 @@ bool CommonNapi::GetPropertyInt32(napi_env env, napi_value configObj, const std:
     return true;
 }
 
+bool CommonNapi::GetPropertyUint32(napi_env env, napi_value configObj, const std::string &type, uint32_t &result)
+{
+    napi_value item = nullptr;
+    bool exist = false;
+    napi_status status = napi_has_named_property(env, configObj, type.c_str(), &exist);
+    if (status != napi_ok || !exist) {
+        MEDIA_LOGE("can not find %{public}s property", type.c_str());
+        return false;
+    }
+
+    if (napi_get_named_property(env, configObj, type.c_str(), &item) != napi_ok) {
+        MEDIA_LOGE("get %{public}s property fail", type.c_str());
+        return false;
+    }
+
+    if (napi_get_value_uint32(env, item, &result) != napi_ok) {
+        MEDIA_LOGE("get %{public}s property value fail", type.c_str());
+        return false;
+    }
+    return true;
+}
+
 bool CommonNapi::GetPropertyInt64(napi_env env, napi_value configObj, const std::string &type, int64_t &result)
 {
     napi_value item = nullptr;
@@ -133,11 +155,11 @@ bool CommonNapi::GetFdArgument(napi_env env, napi_value value, AVFileDescriptor 
 {
     CHECK_AND_RETURN_RET(GetPropertyInt32(env, value, "fd", rawFd.fd) == true, false);
 
-    if (!GetPropertyInt64(env, value, "offset", rawFd.offset)) {
+    if (GetPropertyInt64(env, value, "offset", rawFd.offset) == false) {
         rawFd.offset = 0; // use default value
     }
 
-    if (!GetPropertyInt64(env, value, "length", rawFd.length)) {
+    if (GetPropertyInt64(env, value, "length", rawFd.length) == false) {
         rawFd.length = -1; // -1 means use default value
     }
 
@@ -368,12 +390,12 @@ napi_value CommonNapi::CreateFormatBuffer(napi_env env, Format &format)
     for (auto &iter : format.GetFormatMap()) {
         switch (format.GetValueType(std::string_view(iter.first))) {
             case FORMAT_TYPE_INT32:
-                if (format.GetIntValue(iter.first, intValue)) {
+                if (format.GetIntValue(iter.first, intValue) == true) {
                     CHECK_AND_RETURN_RET(SetPropertyInt32(env, buffer, iter.first, intValue) == true, nullptr);
                 }
                 break;
             case FORMAT_TYPE_STRING:
-                if (format.GetStringValue(iter.first, strValue)) {
+                if (format.GetStringValue(iter.first, strValue) == true) {
                     CHECK_AND_RETURN_RET(SetPropertyString(env, buffer, iter.first, strValue) == true, nullptr);
                 }
                 break;
@@ -412,6 +434,24 @@ bool CommonNapi::CreateFormatBufferByRef(napi_env env, Format &format, napi_valu
     }
 
     return true;
+}
+
+napi_status MediaJsResultStringVector::GetJsResult(napi_env env, napi_value &result)
+{
+    napi_status status;
+    size_t size = value_.size();
+    napi_create_array_with_length(env, size, &result);
+    for (unsigned int i = 0; i < size; ++i) {
+        std::string format = value_[i];
+        napi_value value = nullptr;
+        status = napi_create_string_utf8(env, format.c_str(), NAPI_AUTO_LENGTH, &value);
+        CHECK_AND_RETURN_RET_LOG(status == napi_ok, status,
+            "Failed to call napi_create_string_utf8, with element %{public}u", i);
+        status = napi_set_element(env, result, i, value);
+        CHECK_AND_RETURN_RET_LOG(status == napi_ok, status,
+            "Failed to call napi_set_element, with element %{public}u", i);
+    }
+    return napi_ok;
 }
 
 bool CommonNapi::AddNumberPropInt32(napi_env env, napi_value obj, const std::string &key, int32_t value)
@@ -547,6 +587,23 @@ void MediaAsyncContext::CheckCtorResult(napi_env env, napi_value &result, MediaA
             args = result;
         }
     }
+}
+
+bool MediaAsyncContext::ExtractTrackSampleInfo(napi_env env, napi_value buffer, TrackSampleInfo &info)
+{
+    CHECK_AND_RETURN_RET(buffer != nullptr, false);
+
+    napi_value trackSampleInfo;
+    CHECK_AND_RETURN_RET(napi_get_named_property(env, buffer, "sampleInfo", &trackSampleInfo) == napi_ok, result);
+    CHECK_AND_RETURN_RET(CommonNapi::GetPropertyUint32(env, trackSampleInfo, "size", info.size) == true, result);
+    int32_t flags;
+    CHECK_AND_RETURN_RET(CommonNapi::GetPropertyInt32(env, trackSampleInfo, "flags", flags) == true, result);
+    info.flags = static_cast<AVCodecBufferFlag>(flags);
+    double milliTime;
+    CHECK_AND_RETURN_RET(CommonNapi::GetPropertyDouble(env, trackSampleInfo, "timeMs", milliTime) == true, result);
+    constexpr int32_t msToUs = 1000;
+    info.timeMs = milliTime * msToUs;
+    CHECK_AND_RETURN_RET(CommonNapi::GetPropertyUint32(env, buffer, "trackIndex", info.trackIdx) == true, result);
 }
 } // namespace Media
 } // namespace OHOS
