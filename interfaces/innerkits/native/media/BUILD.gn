@@ -59,6 +59,7 @@ config("media_client_public_config") {
     "$MEDIA_ROOT_DIR/services/utils/include",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
     "//utils/system/safwk/native/include",
+    "//third_party/bounds_checking_function/include",
     "//utils/native/base/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
     "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiocommon/include",
@@ -124,8 +125,8 @@ ohos_shared_library("media_client") {
       "$MEDIA_ROOT_DIR/services/utils:media_service_utils",
       "//foundation/graphic/standard/frameworks/surface:surface",
       "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+      "//third_party/bounds_checking_function:libsec_static",
       "//utils/native/base:utils",
-      "//utils/native/base:utilsecurec",
     ]
 
     external_deps = [
@@ -178,8 +179,8 @@ ohos_shared_library("media_client") {
       "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
       "//foundation/multimedia/media_standard/services/utils:media_format",
       "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+      "//third_party/bounds_checking_function:libsec_static",
       "//utils/native/base:utils",
-      "//utils/native/base:utilsecurec",
     ]
 
     external_deps = [
