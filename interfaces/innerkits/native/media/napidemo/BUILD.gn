@@ -24,7 +24,6 @@ ohos_shared_library("mediademo") {
     "//foundation/multimedia/media_standard/interfaces/kits/js/media/include",
     "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/common",
     "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/graphic/standard/interfaces/innerkits/wmclient",
     "//drivers/peripheral/display/interfaces/include",
   ]
 
