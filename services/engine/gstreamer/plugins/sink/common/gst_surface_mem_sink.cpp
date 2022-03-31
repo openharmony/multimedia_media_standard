@@ -20,7 +20,9 @@
 #include "buffer_type_meta.h"
 #include "media_log.h"
 #include "param_wrapper.h"
+#include "scope_guard.h"
 
+using namespace OHOS;
 struct _GstSurfaceMemSinkPrivate {
     OHOS::sptr<OHOS::Surface> surface;
     GstSurfacePool *pool;
@@ -247,6 +249,7 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     }
 
     GST_OBJECT_LOCK(surface_sink);
+    ON_SCOPE_EXIT(0) { GST_OBJECT_UNLOCK(surface_sink); };
 
     guint size = 0;
     guint minBuffers = 0;
@@ -279,7 +282,6 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
 
     GstStructure *config = gst_buffer_pool_get_config(GST_BUFFER_POOL_CAST(pool));
     if (config == nullptr) {
-        GST_OBJECT_UNLOCK(surface_sink);
         gst_object_unref(allocator);
         return FALSE;
     }
@@ -290,7 +292,6 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     ret = gst_buffer_pool_set_config(GST_BUFFER_POOL_CAST(pool), config);
 
     gst_object_unref(allocator);
-    GST_OBJECT_UNLOCK(surface_sink);
     return ret;
 }
 
@@ -314,15 +315,16 @@ static gboolean gst_surface_mem_sink_event(GstBaseSink *bsink, GstEvent *event)
 {
     GstSurfaceMemSink *surface_mem_sink = GST_SURFACE_MEM_SINK(bsink);
     g_return_val_if_fail(surface_mem_sink != nullptr, FALSE);
+    g_return_val_if_fail(event != nullptr, FALSE);
 
     GST_DEBUG_OBJECT(surface_mem_sink, "event->type %d", event->type);
     switch (event->type) {
-        case GST_EVENT_CAPS : {
+        case GST_EVENT_CAPS: {
             GstCaps *caps;
             gst_event_parse_caps(event, &caps);
             surface_mem_sink->caps = caps;
         }
-        default :
+        default:
             break;
     }
     return GST_BASE_SINK_CLASS(parent_class)->event(bsink, event);
@@ -382,7 +384,7 @@ static GstStateChangeReturn gst_surface_mem_sink_change_state(GstElement *elemen
 
     GST_DEBUG_OBJECT(element, "change state %d", transition);
     switch (transition) {
-        case GST_STATE_CHANGE_READY_TO_PAUSED :
+        case GST_STATE_CHANGE_READY_TO_PAUSED:
             if (self->dump.enable_dump == TRUE) {
                 static std::string dump_file = "/data/media/dump.yuv";
                 if (self->dump.dump_file == nullptr) {
@@ -390,7 +392,7 @@ static GstStateChangeReturn gst_surface_mem_sink_change_state(GstElement *elemen
                 }
             }
             break;
-        case GST_STATE_CHANGE_PAUSED_TO_READY :
+        case GST_STATE_CHANGE_PAUSED_TO_READY:
             if (self->dump.enable_dump == TRUE) {
                 if (self->dump.dump_file != nullptr) {
                     fclose(self->dump.dump_file);
@@ -398,7 +400,7 @@ static GstStateChangeReturn gst_surface_mem_sink_change_state(GstElement *elemen
                 }
             }
             break;
-        default :
+        default:
             break;
     }
     return GST_ELEMENT_CLASS(parent_class)->change_state(element, transition);

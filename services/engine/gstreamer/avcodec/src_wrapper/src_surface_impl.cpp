@@ -42,14 +42,14 @@ int32_t SrcSurfaceImpl::Init()
     return MSERR_OK;
 }
 
-int32_t SrcSurfaceImpl::Configure(std::shared_ptr<ProcessorConfig> config)
+int32_t SrcSurfaceImpl::Configure(const std::shared_ptr<ProcessorConfig> &config)
 {
     CHECK_AND_RETURN_RET(config != nullptr && config->caps_ != nullptr, MSERR_UNKNOWN);
     g_object_set(G_OBJECT(src_), "caps", config->caps_, nullptr);
     return MSERR_OK;
 }
 
-sptr<Surface> SrcSurfaceImpl::CreateInputSurface(std::shared_ptr<ProcessorConfig> inputConfig)
+sptr<Surface> SrcSurfaceImpl::CreateInputSurface(const std::shared_ptr<ProcessorConfig> &inputConfig)
 {
     CHECK_AND_RETURN_RET(Configure(inputConfig) == MSERR_OK, nullptr);
 
@@ -57,10 +57,10 @@ sptr<Surface> SrcSurfaceImpl::CreateInputSurface(std::shared_ptr<ProcessorConfig
     CHECK_AND_RETURN_RET(ret != GST_STATE_CHANGE_FAILURE, nullptr);
 
     GValue val = G_VALUE_INIT;
-    g_object_get_property((GObject *)src_, "surface", &val);
+    g_object_get_property(G_OBJECT(src_), "surface", &val);
     gpointer surfaceObj = g_value_get_pointer(&val);
     CHECK_AND_RETURN_RET_LOG(surfaceObj != nullptr, nullptr, "Failed to get surface");
-    sptr<Surface> surface = (Surface *)surfaceObj;
+    sptr<Surface> surface = reinterpret_cast<Surface *>(surfaceObj);
     return surface;
 }
 
@@ -69,7 +69,7 @@ int32_t SrcSurfaceImpl::SetParameter(const Format &format)
     int32_t value = 0;
     if (format.GetValueType(std::string_view("suspend_input_surface")) == FORMAT_TYPE_INT32) {
         if (format.GetIntValue("suspend_input_surface", value) && (value == 0 || value == 1)) {
-            g_object_set(src_, "suspend", static_cast<bool>(value), nullptr);
+            g_object_set(src_, "suspend", static_cast<gboolean>(value), nullptr);
         }
     }
 

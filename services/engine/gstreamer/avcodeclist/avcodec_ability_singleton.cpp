@@ -71,9 +71,14 @@ bool AVCodecAbilitySingleton::ParseHardwareCapability()
     return true;
 }
 
-bool AVCodecAbilitySingleton::IsParsered()
+bool AVCodecAbilitySingleton::IsParsered() const
 {
-    return this->isParsered_;
+    return isParsered_;
+}
+
+std::vector<CapabilityData> AVCodecAbilitySingleton::GetCapabilityDataArray() const
+{
+    return capabilityDataArray_;
 }
 } // namespace Media
 } // namespace OHOS
