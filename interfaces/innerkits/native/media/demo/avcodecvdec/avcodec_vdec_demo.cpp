@@ -19,10 +19,9 @@
 #include "securec.h"
 #include "demo_log.h"
 #include "media_errors.h"
-#include "wm_common.h"
 #include "ui/rs_surface_node.h"
-#include "foundation/windowmanager/interfaces/innerkits/wm/window.h"
-#include "foundation/windowmanager/interfaces/innerkits/wm/window_option.h"
+#include "window.h"
+#include "window_option.h"
 
 static const int32_t ES[1] =
     { 0 };

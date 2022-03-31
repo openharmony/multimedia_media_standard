@@ -24,7 +24,6 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "surface.h"
-#include "window_manager.h"
 
 namespace OHOS {
 namespace Media {
