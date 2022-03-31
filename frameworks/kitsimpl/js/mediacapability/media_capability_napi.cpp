@@ -27,7 +27,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-napi_ref MediaCapsNapi::constructor_ = nullptr;
+thread_local napi_ref MediaCapsNapi::constructor_ = nullptr;
 const std::string CLASS_NAME = "MediaCapability";
 
 MediaCapsNapi::MediaCapsNapi()
