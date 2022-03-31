@@ -451,7 +451,7 @@ napi_value AVMuxerNapi::WriteTrackSample(napi_env env, napi_callback_info info)
     CHECK_AND_RETURN_RET_LOG(asyncContext != nullptr, result, "Failed to create AVMuxerNapiAsyncContext instance");
 
     napi_value jsThis = nullptr;
-    napi_value args[4] = {nullptr,};
+    napi_value args[4] = {nullptr};
     size_t argCount = 4;
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsThis != nullptr,
