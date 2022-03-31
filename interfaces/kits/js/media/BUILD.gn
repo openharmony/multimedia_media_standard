@@ -102,7 +102,6 @@ ohos_shared_library("media") {
     "//foundation/ace/napi:ace_napi",
     "//foundation/graphic/standard/frameworks/surface:surface",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_client",
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_surface",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/bounds_checking_function:libsec_static",
     "//utils/native/base:utils",
