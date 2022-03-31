@@ -40,14 +40,14 @@ int32_t AVCodecEngineCtrl::Init(AVCodecType type, bool useSoftware, const std::s
 {
     MEDIA_LOGD("Enter Init");
     codecType_ = type;
-    gstPipeline_ = GST_PIPELINE_CAST(gst_pipeline_new("codec-pipeline"));
+    gstPipeline_ = GST_PIPELINE_CAST(gst_object_ref_sink(gst_pipeline_new("codec-pipeline")));
     CHECK_AND_RETURN_RET(gstPipeline_ != nullptr, MSERR_NO_MEMORY);
 
     bus_ = gst_pipeline_get_bus(gstPipeline_);
     CHECK_AND_RETURN_RET(bus_ != nullptr, MSERR_UNKNOWN);
     gst_bus_set_sync_handler(bus_, BusSyncHandler, this, nullptr);
 
-    codecBin_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("codecbin", "the_codec_bin")));
+    codecBin_ = GST_ELEMENT_CAST(gst_object_ref_sink(gst_element_factory_make("codecbin", "the_codec_bin")));
     CHECK_AND_RETURN_RET(codecBin_ != nullptr, MSERR_NO_MEMORY);
 
     gboolean ret = gst_bin_add(GST_BIN_CAST(gstPipeline_), codecBin_);
@@ -350,8 +350,7 @@ GstBusSyncReply AVCodecEngineCtrl::BusSyncHandler(GstBus *bus, GstMessage *messa
                 errCode = MSERR_UNKNOWN;
             } else if (err->domain == GST_LIBRARY_ERROR) {
                 errCode = MSERR_UNSUPPORT;
-            } else
-            if (err->domain == GST_RESOURCE_ERROR) {
+            } else if (err->domain == GST_RESOURCE_ERROR) {
                 errCode = MSERR_INVALID_VAL;
             } else if (err->domain == GST_STREAM_ERROR) {
                 errCode = MSERR_DATA_SOURCE_ERROR_UNKNOWN;

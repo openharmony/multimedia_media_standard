@@ -107,6 +107,8 @@ static GstMemory *gst_surface_allocator_alloc_dummy(GstAllocator *allocator, gsi
 
 static gpointer gst_surface_allocator_mem_map(GstMemory *mem, gsize maxsize, GstMapFlags flags)
 {
+    (void)maxsize;
+    (void)flags;
     g_return_val_if_fail(mem != nullptr, nullptr);
     g_return_val_if_fail(gst_is_surface_memory(mem), nullptr);
 

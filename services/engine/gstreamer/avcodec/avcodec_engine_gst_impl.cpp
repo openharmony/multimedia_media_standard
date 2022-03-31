@@ -41,6 +41,7 @@ AVCodecEngineGstImpl::~AVCodecEngineGstImpl()
 int32_t AVCodecEngineGstImpl::Init(AVCodecType type, bool isMimeType, const std::string &name)
 {
     MEDIA_LOGD("Init AVCodecGstEngine: type:%{public}d, %{public}d, name:%{public}s", type, isMimeType, name.c_str());
+    std::unique_lock<std::mutex> lock(mutex_);
     type_ = type;
 
     InnerCodecMimeType codecName = CODEC_MIMIE_TYPE_DEFAULT;
@@ -171,7 +172,7 @@ sptr<Surface> AVCodecEngineGstImpl::CreateInputSurface()
     return ctrl_->CreateInputSurface(inputConfig);
 }
 
-int32_t AVCodecEngineGstImpl::SetOutputSurface(sptr<Surface> surface)
+int32_t AVCodecEngineGstImpl::SetOutputSurface(const sptr<Surface> &surface)
 {
     MEDIA_LOGD("Enter SetOutputSurface");
     std::unique_lock<std::mutex> lock(mutex_);

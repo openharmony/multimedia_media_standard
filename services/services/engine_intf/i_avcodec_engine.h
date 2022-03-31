@@ -52,7 +52,7 @@ public:
     virtual int32_t Flush() = 0;
     virtual int32_t Reset() = 0;
     virtual sptr<Surface> CreateInputSurface() = 0;
-    virtual int32_t SetOutputSurface(sptr<Surface> surface) = 0;
+    virtual int32_t SetOutputSurface(const sptr<Surface> &surface) = 0;
     virtual std::shared_ptr<AVSharedMemory> GetInputBuffer(uint32_t index) = 0;
     virtual int32_t QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag) = 0;
     virtual std::shared_ptr<AVSharedMemory> GetOutputBuffer(uint32_t index) = 0;

@@ -81,6 +81,7 @@ int32_t ProcessorAdecImpl::ProcessMandatory(const Format &format)
 
 int32_t ProcessorAdecImpl::ProcessOptional(const Format &format)
 {
+    (void)format;
     return MSERR_OK;
 }
 
