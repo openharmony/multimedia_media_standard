@@ -445,20 +445,6 @@ void AVMuxerNapi::AsyncWriteTrackSample(napi_env env, void *data)
         asyncContext->SignError(MSERR_EXT_NO_MEMORY, "jsAVMuxer or avmuxerImpl_ is nullptr");
         return;
     }
-    // 暂时为同步接口
-    // napi_value sampleData = nullptr;
-    // MEDIA_LOGD("begin arraybuffer");
-    // napi_get_reference_value(env, asyncContext->sample_, &sampleData);
-    // MEDIA_LOGD("begin arraybuffer1");
-    // napi_get_arraybuffer_info(env, sampleData, &(asyncContext->arrayBuffer_), &(asyncContext->arrayBufferSize_));
-    // std::shared_ptr<AVMemory> avMem = std::make_shared<AVMemory>(static_cast<uint8_t*>(asyncContext->arrayBuffer_), asyncContext->arrayBufferSize_);
-    // avMem->SetRange(asyncContext->trackSampleInfo_.offset, asyncContext->trackSampleInfo_.size);
-    // MEDIA_LOGD("data[0] is: %{public}u, data[1] is: %{public}u, data[2] is: %{public}u, data[3] is: %{public}u,", ((uint8_t*)(asyncContext->arrayBuffer_))[0], ((uint8_t*)(asyncContext->arrayBuffer_))[1], ((uint8_t*)(asyncContext->arrayBuffer_))[2], ((uint8_t*)(asyncContext->arrayBuffer_))[3]);
-    // int32_t ret = asyncContext->jsAVMuxer->avmuxerImpl_->WriteTrackSample(avMem, asyncContext->trackSampleInfo_);
-    // if (ret != MSERR_OK) {
-    //     asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to AsyncWriteTrackSample");
-    // }
-    // napi_delete_reference(env, asyncContext->sample_);
     MEDIA_LOGD("AsyncWriteTrackSample Out");
 }
 
@@ -482,7 +468,6 @@ napi_value AVMuxerNapi::WriteTrackSample(napi_env env, napi_callback_info info)
     bool isArrayBuffer = false;
     if (args[0] != nullptr && napi_is_arraybuffer(env, args[0], &isArrayBuffer) == napi_ok && isArrayBuffer == true) {
         napi_get_arraybuffer_info(env, args[0], &(asyncContext->arrayBuffer_), &(asyncContext->arrayBufferSize_));
-        // napi_create_reference(env, args[0], 1, &asyncContext->sample_);
     }
     uint32_t offset;
     if (args[1] != nullptr && napi_typeof(env, args[1], &valueType) == napi_ok && valueType == napi_number) {

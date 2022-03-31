@@ -157,6 +157,8 @@ namespace {
     constexpr uint32_t AAC_CHANNEL = 2;
     constexpr uint32_t MP3_SAMPLE_RATE = 48000;
     constexpr uint32_t MP3_CHANNEL = 2;
+    constexpr float LATITUDE = 30.1111;
+    constexpr float LONGITUDE = 150.2222;
 }
 namespace OHOS {
 namespace Media {
@@ -332,7 +334,7 @@ void AVMuxerDemo::DoNext()
         return;
     }
     avmuxer_->SetOutput(fd, format);
-    avmuxer_->SetLocation(30.1111, 150.22222);
+    avmuxer_->SetLocation(LATITUDE, LONGITUDE);
     avmuxer_->SetOrientationHint(90);
 
     if ((mode == 0 && (AddTrackVideo(videoType_) == false || AddTrackAudio(audioType_) == false)) || 
