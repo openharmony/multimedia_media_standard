@@ -26,6 +26,7 @@ ohos_shared_library("mediademo") {
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/graphic/standard/interfaces/innerkits/wmclient",
     "//drivers/peripheral/display/interfaces/include",
+    "//third_party/bounds_checking_function/include",
   ]
 
   sources = [
@@ -61,8 +62,8 @@ ohos_shared_library("mediademo") {
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_client",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_surface",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//third_party/bounds_checking_function:libsec_static",
     "//utils/native/base:utils",
-    "//utils/native/base:utilsecurec",
   ]
 
   external_deps = [
