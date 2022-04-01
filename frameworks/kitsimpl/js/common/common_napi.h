@@ -33,6 +33,7 @@ public:
     ~CommonNapi() = delete;
     static std::string GetStringArgument(napi_env env, napi_value value);
     static bool GetPropertyInt32(napi_env env, napi_value configObj, const std::string &type, int32_t &result);
+    static bool GetPropertyUint32(napi_env env, napi_value configObj, const std::string &type, uint32_t &result);
     static bool GetPropertyInt64(napi_env env, napi_value configObj, const std::string &type, int64_t &result);
     static bool GetPropertyDouble(napi_env env, napi_value configObj, const std::string &type, double &result);
     static std::string GetPropertyString(napi_env env, napi_value configObj, const std::string &type);
@@ -88,6 +89,19 @@ public:
 
 private:
     std::string value_;
+};
+
+class MediaJsResultStringVector : public MediaJsResult {
+public:
+    explicit MediaJsResultStringVector(const std::vector<std::string> &value)
+        : value_(value)
+    {
+    }
+    ~MediaJsResultStringVector() = default;
+    napi_status GetJsResult(napi_env env, napi_value &result) override;
+
+private:
+    std::vector<std::string> value_;
 };
 
 class MediaJsResultArray : public MediaJsResult {
