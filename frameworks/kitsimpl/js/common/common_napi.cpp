@@ -436,24 +436,6 @@ bool CommonNapi::CreateFormatBufferByRef(napi_env env, Format &format, napi_valu
     return true;
 }
 
-napi_status MediaJsResultStringVector::GetJsResult(napi_env env, napi_value &result)
-{
-    napi_status status;
-    size_t size = value_.size();
-    napi_create_array_with_length(env, size, &result);
-    for (unsigned int i = 0; i < size; ++i) {
-        std::string format = value_[i];
-        napi_value value = nullptr;
-        status = napi_create_string_utf8(env, format.c_str(), NAPI_AUTO_LENGTH, &value);
-        CHECK_AND_RETURN_RET_LOG(status == napi_ok, status,
-            "Failed to call napi_create_string_utf8, with element %{public}u", i);
-        status = napi_set_element(env, result, i, value);
-        CHECK_AND_RETURN_RET_LOG(status == napi_ok, status,
-            "Failed to call napi_set_element, with element %{public}u", i);
-    }
-    return napi_ok;
-}
-
 bool CommonNapi::AddNumberPropInt32(napi_env env, napi_value obj, const std::string &key, int32_t value)
 {
     CHECK_AND_RETURN_RET(obj != nullptr, false);
@@ -488,6 +470,24 @@ bool CommonNapi::AddNumberPropInt64(napi_env env, napi_value obj, const std::str
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, false, "Failed to set property");
 
     return true;
+}
+
+napi_status MediaJsResultStringVector::GetJsResult(napi_env env, napi_value &result)
+{
+    napi_status status;
+    size_t size = value_.size();
+    napi_create_array_with_length(env, size, &result);
+    for (unsigned int i = 0; i < size; ++i) {
+        std::string format = value_[i];
+        napi_value value = nullptr;
+        status = napi_create_string_utf8(env, format.c_str(), NAPI_AUTO_LENGTH, &value);
+        CHECK_AND_RETURN_RET_LOG(status == napi_ok, status,
+            "Failed to call napi_create_string_utf8, with element %{public}u", i);
+        status = napi_set_element(env, result, i, value);
+        CHECK_AND_RETURN_RET_LOG(status == napi_ok, status,
+            "Failed to call napi_set_element, with element %{public}u", i);
+    }
+    return napi_ok;
 }
 
 napi_status MediaJsResultArray::GetJsResult(napi_env env, napi_value &result)
