@@ -54,12 +54,12 @@
         "sub_component": [
           "//foundation/multimedia/media_standard/services:media_services_package",
           "//foundation/multimedia/media_standard/sa_profile:media_service_sa_profile",
-          "//foundation/multimedia/media_standard/interfaces/kits/js/media:media",
-          "//foundation/multimedia/media_standard/interfaces/kits/js/media:media_js",
+          "//foundation/multimedia/media_standard/interfaces/kits/js:media",
+          "//foundation/multimedia/media_standard/interfaces/kits/js:media_js",
           "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager",
-          "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/demo:media_demo",
-          "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/napidemo:media_demo_js",
-          "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/napidemo:mediademo"
+          "//foundation/multimedia/media_standard/test/nativedemo:media_demo",
+          "//foundation/multimedia/media_standard/test/jsdemo:media_demo_js",
+          "//foundation/multimedia/media_standard/test/jsdemo:mediademo"
         ],
         "inner_kits": [
           {
@@ -76,12 +76,12 @@
           },
           {
             "type": "none",
-            "name": "//foundation/multimedia/media_standard/interfaces/kits/js/media:media",
+            "name": "//foundation/multimedia/media_standard/interfaces/kits/js:media",
             "header": {
               "header_files": [
                     "native_module_ohos_media.h"
               ],
-              "header_base": "//foundation/multimedia/media_standard/interfaces/kits/js/media/include"
+              "header_base": "//foundation/multimedia/media_standard/interfaces/kits/js"
             }
           }
         ]
