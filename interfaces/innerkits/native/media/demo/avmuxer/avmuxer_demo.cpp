@@ -174,7 +174,7 @@ namespace {
 namespace OHOS {
 namespace Media {
 bool AVMuxerDemo::PushBuffer(std::shared_ptr<std::ifstream> File, const int32_t *FrameArray,
-    int32_t i, int32_t TrakcId, int64_t stamp)
+    int32_t i, int32_t trackId, int64_t stamp)
 {
     if (FrameArray == nullptr) {
         std::cout << "Frame array error" << std::endl;
@@ -190,12 +190,12 @@ bool AVMuxerDemo::PushBuffer(std::shared_ptr<std::ifstream> File, const int32_t 
     aVMem->SetRange(0, *FrameArray);
     TrackSampleInfo info;
     info.size = *FrameArray;
-    info.trackIdx = TrakcId;
+    info.trackIdx = trackId;
 
     if (i == 0) {
         info.timeMs = 0;
         info.flags = AVCODEC_BUFFER_FLAG_CODEC_DATA;
-    } else if ((i == 1 && TrakcId == videoTrakcId_) || TrakcId == audioTrackId_) {
+    } else if ((i == 1 && trackId == videotrackId_) || trackId == audioTrackId_) {
         info.timeMs = stamp;
         info.flags = AVCODEC_BUFFER_FLAG_SYNC_FRAME;
     } else {
@@ -229,7 +229,7 @@ void AVMuxerDemo::WriteTrackSample()
     int32_t audioLen = audioFile_ == nullptr ? INT32_MAX : audioFrameNum_;
     while (i < videoLen && i < audioLen) {
         if (videoFile_ != nullptr) {
-            if (!PushBuffer(videoFile_, videoFrameArray_, i, videoTrakcId_, videoStamp)) {
+            if (!PushBuffer(videoFile_, videoFrameArray_, i, videotrackId_, videoStamp)) {
                 break;
             }
             videoFrameArray_++;
@@ -248,7 +248,7 @@ void AVMuxerDemo::WriteTrackSample()
     }
 }
 
-void AVMuxerDemo::SetParameter(std::string type)
+void AVMuxerDemo::SetParameter(std::string &type)
 {
     if (type == "h264" || type == "mpeg4") {
         videoTimeDuration_ = std::get<DURATION_INDEX>(CODEC_PARAMETER[type]);
@@ -263,7 +263,7 @@ void AVMuxerDemo::SetParameter(std::string type)
     }
 }
 
-bool AVMuxerDemo::AddTrackVideo(std::string& videoType)
+bool AVMuxerDemo::AddTrackVideo(std::string &videoType)
 {
     MediaDescription trackDesc;
     if (videoType == "h264") {
@@ -282,13 +282,13 @@ bool AVMuxerDemo::AddTrackVideo(std::string& videoType)
         std::cout << "Failed to check video type" << std::endl;
         return false;
     }
-    avmuxer_->AddTrack(trackDesc, videoTrakcId_);
-    std::cout << "trackId is: " << videoTrakcId_ << std::endl;
+    avmuxer_->AddTrack(trackDesc, videotrackId_);
+    std::cout << "trackId is: " << videotrackId_ << std::endl;
 
     return true;
 }
 
-bool AVMuxerDemo::AddTrackAudio(std::string& audioType)
+bool AVMuxerDemo::AddTrackAudio(std::string &audioType)
 {
     MediaDescription trackDesc;
     if (audioType == "aac") {

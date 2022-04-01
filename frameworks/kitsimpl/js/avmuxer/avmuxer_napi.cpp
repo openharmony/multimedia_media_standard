@@ -26,7 +26,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-napi_ref AVMuxerNapi::constructor_ = nullptr;
+thread_local napi_ref AVMuxerNapi::constructor_ = nullptr;
 const std::string CLASS_NAME = "AVMuxer";
 struct AVMuxerNapiAsyncContext : public MediaAsyncContext {
     explicit AVMuxerNapiAsyncContext(napi_env env) : MediaAsyncContext(env) {}
