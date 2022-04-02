@@ -261,7 +261,7 @@ struct AutoRef {
 struct AVFileDescriptor {
     int32_t fd = 0;
     int64_t offset = 0;
-    int64_t length = 0;
+    int64_t length = -1;
 };
 } // namespace Media
 } // namespace OHOS
