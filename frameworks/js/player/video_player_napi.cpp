@@ -78,6 +78,7 @@ napi_value VideoPlayerNapi::Init(napi_env env, napi_value exports)
 
         DECLARE_NAPI_GETTER_SETTER("dataSrc", GetDataSrc, SetDataSrc),
         DECLARE_NAPI_GETTER_SETTER("url", GetUrl, SetUrl),
+        DECLARE_NAPI_GETTER_SETTER("fdSrc", GetFdSrc, SetFdSrc),
         DECLARE_NAPI_GETTER_SETTER("loop", GetLoop, SetLoop),
 
         DECLARE_NAPI_GETTER("currentTime", GetCurrentTime),
