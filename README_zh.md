@@ -24,14 +24,13 @@
 
 ```
 /foundation/multimedia/media_standard    # 媒体组件业务代码
-├── frameworks                           # 框架代码
-│   ├── innerkitsimpl                    # native框架实现
-│   ├── kitsimpl                         # js框架实现
-│   ├── videodisplaymanager              # 显示实现
 ├── interfaces                           # 外部接口层
-│   ├── innerkits                        # native外部接口文件
-│   └── kits                             # js外部接口文件
-├── services                             # 服务实现
+│   ├── kits                             # 应用接口
+│   └── innerkits                        # 系统内部件接口
+├── frameworks                           # 部件无独立进程的实现
+│   ├── js                               # js napi实现
+│   ├── native                           # native c++实现
+├── services                             # 服务C/S实现
 │   ├── include                          # 服务对外头文件
 │   ├── services                         # 服务框架
 │   │   ├── player                       # 播放C/S框架
@@ -55,8 +54,9 @@
 │   │   │   ├── factory                  # 引擎工厂实现
 │   │   │   ├── loader                   # 引擎资源加载
 │   ├── utils                            # 子系统基础资源
-├── LICENSE                              # 证书文件
-└── ohos.build                           # 编译文件
+├── test                                 # 测试代码
+├── BUILD.gn                             # 编译入口
+└── bundle.json                          # 部件描述文件
 ```
 
 ## 相关仓<a name="section1533973044317"></a>
