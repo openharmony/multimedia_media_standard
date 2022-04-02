@@ -67,6 +67,7 @@ napi_value AudioPlayerNapi::Init(napi_env env, napi_value exports)
 
         DECLARE_NAPI_GETTER_SETTER("src", GetSrc, SetSrc),
         DECLARE_NAPI_GETTER_SETTER("dataSrc", GetMediaDataSrc, SetMediaDataSrc),
+        DECLARE_NAPI_GETTER_SETTER("fdSrc", GetFdSrc, SetFdSrc),
         DECLARE_NAPI_GETTER_SETTER("loop", GetLoop, SetLoop),
 
         DECLARE_NAPI_GETTER("currentTime", GetCurrentTime),
