@@ -1,0 +1,117 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//build/ohos/ace/ace.gni")
+
+js_declaration("media_js") {
+  part_name = "multimedia_media_standard"
+  sources = [ "./@ohos.multimedia.media.d.ts" ]
+}
+
+ohos_copy("media_declaration") {
+  sources = [ "./@ohos.multimedia.media.d.ts" ]
+  outputs = [ target_out_dir + "/$target_name/" ]
+  module_source_dir = target_out_dir + "/$target_name"
+  module_install_name = ""
+}
+
+ohos_shared_library("media") {
+  include_dirs = [
+    "//foundation/multimedia/media_standard/interfaces/kits/js",
+    "//foundation/multimedia/media_standard/frameworks/js/avcodec/audio_decoder",
+    "//foundation/multimedia/media_standard/frameworks/js/avcodec/audio_encoder",
+    "//foundation/multimedia/media_standard/frameworks/js/avcodec/utils",
+    "//foundation/multimedia/media_standard/frameworks/js/avcodec/video_decoder",
+    "//foundation/multimedia/media_standard/frameworks/js/avcodec/video_encoder",
+    "//foundation/multimedia/media_standard/frameworks/js/player",
+    "//foundation/multimedia/media_standard/frameworks/js/mediadata",
+    "//foundation/multimedia/media_standard/frameworks/js/recorder",
+    "//foundation/multimedia/media_standard/frameworks/js/avmetadatahelper",
+    "//foundation/multimedia/media_standard/frameworks/js/mediacapability",
+    "//foundation/multimedia/media_standard/frameworks/js/common",
+    "//foundation/multimedia/media_standard/services/utils/include",
+    "//third_party/libuv/include",
+  ]
+
+  sources = [
+    "//foundation/multimedia/media_standard/frameworks/js/avcodec/audio_decoder/audio_decoder_callback_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/avcodec/audio_decoder/audio_decoder_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/avcodec/audio_encoder/audio_encoder_callback_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/avcodec/audio_encoder/audio_encoder_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/avcodec/utils/avcodec_napi_helper.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/avcodec/utils/avcodec_napi_utils.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/avcodec/video_decoder/video_decoder_callback_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/avcodec/video_decoder/video_decoder_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/avcodec/video_encoder/video_encoder_callback_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/avcodec/video_encoder/video_encoder_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/common/common_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/common/media_enum_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/mediacapability/media_capability_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/mediacapability/media_capability_utils.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/mediacapability/media_capability_vcaps_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/mediadata/callback_warp.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/mediadata/callback_works.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/mediadata/jscallback.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/mediadata/media_data_source_callback.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/mediadata/media_data_source_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/player/audio_player_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/player/native_module_ohos_media.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/player/player_callback_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/player/video_callback_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/player/video_player_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/recorder/audio_recorder_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/recorder/recorder_callback_napi.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/recorder/recorder_napi_utils.cpp",
+    "//foundation/multimedia/media_standard/frameworks/js/recorder/video_recorder_napi.cpp",
+  ]
+
+  cflags = [
+    "-std=c++17",
+    "-fno-rtti",
+    "-fno-exceptions",
+    "-Wall",
+    "-fno-common",
+    "-fstack-protector-strong",
+    "-Wshadow",
+    "-FPIC",
+    "-FS",
+    "-O2",
+    "-D_FORTIFY_SOURCE=2",
+    "-fvisibility=hidden",
+    "-Werror",
+    "-Wextra",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wdate-time",
+  ]
+
+  deps = [
+    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
+    "//foundation/ace/napi:ace_napi",
+    "//foundation/graphic/standard/frameworks/surface:surface",
+    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_client",
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//utils/native/base:utils",
+    "//utils/native/base:utilsecurec",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
+
+  relative_install_dir = "module/multimedia"
+  part_name = "multimedia_media_standard"
+  subsystem_name = "multimedia"
+}

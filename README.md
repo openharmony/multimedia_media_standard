@@ -23,13 +23,12 @@ It offers various media services covering audio, videos, and media storage. The 
 The structure of the repository directory is as follows:
 ```
 /foundation/multimedia/media_standard
-├── frameworks                           # Framework code
-│   ├── innerkitsimpl                    # Native framework implementation
-│   ├── kitsimpl                         # JS framework implementation
-│   ├── videodisplaymanager              # Video display implementation
-├── interfaces                           # External APIs
-│   ├── innerkits                        # Native external interface files
-│   └── kits                             # External JS API files
+├── interfaces                           # interface
+│   ├── kits                             # Application interface
+│   └── inner_api                        # APIs between systems
+├── frameworks                           # client process implementation
+│   ├── js                               # js napi implementation
+│   ├── native                           # native c++ implementation
 ├── services                             # Service implementation
 │   ├── include                          # External header files of services
 │   ├── services                         # Service framework
@@ -54,8 +53,9 @@ The structure of the repository directory is as follows:
 │   │   │   ├── factory                  # Engine factory implementation
 │   │   │   ├── loader                   # Engine resources loading
 │   ├── utils                            # Basic resources of the subsystem
-├── LICENSE                              # License file
-└── ohos.build                           # Build file
+├── test                                 # test code
+├── BUILD.gn                             # compile entry
+└── bundle.json                          # component description file
 ```
 
 ## Repositories Involved<a name="section1533973044317"></a>

@@ -20,17 +20,16 @@ js_declaration("media_demo_js") {
 
 ohos_shared_library("mediademo") {
   include_dirs = [
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
-    "//foundation/multimedia/media_standard/interfaces/kits/js/media/include",
-    "//foundation/multimedia/media_standard/frameworks/kitsimpl/js/common",
+    "//foundation/multimedia/media_standard/interfaces/kits/js",
+    "//foundation/multimedia/media_standard/frameworks/js/common",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//drivers/peripheral/display/interfaces/include",
     "//third_party/bounds_checking_function/include",
   ]
 
   sources = [
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/napidemo/napi_demo.cpp",
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/napidemo/native_module_ohos_napidemo.cpp",
+    "//foundation/multimedia/media_standard/test/jsdemo/napi_demo.cpp",
+    "//foundation/multimedia/media_standard/test/jsdemo/native_module_ohos_napidemo.cpp",
   ]
 
   cflags = [
