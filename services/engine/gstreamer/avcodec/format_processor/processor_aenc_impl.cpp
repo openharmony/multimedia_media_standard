@@ -133,6 +133,9 @@ std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetOutputPortConfig()
                 "stream-format", G_TYPE_STRING, "raw",
                 "base-profile", G_TYPE_STRING, "lc", nullptr);
             break;
+        case CODEC_MIMIE_TYPE_AUDIO_OPUS:
+            caps = gst_caps_new_simple("audio/x-opus",
+                "rate", G_TYPE_INT, sampleRate_, "channels", G_TYPE_INT, channels_, nullptr);
         default:
             break;
     }
