@@ -41,6 +41,7 @@ config("media_engine_gst_loader_config") {
     "//third_party/gstreamer/gstreamer/libs",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
   ]
 }
 
