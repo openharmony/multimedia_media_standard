@@ -125,7 +125,7 @@ static const gchar **gst_shmem_pool_get_options(GstBufferPool *pool)
 }
 
 gboolean gst_shmem_pool_set_avshmempool(GstShMemPool *pool,
-                                        std::shared_ptr<OHOS::Media::AVSharedMemoryPool> &avshmempool)
+                                        const std::shared_ptr<OHOS::Media::AVSharedMemoryPool> &avshmempool)
 {
     g_return_val_if_fail(pool != nullptr && avshmempool != nullptr, FALSE);
 
@@ -133,13 +133,13 @@ gboolean gst_shmem_pool_set_avshmempool(GstShMemPool *pool,
 
     if (pool->started) {
         GST_ERROR("started already, reject to set avshmempool");
-        GST_OBJECT_UNLOCK(pool);
+        GST_BUFFER_POOL_UNLOCK(pool);
         return FALSE;
     }
 
     if (pool->avshmempool != nullptr) {
         GST_ERROR("avshmempool has already been set");
-        GST_OBJECT_UNLOCK(pool);
+        GST_BUFFER_POOL_UNLOCK(pool);
         return FALSE;
     }
     pool->avshmempool = avshmempool;
@@ -202,6 +202,7 @@ static gboolean gst_shmem_pool_set_config(GstBufferPool *pool, GstStructure *con
         GST_WARNING_OBJECT(pool, "allocator is null");
     }
     if (!(allocator != nullptr && GST_IS_SHMEM_ALLOCATOR(allocator))) {
+        GST_BUFFER_POOL_UNLOCK(spool);
         GST_WARNING_OBJECT(pool, "no valid allocator in pool");
         return FALSE;
     }
@@ -262,6 +263,7 @@ static gboolean gst_shmem_pool_start(GstBufferPool *pool)
 
     gboolean rc = GST_BUFFER_POOL_CLASS(parent_class)->start(pool);
     if (!rc) {
+        GST_BUFFER_POOL_UNLOCK(spool);
         GST_ERROR("parent class start failed");
         return rc;
     }
