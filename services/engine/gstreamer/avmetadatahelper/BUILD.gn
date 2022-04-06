@@ -35,7 +35,6 @@ config("media_engine_gst_avmeta_config") {
   ]
 
   include_dirs = [
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/services/engine_intf",
     "//foundation/multimedia/media_standard/services/utils/include",

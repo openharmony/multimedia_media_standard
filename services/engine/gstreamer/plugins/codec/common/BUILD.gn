@@ -41,7 +41,6 @@ config("gst_codec_plugins_common_config") {
     "//base/hiviewdfx/interfaces/innerkits/libhilog/include",
     "//utils/native/base/include",
     "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
     "//third_party/gstreamer/gstreamer",

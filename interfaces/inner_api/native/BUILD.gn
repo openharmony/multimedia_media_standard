@@ -49,12 +49,6 @@ config("media_client_ipc_config") {
 
 config("media_client_public_config") {
   include_dirs = [
-    "$MEDIA_ROOT_DIR/frameworks/native/player",
-    "$MEDIA_ROOT_DIR/frameworks/native/recorder",
-    "$MEDIA_ROOT_DIR/frameworks/native/avcodec",
-    "$MEDIA_ROOT_DIR/frameworks/native/avcodeclist",
-    "$MEDIA_ROOT_DIR/frameworks/native/avmetadatahelper",
-    "$MEDIA_ROOT_DIR/interfaces/innerkits/native/media/include",
     "$MEDIA_ROOT_DIR/interfaces/inner_api/native",
     "$MEDIA_ROOT_DIR/services/include",
     "$MEDIA_ROOT_DIR/services/utils/include",

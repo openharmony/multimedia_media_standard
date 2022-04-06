@@ -23,7 +23,6 @@ ohos_executable("media_demo") {
     "./avcodeclist",
     "./avcodecvenc",
     "./avcodecvdec",
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//graphic/standard/interfaces/innerkits/surface",

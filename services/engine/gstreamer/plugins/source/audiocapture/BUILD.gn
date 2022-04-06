@@ -37,7 +37,6 @@ config("gst_audio_capture_src_config") {
     "include",
     "//utils/native/base/include",
     "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
     "//foundation/multimedia/audio_standard/frameworks/innerkitsimpl/common/include",
