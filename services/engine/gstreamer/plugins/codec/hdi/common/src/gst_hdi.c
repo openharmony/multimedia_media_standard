@@ -26,8 +26,8 @@ PARAM[*INDEX].val = (void*)&(VAL); \
 PARAM[*INDEX].size = sizeof(VAL); \
 (*INDEX)++; \
 
-#define GST_1080P_STREAM_WIDTH (1920)
-#define GST_1080P_STREAM_HEIGHT (1088)
+#define GST_1080P_STREAM_WIDTH 1920
+#define GST_1080P_STREAM_HEIGHT 1088
 
 GST_DEFINE_MINI_OBJECT_TYPE(GstHDICodec, gst_hdi_codec);
 static void gst_hdi_codec_free(GstHDICodec *codec);

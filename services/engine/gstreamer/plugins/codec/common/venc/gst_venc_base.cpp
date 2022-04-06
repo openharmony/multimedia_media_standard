@@ -276,6 +276,7 @@ static gboolean gst_venc_base_close(GstVideoEncoder *encoder)
     GST_DEBUG_OBJECT(encoder, "Close");
     g_return_val_if_fail(encoder != nullptr, FALSE);
     GstVencBase *self = GST_VENC_BASE(encoder);
+    g_return_val_if_fail(self->encoder != nullptr, FALSE);
     self->encoder->Deinit();
     self->encoder = nullptr;
 
