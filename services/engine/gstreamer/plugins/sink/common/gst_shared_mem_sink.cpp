@@ -24,13 +24,11 @@
 namespace {
     constexpr guint32 DEFAULT_PROP_MEM_SIZE = 0; // 0 is meanless
     constexpr guint32 DEFAULT_PROP_MEM_PREFIX_SIZE = 0;
-    constexpr gboolean DEFAULT_PROP_REMOTE_REFCOUNT = FALSE;
 }
 
 struct _GstSharedMemSinkPrivate {
     guint mem_size;
     guint mem_prefix_size;
-    gboolean enable_remote_ref_count;
     GstShMemPool *pool;
     GstShMemAllocator *allocator;
     GstAllocationParams alloc_params;
@@ -93,11 +91,6 @@ static void gst_shared_mem_sink_class_init(GstSharedMemSinkClass *klass)
             0, G_MAXUINT, DEFAULT_PROP_MEM_PREFIX_SIZE,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
-    g_object_class_install_property(gobject_class, PROP_ENABLE_REMOTE_REFCOUNT,
-        g_param_spec_boolean("enable-remote-refcount", "Enable Remote RefCount",
-            "Enable the remote refcount at the allocated memory", DEFAULT_PROP_REMOTE_REFCOUNT,
-            (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
-
     gst_element_class_set_static_metadata(element_class,
         "ShMemSink", "Sink/Generic",
         "Output to multi-process shared memory and allow the application to get access to the shared memory",
@@ -123,7 +116,6 @@ static void gst_shared_mem_sink_init(GstSharedMemSink *sink)
     sink->priv = priv;
     priv->mem_size = DEFAULT_PROP_MEM_SIZE;
     priv->mem_prefix_size = DEFAULT_PROP_MEM_PREFIX_SIZE;
-    priv->enable_remote_ref_count = DEFAULT_PROP_REMOTE_REFCOUNT;
     gst_allocation_params_init(&priv->alloc_params);
     priv->allocator = gst_shmem_allocator_new();
     priv->set_pool_for_allocator = FALSE;
@@ -193,13 +185,6 @@ static void gst_shared_mem_sink_set_property(GObject *object, guint propId, cons
             GST_OBJECT_UNLOCK(shmem_sink);
             break;
         }
-        case PROP_ENABLE_REMOTE_REFCOUNT: {
-            GST_OBJECT_LOCK(shmem_sink);
-            priv->enable_remote_ref_count = g_value_get_boolean(value);
-            GST_DEBUG_OBJECT(shmem_sink, "enable remote refcount: %d", priv->enable_remote_ref_count);
-            GST_OBJECT_UNLOCK(shmem_sink);
-            break;
-        }
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID(object, propId, pspec);
             break;
@@ -224,12 +209,6 @@ static void gst_shared_mem_sink_get_property(GObject *object, guint propId, GVal
         case PROP_MEM_PREFIX_SIZE: {
             GST_OBJECT_LOCK(shmem_sink);
             g_value_set_uint(value, priv->mem_prefix_size);
-            GST_OBJECT_UNLOCK(shmem_sink);
-            break;
-        }
-        case PROP_ENABLE_REMOTE_REFCOUNT: {
-            GST_OBJECT_LOCK(shmem_sink);
-            g_value_set_boolean(value, priv->enable_remote_ref_count);
             GST_OBJECT_UNLOCK(shmem_sink);
             break;
         }
@@ -414,8 +393,6 @@ static GstFlowReturn do_copy_buffer(GstSharedMemSink *shmem_sink, GstBuffer *in_
             break;
         }
 
-        // add buffer type meta here.
-
         GstMapInfo info;
         if (!gst_buffer_map(*out_buf, &info, GST_MAP_WRITE)) {
             GST_ERROR_OBJECT(shmem_sink, "map buffer failed");
@@ -424,7 +401,11 @@ static GstFlowReturn do_copy_buffer(GstSharedMemSink *shmem_sink, GstBuffer *in_
         }
 
         gsize size = gst_buffer_get_size(in_buf);
-        g_return_val_if_fail(info.size >= size, GST_FLOW_ERROR);
+        if(info.size < size) {
+            gst_buffer_unmap(*out_buf, &info);
+            ret = FALSE;
+            break;
+        }
         gsize writesize = gst_buffer_extract(in_buf, 0, info.data, size);
         gst_buffer_unmap(*out_buf, &info);
         if (writesize != size) {
@@ -447,11 +428,6 @@ static GstFlowReturn do_copy_buffer(GstSharedMemSink *shmem_sink, GstBuffer *in_
 static gboolean check_need_copy(GstSharedMemSink *shmem_sink, GstBuffer *buffer)
 {
     GstSharedMemSinkPrivate *priv = shmem_sink->priv;
-
-    if (gst_buffer_n_memory(buffer) != 1) {
-        GST_ERROR_OBJECT(shmem_sink, "buffer's memory chunks is not 1 !");
-        return FALSE;
-    }
 
     if (buffer->pool != nullptr) {
         if (buffer->pool != GST_BUFFER_POOL_CAST(priv->pool)) {
@@ -481,6 +457,16 @@ static GstFlowReturn gst_shared_mem_sink_do_stream_render(GstMemSink *memsink, G
     g_return_val_if_fail(priv != nullptr, GST_FLOW_ERROR);
     GstBuffer *orig_buf = *buffer;
     GstBuffer *out_buf = nullptr;
+
+    if (gst_buffer_n_memory(orig_buf) != 1) {
+        GST_ERROR_OBJECT(shmem_sink, "buffer's memory chunks is not 1 !");
+        return GST_FLOW_ERROR;
+    }
+
+    if (gst_buffer_peek_memory(orig_buf, 0) == nullptr) {
+        GST_ERROR_OBJECT(shmem_sink, "buffer's memory is nullptr !");
+        return GST_FLOW_ERROR;
+    }
 
     if (!check_need_copy(shmem_sink, orig_buf)) {
         // To keep the user interface consistent with the scenario where the output

@@ -89,7 +89,7 @@ static void gst_surface_allocator_free(GstAllocator *baseAllocator, GstMemory *b
     if (!memory->needRender) {
         OHOS::SurfaceError ret = allocator->surface->CancelBuffer(memory->buf);
         if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
-            GST_ERROR("cancel buffer to surface failed, %d", ret);
+            GST_INFO("cancel buffer to surface failed, %d", ret);
         }
     }
 
