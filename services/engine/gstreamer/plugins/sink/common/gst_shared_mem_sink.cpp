@@ -401,7 +401,7 @@ static GstFlowReturn do_copy_buffer(GstSharedMemSink *shmem_sink, GstBuffer *in_
         }
 
         gsize size = gst_buffer_get_size(in_buf);
-        if(info.size < size) {
+        if (info.size < size) {
             gst_buffer_unmap(*out_buf, &info);
             ret = FALSE;
             break;
