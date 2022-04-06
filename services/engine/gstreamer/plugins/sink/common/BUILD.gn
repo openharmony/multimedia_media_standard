@@ -37,6 +37,7 @@ config("gst_mem_sink_plugins_config") {
     "//utils/native/base/include",
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/graphic/standard/utils/sync_fence/export",

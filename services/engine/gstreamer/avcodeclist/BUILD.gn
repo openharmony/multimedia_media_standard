@@ -38,6 +38,7 @@ config("media_engine_gst_avcodec_config") {
     "//foundation/multimedia/media_standard/services/engine/gstreamer/avcodeclist",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/services/engine_intf",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common",
     "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiocommon/include",
