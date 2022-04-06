@@ -125,7 +125,11 @@ GstFlowReturn SinkBytebufferImpl::NewSampleCb(GstMemSink *memSink, GstBuffer *sa
 {
     (void)memSink;
     auto impl = static_cast<SinkBytebufferImpl *>(userData);
-    CHECK_AND_RETURN_RET(impl != nullptr, GST_FLOW_ERROR);
+    if (impl == nullptr) {
+        MEDIA_LOGE("impl is nullptr");
+        gst_buffer_unref(sample);
+        return GST_FLOW_ERROR;
+    }
     std::unique_lock<std::mutex> lock(impl->mutex_);
     CHECK_AND_RETURN_RET(impl->HandleNewSampleCb(sample) == MSERR_OK, GST_FLOW_ERROR);
     return GST_FLOW_OK;

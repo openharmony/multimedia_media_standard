@@ -67,7 +67,7 @@ GST_API_EXPORT GType gst_shmem_pool_get_type(void);
 GST_API_EXPORT GstShMemPool *gst_shmem_pool_new();
 
 GST_API_EXPORT gboolean gst_shmem_pool_set_avshmempool(GstShMemPool *pool,
-    std::shared_ptr<OHOS::Media::AVSharedMemoryPool> &avshmempool);
+    const std::shared_ptr<OHOS::Media::AVSharedMemoryPool> &avshmempool);
 
 G_END_DECLS
 
