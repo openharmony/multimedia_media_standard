@@ -20,6 +20,9 @@
 #include "buffer_type_meta.h"
 #include "media_log.h"
 #include "param_wrapper.h"
+#include "scope_guard.h"
+
+using namespace OHOS;
 
 struct _GstSurfaceMemSinkPrivate {
     OHOS::sptr<OHOS::Surface> surface;
@@ -63,7 +66,7 @@ static void gst_surface_mem_sink_class_init(GstSurfaceMemSinkClass *klass)
     GstElementClass *element_class = GST_ELEMENT_CLASS(klass);
     GstBaseSinkClass *base_sink_class = GST_BASE_SINK_CLASS(klass);
 
-    gst_element_class_add_static_pad_template (element_class, &g_sinktemplate);
+    gst_element_class_add_static_pad_template(element_class, &g_sinktemplate);
 
     gobject_class->dispose = gst_surface_mem_sink_dispose;
     gobject_class->finalize = gst_surface_mem_sink_finalize;
@@ -202,7 +205,7 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
         GstSurfaceMemory *surface_mem = reinterpret_cast<GstSurfaceMemory *>(memory);
         surface_mem->needRender = TRUE;
 
-        bool needFlush = TRUE;
+        gboolean needFlush = TRUE;
         if (isPreroll) {
             surface_sink->prerollBuffer = buffer;
         } else {
@@ -220,7 +223,11 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
             gst_surface_mem_sink_dump_buffer(surface_sink, buffer);
             OHOS::SurfaceError ret = priv->surface->FlushBuffer(surface_mem->buf, surface_mem->fence, flushConfig);
             if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
+                surface_mem->needRender = FALSE;
                 GST_ERROR_OBJECT(surface_sink, "flush buffer to surface failed, %d", ret);
+            } else {
+                surface_mem->buf = nullptr;
+                surface_mem->fence = -1;
             }
         }
     }
@@ -247,6 +254,7 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     }
 
     GST_OBJECT_LOCK(surface_sink);
+    ON_SCOPE_EXIT(0) { GST_OBJECT_UNLOCK(surface_sink); };
 
     guint size = 0;
     guint minBuffers = 0;
@@ -279,7 +287,6 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
 
     GstStructure *config = gst_buffer_pool_get_config(GST_BUFFER_POOL_CAST(pool));
     if (config == nullptr) {
-        GST_OBJECT_UNLOCK(surface_sink);
         gst_object_unref(allocator);
         return FALSE;
     }
@@ -290,7 +297,6 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     ret = gst_buffer_pool_set_config(GST_BUFFER_POOL_CAST(pool), config);
 
     gst_object_unref(allocator);
-    GST_OBJECT_UNLOCK(surface_sink);
     return ret;
 }
 

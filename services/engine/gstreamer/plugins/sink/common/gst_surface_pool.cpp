@@ -31,7 +31,7 @@ namespace {
     };
 }
 
-#define GST_BUFFER_POOL_LOCK(pool)   (g_mutex_lock(&pool->lock))
+#define GST_BUFFER_POOL_LOCK(pool) (g_mutex_lock(&pool->lock))
 #define GST_BUFFER_POOL_UNLOCK(pool) (g_mutex_unlock(&pool->lock))
 #define GST_BUFFER_POOL_WAIT(pool) (g_cond_wait(&pool->cond, &pool->lock))
 #define GST_BUFFER_POOL_NOTIFY(pool) (g_cond_signal(&pool->cond))
@@ -86,7 +86,7 @@ static void gst_surface_pool_class_init(GstSurfacePoolClass *klass)
     poolClass->flush_start = gst_surface_pool_flush_start;
 }
 
-static void gst_surface_pool_init (GstSurfacePool *pool)
+static void gst_surface_pool_init(GstSurfacePool *pool)
 {
     g_return_if_fail(pool != nullptr);
 
@@ -139,7 +139,7 @@ GstSurfacePool *gst_surface_pool_new()
     return pool;
 }
 
-static const gchar **gst_surface_pool_get_options (GstBufferPool *pool)
+static const gchar **gst_surface_pool_get_options(GstBufferPool *pool)
 {
     // add buffer type meta option at here
     static const gchar *options[] = { GST_BUFFER_POOL_OPTION_VIDEO_META, GST_BUFFER_POOL_OPTION_VIDEO_ALIGNMENT,
