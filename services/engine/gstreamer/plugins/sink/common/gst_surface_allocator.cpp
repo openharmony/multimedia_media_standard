@@ -24,11 +24,12 @@ gboolean gst_surface_allocator_set_surface(GstSurfaceAllocator *allocator, OHOS:
 {
     if (allocator == nullptr) {
         GST_ERROR("allocator is nullptr");
+        return FALSE;
     }
     if (surface == nullptr) {
         GST_ERROR("surface is nullptr");
+        return FALSE;
     }
-    g_return_val_if_fail(allocator != nullptr && surface != nullptr, FALSE);
     allocator->surface = surface;
     return TRUE;
 }
