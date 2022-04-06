@@ -74,6 +74,7 @@ const std::map<std::string_view, InnerCodecMimeType> MIME_TO_CODEC_NAME = {
     {CodecMimeType::AUDIO_MPEG, CODEC_MIMIE_TYPE_AUDIO_MPEG},
     {CodecMimeType::AUDIO_AAC, CODEC_MIMIE_TYPE_AUDIO_AAC},
     {CodecMimeType::AUDIO_FLAC, CODEC_MIMIE_TYPE_AUDIO_FLAC},
+    {CodecMimeType::AUDIO_OPUS, CODEC_MIMIE_TYPE_AUDIO_OPUS},
 };
 
 std::string PixelFormatToGst(VideoPixelFormat pixel)
