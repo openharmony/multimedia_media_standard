@@ -35,7 +35,6 @@ config("gst_mem_source_plugins_common_config") {
   include_dirs = [
     "//utils/native/base/include",
     "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
     "//foundation/graphic/standard/utils/sync_fence/export",

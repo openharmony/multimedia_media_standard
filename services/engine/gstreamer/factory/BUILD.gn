@@ -48,7 +48,6 @@ config("media_engine_gst_factory_config") {
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/metadata",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
     "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
     "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiocommon/include",
