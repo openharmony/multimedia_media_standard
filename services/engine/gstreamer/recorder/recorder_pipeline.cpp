@@ -144,13 +144,10 @@ int32_t RecorderPipeline::Stop(bool isDrainAll)
         return MSERR_OK;
     }
 
-    if (currState_ == GST_STATE_READY) {
-        int32_t ret1 = SyncWaitChangeState(GST_STATE_NULL);
-        CHECK_AND_RETURN_RET_LOG(ret1 == MSERR_OK, ret1, "Stop failed !");
-        return MSERR_OK;
+    if (currState_ != GST_STATE_READY) {
+        MEDIA_LOGI("enter Stop, isDrainAll = %{public}d", isDrainAll);
+        DrainBuffer(isDrainAll);
     }
-    MEDIA_LOGI("enter Stop, isDrainAll = %{public}d", isDrainAll);
-    DrainBuffer(isDrainAll);
 
     (void)DoElemAction(&RecorderElement::Stop, false);
 
