@@ -180,6 +180,8 @@ static void gst_mem_sink_finalize(GObject *obj)
 static void gst_mem_sink_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
     g_return_if_fail(object != nullptr);
+    g_return_if_fail(value != nullptr);
+    g_return_if_fail(pspec != nullptr);
 
     GstMemSink *mem_sink = GST_MEM_SINK_CAST(object);
     GstMemSinkPrivate *priv = mem_sink->priv;
@@ -298,6 +300,7 @@ static void gst_mem_sink_setcaps(GstMemSink *mem_sink, const GstCaps *caps)
 
 static GstCaps *gst_mem_sink_getcaps(GstMemSink *mem_sink)
 {
+    g_return_val_if_fail(mem_sink != nullptr, nullptr);
     GstMemSinkPrivate *priv = mem_sink->priv;
     g_return_val_if_fail(priv != nullptr, nullptr);
 
@@ -370,6 +373,7 @@ static gboolean gst_mem_sink_query(GstBaseSink *bsink, GstQuery *query)
     g_return_val_if_fail(mem_sink != nullptr, FALSE);
     GstMemSinkPrivate *priv = mem_sink->priv;
     g_return_val_if_fail(priv != nullptr, FALSE);
+    g_return_val_if_fail(query != nullptr, FALSE);
 
     gboolean ret;
     switch (GST_QUERY_TYPE(query)) {
