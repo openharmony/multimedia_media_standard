@@ -16,7 +16,6 @@
 #ifndef AVSHAREDMEMORY_H
 #define AVSHAREDMEMORY_H
 
-#include <cstdint>
 #include <memory>
 #include <string>
 

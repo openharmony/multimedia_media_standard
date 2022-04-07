@@ -17,7 +17,7 @@ ohos_static_library("media_format") {
   sources = [ "format.cpp" ]
 
   include_dirs = [
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//utils/native/base/include",
   ]
@@ -50,7 +50,7 @@ ohos_shared_library("media_service_utils") {
 
   include_dirs = [
     "//utils/native/base/include",
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
   ]
 
   cflags = [
