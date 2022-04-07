@@ -281,7 +281,7 @@ bool AudioSinkSvImpl::Writeable() const
 
 int32_t AudioSinkSvImpl::Write(uint8_t *buffer, size_t size)
 {
-    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr && buffer != nullptr, MSERR_INVALID_OPERATION);
     size_t bytesWritten = 0;
     int32_t bytesSingle = 0;
     while (bytesWritten < size) {

@@ -16,9 +16,9 @@
 #include "gst_vdec_base.h"
 #include <vector>
 #include <iostream>
+#include "securec.h"
 #include "buffer_type_meta.h"
 #include "scope_guard.h"
-#include "securec.h"
 #include "gst_codec_video_common.h"
 #include "param_wrapper.h"
 
@@ -420,6 +420,7 @@ static gboolean get_memtype(GstVdecBase *self, const GstStructure *structure)
     g_return_val_if_fail(self->decoder != nullptr, FALSE);
     g_return_val_if_fail(structure != nullptr, FALSE);
     const gchar *memtype = gst_structure_get_string(structure, "memtype");
+    g_return_val_if_fail(memtype != nullptr, FALSE);
 
     if (strcmp("surface", memtype) == 0) {
         self->memtype = GST_MEMTYPE_SURFACE;
@@ -444,6 +445,7 @@ static gboolean gst_vdec_base_negotiate_format(GstVdecBase *self)
 
     GST_DEBUG_OBJECT(self, "Trying to negotiate a video format with downstream");
     GstCaps *templ_caps = gst_pad_get_pad_template_caps(GST_VIDEO_DECODER_SRC_PAD(self));
+    g_return_val_if_fail(templ_caps != nullptr, FALSE);
     GST_DEBUG_OBJECT(self, "templ_caps %s", gst_caps_to_string(templ_caps));
     (void)update_caps_format(self, templ_caps);
     GstCaps *intersection = gst_pad_peer_query_caps(GST_VIDEO_DECODER_SRC_PAD(self), templ_caps);
@@ -1216,6 +1218,7 @@ static gboolean gst_vdec_base_event(GstVideoDecoder *decoder, GstEvent *event)
 
 static GstBufferPool *gst_vdec_base_new_out_shmem_pool(GstVdecBase *self, GstCaps *outcaps, gint size)
 {
+    g_return_val_if_fail(outcaps != nullptr, nullptr);
     GstShMemPool *pool = gst_shmem_pool_new();
     g_return_val_if_fail(pool != nullptr, nullptr);
     g_return_val_if_fail(self->output.allocator != nullptr, nullptr);
@@ -1240,6 +1243,7 @@ static GstBufferPool *gst_vdec_base_new_out_shmem_pool(GstVdecBase *self, GstCap
 static GstBufferPool *gst_vdec_base_new_in_shmem_pool(GstVdecBase *self, GstCaps *outcaps, gint size,
     guint min_buffer_cnt, guint max_buffer_cnt)
 {
+    g_return_val_if_fail(outcaps != nullptr, nullptr);
     GstShMemPool *pool = gst_shmem_pool_new();
     g_return_val_if_fail(pool != nullptr, nullptr);
     g_return_val_if_fail(self->input.allocator != nullptr, nullptr);
