@@ -239,7 +239,7 @@ int32_t MuxSinkBin::ConfigureRotationAngle(const RecorderParam &recParam)
 int32_t MuxSinkBin::CheckConfigReady()
 {
     std::set<int32_t> expectedParam = { RecorderPrivateParamType::OUTPUT_FORMAT };
-    bool configed = CheckAllParamsConfiged(expectedParam);
+    bool configed = CheckAllParamsConfigured(expectedParam);
     CHECK_AND_RETURN_RET(configed == true, MSERR_INVALID_OPERATION);
 
     std::set<int32_t>({ RecorderPublicParamType::OUT_PATH, RecorderPublicParamType::OUT_FD }).swap(expectedParam);

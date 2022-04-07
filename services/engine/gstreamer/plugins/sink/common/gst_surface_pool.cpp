@@ -268,7 +268,7 @@ static void gst_surface_pool_request_loop(GstSurfacePool *spool)
     GstBuffer *buffer = nullptr;
     GstFlowReturn ret = gst_surface_pool_alloc_buffer(pool, &buffer, nullptr);
     if (ret != GST_FLOW_OK) {
-        GST_WARNING_OBJECT(spool, "alloc bufer failed, exit");
+        GST_WARNING_OBJECT(spool, "alloc buffer failed, exit");
         gst_task_pause(spool->task);
         GST_BUFFER_POOL_LOCK(spool);
         spool->started = FALSE;

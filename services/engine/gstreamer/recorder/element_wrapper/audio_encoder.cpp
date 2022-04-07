@@ -72,7 +72,7 @@ int32_t AudioEncoder::Configure(const RecorderParam &recParam)
 int32_t AudioEncoder::CheckConfigReady()
 {
     std::set<int32_t> expectedParam = { RecorderPublicParamType::AUD_ENC_FMT };
-    bool configed = CheckAllParamsConfiged(expectedParam);
+    bool configed = CheckAllParamsConfigured(expectedParam);
     CHECK_AND_RETURN_RET(configed == true, MSERR_INVALID_OPERATION);
 
     return MSERR_OK;

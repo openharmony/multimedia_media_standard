@@ -79,7 +79,6 @@ GstBuffer *VideoCaptureSfEsAvcImpl::AVCDecoderConfiguration(std::vector<uint8_t>
     return codec;
 }
 
-
 std::shared_ptr<EsAvcCodecBuffer> VideoCaptureSfEsAvcImpl::DoGetCodecBuffer()
 {
     MEDIA_LOGI("enter DoGetCodecBuffer");

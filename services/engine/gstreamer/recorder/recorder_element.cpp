@@ -151,11 +151,11 @@ RecorderMsgProcResult RecorderElement::OnMessageReceived(GstMessage &rawMsg, Rec
     return ret;
 }
 
-bool RecorderElement::CheckAllParamsConfiged(const std::set<int32_t> &expectedParams) const
+bool RecorderElement::CheckAllParamsConfigured(const std::set<int32_t> &expectedParams) const
 {
     std::set<int32_t> intersection;
     (void)std::set_intersection(expectedParams.begin(), expectedParams.end(),
-                                configedParams_.begin(), configedParams_.end(),
+                                configuredParams_.begin(), configuredParams_.end(),
                                 std::inserter(intersection, intersection.end()));
     if (intersection == expectedParams) {
         return true;
@@ -180,7 +180,7 @@ bool RecorderElement::CheckAnyParamConfiged(const std::set<int32_t> &expectedPar
 {
     std::set<int32_t> intersection;
     (void)std::set_intersection(expectedParams.begin(), expectedParams.end(),
-                                configedParams_.begin(), configedParams_.end(),
+                                configuredParams_.begin(), configuredParams_.end(),
                                 std::inserter(intersection, intersection.end()));
     if (!intersection.empty()) {
         return true;
