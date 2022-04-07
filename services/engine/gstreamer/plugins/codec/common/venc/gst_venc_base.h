@@ -16,8 +16,8 @@
 #ifndef GST_VENC_BASE_H
 #define GST_VENC_BASE_H
 
-#include <gst/video/gstvideoencoder.h>
 #include <queue>
+#include <gst/video/gstvideoencoder.h>
 #include "gst_shmem_allocator.h"
 #include "gst_shmem_pool.h"
 #include "i_gst_codec.h"
