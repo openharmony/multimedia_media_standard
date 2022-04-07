@@ -16,7 +16,6 @@
 #ifndef MEDIA_DESCRIPTION_H
 #define MEDIA_DESCRIPTION_H
 
-#include <string_view>
 #include "format.h"
 
 namespace OHOS {
