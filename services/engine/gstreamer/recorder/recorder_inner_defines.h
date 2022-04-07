@@ -48,7 +48,7 @@ struct RecorderSourceDesc {
     static constexpr uint32_t RECORDER_SOURCE_INDEX_MASK = 0xFF;
     /**
       Handle is currently represented as int32_t, and internal descripted as source kind mask + index :
-      high 20bits(reserverd) + 4bits(source kind mask) + 8bits(index).
+      high 20bits(reserved) + 4bits(source kind mask) + 8bits(index).
       The handle can uniquely identify the recorder source.
     */
     int32_t handle_ = DUMMY_SOURCE_ID;

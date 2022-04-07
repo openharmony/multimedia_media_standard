@@ -22,7 +22,7 @@ namespace Media {
 const std::map<MediaServiceErrCode, std::string> MSERRCODE_INFOS = {
     {MSERR_OK, "success"},
     {MSERR_NO_MEMORY, "no memory"},
-    {MSERR_INVALID_OPERATION, "opertation not be permitted"},
+    {MSERR_INVALID_OPERATION, "operation not be permitted"},
     {MSERR_INVALID_VAL, "invalid argument"},
     {MSERR_UNKNOWN, "unkown error"},
     {MSERR_SERVICE_DIED, "media service died"},
@@ -103,7 +103,7 @@ const std::map<MediaServiceErrCode, MediaServiceExtErrCode> MSERRCODE_TO_EXTERRO
 const std::map<MediaServiceExtErrCode, std::string> MSEXTERRCODE_INFOS = {
     {MSERR_EXT_OK, "success"},
     {MSERR_EXT_NO_MEMORY, "no memory"},
-    {MSERR_EXT_OPERATE_NOT_PERMIT, "opertation not be permitted"},
+    {MSERR_EXT_OPERATE_NOT_PERMIT, "operation not be permitted"},
     {MSERR_EXT_INVALID_VAL, "invalid argument"},
     {MSERR_EXT_IO, "IO error"},
     {MSERR_EXT_TIMEOUT, "network timeout"},

@@ -198,7 +198,7 @@ protected:
      */
     void MarkParameter(int32_t paramType)
     {
-        (void)configedParams_.insert(paramType);
+        (void)configuredParams_.insert(paramType);
     }
 
     /**
@@ -208,7 +208,7 @@ protected:
      */
     bool CheckParameter(int32_t paramType) const
     {
-        return configedParams_.find(paramType) != configedParams_.end();
+        return configuredParams_.find(paramType) != configuredParams_.end();
     }
 
     /**
@@ -216,7 +216,7 @@ protected:
      * @param expectedParams: the enum value set of RecorderParamType
      * @return true if all specified type's parameters configured, false if not all.
      */
-    bool CheckAllParamsConfiged(const std::set<int32_t> &expectedParams) const;
+    bool CheckAllParamsConfigured(const std::set<int32_t> &expectedParams) const;
 
     /**
      * @brief Check whether the any one specified type's parameters is configured.
@@ -243,11 +243,11 @@ protected:
     GstElement *gstElem_ = nullptr;
 
 private:
-    std::set<int32_t> configedParams_;
+    std::set<int32_t> configuredParams_;
 };
 
 /**
- * @brief Provides the factory to register the derived class iinstantiation method and
+ * @brief Provides the factory to register the derived class instantiation method and
  * create the RecorderElement instance.
  */
 class RecorderElementFactory  {
