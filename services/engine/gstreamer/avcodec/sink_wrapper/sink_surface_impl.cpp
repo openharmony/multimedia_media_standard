@@ -41,7 +41,7 @@ SinkSurfaceImpl::~SinkSurfaceImpl()
 
 int32_t SinkSurfaceImpl::Init()
 {
-    sink_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("surfacememsink", "sink")));
+    sink_ = GST_ELEMENT_CAST(gst_object_ref_sink(gst_element_factory_make("surfacememsink", "sink")));
     CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);
     gst_base_sink_set_async_enabled(GST_BASE_SINK(sink_), FALSE);
     return MSERR_OK;
@@ -138,13 +138,14 @@ int32_t SinkSurfaceImpl::HandleNewSampleCb(GstBuffer *buffer)
 
     GstMemory *memory = gst_buffer_peek_memory(buffer, 0);
     CHECK_AND_RETURN_RET(memory != nullptr, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(gst_is_surface_memory(memory), MSERR_UNKNOWN);
     GstSurfaceMemory *surfaceMem = reinterpret_cast<GstSurfaceMemory *>(memory);
     CHECK_AND_RETURN_RET(surfaceMem->buf != nullptr, MSERR_UNKNOWN);
 
     uint32_t index = 0;
     CHECK_AND_RETURN_RET(FindBufferIndex(index, surfaceMem->buf) == MSERR_OK, MSERR_UNKNOWN);
     CHECK_AND_RETURN_RET(index < bufferList_.size(), MSERR_UNKNOWN);
-    bufferList_[index]->gstBuffer_ = buffer;
+    bufferList_[index]->gstBuffer_ = gst_buffer_ref(buffer);
 
     auto obs = obs_.lock();
     CHECK_AND_RETURN_RET_LOG(obs != nullptr, MSERR_UNKNOWN, "obs is nullptr");
@@ -163,7 +164,6 @@ int32_t SinkSurfaceImpl::HandleNewSampleCb(GstBuffer *buffer)
 
     MEDIA_LOGD("OutputBufferAvailable, index:%{public}d", index);
     bufferList_[index]->owner_ = BufferWrapper::SERVER;
-    gst_buffer_ref(buffer);
 
     return MSERR_OK;
 }
