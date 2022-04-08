@@ -39,43 +39,43 @@ enum NodeName : int32_t {
 
 class AVCodecXmlParser {
 public:
-    const char *AVCODEC_CONFIG_FILE = "/etc/codec/codec_caps.xml";
     AVCodecXmlParser();
     ~AVCodecXmlParser();
     bool LoadConfiguration();
     bool Parse();
     void Destroy();
-    std::vector<CapabilityData> GetCapabilityDataArray();
+    std::vector<CapabilityData> GetCapabilityDataArray() const;
 
 private:
-    bool IsNumberArray(const std::vector<std::string> &strArray);
-    bool TransStrAsRange(const std::string &str, Range &range);
-    bool TransStrAsSize(const std::string &str, ImgSize &size);
+    bool IsNumberArray(const std::vector<std::string> &strArray) const;
+    bool TransStrAsRange(const std::string &str, Range &range) const;
+    bool TransStrAsSize(const std::string &str, ImgSize &size) const;
     std::vector<int32_t> TransMapAsIntegerArray(const std::unordered_map<std::string, int> &capabilityMap,
-                                                std::vector<std::string> &spilt);
-    std::vector<int32_t> TransStrAsIntegerArray(std::vector<std::string> &spilt);
-    bool SpiltKeyList(const std::string &str, const std::string &delim, std::vector<std::string> &spilt);
+                                                const std::vector<std::string> &spilt) const;
+    std::vector<int32_t> TransStrAsIntegerArray(const std::vector<std::string> &spilt) const;
+    bool SpiltKeyList(const std::string &str, const std::string &delim, std::vector<std::string> &spilt) const;
     bool SetCapabilityStringData(std::unordered_map<std::string, std::string&> dataMap,
-                                const std::string &capabilityKey, const std::string &capabilityValue);
+                                const std::string &capabilityKey, const std::string &capabilityValue) const;
     bool SetCapabilityIntData(std::unordered_map<std::string, int32_t&> dataMap,
-                                const std::string &capabilityKey, const std::string &capabilityValue);
+                                const std::string &capabilityKey, const std::string &capabilityValue) const;
     bool SetCapabilityBoolData(std::unordered_map<std::string, bool&> dataMap,
-                                const std::string &capabilityKey, const std::string &capabilityValue);
+                                const std::string &capabilityKey, const std::string &capabilityValue) const;
     bool SetCapabilityRangeData(std::unordered_map<std::string, Range&> dataMap,
-                                const std::string &capabilityKey, const std::string &capabilityValue);
+                                const std::string &capabilityKey, const std::string &capabilityValue) const;
     bool SetCapabilityVectorData(std::unordered_map<std::string, std::vector<int32_t>&> dataMap,
-                                const std::string &capabilityKey, const std::string &capabilityValue);
-    bool SetCapabilityData(CapabilityData &data, const std::string &capabilityKey, const std::string &capabilityValue);
+                                const std::string &capabilityKey, const std::string &capabilityValue) const;
+    bool SetCapabilityData(CapabilityData &data, const std::string &capabilityKey,
+                            const std::string &capabilityValue) const;
     bool SetCapabilitySizeData(std::unordered_map<std::string, ImgSize&> dataMap,
-                                const std::string &capabilityKey, const std::string &capabilityValue);
+                                const std::string &capabilityKey, const std::string &capabilityValue) const;
     bool SetCapabilityHashRangeData(std::unordered_map<std::string, std::map<ImgSize, Range>&> dataMap,
-                                                const std::string &capabilityKey, const std::string &capabilityValue);
+                                    const std::string &capabilityKey, const std::string &capabilityValue) const;
 
     bool ParseInternal(xmlNode *node);
-    NodeName GetNodeNameAsInt(xmlNode *node);
+    NodeName GetNodeNameAsInt(xmlNode *node) const;
     bool ParseData(xmlNode *node);
     std::vector<CapabilityData> capabilityDataArray_;
-    xmlDoc *mDoc_;
+    xmlDoc *mDoc_ = nullptr;
     std::string capabilityListVal_;
     std::vector<std::string> capabilityKeys_ = {
         "codecName",

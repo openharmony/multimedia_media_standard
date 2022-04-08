@@ -544,6 +544,14 @@ GstFlowReturn gst_mem_sink_app_preroll_render(GstMemSink *mem_sink, GstBuffer *b
     GstMemSinkClass *mem_sink_class = GST_MEM_SINK_GET_CLASS(mem_sink);
     g_return_val_if_fail(mem_sink_class != nullptr, GST_FLOW_ERROR);
 
+    g_mutex_lock(&priv->mutex);
+    if (!priv->started) {
+        GST_INFO_OBJECT(mem_sink, "we are not started");
+        g_mutex_unlock(&priv->mutex);
+        return GST_FLOW_FLUSHING;
+    }
+    g_mutex_unlock(&priv->mutex);
+
     GST_INFO_OBJECT(mem_sink, "app preroll render buffer 0x%06" PRIXPTR "", FAKE_POINTER(buffer));
 
     GstFlowReturn ret = GST_FLOW_OK;
