@@ -22,6 +22,7 @@
 #include "i_avmetadatahelper_service.h"
 #include "avsharedmemory.h"
 #include "inner_msg_define.h"
+#include "gst_mem_sink.h"
 #include "gst_msg_processor.h"
 #include "nocopyable.h"
 
@@ -46,7 +47,7 @@ private:
     std::shared_ptr<AVSharedMemory> GetConvertResult();
     int32_t Reset();
     void OnNotifyMessage(const InnerMessage &msg);
-    static GstFlowReturn OnNotifyNewSample(GstElement *elem, AVMetaFrameConverter *thiz);
+    static GstFlowReturn OnNotifyNewSample(GstMemSink *elem, GstBuffer *sample, gpointer thiz);
 
     OutputConfiguration outConfig_;
     GstPipeline *pipeline_ = nullptr;

@@ -44,6 +44,7 @@ config("media_engine_gst_avmeta_config") {
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/message",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/sink/common",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
     "//drivers/peripheral/base",
     "//drivers/peripheral/display/interfaces/include",
@@ -72,6 +73,7 @@ ohos_static_library("media_engine_gst_avmeta") {
 
   deps = [
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_media_common",
   ]
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
