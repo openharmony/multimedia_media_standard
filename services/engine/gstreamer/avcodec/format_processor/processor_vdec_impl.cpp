@@ -107,6 +107,7 @@ std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetInputPortConfig()
     if (maxInputSize_ > 0) {
         config->bufferSize_ = (maxInputSize_ > MAX_SIZE) ? MAX_SIZE : static_cast<uint32_t>(maxInputSize_);
     } else {
+        // Memory is aligned to 16 bytes
         constexpr uint32_t alignment = 16;
         config->bufferSize_ = PixelBufferSize(static_cast<VideoPixelFormat>(pixelFormat_), width_, height_, alignment);
     }
@@ -129,7 +130,7 @@ std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetOutputPortConfig()
         gst_caps_unref(caps);
         return nullptr;
     }
-
+    // Memory is aligned to 16 bytes
     constexpr uint32_t alignment = 16;
     config->bufferSize_ = PixelBufferSize(static_cast<VideoPixelFormat>(pixelFormat_),
         static_cast<uint32_t>(width_), static_cast<uint32_t>(height_), alignment);

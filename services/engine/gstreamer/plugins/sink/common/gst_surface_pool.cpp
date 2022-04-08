@@ -310,7 +310,7 @@ static gboolean gst_surface_pool_start(GstBufferPool *pool)
     }
 
     gst_surface_allocator_set_surface(spool->allocator, spool->surface);
-    GST_INFO_OBJECT(spool, "Set pool minbuf %d maxbuf %d", spool->minBuffers, spool->maxBuffers);
+    GST_INFO_OBJECT(spool, "Set pool minbuf %u maxbuf %u", spool->minBuffers, spool->maxBuffers);
 
     spool->freeBufCnt = spool->maxBuffers;
     GST_BUFFER_POOL_UNLOCK(spool);
@@ -395,7 +395,7 @@ static GstFlowReturn gst_surface_pool_alloc_buffer(GstBufferPool *pool,
     GstSurfaceMemory *memory = nullptr;
     GstFlowReturn ret = do_alloc_memory_locked(spool, params, &memory);
     if (memory == nullptr) {
-        GST_DEBUG_OBJECT(spool, "allocator mem fail");
+        GST_WARNING_OBJECT(spool, "allocator mem fail");
         return ret;
     }
 
