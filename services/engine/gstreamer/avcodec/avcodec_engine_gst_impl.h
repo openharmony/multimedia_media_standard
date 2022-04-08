@@ -37,7 +37,7 @@ public:
     int32_t Flush() override;
     int32_t Reset() override;
     sptr<Surface> CreateInputSurface() override;
-    int32_t SetOutputSurface(sptr<Surface> surface) override;
+    int32_t SetOutputSurface(const sptr<Surface> &surface) override;
     std::shared_ptr<AVSharedMemory> GetInputBuffer(uint32_t index) override;
     int32_t QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag) override;
     std::shared_ptr<AVSharedMemory> GetOutputBuffer(uint32_t index) override;

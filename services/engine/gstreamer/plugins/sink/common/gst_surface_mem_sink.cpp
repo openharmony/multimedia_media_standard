@@ -23,7 +23,6 @@
 #include "scope_guard.h"
 
 using namespace OHOS;
-
 struct _GstSurfaceMemSinkPrivate {
     OHOS::sptr<OHOS::Surface> surface;
     GstSurfacePool *pool;
@@ -320,15 +319,16 @@ static gboolean gst_surface_mem_sink_event(GstBaseSink *bsink, GstEvent *event)
 {
     GstSurfaceMemSink *surface_mem_sink = GST_SURFACE_MEM_SINK(bsink);
     g_return_val_if_fail(surface_mem_sink != nullptr, FALSE);
+    g_return_val_if_fail(event != nullptr, FALSE);
 
     GST_DEBUG_OBJECT(surface_mem_sink, "event->type %d", event->type);
     switch (event->type) {
-        case GST_EVENT_CAPS : {
+        case GST_EVENT_CAPS: {
             GstCaps *caps;
             gst_event_parse_caps(event, &caps);
             surface_mem_sink->caps = caps;
         }
-        default :
+        default:
             break;
     }
     return GST_BASE_SINK_CLASS(parent_class)->event(bsink, event);
@@ -388,7 +388,7 @@ static GstStateChangeReturn gst_surface_mem_sink_change_state(GstElement *elemen
 
     GST_DEBUG_OBJECT(element, "change state %d", transition);
     switch (transition) {
-        case GST_STATE_CHANGE_READY_TO_PAUSED :
+        case GST_STATE_CHANGE_READY_TO_PAUSED:
             if (self->dump.enable_dump == TRUE) {
                 static std::string dump_file = "/data/media/dump.yuv";
                 if (self->dump.dump_file == nullptr) {
@@ -396,7 +396,7 @@ static GstStateChangeReturn gst_surface_mem_sink_change_state(GstElement *elemen
                 }
             }
             break;
-        case GST_STATE_CHANGE_PAUSED_TO_READY :
+        case GST_STATE_CHANGE_PAUSED_TO_READY:
             if (self->dump.enable_dump == TRUE) {
                 if (self->dump.dump_file != nullptr) {
                     fclose(self->dump.dump_file);
@@ -404,7 +404,7 @@ static GstStateChangeReturn gst_surface_mem_sink_change_state(GstElement *elemen
                 }
             }
             break;
-        default :
+        default:
             break;
     }
     return GST_ELEMENT_CLASS(parent_class)->change_state(element, transition);

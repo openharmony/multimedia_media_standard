@@ -501,6 +501,9 @@ static gboolean gst_venc_base_allocate_out_buffers(GstVencBase *self)
         buffers.push_back(buffer);
     }
     gint ret = self->encoder->UseOutputBuffers(buffers);
+    for (auto buffer : buffers) {
+        gst_buffer_unref(buffer);
+    }
     g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "usebuffer", TRUE), FALSE);
     return TRUE;
 }
@@ -645,7 +648,8 @@ static GstFlowReturn gst_venc_base_codec_eos(GstVencBase *self)
         g_cond_broadcast(&self->drain_cond);
     }
     g_mutex_unlock(&self->drain_lock);
-    return GST_FLOW_EOS;
+    gst_venc_base_pause_loop(self);
+    return GST_FLOW_OK;
 }
 
 static void gst_venc_base_pause_loop(GstVencBase *self)
@@ -695,6 +699,10 @@ static void gst_venc_base_loop(GstVencBase *self)
     g_return_if_fail(self != nullptr);
     g_return_if_fail(self->encoder != nullptr);
     GstBuffer *gst_buffer = nullptr;
+    if (gst_venc_base_push_out_buffers(self) != TRUE) {
+        gst_venc_base_pause_loop(self);
+        return;
+    }
     GST_DEBUG_OBJECT(self, "coding buffers %u", self->coding_outbuf_cnt);
     gint codec_ret = self->encoder->PullOutputBuffer(&gst_buffer);
     gint flow_ret = GST_FLOW_OK;
@@ -721,15 +729,13 @@ static void gst_venc_base_loop(GstVencBase *self)
     GST_DEBUG_OBJECT(self, "Flow_ret %d", flow_ret);
     switch (flow_ret) {
         case GST_FLOW_OK:
-            if (gst_venc_base_push_out_buffers(self)) {
-                return;
-            }
-            break;
+            return;
         case GST_FLOW_FLUSHING:
             GST_DEBUG_OBJECT(self, "Flushing");
             break;
         case GST_FLOW_EOS:
             GST_DEBUG_OBJECT(self, "Eos");
+            gst_pad_push_event(GST_VIDEO_ENCODER_SRC_PAD(self), gst_event_new_eos());
             break;
         default:
             gst_pad_push_event(GST_VIDEO_ENCODER_SRC_PAD(self), gst_event_new_eos());

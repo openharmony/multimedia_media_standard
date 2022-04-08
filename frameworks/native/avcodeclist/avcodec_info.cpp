@@ -153,7 +153,7 @@ bool VideoCaps::IsSizeSupported(int32_t width, int32_t height)
 {
     if (data_.width.minVal > width || data_.width.maxVal < width ||
         data_.height.minVal > height || data_.height.maxVal < height) {
-            return false;
+        return false;
     }
     return true;
 }
