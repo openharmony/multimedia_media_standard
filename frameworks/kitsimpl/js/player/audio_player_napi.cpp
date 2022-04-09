@@ -28,7 +28,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-napi_ref AudioPlayerNapi::constructor_ = nullptr;
+thread_local napi_ref AudioPlayerNapi::constructor_ = nullptr;
 const std::string CLASS_NAME = "AudioPlayer";
 const std::string STATE_PLAYING = "playing";
 const std::string STATE_PAUSED = "paused";

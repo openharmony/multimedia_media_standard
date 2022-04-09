@@ -27,7 +27,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-napi_ref MediaDataSourceNapi::constructor_ = nullptr;
+thread_local napi_ref MediaDataSourceNapi::constructor_ = nullptr;
 
 MediaDataSourceNapi::MediaDataSourceNapi()
 {
