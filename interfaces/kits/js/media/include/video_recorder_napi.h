@@ -99,7 +99,7 @@ private:
     int32_t SetUrl(const std::string &UrlPath);
     bool isSurfaceIdVaild(uint64_t surfaceID);
 
-    static napi_ref constructor_;
+    static thread_local napi_ref constructor_;
     napi_env env_ = nullptr;
     napi_ref wrapper_ = nullptr;
     std::shared_ptr<Recorder> recorder_ = nullptr;
