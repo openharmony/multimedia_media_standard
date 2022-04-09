@@ -164,11 +164,7 @@ void VideoCallbackNapi::OnSeekDoneCb(int32_t position)
     context->JsResult = std::make_unique<MediaJsResultInt>(position);
 
     // Switch Napi threads
-    napi_value resource = nullptr;
-    (void)napi_create_string_utf8(context->env, "SeekDone", NAPI_AUTO_LENGTH, &resource);
-    (void)napi_create_async_work(context->env, nullptr, resource, [](napi_env env, void* data) {},
-        MediaAsyncContext::CompleteCallback, static_cast<void *>(context), &context->work);
-    (void)napi_queue_async_work(context->env, context->work);
+    VideoCallbackNapi::OnJsCallBack(context);
 }
 
 void VideoCallbackNapi::OnSpeedDoneCb(int32_t speedMode)
@@ -188,11 +184,7 @@ void VideoCallbackNapi::OnSpeedDoneCb(int32_t speedMode)
 
     context->JsResult = std::make_unique<MediaJsResultInt>(context->speedMode);
     // Switch Napi threads
-    napi_value resource = nullptr;
-    (void)napi_create_string_utf8(context->env, "SpeedDone", NAPI_AUTO_LENGTH, &resource);
-    (void)napi_create_async_work(context->env, nullptr, resource, [](napi_env env, void* data) {},
-        MediaAsyncContext::CompleteCallback, static_cast<void *>(context), &context->work);
-    (void)napi_queue_async_work(context->env, context->work);
+    VideoCallbackNapi::OnJsCallBack(context);
 }
 
 void VideoCallbackNapi::OnVolumeDoneCb()
@@ -207,11 +199,7 @@ void VideoCallbackNapi::OnVolumeDoneCb()
     contextVolumeQue_.pop();
 
     // Switch Napi threads
-    napi_value resource = nullptr;
-    (void)napi_create_string_utf8(context->env, "VolumeDone", NAPI_AUTO_LENGTH, &resource);
-    (void)napi_create_async_work(context->env, nullptr, resource, [](napi_env env, void* data) {},
-        MediaAsyncContext::CompleteCallback, static_cast<void *>(context), &context->work);
-    (void)napi_queue_async_work(context->env, context->work);
+    VideoCallbackNapi::OnJsCallBack(context);
 }
 
 void VideoCallbackNapi::OnStartRenderFrameCb() const
@@ -295,11 +283,7 @@ void VideoCallbackNapi::DequeueAsyncWork()
     if (needCb) {
         contextStateQue_.pop();
         // Switch Napi threads
-        napi_value resource = nullptr;
-        (void)napi_create_string_utf8(context->env, "OnStateChanged", NAPI_AUTO_LENGTH, &resource);
-        (void)napi_create_async_work(context->env, nullptr, resource, [](napi_env env, void* data) {},
-            MediaAsyncContext::CompleteCallback, static_cast<void *>(context), &context->work);
-        (void)napi_queue_async_work(context->env, context->work);
+        VideoCallbackNapi::OnJsCallBack(context);
     } else {
         MEDIA_LOGD("state:%{public}d is called, But context is empty", currentState_);
     }
@@ -321,6 +305,53 @@ void VideoCallbackNapi::OnStateChangeCb(PlayerStates state)
             return OnPlaybackCompleteCb();
         default:
             break;
+    }
+}
+
+void VideoCallbackNapi::UvWorkCallBack(uv_work_t *work, int status)
+{
+    napi_status nstatus = napi_generic_failure;
+    switch (status) {
+        case 0:
+            nstatus = napi_ok;
+            break;
+        case UV_EINVAL:
+            nstatus = napi_invalid_arg;
+            break;
+        case UV_ECANCELED:
+            nstatus = napi_cancelled;
+            break;
+        default:
+            nstatus = napi_generic_failure;
+            break;
+    }
+
+    auto asyncContext = reinterpret_cast<MediaAsyncContext *>(work->data);
+    if (asyncContext != nullptr) {
+        MediaAsyncContext::CompleteCallback(asyncContext->env, nstatus, work->data);
+    }
+    delete work;
+}
+
+void VideoCallbackNapi::OnJsCallBack(VideoPlayerAsyncContext *context) const
+{
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(env_, &loop);
+    if (loop != nullptr) {
+        uv_work_t *work = new(std::nothrow) uv_work_t;
+        if (work != nullptr) {
+            work->data = reinterpret_cast<void *>(context);
+            int ret = uv_queue_work(loop, work, [] (uv_work_t *work) {}, VideoCallbackNapi::UvWorkCallBack);
+            if (ret != 0) {
+                MEDIA_LOGE("Failed to execute libuv work queue");
+                delete context;
+                delete work;
+            }
+        } else {
+            delete context;
+        }
+    } else {
+        delete context;
     }
 }
 } // namespace Media
