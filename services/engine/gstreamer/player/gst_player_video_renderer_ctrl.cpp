@@ -102,7 +102,7 @@ GstElement *GstPlayerVideoRendererCap::CreateSink(GstPlayerVideoRenderer *render
     if (userData->GetProducerSurface() != nullptr) {
         (void)userData->InitVideoSink(playbin);
     }
-    
+
     gst_object_unref(playbin);
     if (userData->GetProducerSurface() != nullptr) {
         return const_cast<GstElement *>(userData->GetVideoSink());
