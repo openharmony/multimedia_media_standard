@@ -96,6 +96,12 @@ int RecorderServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mes
 {
     MEDIA_LOGI("Stub: OnRemoteRequest of code: %{public}d is received", code);
 
+    auto remoteDescriptor = data.ReadInterfaceToken();
+    if (RecorderServiceStub::GetDescriptor() != remoteDescriptor) {
+        MEDIA_LOGE("Invalid descriptor");
+        return MSERR_INVALID_OPERATION;
+    }
+
     auto itFunc = recFuncs_.find(code);
     if (itFunc != recFuncs_.end()) {
         auto memberFunc = itFunc->second;
