@@ -34,6 +34,7 @@ public:
     int32_t InitVideoSink(const GstElement *playbin);
     int32_t InitAudioSink(const GstElement *playbin);
     const GstElement *GetVideoSink() const;
+    const GstElement *GetAudioSink() const;
     const sptr<Surface> GetProducerSurface() const;
     int32_t SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs);
 
