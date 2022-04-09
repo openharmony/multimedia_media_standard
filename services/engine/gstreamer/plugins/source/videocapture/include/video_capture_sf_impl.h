@@ -57,7 +57,8 @@ protected:
     };
     void OnBufferAvailable();
     int32_t GetSufferExtraData();
-    bool DropThisFrame(uint32_t fps, int64_t oldTimeStamp, int64_t newTimeStamp);
+    bool CheckPauseResumeTime();
+    bool DropThisFrame(uint32_t fps, int64_t oldTimeStamp, int64_t newTimeStamp, bool cacheFlag);
 
     uint32_t videoWidth_;
     uint32_t videoHeight_;
@@ -69,6 +70,7 @@ protected:
     std::atomic<bool> started_;
     bool paused_;
     std::mutex mutex_;
+    std::mutex pauseMutex_;
     std::condition_variable bufferAvailableCondition_;
     VideoStreamType streamType_;
     bool streamTypeUnknown_;
@@ -89,6 +91,7 @@ private:
     int64_t previousTimestamp_ = 0;
     int64_t pauseTime_ = 0;
     int64_t resumeTime_ = 0;
+    int64_t realTimeWhenResume_ = 0;
     int64_t persistTime_ = 0;
     uint32_t pauseCount_ = 0;
     int64_t totalPauseTime_ = 0;
@@ -96,6 +99,9 @@ private:
     int64_t minInterval_ = 0;
     bool resourceLock_ = false;
     bool isFirstBuffer_ = true;
+    bool isPause_ = false;
+    bool isResume_ = false;
+    bool isCheckRealTime_ = false;
 };
 } // namespace Media
 } // namespace OHOS

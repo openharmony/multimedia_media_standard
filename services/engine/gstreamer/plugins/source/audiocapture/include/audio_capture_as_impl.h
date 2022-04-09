@@ -16,6 +16,7 @@
 #ifndef AUDIO_CAPTURE_AS_IMPL_H
 #define AUDIO_CAPTURE_AS_IMPL_H
 
+#include <mutex>
 #include "audio_capture.h"
 #include "audio_capturer.h"
 #include "nocopyable.h"
@@ -37,7 +38,6 @@ public:
     std::shared_ptr<AudioBuffer> GetBuffer() override;
 
 private:
-    uint64_t GetCurrentTime();
     std::unique_ptr<OHOS::AudioStandard::AudioCapturer> audioCapturer_ = nullptr;
     size_t bufferSize_ = 0; // minimum size of each buffer acquired from AudioServer
     uint64_t bufferDurationNs_ = 0; // each buffer
@@ -47,6 +47,9 @@ private:
     uint32_t pausedCount_ = 0; // the paused count times
     uint64_t persistTime_ = 0;
     uint64_t totalPauseTime_ = 0;
+    bool isResume_ = false;
+    bool isPause_ = false;
+    std::mutex pauseMutex_;
 };
 } // namespace Media
 } // namespace OHOS
