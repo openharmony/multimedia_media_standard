@@ -127,7 +127,7 @@ AVCodecXmlParser::~AVCodecXmlParser()
 
 bool AVCodecXmlParser::LoadConfiguration()
 {
-    mDoc_ = xmlReadFile(AVCODEC_CONFIG_FILE.c_str(), NULL, 0);
+    mDoc_ = xmlReadFile(AVCODEC_CONFIG_FILE.c_str(), nullptr, 0);
     if (mDoc_ == nullptr) {
         MEDIA_LOGE("AVCodec xmlReadFile failed");
         return false;

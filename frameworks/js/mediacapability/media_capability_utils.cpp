@@ -71,7 +71,10 @@ napi_status MediaJsAudioCapsDynamic::GetJsResult(napi_env env, napi_value &resul
 
         auto info = (*it)->GetCodecInfo();
         CHECK_AND_CONTINUE(info != nullptr);
-        CHECK_AND_CONTINUE(info->GetName() == name_);
+
+        if (info->GetName() != name_) {
+            continue;
+        }
 
         (void)AddCodecInfo(env, result, info);
 

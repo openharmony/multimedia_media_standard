@@ -24,8 +24,6 @@
 
 namespace OHOS {
 namespace Media {
-struct VideoEncoderAsyncContext;
-
 class VideoEncoderNapi {
 public:
     static napi_value Init(napi_env env, napi_value exports);
