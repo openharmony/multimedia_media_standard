@@ -327,6 +327,7 @@ static gboolean gst_surface_mem_sink_event(GstBaseSink *bsink, GstEvent *event)
             gst_event_parse_caps(event, &caps);
             surface_mem_sink->caps = caps;
             gst_caps_ref(surface_mem_sink->caps);
+            break;
         }
         default:
             break;
