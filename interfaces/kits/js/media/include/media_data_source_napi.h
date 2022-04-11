@@ -42,7 +42,7 @@ private:
     static napi_value GetSize(napi_env env, napi_callback_info info);
     void SaveCallbackReference(napi_env env, const std::string &callbackName, napi_value callback);
     int32_t CheckCallbackWorks();
-    static napi_ref constructor_;
+    static thread_local napi_ref constructor_;
     napi_env env_ = nullptr;
     napi_ref wrapper_ = nullptr;
     std::shared_ptr<CallbackWorks> callbackWorks_ = nullptr;

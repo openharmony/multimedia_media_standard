@@ -27,7 +27,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-napi_ref MediaCapsNapi::constructor_ = nullptr;
+thread_local napi_ref MediaCapsNapi::constructor_ = nullptr;
 const std::string CLASS_NAME = "MediaCapability";
 
 MediaCapsNapi::MediaCapsNapi()
@@ -133,6 +133,7 @@ napi_value MediaCapsNapi::GetMediaCapability(napi_env env, napi_callback_info in
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
     asyncCtx->JsResult = std::make_unique<MediaJsResultInstance>(constructor_);
+    asyncCtx->ctorFlag = true;
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "GetMediaCapability", NAPI_AUTO_LENGTH, &resource);
