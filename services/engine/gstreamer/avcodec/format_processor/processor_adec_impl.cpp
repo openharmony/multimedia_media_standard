@@ -117,6 +117,9 @@ std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetInputPortConfig()
                 "rate", G_TYPE_INT, sampleRate_, "channels", G_TYPE_INT, channels_,
                 "framed", G_TYPE_BOOLEAN, TRUE, nullptr);
             break;
+        case CODEC_MIMIE_TYPE_AUDIO_OPUS:
+            caps = gst_caps_new_simple("audio/x-opus",
+                "rate", G_TYPE_INT, sampleRate_, "channels", G_TYPE_INT, channels_, nullptr);
         default:
             break;
     }
