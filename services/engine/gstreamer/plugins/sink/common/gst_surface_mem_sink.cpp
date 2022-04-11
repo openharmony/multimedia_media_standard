@@ -224,9 +224,6 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
             if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
                 surface_mem->needRender = FALSE;
                 GST_ERROR_OBJECT(surface_sink, "flush buffer to surface failed, %d", ret);
-            } else {
-                surface_mem->buf = nullptr;
-                surface_mem->fence = -1;
             }
         }
     }
