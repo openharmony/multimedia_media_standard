@@ -130,6 +130,8 @@ static void gst_surface_mem_sink_dispose(GObject *obj)
 static void gst_surface_mem_sink_finalize(GObject *obj)
 {
     g_return_if_fail(obj != nullptr);
+    GstSurfaceMemSink *surface_sink = GST_SURFACE_MEM_SINK_CAST(obj);
+    gst_caps_unref(surface_sink->caps);
     G_OBJECT_CLASS(parent_class)->finalize(obj);
 }
 
@@ -324,6 +326,7 @@ static gboolean gst_surface_mem_sink_event(GstBaseSink *bsink, GstEvent *event)
             GstCaps *caps;
             gst_event_parse_caps(event, &caps);
             surface_mem_sink->caps = caps;
+            gst_caps_ref(surface_mem_sink->caps);
         }
         default:
             break;
