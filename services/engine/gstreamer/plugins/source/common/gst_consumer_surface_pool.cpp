@@ -289,7 +289,7 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
         }
         priv->available_buf_count--;
 
-        // check whether needs to dropp frame to ensure the maximum frame rate
+        // check whether needs to drop frame to ensure the maximum frame rate
         if (surfacemem != nullptr && priv->max_frame_rate > 0 && !priv->is_first_buffer &&
             drop_this_frame(surfacepool, surfacemem->timestamp, priv->pre_timestamp, priv->max_frame_rate)) {
             (void)priv->consumer_surface->ReleaseBuffer(surfacemem->surface_buffer, surfacemem->fencefd);

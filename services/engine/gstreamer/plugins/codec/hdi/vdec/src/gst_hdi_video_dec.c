@@ -809,7 +809,7 @@ static GstVideoCodecFrame *gst_hdi_get_output_frame(GstHDIVideoDec *self)
 static void gst_hdi_update_src_caps(const GstHDIVideoDec *self)
 {
     g_return_if_fail(self != NULL);
-    GstVideoFormat format = gst_hdi_video_pixelformt_to_gstvideoformat(DEFAULT_HDI_PIXEL_FORMAT);
+    GstVideoFormat format = gst_hdi_video_pixelformat_to_gstvideoformat(DEFAULT_HDI_PIXEL_FORMAT);
     GstVideoInterlaceMode interlace_mode = GST_VIDEO_INTERLACE_MODE_PROGRESSIVE;
     g_return_if_fail(self->input_state != NULL);
     GstVideoCodecState *state =
@@ -901,7 +901,7 @@ static gboolean gst_hdi_video_dec_set_format(GstVideoDecoder *decoder, GstVideoC
       self->hdi_video_in_format.buffer_size = 0;
     }
 
-    GST_DEBUG_OBJECT(self, "Setting inport port definition");
+    GST_DEBUG_OBJECT(self, "Setting import port definition");
     ret = gst_hdi_codec_set_params(self->dec, &self->hdi_video_in_format);
     if (ret != HDI_SUCCESS) {
       GST_DEBUG_OBJECT(self, "Setting definition failed %d", ret);

@@ -125,7 +125,7 @@ int32_t VideoSource::CheckConfigReady()
 {
     std::set<int32_t> expectedParam = { RecorderPublicParamType::VID_RECTANGLE };
 
-    if (!CheckAllParamsConfiged(expectedParam)) {
+    if (!CheckAllParamsConfigured(expectedParam)) {
         MEDIA_LOGE("videosource required parameter not configured completely, failed !");
         return MSERR_INVALID_OPERATION;
     }
