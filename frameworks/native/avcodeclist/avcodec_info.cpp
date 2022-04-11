@@ -392,7 +392,8 @@ int32_t VideoCaps::DivCeil(const int32_t &dividend, const int32_t &divisor)
 bool VideoCaps::IsSizeAndRateSupported(int32_t width, int32_t height, double frameRate)
 {
     if (!IsSizeSupported(width, height)) {
-        MEDIA_LOGD("The %{public}s can not support of:%{public}d * %{public}d", data_.codecName.c_str(), width, height);
+        MEDIA_LOGD("The %{public}s can not support of:%{public}d * %{public}d",
+            data_.codecName.c_str(), width, height);
         return false;
     }
     if (fabs(data_.frameRate.minVal - frameRate) > EPSLON || fabs(frameRate - data_.frameRate.maxVal) > EPSLON) {
@@ -406,7 +407,8 @@ Range VideoCaps::GetPreferredFrameRate(int32_t width, int32_t height)
 {
     Range range;
     if (!IsSizeSupported(width, height)) {
-        MEDIA_LOGD("The %{public}s can not support of:%{public}d * %{public}d", data_.codecName.c_str(), width, height);
+        MEDIA_LOGD("The %{public}s can not support of:%{public}d * %{public}d",
+            data_.codecName.c_str(), width, height);
         return range;
     }
 
