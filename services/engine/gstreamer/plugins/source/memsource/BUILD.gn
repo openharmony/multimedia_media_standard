@@ -37,7 +37,8 @@ config("gst_mem_src_config") {
     "//utils/native/base/include",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/source/common",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/source/memsource",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/gstreamer/gstplugins_base",
@@ -45,23 +46,32 @@ config("gst_mem_src_config") {
     "//third_party/glib/glib",
     "//third_party/glib",
     "//third_party/glib/gmodule",
-    "foundation/graphic/standard/interfaces/innerkits/common",
+    "//foundation/graphic/standard/interfaces/innerkits/common",
+    "//foundation/graphic/standard/utils/sync_fence/export",
   ]
 }
 
 ohos_shared_library("gst_mem_src") {
   install_enable = true
 
-  sources = [ "gst_mem_source_plugins.cpp" ]
+  sources = [
+    "gst_consumer_surface_allocator.cpp",
+    "gst_consumer_surface_pool.cpp",
+    "gst_mem_source_plugins.cpp",
+    "gst_shmem_pool_src.cpp",
+    "gst_surface_pool_src.cpp",
+  ]
 
   configs = [ ":gst_mem_src_config" ]
 
   deps = [
     "//foundation/graphic/standard:libsurface",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_media_common",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer:media_engine_gst",
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",
+    "//third_party/gstreamer/gstplugins_base:gstvideo",
     "//third_party/gstreamer/gstreamer:gstbase",
     "//third_party/gstreamer/gstreamer:gstreamer",
   ]
@@ -72,6 +82,13 @@ ohos_shared_library("gst_mem_src") {
   ]
 
   relative_install_dir = "media/plugins"
+  subsystem_name = "multimedia"
+  part_name = "multimedia_media_standard"
+}
+
+ohos_static_library("gst_mem_src_base") {
+  sources = [ "gst_mem_pool_src.cpp" ]
+  configs = [ ":gst_mem_src_config" ]
   subsystem_name = "multimedia"
   part_name = "multimedia_media_standard"
 }

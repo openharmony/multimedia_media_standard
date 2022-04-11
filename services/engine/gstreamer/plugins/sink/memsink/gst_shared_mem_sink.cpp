@@ -305,6 +305,9 @@ static gboolean gst_shared_mem_sink_event(GstBaseSink *bsink, GstEvent *event)
             GstCaps *caps = nullptr;
             gst_event_parse_caps(event, &caps);
             g_return_val_if_fail(caps != nullptr, FALSE);
+            if (shmem_sink->priv->caps != nullptr) {
+                gst_caps_unref(shmem_sink->priv->caps);
+            }
             shmem_sink->priv->caps = gst_caps_ref(caps);
             break;
         }
