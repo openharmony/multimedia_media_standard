@@ -64,6 +64,8 @@ enum AudioStreamType {
 };
 
 enum AudioSourceType {
-    AUDIO_SOURCE_TYPE_MIC = 0,
+    AUDIO_SOURCE_TYPE_UNKNOWN = -1,
+    AUDIO_SOURCE_TYPE_DEFAULT = 0,
+    AUDIO_SOURCE_TYPE_MIC = 1,
 };
 #endif  // GST_COMMON_UTILS_H
