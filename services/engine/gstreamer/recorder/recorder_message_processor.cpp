@@ -245,7 +245,7 @@ RecorderMsgProcResult RecorderMsgProcessor::ProcessExtendMessage(GstMessage &msg
 {
     (void)msg;
     (void)prettyMsg;
-    // Check whether the message format is extented format. If yes, translate it here and return OK
+    // Check whether the message format is extended format. If yes, translate it here and return OK
     // ohos extented format: ohos.ext type=*, code=*   the type value must exceed than 0x10000
     return RecorderMsgProcResult::REC_MSG_PROC_IGNORE;
 }

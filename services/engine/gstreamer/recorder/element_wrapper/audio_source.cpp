@@ -108,7 +108,7 @@ int32_t AudioSource::CheckConfigReady()
         RecorderPublicParamType::AUD_CHANNEL,
     };
 
-    if (!CheckAllParamsConfiged(expectedParam)) {
+    if (!CheckAllParamsConfigured(expectedParam)) {
         MEDIA_LOGE("audiosource required parameter not configured completely, failed !");
         return MSERR_INVALID_OPERATION;
     }

@@ -81,7 +81,7 @@ static gboolean get_hdi_video_frame_from_outInfo(GstHDIFormat *frame, const Outp
     frame->phy_addr[1] = pVBuf->u64PhyAddr[1];
     frame->pixel_format = YVU_SEMIPLANAR_420;
     frame->buffer_size = (frame->width * frame->height) * 3 >> 1;
-    frame->gst_format = gst_hdi_video_pixelformt_to_gstvideoformat(frame->pixel_format);
+    frame->gst_format = gst_hdi_video_pixelformat_to_gstvideoformat(frame->pixel_format);
     frame->vir_addr = (hi_u8 *)HI_MPI_SYS_MmapCache(frame->phy_addr[0], frame->buffer_size);
     return TRUE;
 }
@@ -282,6 +282,7 @@ gint gst_hdi_codec_stop(GstHDICodec *codec)
 
 gint gst_hdi_port_flush(GstHDICodec *codec, DirectionType directType)
 {
+    (void)directType;
     GST_DEBUG_OBJECT(codec, "flush hdi port");
     g_return_val_if_fail(codec != NULL, HDI_FAILURE);
     g_return_val_if_fail(codec->handle != NULL, HDI_FAILURE);

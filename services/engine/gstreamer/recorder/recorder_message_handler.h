@@ -60,7 +60,7 @@ enum class RecorderMsgProcResult : uint8_t {
 };
 
 /**
- * @brief Recorder message handler base type, the subclass inherites to it to implement the message proccess.
+ * @brief Recorder message handler base type, the subclass inherits to it to implement the message proccess.
  *
  * If the gst message's format is ohos custom, the engine transparently transmits the encoding value to the user.
  * If the gst message's source is's not gstpipeline, the engine will deliver the message to RecorderMsgHandlers.

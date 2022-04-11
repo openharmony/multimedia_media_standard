@@ -43,7 +43,7 @@ std::string VideoEncoder::GetEncorderName(std::string_view mimeType)
     format.PutStringValue("codec_mime", mimeType);
 
     std::string pluginName = codecList->FindVideoEncoder(format);
-    MEDIA_LOGI("Found plugin nmae: %{public}s", pluginName.c_str());
+    MEDIA_LOGI("Found plugin name: %{public}s", pluginName.c_str());
     return pluginName;
 }
 
@@ -127,7 +127,7 @@ int32_t VideoEncoder::Configure(const RecorderParam &recParam)
 int32_t VideoEncoder::CheckConfigReady()
 {
     std::set<int32_t> expectedParam = { RecorderPublicParamType::VID_ENC_FMT };
-    bool configed = CheckAllParamsConfiged(expectedParam);
+    bool configed = CheckAllParamsConfigured(expectedParam);
     CHECK_AND_RETURN_RET(configed == true, MSERR_INVALID_OPERATION);
 
     return MSERR_OK;

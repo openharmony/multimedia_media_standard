@@ -16,7 +16,7 @@
 #include "gst_hdi_video.h"
 #include "gst_hdi_video_dec.h"
 
-GstVideoFormat gst_hdi_video_pixelformt_to_gstvideoformat(PixelFormat hdiColorformat)
+GstVideoFormat gst_hdi_video_pixelformat_to_gstvideoformat(PixelFormat hdiColorformat)
 {
     GstVideoFormat format;
 
@@ -44,7 +44,7 @@ void gst_hdi_video_set_caps_pixelformat(GstCaps *caps, const GList *formats)
         if (format->data == NULL) {
             continue;
         }
-        GstVideoFormat tmp = gst_hdi_video_pixelformt_to_gstvideoformat(*((PixelFormat*)(format->data)));
+        GstVideoFormat tmp = gst_hdi_video_pixelformat_to_gstvideoformat(*((PixelFormat*)(format->data)));
         if (tmp == GST_VIDEO_FORMAT_UNKNOWN) {
             continue;
         }

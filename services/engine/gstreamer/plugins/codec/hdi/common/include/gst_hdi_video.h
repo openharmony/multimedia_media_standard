@@ -18,6 +18,6 @@
 
 #include "gst_hdi.h"
 
-GstVideoFormat gst_hdi_video_pixelformt_to_gstvideoformat(PixelFormat hdiColorformat);
+GstVideoFormat gst_hdi_video_pixelformat_to_gstvideoformat(PixelFormat hdiColorformat);
 void gst_hdi_video_set_caps_pixelformat(GstCaps *caps, const GList *formats);
 #endif /* GST_HDI_VIDEO_H */

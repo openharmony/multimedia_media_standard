@@ -95,7 +95,7 @@ static void gst_shmem_pool_src_class_init(GstShmemPoolSrcClass *klass)
     gstmemsrc_class->pull_buffer = gst_shmem_pool_src_pull_buffer;
     gstmemsrc_class->push_buffer = gst_shmem_pool_src_push_buffer;
     gst_element_class_set_static_metadata(gstelement_class,
-        "shmem memm source", "Source/shmem/Pool",
+        "shmem mem source", "Source/shmem/Pool",
         "Retrieve frame from shmem pool with raw data", "OpenHarmony");
 
     gst_element_class_add_static_pad_template(gstelement_class, &gst_src_template);
@@ -194,7 +194,7 @@ static gboolean gst_shmem_pool_src_task_need_wait(GstShmemPoolSrc *shmemsrc)
         return FALSE;
     }
 
-    // available_bufer not be used, need wait.
+    // available_buffer not be used, need wait.
     if ((priv->pool != nullptr) && (priv->available_buffer == nullptr)) {
         return FALSE;
     }

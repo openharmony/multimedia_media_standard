@@ -447,7 +447,7 @@ static gboolean gst_venc_base_allocate_in_buffers(GstVencBase *self)
     GstBufferPool *pool = reinterpret_cast<GstBufferPool*>(gst_object_ref(self->inpool));
     ON_SCOPE_EXIT(0) { gst_object_unref(pool); };
     for (guint i = 0; i < self->input.buffer_cnt; ++i) {
-        GST_DEBUG_OBJECT(self, "Input buffer index %d", i);
+        GST_DEBUG_OBJECT(self, "Input buffer index %u", i);
         GstBuffer *buffer = nullptr;
         GstFlowReturn flow_ret = gst_buffer_pool_acquire_buffer(pool, &buffer, nullptr);
         if (flow_ret != GST_FLOW_OK || buffer == nullptr) {
@@ -490,7 +490,7 @@ static gboolean gst_venc_base_allocate_out_buffers(GstVencBase *self)
     GstBufferPool *pool = reinterpret_cast<GstBufferPool*>(gst_object_ref(self->outpool));
     ON_SCOPE_EXIT(0) { gst_object_unref(pool); };
     for (guint i = 0; i < self->output.buffer_cnt; ++i) {
-        GST_DEBUG_OBJECT(self, "Output buffer index %d", i);
+        GST_DEBUG_OBJECT(self, "Output buffer index %u", i);
         GstBuffer *buffer = nullptr;
         GstFlowReturn flow_ret = gst_buffer_pool_acquire_buffer(pool, &buffer, nullptr);
         if (flow_ret != GST_FLOW_OK || buffer == nullptr) {
