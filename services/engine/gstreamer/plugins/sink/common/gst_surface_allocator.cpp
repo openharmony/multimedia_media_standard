@@ -70,7 +70,7 @@ GstSurfaceMemory *gst_surface_allocator_alloc(GstSurfaceAllocator *allocator, Gs
 
     memory->buf = surface_buffer;
     memory->fence = -1;
-    memory->needRender = FALSE;
+    memory->need_render = FALSE;
     GST_DEBUG("alloc surface buffer for width: %d, height: %d, format: %d, size: %u",
         param.width, param.height, param.format, surface_buffer->GetSize());
 
@@ -83,11 +83,11 @@ static void gst_surface_allocator_free(GstAllocator *baseAllocator, GstMemory *b
     GstSurfaceMemory *memory = reinterpret_cast<GstSurfaceMemory*>(baseMemory);
     g_return_if_fail(memory != nullptr && allocator != nullptr && allocator->surface != nullptr);
 
-    GST_DEBUG("free surface buffer for width: %d, height: %d, format: %d, size: %u, needRender: %d, fence: %d",
+    GST_DEBUG("free surface buffer for width: %d, height: %d, format: %d, size: %u, need_render: %d, fence: %d",
         memory->buf->GetWidth(), memory->buf->GetHeight(), memory->buf->GetFormat(), memory->buf->GetSize(),
-        memory->needRender, memory->fence);
+        memory->need_render, memory->fence);
 
-    if (!memory->needRender) {
+    if (!memory->need_render) {
         OHOS::SurfaceError ret = allocator->surface->CancelBuffer(memory->buf);
         if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
             GST_INFO("cancel buffer to surface failed, %d", ret);

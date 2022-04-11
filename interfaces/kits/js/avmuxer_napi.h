@@ -17,7 +17,6 @@
 #define AVMUXER_NAPI_H
 
 #include "avmuxer.h"
-#include "media_errors.h"
 #include "napi/native_api.h"
 
 namespace OHOS {
@@ -46,7 +45,7 @@ private:
 
     AVMuxerNapi();
     ~AVMuxerNapi();
-    
+
     static thread_local napi_ref constructor_;
     napi_env env_ = nullptr;
     napi_ref wrapper_ = nullptr;

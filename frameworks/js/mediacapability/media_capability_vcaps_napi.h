@@ -36,7 +36,6 @@ private:
     static napi_value IsSizeSupported(napi_env env, napi_callback_info info);
     static napi_value GetSupportedFrameRate(napi_env env, napi_callback_info info);
     static napi_value GetPreferredFrameRate(napi_env env, napi_callback_info info);
-
     static napi_value GetCodecInfo(napi_env env, napi_callback_info info);
     static napi_value SupportedBitrate(napi_env env, napi_callback_info info);
     static napi_value SupportedFormats(napi_env env, napi_callback_info info);

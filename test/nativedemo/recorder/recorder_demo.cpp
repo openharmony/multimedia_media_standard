@@ -374,7 +374,7 @@ void RecorderDemo::SetVideoSource()
 
 void RecorderDemo::SetVideoEncodeMode()
 {
-    string encodeMode;
+    string encodeMode = "";
     cout << "yuv source need video encode" << endl;
     cout << "select mpeg4 format : 1" << endl;
     cout << "select h264 foramt : 2" << endl;
@@ -403,7 +403,7 @@ void RecorderDemo::RunCase()
         return;
     }
 
-    string recorderType;
+    string recorderType = "";
     cout << "recorder pure video audio or audio/video " << endl;
     cout << "pure video enter  :  1" << endl;
     cout << "pure audio enter  :  2" << endl;
