@@ -516,7 +516,7 @@ public:
  * @since 3.1
  * @version 3.1
  */
-enum AVCProfile {
+enum AVCProfile : int32_t {
     AVC_PROFILE_BASELINE = 0,
     AVC_PROFILE_CONSTRAINED_BASELINE = 1,
     AVC_PROFILE_CONSTRAINED_HIGH = 2,
@@ -534,7 +534,7 @@ enum AVCProfile {
  * @since 3.1
  * @version 3.1
  */
-enum HEVCProfile {
+enum HEVCProfile : int32_t {
     HEVC_PROFILE_MAIN = 0,
     HEVC_PROFILE_MAIN_10 = 1,
     HEVC_PROFILE_MAIN_STILL = 3,
@@ -546,7 +546,7 @@ enum HEVCProfile {
  * @since 3.1
  * @version 3.1
  */
-enum MPEG2Profile {
+enum MPEG2Profile : int32_t {
     MPEG2_PROFILE_422 = 0,
     MPEG2_PROFILE_HIGH = 1,
     MPEG2_PROFILE_MAIN = 2,
@@ -561,7 +561,7 @@ enum MPEG2Profile {
  * @since 3.1
  * @version 3.1
  */
-enum MPEG4Profile {
+enum MPEG4Profile : int32_t {
     MPEG4_PROFILE_ADVANCED_CODING = 0,
     MPEG4_PROFILE_ADVANCED_CORE = 1,
     MPEG4_PROFILE_ADVANCED_REAL_TIME = 2,
@@ -586,7 +586,7 @@ enum MPEG4Profile {
  * @since 3.1
  * @version 3.1
  */
-enum H263Profile {
+enum H263Profile : int32_t {
     H263_PROFILE_BACKWARD_COMPATIBLE = 0,
     H263_PROFILE_BASELINE = 1,
     H263_PROFILE_H320_CODING = 2,
@@ -604,7 +604,7 @@ enum H263Profile {
  * @since 3.1
  * @version 3.1
  */
-enum VP8Profile {
+enum VP8Profile : int32_t {
     VP8_PROFILE_MAIN = 0,
 };
 
@@ -614,7 +614,7 @@ enum VP8Profile {
  * @since 3.1
  * @version 3.1
  */
-enum AACProfile {
+enum AACProfile : int32_t {
     AAC_PROFILE_LC = 0,
     AAC_PROFILE_ELD = 1,
     AAC_PROFILE_ERLC = 2,
@@ -630,7 +630,7 @@ enum AACProfile {
  * @since 3.1
  * @version 3.1
  */
-enum AVCLevel {
+enum AVCLevel : int32_t {
     AVC_LEVEL_1 = 0,
     AVC_LEVEL_1b = 1,
     AVC_LEVEL_11 = 2,
@@ -655,7 +655,7 @@ enum AVCLevel {
  * @since 3.1
  * @version 3.1
  */
-enum HEVCLevel {
+enum HEVCLevel : int32_t {
     HEVC_LEVEL_1 = 0,
     HEVC_LEVEL_2 = 1,
     HEVC_LEVEL_21 = 2,
@@ -673,7 +673,7 @@ enum HEVCLevel {
  * @since 3.1
  * @version 3.1
  */
-enum MPEG2Level {
+enum MPEG2Level : int32_t {
     MPEG2_LEVEL_LL = 0,
     MPEG2_LEVEL_ML = 1,
     MPEG2_LEVEL_H14 = 2,
@@ -686,7 +686,7 @@ enum MPEG2Level {
  * @since 3.1
  * @version 3.1
  */
-enum MPEG4Level {
+enum MPEG4Level : int32_t {
     MPEG4_LEVEL_0 = 0,
     MPEG4_LEVEL_0B = 1,
     MPEG4_LEVEL_1 = 2,
@@ -703,7 +703,7 @@ enum MPEG4Level {
  * @since 3.1
  * @version 3.1
  */
-enum VideoEncodeBitrateMode {
+enum VideoEncodeBitrateMode : int32_t {
     /**
      * constant bit rate mode.
     */

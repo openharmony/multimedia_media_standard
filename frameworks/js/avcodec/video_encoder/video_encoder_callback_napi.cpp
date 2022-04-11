@@ -129,14 +129,17 @@ void VideoEncoderCallbackNapi::OnOutputBufferAvailable(uint32_t index, AVCodecBu
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN(outputCallback_ != nullptr);
 
-    auto adec = venc_.lock();
-    CHECK_AND_RETURN(adec != nullptr);
+    auto venc = venc_.lock();
+    CHECK_AND_RETURN(venc != nullptr);
 
-    auto buffer = adec->GetOutputBuffer(index);
+    std::shared_ptr<AVSharedMemory> buffer = nullptr;
     bool isEos = flag & AVCODEC_BUFFER_FLAG_EOS;
-    if (buffer == nullptr && !isEos) {
-        MEDIA_LOGW("Failed to get output buffer");
-        return;
+    if (!isEos) {
+        buffer = venc->GetOutputBuffer(index);
+        if (buffer == nullptr) {
+            MEDIA_LOGW("Failed to get output buffer");
+            return;
+        }
     }
 
     VideoEncoderJsCallback *cb = new(std::nothrow) VideoEncoderJsCallback();

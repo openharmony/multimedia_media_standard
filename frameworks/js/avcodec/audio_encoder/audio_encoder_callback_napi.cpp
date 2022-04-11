@@ -154,11 +154,14 @@ void AudioEncoderCallbackNapi::OnOutputBufferAvailable(uint32_t index, AVCodecBu
         return;
     }
 
-    auto buffer = aenc->GetOutputBuffer(index);
+    std::shared_ptr<AVSharedMemory> buffer = nullptr;
     bool isEos = flag & AVCODEC_BUFFER_FLAG_EOS;
-    if (buffer == nullptr && !isEos) {
-        MEDIA_LOGW("Failed to get output buffer");
-        return;
+    if (!isEos) {
+        buffer = aenc->GetOutputBuffer(index);
+        if (buffer == nullptr) {
+            MEDIA_LOGW("Failed to get output buffer");
+            return;
+        }
     }
 
     // cache this buffer for this index to make sure that this buffer is valid until the buffer of this index
