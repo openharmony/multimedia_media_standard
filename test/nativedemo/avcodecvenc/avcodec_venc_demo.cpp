@@ -63,7 +63,7 @@ void VEncDemo::RunCase(bool enableProp)
     Format format;
     format.PutIntValue("width", DEFAULT_WIDTH);
     format.PutIntValue("height", DEFAULT_HEIGHT);
-    format.PutIntValue("pixel_format", 3); // NV21
+    format.PutIntValue("pixel_format", NV21);
     format.PutIntValue("frame_rate", DEFAULT_FRAME_RATE);
     DEMO_CHECK_AND_RETURN_LOG(Configure(format) == MSERR_OK, "Fatal: Configure fail");
 
@@ -173,7 +173,7 @@ int32_t VEncDemo::Stop()
 
     if (readLoop_ != nullptr && readLoop_->joinable()) {
         unique_lock<mutex> queueLock(signal_->mutex_);
-        signal_->bufferQueue_.push(10000); // wake up read loop thread
+        signal_->bufferQueue_.push(0);
         signal_->cond_.notify_all();
         queueLock.unlock();
         readLoop_->join();

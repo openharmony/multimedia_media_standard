@@ -168,7 +168,8 @@ napi_value MediaVideoCapsNapi::IsSizeSupported(napi_env env, napi_callback_info 
         asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
-    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[2]);
+    size_t argIndex = 2;
+    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[argIndex]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi_));
@@ -220,7 +221,8 @@ napi_value MediaVideoCapsNapi::GetSupportedFrameRate(napi_env env, napi_callback
         asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
-    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[2]);
+    size_t argIndex = 2;
+    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[argIndex]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi_));
@@ -272,7 +274,8 @@ napi_value MediaVideoCapsNapi::GetPreferredFrameRate(napi_env env, napi_callback
         asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
-    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[2]);
+    size_t argIndex = 2;
+    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[argIndex]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi_));

@@ -25,8 +25,6 @@
 
 namespace OHOS {
 namespace Media {
-struct AudioDecoderAsyncContext;
-
 class AudioDecoderNapi {
 public:
     static napi_value Init(napi_env env, napi_value exports);

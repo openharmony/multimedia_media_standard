@@ -296,14 +296,11 @@ int32_t AVCodecEngineGstImpl::HandleMimeType(AVCodecType type, const std::string
     CHECK_AND_RETURN_RET(ret == MSERR_OK, MSERR_UNKNOWN);
     MEDIA_LOGD("Found plugin name:%{public}s", pluginName.c_str());
 
-    bool isSoftware = true;
-    (void)QueryIsSoftPlugin(pluginName, isSoftware);
-
-    useSoftWare_ = isSoftware;
+    (void)QueryIsSoftPlugin(pluginName, useSoftWare_);
     pluginName_ = pluginName;
 
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_UNKNOWN);
-    return ctrl_->Init(type, isSoftware, pluginName);
+    return ctrl_->Init(type, useSoftWare_, pluginName);
 }
 
 int32_t AVCodecEngineGstImpl::HandlePluginName(AVCodecType type, const std::string &name)
