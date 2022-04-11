@@ -207,6 +207,11 @@ bool Format::GetDoubleValue(const std::string_view &key, double &value) const
 
 bool Format::PutBuffer(const std::string_view &key, const uint8_t *addr, size_t size)
 {
+    if (addr == nullptr) {
+        MEDIA_LOGE("put buffer error, addr is nullptr");
+        return false;
+    }
+
     constexpr size_t sizeMax = 1 * 1024 * 1024;
     if (size > sizeMax) {
         MEDIA_LOGE("PutBuffer input size failed. Key: %{public}s", key.data());
