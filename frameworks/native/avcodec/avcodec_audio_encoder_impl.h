@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace Media {
-class AudioEncoderImpl : public AudioEncoder, public NoCopyable {
+class AudioEncoderImpl : public AVCodecAudioEncoder, public NoCopyable {
 public:
     AudioEncoderImpl();
     ~AudioEncoderImpl();
