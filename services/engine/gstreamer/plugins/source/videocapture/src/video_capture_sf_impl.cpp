@@ -375,6 +375,7 @@ void VideoCaptureSfImpl::OnBufferAvailable()
     if (bufferAvailableCount_ == 0) {
         bufferAvailableCondition_.notify_all();
     }
+    MEDIA_LOGD("bufferAvailableCount_ %{public}d", bufferAvailableCount_);
     bufferAvailableCount_++;
 }
 
