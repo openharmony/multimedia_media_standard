@@ -22,10 +22,10 @@
 
 namespace OHOS {
 namespace Media {
-class AudioEncoderImpl : public AVCodecAudioEncoder, public NoCopyable {
+class AVCodecAudioEncoderImpl : public AVCodecAudioEncoder, public NoCopyable {
 public:
-    AudioEncoderImpl();
-    ~AudioEncoderImpl();
+    AVCodecAudioEncoderImpl();
+    ~AVCodecAudioEncoderImpl();
 
     int32_t Configure(const Format &format) override;
     int32_t Prepare() override;
