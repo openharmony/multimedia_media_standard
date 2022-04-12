@@ -25,7 +25,7 @@ namespace OHOS {
 namespace Media {
 struct MediaVideoCapsAsyncCtx;
 
-class MediaVideoCapsNapi {
+class MediaCapabilityVCapsNapi {
 public:
     static napi_value Init(napi_env env, napi_value exports);
     static napi_value Create(napi_env env, std::shared_ptr<VideoCaps> caps);
@@ -49,8 +49,8 @@ private:
     static napi_value SupportedQuality(napi_env env, napi_callback_info info);
     static napi_value SupportedComplexity(napi_env env, napi_callback_info info);
 
-    MediaVideoCapsNapi();
-    ~MediaVideoCapsNapi();
+    MediaCapabilityVCapsNapi();
+    ~MediaCapabilityVCapsNapi();
 
     static thread_local napi_ref constructor_;
     std::shared_ptr<VideoCaps> caps_;
@@ -67,7 +67,7 @@ struct MediaVideoCapsAsyncCtx : public MediaAsyncContext {
     explicit MediaVideoCapsAsyncCtx(napi_env env) : MediaAsyncContext(env) {}
     ~MediaVideoCapsAsyncCtx() = default;
 
-    MediaVideoCapsNapi *napi_ = nullptr;
+    MediaCapabilityVCapsNapi *napi_ = nullptr;
     int32_t width_ = 0;
     int32_t height_ = 0;
 };

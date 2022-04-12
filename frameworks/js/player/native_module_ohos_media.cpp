@@ -32,7 +32,7 @@ static napi_value Export(napi_env env, napi_value exports)
     OHOS::Media::AudioPlayerNapi::Init(env, exports);
     OHOS::Media::AudioRecorderNapi::Init(env, exports);
     OHOS::Media::MediaCapsNapi::Init(env, exports);
-    OHOS::Media::MediaVideoCapsNapi::Init(env, exports);
+    OHOS::Media::MediaCapabilityVCapsNapi::Init(env, exports);
     OHOS::Media::MediaDataSourceNapi::Init(env, exports);
     OHOS::Media::VideoDecoderNapi::Init(env, exports);
     OHOS::Media::VideoEncoderNapi::Init(env, exports);

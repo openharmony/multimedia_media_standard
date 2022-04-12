@@ -152,6 +152,10 @@ static void gst_codec_bin_finalize(GObject *object)
     GstCodecBin *bin = GST_CODEC_BIN(object);
     GST_INFO_OBJECT(bin, "gst_codec_bin_finalize");
     g_return_if_fail(bin != nullptr);
+    if (bin->coder_name != nullptr) {
+        g_free(bin->coder_name);
+        bin->coder_name = nullptr;
+    }
     G_OBJECT_CLASS(parent_class)->finalize(object);
 }
 
