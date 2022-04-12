@@ -116,7 +116,10 @@ void VEncDemo::GenerateData(uint32_t count, uint32_t fps)
             break;
         }
         DEMO_CHECK_AND_BREAK_LOG(memset_s(addr, buffer->GetSize(), 0xFF, YUV_BUFFER_SIZE) == EOK, "Fatal");
-        (void)buffer->ExtraSet("timeStamp", timestampNs_);
+
+        const sptr<OHOS::BufferExtraData>& extraData = buffer->GetExtraData();
+        DEMO_CHECK_AND_BREAK_LOG(extraData != nullptr, "Fatal: SurfaceBuffer is nullptr");
+        (void)extraData->ExtraSet("timeStamp", timestampNs_);
         timestampNs_ += static_cast<int64_t>(intervalUs * 1000); // us to ns
 
         (void)surface_->FlushBuffer(buffer, -1, g_flushConfig);
