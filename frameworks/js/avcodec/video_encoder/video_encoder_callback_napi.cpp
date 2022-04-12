@@ -25,7 +25,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-VideoEncoderCallbackNapi::VideoEncoderCallbackNapi(napi_env env, std::weak_ptr<VideoEncoder> venc)
+VideoEncoderCallbackNapi::VideoEncoderCallbackNapi(napi_env env, std::weak_ptr<AVCodecVideoEncoder> venc)
     : env_(env),
       venc_(venc)
 {

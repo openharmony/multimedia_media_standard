@@ -24,9 +24,9 @@
 
 namespace OHOS {
 namespace Media {
-class VideoDecoder {
+class AVCodecVideoDecoder {
 public:
-    virtual ~VideoDecoder() = default;
+    virtual ~AVCodecVideoDecoder() = default;
 
     /**
      * @brief Configure the decoder.
@@ -214,7 +214,7 @@ public:
      * @since 3.1
      * @version 3.1
      */
-    static std::shared_ptr<VideoDecoder> CreateByMime(const std::string &mime);
+    static std::shared_ptr<AVCodecVideoDecoder> CreateByMime(const std::string &mime);
 
     /**
      * @brief Instantiates the designated decoder.
@@ -224,7 +224,7 @@ public:
      * @since 3.1
      * @version 3.1
      */
-    static std::shared_ptr<VideoDecoder> CreateByName(const std::string &name);
+    static std::shared_ptr<AVCodecVideoDecoder> CreateByName(const std::string &name);
 private:
     VideoDecoderFactory() = default;
     ~VideoDecoderFactory() = default;
