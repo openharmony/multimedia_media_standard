@@ -177,7 +177,7 @@ napi_status MediaJsVideoCapsStatic::GetJsResult(napi_env env, napi_value &result
     for (auto it = caps.begin(); it != caps.end(); it++) {
         CHECK_AND_CONTINUE((*it) != nullptr);
 
-        napi_value videoCaps = MediaVideoCapsNapi::Create(env, *it);
+        napi_value videoCaps = MediaCapabilityVCapsNapi::Create(env, *it);
         CHECK_AND_CONTINUE(videoCaps != nullptr);
 
         (void)napi_set_element(env, result, index, videoCaps);
@@ -207,7 +207,7 @@ napi_status MediaJsVideoCapsDynamic::GetJsResult(napi_env env, napi_value &resul
             continue;
         }
 
-        result = MediaVideoCapsNapi::Create(env, *it);
+        result = MediaCapabilityVCapsNapi::Create(env, *it);
         CHECK_AND_RETURN_RET(result != nullptr, napi_generic_failure);
         break;
     }

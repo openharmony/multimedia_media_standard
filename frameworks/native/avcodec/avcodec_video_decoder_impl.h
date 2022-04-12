@@ -21,10 +21,10 @@
 
 namespace OHOS {
 namespace Media {
-class VideoDecoderImpl : public AVCodecVideoDecoder, public NoCopyable {
+class AVCodecVideoDecoderImpl : public AVCodecVideoDecoder, public NoCopyable {
 public:
-    VideoDecoderImpl();
-    ~VideoDecoderImpl();
+    AVCodecVideoDecoderImpl();
+    ~AVCodecVideoDecoderImpl();
 
     int32_t Configure(const Format &format) override;
     int32_t Prepare() override;
