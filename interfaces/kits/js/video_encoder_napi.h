@@ -58,7 +58,7 @@ private:
     napi_env env_ = nullptr;
     napi_ref wrap_ = nullptr;
     sptr<Surface> surface_;
-    std::shared_ptr<VideoEncoder> venc_ = nullptr;
+    std::shared_ptr<AVCodecVideoEncoder> venc_ = nullptr;
     std::shared_ptr<AVCodecCallback> callback_ = nullptr;
     bool isSurfaceMode_ = false;
 };

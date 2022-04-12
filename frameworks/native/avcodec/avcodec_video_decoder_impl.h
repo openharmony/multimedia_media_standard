@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace Media {
-class VideoDecoderImpl : public VideoDecoder, public NoCopyable {
+class VideoDecoderImpl : public AVCodecVideoDecoder, public NoCopyable {
 public:
     VideoDecoderImpl();
     ~VideoDecoderImpl();

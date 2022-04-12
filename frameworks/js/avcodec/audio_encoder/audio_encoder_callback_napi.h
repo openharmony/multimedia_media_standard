@@ -32,7 +32,7 @@ const std::string OUTPUT_CALLBACK_NAME = "newOutputData";
 
 class AudioEncoderCallbackNapi : public AVCodecCallback {
 public:
-    explicit AudioEncoderCallbackNapi(napi_env env, std::weak_ptr<AudioEncoder> aenc,
+    explicit AudioEncoderCallbackNapi(napi_env env, std::weak_ptr<AVCodecAudioEncoder> aenc,
         const std::shared_ptr<AVCodecNapiHelper>& codecHelper);
     virtual ~AudioEncoderCallbackNapi();
 
@@ -65,7 +65,7 @@ private:
 
     std::mutex mutex_;
     napi_env env_ = nullptr;
-    std::weak_ptr<AudioEncoder> aenc_;
+    std::weak_ptr<AVCodecAudioEncoder> aenc_;
     std::shared_ptr<AutoRef> errorCallback_ = nullptr;
     std::shared_ptr<AutoRef> formatChangedCallback_ = nullptr;
     std::shared_ptr<AutoRef> inputCallback_ = nullptr;

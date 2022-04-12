@@ -31,7 +31,7 @@ const std::string OUTPUT_CALLBACK_NAME = "newOutputData";
 
 class VideoDecoderCallbackNapi : public AVCodecCallback {
 public:
-    VideoDecoderCallbackNapi(napi_env env, std::weak_ptr<VideoDecoder> vdec,
+    VideoDecoderCallbackNapi(napi_env env, std::weak_ptr<AVCodecVideoDecoder> vdec,
         const std::shared_ptr<AVCodecNapiHelper>& codecHelper);
     virtual ~VideoDecoderCallbackNapi();
 
@@ -63,7 +63,7 @@ private:
 
     std::mutex mutex_;
     napi_env env_ = nullptr;
-    std::weak_ptr<VideoDecoder> vdec_;
+    std::weak_ptr<AVCodecVideoDecoder> vdec_;
     std::shared_ptr<AutoRef> errorCallback_ = nullptr;
     std::shared_ptr<AutoRef> formatChangedCallback_ = nullptr;
     std::shared_ptr<AutoRef> inputCallback_ = nullptr;
