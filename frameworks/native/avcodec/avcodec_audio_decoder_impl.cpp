@@ -24,7 +24,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-std::shared_ptr<AudioDecoder> AudioDecoderFactory::CreateByMime(const std::string &mime)
+std::shared_ptr<AVCodecAudioDecoder> AudioDecoderFactory::CreateByMime(const std::string &mime)
 {
     std::shared_ptr<AudioDecoderImpl> impl = std::make_shared<AudioDecoderImpl>();
     CHECK_AND_RETURN_RET_LOG(impl != nullptr, nullptr, "failed to new AudioDecoderImpl");
@@ -35,7 +35,7 @@ std::shared_ptr<AudioDecoder> AudioDecoderFactory::CreateByMime(const std::strin
     return impl;
 }
 
-std::shared_ptr<AudioDecoder> AudioDecoderFactory::CreateByName(const std::string &name)
+std::shared_ptr<AVCodecAudioDecoder> AudioDecoderFactory::CreateByName(const std::string &name)
 {
     std::shared_ptr<AudioDecoderImpl> impl = std::make_shared<AudioDecoderImpl>();
     CHECK_AND_RETURN_RET_LOG(impl != nullptr, nullptr, "failed to new AudioDecoderImpl");

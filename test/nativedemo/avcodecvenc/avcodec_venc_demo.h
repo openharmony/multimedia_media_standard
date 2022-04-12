@@ -69,7 +69,7 @@ private:
 
     std::atomic<bool> isRunning_ = false;
     std::unique_ptr<std::thread> readLoop_;
-    std::shared_ptr<VideoEncoder> venc_;
+    std::shared_ptr<AVCodecVideoEncoder> venc_;
     std::shared_ptr<VEncSignal> signal_;
     std::shared_ptr<VEncDemoCallback> cb_;
     sptr<Surface> surface_ = nullptr;
