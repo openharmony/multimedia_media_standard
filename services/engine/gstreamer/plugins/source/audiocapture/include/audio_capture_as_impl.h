@@ -16,13 +16,24 @@
 #ifndef AUDIO_CAPTURE_AS_IMPL_H
 #define AUDIO_CAPTURE_AS_IMPL_H
 
+#include <atomic>
+#include <condition_variable>
 #include <mutex>
+#include <queue>
+#include <thread>
 #include "audio_capture.h"
 #include "audio_capturer.h"
 #include "nocopyable.h"
 
 namespace OHOS {
 namespace Media {
+class AudioCaptureSignal {
+public:
+    std::mutex CaptureMutex_;
+    std::condition_variable CaptureCond_;
+    std::queue<std::shared_ptr<AudioBuffer>> CaptureQueue_;
+};
+
 class AudioCaptureAsImpl : public AudioCapture, public NoCopyable {
 public:
     AudioCaptureAsImpl();
@@ -47,9 +58,24 @@ private:
     uint32_t pausedCount_ = 0; // the paused count times
     uint64_t persistTime_ = 0;
     uint64_t totalPauseTime_ = 0;
-    bool isResume_ = false;
-    bool isPause_ = false;
+
+    // audio cache
+    enum AudioRecorderState {
+        RECORDER_INITIALIZED = 0,
+        RECORDER_RUNNING,
+        RECORDER_PAUSED,
+        RECORDER_RESUME,
+    };
+    AudioRecorderState curState_ = RECORDER_INITIALIZED;
+
+    void GetAudioCaptureBuffer();
+    std::shared_ptr<AudioCaptureSignal> audioCaptureSingal_;
+    std::unique_ptr<std::thread> captureLoop_;
     std::mutex pauseMutex_;
+    std::condition_variable pauseCond_;
+    std::atomic<bool> recording_ { false };
+    std::atomic<bool> isPause_ { false };
+    std::atomic<bool> hasPaused_ { false };
 };
 } // namespace Media
 } // namespace OHOS
