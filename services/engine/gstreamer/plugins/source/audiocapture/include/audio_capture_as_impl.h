@@ -27,11 +27,17 @@
 
 namespace OHOS {
 namespace Media {
-class AudioCaptureSignal {
-public:
-    std::mutex CaptureMutex_;
-    std::condition_variable CaptureCond_;
-    std::queue<std::shared_ptr<AudioBuffer>> CaptureQueue_;
+struct AudioCacheCtrl {
+    std::mutex captureMutex_;
+    std::condition_variable captureCond_;
+    std::condition_variable pauseCond_;
+    std::queue<std::shared_ptr<AudioBuffer>> captureQueue_;
+    uint64_t timestamp_ = 0;
+    uint64_t pausedTime_ = 0; // the timestamp when audio pause called
+    uint64_t resumeTime_ = 0; // the timestamp when audio resume called
+    uint32_t pausedCount_ = 0; // the paused count times
+    uint64_t persistTime_ = 0;
+    uint64_t totalPauseTime_ = 0;
 };
 
 class AudioCaptureAsImpl : public AudioCapture, public NoCopyable {
@@ -52,30 +58,21 @@ private:
     std::unique_ptr<OHOS::AudioStandard::AudioCapturer> audioCapturer_ = nullptr;
     size_t bufferSize_ = 0; // minimum size of each buffer acquired from AudioServer
     uint64_t bufferDurationNs_ = 0; // each buffer
-    uint64_t timestamp_ = 0;
-    uint64_t pausedTime_ = 0; // the timestamp when audio pause called
-    uint64_t resumeTime_ = 0; // the timestamp when audio resume called
-    uint32_t pausedCount_ = 0; // the paused count times
-    uint64_t persistTime_ = 0;
-    uint64_t totalPauseTime_ = 0;
 
     // audio cache
-    enum AudioRecorderState {
+    enum AudioRecorderState : int32_t {
         RECORDER_INITIALIZED = 0,
         RECORDER_RUNNING,
         RECORDER_PAUSED,
         RECORDER_RESUME,
+        RECORDER_STOP,
     };
-    AudioRecorderState curState_ = RECORDER_INITIALIZED;
 
     void GetAudioCaptureBuffer();
-    std::shared_ptr<AudioCaptureSignal> audioCaptureSingal_;
+    std::unique_ptr<AudioCacheCtrl> audioCacheCtrl_;
     std::unique_ptr<std::thread> captureLoop_;
     std::mutex pauseMutex_;
-    std::condition_variable pauseCond_;
-    std::atomic<bool> recording_ { false };
-    std::atomic<bool> isPause_ { false };
-    std::atomic<bool> hasPaused_ { false };
+    std::atomic<int32_t> curState_ = RECORDER_INITIALIZED;
 };
 } // namespace Media
 } // namespace OHOS

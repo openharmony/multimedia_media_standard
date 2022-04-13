@@ -17,7 +17,6 @@
 #define VIDEO_CAPTURE_SF_IMPL_H
 
 #include <atomic>
-#include <fstream>
 #include <thread>
 #include "video_capture.h"
 #include "nocopyable.h"
