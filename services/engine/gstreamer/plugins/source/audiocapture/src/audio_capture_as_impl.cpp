@@ -170,7 +170,7 @@ void AudioCaptureAsImpl::GetAudioCaptureBuffer()
         {
             std::unique_lock<std::mutex> loopLock(audioCacheCtrl_->captureMutex_);
             audioCacheCtrl_->captureQueue_.push(tempBuffer);
-            MEDIA_LOGD("audio cache queue size is %{public}d", audioCacheCtrl_->captureQueue_.size());
+            MEDIA_LOGD("audio cache queue size is %{public}lu", audioCacheCtrl_->captureQueue_.size());
             audioCacheCtrl_->captureCond_.notify_all();
         }
     }
@@ -196,7 +196,7 @@ std::shared_ptr<AudioBuffer> AudioCaptureAsImpl::GetBuffer()
     if (curState_.load() == RECORDER_PAUSED) {
         audioCacheCtrl_->pausedTime_ = bufferOut->timestamp;
         MEDIA_LOGD("audio pause timestamp %{public}" PRIu64 "", audioCacheCtrl_->pausedTime_);
-        MEDIA_LOGD("%{public}d audio buffer has been dropped", audioCacheCtrl_->captureQueue_.size());
+        MEDIA_LOGD("%{public}lu audio buffer has been dropped", audioCacheCtrl_->captureQueue_.size());
         while (!audioCacheCtrl_->captureQueue_.empty()) {
             audioCacheCtrl_->captureQueue_.pop();
         }
