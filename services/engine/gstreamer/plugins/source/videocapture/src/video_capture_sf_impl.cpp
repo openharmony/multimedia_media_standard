@@ -233,15 +233,17 @@ int32_t VideoCaptureSfImpl::GetSufferExtraData()
 {
     CHECK_AND_RETURN_RET_LOG(surfaceBuffer_ != nullptr, MSERR_INVALID_OPERATION, "surfacebuffer is null");
 
-    SurfaceError surfaceRet;
+    GSError surfaceRet;
 
-    surfaceRet = surfaceBuffer_->ExtraGet("dataSize", dataSize_);
-    CHECK_AND_RETURN_RET_LOG(surfaceRet == SURFACE_ERROR_OK, MSERR_INVALID_OPERATION, "get dataSize fail");
+    const sptr<OHOS::BufferExtraData>& extraData = surfaceBuffer_->GetExtraData();
+    CHECK_AND_RETURN_RET_LOG(extraData != nullptr, MSERR_INVALID_OPERATION, "get BufferExtraData fail");
+    surfaceRet = extraData->ExtraGet("dataSize", dataSize_);
+    CHECK_AND_RETURN_RET_LOG(surfaceRet == GSERROR_OK, MSERR_INVALID_OPERATION, "get dataSize fail");
     CHECK_AND_RETURN_RET_LOG(dataSize_ > 0, MSERR_INVALID_OPERATION, "illegal dataSize");
-    surfaceRet = surfaceBuffer_->ExtraGet("timeStamp", pts_);
-    CHECK_AND_RETURN_RET_LOG(surfaceRet == SURFACE_ERROR_OK, MSERR_INVALID_OPERATION, "get timeStamp fail");
-    surfaceRet = surfaceBuffer_->ExtraGet("isKeyFrame", isCodecFrame_);
-    CHECK_AND_RETURN_RET_LOG(surfaceRet == SURFACE_ERROR_OK, MSERR_INVALID_OPERATION, "get isKeyFrame fail");
+    surfaceRet = extraData->ExtraGet("timeStamp", pts_);
+    CHECK_AND_RETURN_RET_LOG(surfaceRet == GSERROR_OK, MSERR_INVALID_OPERATION, "get timeStamp fail");
+    surfaceRet = extraData->ExtraGet("isKeyFrame", isCodecFrame_);
+    CHECK_AND_RETURN_RET_LOG(surfaceRet == GSERROR_OK, MSERR_INVALID_OPERATION, "get isKeyFrame fail");
 
     MEDIA_LOGI("surfaceBuffer extraData dataSize_: %{public}d, pts: (%{public}" PRId64 ")", dataSize_, pts_);
     MEDIA_LOGI("is this surfaceBuffer keyFrame ? : %{public}d", isCodecFrame_);

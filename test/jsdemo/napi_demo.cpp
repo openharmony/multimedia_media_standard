@@ -369,13 +369,16 @@ void NapiDemo::BufferLoop()
         CHECK_AND_BREAK(bufferSize <= buffer->GetSize());
         CHECK_AND_BREAK(memset_s(addr, buffer->GetSize(), color_, bufferSize) == EOK);
 
+        const sptr<OHOS::BufferExtraData>& extraData = buffer->GetExtraData();
+        CHECK_AND_BREAK(extraData != nullptr);
+
         if (count_ == totalFrameCount_) {
-            (void)buffer->ExtraSet("endOfStream", true);
+            (void)extraData->ExtraSet("endOfStream", true);
         } else {
-            (void)buffer->ExtraSet("endOfStream", false);
+            (void)extraData->ExtraSet("endOfStream", false);
         }
 
-        (void)buffer->ExtraSet("timeStamp", pts_);
+        (void)extraData->ExtraSet("timeStamp", pts_);
 
         count_++;
         color_ = color_ <= 0 ? 0xFF : (color_ - 1);
