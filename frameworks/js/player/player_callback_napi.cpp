@@ -173,16 +173,16 @@ void PlayerCallbackNapi::OnBufferingUpdateCb(const Format &infoBody) const
     int32_t bufferingType = -1;
     if (infoBody.ContainKey(std::string(PlayerKeys::PLAYER_BUFFERING_START))) {
         bufferingType = BUFFERING_START;
-        (void)format.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_START)), value);
+        (void)infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_START), value);
     } else if (infoBody.ContainKey(std::string(PlayerKeys::PLAYER_BUFFERING_END))) {
         bufferingType = BUFFERING_END;
-        (void)format.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_END)), value);
+        (void)infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_END), value);
     } else if (infoBody.ContainKey(std::string(PlayerKeys::PLAYER_BUFFERING_PERCENT))) {
         bufferingType = BUFFERING_PERCENT;
-        (void)format.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_PERCENT)), value);
+        (void)infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_PERCENT), value);
     } else if (infoBody.ContainKey(std::string(PlayerKeys::PLAYER_CACHED_DURATION))) {
         bufferingType = CACHED_DURATION;
-        (void)format.GetIntValue(std::string(PlayerKeys::PLAYER_CACHED_DURATION)), value);
+        (void)infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_CACHED_DURATION), value);
     } else {
         return;
     }
