@@ -841,14 +841,24 @@ void GstPlayerCtrl::OnSourceSetupCb(const GstPlayer *player, GstElement *src, Gs
     CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
     CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
     CHECK_AND_RETURN_LOG(src != nullptr, "self is null");
-    if (playerGst->appsrcWarp_ == nullptr) {
-        MEDIA_LOGD("appsrc is null, is not stream mode");
-        return;
-    }
+
     GstElementFactory *elementFac = gst_element_get_factory(src);
     const gchar *eleTypeName = g_type_name(gst_element_factory_get_element_type(elementFac));
-    if ((eleTypeName != nullptr) && (strstr(eleTypeName, "GstAppSrc") != nullptr)) {
+    if (eleTypeName == nullptr) {
+        MEDIA_LOGW("eleTypeName is nullptr");
+        return;
+    }
+
+    if (strstr(eleTypeName, "GstAppSrc") != nullptr) {
+        if (playerGst->appsrcWarp_ == nullptr) {
+            MEDIA_LOGD("appsrc is null, is not stream mode");
+            return;
+        }
         (void)playerGst->appsrcWarp_->SetAppsrc(src);
+    } else if (strstr(eleTypeName, "GstCurlHttpSrc") != nullptr) {
+        gboolean sslStrict = static_cast<gboolean>(false);
+        g_object_set(src, "ssl-strict", sslStrict, nullptr);
+        MEDIA_LOGI("disable curl_http ssl strict");
     }
 }
 
