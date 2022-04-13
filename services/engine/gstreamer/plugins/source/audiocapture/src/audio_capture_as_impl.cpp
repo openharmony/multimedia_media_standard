@@ -134,7 +134,7 @@ void AudioCaptureAsImpl::GetAudioCaptureBuffer()
 
         {
             std::unique_lock<std::mutex> lock(pauseMutex_);
-            pauseCond_.wait(lock, [this]() { return curState_.load() == RECORDER_RUNNING
+            audioCacheCtrl_->pauseCond_.wait(lock, [this]() { return curState_.load() == RECORDER_RUNNING
                 || curState_.load() == RECORDER_RESUME; });
         }
 
@@ -236,7 +236,7 @@ int32_t AudioCaptureAsImpl::StopAudioCapture()
     if (captureLoop_ != nullptr && captureLoop_->joinable()) {
         std::unique_lock<std::mutex> loopLock(audioCacheCtrl_->captureMutex_);
         audioCacheCtrl_->captureQueue_.push(nullptr); // to wake up the loop thread
-        audioCacheCtrl_->CaptureCond_.notify_all();
+        audioCacheCtrl_->captureCond_.notify_all();
         audioCacheCtrl_->pauseCond_.notify_all();
         loopLock.unlock();
         captureLoop_->join();
@@ -284,8 +284,8 @@ int32_t AudioCaptureAsImpl::ResumeAudioCapture()
 
     {
         std::unique_lock<std::mutex> lock(pauseMutex_);
-        curState_ = RECORDER_RESUME;
-        pauseCond_.notify_all();
+        curState_.store(RECORDER_RESUME);
+        audioCacheCtrl_->pauseCond_.notify_all();
     }
 
     MEDIA_LOGD("exit ResumeAudioCapture");
