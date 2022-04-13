@@ -134,8 +134,9 @@ void AudioCaptureAsImpl::GetAudioCaptureBuffer()
 
         {
             std::unique_lock<std::mutex> lock(pauseMutex_);
-            audioCacheCtrl_->pauseCond_.wait(lock, [this]() { return curState_.load() == RECORDER_RUNNING ||
-                curState_.load() == RECORDER_RESUME; });
+            audioCacheCtrl_->pauseCond_.wait(lock, [this]() {
+                return curState_.load() == RECORDER_RUNNING || curState_.load() == RECORDER_RESUME;
+            });
         }
 
         CHECK_AND_BREAK(audioCapturer_ != nullptr);
