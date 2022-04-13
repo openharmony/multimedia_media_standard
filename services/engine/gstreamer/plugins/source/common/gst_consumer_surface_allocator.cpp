@@ -70,8 +70,12 @@ static GstMemory *gst_consumer_surface_allocator_alloc(GstAllocator *allocator, 
     }
     g_return_val_if_fail(surface_buffer != nullptr, nullptr);
     ON_SCOPE_EXIT(1) { surface->ReleaseBuffer(surface_buffer, -1); };
-    (void)surface_buffer->ExtraGet("timeStamp", timestamp);
-    (void)surface_buffer->ExtraGet("endOfStream", endOfStream);
+
+    const sptr<OHOS::BufferExtraData>& extraData = surface_buffer->GetExtraData();
+    if (extraData != nullptr) {
+        (void)extraData->ExtraGet("timeStamp", timestamp);
+        (void)extraData->ExtraGet("endOfStream", endOfStream);
+    }
 
     gst_memory_init(GST_MEMORY_CAST(mem), GST_MEMORY_FLAG_NO_SHARE,
         allocator, nullptr, surface_buffer->GetSize(), 0, 0, size);
