@@ -20,14 +20,40 @@
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "ProcessorAencImpl"};
     constexpr uint32_t DEFAULT_BUFFER_SIZE = 50000;
-    constexpr uint32_t MAX_CHANNELS = 2;
-    static const GstAudioChannelPosition CHANNEL_POSITION[2][2] = {
+    constexpr uint32_t MAX_CHANNELS = 6;
+    static const GstAudioChannelPosition CHANNEL_POSITION[6][6] = {
         {
             GST_AUDIO_CHANNEL_POSITION_MONO
         },
         {
             GST_AUDIO_CHANNEL_POSITION_FRONT_LEFT,
             GST_AUDIO_CHANNEL_POSITION_FRONT_RIGHT
+        },
+        {
+            GST_AUDIO_CHANNEL_POSITION_FRONT_CENTER,
+            GST_AUDIO_CHANNEL_POSITION_FRONT_LEFT,
+            GST_AUDIO_CHANNEL_POSITION_FRONT_RIGHT
+        },
+        {
+            GST_AUDIO_CHANNEL_POSITION_FRONT_CENTER,
+            GST_AUDIO_CHANNEL_POSITION_FRONT_LEFT,
+            GST_AUDIO_CHANNEL_POSITION_FRONT_RIGHT,
+            GST_AUDIO_CHANNEL_POSITION_REAR_CENTER
+        },
+        {
+            GST_AUDIO_CHANNEL_POSITION_FRONT_CENTER,
+            GST_AUDIO_CHANNEL_POSITION_FRONT_LEFT,
+            GST_AUDIO_CHANNEL_POSITION_FRONT_RIGHT,
+            GST_AUDIO_CHANNEL_POSITION_REAR_LEFT,
+            GST_AUDIO_CHANNEL_POSITION_REAR_RIGHT
+        },
+        {
+            GST_AUDIO_CHANNEL_POSITION_FRONT_CENTER,
+            GST_AUDIO_CHANNEL_POSITION_FRONT_LEFT,
+            GST_AUDIO_CHANNEL_POSITION_FRONT_RIGHT,
+            GST_AUDIO_CHANNEL_POSITION_REAR_LEFT,
+            GST_AUDIO_CHANNEL_POSITION_REAR_RIGHT,
+            GST_AUDIO_CHANNEL_POSITION_LFE1
         },
     };
 }
