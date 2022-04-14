@@ -61,7 +61,7 @@ struct _GstMemPoolSrcClass {
 };
 
 // for subclass to use
-GstFlowReturn gst_mem_pool_src_buffer_available(GstMemPoolSrc *memsrc);
+GST_API_EXPORT GstFlowReturn gst_mem_pool_src_buffer_available(GstMemPoolSrc *memsrc);
 // for app to use
 GST_API_EXPORT GstBuffer *gst_mem_pool_src_pull_buffer(GstMemPoolSrc *memsrc);
 

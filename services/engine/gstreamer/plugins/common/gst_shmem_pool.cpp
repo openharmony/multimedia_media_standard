@@ -90,8 +90,11 @@ static void gst_shmem_pool_finalize(GObject *obj)
     GstShMemPool *spool = GST_SHMEM_POOL_CAST(obj);
     g_return_if_fail(spool != nullptr);
 
-    gst_object_unref(spool->allocator);
-    spool->allocator = nullptr;
+    if (spool->allocator != nullptr) {
+        gst_object_unref(spool->allocator);
+        spool->allocator = nullptr;
+    }
+
     g_mutex_clear(&spool->lock);
     g_cond_clear(&spool->cond);
     if (spool->avshmempool != nullptr) {
@@ -209,6 +212,9 @@ static gboolean gst_shmem_pool_set_config(GstBufferPool *pool, GstStructure *con
 
     GST_INFO("set config, size: %u, min_bufs: %u, max_bufs: %u", size, minBuffers, maxBuffers);
 
+    if (spool->allocator != nullptr) {
+        gst_object_unref(spool->allocator);
+    }
     spool->allocator = GST_SHMEM_ALLOCATOR_CAST(gst_object_ref(allocator));
     spool->params = params;
 
