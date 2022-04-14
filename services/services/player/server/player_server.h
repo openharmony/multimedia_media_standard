@@ -67,6 +67,7 @@ private:
     int32_t OnReset();
     int32_t InitPlayEngine(const std::string &url);
     int32_t OnPrepare(bool async);
+    const std::string& GetStatusDescroption(int32_t status);
 
     std::unique_ptr<IPlayerEngine> playerEngine_ = nullptr;
     std::shared_ptr<PlayerCallback> playerCb_ = nullptr;
