@@ -38,13 +38,13 @@ struct _GstSharedMemSinkPrivate {
     GCond cond;
     gboolean unlock;
     gboolean flushing;
+    GstCaps *caps;
 };
 
 enum {
     PROP_0,
     PROP_MEM_SIZE,
     PROP_MEM_PREFIX_SIZE,
-    PROP_ENABLE_REMOTE_REFCOUNT,
 };
 
 static void gst_shared_mem_sink_dispose(GObject *obj);
@@ -57,6 +57,8 @@ static gboolean gst_shared_mem_sink_unlock_start(GstBaseSink *bsink);
 static gboolean gst_shared_mem_sink_unlock_stop(GstBaseSink *bsink);
 static gboolean gst_shared_mem_sink_start(GstBaseSink *bsink);
 static gboolean gst_shared_mem_sink_stop(GstBaseSink *bsink);
+static guint caculate_mem_size_from_caps(GstSharedMemSink *memsink, GstCaps *caps);
+static gboolean gst_shared_mem_sink_event(GstBaseSink *bsink, GstEvent *event);
 
 #define gst_shared_mem_sink_parent_class parent_class
 G_DEFINE_TYPE_WITH_CODE(GstSharedMemSink, gst_shared_mem_sink,
@@ -100,6 +102,7 @@ static void gst_shared_mem_sink_class_init(GstSharedMemSinkClass *klass)
     base_sink_class->unlock_stop = gst_shared_mem_sink_unlock_stop;
     base_sink_class->start = gst_shared_mem_sink_start;
     base_sink_class->stop = gst_shared_mem_sink_stop;
+    base_sink_class->event = gst_shared_mem_sink_event;
 
     mem_sink_class->do_propose_allocation = gst_shared_mem_sink_do_propose_allocation;
     mem_sink_class->do_stream_render = gst_shared_mem_sink_do_stream_render;
@@ -123,6 +126,7 @@ static void gst_shared_mem_sink_init(GstSharedMemSink *sink)
     g_cond_init(&priv->cond);
     priv->unlock = FALSE;
     priv->flushing = FALSE;
+    priv->caps = nullptr;
 }
 
 static void gst_shared_mem_sink_dispose(GObject *obj)
@@ -134,13 +138,17 @@ static void gst_shared_mem_sink_dispose(GObject *obj)
     g_return_if_fail(priv != nullptr);
 
     GST_OBJECT_LOCK(shmem_sink);
-    if (priv->allocator) {
+    if (priv->allocator != nullptr) {
         gst_object_unref(priv->allocator);
         priv->allocator = nullptr;
     }
     if (priv->pool != nullptr) {
         gst_object_unref(priv->pool);
         priv->pool = nullptr;
+    }
+    if (priv->caps != nullptr) {
+        gst_caps_unref(priv->caps);
+        priv->caps = nullptr;
     }
     priv->av_shmem_pool = nullptr;
     GST_OBJECT_UNLOCK(shmem_sink);
@@ -285,6 +293,30 @@ static gboolean gst_shared_mem_sink_stop(GstBaseSink *bsink)
     return GST_BASE_SINK_CLASS(parent_class)->stop(bsink);
 }
 
+static gboolean gst_shared_mem_sink_event(GstBaseSink *bsink, GstEvent *event)
+{
+    g_return_val_if_fail(bsink != nullptr, FALSE);
+    GstSharedMemSink *shmem_sink = GST_SHARED_MEM_SINK_CAST(bsink);
+    GstSharedMemSinkPrivate *priv = shmem_sink->priv;
+    g_return_val_if_fail(priv != nullptr, FALSE);
+
+    switch (event->type) {
+        case GST_EVENT_CAPS : {
+            GstCaps *caps = nullptr;
+            gst_event_parse_caps(event, &caps);
+            g_return_val_if_fail(caps != nullptr, FALSE);
+            if (shmem_sink->priv->caps != nullptr) {
+                gst_caps_unref(shmem_sink->priv->caps);
+            }
+            shmem_sink->priv->caps = gst_caps_ref(caps);
+            break;
+        }
+        default :
+            break;
+    }
+    return GST_BASE_SINK_CLASS(parent_class)->event(bsink, event);
+}
+
 static void notify_memory_available(GstSharedMemSink *shmem_sink)
 {
     g_return_if_fail(shmem_sink != nullptr);
@@ -306,6 +338,10 @@ static gboolean set_pool_for_allocator(GstSharedMemSink *shmem_sink, guint min_b
 
     if (priv->set_pool_for_allocator) {
         return TRUE;
+    }
+
+    if (size == 0) {
+        size = caculate_mem_size_from_caps(shmem_sink, nullptr);
     }
 
     if (size == 0 || max_bufs == 0) {
@@ -496,8 +532,8 @@ static gboolean set_pool_for_propose_allocation(GstSharedMemSink *shmem_sink, Gs
         max_buffers = memsink->max_pool_capacity;
     }
     if (size == 0) {
-        GST_INFO_OBJECT(shmem_sink, "correct the size from %u to %u", size, priv->mem_size);
-        size = priv->mem_size;
+        size = caculate_mem_size_from_caps(shmem_sink, caps);
+        GST_INFO_OBJECT(shmem_sink, "correct the size from 0 to %u", size);
     }
 
     if (priv->pool != nullptr)  {
@@ -558,4 +594,36 @@ static gboolean gst_shared_mem_sink_do_propose_allocation(GstMemSink *memsink, G
 
     GST_OBJECT_UNLOCK(shmem_sink);
     return ret;
+}
+
+static guint caculate_mem_size_from_caps(GstSharedMemSink *memsink, GstCaps *caps)
+{
+    if (memsink->priv->mem_size != 0) {
+        return memsink->priv->mem_size;
+    }
+
+    if (caps == nullptr) {
+        caps = memsink->priv->caps;
+    }
+
+    if (caps == nullptr) {
+        GST_WARNING_OBJECT(memsink, "caps is nullptr");
+        return 0;
+    }
+
+    // currently, only video/x-raw mimetype supported
+    GstStructure *structure = gst_caps_get_structure(caps, 0);
+    if (!gst_structure_has_name(structure, "video/x-raw")) {
+        return 0;
+    }
+
+    GstVideoInfo info;
+    if (!gst_video_info_from_caps(&info, caps)) {
+        return 0;
+    }
+
+    guint size = static_cast<guint>(info.size);
+    GST_INFO_OBJECT(memsink, "caculate mem size: %u", size);
+
+    return size;
 }

@@ -31,10 +31,10 @@ namespace {
     };
 }
 
-#define GST_BUFFER_POOL_LOCK(pool) (g_mutex_lock(&pool->lock))
-#define GST_BUFFER_POOL_UNLOCK(pool) (g_mutex_unlock(&pool->lock))
-#define GST_BUFFER_POOL_WAIT(pool) (g_cond_wait(&pool->cond, &pool->lock))
-#define GST_BUFFER_POOL_NOTIFY(pool) (g_cond_signal(&pool->cond))
+#define GST_BUFFER_POOL_LOCK(pool)   (g_mutex_lock(&(pool)->lock))
+#define GST_BUFFER_POOL_UNLOCK(pool) (g_mutex_unlock(&(pool)->lock))
+#define GST_BUFFER_POOL_WAIT(pool) (g_cond_wait(&(pool)->cond, &(pool)->lock))
+#define GST_BUFFER_POOL_NOTIFY(pool) (g_cond_signal(&(pool)->cond))
 
 #define gst_surface_pool_parent_class parent_class
 G_DEFINE_TYPE(GstSurfacePool, gst_surface_pool, GST_TYPE_BUFFER_POOL);
@@ -417,7 +417,7 @@ static GstFlowReturn gst_surface_pool_alloc_buffer(GstBufferPool *pool,
 
     GstVideoInfo *info = &spool->info;
     g_return_val_if_fail(info != nullptr && info->finfo != nullptr, GST_FLOW_ERROR);
-    for (int plane = 0; plane < info->finfo->n_planes; ++plane) {
+    for (guint plane = 0; plane < info->finfo->n_planes; ++plane) {
         info->stride[plane] = stride;
         GST_DEBUG_OBJECT(spool, "new stride %d", stride);
     }
