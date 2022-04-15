@@ -18,6 +18,7 @@
 #include "media_errors.h"
 #include "engine_factory_repo.h"
 #include "uri_helper.h"
+#include "media_dfx.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVMetadataHelperServer"};
@@ -48,6 +49,7 @@ AVMetadataHelperServer::~AVMetadataHelperServer()
 int32_t AVMetadataHelperServer::SetSource(const std::string &uri, int32_t usage)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MediaTrace trace("AVMetadataHelperServer::SetSource_uri");
     MEDIA_LOGD("Current uri is : %{public}s %{public}u", uri.c_str(), usage);
 
     uriHelper_ = std::make_unique<UriHelper>(uri);
@@ -73,6 +75,7 @@ int32_t AVMetadataHelperServer::SetSource(const std::string &uri, int32_t usage)
 int32_t AVMetadataHelperServer::SetSource(int32_t fd, int64_t offset, int64_t size, int32_t usage)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MediaTrace trace("AVMetadataHelperServer::SetSource_fd");
     MEDIA_LOGD("Current is fd source, offset: %{public}" PRIi64 ", size: %{public}" PRIi64 " usage: %{public}u",
                offset, size, usage);
 
@@ -96,6 +99,7 @@ int32_t AVMetadataHelperServer::SetSource(int32_t fd, int64_t offset, int64_t si
 std::string AVMetadataHelperServer::ResolveMetadata(int32_t key)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MediaTrace trace("AVMetadataHelperServer::ResolveMetadata_key");
     MEDIA_LOGD("Key is %{public}d", key);
     CHECK_AND_RETURN_RET_LOG(avMetadataHelperEngine_ != nullptr, "", "avMetadataHelperEngine_ is nullptr");
     return avMetadataHelperEngine_->ResolveMetadata(key);
@@ -104,6 +108,7 @@ std::string AVMetadataHelperServer::ResolveMetadata(int32_t key)
 std::unordered_map<int32_t, std::string> AVMetadataHelperServer::ResolveMetadata()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MediaTrace trace("AVMetadataHelperServer::ResolveMetadata");
     CHECK_AND_RETURN_RET_LOG(avMetadataHelperEngine_ != nullptr, {}, "avMetadataHelperEngine_ is nullptr");
     return avMetadataHelperEngine_->ResolveMetadata();
 }
@@ -111,6 +116,7 @@ std::unordered_map<int32_t, std::string> AVMetadataHelperServer::ResolveMetadata
 std::shared_ptr<AVSharedMemory> AVMetadataHelperServer::FetchArtPicture()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MediaTrace trace("AVMetadataHelperServer::FetchArtPicture");
     CHECK_AND_RETURN_RET_LOG(avMetadataHelperEngine_ != nullptr, {}, "avMetadataHelperEngine_ is nullptr");
     return avMetadataHelperEngine_->FetchArtPicture();
 }
@@ -119,6 +125,7 @@ std::shared_ptr<AVSharedMemory> AVMetadataHelperServer::FetchFrameAtTime(int64_t
     const OutputConfiguration &param)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MediaTrace trace("AVMetadataHelperServer::FetchFrameAtTime");
     CHECK_AND_RETURN_RET_LOG(avMetadataHelperEngine_ != nullptr, nullptr, "avMetadataHelperEngine_ is nullptr");
     return avMetadataHelperEngine_->FetchFrameAtTime(timeUs, option, param);
 }
@@ -126,6 +133,7 @@ std::shared_ptr<AVSharedMemory> AVMetadataHelperServer::FetchFrameAtTime(int64_t
 void AVMetadataHelperServer::Release()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MediaTrace trace("AVMetadataHelperServer::Release");
     avMetadataHelperEngine_ = nullptr;
     uriHelper_ = nullptr;
 }

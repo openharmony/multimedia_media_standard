@@ -52,6 +52,7 @@ public:
     int32_t ReleaseOutputBuffer(uint32_t index, bool render) override;
     int32_t SetParameter(const Format &format) override;
     int32_t DestroyStub() override;
+    int32_t DumpInfo(int32_t fd);
 
 private:
     AVCodecServiceStub();

@@ -56,6 +56,7 @@ public:
     int32_t SetLooping(bool loop) override;
     int32_t SetParameter(const Format &param) override;
     int32_t SetPlayerCallback(const std::shared_ptr<PlayerCallback> &callback) override;
+    int32_t DumpInfo(int32_t fd);
 
     // IPlayerEngineObs override
     void OnError(PlayerErrorType errorType, int32_t errorCode) override;
@@ -67,7 +68,8 @@ private:
     int32_t OnReset();
     int32_t InitPlayEngine(const std::string &url);
     int32_t OnPrepare(bool async);
-    const std::string& GetStatusDescroption(int32_t status);
+    void FormatToString(std::string &dumpString, std::vector<Format> &videoTrack);
+    const std::string &GetStatusDescription(int32_t status);
 
     std::unique_ptr<IPlayerEngine> playerEngine_ = nullptr;
     std::shared_ptr<PlayerCallback> playerCb_ = nullptr;
@@ -75,14 +77,18 @@ private:
     PlayerStates status_ = PLAYER_IDLE;
     std::mutex mutex_;
     std::mutex mutexCb_;
-    bool looping_ = false;
     TimeMonitor startTimeMonitor_;
     TimeMonitor stopTimeMonitor_;
     std::shared_ptr<IMediaDataSource> dataSrc_ = nullptr;
-    float leftVolume_ = 1.0f; // audiotrack volume range [0, 1]
-    float rightVolume_ = 1.0f; // audiotrack volume range [0, 1]
-    PlaybackRateMode speedMode_ = SPEED_FORWARD_1_00_X;
     std::unique_ptr<UriHelper> uriHelper_;
+    struct ConfigInfo {
+        bool looping = false;
+        float leftVolume = 1.0f; // audiotrack volume range [0, 1]
+        float rightVolume = 1.0f; // audiotrack volume range [0, 1]
+        PlaybackRateMode speedMode = SPEED_FORWARD_1_00_X;
+        std::string url;
+    } config_;
+    std::string lastErrMsg_;
 };
 } // namespace Media
 } // namespace OHOS

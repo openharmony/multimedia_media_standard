@@ -238,6 +238,15 @@ public:
      */
     const FormatDataMap &GetFormatMap() const;
 
+    /**
+     * @brief Convert the metadata map to string.
+     *
+     * @return Returns a converted string.
+     * @since 1.0
+     * @version 1.0
+     */
+    std::string Stringify() const;
+
 private:
     FormatDataMap formatMap_;
 };

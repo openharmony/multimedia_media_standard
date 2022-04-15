@@ -24,9 +24,20 @@
 #include "scope_guard.h"
 #include "uri_helper.h"
 #include "time_perf.h"
+#include "media_dfx.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVMetaEngineGstImpl"};
+    const std::map<OHOS::Media::PlayBinState, std::string> AVMETADATA_STATE_MAP = {
+        {OHOS::Media::PLAYBIN_STATE_IDLE, "idle"},
+        {OHOS::Media::PLAYBIN_STATE_INITIALIZED, "initialized"},
+        {OHOS::Media::PLAYBIN_STATE_PREPARING, "preparing"},
+        {OHOS::Media::PLAYBIN_STATE_PREPARED, "prepared"},
+        {OHOS::Media::PLAYBIN_STATE_PLAYING, "playing"},
+        {OHOS::Media::PLAYBIN_STATE_PAUSED, "paused"},
+        {OHOS::Media::PLAYBIN_STATE_STOPPED, "stopped"},
+        {OHOS::Media::PLAYBIN_STATE_EOS, "eos"},
+    };
 }
 
 namespace OHOS {
@@ -341,6 +352,8 @@ void AVMetadataHelperEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
         case PLAYBIN_MSG_STATE_CHANGE: {
             std::unique_lock<std::mutex> lock(mutex_);
             status_ = msg.code;
+            BehaviorEventWrite(
+                GetStatusDescription(static_cast<OHOS::Media::PlayBinState>(status_)), "AVMetadata");
             cond_.notify_all();
             if (msg.code == PLAYBIN_STATE_PREPARED) {
                 MEDIA_LOGI("prepare finished");
@@ -361,6 +374,7 @@ void AVMetadataHelperEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
             }
             cond_.notify_all();
             MEDIA_LOGE("error happened, cancel inprocessing job");
+            FaultEventWrite("error happened, cancel inprocessing job", "AVMetadata");
             break;
         }
         case PLAYBIN_MSG_SEEKDONE: {
@@ -381,6 +395,16 @@ void AVMetadataHelperEngineGstImpl::OnNotifyElemSetup(GstElement &elem)
     if (metaCollector_ != nullptr) {
         metaCollector_->AddMetaSource(elem);
     }
+}
+
+const std::string &AVMetadataHelperEngineGstImpl::GetStatusDescription(OHOS::Media::PlayBinState status)
+{
+    static const std::string ILLEGAL_STATE = "PLAYER_STATUS_ILLEGAL";
+    if (status < OHOS::Media::PLAYBIN_STATE_IDLE || status > OHOS::Media::PLAYBIN_STATE_EOS) {
+        return ILLEGAL_STATE;
+    }
+
+    return AVMETADATA_STATE_MAP.find(status)->second;
 }
 } // namespace Media
 } // namespace OHOS

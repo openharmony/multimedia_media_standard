@@ -288,5 +288,34 @@ const Format::FormatDataMap &Format::GetFormatMap() const
 {
     return formatMap_;
 }
+
+std::string Format::Stringify() const
+{
+    std::string outString;
+    for (auto iter = formatMap_.begin(); iter != formatMap_.end(); iter++) {
+        switch (GetValueType(iter->first)) {
+            case FORMAT_TYPE_INT32:
+                outString += iter->first + " = " + std::to_string(iter->second.val.int32Val) + "\n";
+                break;
+            case FORMAT_TYPE_INT64:
+                outString += iter->first + " = " + std::to_string(iter->second.val.int64Val) + "\n";
+                break;
+            case FORMAT_TYPE_FLOAT:
+                outString += iter->first + " = " + std::to_string(iter->second.val.floatVal) + "\n";
+                break;
+            case FORMAT_TYPE_DOUBLE:
+                outString += iter->first + " = " + std::to_string(iter->second.val.doubleVal) + "\n";
+                break;
+            case FORMAT_TYPE_STRING:
+                outString += iter->first + " = " + iter->second.stringVal + "\n";
+                break;
+            case FORMAT_TYPE_ADDR:
+                break;
+            default:
+                MEDIA_LOGE("Format::Stringify failed. Key: %{public}s", iter->first.c_str());
+        }
+    }
+    return outString;
+}
 } // namespace Media
 } // namespace OHOS

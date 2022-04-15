@@ -33,7 +33,10 @@ ohos_static_library("media_format") {
 }
 
 config("media_service_utils_public_config") {
-  include_dirs = [ "include" ]
+  include_dirs = [
+    "include",
+    "//base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include",
+  ]
 }
 
 ohos_shared_library("media_service_utils") {
@@ -42,6 +45,7 @@ ohos_shared_library("media_service_utils") {
   sources = [
     "avsharedmemorybase.cpp",
     "avsharedmemorypool.cpp",
+    "media_dfx.cpp",
     "task_queue.cpp",
     "time_monitor.cpp",
     "time_perf.cpp",
@@ -51,6 +55,7 @@ ohos_shared_library("media_service_utils") {
   include_dirs = [
     "//utils/native/base/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
+    "//developtools/bytrace_standard/interfaces/innerkits/native/include",
   ]
 
   cflags = [
@@ -73,9 +78,15 @@ ohos_shared_library("media_service_utils") {
 
   configs = [ ":media_service_utils_public_config" ]
 
-  deps = [ "//utils/native/base:utils" ]
+  deps = [
+    "//developtools/bytrace_standard/interfaces/innerkits/native:bytrace_core",
+    "//utils/native/base:utils",
+  ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "hisysevent_native:libhisysevent",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
 
   subsystem_name = "multimedia"
   part_name = "multimedia_media_standard"

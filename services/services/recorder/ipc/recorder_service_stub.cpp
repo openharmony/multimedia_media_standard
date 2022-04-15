@@ -311,6 +311,12 @@ int32_t RecorderServiceStub::SetFileSplitDuration(FileSplitType type, int64_t ti
     return recorderServer_->SetFileSplitDuration(type, timestamp, duration);
 }
 
+int32_t RecorderServiceStub::DumpInfo(int32_t fd)
+{
+    CHECK_AND_RETURN_RET_LOG(recorderServer_ != nullptr, MSERR_NO_MEMORY, "recorder server is nullptr");
+    return std::static_pointer_cast<RecorderServer>(recorderServer_)->DumpInfo(fd);
+}
+
 int32_t RecorderServiceStub::SetListenerObject(MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> object = data.ReadRemoteObject();
