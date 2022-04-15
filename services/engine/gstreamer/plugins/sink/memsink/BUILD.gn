@@ -73,7 +73,8 @@ ohos_shared_library("gst_mem_sink") {
   deps = [
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//foundation/graphic/standard:libsurface",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer:media_engine_gst",
+    "//foundation/graphic/standard/utils:sync_fence",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_media_common",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
