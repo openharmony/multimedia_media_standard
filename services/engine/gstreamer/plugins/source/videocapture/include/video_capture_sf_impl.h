@@ -95,8 +95,8 @@ private:
     int64_t minInterval_ = 0;
     bool resourceLock_ = false;
     bool isFirstBuffer_ = true;
-    bool isPause_ = false;
-    bool isResume_ = false;
+    std::atomic<bool> isPause_ { false };
+    std::atomic<bool> isResume_ { false };
     bool needUpdatePauseTime_ = false;
 };
 } // namespace Media

@@ -86,8 +86,8 @@ int32_t VideoCaptureSfImpl::Start()
 int32_t VideoCaptureSfImpl::Pause()
 {
     std::lock_guard<std::mutex> lock1(pauseMutex_);
-    isPause_ = true;
-    isResume_ = false;
+    isPause_.store(true);
+    isResume_.store(false);
     needUpdatePauseTime_ = true;
     pauseCount_++;
     return MSERR_OK;
@@ -96,8 +96,8 @@ int32_t VideoCaptureSfImpl::Pause()
 int32_t VideoCaptureSfImpl::Resume()
 {
     std::lock_guard<std::mutex> lock1(pauseMutex_);
-    isPause_ = false;
-    isResume_ = true;
+    isPause_.store(false);
+    isResume_.store(true);
     return MSERR_OK;
 }
 
@@ -269,7 +269,7 @@ bool VideoCaptureSfImpl::DropThisFrame(uint32_t fps, int64_t oldTimeStamp, int64
 
 void VideoCaptureSfImpl::CheckPauseResumeTime()
 {
-    if (isResume_) {
+    if (isResume_.load()) {
         resumeTime_ = pts_;
         MEDIA_LOGD("video resume timestamp %{public}" PRIu64 "", resumeTime_);
         persistTime_ = std::fabs(resumeTime_ - pauseTime_) - minInterval_;
@@ -324,7 +324,7 @@ int32_t VideoCaptureSfImpl::AcquireSurfaceBuffer()
             continue;
         } else {
             previousTimestamp_ = pts_;
-            isResume_ = false;
+            isResume_.store(false);
             break;
         }
     };
@@ -348,10 +348,10 @@ void VideoCaptureSfImpl::OnBufferAvailable()
 
     {
         std::lock_guard<std::mutex> lock1(pauseMutex_);
-        if (isPause_) {
+        if (isPause_.load()) {
             (void)dataConSurface_->AcquireBuffer(surfaceBuffer_, fence_, timestamp_, damage_);
             if (needUpdatePauseTime_) {
-                pauseTime_ = pts_;
+                pauseTime_ = pts_ + totalPauseTime_;
                 MEDIA_LOGD("video pause timestamp %{public}" PRIu64 "", pauseTime_);
                 needUpdatePauseTime_ = false;
             }
