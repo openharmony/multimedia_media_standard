@@ -79,6 +79,7 @@ public:
 private:
     int32_t Init();
     bool CheckPermission();
+    const std::string &GetStatusDescription(OHOS::Media::RecorderServer::RecStatus status);
 
     std::unique_ptr<IRecorderEngine> recorderEngine_ = nullptr;
     std::shared_ptr<RecorderCallback> recorderCb_ = nullptr;

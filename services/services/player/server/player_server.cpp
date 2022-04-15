@@ -120,7 +120,7 @@ int32_t PlayerServer::SetSource(int32_t fd, int64_t offset, int64_t size)
 int32_t PlayerServer::InitPlayEngine(const std::string &url)
 {
     if (status_ != PLAYER_IDLE) {
-        MEDIA_LOGE("current state is: %{public}s, not support SetSource", GetStatusDescroption(status_).c_str());
+        MEDIA_LOGE("current state is: %{public}s, not support SetSource", GetStatusDescription(status_).c_str());
         return MSERR_INVALID_OPERATION;
     }
     startTimeMonitor_.StartTime();
@@ -158,7 +158,7 @@ int32_t PlayerServer::OnPrepare(bool async)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (status_ != PLAYER_INITIALIZED && status_ != PLAYER_STOPPED && status_ != PLAYER_PREPARED) {
-        MEDIA_LOGE("Can not Prepare, currentState is %{public}s", GetStatusDescroption(status_).c_str());
+        MEDIA_LOGE("Can not Prepare, currentState is %{public}s", GetStatusDescription(status_).c_str());
         return MSERR_INVALID_OPERATION;
     }
 
@@ -198,7 +198,7 @@ int32_t PlayerServer::Play()
     MEDIA_LOGW("KPI-TRACE: PlayerServer Play in");
     if (status_ != PLAYER_PREPARED && status_ != PLAYER_PLAYBACK_COMPLETE &&
         status_ != PLAYER_PAUSED && status_ != PLAYER_STARTED) {
-        MEDIA_LOGE("Can not Play, currentState is %{public}s", GetStatusDescroption(status_).c_str());
+        MEDIA_LOGE("Can not Play, currentState is %{public}s", GetStatusDescription(status_).c_str());
         return MSERR_INVALID_OPERATION;
     }
 
@@ -250,7 +250,7 @@ int32_t PlayerServer::Pause()
     }
 
     if (status_ != PLAYER_STARTED) {
-        MEDIA_LOGE("Can not Pause, status_ is %{public}s", GetStatusDescroption(status_).c_str());
+        MEDIA_LOGE("Can not Pause, status_ is %{public}s", GetStatusDescription(status_).c_str());
         return MSERR_INVALID_OPERATION;
     }
 
@@ -279,7 +279,7 @@ int32_t PlayerServer::Stop()
 
     if ((status_ != PLAYER_PREPARED) && (status_ != PLAYER_STARTED) &&
         (status_ != PLAYER_PLAYBACK_COMPLETE) && (status_ != PLAYER_PAUSED)) {
-        MEDIA_LOGE("current state: %{public}s, can not stop", GetStatusDescroption(status_).c_str());
+        MEDIA_LOGE("current state: %{public}s, can not stop", GetStatusDescription(status_).c_str());
         return MSERR_INVALID_OPERATION;
     }
 
@@ -314,6 +314,7 @@ int32_t PlayerServer::OnReset()
     dataSrc_ = nullptr;
     config_.looping = false;
     uriHelper_ = nullptr;
+    lastErrMsg_.clear();
     Format format;
     OnInfo(INFO_TYPE_STATE_CHANGE, PLAYER_IDLE, format);
     stopTimeMonitor_.FinishTime();
@@ -384,7 +385,7 @@ int32_t PlayerServer::Seek(int32_t mSeconds, PlayerSeekMode mode)
 
     if (status_ != PLAYER_PREPARED && status_ != PLAYER_PAUSED &&
         status_ != PLAYER_STARTED && status_ != PLAYER_PLAYBACK_COMPLETE) {
-        MEDIA_LOGE("Can not Seek, currentState is %{public}s", GetStatusDescroption(status_).c_str());
+        MEDIA_LOGE("Can not Seek, currentState is %{public}s", GetStatusDescription(status_).c_str());
         return MSERR_INVALID_OPERATION;
     }
 
@@ -426,7 +427,7 @@ int32_t PlayerServer::GetVideoTrackInfo(std::vector<Format> &videoTrack)
     if (status_ != PLAYER_PREPARED && status_ != PLAYER_PAUSED &&
         status_ != PLAYER_STARTED && status_ != PLAYER_STOPPED &&
         status_ != PLAYER_PLAYBACK_COMPLETE) {
-        MEDIA_LOGE("Can not get track info, currentState is %{public}s", GetStatusDescroption(status_).c_str());
+        MEDIA_LOGE("Can not get track info, currentState is %{public}s", GetStatusDescription(status_).c_str());
         return MSERR_INVALID_OPERATION;
     }
 
@@ -443,7 +444,7 @@ int32_t PlayerServer::GetAudioTrackInfo(std::vector<Format> &audioTrack)
     if (status_ != PLAYER_PREPARED && status_ != PLAYER_PAUSED &&
         status_ != PLAYER_STARTED && status_ != PLAYER_STOPPED &&
         status_ != PLAYER_PLAYBACK_COMPLETE) {
-        MEDIA_LOGE("Can not get track info, currentState is %{public}s", GetStatusDescroption(status_).c_str());
+        MEDIA_LOGE("Can not get track info, currentState is %{public}s", GetStatusDescription(status_).c_str());
         return MSERR_INVALID_OPERATION;
     }
 
@@ -460,7 +461,7 @@ int32_t PlayerServer::GetVideoWidth()
     if (status_ != PLAYER_PREPARED && status_ != PLAYER_PAUSED &&
         status_ != PLAYER_STARTED && status_ != PLAYER_STOPPED &&
         status_ != PLAYER_PLAYBACK_COMPLETE) {
-        MEDIA_LOGE("Can not get track info, currentState is %{public}s", GetStatusDescroption(status_).c_str());
+        MEDIA_LOGE("Can not get track info, currentState is %{public}s", GetStatusDescription(status_).c_str());
         return MSERR_INVALID_OPERATION;
     }
 
@@ -475,7 +476,7 @@ int32_t PlayerServer::GetVideoHeight()
     if (status_ != PLAYER_PREPARED && status_ != PLAYER_PAUSED &&
         status_ != PLAYER_STARTED && status_ != PLAYER_STOPPED &&
         status_ != PLAYER_PLAYBACK_COMPLETE) {
-        MEDIA_LOGE("Can not get track info, currentState is %{public}s", GetStatusDescroption(status_).c_str());
+        MEDIA_LOGE("Can not get track info, currentState is %{public}s", GetStatusDescription(status_).c_str());
         return MSERR_INVALID_OPERATION;
     }
 
@@ -487,7 +488,7 @@ int32_t PlayerServer::GetDuration(int32_t &duration)
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (status_ == PLAYER_IDLE || status_ == PLAYER_INITIALIZED || status_ == PLAYER_STATE_ERROR) {
-        MEDIA_LOGE("Can not GetDuration, currentState is %{public}s", GetStatusDescroption(status_).c_str());
+        MEDIA_LOGE("Can not GetDuration, currentState is %{public}s", GetStatusDescription(status_).c_str());
         return MSERR_INVALID_OPERATION;
     }
     duration = 0;
@@ -504,7 +505,7 @@ int32_t PlayerServer::SetPlaybackSpeed(PlaybackRateMode mode)
 
     if ((status_ != PLAYER_STARTED) && (status_ != PLAYER_PREPARED) &&
         (status_ != PLAYER_PAUSED) && (status_ != PLAYER_PLAYBACK_COMPLETE)) {
-        MEDIA_LOGE("Can not SetPlaybackSpeed, currentState is %{public}s", GetStatusDescroption(status_).c_str());
+        MEDIA_LOGE("Can not SetPlaybackSpeed, currentState is %{public}s", GetStatusDescription(status_).c_str());
         return MSERR_INVALID_OPERATION;
     }
 
@@ -544,7 +545,7 @@ int32_t PlayerServer::SetVideoSurface(sptr<Surface> surface)
     CHECK_AND_RETURN_RET_LOG(surface != nullptr, MSERR_INVALID_VAL, "surface is nullptr");
 
     if (status_ != PLAYER_INITIALIZED) {
-        MEDIA_LOGE("current state: %{public}s, can not SetVideoSurface", GetStatusDescroption(status_).c_str());
+        MEDIA_LOGE("current state: %{public}s, can not SetVideoSurface", GetStatusDescription(status_).c_str());
         return MSERR_INVALID_OPERATION;
     }
 
@@ -627,7 +628,7 @@ int32_t PlayerServer::SetPlayerCallback(const std::shared_ptr<PlayerCallback> &c
     CHECK_AND_RETURN_RET_LOG(callback != nullptr, MSERR_INVALID_VAL, "callback is nullptr");
 
     if (status_ != PLAYER_IDLE && status_ != PLAYER_INITIALIZED) {
-        MEDIA_LOGE("Can not SetPlayerCallback, currentState is %{public}s", GetStatusDescroption(status_).c_str());
+        MEDIA_LOGE("Can not SetPlayerCallback, currentState is %{public}s", GetStatusDescription(status_).c_str());
         return MSERR_INVALID_OPERATION;
     }
 
@@ -709,8 +710,8 @@ void PlayerServer::OnInfo(PlayerOnInfoType type, int32_t extra, const Format &in
         } else if (status_ == PLAYER_STOPPED) {
             MediaTrace::TraceEnd("PlayerServer::Stop", STOP_TASK_ID);
         }
-        BehaviorEventWrite(GetStatusDescroption(status_).c_str(), "Player");
-        MEDIA_LOGI("Callback State change, currentState is %{public}s", GetStatusDescroption(status_).c_str());
+        BehaviorEventWrite(GetStatusDescription(status_).c_str(), "Player");
+        MEDIA_LOGI("Callback State change, currentState is %{public}s", GetStatusDescription(status_).c_str());
     } else if (type == INFO_TYPE_SEEKDONE) {
         MediaTrace::TraceEnd("Player::Seek", SEEK_TASK_ID);
     }
@@ -720,13 +721,14 @@ void PlayerServer::OnInfo(PlayerOnInfoType type, int32_t extra, const Format &in
     }
 }
 
-const std::string& PlayerServer::GetStatusDescroption(int32_t status)
+const std::string &PlayerServer::GetStatusDescription(int32_t status)
 {
+    static const std::string ILLEGAL_STATE = "PLAYER_STATUS_ILLEGAL";
     if (status < PLAYER_STATE_ERROR || status > PLAYER_PLAYBACK_COMPLETE) {
-        return "PLAYER_STATUS_ILLEGAL";
+        return ILLEGAL_STATE;
     }
 
-    return STATUS_TO_STATUS_DESCRIPTION_TABLE.find(status_)->second;
+    return STATUS_TO_STATUS_DESCRIPTION_TABLE.find(status)->second;
 }
 } // namespace Media
 } // namespace OHOS

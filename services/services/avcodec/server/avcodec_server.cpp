@@ -22,7 +22,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecServer"};
-    std::map<OHOS::Media::AVCodecServer::AVCodecStatus, std::string> AVCODEC_STATE_MAP = {
+    const std::map<OHOS::Media::AVCodecServer::AVCodecStatus, std::string> AVCODEC_STATE_MAP = {
         {OHOS::Media::AVCodecServer::AVCODEC_UNINITIALIZED, "uninitialized"},
         {OHOS::Media::AVCodecServer::AVCODEC_INITIALIZED, "initialized"},
         {OHOS::Media::AVCodecServer::AVCODEC_CONFIGURED, "configured"},
@@ -64,7 +64,7 @@ int32_t AVCodecServer::Init()
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_CREATE_AVCODEC_ENGINE_FAILED,
         "Failed to create codec engine");
     status_ = AVCODEC_INITIALIZED;
-    BehaviorEventWrite(AVCODEC_STATE_MAP[status_], "AVCodec");
+    BehaviorEventWrite(GetStatusDescription(status_), "AVCodec");
     return MSERR_OK;
 }
 
@@ -85,7 +85,7 @@ int32_t AVCodecServer::Configure(const Format &format)
     config_ = format;
     int32_t ret = codecEngine_->Configure(format);
     status_ = (ret == MSERR_OK ? AVCODEC_CONFIGURED : AVCODEC_ERROR);
-    BehaviorEventWrite(AVCODEC_STATE_MAP[status_], "AVCodec");
+    BehaviorEventWrite(GetStatusDescription(status_), "AVCodec");
     return ret;
 }
 
@@ -97,7 +97,7 @@ int32_t AVCodecServer::Prepare()
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = codecEngine_->Prepare();
     status_ = (ret == MSERR_OK ? AVCODEC_PREPARED : AVCODEC_ERROR);
-    BehaviorEventWrite(AVCODEC_STATE_MAP[status_], "AVCodec");
+    BehaviorEventWrite(GetStatusDescription(status_), "AVCodec");
     return ret;
 }
 
@@ -109,7 +109,7 @@ int32_t AVCodecServer::Start()
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = codecEngine_->Start();
     status_ = (ret == MSERR_OK ? AVCODEC_RUNNING : AVCODEC_ERROR);
-    BehaviorEventWrite(AVCODEC_STATE_MAP[status_], "AVCodec");
+    BehaviorEventWrite(GetStatusDescription(status_), "AVCodec");
     return ret;
 }
 
@@ -122,7 +122,7 @@ int32_t AVCodecServer::Stop()
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = codecEngine_->Stop();
     status_ = (ret == MSERR_OK ? AVCODEC_PREPARED : AVCODEC_ERROR);
-    BehaviorEventWrite(AVCODEC_STATE_MAP[status_], "AVCodec");
+    BehaviorEventWrite(GetStatusDescription(status_), "AVCodec");
     return ret;
 }
 
@@ -135,7 +135,7 @@ int32_t AVCodecServer::Flush()
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = codecEngine_->Flush();
     status_ = (ret == MSERR_OK ? AVCODEC_RUNNING : AVCODEC_ERROR);
-    BehaviorEventWrite(AVCODEC_STATE_MAP[status_], "AVCodec");
+    BehaviorEventWrite(GetStatusDescription(status_), "AVCodec");
     return ret;
 }
 
@@ -146,7 +146,8 @@ int32_t AVCodecServer::Reset()
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = codecEngine_->Reset();
     status_ = (ret == MSERR_OK ? AVCODEC_INITIALIZED : AVCODEC_ERROR);
-    BehaviorEventWrite(AVCODEC_STATE_MAP[status_], "AVCodec");
+    BehaviorEventWrite(GetStatusDescription(status_), "AVCodec");
+    lastErrMsg_.clear();
     return ret;
 }
 
@@ -190,7 +191,7 @@ int32_t AVCodecServer::QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, 
     if (flag & AVCODEC_BUFFER_FLAG_EOS) {
         if (ret == MSERR_OK) {
             status_ = AVCODEC_END_OF_STREAM;
-            BehaviorEventWrite(AVCODEC_STATE_MAP[status_], "AVCodec");
+            BehaviorEventWrite(GetStatusDescription(status_), "AVCodec");
             MEDIA_LOGI("EOS state");
         }
     }
@@ -271,6 +272,17 @@ int32_t AVCodecServer::DumpInfo(int32_t fd)
     write(fd, dumpString.c_str(), dumpString.size());
 
     return MSERR_OK;
+}
+
+const std::string &AVCodecServer::GetStatusDescription(OHOS::Media::AVCodecServer::AVCodecStatus status)
+{
+    static const std::string ILLEGAL_STATE = "PLAYER_STATUS_ILLEGAL";
+    if (status < OHOS::Media::AVCodecServer::AVCODEC_UNINITIALIZED ||
+        status > OHOS::Media::AVCodecServer::AVCODEC_ERROR) {
+        return ILLEGAL_STATE;
+    }
+
+    return AVCODEC_STATE_MAP.find(status)->second;
 }
 
 void AVCodecServer::OnError(int32_t errorType, int32_t errorCode)
