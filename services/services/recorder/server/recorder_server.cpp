@@ -25,7 +25,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "RecorderServer"};
-    std::map<OHOS::Media::RecorderServer::RecStatus, std::string> RECORDER_STATE_MAP = {
+    const std::map<OHOS::Media::RecorderServer::RecStatus, std::string> RECORDER_STATE_MAP = {
         {OHOS::Media::RecorderServer::REC_INITIALIZED, "initialized"},
         {OHOS::Media::RecorderServer::REC_CONFIGURED, "configured"},
         {OHOS::Media::RecorderServer::REC_PREPARED, "prepared"},
@@ -80,7 +80,7 @@ int32_t RecorderServer::Init()
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_CREATE_REC_ENGINE_FAILED,
         "failed to create recorder engine");
     status_ = REC_INITIALIZED;
-    BehaviorEventWrite(RECORDER_STATE_MAP[status_], "Recorder");
+    BehaviorEventWrite(GetStatusDescription(status_), "Recorder");
     return MSERR_OK;
 }
 
@@ -95,6 +95,17 @@ bool RecorderServer::CheckPermission()
         MEDIA_LOGE("user do not have the right to access MICROPHONE!");
         return false;
     }
+}
+
+const std::string& RecorderServer::GetStatusDescription(OHOS::Media::RecorderServer::RecStatus status)
+{
+    static const std::string ILLEGAL_STATE = "PLAYER_STATUS_ILLEGAL";
+    if (status < OHOS::Media::RecorderServer::REC_INITIALIZED ||
+        status > OHOS::Media::RecorderServer::REC_ERROR) {
+        return ILLEGAL_STATE;
+    }
+
+    return RECORDER_STATE_MAP.find(status)->second;
 }
 
 void RecorderServer::OnError(ErrorType errorType, int32_t errorCode)
@@ -266,7 +277,7 @@ int32_t RecorderServer::SetOutputFormat(OutputFormatType format)
     config_.format = format;
     int32_t ret = recorderEngine_->SetOutputFormat(format);
     status_ = (ret == MSERR_OK ? REC_CONFIGURED : REC_INITIALIZED);
-    BehaviorEventWrite(RECORDER_STATE_MAP[status_], "Recorder");
+    BehaviorEventWrite(GetStatusDescription(status_), "Recorder");
     return ret;
 }
 
@@ -357,7 +368,7 @@ int32_t RecorderServer::Prepare()
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = recorderEngine_->Prepare();
     status_ = (ret == MSERR_OK ? REC_PREPARED : REC_ERROR);
-    BehaviorEventWrite(RECORDER_STATE_MAP[status_], "Recorder");
+    BehaviorEventWrite(GetStatusDescription(status_), "Recorder");
     return ret;
 }
 
@@ -373,7 +384,7 @@ int32_t RecorderServer::Start()
 
     int32_t ret = recorderEngine_->Start();
     status_ = (ret == MSERR_OK ? REC_RECORDING : REC_ERROR);
-    BehaviorEventWrite(RECORDER_STATE_MAP[status_], "Recorder");
+    BehaviorEventWrite(GetStatusDescription(status_), "Recorder");
 
     startTimeMonitor_.FinishTime();
     return ret;
@@ -390,7 +401,7 @@ int32_t RecorderServer::Pause()
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = recorderEngine_->Pause();
     status_ = (ret == MSERR_OK ? REC_PAUSED : REC_ERROR);
-    BehaviorEventWrite(RECORDER_STATE_MAP[status_], "Recorder");
+    BehaviorEventWrite(GetStatusDescription(status_), "Recorder");
     return ret;
 }
 
@@ -405,7 +416,7 @@ int32_t RecorderServer::Resume()
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = recorderEngine_->Resume();
     status_ = (ret == MSERR_OK ? REC_RECORDING : REC_ERROR);
-    BehaviorEventWrite(RECORDER_STATE_MAP[status_], "Recorder");
+    BehaviorEventWrite(GetStatusDescription(status_), "Recorder");
     return ret;
 }
 
@@ -429,7 +440,7 @@ int32_t RecorderServer::Reset()
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = recorderEngine_->Reset();
     status_ = (ret == MSERR_OK ? REC_INITIALIZED : REC_ERROR);
-    BehaviorEventWrite(RECORDER_STATE_MAP[status_], "Recorder");
+    BehaviorEventWrite(GetStatusDescription(status_), "Recorder");
 
     stopTimeMonitor_.FinishTime();
     return ret;

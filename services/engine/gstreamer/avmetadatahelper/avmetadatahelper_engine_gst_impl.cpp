@@ -28,7 +28,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVMetaEngineGstImpl"};
-    std::map<OHOS::Media::PlayBinState, std::string> AVMETADATA_STATE_MAP = {
+    const std::map<OHOS::Media::PlayBinState, std::string> AVMETADATA_STATE_MAP = {
         {OHOS::Media::PLAYBIN_STATE_IDLE, "idle"},
         {OHOS::Media::PLAYBIN_STATE_INITIALIZED, "initialized"},
         {OHOS::Media::PLAYBIN_STATE_PREPARING, "preparing"},
@@ -352,7 +352,8 @@ void AVMetadataHelperEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
         case PLAYBIN_MSG_STATE_CHANGE: {
             std::unique_lock<std::mutex> lock(mutex_);
             status_ = msg.code;
-            BehaviorEventWrite(AVMETADATA_STATE_MAP[static_cast<PlayBinState>(status_)], "AVMetadata");
+            BehaviorEventWrite(
+                GetStatusDescription(static_cast<OHOS::Media::PlayBinState>(status_)), "AVMetadata");
             cond_.notify_all();
             if (msg.code == PLAYBIN_STATE_PREPARED) {
                 MEDIA_LOGI("prepare finished");
@@ -394,6 +395,16 @@ void AVMetadataHelperEngineGstImpl::OnNotifyElemSetup(GstElement &elem)
     if (metaCollector_ != nullptr) {
         metaCollector_->AddMetaSource(elem);
     }
+}
+
+const std::string &AVMetadataHelperEngineGstImpl::GetStatusDescription(OHOS::Media::PlayBinState status)
+{
+    static const std::string ILLEGAL_STATE = "PLAYER_STATUS_ILLEGAL";
+    if (status < OHOS::Media::PLAYBIN_STATE_IDLE || status > OHOS::Media::PLAYBIN_STATE_EOS) {
+        return ILLEGAL_STATE;
+    }
+
+    return AVMETADATA_STATE_MAP.find(status)->second;
 }
 } // namespace Media
 } // namespace OHOS
