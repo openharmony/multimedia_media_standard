@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 
-config("gst_media_plugins_common_config") {
+config("gst_plugins_common_config") {
   visibility = [ ":*" ]
 
   cflags = [
@@ -47,8 +47,10 @@ config("gst_media_plugins_common_config") {
   ]
 }
 
-ohos_static_library("gst_media_plugins_common") {
-  configs = [ ":gst_media_plugins_common_config" ]
+ohos_shared_library("gst_media_common") {
+  install_enable = true
+
+  configs = [ ":gst_plugins_common_config" ]
 
   sources = [
     "buffer_type_meta.c",
@@ -60,6 +62,12 @@ ohos_static_library("gst_media_plugins_common") {
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common:gst_codec_plugins_common",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/sink/memsink:gst_mem_sink_base",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/source/memsource:gst_mem_src_base",
+    "//third_party/glib:glib",
+    "//third_party/glib:gmodule",
+    "//third_party/glib:gobject",
+    "//third_party/gstreamer/gstplugins_base:gstvideo",
+    "//third_party/gstreamer/gstreamer:gstbase",
+    "//third_party/gstreamer/gstreamer:gstreamer",
   ]
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
