@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 
-config("media_engine_gst_avcodec_config") {
+config("media_engine_common_avcodeclist_config") {
   visibility = [ ":*" ]
 
   cflags = [
@@ -35,23 +35,18 @@ config("media_engine_gst_avcodec_config") {
   ]
 
   include_dirs = [
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/avcodeclist",
+    "//foundation/multimedia/media_standard/services/engine/common/avcodeclist",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/services/engine_intf",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common",
     "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiocommon/include",
     "//utils/native/base/include",
-    "//third_party/gstreamer/gstreamer",
-    "//third_party/gstreamer/gstreamer/libs",
-    "//third_party/glib/glib",
-    "//third_party/glib",
-    "//third_party/glib/gmodule",
     "//third_party/libxml2/include",
   ]
 }
 
-ohos_static_library("media_engine_gst_avcodeclist") {
+ohos_static_library("media_engine_common_avcodeclist") {
   sources = [
     "avcodec_ability_singleton.cpp",
     "avcodec_xml_parser.cpp",
@@ -59,18 +54,12 @@ ohos_static_library("media_engine_gst_avcodeclist") {
   ]
 
   configs = [
-    ":media_engine_gst_avcodec_config",
-    "//foundation/graphic/standard/frameworks/surface:surface_public_config",
+    ":media_engine_common_avcodeclist_config",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils_public_config",
   ]
 
   deps = [
-    "//foundation/graphic/standard/frameworks/surface:surface",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins:media_engine_gst_plugins_common",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
-    "//third_party/glib:glib",
-    "//third_party/glib:gobject",
-    "//third_party/gstreamer/gstreamer:gstreamer",
     "//third_party/libxml2:xml2",
   ]
 

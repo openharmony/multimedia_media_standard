@@ -13,9 +13,12 @@
 
 import("//build/ohos.gni")
 
-group("media_engine_package") {
+ohos_shared_library("media_engine_common") {
   deps = [
-    "gstreamer:media_engine_gst_package",
-    "common:media_engine_common",
+    "avcodeclist:media_engine_common_avcodeclist",
     ]
+
+  relative_install_dir = "media"
+  subsystem_name = "multimedia"
+  part_name = "multimedia_media_standard"
 }

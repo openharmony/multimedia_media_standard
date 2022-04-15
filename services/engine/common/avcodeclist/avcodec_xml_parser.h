@@ -77,31 +77,7 @@ private:
     std::vector<CapabilityData> capabilityDataArray_;
     xmlDoc *mDoc_ = nullptr;
     std::string capabilityListVal_;
-    std::vector<std::string> capabilityKeys_ = {
-        "codecName",
-        "codecType",
-        "mimeType",
-        "isVendor",
-        "bitrate",
-        "channels",
-        "sampleRate",
-        "format",
-        "profiles",
-        "complexity",
-        "bitrateMode",
-        "alignment",
-        "width",
-        "height",
-        "frameRate",
-        "encodeQuality",
-        "quality",
-        "levels",
-        "blockPerFrame",
-        "blockPerSecond",
-        "blockSize",
-        "profileLevelsMap",
-        "measuredFrameRate",
-        };
+    std::vector<std::string> capabilityKeys_;
 };
 } // namespace Media
 } // namespace OHOS

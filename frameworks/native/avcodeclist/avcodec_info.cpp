@@ -92,7 +92,7 @@ VideoCaps::~VideoCaps()
 
 std::shared_ptr<AVCodecInfo> VideoCaps::GetCodecInfo()
 {
-    std::shared_ptr<AVCodecInfo> codecInfo = std::make_shared<AVCodecInfo>((data_));
+    std::shared_ptr<AVCodecInfo> codecInfo = std::make_shared<AVCodecInfo>(data_);
     CHECK_AND_RETURN_RET_LOG(codecInfo != nullptr, nullptr, "create codecInfo failed");
 
     return codecInfo;
@@ -180,7 +180,7 @@ Range VideoCaps::GetSupportedFrameRatesFor(int32_t width, int32_t height)
 
 void VideoCaps::LoadLevelParams()
 {
-    if (this->GetCodecInfo()->IsSoftwareOnly()) {
+    if (this->GetCodecInfo()->IsSoftwareOnly() == true) {
         return;
     }
     if (data_.mimeType == CodecMimeType::VIDEO_AVC) {
@@ -488,7 +488,7 @@ AudioCaps::~AudioCaps()
 
 std::shared_ptr<AVCodecInfo> AudioCaps::GetCodecInfo()
 {
-    std::shared_ptr<AVCodecInfo> codecInfo = std::make_shared<AVCodecInfo>((data_));
+    std::shared_ptr<AVCodecInfo> codecInfo = std::make_shared<AVCodecInfo>(data_);
     CHECK_AND_RETURN_RET_LOG(codecInfo != nullptr, nullptr, "create codecInfo failed");
     return codecInfo;
 }
