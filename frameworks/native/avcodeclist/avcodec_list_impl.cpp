@@ -81,72 +81,94 @@ std::string AVCodecListImpl::FindAudioEncoder(const Format &format)
 
 std::vector<CapabilityData> AVCodecListImpl::GetCodecCapabilityInfos()
 {
+    if (!capabilityArray_.empty()) {
+        MEDIA_LOGD("capabilityArray_ has been assigned.");
+        return capabilityArray_;
+    }
     return codecListService_->GetCodecCapabilityInfos();
 }
 
 std::vector<std::shared_ptr<VideoCaps>> AVCodecListImpl::GetVideoDecoderCaps()
 {
-    std::vector<CapabilityData> capabilityArray = GetCodecCapabilityInfos();
-
-    SelectTargetCapabilityDataArray(capabilityArray, AVCODEC_TYPE_VIDEO_DECODER);
-    std::vector<std::shared_ptr<VideoCaps>> videoCapsArray;
-    for (auto iter = capabilityArray.begin(); iter != capabilityArray.end(); iter++) {
-        std::shared_ptr<VideoCaps> videoCaps = std::make_shared<VideoCaps>(*iter);
-        CHECK_AND_RETURN_RET_LOG(videoCaps != nullptr, videoCapsArray, "Is null mem");
-        videoCapsArray.push_back(videoCaps);
+    if (!videoDecoderCapsArray_.empty()) {
+        MEDIA_LOGD("videoDecoderCapsArray_ has been assigned.");
+        return videoDecoderCapsArray_;
     }
-    return videoCapsArray;
+    if (capabilityArray_.empty()) {
+        capabilityArray_ = GetCodecCapabilityInfos();
+    }
+    std::vector<CapabilityData> vdecCapabilityArray = SelectTargetCapabilityDataArray(AVCODEC_TYPE_VIDEO_DECODER);
+    for (auto iter = vdecCapabilityArray.begin(); iter != vdecCapabilityArray.end(); iter++) {
+        std::shared_ptr<VideoCaps> videoCaps = std::make_shared<VideoCaps>(*iter);
+        CHECK_AND_RETURN_RET_LOG(videoCaps != nullptr, videoDecoderCapsArray_, "Is null mem");
+        videoDecoderCapsArray_.push_back(videoCaps);
+    }
+    return videoDecoderCapsArray_;
 }
 
 std::vector<std::shared_ptr<VideoCaps>> AVCodecListImpl::GetVideoEncoderCaps()
 {
-    std::vector<CapabilityData> capabilityArray = GetCodecCapabilityInfos();
-    SelectTargetCapabilityDataArray(capabilityArray, AVCODEC_TYPE_VIDEO_ENCODER);
-    std::vector<std::shared_ptr<VideoCaps>> videoCapsArray;
-    for (auto iter = capabilityArray.begin(); iter != capabilityArray.end(); iter++) {
-        std::shared_ptr<VideoCaps> videoCaps = std::make_shared<VideoCaps>(*iter);
-        CHECK_AND_RETURN_RET_LOG(videoCaps != nullptr, videoCapsArray, "Is null mem");
-        videoCapsArray.push_back(videoCaps);
+    if (!videoEncoderCapsArray_.empty()) {
+        MEDIA_LOGD("videoEncoderCapsArray_ has been assigned.");
+        return videoEncoderCapsArray_;
     }
-    return videoCapsArray;
+    if (capabilityArray_.empty()) {
+        capabilityArray_ = GetCodecCapabilityInfos();
+    }
+    std::vector<CapabilityData> vencCapabilityArray = SelectTargetCapabilityDataArray(AVCODEC_TYPE_VIDEO_ENCODER);
+    for (auto iter = vencCapabilityArray.begin(); iter != vencCapabilityArray.end(); iter++) {
+        std::shared_ptr<VideoCaps> videoCaps = std::make_shared<VideoCaps>(*iter);
+        CHECK_AND_RETURN_RET_LOG(videoCaps != nullptr, videoEncoderCapsArray_, "Is null mem");
+        videoEncoderCapsArray_.push_back(videoCaps);
+    }
+    return videoEncoderCapsArray_;
 }
 
 std::vector<std::shared_ptr<AudioCaps>> AVCodecListImpl::GetAudioDecoderCaps()
 {
-    std::vector<CapabilityData> capabilityArray = GetCodecCapabilityInfos();
-    SelectTargetCapabilityDataArray(capabilityArray, AVCODEC_TYPE_AUDIO_DECODER);
-    std::vector<std::shared_ptr<AudioCaps>> audioCapsArray;
-    for (auto iter = capabilityArray.begin(); iter != capabilityArray.end(); iter++) {
-        std::shared_ptr<AudioCaps> audioCaps = std::make_shared<AudioCaps>(*iter);
-        CHECK_AND_RETURN_RET_LOG(audioCaps != nullptr, audioCapsArray, "Is null mem");
-        audioCapsArray.push_back(audioCaps);
+    if (!audioDecoderCapsArray_.empty()) {
+        MEDIA_LOGD("audioDecoderCapsArray_ has been assigned.");
+        return audioDecoderCapsArray_;
     }
-    return audioCapsArray;
+    if (capabilityArray_.empty()) {
+        capabilityArray_ = GetCodecCapabilityInfos();
+    }
+    std::vector<CapabilityData> adecCapabilityArray = SelectTargetCapabilityDataArray(AVCODEC_TYPE_AUDIO_DECODER);
+    for (auto iter = adecCapabilityArray.begin(); iter != adecCapabilityArray.end(); iter++) {
+        std::shared_ptr<AudioCaps> audioCaps = std::make_shared<AudioCaps>(*iter);
+        CHECK_AND_RETURN_RET_LOG(audioCaps != nullptr, audioDecoderCapsArray_, "Is null mem");
+        audioDecoderCapsArray_.push_back(audioCaps);
+    }
+    return audioDecoderCapsArray_;
 }
 
 std::vector<std::shared_ptr<AudioCaps>> AVCodecListImpl::GetAudioEncoderCaps()
 {
-    std::vector<CapabilityData> capabilityArray = GetCodecCapabilityInfos();
-    SelectTargetCapabilityDataArray(capabilityArray, AVCODEC_TYPE_AUDIO_ENCODER);
-    std::vector<std::shared_ptr<AudioCaps>> audioCapsArray;
-    for (auto iter = capabilityArray.begin(); iter != capabilityArray.end(); iter++) {
-        std::shared_ptr<AudioCaps> audioCaps = std::make_shared<AudioCaps>(*iter);
-        CHECK_AND_RETURN_RET_LOG(audioCaps != nullptr, audioCapsArray, "Is null mem");
-        audioCapsArray.push_back(audioCaps);
+    if (!audioEncoderCapsArray_.empty()) {
+        MEDIA_LOGD("audioEncoderCapsArray_ has been assigned.");
+        return audioEncoderCapsArray_;
     }
-    return audioCapsArray;
+    if (capabilityArray_.empty()) {
+        capabilityArray_ = GetCodecCapabilityInfos();
+    }
+    std::vector<CapabilityData> aencCapabilityArray = SelectTargetCapabilityDataArray(AVCODEC_TYPE_AUDIO_ENCODER);
+    for (auto iter = aencCapabilityArray.begin(); iter != aencCapabilityArray.end(); iter++) {
+        std::shared_ptr<AudioCaps> audioCaps = std::make_shared<AudioCaps>(*iter);
+        CHECK_AND_RETURN_RET_LOG(audioCaps != nullptr, audioEncoderCapsArray_, "Is null mem");
+        audioEncoderCapsArray_.push_back(audioCaps);
+    }
+    return audioEncoderCapsArray_;
 }
 
-void AVCodecListImpl::SelectTargetCapabilityDataArray(std::vector<CapabilityData> &capabilityArray,
-                                                      const AVCodecType &codecType)
+std::vector<CapabilityData> AVCodecListImpl::SelectTargetCapabilityDataArray(const AVCodecType &codecType) const
 {
-    for (auto iter = capabilityArray.begin(); iter != capabilityArray.end();) {
+    std::vector<CapabilityData> targetCapabilityData;
+    for (auto iter = capabilityArray_.begin(); iter != capabilityArray_.end(); iter++) {
         if (iter->codecType == codecType) {
-            ++iter;
-        } else {
-            iter = capabilityArray.erase(iter);
+            targetCapabilityData.push_back(*iter);
         }
     }
+    return targetCapabilityData;
 }
 } // namespace Media
 } // namespace OHOS

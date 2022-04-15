@@ -39,8 +39,13 @@ public:
     int32_t Init();
 
 private:
+    std::vector<CapabilityData> capabilityArray_;
+    std::vector<std::shared_ptr<VideoCaps>> videoDecoderCapsArray_;
+    std::vector<std::shared_ptr<VideoCaps>> videoEncoderCapsArray_;
+    std::vector<std::shared_ptr<AudioCaps>> audioDecoderCapsArray_;
+    std::vector<std::shared_ptr<AudioCaps>> audioEncoderCapsArray_;
     std::shared_ptr<IAVCodecListService> codecListService_ = nullptr;
-    void SelectTargetCapabilityDataArray(std::vector<CapabilityData> &capabilityArray, const AVCodecType &codecType);
+    std::vector<CapabilityData> SelectTargetCapabilityDataArray(const AVCodecType &codecType) const;
 };
 } // namespace Media
 } // namespace OHOS

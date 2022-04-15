@@ -28,6 +28,14 @@ namespace Media {
 AVCodecAbilitySingleton& AVCodecAbilitySingleton::GetInstance()
 {
     static AVCodecAbilitySingleton instance;
+    bool ret = instance.ParseHardwareCapability();
+    if (!ret) {
+        MEDIA_LOGD("ParseHardwareCapability failed");
+    }
+    ret = instance.ParseCodecXml();
+    if (!ret) {
+        MEDIA_LOGD("ParseCodecXml failed");
+    }
     return instance;
 }
 
@@ -43,6 +51,9 @@ AVCodecAbilitySingleton::~AVCodecAbilitySingleton()
 
 bool AVCodecAbilitySingleton::ParseCodecXml()
 {
+    if (isParsered_) {
+        return true;
+    }
     AVCodecXmlParser xmlParser;
     bool ret = xmlParser.LoadConfiguration();
     if (!ret) {
@@ -65,8 +76,11 @@ bool AVCodecAbilitySingleton::ParseCodecXml()
 bool AVCodecAbilitySingleton::ParseHardwareCapability()
 {
     MEDIA_LOGD("ParseHardwareCapability start");
-    std::vector<CapabilityData> data = CodecPluginsCapability::GetInstance().GetCodecPluginsCapability();
-    capabilityDataArray_.insert(capabilityDataArray_.end(), data.begin(), data.end());
+    if (pluginsCapabilityDataArray_.empty()) {
+        pluginsCapabilityDataArray_ = CodecPluginsCapability::GetInstance().GetCodecPluginsCapability();
+        capabilityDataArray_.insert(capabilityDataArray_.end(), pluginsCapabilityDataArray_.begin(),
+                                    pluginsCapabilityDataArray_.end());
+    }
     MEDIA_LOGD("ParseHardwareCapability end");
     return true;
 }

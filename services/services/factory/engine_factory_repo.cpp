@@ -29,6 +29,7 @@ namespace {
     static const std::string MEDIA_ENGINE_LIB_PATH = "/system/lib/media";
 #endif
     static const std::string MEDIA_ENGINE_LIB_NAME_PREFIX = "libmedia_engine_";
+    static const std::string MEDIA_ENGINE_COMMON_LIB_NAME_PREFIX = "libmedia_engine_common.z.so";
     static const std::string MEDIA_ENGINE_LIB_NAME_SUFFIX = ".z.so";
     static const std::string MEDIA_ENGINE_ENTRY_SYMBOL = "CreateEngineFactory";
 }
@@ -53,6 +54,10 @@ static std::vector<std::string> GetMediaEngineLibs()
     std::vector<std::string> allLibs;
     GetDirFiles(MEDIA_ENGINE_LIB_PATH, allFiles);
     for (auto &file : allFiles) {
+        if (file == MEDIA_ENGINE_COMMON_LIB_NAME_PREFIX) {
+            MEDIA_LOGI("skip the engine common lib: %{public}s", file.c_str());
+            continue;
+        }
         std::string::size_type namePos = file.find(MEDIA_ENGINE_LIB_NAME_PREFIX);
         if (namePos == std::string::npos) {
             continue;
