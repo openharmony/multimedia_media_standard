@@ -90,6 +90,12 @@ int PlayerServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Messa
 {
     MEDIA_LOGI("Stub: OnRemoteRequest of code: %{public}d is received", code);
 
+    auto remoteDescriptor = data.ReadInterfaceToken();
+    if (PlayerServiceStub::GetDescriptor() != remoteDescriptor) {
+        MEDIA_LOGE("Invalid descriptor");
+        return MSERR_INVALID_OPERATION;
+    }
+
     auto itFunc = playerFuncs_.find(code);
     if (itFunc != playerFuncs_.end()) {
         auto memberFunc = itFunc->second;
