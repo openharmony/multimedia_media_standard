@@ -26,5 +26,5 @@ group("media_engine_gst_plugins") {
 }
 
 group("media_engine_gst_plugins_common") {
-  deps = [ "common:gst_media_plugins_common" ]
+  deps = [ "common:gst_media_common" ]
 }
