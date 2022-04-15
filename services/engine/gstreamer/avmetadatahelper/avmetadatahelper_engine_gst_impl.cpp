@@ -24,9 +24,20 @@
 #include "scope_guard.h"
 #include "uri_helper.h"
 #include "time_perf.h"
+#include "media_dfx.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVMetaEngineGstImpl"};
+    std::map<OHOS::Media::PlayBinState, std::string> AVMETADATA_STATE_MAP = {
+        {OHOS::Media::PLAYBIN_STATE_IDLE, "idle"},
+        {OHOS::Media::PLAYBIN_STATE_INITIALIZED, "initialized"},
+        {OHOS::Media::PLAYBIN_STATE_PREPARING, "preparing"},
+        {OHOS::Media::PLAYBIN_STATE_PREPARED, "prepared"},
+        {OHOS::Media::PLAYBIN_STATE_PLAYING, "playing"},
+        {OHOS::Media::PLAYBIN_STATE_PAUSED, "paused"},
+        {OHOS::Media::PLAYBIN_STATE_STOPPED, "stopped"},
+        {OHOS::Media::PLAYBIN_STATE_EOS, "eos"},
+    };
 }
 
 namespace OHOS {
@@ -341,6 +352,7 @@ void AVMetadataHelperEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
         case PLAYBIN_MSG_STATE_CHANGE: {
             std::unique_lock<std::mutex> lock(mutex_);
             status_ = msg.code;
+            BehaviorEventWrite(AVMETADATA_STATE_MAP[static_cast<PlayBinState>(status_)], "AVMetadata");
             cond_.notify_all();
             if (msg.code == PLAYBIN_STATE_PREPARED) {
                 MEDIA_LOGI("prepare finished");
@@ -361,6 +373,7 @@ void AVMetadataHelperEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
             }
             cond_.notify_all();
             MEDIA_LOGE("error happened, cancel inprocessing job");
+            FaultEventWrite("error happened, cancel inprocessing job", "AVMetadata");
             break;
         }
         case PLAYBIN_MSG_SEEKDONE: {

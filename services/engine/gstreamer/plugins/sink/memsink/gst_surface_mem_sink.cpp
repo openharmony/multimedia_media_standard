@@ -20,7 +20,9 @@
 #include "buffer_type_meta.h"
 #include "media_log.h"
 #include "param_wrapper.h"
+#include "scope_guard.h"
 
+using namespace OHOS;
 struct _GstSurfaceMemSinkPrivate {
     OHOS::sptr<OHOS::Surface> surface;
     GstSurfacePool *pool;
@@ -41,7 +43,7 @@ static void gst_surface_mem_sink_finalize(GObject *object);
 static void gst_surface_mem_sink_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec);
 static void gst_surface_mem_sink_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec);
 static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, GstQuery *query);
-static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, GstBuffer *buffer, bool isPreroll);
+static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, GstBuffer *buffer, bool is_preroll);
 static void gst_surface_mem_sink_dump_from_sys_param(GstSurfaceMemSink *self);
 static void gst_surface_mem_sink_dump_buffer(GstSurfaceMemSink *self, GstBuffer *buffer);
 static GstStateChangeReturn gst_surface_mem_sink_change_state(GstElement *element, GstStateChange transition);
@@ -63,7 +65,7 @@ static void gst_surface_mem_sink_class_init(GstSurfaceMemSinkClass *klass)
     GstElementClass *element_class = GST_ELEMENT_CLASS(klass);
     GstBaseSinkClass *base_sink_class = GST_BASE_SINK_CLASS(klass);
 
-    gst_element_class_add_static_pad_template (element_class, &g_sinktemplate);
+    gst_element_class_add_static_pad_template(element_class, &g_sinktemplate);
 
     gobject_class->dispose = gst_surface_mem_sink_dispose;
     gobject_class->finalize = gst_surface_mem_sink_finalize;
@@ -128,6 +130,8 @@ static void gst_surface_mem_sink_dispose(GObject *obj)
 static void gst_surface_mem_sink_finalize(GObject *obj)
 {
     g_return_if_fail(obj != nullptr);
+    GstSurfaceMemSink *surface_sink = GST_SURFACE_MEM_SINK_CAST(obj);
+    gst_caps_unref(surface_sink->caps);
     G_OBJECT_CLASS(parent_class)->finalize(obj);
 }
 
@@ -177,7 +181,7 @@ static void gst_surface_mem_sink_get_property(GObject *object, guint propId, GVa
     }
 }
 
-static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, GstBuffer *buffer, bool isPreroll)
+static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, GstBuffer *buffer, bool is_preroll)
 {
     g_return_val_if_fail(memsink != nullptr && buffer != nullptr, GST_FLOW_ERROR);
     GstSurfaceMemSink *surface_sink = GST_SURFACE_MEM_SINK_CAST(memsink);
@@ -185,8 +189,8 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
     GstSurfaceMemSinkPrivate *priv = surface_sink->priv;
     GST_OBJECT_LOCK(surface_sink);
 
-    if (surface_sink->firstRenderFrame && isPreroll) {
-        GST_DEBUG_OBJECT(surface_sink, "fisrt render frame");
+    if (surface_sink->firstRenderFrame && is_preroll) {
+        GST_DEBUG_OBJECT(surface_sink, "first render frame");
         GST_OBJECT_UNLOCK(surface_sink);
         return GST_FLOW_OK;
     }
@@ -200,10 +204,10 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
         }
 
         GstSurfaceMemory *surface_mem = reinterpret_cast<GstSurfaceMemory *>(memory);
-        surface_mem->needRender = TRUE;
+        surface_mem->need_render = TRUE;
 
-        bool needFlush = TRUE;
-        if (isPreroll) {
+        gboolean needFlush = TRUE;
+        if (is_preroll) {
             surface_sink->prerollBuffer = buffer;
         } else {
             if (surface_sink->prerollBuffer == buffer) {
@@ -220,6 +224,7 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
             gst_surface_mem_sink_dump_buffer(surface_sink, buffer);
             OHOS::SurfaceError ret = priv->surface->FlushBuffer(surface_mem->buf, surface_mem->fence, flushConfig);
             if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
+                surface_mem->need_render = FALSE;
                 GST_ERROR_OBJECT(surface_sink, "flush buffer to surface failed, %d", ret);
             }
         }
@@ -247,6 +252,7 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     }
 
     GST_OBJECT_LOCK(surface_sink);
+    ON_SCOPE_EXIT(0) { GST_OBJECT_UNLOCK(surface_sink); };
 
     guint size = 0;
     guint minBuffers = 0;
@@ -279,7 +285,6 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
 
     GstStructure *config = gst_buffer_pool_get_config(GST_BUFFER_POOL_CAST(pool));
     if (config == nullptr) {
-        GST_OBJECT_UNLOCK(surface_sink);
         gst_object_unref(allocator);
         return FALSE;
     }
@@ -290,7 +295,6 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     ret = gst_buffer_pool_set_config(GST_BUFFER_POOL_CAST(pool), config);
 
     gst_object_unref(allocator);
-    GST_OBJECT_UNLOCK(surface_sink);
     return ret;
 }
 
@@ -314,15 +318,18 @@ static gboolean gst_surface_mem_sink_event(GstBaseSink *bsink, GstEvent *event)
 {
     GstSurfaceMemSink *surface_mem_sink = GST_SURFACE_MEM_SINK(bsink);
     g_return_val_if_fail(surface_mem_sink != nullptr, FALSE);
+    g_return_val_if_fail(event != nullptr, FALSE);
 
     GST_DEBUG_OBJECT(surface_mem_sink, "event->type %d", event->type);
     switch (event->type) {
-        case GST_EVENT_CAPS : {
+        case GST_EVENT_CAPS: {
             GstCaps *caps;
             gst_event_parse_caps(event, &caps);
             surface_mem_sink->caps = caps;
+            gst_caps_ref(surface_mem_sink->caps);
+            break;
         }
-        default :
+        default:
             break;
     }
     return GST_BASE_SINK_CLASS(parent_class)->event(bsink, event);
@@ -352,9 +359,9 @@ static void gst_surface_mem_sink_dump_buffer(GstSurfaceMemSink *self, GstBuffer 
     GstMapInfo info = GST_MAP_INFO_INIT;
     g_return_if_fail(gst_buffer_map(buffer, &info, GST_MAP_READ));
 
-    gint stride_width = 0;
-    gint stride_height = 0;
-    gint stride_size = info.size;
+    guint stride_width = 0;
+    guint stride_height = 0;
+    guint stride_size = info.size;
     if (g_str_equal(format, "NV12") || g_str_equal(format, "NV21")) {
         stride_width = video_meta->stride[0];
         if (stride_width != 0) {
@@ -382,7 +389,7 @@ static GstStateChangeReturn gst_surface_mem_sink_change_state(GstElement *elemen
 
     GST_DEBUG_OBJECT(element, "change state %d", transition);
     switch (transition) {
-        case GST_STATE_CHANGE_READY_TO_PAUSED :
+        case GST_STATE_CHANGE_READY_TO_PAUSED:
             if (self->dump.enable_dump == TRUE) {
                 static std::string dump_file = "/data/media/dump.yuv";
                 if (self->dump.dump_file == nullptr) {
@@ -390,7 +397,7 @@ static GstStateChangeReturn gst_surface_mem_sink_change_state(GstElement *elemen
                 }
             }
             break;
-        case GST_STATE_CHANGE_PAUSED_TO_READY :
+        case GST_STATE_CHANGE_PAUSED_TO_READY:
             if (self->dump.enable_dump == TRUE) {
                 if (self->dump.dump_file != nullptr) {
                     fclose(self->dump.dump_file);
@@ -398,7 +405,7 @@ static GstStateChangeReturn gst_surface_mem_sink_change_state(GstElement *elemen
                 }
             }
             break;
-        default :
+        default:
             break;
     }
     return GST_ELEMENT_CLASS(parent_class)->change_state(element, transition);

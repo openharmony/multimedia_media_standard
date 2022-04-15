@@ -26,8 +26,6 @@
 
 namespace OHOS {
 namespace Media {
-struct VideoDecoderAsyncContext;
-
 class VideoDecoderNapi {
 public:
     static napi_value Init(napi_env env, napi_value exports);
@@ -61,7 +59,7 @@ private:
     static thread_local napi_ref constructor_;
     napi_env env_ = nullptr;
     napi_ref wrap_ = nullptr;
-    std::shared_ptr<VideoDecoder> vdec_ = nullptr;
+    std::shared_ptr<AVCodecVideoDecoder> vdec_ = nullptr;
     std::shared_ptr<AVCodecCallback> callback_ = nullptr;
     bool isSurfaceMode_ = false;
     std::shared_ptr<AVCodecNapiHelper> codecHelper_ = nullptr;

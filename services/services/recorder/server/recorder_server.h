@@ -70,6 +70,7 @@ public:
     int32_t Release() override;
     int32_t SetFileSplitDuration(FileSplitType type, int64_t timestamp, uint32_t duration) override;
     int32_t SetParameter(int32_t sourceId, const Format &format) override;
+    int32_t DumpInfo(int32_t fd);
 
     // IRecorderEngineObs override
     void OnError(ErrorType errorType, int32_t errorCode) override;
@@ -86,6 +87,24 @@ private:
     std::mutex cbMutex_;
     TimeMonitor startTimeMonitor_;
     TimeMonitor stopTimeMonitor_;
+    struct ConfigInfo {
+        VideoSourceType videoSource;
+        AudioSourceType audioSource;
+        VideoCodecFormat videoCodec;
+        AudioCodecFormat audioCodec;
+        int32_t width;
+        int32_t height;
+        int32_t frameRate;
+        int32_t bitRate;
+        double caputreRate;
+        int32_t audioSampleRate;
+        int32_t audioChannel;
+        int32_t audioBitRate;
+        int32_t maxDuration;
+        OutputFormatType format;
+        int64_t maxFileSize;
+    } config_;
+    std::string lastErrMsg_;
 };
 } // namespace Media
 } // namespace OHOS

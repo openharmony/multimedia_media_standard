@@ -24,29 +24,29 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-std::shared_ptr<VideoEncoder> VideoEncoderFactory::CreateByMime(const std::string &mime)
+std::shared_ptr<AVCodecVideoEncoder> VideoEncoderFactory::CreateByMime(const std::string &mime)
 {
-    std::shared_ptr<VideoEncoderImpl> impl = std::make_shared<VideoEncoderImpl>();
-    CHECK_AND_RETURN_RET_LOG(impl != nullptr, nullptr, "failed to new VideoEncoderImpl");
+    std::shared_ptr<AVCodecVideoEncoderImpl> impl = std::make_shared<AVCodecVideoEncoderImpl>();
+    CHECK_AND_RETURN_RET_LOG(impl != nullptr, nullptr, "failed to new AVCodecVideoEncoderImpl");
 
     int32_t ret = impl->Init(AVCODEC_TYPE_VIDEO_ENCODER, true, mime);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "failed to init VideoEncoderImpl");
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "failed to init AVCodecVideoEncoderImpl");
 
     return impl;
 }
 
-std::shared_ptr<VideoEncoder> VideoEncoderFactory::CreateByName(const std::string &name)
+std::shared_ptr<AVCodecVideoEncoder> VideoEncoderFactory::CreateByName(const std::string &name)
 {
-    std::shared_ptr<VideoEncoderImpl> impl = std::make_shared<VideoEncoderImpl>();
-    CHECK_AND_RETURN_RET_LOG(impl != nullptr, nullptr, "failed to new VideoEncoderImpl");
+    std::shared_ptr<AVCodecVideoEncoderImpl> impl = std::make_shared<AVCodecVideoEncoderImpl>();
+    CHECK_AND_RETURN_RET_LOG(impl != nullptr, nullptr, "failed to new AVCodecVideoEncoderImpl");
 
     int32_t ret = impl->Init(AVCODEC_TYPE_VIDEO_ENCODER, false, name);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "failed to init VideoEncoderImpl");
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "failed to init AVCodecVideoEncoderImpl");
 
     return impl;
 }
 
-int32_t VideoEncoderImpl::Init(AVCodecType type, bool isMimeType, const std::string &name)
+int32_t AVCodecVideoEncoderImpl::Init(AVCodecType type, bool isMimeType, const std::string &name)
 {
     codecService_ = MediaServiceFactory::GetInstance().CreateAVCodecService();
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_UNKNOWN, "failed to create avcodec service");
@@ -54,111 +54,111 @@ int32_t VideoEncoderImpl::Init(AVCodecType type, bool isMimeType, const std::str
     return codecService_->InitParameter(type, isMimeType, name);
 }
 
-VideoEncoderImpl::VideoEncoderImpl()
+AVCodecVideoEncoderImpl::AVCodecVideoEncoderImpl()
 {
-    MEDIA_LOGD("VideoEncoderImpl:0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
+    MEDIA_LOGD("AVCodecVideoEncoderImpl:0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
 }
 
-VideoEncoderImpl::~VideoEncoderImpl()
+AVCodecVideoEncoderImpl::~AVCodecVideoEncoderImpl()
 {
     if (codecService_ != nullptr) {
         (void)MediaServiceFactory::GetInstance().DestroyAVCodecService(codecService_);
         codecService_ = nullptr;
     }
-    MEDIA_LOGD("VideoEncoderImpl:0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
+    MEDIA_LOGD("AVCodecVideoEncoderImpl:0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-int32_t VideoEncoderImpl::Configure(const Format &format)
+int32_t AVCodecVideoEncoderImpl::Configure(const Format &format)
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");
     return codecService_->Configure(format);
 }
 
-int32_t VideoEncoderImpl::Prepare()
+int32_t AVCodecVideoEncoderImpl::Prepare()
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");
     return codecService_->Prepare();
 }
 
-int32_t VideoEncoderImpl::Start()
+int32_t AVCodecVideoEncoderImpl::Start()
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");
     return codecService_->Start();
 }
 
-int32_t VideoEncoderImpl::Stop()
+int32_t AVCodecVideoEncoderImpl::Stop()
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");
     return codecService_->Stop();
 }
 
-int32_t VideoEncoderImpl::Flush()
+int32_t AVCodecVideoEncoderImpl::Flush()
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");
     return codecService_->Flush();
 }
 
-int32_t VideoEncoderImpl::Reset()
+int32_t AVCodecVideoEncoderImpl::Reset()
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");
     return codecService_->Reset();
 }
 
-int32_t VideoEncoderImpl::Release()
+int32_t AVCodecVideoEncoderImpl::Release()
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");
     return codecService_->Release();
 }
 
-sptr<Surface> VideoEncoderImpl::CreateInputSurface()
+sptr<Surface> AVCodecVideoEncoderImpl::CreateInputSurface()
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, nullptr, "service died");
     return codecService_->CreateInputSurface();
 }
 
-std::shared_ptr<AVSharedMemory> VideoEncoderImpl::GetInputBuffer(uint32_t index)
+std::shared_ptr<AVSharedMemory> AVCodecVideoEncoderImpl::GetInputBuffer(uint32_t index)
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, nullptr, "service died");
     return codecService_->GetInputBuffer(index);
 }
 
-int32_t VideoEncoderImpl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
+int32_t AVCodecVideoEncoderImpl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");
     return codecService_->QueueInputBuffer(index, info, flag);
 }
 
-std::shared_ptr<AVSharedMemory> VideoEncoderImpl::GetOutputBuffer(uint32_t index)
+std::shared_ptr<AVSharedMemory> AVCodecVideoEncoderImpl::GetOutputBuffer(uint32_t index)
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, nullptr, "service died");
     return codecService_->GetOutputBuffer(index);
 }
 
-int32_t VideoEncoderImpl::GetOutputFormat(Format &format)
+int32_t AVCodecVideoEncoderImpl::GetOutputFormat(Format &format)
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");
     return codecService_->GetOutputFormat(format);
 }
 
-std::shared_ptr<VideoCaps> VideoEncoderImpl::GetVideoEncoderCaps()
+std::shared_ptr<VideoCaps> AVCodecVideoEncoderImpl::GetVideoEncoderCaps()
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, nullptr, "service died");
     return codecService_->GetVideoCaps();
 }
 
-int32_t VideoEncoderImpl::ReleaseOutputBuffer(uint32_t index)
+int32_t AVCodecVideoEncoderImpl::ReleaseOutputBuffer(uint32_t index)
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");
     return codecService_->ReleaseOutputBuffer(index);
 }
 
-int32_t VideoEncoderImpl::SetParameter(const Format &format)
+int32_t AVCodecVideoEncoderImpl::SetParameter(const Format &format)
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");
     return codecService_->SetParameter(format);
 }
 
-int32_t VideoEncoderImpl::SetCallback(const std::shared_ptr<AVCodecCallback> &callback)
+int32_t AVCodecVideoEncoderImpl::SetCallback(const std::shared_ptr<AVCodecCallback> &callback)
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");
     CHECK_AND_RETURN_RET_LOG(callback != nullptr, MSERR_INVALID_VAL, "callback is nullptr");

@@ -16,7 +16,6 @@
 #ifndef AVCONTAINER_TYPES_H
 #define AVCONTAINER_TYPES_H
 
-#include <string_view>
 #include "av_common.h"
 #include "avcodec_common.h"
 

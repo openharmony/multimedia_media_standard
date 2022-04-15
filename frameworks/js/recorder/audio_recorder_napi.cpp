@@ -322,12 +322,9 @@ int32_t AudioRecorderNapi::GetAudioProperties(napi_env env, napi_value args, Aud
     properties.location.latitude = static_cast<float>(tempLatitude);
     properties.location.longitude = static_cast<float>(tempLongitude);
 
-    ret = CommonNapi::GetPropertyInt32(env, args, "audioEncodeBitRate", properties.encodeBitRate);
-    CHECK_AND_RETURN_RET_LOG(ret, MSERR_INVALID_VAL, "get audioEncodeBitRate failed");
-    ret = CommonNapi::GetPropertyInt32(env, args, "audioSampleRate", properties.audioSampleRate);
-    CHECK_AND_RETURN_RET_LOG(ret, MSERR_INVALID_VAL, "get audioSampleRate failed");
-    ret = CommonNapi::GetPropertyInt32(env, args, "numberOfChannels", properties.numberOfChannels);
-    CHECK_AND_RETURN_RET_LOG(ret, MSERR_INVALID_VAL, "get numberOfChannels failed");
+    (void)CommonNapi::GetPropertyInt32(env, args, "audioEncodeBitRate", properties.encodeBitRate);
+    (void)CommonNapi::GetPropertyInt32(env, args, "audioSampleRate", properties.audioSampleRate);
+    (void)CommonNapi::GetPropertyInt32(env, args, "numberOfChannels", properties.numberOfChannels);
     return MSERR_OK;
 }
 

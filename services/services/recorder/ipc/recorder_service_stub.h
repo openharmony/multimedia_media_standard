@@ -63,6 +63,7 @@ public:
     int32_t Release() override;
     int32_t SetFileSplitDuration(FileSplitType type, int64_t timestamp, uint32_t duration) override;
     int32_t DestroyStub() override;
+    int32_t DumpInfo(int32_t fd);
 
 private:
     RecorderServiceStub();

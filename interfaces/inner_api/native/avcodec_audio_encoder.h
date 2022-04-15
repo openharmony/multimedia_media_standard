@@ -23,9 +23,9 @@
 
 namespace OHOS {
 namespace Media {
-class AudioEncoder {
+class AVCodecAudioEncoder {
 public:
-    virtual ~AudioEncoder() = default;
+    virtual ~AVCodecAudioEncoder() = default;
 
     /**
      * @brief Configure the encoder.
@@ -201,7 +201,7 @@ public:
      * @since 3.1
      * @version 3.1
      */
-    static std::shared_ptr<AudioEncoder> CreateByMime(const std::string &mime);
+    static std::shared_ptr<AVCodecAudioEncoder> CreateByMime(const std::string &mime);
 
     /**
      * @brief Instantiates the designated encoder.
@@ -211,7 +211,7 @@ public:
      * @since 3.1
      * @version 3.1
      */
-    static std::shared_ptr<AudioEncoder> CreateByName(const std::string &name);
+    static std::shared_ptr<AVCodecAudioEncoder> CreateByName(const std::string &name);
 private:
     AudioEncoderFactory() = default;
     ~AudioEncoderFactory() = default;

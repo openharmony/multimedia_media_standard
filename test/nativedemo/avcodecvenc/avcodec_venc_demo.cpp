@@ -63,7 +63,7 @@ void VEncDemo::RunCase(bool enableProp)
     Format format;
     format.PutIntValue("width", DEFAULT_WIDTH);
     format.PutIntValue("height", DEFAULT_HEIGHT);
-    format.PutIntValue("pixel_format", 3); // NV21
+    format.PutIntValue("pixel_format", NV21);
     format.PutIntValue("frame_rate", DEFAULT_FRAME_RATE);
     DEMO_CHECK_AND_RETURN_LOG(Configure(format) == MSERR_OK, "Fatal: Configure fail");
 
@@ -116,7 +116,10 @@ void VEncDemo::GenerateData(uint32_t count, uint32_t fps)
             break;
         }
         DEMO_CHECK_AND_BREAK_LOG(memset_s(addr, buffer->GetSize(), 0xFF, YUV_BUFFER_SIZE) == EOK, "Fatal");
-        (void)buffer->ExtraSet("timeStamp", timestampNs_);
+
+        const sptr<OHOS::BufferExtraData>& extraData = buffer->GetExtraData();
+        DEMO_CHECK_AND_BREAK_LOG(extraData != nullptr, "Fatal: SurfaceBuffer is nullptr");
+        (void)extraData->ExtraSet("timeStamp", timestampNs_);
         timestampNs_ += static_cast<int64_t>(intervalUs * 1000); // us to ns
 
         (void)surface_->FlushBuffer(buffer, -1, g_flushConfig);
@@ -173,7 +176,7 @@ int32_t VEncDemo::Stop()
 
     if (readLoop_ != nullptr && readLoop_->joinable()) {
         unique_lock<mutex> queueLock(signal_->mutex_);
-        signal_->bufferQueue_.push(10000); // wake up read loop thread
+        signal_->bufferQueue_.push(0);
         signal_->cond_.notify_all();
         queueLock.unlock();
         readLoop_->join();

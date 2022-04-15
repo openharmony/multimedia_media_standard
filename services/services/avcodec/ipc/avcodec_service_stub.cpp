@@ -294,6 +294,12 @@ int32_t AVCodecServiceStub::SetParameter(const Format &format)
     return codecServer_->SetParameter(format);
 }
 
+int32_t AVCodecServiceStub::DumpInfo(int32_t fd)
+{
+    CHECK_AND_RETURN_RET_LOG(codecServer_ != nullptr, MSERR_NO_MEMORY, "codec server is nullptr");
+    return std::static_pointer_cast<AVCodecServer>(codecServer_)->DumpInfo(fd);
+}
+
 int32_t AVCodecServiceStub::SetListenerObject(MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> object = data.ReadRemoteObject();

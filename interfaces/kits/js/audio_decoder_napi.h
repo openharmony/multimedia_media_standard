@@ -25,8 +25,6 @@
 
 namespace OHOS {
 namespace Media {
-struct AudioDecoderAsyncContext;
-
 class AudioDecoderNapi {
 public:
     static napi_value Init(napi_env env, napi_value exports);
@@ -58,7 +56,7 @@ private:
     static thread_local napi_ref constructor_;
     napi_env env_ = nullptr;
     napi_ref wrap_ = nullptr;
-    std::shared_ptr<AudioDecoder> adec_ = nullptr;
+    std::shared_ptr<AVCodecAudioDecoder> adec_ = nullptr;
     std::shared_ptr<AVCodecCallback> callback_ = nullptr;
     std::shared_ptr<AVCodecNapiHelper> codecHelper_ = nullptr;
 };

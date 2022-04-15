@@ -20,21 +20,19 @@
 #include "avcodec_info.h"
 namespace OHOS {
 namespace Media {
-class AVCodecAbilitySingleton {
+class AVCodecAbilitySingleton : public NoCopyable {
 public:
     ~AVCodecAbilitySingleton();
-    AVCodecAbilitySingleton(const AVCodecAbilitySingleton&) = delete;
-    AVCodecAbilitySingleton& operator=(const AVCodecAbilitySingleton&) = delete;
     static AVCodecAbilitySingleton& GetInstance();
     bool ParseCodecXml();
     bool ParseHardwareCapability();
-    Format codecXmlFormat;
-    std::vector<CapabilityData> capabilityDataArray_;
-    bool IsParsered();
+    bool IsParsered() const;
+    std::vector<CapabilityData> GetCapabilityDataArray() const;
 
 private:
     bool isParsered_ = false;
     AVCodecAbilitySingleton();
+    std::vector<CapabilityData> capabilityDataArray_;
 };
 } // namespace Media
 } // namespace OHOS

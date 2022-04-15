@@ -14,12 +14,23 @@
  */
 
 #include "avcodec_server.h"
+#include <map>
 #include "media_log.h"
 #include "media_errors.h"
 #include "engine_factory_repo.h"
+#include "media_dfx.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecServer"};
+    std::map<OHOS::Media::AVCodecServer::AVCodecStatus, std::string> AVCODEC_STATE_MAP = {
+        {OHOS::Media::AVCodecServer::AVCODEC_UNINITIALIZED, "uninitialized"},
+        {OHOS::Media::AVCodecServer::AVCODEC_INITIALIZED, "initialized"},
+        {OHOS::Media::AVCodecServer::AVCODEC_CONFIGURED, "configured"},
+        {OHOS::Media::AVCodecServer::AVCODEC_PREPARED, "prepared"},
+        {OHOS::Media::AVCodecServer::AVCODEC_RUNNING, "running"},
+        {OHOS::Media::AVCodecServer::AVCODEC_END_OF_STREAM, "end of stream"},
+        {OHOS::Media::AVCodecServer::AVCODEC_ERROR, "error"},
+    };
 }
 
 namespace OHOS {
@@ -53,12 +64,14 @@ int32_t AVCodecServer::Init()
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_CREATE_AVCODEC_ENGINE_FAILED,
         "Failed to create codec engine");
     status_ = AVCODEC_INITIALIZED;
+    BehaviorEventWrite(AVCODEC_STATE_MAP[status_], "AVCodec");
     return MSERR_OK;
 }
 
 int32_t AVCodecServer::InitParameter(AVCodecType type, bool isMimeType, const std::string &name)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MediaTrace trace("AVCodecServer::InitParameter");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     return codecEngine_->Init(type, isMimeType, name);
 }
@@ -66,61 +79,74 @@ int32_t AVCodecServer::InitParameter(AVCodecType type, bool isMimeType, const st
 int32_t AVCodecServer::Configure(const Format &format)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MediaTrace trace("AVCodecServer::Configure");
     CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_INITIALIZED, MSERR_INVALID_OPERATION, "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
+    config_ = format;
     int32_t ret = codecEngine_->Configure(format);
     status_ = (ret == MSERR_OK ? AVCODEC_CONFIGURED : AVCODEC_ERROR);
+    BehaviorEventWrite(AVCODEC_STATE_MAP[status_], "AVCodec");
     return ret;
 }
 
 int32_t AVCodecServer::Prepare()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MediaTrace trace("AVCodecServer::Prepare");
     CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_CONFIGURED, MSERR_INVALID_OPERATION, "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = codecEngine_->Prepare();
     status_ = (ret == MSERR_OK ? AVCODEC_PREPARED : AVCODEC_ERROR);
+    BehaviorEventWrite(AVCODEC_STATE_MAP[status_], "AVCodec");
     return ret;
 }
 
 int32_t AVCodecServer::Start()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MediaTrace trace("AVCodecServer::Start");
     CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_PREPARED, MSERR_INVALID_OPERATION, "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = codecEngine_->Start();
     status_ = (ret == MSERR_OK ? AVCODEC_RUNNING : AVCODEC_ERROR);
+    BehaviorEventWrite(AVCODEC_STATE_MAP[status_], "AVCodec");
     return ret;
 }
 
 int32_t AVCodecServer::Stop()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MediaTrace trace("AVCodecServer::Stop");
     CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_RUNNING || status_ == AVCODEC_END_OF_STREAM,
         MSERR_INVALID_OPERATION, "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = codecEngine_->Stop();
     status_ = (ret == MSERR_OK ? AVCODEC_PREPARED : AVCODEC_ERROR);
+    BehaviorEventWrite(AVCODEC_STATE_MAP[status_], "AVCodec");
     return ret;
 }
 
 int32_t AVCodecServer::Flush()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MediaTrace trace("AVCodecServer::Flush");
     CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_RUNNING || status_ == AVCODEC_END_OF_STREAM,
         MSERR_INVALID_OPERATION, "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = codecEngine_->Flush();
     status_ = (ret == MSERR_OK ? AVCODEC_RUNNING : AVCODEC_ERROR);
+    BehaviorEventWrite(AVCODEC_STATE_MAP[status_], "AVCodec");
     return ret;
 }
 
 int32_t AVCodecServer::Reset()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    MediaTrace trace("AVCodecServer::Reset");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = codecEngine_->Reset();
     status_ = (ret == MSERR_OK ? AVCODEC_INITIALIZED : AVCODEC_ERROR);
+    BehaviorEventWrite(AVCODEC_STATE_MAP[status_], "AVCodec");
     return ret;
 }
 
@@ -164,6 +190,7 @@ int32_t AVCodecServer::QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, 
     if (flag & AVCODEC_BUFFER_FLAG_EOS) {
         if (ret == MSERR_OK) {
             status_ = AVCODEC_END_OF_STREAM;
+            BehaviorEventWrite(AVCODEC_STATE_MAP[status_], "AVCodec");
             MEDIA_LOGI("EOS state");
         }
     }
@@ -232,9 +259,25 @@ int32_t AVCodecServer::SetCallback(const std::shared_ptr<AVCodecCallback> &callb
     return MSERR_OK;
 }
 
+int32_t AVCodecServer::DumpInfo(int32_t fd)
+{
+    std::string dumpString;
+    dumpString += "In AVCodecServer::DumpInfo\n";
+    dumpString += "Current AVCodecServer state is: " + std::to_string(status_) + "\n";
+    if (lastErrMsg_.size() != 0) {
+        dumpString += "AVCodecServer last error is: " + lastErrMsg_ + "\n";
+    }
+    dumpString += config_.Stringify();
+    write(fd, dumpString.c_str(), dumpString.size());
+
+    return MSERR_OK;
+}
+
 void AVCodecServer::OnError(int32_t errorType, int32_t errorCode)
 {
     std::lock_guard<std::mutex> lock(cbMutex_);
+    lastErrMsg_ = MSErrorToExtErrorString(static_cast<MediaServiceErrCode>(errorCode));
+    FaultEventWrite(lastErrMsg_, "AVCodec");
     if (codecCb_ == nullptr) {
         return;
     }

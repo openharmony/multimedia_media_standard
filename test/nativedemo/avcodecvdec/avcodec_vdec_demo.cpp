@@ -23,9 +23,6 @@
 #include "window.h"
 #include "window_option.h"
 
-static const int32_t ES[1] =
-    { 0 };
-
 using namespace OHOS;
 using namespace OHOS::Media;
 using namespace std;
@@ -45,7 +42,7 @@ void VDecDemo::RunCase()
     Format format;
     format.PutIntValue("width", DEFAULT_WIDTH);
     format.PutIntValue("height", DEFAULT_HEIGHT);
-    format.PutIntValue("pixel_format", 3); // NV21
+    format.PutIntValue("pixel_format", NV21);
     format.PutIntValue("frame_rate", DEFAULT_FRAME_RATE);
     format.PutIntValue("max_input_size", MAX_INPUT_BUFFER_SIZE);
     DEMO_CHECK_AND_RETURN_LOG(Configure(format) == MSERR_OK, "Fatal: Configure fail");
@@ -106,7 +103,7 @@ int32_t VDecDemo::Stop()
 
     if (inputLoop_ != nullptr && inputLoop_->joinable()) {
         unique_lock<mutex> lock(signal_->inMutex_);
-        signal_->inQueue_.push(10000); // wake up read loop thread
+        signal_->inQueue_.push(0);
         signal_->inCond_.notify_all();
         lock.unlock();
         inputLoop_->join();
@@ -115,7 +112,7 @@ int32_t VDecDemo::Stop()
 
     if (outputLoop_ != nullptr && outputLoop_->joinable()) {
         unique_lock<mutex> lock(signal_->outMutex_);
-        signal_->outQueue_.push(10000); // wake up read loop thread
+        signal_->outQueue_.push(0);
         signal_->outCond_.notify_all();
         lock.unlock();
         outputLoop_->join();
@@ -157,8 +154,6 @@ int32_t VDecDemo::SetSurface()
 
 void VDecDemo::InputFunc()
 {
-    const int32_t *frameLen = ES;
-
     while (true) {
         if (!isRunning_.load()) {
             break;
@@ -176,18 +171,19 @@ void VDecDemo::InputFunc()
         DEMO_CHECK_AND_BREAK_LOG(buffer != nullptr, "Fatal: GetInputBuffer fail");
         DEMO_CHECK_AND_BREAK_LOG(testFile_ != nullptr && testFile_->is_open(), "Fatal: open file fail");
 
-        char *fileBuffer = (char *)malloc(sizeof(char) * (*frameLen) + 1);
+        constexpr uint32_t bufferSize = 0; // replace with the actual size
+        char *fileBuffer = (char *)malloc(sizeof(char) * bufferSize + 1);
         DEMO_CHECK_AND_BREAK_LOG(fileBuffer != nullptr, "Fatal: malloc fail");
 
-        (void)testFile_->read(fileBuffer, *frameLen);
-        if (memcpy_s(buffer->GetBase(), buffer->GetSize(), fileBuffer, *frameLen) != EOK) {
+        (void)testFile_->read(fileBuffer, bufferSize);
+        if (memcpy_s(buffer->GetBase(), buffer->GetSize(), fileBuffer, bufferSize) != EOK) {
             free(fileBuffer);
             cout << "Fatal: memcpy fail" << endl;
             break;
         }
 
         AVCodecBufferInfo info;
-        info.size = *frameLen;
+        info.size = bufferSize;
         info.offset = 0;
         info.presentationTimeUs = timeStamp_;
 
@@ -200,7 +196,6 @@ void VDecDemo::InputFunc()
         }
 
         free(fileBuffer);
-        frameLen++;
         timeStamp_ += FRAME_DURATION_US;
         signal_->inQueue_.pop();
 

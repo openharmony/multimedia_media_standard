@@ -16,7 +16,7 @@ import("//build/ohos.gni")
 
 group("media_packages") {
   public_deps = [
-    "interfaces/innerkits/native/media:media_client",
+    "interfaces/inner_api/native:media_client",
     "services:media_service",
   ]
 }
