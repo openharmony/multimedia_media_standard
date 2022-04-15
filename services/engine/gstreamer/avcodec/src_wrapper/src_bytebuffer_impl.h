@@ -28,7 +28,7 @@ public:
     ~SrcBytebufferImpl() override;
 
     int32_t Init() override;
-    int32_t Configure(std::shared_ptr<ProcessorConfig> config) override;
+    int32_t Configure(const std::shared_ptr<ProcessorConfig> &config) override;
     int32_t Start() override;
     int32_t Stop() override;
     int32_t Flush() override;
@@ -41,7 +41,7 @@ private:
     static GstFlowReturn BufferAvailable(GstMemPoolSrc *memsrc, gpointer userdata);
     int32_t HandleCodecBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag);
     int32_t HandleBufferAvailable(GstBuffer *buffer);
-    int32_t FindBufferIndex(uint32_t &index, std::shared_ptr<AVSharedMemory> mem);
+    int32_t FindBufferIndex(uint32_t &index, const std::shared_ptr<AVSharedMemory> &mem);
 
     bool needCodecData_ = false;
     GstCaps *caps_ = nullptr;

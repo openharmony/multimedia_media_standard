@@ -323,68 +323,6 @@ static void gst_surface_pool_src_init_surface(GstSurfacePoolSrc *src)
     }
 }
 
-static int32_t gst_surface_pool_src_gstformat_to_surfaceformat(GstSurfacePoolSrc *surfacesrc, GstVideoInfo *format)
-{
-    g_return_val_if_fail(surfacesrc != nullptr, -1);
-    g_return_val_if_fail(format != nullptr, -1);
-    g_return_val_if_fail(format->finfo != nullptr, -1);
-    switch (format->finfo->format) {
-        case GST_VIDEO_FORMAT_NV21:
-            return PIXEL_FMT_YCRCB_420_SP;
-        case GST_VIDEO_FORMAT_NV12:
-            return PIXEL_FMT_YCBCR_420_SP;
-        default:
-            GST_ERROR_OBJECT(surfacesrc, "Unknow format");
-            break;
-    }
-    return -1;
-}
-
-// The buffer of the graphics is dynamically expanded.
-// In order to make the number of buffers used by the graphics correspond to the number of encoders one-to-one.
-// it is necessary to apply for the buffers first.
-static void gst_surface_pool_src_init_surface_buffer(GstSurfacePoolSrc *surfacesrc)
-{
-    g_return_if_fail(surfacesrc != nullptr && surfacesrc->producerSurface != nullptr);
-    GstMemPoolSrc *memsrc = GST_MEM_POOL_SRC(surfacesrc);
-    gint width = DEFAULT_VIDEO_WIDTH;
-    gint height = DEFAULT_VIDEO_HEIGHT;
-    int32_t format = -1;
-    if (memsrc->caps != nullptr) {
-        GstVideoInfo info;
-        gst_video_info_init(&info);
-        gst_video_info_from_caps(&info, memsrc->caps);
-        width = info.width;
-        height = info.height;
-        format = gst_surface_pool_src_gstformat_to_surfaceformat(surfacesrc, &info);
-    }
-    std::vector<OHOS::sptr<OHOS::SurfaceBuffer>> buffers;
-    OHOS::BufferRequestConfig g_requestConfig;
-    g_requestConfig.width = width;
-    g_requestConfig.height = height;
-    g_requestConfig.strideAlignment = static_cast<gint>(surfacesrc->stride);
-    g_requestConfig.format = format;
-    g_requestConfig.usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA;
-    g_requestConfig.timeout = 0;
-    for (uint32_t i = 0; i < surfacesrc->producerSurface->GetQueueSize(); ++i) {
-        OHOS::sptr<OHOS::SurfaceBuffer> buffer;
-        int32_t releaseFence;
-        (void)surfacesrc->producerSurface->RequestBuffer(buffer, releaseFence, g_requestConfig);
-        sptr<OHOS::SyncFence> autoFence = new(std::nothrow) OHOS::SyncFence(releaseFence);
-        if (autoFence != nullptr) {
-            autoFence->Wait(100); // 100ms
-        }
-        if (buffer != nullptr) {
-            buffers.push_back(buffer);
-        }
-    }
-    for (uint32_t i = 0; i < buffers.size(); ++i) {
-        if (buffers[i] != nullptr) {
-            surfacesrc->producerSurface->CancelBuffer(buffers[i]);
-        }
-    }
-}
-
 static gboolean gst_surface_pool_src_get_pool(GstSurfacePoolSrc *surfacesrc, GstQuery *query, GstCaps *outcaps,
     guint min_buf, guint max_buf)
 {
@@ -407,7 +345,6 @@ static gboolean gst_surface_pool_src_get_pool(GstSurfacePoolSrc *surfacesrc, Gst
     if (ret != SURFACE_ERROR_OK) {
         GST_WARNING_OBJECT(surfacesrc, "set queue size fail");
     }
-    gst_surface_pool_src_init_surface_buffer(surfacesrc);
     GstStructure *config = gst_buffer_pool_get_config(surfacesrc->pool);
     if (is_video) {
         gst_buffer_pool_config_add_option(config, GST_BUFFER_POOL_OPTION_VIDEO_META);

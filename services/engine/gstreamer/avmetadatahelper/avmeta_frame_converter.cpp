@@ -247,7 +247,7 @@ int32_t AVMetaFrameConverter::SetupConvPipeline()
     CHECK_AND_RETURN_RET(conv != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(gst_bin_add(bin, conv), MSERR_INVALID_OPERATION);
 
-    vidShMemSink_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("vidshmemsink", "conv_sink")));
+    vidShMemSink_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("sharedmemsink", "conv_sink")));
     CHECK_AND_RETURN_RET(vidShMemSink_ != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(gst_bin_add(bin, vidShMemSink_), MSERR_INVALID_OPERATION);
 
@@ -298,9 +298,10 @@ int32_t AVMetaFrameConverter::SetupConvSink(const OutputConfiguration &outConfig
     g_object_set(G_OBJECT(vidShMemSink_), "caps", caps, nullptr);
     gst_caps_unref(caps);
     caps = nullptr;
+    g_object_set(G_OBJECT(vidShMemSink_), "mem-prefix-size", sizeof(OutputFrame), nullptr);
 
-    g_object_set(G_OBJECT(vidShMemSink_), "mem-prefix", sizeof(OutputFrame), nullptr);
-    (void)g_signal_connect(G_OBJECT(vidShMemSink_), "new-sample", G_CALLBACK(OnNotifyNewSample), this);
+    GstMemSinkCallbacks callbacks = { nullptr, nullptr, OnNotifyNewSample };
+    gst_mem_sink_set_callback(GST_MEM_SINK_CAST(vidShMemSink_), &callbacks, this, nullptr);
 
     outConfig_ = outConfig;
     return MSERR_OK;
@@ -361,10 +362,14 @@ void AVMetaFrameConverter::OnNotifyMessage(const InnerMessage &msg)
     }
 }
 
-GstFlowReturn AVMetaFrameConverter::OnNotifyNewSample(GstElement *elem, AVMetaFrameConverter *thiz)
+GstFlowReturn AVMetaFrameConverter::OnNotifyNewSample(GstMemSink *elem, GstBuffer *sample, gpointer userdata)
 {
-    CHECK_AND_RETURN_RET(thiz != nullptr, GST_FLOW_ERROR);
+    CHECK_AND_RETURN_RET(sample != nullptr, GST_FLOW_ERROR);
+    ON_SCOPE_EXIT(0) { gst_buffer_unref(sample); };
+
+    CHECK_AND_RETURN_RET(userdata != nullptr, GST_FLOW_ERROR);
     CHECK_AND_RETURN_RET(elem != nullptr, GST_FLOW_ERROR);
+    auto thiz = reinterpret_cast<AVMetaFrameConverter *>(userdata);
 
     std::unique_lock<std::mutex> lock(thiz->mutex_);
     if (thiz->lastResult_ != nullptr) {
@@ -372,21 +377,12 @@ GstFlowReturn AVMetaFrameConverter::OnNotifyNewSample(GstElement *elem, AVMetaFr
         thiz->lastResult_ = nullptr;
     }
 
-    GstSample *sample = nullptr;
-    g_signal_emit_by_name(elem, "pull-sample", &sample);
-    CHECK_AND_RETURN_RET(sample != nullptr, GST_FLOW_ERROR);
+    MEDIA_LOGI("sample buffer arrived, pts: %{public}" PRIu64 "", GST_BUFFER_PTS(sample));
 
-    ON_SCOPE_EXIT(0) { gst_sample_unref(sample); };
-
-    GstBuffer *buffer =  gst_sample_get_buffer(sample);
-    CHECK_AND_RETURN_RET(buffer != nullptr, GST_FLOW_ERROR);
-    MEDIA_LOGI("sample buffer arrived, pts: %{public}" PRIu64 "", GST_BUFFER_PTS(buffer));
-
-    thiz->lastResult_ = gst_buffer_ref(buffer);
+    thiz->lastResult_ = gst_buffer_ref(sample);
     CHECK_AND_RETURN_RET(thiz->lastResult_ != nullptr, GST_FLOW_ERROR);
-
     // increase the refcount to avoid the buffer to be released to bufferpool.
-    thiz->allResults_.push_back(gst_buffer_ref(buffer));
+    thiz->allResults_.push_back(gst_buffer_ref(sample));
 
     thiz->cond_.notify_all();
     return GST_FLOW_OK;

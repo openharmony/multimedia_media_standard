@@ -13,22 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef AVCODEC_AUDIO_DECODER_H
-#define AVCODEC_AUDIO_DECODER_H
+#ifndef AVCODEC_VIDEO_ENCODER_H
+#define AVCODEC_VIDEO_ENCODER_H
 
 #include "avcodec_common.h"
 #include "avcodec_info.h"
 #include "avsharedmemory.h"
 #include "format.h"
+#include "surface.h"
 
 namespace OHOS {
 namespace Media {
-class AudioDecoder {
+class AVCodecVideoEncoder {
 public:
-    virtual ~AudioDecoder() = default;
+    virtual ~AVCodecVideoEncoder() = default;
 
     /**
-     * @brief Configure the decoder.
+     * @brief Configure the encoder.
      *
      * @param format The format of the input data and the desired format of the output data.
      * @return Returns {@link MSERR_OK} if success; returns an error code otherwise.
@@ -69,7 +70,7 @@ public:
     virtual int32_t Stop() = 0;
 
     /**
-     * @brief Flush both input and output buffers of the decoder.
+     * @brief Flush both input and output buffers of the encoder.
      *
      * @return Returns {@link MSERR_OK} if success; returns an error code otherwise.
      * @since 3.1
@@ -78,7 +79,7 @@ public:
     virtual int32_t Flush() = 0;
 
     /**
-     * @brief Restores the decoder to the initial state.
+     * @brief Restores the encoder to the initial state.
      *
      * @return Returns {@link MSERR_OK} if success; returns an error code otherwise.
      * @since 3.1
@@ -87,13 +88,24 @@ public:
     virtual int32_t Reset() = 0;
 
     /**
-     * @brief Releases decoder resources. All methods are unavailable after calling this.
+     * @brief Releases encoder resources. All methods are unavailable after calling this.
      *
      * @return Returns {@link MSERR_OK} if success; returns an error code otherwise.
      * @since 3.1
      * @version 3.1
      */
     virtual int32_t Release() = 0;
+
+    /**
+     * @brief Obtains the surface from encoder.
+     *
+     * This function can only be called after {@link Configure} and before {@link Prepare}
+     *
+     * @return Returns the pointer to the surface.
+     * @since 3.1
+     * @version 3.1
+     */
+    virtual sptr<Surface> CreateInputSurface() = 0;
 
     /**
      * @brief Returns a {@link AVSharedMemory} object for a input buffer index that contains the data.
@@ -108,7 +120,7 @@ public:
     virtual std::shared_ptr<AVSharedMemory> GetInputBuffer(uint32_t index) = 0;
 
     /**
-     * @brief Submits input buffer to decoder.
+     * @brief Submits input buffer to encoder.
      *
      * This function must be called during running
      *
@@ -146,16 +158,16 @@ public:
     virtual int32_t GetOutputFormat(Format &format) = 0;
 
     /**
-     * @brief Gets the audio decoder capability.
+     * @brief Gets the video encoder capability.
      *
-     * @return Returns {@link AudioCaps}.
+     * @return Returns {@link VideoCaps}.
      * @since 3.1
      * @version 3.1
      */
-    virtual std::shared_ptr<AudioCaps> GetAudioDecoderCaps() = 0;
+    virtual std::shared_ptr<VideoCaps> GetVideoEncoderCaps() = 0;
 
     /**
-     * @brief Returns the output buffer to the decoder.
+     * @brief Returns the output buffer to the encoder.
      *
      * This function must be called during running
      *
@@ -167,7 +179,7 @@ public:
     virtual int32_t ReleaseOutputBuffer(uint32_t index) = 0;
 
     /**
-     * @brief Sets the parameters to the decoder.
+     * @brief Sets the parameters to the encoder.
      *
      * This function must be called after {@link Configure}
      *
@@ -179,11 +191,11 @@ public:
     virtual int32_t SetParameter(const Format &format) = 0;
 
     /**
-     * @brief Registers a decoder listener.
+     * @brief Registers a encoder listener.
      *
      * This function must be called before {@link Configure}
      *
-     * @param callback Indicates the decoder listener to register. For details, see {@link AVCodecCallback}.
+     * @param callback Indicates the encoder listener to register. For details, see {@link AVCodecCallback}.
      * @return Returns {@link MSERR_OK} if success; returns an error code otherwise.
      * @since 3.1
      * @version 3.1
@@ -191,31 +203,31 @@ public:
     virtual int32_t SetCallback(const std::shared_ptr<AVCodecCallback> &callback) = 0;
 };
 
-class __attribute__((visibility("default"))) AudioDecoderFactory {
+class __attribute__((visibility("default"))) VideoEncoderFactory {
 public:
     /**
-     * @brief Instantiate the preferred decoder of the given mime type.
+     * @brief Instantiate the preferred encoder of the given mime type.
      *
      * @param mime The mime type.
-     * @return Returns the preferred decoder.
+     * @return Returns the preferred encoder.
      * @since 3.1
      * @version 3.1
      */
-    static std::shared_ptr<AudioDecoder> CreateByMime(const std::string &mime);
+    static std::shared_ptr<AVCodecVideoEncoder> CreateByMime(const std::string &mime);
 
     /**
-     * @brief Instantiates the designated decoder.
+     * @brief Instantiates the designated encoder.
      *
-     * @param name The decoder's name.
-     * @return Returns the designated decoder.
+     * @param name The encoder's name.
+     * @return Returns the designated encoder.
      * @since 3.1
      * @version 3.1
      */
-    static std::shared_ptr<AudioDecoder> CreateByName(const std::string &name);
+    static std::shared_ptr<AVCodecVideoEncoder> CreateByName(const std::string &name);
 private:
-    AudioDecoderFactory() = default;
-    ~AudioDecoderFactory() = default;
+    VideoEncoderFactory() = default;
+    ~VideoEncoderFactory() = default;
 };
 } // namespace Media
 } // namespace OHOS
-#endif // AVCODEC_AUDIO_DECODER_H
+#endif // AVCODEC_VIDEO_ENCODER_H

@@ -24,15 +24,15 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-thread_local napi_ref MediaVideoCapsNapi::constructor_ = nullptr;
+thread_local napi_ref MediaCapabilityVCapsNapi::constructor_ = nullptr;
 const std::string CLASS_NAME = "VideoCaps";
 
-MediaVideoCapsNapi::MediaVideoCapsNapi()
+MediaCapabilityVCapsNapi::MediaCapabilityVCapsNapi()
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
 }
 
-MediaVideoCapsNapi::~MediaVideoCapsNapi()
+MediaCapabilityVCapsNapi::~MediaCapabilityVCapsNapi()
 {
     if (wrap_ != nullptr) {
         napi_delete_reference(env_, wrap_);
@@ -40,7 +40,7 @@ MediaVideoCapsNapi::~MediaVideoCapsNapi()
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-napi_value MediaVideoCapsNapi::Init(napi_env env, napi_value exports)
+napi_value MediaCapabilityVCapsNapi::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("isSizeSupported", IsSizeSupported),
@@ -76,7 +76,7 @@ napi_value MediaVideoCapsNapi::Init(napi_env env, napi_value exports)
     return exports;
 }
 
-napi_value MediaVideoCapsNapi::Create(napi_env env, std::shared_ptr<VideoCaps> caps)
+napi_value MediaCapabilityVCapsNapi::Create(napi_env env, std::shared_ptr<VideoCaps> caps)
 {
     napi_value constructor = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
@@ -101,7 +101,7 @@ napi_value MediaVideoCapsNapi::Create(napi_env env, std::shared_ptr<VideoCaps> c
     return result;
 }
 
-napi_value MediaVideoCapsNapi::Constructor(napi_env env, napi_callback_info info)
+napi_value MediaCapabilityVCapsNapi::Constructor(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -112,7 +112,7 @@ napi_value MediaVideoCapsNapi::Constructor(napi_env env, napi_callback_info info
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     CHECK_AND_RETURN_RET(status == napi_ok && args[0] != nullptr, result);
 
-    MediaVideoCapsNapi *napi = new(std::nothrow) MediaVideoCapsNapi();
+    MediaCapabilityVCapsNapi *napi = new(std::nothrow) MediaCapabilityVCapsNapi();
     CHECK_AND_RETURN_RET(napi != nullptr, result);
 
     napi->env_ = env;
@@ -123,7 +123,7 @@ napi_value MediaVideoCapsNapi::Constructor(napi_env env, napi_callback_info info
     napi->caps_ = capsWrap->caps_;
 
     status = napi_wrap(env, jsThis, reinterpret_cast<void *>(napi),
-        MediaVideoCapsNapi::Destructor, nullptr, &(napi->wrap_));
+        MediaCapabilityVCapsNapi::Destructor, nullptr, &(napi->wrap_));
     if (status != napi_ok) {
         delete napi;
         MEDIA_LOGE("Failed to wrap native instance");
@@ -134,17 +134,17 @@ napi_value MediaVideoCapsNapi::Constructor(napi_env env, napi_callback_info info
     return jsThis;
 }
 
-void MediaVideoCapsNapi::Destructor(napi_env env, void *nativeObject, void *finalize)
+void MediaCapabilityVCapsNapi::Destructor(napi_env env, void *nativeObject, void *finalize)
 {
     (void)env;
     (void)finalize;
     if (nativeObject != nullptr) {
-        delete reinterpret_cast<MediaVideoCapsNapi *>(nativeObject);
+        delete reinterpret_cast<MediaCapabilityVCapsNapi *>(nativeObject);
     }
     MEDIA_LOGD("Destructor success");
 }
 
-napi_value MediaVideoCapsNapi::IsSizeSupported(napi_env env, napi_callback_info info)
+napi_value MediaCapabilityVCapsNapi::IsSizeSupported(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -168,7 +168,8 @@ napi_value MediaVideoCapsNapi::IsSizeSupported(napi_env env, napi_callback_info 
         asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
-    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[2]);
+    size_t argIndex = 2;
+    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[argIndex]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi_));
@@ -196,7 +197,7 @@ napi_value MediaVideoCapsNapi::IsSizeSupported(napi_env env, napi_callback_info 
     return result;
 }
 
-napi_value MediaVideoCapsNapi::GetSupportedFrameRate(napi_env env, napi_callback_info info)
+napi_value MediaCapabilityVCapsNapi::GetSupportedFrameRate(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -220,7 +221,8 @@ napi_value MediaVideoCapsNapi::GetSupportedFrameRate(napi_env env, napi_callback
         asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
-    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[2]);
+    size_t argIndex = 2;
+    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[argIndex]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi_));
@@ -248,7 +250,7 @@ napi_value MediaVideoCapsNapi::GetSupportedFrameRate(napi_env env, napi_callback
     return result;
 }
 
-napi_value MediaVideoCapsNapi::GetPreferredFrameRate(napi_env env, napi_callback_info info)
+napi_value MediaCapabilityVCapsNapi::GetPreferredFrameRate(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -272,7 +274,8 @@ napi_value MediaVideoCapsNapi::GetPreferredFrameRate(napi_env env, napi_callback
         asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Illegal argument");
     }
 
-    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[2]);
+    size_t argIndex = 2;
+    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[argIndex]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
 
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi_));
@@ -300,7 +303,7 @@ napi_value MediaVideoCapsNapi::GetPreferredFrameRate(napi_env env, napi_callback
     return result;
 }
 
-napi_value MediaVideoCapsNapi::GetCodecInfo(napi_env env, napi_callback_info info)
+napi_value MediaCapabilityVCapsNapi::GetCodecInfo(napi_env env, napi_callback_info info)
 {
     napi_value jsThis = nullptr;
     napi_value jsResult = nullptr;
@@ -311,7 +314,7 @@ napi_value MediaVideoCapsNapi::GetCodecInfo(napi_env env, napi_callback_info inf
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     CHECK_AND_RETURN_RET(status == napi_ok && jsThis != nullptr, undefined);
 
-    MediaVideoCapsNapi *napi = nullptr;
+    MediaCapabilityVCapsNapi *napi = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&napi));
     CHECK_AND_RETURN_RET(status == napi_ok && napi != nullptr && napi->caps_ != nullptr, undefined);
 
@@ -331,7 +334,7 @@ napi_value MediaVideoCapsNapi::GetCodecInfo(napi_env env, napi_callback_info inf
     return jsResult;
 }
 
-napi_value MediaVideoCapsNapi::SupportedBitrate(napi_env env, napi_callback_info info)
+napi_value MediaCapabilityVCapsNapi::SupportedBitrate(napi_env env, napi_callback_info info)
 {
     napi_value jsThis = nullptr;
     napi_value jsResult = nullptr;
@@ -342,7 +345,7 @@ napi_value MediaVideoCapsNapi::SupportedBitrate(napi_env env, napi_callback_info
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     CHECK_AND_RETURN_RET(status == napi_ok && jsThis != nullptr, undefined);
 
-    MediaVideoCapsNapi *napi = nullptr;
+    MediaCapabilityVCapsNapi *napi = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&napi));
     CHECK_AND_RETURN_RET(status == napi_ok && napi != nullptr && napi->caps_ != nullptr, undefined);
 
@@ -354,7 +357,7 @@ napi_value MediaVideoCapsNapi::SupportedBitrate(napi_env env, napi_callback_info
     return jsResult;
 }
 
-napi_value MediaVideoCapsNapi::SupportedFormats(napi_env env, napi_callback_info info)
+napi_value MediaCapabilityVCapsNapi::SupportedFormats(napi_env env, napi_callback_info info)
 {
     napi_value jsThis = nullptr;
     napi_value jsResult = nullptr;
@@ -365,7 +368,7 @@ napi_value MediaVideoCapsNapi::SupportedFormats(napi_env env, napi_callback_info
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     CHECK_AND_RETURN_RET(status == napi_ok && jsThis != nullptr, undefined);
 
-    MediaVideoCapsNapi *napi = nullptr;
+    MediaCapabilityVCapsNapi *napi = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&napi));
     CHECK_AND_RETURN_RET(status == napi_ok && napi != nullptr && napi->caps_ != nullptr, undefined);
 
@@ -381,7 +384,7 @@ napi_value MediaVideoCapsNapi::SupportedFormats(napi_env env, napi_callback_info
     return jsResult;
 }
 
-napi_value MediaVideoCapsNapi::SupportedHeightAlignment(napi_env env, napi_callback_info info)
+napi_value MediaCapabilityVCapsNapi::SupportedHeightAlignment(napi_env env, napi_callback_info info)
 {
     napi_value jsThis = nullptr;
     napi_value jsResult = nullptr;
@@ -392,7 +395,7 @@ napi_value MediaVideoCapsNapi::SupportedHeightAlignment(napi_env env, napi_callb
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     CHECK_AND_RETURN_RET(status == napi_ok && jsThis != nullptr, undefined);
 
-    MediaVideoCapsNapi *napi = nullptr;
+    MediaCapabilityVCapsNapi *napi = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&napi));
     CHECK_AND_RETURN_RET(status == napi_ok && napi != nullptr && napi->caps_ != nullptr, undefined);
 
@@ -402,7 +405,7 @@ napi_value MediaVideoCapsNapi::SupportedHeightAlignment(napi_env env, napi_callb
     return jsResult;
 }
 
-napi_value MediaVideoCapsNapi::SupportedWidthAlignment(napi_env env, napi_callback_info info)
+napi_value MediaCapabilityVCapsNapi::SupportedWidthAlignment(napi_env env, napi_callback_info info)
 {
     napi_value jsThis = nullptr;
     napi_value jsResult = nullptr;
@@ -413,7 +416,7 @@ napi_value MediaVideoCapsNapi::SupportedWidthAlignment(napi_env env, napi_callba
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     CHECK_AND_RETURN_RET(status == napi_ok && jsThis != nullptr, undefined);
 
-    MediaVideoCapsNapi *napi = nullptr;
+    MediaCapabilityVCapsNapi *napi = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&napi));
     CHECK_AND_RETURN_RET(status == napi_ok && napi != nullptr && napi->caps_ != nullptr, undefined);
 
@@ -423,7 +426,7 @@ napi_value MediaVideoCapsNapi::SupportedWidthAlignment(napi_env env, napi_callba
     return jsResult;
 }
 
-napi_value MediaVideoCapsNapi::SupportedWidth(napi_env env, napi_callback_info info)
+napi_value MediaCapabilityVCapsNapi::SupportedWidth(napi_env env, napi_callback_info info)
 {
     napi_value jsThis = nullptr;
     napi_value jsResult = nullptr;
@@ -434,7 +437,7 @@ napi_value MediaVideoCapsNapi::SupportedWidth(napi_env env, napi_callback_info i
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     CHECK_AND_RETURN_RET(status == napi_ok && jsThis != nullptr, undefined);
 
-    MediaVideoCapsNapi *napi = nullptr;
+    MediaCapabilityVCapsNapi *napi = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&napi));
     CHECK_AND_RETURN_RET(status == napi_ok && napi != nullptr && napi->caps_ != nullptr, undefined);
 
@@ -446,7 +449,7 @@ napi_value MediaVideoCapsNapi::SupportedWidth(napi_env env, napi_callback_info i
     return jsResult;
 }
 
-napi_value MediaVideoCapsNapi::SupportedHeight(napi_env env, napi_callback_info info)
+napi_value MediaCapabilityVCapsNapi::SupportedHeight(napi_env env, napi_callback_info info)
 {
     napi_value jsThis = nullptr;
     napi_value jsResult = nullptr;
@@ -457,7 +460,7 @@ napi_value MediaVideoCapsNapi::SupportedHeight(napi_env env, napi_callback_info 
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     CHECK_AND_RETURN_RET(status == napi_ok && jsThis != nullptr, undefined);
 
-    MediaVideoCapsNapi *napi = nullptr;
+    MediaCapabilityVCapsNapi *napi = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&napi));
     CHECK_AND_RETURN_RET(status == napi_ok && napi != nullptr && napi->caps_ != nullptr, undefined);
 
@@ -469,7 +472,7 @@ napi_value MediaVideoCapsNapi::SupportedHeight(napi_env env, napi_callback_info 
     return jsResult;
 }
 
-napi_value MediaVideoCapsNapi::SupportedProfiles(napi_env env, napi_callback_info info)
+napi_value MediaCapabilityVCapsNapi::SupportedProfiles(napi_env env, napi_callback_info info)
 {
     napi_value jsThis = nullptr;
     napi_value jsResult = nullptr;
@@ -480,7 +483,7 @@ napi_value MediaVideoCapsNapi::SupportedProfiles(napi_env env, napi_callback_inf
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     CHECK_AND_RETURN_RET(status == napi_ok && jsThis != nullptr, undefined);
 
-    MediaVideoCapsNapi *napi = nullptr;
+    MediaCapabilityVCapsNapi *napi = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&napi));
     CHECK_AND_RETURN_RET(status == napi_ok && napi != nullptr && napi->caps_ != nullptr, undefined);
 
@@ -496,7 +499,7 @@ napi_value MediaVideoCapsNapi::SupportedProfiles(napi_env env, napi_callback_inf
     return jsResult;
 }
 
-napi_value MediaVideoCapsNapi::SupportedLevels(napi_env env, napi_callback_info info)
+napi_value MediaCapabilityVCapsNapi::SupportedLevels(napi_env env, napi_callback_info info)
 {
     napi_value jsThis = nullptr;
     napi_value jsResult = nullptr;
@@ -507,7 +510,7 @@ napi_value MediaVideoCapsNapi::SupportedLevels(napi_env env, napi_callback_info 
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     CHECK_AND_RETURN_RET(status == napi_ok && jsThis != nullptr, undefined);
 
-    MediaVideoCapsNapi *napi = nullptr;
+    MediaCapabilityVCapsNapi *napi = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&napi));
     CHECK_AND_RETURN_RET(status == napi_ok && napi != nullptr && napi->caps_ != nullptr, undefined);
 
@@ -523,7 +526,7 @@ napi_value MediaVideoCapsNapi::SupportedLevels(napi_env env, napi_callback_info 
     return jsResult;
 }
 
-napi_value MediaVideoCapsNapi::SupportedBitrateMode(napi_env env, napi_callback_info info)
+napi_value MediaCapabilityVCapsNapi::SupportedBitrateMode(napi_env env, napi_callback_info info)
 {
     napi_value jsThis = nullptr;
     napi_value jsResult = nullptr;
@@ -534,7 +537,7 @@ napi_value MediaVideoCapsNapi::SupportedBitrateMode(napi_env env, napi_callback_
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     CHECK_AND_RETURN_RET(status == napi_ok && jsThis != nullptr, undefined);
 
-    MediaVideoCapsNapi *napi = nullptr;
+    MediaCapabilityVCapsNapi *napi = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&napi));
     CHECK_AND_RETURN_RET(status == napi_ok && napi != nullptr && napi->caps_ != nullptr, undefined);
 
@@ -550,7 +553,7 @@ napi_value MediaVideoCapsNapi::SupportedBitrateMode(napi_env env, napi_callback_
     return jsResult;
 }
 
-napi_value MediaVideoCapsNapi::SupportedQuality(napi_env env, napi_callback_info info)
+napi_value MediaCapabilityVCapsNapi::SupportedQuality(napi_env env, napi_callback_info info)
 {
     napi_value jsThis = nullptr;
     napi_value jsResult = nullptr;
@@ -561,7 +564,7 @@ napi_value MediaVideoCapsNapi::SupportedQuality(napi_env env, napi_callback_info
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     CHECK_AND_RETURN_RET(status == napi_ok && jsThis != nullptr, undefined);
 
-    MediaVideoCapsNapi *napi = nullptr;
+    MediaCapabilityVCapsNapi *napi = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&napi));
     CHECK_AND_RETURN_RET(status == napi_ok && napi != nullptr && napi->caps_ != nullptr, undefined);
 
@@ -573,7 +576,7 @@ napi_value MediaVideoCapsNapi::SupportedQuality(napi_env env, napi_callback_info
     return jsResult;
 }
 
-napi_value MediaVideoCapsNapi::SupportedComplexity(napi_env env, napi_callback_info info)
+napi_value MediaCapabilityVCapsNapi::SupportedComplexity(napi_env env, napi_callback_info info)
 {
     napi_value jsThis = nullptr;
     napi_value jsResult = nullptr;
@@ -584,7 +587,7 @@ napi_value MediaVideoCapsNapi::SupportedComplexity(napi_env env, napi_callback_i
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     CHECK_AND_RETURN_RET(status == napi_ok && jsThis != nullptr, undefined);
 
-    MediaVideoCapsNapi *napi = nullptr;
+    MediaCapabilityVCapsNapi *napi = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&napi));
     CHECK_AND_RETURN_RET(status == napi_ok && napi != nullptr && napi->caps_ != nullptr, undefined);
 

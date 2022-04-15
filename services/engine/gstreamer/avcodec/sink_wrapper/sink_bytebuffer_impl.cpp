@@ -40,7 +40,7 @@ SinkBytebufferImpl::~SinkBytebufferImpl()
 
 int32_t SinkBytebufferImpl::Init()
 {
-    sink_ = GST_ELEMENT_CAST(gst_object_ref(gst_element_factory_make("sharedmemsink", "sink")));
+    sink_ = GST_ELEMENT_CAST(gst_object_ref_sink(gst_element_factory_make("sharedmemsink", "sink")));
     CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);
     gst_base_sink_set_async_enabled(GST_BASE_SINK(sink_), FALSE);
     return MSERR_OK;
@@ -63,16 +63,7 @@ int32_t SinkBytebufferImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 int32_t SinkBytebufferImpl::Flush()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    for (auto it = bufferList_.begin(); it != bufferList_.end(); it++) {
-        CHECK_AND_RETURN_RET(*it != nullptr, MSERR_INVALID_VAL);
-        if ((*it)->owner_ != BufferWrapper::DOWNSTREAM) {
-            (*it)->owner_ = BufferWrapper::DOWNSTREAM;
-            if ((*it)->gstBuffer_ != nullptr) {
-                gst_buffer_unref((*it)->gstBuffer_);
-                (*it)->gstBuffer_ = nullptr;
-            }
-        }
-    }
+    bufferList_.clear();
     isFirstFrame_ = true;
     isEos_ = false;
     return MSERR_OK;
@@ -87,6 +78,7 @@ std::shared_ptr<AVSharedMemory> SinkBytebufferImpl::GetOutputBuffer(uint32_t ind
 
     GstMemory *memory = gst_buffer_peek_memory(bufferList_[index]->gstBuffer_, 0);
     CHECK_AND_RETURN_RET(memory != nullptr, nullptr);
+    CHECK_AND_RETURN_RET(gst_is_shmem_memory(memory), nullptr);
 
     GstShMemMemory *shmem = reinterpret_cast<GstShMemMemory *>(memory);
     bufferList_[index]->owner_ = BufferWrapper::APP;
@@ -125,7 +117,11 @@ GstFlowReturn SinkBytebufferImpl::NewSampleCb(GstMemSink *memSink, GstBuffer *sa
 {
     (void)memSink;
     auto impl = static_cast<SinkBytebufferImpl *>(userData);
-    CHECK_AND_RETURN_RET(impl != nullptr, GST_FLOW_ERROR);
+    if (impl == nullptr) {
+        MEDIA_LOGE("impl is nullptr");
+        gst_buffer_unref(sample);
+        return GST_FLOW_ERROR;
+    }
     std::unique_lock<std::mutex> lock(impl->mutex_);
     CHECK_AND_RETURN_RET(impl->HandleNewSampleCb(sample) == MSERR_OK, GST_FLOW_ERROR);
     return GST_FLOW_OK;
@@ -155,6 +151,7 @@ int32_t SinkBytebufferImpl::HandleNewSampleCb(GstBuffer *buffer)
 
     GstMemory *memory = gst_buffer_peek_memory(buffer, 0);
     CHECK_AND_RETURN_RET(memory != nullptr, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(gst_is_shmem_memory(memory), MSERR_UNKNOWN);
     GstShMemMemory *shmem = reinterpret_cast<GstShMemMemory *>(memory);
     CHECK_AND_RETURN_RET(shmem->mem != nullptr, MSERR_UNKNOWN);
 

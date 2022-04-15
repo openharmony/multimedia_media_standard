@@ -54,6 +54,8 @@ enum InnerCodecMimeType : int32_t {
     CODEC_MIMIE_TYPE_AUDIO_VORBIS,
     /** FLAC */
     CODEC_MIMIE_TYPE_AUDIO_FLAC,
+    /** OPUS */
+    CODEC_MIMIE_TYPE_AUDIO_OPUS,
 };
 
 enum VideoEncoderBitrateMode : int32_t {

@@ -25,7 +25,7 @@ struct _GstSurfaceMemory {
     GstMemory parent;
     OHOS::sptr<OHOS::SurfaceBuffer> buf;
     gint fence;
-    gboolean needRender;
+    gboolean need_render;
 };
 
 static const char GST_SURFACE_MEMORY_TYPE[] = "SurfaceMemory";

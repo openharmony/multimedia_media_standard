@@ -17,6 +17,7 @@
 #define MEDIA_SERVER_MANAGER_H
 
 #include <memory>
+#include <functional>
 #include "iremote_object.h"
 #include "ipc_skeleton.h"
 #include "recorder_service_stub.h"
@@ -26,6 +27,13 @@
 
 namespace OHOS {
 namespace Media {
+using DumperEntry = std::function<int32_t(int32_t)>;
+struct Dumper {
+    pid_t pid_;
+    pid_t uid_;
+    DumperEntry entry_;
+    sptr<IRemoteObject> remoteObject_;
+};
 class MediaServerManager : public NoCopyable {
 public:
     static MediaServerManager &GetInstance();
@@ -41,6 +49,9 @@ public:
     sptr<IRemoteObject> CreateStubObject(StubType type);
     void DestroyStubObject(StubType type, sptr<IRemoteObject> object);
     void DestroyStubObjectForPid(pid_t pid);
+    int32_t Dump(int32_t fd, const std::vector<std::u16string> &args);
+    void DestroyDumper(StubType type, sptr<IRemoteObject> object);
+    void DestroyDumperForPid(pid_t pid);
 
 private:
     MediaServerManager();
@@ -54,6 +65,7 @@ private:
     std::map<sptr<IRemoteObject>, pid_t> avMetadataHelperStubMap_;
     std::map<sptr<IRemoteObject>, pid_t> avCodecListStubMap_;
     std::map<sptr<IRemoteObject>, pid_t> avCodecStubMap_;
+    std::map<StubType, std::vector<Dumper>> dumperTbl_;
 
     std::mutex mutex_;
 };

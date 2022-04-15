@@ -16,9 +16,9 @@
 #ifndef GST_VDEC_BASE_H
 #define GST_VDEC_BASE_H
 
-#include <gst/video/gstvideodecoder.h>
 #include <vector>
 #include <list>
+#include <gst/video/gstvideodecoder.h>
 #include "gst_shmem_allocator.h"
 #include "gst_shmem_pool.h"
 #include "i_gst_codec.h"

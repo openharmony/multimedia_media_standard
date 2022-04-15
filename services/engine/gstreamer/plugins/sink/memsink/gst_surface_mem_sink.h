@@ -16,7 +16,7 @@
 #ifndef GST_SURFACE_MEM_SINK_H
 #define GST_SURFACE_MEM_SINK_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "gst_mem_sink.h"
 
 G_BEGIN_DECLS

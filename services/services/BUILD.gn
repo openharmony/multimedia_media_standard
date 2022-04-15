@@ -52,11 +52,12 @@ config("media_service_config") {
     "avcodeclist/server",
     "//base/security/access_token/interfaces/innerkits/access_token/include",
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara/include",
+    "//base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include",
     "//foundation/multimedia/media_standard/services/include",
     "//foundation/multimedia/media_standard/services/services/factory",
     "//foundation/multimedia/media_standard/services/services/engine_intf",
     "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/services/common",
     "//utils/native/base/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
@@ -72,6 +73,7 @@ ohos_shared_library("media_service") {
   install_enable = true
 
   sources = [
+    "//foundation/multimedia/media_standard/frameworks/native/common/media_errors.cpp",
     "//foundation/multimedia/media_standard/services/utils/avsharedmemorybase.cpp",
     "avcodec/ipc/avcodec_listener_proxy.cpp",
     "avcodec/ipc/avcodec_service_stub.cpp",

@@ -26,6 +26,9 @@
       "adapted_system_type": [ "standard" ],
       "rom": "10000KB",
       "ram": "10000KB",
+      "hisysevent_config": [
+        "//foundation/multimedia/media_standard/hisysevent.yaml"
+      ],
       "deps": {
         "components": [
           "ace_napi",
@@ -64,14 +67,14 @@
         "inner_kits": [
           {
             "type": "none",
-            "name": "//foundation/multimedia/media_standard/interfaces/innerkits/native/media:media_client",
+            "name": "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
             "header": {
               "header_files": [
                   "player.h",
                   "recorder.h",
                   "avcodec_list.h"
               ],
-              "header_base": "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include"
+              "header_base": "//foundation/multimedia/media_standard/interfaces/inner_api/native"
             }
           },
           {

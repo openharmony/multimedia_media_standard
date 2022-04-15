@@ -73,7 +73,7 @@ private:
     std::unique_ptr<std::ifstream> testFile_;
     std::unique_ptr<std::thread> inputLoop_;
     std::unique_ptr<std::thread> outputLoop_;
-    std::shared_ptr<VideoDecoder> vdec_;
+    std::shared_ptr<AVCodecVideoDecoder> vdec_;
     std::shared_ptr<VDecSignal> signal_;
     std::shared_ptr<VDecDemoCallback> cb_;
     bool isFirstFrame_ = true;

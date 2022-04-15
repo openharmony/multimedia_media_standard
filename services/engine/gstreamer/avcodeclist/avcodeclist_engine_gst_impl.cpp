@@ -14,12 +14,14 @@
  */
 
 #include "avcodeclist_engine_gst_impl.h"
+#include <cmath>
 #include "avcodec_ability_singleton.h"
 #include "media_errors.h"
 #include "media_log.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecListEngineGstImpl"};
+    constexpr float EPSINON = 0.0001;
 }
 
 namespace OHOS {
@@ -115,8 +117,10 @@ bool AVCodecListEngineGstImpl::IsSupportFrameRate(const Format &format, const Ca
         case FORMAT_TYPE_DOUBLE:
             double targetFrameRateDouble;
             (void)format.GetDoubleValue("frame_rate", targetFrameRateDouble);
-            if (static_cast<double>(data.frameRate.minVal) > targetFrameRateDouble ||
-                static_cast<double>(data.frameRate.maxVal) < targetFrameRateDouble) {
+            if ((static_cast<double>(data.frameRate.minVal) > targetFrameRateDouble &&
+                fabs(static_cast<double>(data.frameRate.minVal) - targetFrameRateDouble) >= EPSINON) ||
+                (static_cast<double>(data.frameRate.maxVal) < targetFrameRateDouble &&
+                fabs(static_cast<double>(data.frameRate.maxVal) - targetFrameRateDouble) >= EPSINON)) {
                 return false;
             }
             break;
@@ -212,7 +216,7 @@ std::vector<CapabilityData> AVCodecListEngineGstImpl::GetCodecCapabilityInfos()
             MEDIA_LOGD("ParseCodecXml failed");
         }
     }
-    return codecAbilityInstance.capabilityDataArray_;
+    return codecAbilityInstance.GetCapabilityDataArray();
 }
 } // namespace Media
 } // namespace OHOS

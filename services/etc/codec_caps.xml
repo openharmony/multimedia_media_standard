@@ -62,6 +62,16 @@
                 <Item layout="interleaved,non-interleaved"/>
                 <Item sampleRate="8000,11025,12000,16000,22050,24000,32000,44100,48000,64000,88200,96000"/>
             </AudioDecoder>
+            <AudioDecoder>
+                <Item codecName="avdec_opus"/>
+                <Item codecType="AUDIO_DECODER"/>
+                <Item mimeType="audio/opus"/>
+                <Item isVendor="false"/>
+                <Item bitrate="1-384000"/>
+                <Item channels="1-2"/>
+                <Item format="S16LE"/>
+                <Item sampleRate="48000"/>
+            </AudioDecoder>
             <AudioEncoder>
                 <Item codecName="avenc_aac"/>
                 <Item codecType="AUDIO_ENCODER"/>
@@ -73,6 +83,16 @@
                 <Item mpegVersion="4"/>
                 <Item sampleRate="8000,11025,12000,16000,22050,24000,32000,44100,48000,64000,88200,96000"/>
                 <Item streamFormat="raw"/>
+            </AudioEncoder>
+            <AudioEncoder>
+                <Item codecName="avenc_opus"/>
+                <Item codecType="AUDIO_ENCODER"/>
+                <Item mimeType="audio/opus"/>
+                <Item isVendor="false"/>
+                <Item bitrate="1-384000"/>
+                <Item channels="1-2"/>
+                <Item format="S16LE"/>
+                <Item sampleRate="48000"/>
             </AudioEncoder>
     </AudioCodecs>
     <VideoCodecs>

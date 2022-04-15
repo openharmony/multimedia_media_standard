@@ -58,6 +58,7 @@ public:
     int32_t ReleaseOutputBuffer(uint32_t index, bool render) override;
     int32_t SetParameter(const Format &format) override;
     int32_t SetCallback(const std::shared_ptr<AVCodecCallback> &callback) override;
+    int32_t DumpInfo(int32_t fd);
 
     // IAVCodecEngineObs override
     void OnError(int32_t errorType, int32_t errorCode) override;
@@ -73,6 +74,8 @@ private:
     std::shared_ptr<AVCodecCallback> codecCb_;
     std::mutex mutex_;
     std::mutex cbMutex_;
+    Format config_;
+    std::string lastErrMsg_;
 };
 } // namespace Media
 } // namespace OHOS

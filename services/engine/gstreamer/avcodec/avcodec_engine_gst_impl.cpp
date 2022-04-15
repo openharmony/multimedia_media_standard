@@ -41,6 +41,7 @@ AVCodecEngineGstImpl::~AVCodecEngineGstImpl()
 int32_t AVCodecEngineGstImpl::Init(AVCodecType type, bool isMimeType, const std::string &name)
 {
     MEDIA_LOGD("Init AVCodecGstEngine: type:%{public}d, %{public}d, name:%{public}s", type, isMimeType, name.c_str());
+    std::unique_lock<std::mutex> lock(mutex_);
     type_ = type;
 
     InnerCodecMimeType codecName = CODEC_MIMIE_TYPE_DEFAULT;
@@ -171,7 +172,7 @@ sptr<Surface> AVCodecEngineGstImpl::CreateInputSurface()
     return ctrl_->CreateInputSurface(inputConfig);
 }
 
-int32_t AVCodecEngineGstImpl::SetOutputSurface(sptr<Surface> surface)
+int32_t AVCodecEngineGstImpl::SetOutputSurface(const sptr<Surface> &surface)
 {
     MEDIA_LOGD("Enter SetOutputSurface");
     std::unique_lock<std::mutex> lock(mutex_);
@@ -295,14 +296,11 @@ int32_t AVCodecEngineGstImpl::HandleMimeType(AVCodecType type, const std::string
     CHECK_AND_RETURN_RET(ret == MSERR_OK, MSERR_UNKNOWN);
     MEDIA_LOGD("Found plugin name:%{public}s", pluginName.c_str());
 
-    bool isSoftware = true;
-    (void)QueryIsSoftPlugin(pluginName, isSoftware);
-
-    useSoftWare_ = isSoftware;
+    (void)QueryIsSoftPlugin(pluginName, useSoftWare_);
     pluginName_ = pluginName;
 
     CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_UNKNOWN);
-    return ctrl_->Init(type, isSoftware, pluginName);
+    return ctrl_->Init(type, useSoftWare_, pluginName);
 }
 
 int32_t AVCodecEngineGstImpl::HandlePluginName(AVCodecType type, const std::string &name)

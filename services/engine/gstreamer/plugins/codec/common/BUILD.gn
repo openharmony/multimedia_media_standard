@@ -39,10 +39,9 @@ config("gst_codec_plugins_common_config") {
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common/video",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common",
     "//base/hiviewdfx/interfaces/innerkits/libhilog/include",
-
     "//utils/native/base/include",
     "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
@@ -73,7 +72,6 @@ ohos_static_library("gst_codec_plugins_common") {
   deps = [
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//foundation/graphic/standard:libsurface",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_plugins_common",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
