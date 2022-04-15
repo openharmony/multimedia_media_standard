@@ -300,6 +300,12 @@ int32_t PlayerServiceStub::SetPlayerCallback()
     return playerServer_->SetPlayerCallback(playerCallback_);
 }
 
+int32_t PlayerServiceStub::DumpInfo(int32_t fd)
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return std::static_pointer_cast<PlayerServer>(playerServer_)->DumpInfo(fd);
+}
+
 int32_t PlayerServiceStub::SetListenerObject(MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> object = data.ReadRemoteObject();

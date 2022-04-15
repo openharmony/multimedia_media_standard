@@ -14,11 +14,13 @@
  */
 
 #include "media_server_manager.h"
+#include <unordered_set>
 #include "recorder_service_stub.h"
 #include "player_service_stub.h"
 #include "avmetadatahelper_service_stub.h"
 #include "avcodeclist_service_stub.h"
 #include "media_log.h"
+#include "media_errors.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaServerManager"};
@@ -31,6 +33,64 @@ MediaServerManager &MediaServerManager::GetInstance()
 {
     static MediaServerManager instance;
     return instance;
+}
+
+int32_t WriteInfo(int32_t fd, std::string &dumpString, std::vector<Dumper> dumpers, bool needDetail)
+{
+    int32_t i = 0;
+    for (auto iter : dumpers) {
+        dumpString += "-----Instance #" + std::to_string(i) + ": ";
+        dumpString += "pid = ";
+        dumpString += std::to_string(iter.pid_);
+        dumpString += " uid = ";
+        dumpString += std::to_string(iter.uid_);
+        dumpString += "-----\n";
+        write(fd, dumpString.c_str(), dumpString.size());
+        dumpString.clear();
+        i++;
+        if (!needDetail) {
+            continue;
+        }
+        if (iter.entry_(fd) != MSERR_OK) {
+            return OHOS::INVALID_OPERATION;
+        }
+    }
+    write(fd, dumpString.c_str(), dumpString.size());
+    dumpString.clear();
+
+    return OHOS::NO_ERROR;
+}
+
+int32_t MediaServerManager::Dump(int32_t fd, const std::vector<std::u16string> &args)
+{
+    std::string dumpString;
+    std::unordered_set<std::u16string> argSets;
+    for (decltype(args.size()) index = 0; index < args.size(); ++index) {
+        argSets.insert(args[index]);
+    }
+
+    dumpString += "------------------PlayerServer------------------\n";
+    if (WriteInfo(fd, dumpString, dumperTbl_[StubType::PLAYER],
+        argSets.find(u"player") != argSets.end()) != OHOS::NO_ERROR) {
+        MEDIA_LOGW("Failed to write PlayerServer information");
+        return OHOS::INVALID_OPERATION;
+    }
+
+    dumpString += "------------------RecorderServer------------------\n";
+    if (WriteInfo(fd, dumpString, dumperTbl_[StubType::RECORDER],
+        argSets.find(u"recorder") != argSets.end()) != OHOS::NO_ERROR) {
+        MEDIA_LOGW("Failed to write RecorderServer information");
+        return OHOS::INVALID_OPERATION;
+    }
+
+    dumpString += "------------------CodecServer------------------\n";
+    if (WriteInfo(fd, dumpString, dumperTbl_[StubType::AVCODEC],
+        argSets.find(u"codec") != argSets.end()) != OHOS::NO_ERROR) {
+        MEDIA_LOGW("Failed to write CodecServer information");
+        return OHOS::INVALID_OPERATION;
+    }
+
+    return OHOS::NO_ERROR;
 }
 
 MediaServerManager::MediaServerManager()
@@ -81,11 +141,22 @@ sptr<IRemoteObject> MediaServerManager::CreatePlayerStubObject()
         MEDIA_LOGE("failed to create PlayerServiceStub");
         return nullptr;
     }
+
     sptr<IRemoteObject> object = playerStub->AsObject();
     if (object != nullptr) {
         pid_t pid = IPCSkeleton::GetCallingPid();
         playerStubMap_[object] = pid;
-        MEDIA_LOGD("The number of player services(%{public}zu) pid(%{public}d).", playerStubMap_.size(), pid);
+
+        Dumper dumper;
+        dumper.entry_ = [player = playerStub](int32_t fd) -> int32_t {
+            return player->DumpInfo(fd);
+        };
+        dumper.pid_ = pid;
+        dumper.uid_ = IPCSkeleton::GetCallingUid();
+        dumper.remoteObject_ = object;
+        dumperTbl_[StubType::PLAYER].emplace_back(dumper);
+        MEDIA_LOGD("The number of player services(%{public}zu) pid(%{public}d).",
+            playerStubMap_.size(), pid);
     }
     return object;
 }
@@ -106,7 +177,17 @@ sptr<IRemoteObject> MediaServerManager::CreateRecorderStubObject()
     if (object != nullptr) {
         pid_t pid = IPCSkeleton::GetCallingPid();
         recorderStubMap_[object] = pid;
-        MEDIA_LOGD("The number of recorder services(%{public}zu) pid(%{public}d).", recorderStubMap_.size(), pid);
+
+        Dumper dumper;
+        dumper.entry_ = [recorder = recorderStub](int32_t fd) -> int32_t {
+            return recorder->DumpInfo(fd);
+        };
+        dumper.pid_ = pid;
+        dumper.uid_ = IPCSkeleton::GetCallingUid();
+        dumper.remoteObject_ = object;
+        dumperTbl_[StubType::RECORDER].emplace_back(dumper);
+        MEDIA_LOGD("The number of recorder services(%{public}zu) pid(%{public}d).",
+            recorderStubMap_.size(), pid);
     }
     return object;
 }
@@ -170,6 +251,15 @@ sptr<IRemoteObject> MediaServerManager::CreateAVCodecStubObject()
     if (object != nullptr) {
         pid_t pid = IPCSkeleton::GetCallingPid();
         avCodecStubMap_[object] = pid;
+
+        Dumper dumper;
+        dumper.entry_ = [avcodec = avCodecHelperStub](int32_t fd) -> int32_t {
+            return avcodec->DumpInfo(fd);
+        };
+        dumper.pid_ = pid;
+        dumper.uid_ = IPCSkeleton::GetCallingUid();
+        dumper.remoteObject_ = object;
+        dumperTbl_[StubType::AVCODEC].emplace_back(dumper);
         MEDIA_LOGD("The number of avcodec services(%{public}zu).", avCodecStubMap_.size());
     }
     return object;
@@ -179,6 +269,7 @@ void MediaServerManager::DestroyStubObject(StubType type, sptr<IRemoteObject> ob
 {
     std::lock_guard<std::mutex> lock(mutex_);
     pid_t pid = IPCSkeleton::GetCallingPid();
+    DestroyDumper(type, object);
     switch (type) {
         case RECORDER: {
             for (auto it = recorderStubMap_.begin(); it != recorderStubMap_.end(); it++) {
@@ -251,6 +342,7 @@ void MediaServerManager::DestroyStubObjectForPid(pid_t pid)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGD("recorder stub services(%{public}zu) pid(%{public}d).", recorderStubMap_.size(), pid);
+    DestroyDumperForPid(pid);
     for (auto itRecorder = recorderStubMap_.begin(); itRecorder != recorderStubMap_.end();) {
         if (itRecorder->second == pid) {
             itRecorder = recorderStubMap_.erase(itRecorder);
@@ -299,6 +391,31 @@ void MediaServerManager::DestroyStubObjectForPid(pid_t pid)
         }
     }
     MEDIA_LOGD("avcodeclist stub services(%{public}zu).", avCodecListStubMap_.size());
+}
+
+void MediaServerManager::DestroyDumper(StubType type, sptr<IRemoteObject> object)
+{
+    for (auto it = dumperTbl_[type].begin(); it != dumperTbl_[type].end(); it++) {
+        if (it->remoteObject_ == object) {
+            (void)dumperTbl_[type].erase(it);
+            MEDIA_LOGD("MediaServerManager::DestroyDumper");
+            return;
+        }
+    }
+}
+
+void MediaServerManager::DestroyDumperForPid(pid_t pid)
+{
+    for (auto dumpers : dumperTbl_) {
+        for (auto it = dumpers.second.begin(); it != dumpers.second.end();) {
+            if (it->pid_ == pid) {
+                it = dumpers.second.erase(it);
+                MEDIA_LOGD("MediaServerManager::DestroyDumperForPid");
+            } else {
+                it++;
+            }
+        }
+    }
 }
 } // namespace Media
 } // namespace OHOS

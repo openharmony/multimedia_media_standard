@@ -80,5 +80,15 @@ sptr<IRemoteObject> MediaServer::GetSubSystemAbility(IStandardMediaService::Medi
         }
     }
 }
+
+int32_t MediaServer::Dump(int fd, const std::vector<std::u16string> &args)
+{
+    if (MediaServerManager::GetInstance().Dump(fd, args) != OHOS::NO_ERROR) {
+        MEDIA_LOGW("Failed to call MediaServerManager::Dump");
+        return OHOS::INVALID_OPERATION;
+    }
+
+    return OHOS::NO_ERROR;
+}
 } // namespace Media
 } // namespace OHOS

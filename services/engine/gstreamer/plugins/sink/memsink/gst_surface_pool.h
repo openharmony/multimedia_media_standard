@@ -55,6 +55,9 @@ struct _GstSurfacePool {
     gint usage;
     GstTask *task;
     GRecMutex taskLock;
+    timeval beginTime;
+    timeval endTime;
+    int32_t callCnt;
 };
 
 struct _GstSurfacePoolClass {
