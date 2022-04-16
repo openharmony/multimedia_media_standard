@@ -46,8 +46,10 @@ int32_t AudioCaptureAsImpl::SetCaptureParameter(uint32_t bitrate, uint32_t chann
     MEDIA_LOGD("SetCaptureParameter in, channels:%{public}u, sampleRate:%{public}u", channels, sampleRate);
     if (audioCapturer_ == nullptr) {
         audioCapturer_ = AudioStandard::AudioCapturer::Create(AudioStandard::AudioStreamType::STREAM_MUSIC);
-        CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, MSERR_NO_MEMORY);
+        CHECK_AND_RETURN_RET_LOG(audioCapturer_ != nullptr, MSERR_NO_MEMORY, "create audio capturer failed");
     }
+    audioCacheCtrl_ = std::make_unique<AudioCacheCtrl>();
+    CHECK_AND_RETURN_RET_LOG(audioCacheCtrl_ != nullptr, MSERR_NO_MEMORY, "create audio cache ctrl failed");
 
     AudioStandard::AudioCapturerParams params;
     auto supportedSampleList = AudioStandard::AudioCapturer::GetSupportedSamplingRates();
@@ -123,68 +125,130 @@ int32_t AudioCaptureAsImpl::GetSegmentInfo(uint64_t &start)
     return MSERR_OK;
 }
 
+void AudioCaptureAsImpl::GetAudioCaptureBuffer()
+{
+    while (true) {
+        if (curState_.load() == RECORDER_STOP) {
+            break;
+        }
+
+        {
+            std::unique_lock<std::mutex> lock(pauseMutex_);
+            audioCacheCtrl_->pauseCond_.wait(lock, [this]() {
+                return curState_.load() == RECORDER_RUNNING || curState_.load() == RECORDER_RESUME ||
+                    curState_.load() == RECORDER_STOP;
+            });
+        }
+
+        if (curState_.load() == RECORDER_STOP) {
+            break;
+        }
+
+        CHECK_AND_BREAK(audioCapturer_ != nullptr);
+        std::shared_ptr<AudioBuffer> tempBuffer = std::make_shared<AudioBuffer>();
+        CHECK_AND_BREAK(bufferSize_ > 0 && bufferSize_ < MAXIMUM_BUFFER_SIZE);
+        tempBuffer->gstBuffer = gst_buffer_new_allocate(nullptr, bufferSize_, nullptr);
+        CHECK_AND_BREAK(tempBuffer->gstBuffer != nullptr);
+
+        GstMapInfo map = GST_MAP_INFO_INIT;
+        if (gst_buffer_map(tempBuffer->gstBuffer, &map, GST_MAP_READ) != TRUE) {
+            gst_buffer_unref(tempBuffer->gstBuffer);
+            break;
+        }
+        bool isBlocking = true;
+        int32_t bytesRead = audioCapturer_->Read(*(map.data), map.size, isBlocking);
+        gst_buffer_unmap(tempBuffer->gstBuffer, &map);
+        if (bytesRead <= 0) {
+            gst_buffer_unref(tempBuffer->gstBuffer);
+            break;
+        }
+        uint64_t curTimeStamp = 0;
+        if (GetSegmentInfo(curTimeStamp) != MSERR_OK) {
+            gst_buffer_unref(tempBuffer->gstBuffer);
+            break;
+        }
+
+        tempBuffer->timestamp = curTimeStamp;
+        tempBuffer->duration = bufferDurationNs_;
+        tempBuffer->dataLen = bufferSize_;
+
+        {
+            std::unique_lock<std::mutex> loopLock(audioCacheCtrl_->captureMutex_);
+            audioCacheCtrl_->captureQueue_.push(tempBuffer);
+            MEDIA_LOGD("audio cache queue size is %{public}zu", audioCacheCtrl_->captureQueue_.size());
+            audioCacheCtrl_->captureCond_.notify_all();
+        }
+    }
+}
+
 std::shared_ptr<AudioBuffer> AudioCaptureAsImpl::GetBuffer()
 {
-    CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, nullptr);
-    std::shared_ptr<AudioBuffer> buffer = std::make_shared<AudioBuffer>();
-    CHECK_AND_RETURN_RET(bufferSize_ > 0 && bufferSize_ < MAXIMUM_BUFFER_SIZE, nullptr);
-    buffer->gstBuffer = gst_buffer_new_allocate(nullptr, bufferSize_, nullptr);
-    CHECK_AND_RETURN_RET(buffer->gstBuffer != nullptr, nullptr);
-
-    GstMapInfo map = GST_MAP_INFO_INIT;
-    if (gst_buffer_map(buffer->gstBuffer, &map, GST_MAP_READ) != TRUE) {
-        gst_buffer_unref(buffer->gstBuffer);
-        return nullptr;
+    if (curState_.load() == RECORDER_PAUSED) {
+        audioCacheCtrl_->pausedTime_ = audioCacheCtrl_->timestamp_;
+        MEDIA_LOGD("audio pause timestamp %{public}" PRIu64 "", audioCacheCtrl_->pausedTime_);
     }
-    bool isBlocking = true;
-    int32_t bytesRead = audioCapturer_->Read(*(map.data), map.size, isBlocking);
-    gst_buffer_unmap(buffer->gstBuffer, &map);
-    if (bytesRead <= 0) {
-        gst_buffer_unref(buffer->gstBuffer);
+
+    std::unique_lock<std::mutex> loopLock(audioCacheCtrl_->captureMutex_);
+    audioCacheCtrl_->captureCond_.wait(loopLock, [this]() { return audioCacheCtrl_->captureQueue_.size() > 0; });
+
+    if (curState_.load() == RECORDER_STOP) {
         return nullptr;
     }
 
-    if (GetSegmentInfo(timestamp_) != MSERR_OK) {
-        gst_buffer_unref(buffer->gstBuffer);
-        return nullptr;
-    }
+    std::shared_ptr<AudioBuffer> bufferOut = audioCacheCtrl_->captureQueue_.front();
+    audioCacheCtrl_->captureQueue_.pop();
 
-    {
-        std::lock_guard<std::mutex> lock(pauseMutex_);
-        if (isPause_) {
-            pausedTime_ = timestamp_;
-            isPause_ = false;
-            MEDIA_LOGD("audio pause timestamp %{public}" PRIu64 "", pausedTime_);
-        }
-
-        if (isResume_) {
-            resumeTime_ = timestamp_;
-            MEDIA_LOGD("audio resume timestamp %{public}" PRIu64 "", resumeTime_);
-            persistTime_ = std::fabs(resumeTime_ - pausedTime_);
-            totalPauseTime_ += persistTime_;
-            isResume_ = false;
-            MEDIA_LOGD("audio has %{public}d times pause, total PauseTime: %{public}" PRIu64 "",
-                pausedCount_ ,totalPauseTime_);
+    if (curState_.load() == RECORDER_PAUSED) {
+        audioCacheCtrl_->pausedTime_ = bufferOut->timestamp;
+        MEDIA_LOGD("audio pause timestamp %{public}" PRIu64 "", audioCacheCtrl_->pausedTime_);
+        MEDIA_LOGD("%{public}zu audio buffer has been dropped", audioCacheCtrl_->captureQueue_.size());
+        while (!audioCacheCtrl_->captureQueue_.empty()) {
+            audioCacheCtrl_->captureQueue_.pop();
         }
     }
-
-    buffer->timestamp = timestamp_ - totalPauseTime_;
-    buffer->duration = bufferDurationNs_;
-    buffer->dataLen = bufferSize_;
-    return buffer;
+    if (curState_.load() == RECORDER_RESUME) {
+        curState_.store(RECORDER_RUNNING);
+        audioCacheCtrl_->resumeTime_ = bufferOut->timestamp;
+        MEDIA_LOGD("audio resume timestamp %{public}" PRIu64 "", audioCacheCtrl_->resumeTime_);
+        audioCacheCtrl_->persistTime_ = std::fabs(audioCacheCtrl_->resumeTime_ - audioCacheCtrl_->pausedTime_);
+        audioCacheCtrl_->totalPauseTime_ += audioCacheCtrl_->persistTime_;
+        MEDIA_LOGD("audio has %{public}d times pause, total PauseTime: %{public}" PRIu64 "",
+            audioCacheCtrl_->pausedCount_, audioCacheCtrl_->totalPauseTime_);
+    }
+    bufferOut->timestamp = bufferOut->timestamp - audioCacheCtrl_->totalPauseTime_;
+    audioCacheCtrl_->timestamp_ = bufferOut->timestamp;
+    return bufferOut;
 }
 
 int32_t AudioCaptureAsImpl::StartAudioCapture()
 {
     MEDIA_LOGD("StartAudioCapture");
+
     CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(audioCapturer_->Start(), MSERR_UNKNOWN);
+
+    curState_.store(RECORDER_RUNNING);
+    captureLoop_ = std::make_unique<std::thread>(&AudioCaptureAsImpl::GetAudioCaptureBuffer, this);
+    CHECK_AND_RETURN_RET_LOG(captureLoop_ != nullptr, MSERR_INVALID_OPERATION, "create audio cache thread failed");
+
     return MSERR_OK;
 }
 
 int32_t AudioCaptureAsImpl::StopAudioCapture()
 {
     MEDIA_LOGD("StopAudioCapture");
+    curState_.store(RECORDER_STOP);
+
+    if (captureLoop_ != nullptr && captureLoop_->joinable()) {
+        std::unique_lock<std::mutex> loopLock(audioCacheCtrl_->captureMutex_);
+        audioCacheCtrl_->captureQueue_.push(nullptr); // to wake up the loop thread
+        audioCacheCtrl_->captureCond_.notify_all();
+        audioCacheCtrl_->pauseCond_.notify_all();
+        loopLock.unlock();
+        captureLoop_->join();
+        captureLoop_.reset();
+    }
+
     CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, MSERR_INVALID_OPERATION);
     if (audioCapturer_->GetStatus() == AudioStandard::CapturerState::CAPTURER_RUNNING) {
         CHECK_AND_RETURN_RET(audioCapturer_->Stop(), MSERR_UNKNOWN);
@@ -193,21 +257,19 @@ int32_t AudioCaptureAsImpl::StopAudioCapture()
         CHECK_AND_RETURN_RET(audioCapturer_->Release(), MSERR_UNKNOWN);
     }
     audioCapturer_ = nullptr;
-    pausedTime_ = 0;
-    resumeTime_ = 0;
-    persistTime_ = 0;
-    totalPauseTime_ = 0;
-    pausedCount_ = 0;
+    audioCacheCtrl_ = nullptr;
+    curState_.store(RECORDER_INITIALIZED);
     return MSERR_OK;
 }
 
 int32_t AudioCaptureAsImpl::PauseAudioCapture()
 {
     MEDIA_LOGD("PauseAudioCapture");
+
     {
-        std::lock_guard<std::mutex> lock(pauseMutex_);
-        isPause_ = true;
-        pausedCount_++; // add one pause time count
+        std::unique_lock<std::mutex> lock(pauseMutex_);
+        curState_.store(RECORDER_PAUSED);
+        audioCacheCtrl_->pausedCount_++; // add one pause time count
     }
 
     CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, MSERR_INVALID_OPERATION);
@@ -223,14 +285,16 @@ int32_t AudioCaptureAsImpl::ResumeAudioCapture()
 {
     MEDIA_LOGD("ResumeAudioCapture");
 
-    {
-        std::lock_guard<std::mutex> lock(pauseMutex_);
-        isResume_ = true;
-    }
-
     CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(audioCapturer_->Start(), MSERR_UNKNOWN);
 
+    {
+        std::unique_lock<std::mutex> lock(pauseMutex_);
+        curState_.store(RECORDER_RESUME);
+        audioCacheCtrl_->pauseCond_.notify_all();
+    }
+
+    MEDIA_LOGD("exit ResumeAudioCapture");
     return MSERR_OK;
 }
 } // namespace Media

@@ -16,7 +16,6 @@
 #ifndef VIDEO_CAPTURE_SF_IMPL_H
 #define VIDEO_CAPTURE_SF_IMPL_H
 
-#include <fstream>
 #include <atomic>
 #include <thread>
 #include "video_capture.h"
@@ -57,8 +56,8 @@ protected:
     };
     void OnBufferAvailable();
     int32_t GetSufferExtraData();
-    bool CheckPauseResumeTime();
-    bool DropThisFrame(uint32_t fps, int64_t oldTimeStamp, int64_t newTimeStamp, bool cacheFlag);
+    void CheckPauseResumeTime();
+    bool DropThisFrame(uint32_t fps, int64_t oldTimeStamp, int64_t newTimeStamp);
 
     uint32_t videoWidth_;
     uint32_t videoHeight_;
@@ -68,7 +67,6 @@ protected:
     Rect damage_;
     sptr<SurfaceBuffer> surfaceBuffer_;
     std::atomic<bool> started_;
-    bool paused_;
     std::mutex mutex_;
     std::mutex pauseMutex_;
     std::condition_variable bufferAvailableCondition_;
@@ -83,7 +81,6 @@ protected:
 
 private:
     void SetSurfaceUserData();
-    uint64_t GetCurrentTime();
     int32_t AcquireSurfaceBuffer();
     std::shared_ptr<VideoFrameBuffer> GetFrameBufferInner();
     void ProbeStreamType();
@@ -91,7 +88,6 @@ private:
     int64_t previousTimestamp_ = 0;
     int64_t pauseTime_ = 0;
     int64_t resumeTime_ = 0;
-    int64_t realTimeWhenResume_ = 0;
     int64_t persistTime_ = 0;
     uint32_t pauseCount_ = 0;
     int64_t totalPauseTime_ = 0;
@@ -99,9 +95,9 @@ private:
     int64_t minInterval_ = 0;
     bool resourceLock_ = false;
     bool isFirstBuffer_ = true;
-    bool isPause_ = false;
-    bool isResume_ = false;
-    bool isCheckRealTime_ = false;
+    std::atomic<bool> isPause_ { false };
+    std::atomic<bool> isResume_ { false };
+    bool needUpdatePauseTime_ = false;
 };
 } // namespace Media
 } // namespace OHOS

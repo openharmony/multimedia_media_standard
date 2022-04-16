@@ -14,8 +14,8 @@
  */
 
 #include "video_capture_sf_impl.h"
-#include <map>
 #include <cmath>
+#include <map>
 #include "media_log.h"
 #include "media_errors.h"
 #include "graphic_common.h"
@@ -39,7 +39,6 @@ VideoCaptureSfImpl::VideoCaptureSfImpl()
       damage_ {0},
       surfaceBuffer_(nullptr),
       started_(false),
-      paused_(false),
       streamType_(VIDEO_STREAM_TYPE_UNKNOWN),
       streamTypeUnknown_(true),
       dataConSurface_(nullptr),
@@ -84,19 +83,12 @@ int32_t VideoCaptureSfImpl::Start()
     return MSERR_OK;
 }
 
-uint64_t VideoCaptureSfImpl::GetCurrentTime()
-{
-    constexpr uint32_t SEC_TO_NS = 1000000000; // second to nano second
-    struct timespec timestamp = {0, 0};
-    clock_gettime(CLOCK_MONOTONIC, &timestamp);
-    uint64_t time = (uint64_t)timestamp.tv_sec * SEC_TO_NS + static_cast<uint64_t>(timestamp.tv_nsec);
-    return time;
-}
-
 int32_t VideoCaptureSfImpl::Pause()
 {
     std::lock_guard<std::mutex> lock1(pauseMutex_);
-    isPause_ = true;
+    isPause_.store(true);
+    isResume_.store(false);
+    needUpdatePauseTime_ = true;
     pauseCount_++;
     return MSERR_OK;
 }
@@ -104,7 +96,8 @@ int32_t VideoCaptureSfImpl::Pause()
 int32_t VideoCaptureSfImpl::Resume()
 {
     std::lock_guard<std::mutex> lock1(pauseMutex_);
-    isResume_ = true;
+    isPause_.store(false);
+    isResume_.store(true);
     return MSERR_OK;
 }
 
@@ -251,13 +244,8 @@ int32_t VideoCaptureSfImpl::GetSufferExtraData()
     return MSERR_OK;
 }
 
-bool VideoCaptureSfImpl::DropThisFrame(uint32_t fps, int64_t oldTimeStamp, int64_t newTimeStamp, bool cacheFlag)
+bool VideoCaptureSfImpl::DropThisFrame(uint32_t fps, int64_t oldTimeStamp, int64_t newTimeStamp)
 {
-    if (!cacheFlag) {
-        MEDIA_LOGW("Resume has cache buffer, drop buffer");
-        return TRUE;
-    }
-
     if (newTimeStamp <= oldTimeStamp) {
         MEDIA_LOGW("Invalid timestamp: not increased");
         return TRUE;
@@ -281,32 +269,11 @@ bool VideoCaptureSfImpl::DropThisFrame(uint32_t fps, int64_t oldTimeStamp, int64
     return FALSE;
 }
 
-bool VideoCaptureSfImpl::CheckPauseResumeTime()
+void VideoCaptureSfImpl::CheckPauseResumeTime()
 {
-    std::lock_guard<std::mutex> lock1(pauseMutex_);
-    if (isPause_) {
-        pauseTime_ = pts_;
-        isPause_ = false;
-        isCheckRealTime_ = true;
-        MEDIA_LOGD("video pause timestamp %{public}" PRIu64 "", pauseTime_);
-    }
-
-    if (isResume_ && isCheckRealTime_) {
-        realTimeWhenResume_ = (int64_t)GetCurrentTime();
-        isCheckRealTime_ = false;
-        MEDIA_LOGD("video resume real timestamp %{public}" PRIu64 "", realTimeWhenResume_);
-    }
-
-    if (isResume_) {
+    if (isResume_.load()) {
         resumeTime_ = pts_;
-        if ((realTimeWhenResume_ - resumeTime_) > minInterval_) {
-           MEDIA_LOGD("video has cached buffer timestamp %{public}" PRIu64 "", resumeTime_);
-           return false;
-        }
-
         MEDIA_LOGD("video resume timestamp %{public}" PRIu64 "", resumeTime_);
-        // here subtract one more frame duration to avoid pause time equele to resume time and
-        // cause error in qtmux
         persistTime_ = std::fabs(resumeTime_ - pauseTime_) - minInterval_;
         totalPauseTime_ += persistTime_;
         MEDIA_LOGD("video has %{public}d times pause, total PauseTime: %{public}" PRIu64 "",
@@ -314,7 +281,6 @@ bool VideoCaptureSfImpl::CheckPauseResumeTime()
     }
 
     pts_ = pts_ - totalPauseTime_;
-    return true;
 }
 
 int32_t VideoCaptureSfImpl::AcquireSurfaceBuffer()
@@ -347,16 +313,20 @@ int32_t VideoCaptureSfImpl::AcquireSurfaceBuffer()
         int32_t ret = GetSufferExtraData();
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "get ExtraData fail");
 
-        bool dropCacheBuffer = CheckPauseResumeTime();
+        {
+            std::lock_guard<std::mutex> lock1(pauseMutex_);
+            CheckPauseResumeTime();
+        }
+
         bufferAvailableCount_--;
 
-        if (DropThisFrame(framerate_, previousTimestamp_, pts_, dropCacheBuffer)) {
+        if (DropThisFrame(framerate_, previousTimestamp_, pts_)) {
             MEDIA_LOGI("drop this frame!");
             (void)dataConSurface_->ReleaseBuffer(surfaceBuffer_, fence_);
             continue;
         } else {
             previousTimestamp_ = pts_;
-            isResume_ = false;
+            isResume_.store(false);
             break;
         }
     };
@@ -377,7 +347,23 @@ void VideoCaptureSfImpl::OnBufferAvailable()
     if (bufferAvailableCount_ == 0) {
         bufferAvailableCondition_.notify_all();
     }
-    MEDIA_LOGD("bufferAvailableCount_ %{public}d", bufferAvailableCount_);
+
+    {
+        std::lock_guard<std::mutex> lock1(pauseMutex_);
+        if (isPause_.load()) {
+            (void)dataConSurface_->AcquireBuffer(surfaceBuffer_, fence_, timestamp_, damage_);
+            if (needUpdatePauseTime_) {
+                pauseTime_ = pts_ + totalPauseTime_;
+                MEDIA_LOGD("video pause timestamp %{public}" PRIu64 "", pauseTime_);
+                needUpdatePauseTime_ = false;
+            }
+            (void)GetSufferExtraData();
+            CheckPauseResumeTime();
+            (void)dataConSurface_->ReleaseBuffer(surfaceBuffer_, fence_);
+            return;
+        }
+    }
+
     bufferAvailableCount_++;
 }
 
