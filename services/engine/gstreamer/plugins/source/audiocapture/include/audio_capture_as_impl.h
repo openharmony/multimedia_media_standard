@@ -16,13 +16,30 @@
 #ifndef AUDIO_CAPTURE_AS_IMPL_H
 #define AUDIO_CAPTURE_AS_IMPL_H
 
+#include <atomic>
+#include <condition_variable>
 #include <mutex>
+#include <queue>
+#include <thread>
 #include "audio_capture.h"
 #include "audio_capturer.h"
 #include "nocopyable.h"
 
 namespace OHOS {
 namespace Media {
+struct AudioCacheCtrl {
+    std::mutex captureMutex_;
+    std::condition_variable captureCond_;
+    std::condition_variable pauseCond_;
+    std::queue<std::shared_ptr<AudioBuffer>> captureQueue_;
+    uint64_t timestamp_ = 0;
+    uint64_t pausedTime_ = 0; // the timestamp when audio pause called
+    uint64_t resumeTime_ = 0; // the timestamp when audio resume called
+    uint32_t pausedCount_ = 0; // the paused count times
+    uint64_t persistTime_ = 0;
+    uint64_t totalPauseTime_ = 0;
+};
+
 class AudioCaptureAsImpl : public AudioCapture, public NoCopyable {
 public:
     AudioCaptureAsImpl();
@@ -41,15 +58,21 @@ private:
     std::unique_ptr<OHOS::AudioStandard::AudioCapturer> audioCapturer_ = nullptr;
     size_t bufferSize_ = 0; // minimum size of each buffer acquired from AudioServer
     uint64_t bufferDurationNs_ = 0; // each buffer
-    uint64_t timestamp_ = 0;
-    uint64_t pausedTime_ = 0; // the timestamp when audio pause called
-    uint64_t resumeTime_ = 0; // the timestamp when audio resume called
-    uint32_t pausedCount_ = 0; // the paused count times
-    uint64_t persistTime_ = 0;
-    uint64_t totalPauseTime_ = 0;
-    bool isResume_ = false;
-    bool isPause_ = false;
+
+    // audio cache
+    enum AudioRecorderState : int32_t {
+        RECORDER_INITIALIZED = 0,
+        RECORDER_RUNNING,
+        RECORDER_PAUSED,
+        RECORDER_RESUME,
+        RECORDER_STOP,
+    };
+
+    void GetAudioCaptureBuffer();
+    std::unique_ptr<AudioCacheCtrl> audioCacheCtrl_;
+    std::unique_ptr<std::thread> captureLoop_;
     std::mutex pauseMutex_;
+    std::atomic<int32_t> curState_ = RECORDER_INITIALIZED;
 };
 } // namespace Media
 } // namespace OHOS
