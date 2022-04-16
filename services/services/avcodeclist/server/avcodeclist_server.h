@@ -16,9 +16,9 @@
 #ifndef AVCODECLIST_SERVER_H
 #define AVCODECLIST_SERVER_H
 
+#include <mutex>
 #include "i_avcodeclist_service.h"
 #include "i_avcodeclist_engine.h"
-#include <mutex>
 #include "nocopyable.h"
 
 namespace OHOS {

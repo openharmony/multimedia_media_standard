@@ -487,10 +487,9 @@ bool AVCodecXmlParser::ParseData(xmlNode *node)
         for (auto it = capabilityKeys_.begin(); it != capabilityKeys_.end(); it++) {
             std::string capabilityKey = *it;
             if (xmlHasProp(child, reinterpret_cast<xmlChar*>(const_cast<char*>(capabilityKey.c_str())))) {
-                xmlChar *pXmlProp = xmlGetProp(child, reinterpret_cast<xmlChar*>(const_cast<char*>(capabilityKey.c_str())));
-                if (pXmlProp == nullptr) {
-                    continue;
-                }
+                xmlChar *pXmlProp = xmlGetProp(
+                    child, reinterpret_cast<xmlChar*>(const_cast<char*>(capabilityKey.c_str())));
+                CHECK_AND_CONTINUE(pXmlProp != nullptr);
                 capabilityValue = std::string(reinterpret_cast<char*>(pXmlProp));
                 bool ret = SetCapabilityData(capabilityData, capabilityKey, capabilityValue);
                 CHECK_AND_RETURN_RET_LOG(ret != false, false, "SetCapabilityData failed");
