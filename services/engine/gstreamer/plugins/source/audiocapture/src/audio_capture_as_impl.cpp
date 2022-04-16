@@ -140,6 +140,10 @@ void AudioCaptureAsImpl::GetAudioCaptureBuffer()
             });
         }
 
+        if (curState_.load() == RECORDER_STOP) {
+            break;
+        }
+
         CHECK_AND_BREAK(audioCapturer_ != nullptr);
         std::shared_ptr<AudioBuffer> tempBuffer = std::make_shared<AudioBuffer>();
         CHECK_AND_BREAK(bufferSize_ > 0 && bufferSize_ < MAXIMUM_BUFFER_SIZE);
