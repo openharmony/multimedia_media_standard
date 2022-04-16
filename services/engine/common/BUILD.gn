@@ -14,9 +14,7 @@
 import("//build/ohos.gni")
 
 ohos_shared_library("media_engine_common") {
-  deps = [
-    "avcodeclist:media_engine_common_avcodeclist",
-    ]
+  deps = [ "avcodeclist:media_engine_common_avcodeclist" ]
 
   relative_install_dir = "media"
   subsystem_name = "multimedia"
