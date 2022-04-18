@@ -33,7 +33,6 @@ private:
     bool isParsered_ = false;
     AVCodecAbilitySingleton();
     std::vector<CapabilityData> capabilityDataArray_;
-    std::vector<CapabilityData> pluginsCapabilityDataArray_;
 };
 } // namespace Media
 } // namespace OHOS
