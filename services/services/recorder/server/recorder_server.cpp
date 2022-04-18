@@ -42,7 +42,7 @@ const std::string STOP_TAG = "RecorderStop->Destroy";
 #define CHECK_STATUS_FAILED_AND_LOGE_RET(statusFailed, ret) \
     do { \
         if (statusFailed) { \
-            MEDIA_LOGE("invalid status, current status is %{public}d", status_); \
+            MEDIA_LOGE("invalid status, current status is %{public}s", GetStatusDescription(status_).c_str()); \
             return ret; \
         }; \
     } while (false)
