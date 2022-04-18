@@ -15,12 +15,14 @@
 
 #include "gst_surface_pool.h"
 #include <unordered_map>
+#include <sys/time.h>
 #include "media_log.h"
 #include "display_type.h"
 #include "surface_buffer.h"
 #include "buffer_type_meta.h"
 #include "gst_surface_allocator.h"
 #include "gst/video/gstvideometa.h"
+#include "media_dfx.h"
 
 namespace {
     const std::unordered_map<GstVideoFormat, PixelFormat> FORMAT_MAPPING = {
@@ -29,6 +31,7 @@ namespace {
         { GST_VIDEO_FORMAT_NV12, PIXEL_FMT_YCBCR_420_SP },
         { GST_VIDEO_FORMAT_I420, PIXEL_FMT_YCBCR_420_P },
     };
+    constexpr int32_t TIME_VAL_US = 1000000;
 }
 
 #define GST_BUFFER_POOL_LOCK(pool)   (g_mutex_lock(&(pool)->lock))
@@ -106,6 +109,9 @@ static void gst_surface_pool_init (GstSurfacePool *pool)
     gst_allocation_params_init(&pool->params);
     pool->task = nullptr;
     g_rec_mutex_init(&pool->taskLock);
+    pool->beginTime = {0};
+    pool->endTime = {0};
+    pool->callCnt = 0;
 }
 
 static void gst_surface_pool_finalize(GObject *obj)
@@ -256,6 +262,24 @@ static void gst_surface_pool_request_loop(GstSurfacePool *spool)
     GST_DEBUG_OBJECT(spool, "Loop In");
 
     GST_BUFFER_POOL_LOCK(spool);
+
+    if (spool->callCnt == 0) {
+        gettimeofday(&(spool->beginTime), nullptr);
+    }
+    spool->callCnt++;
+    gettimeofday(&(spool->endTime), nullptr);
+    if ((spool->endTime.tv_sec * TIME_VAL_US + spool->endTime.tv_usec) -
+        (spool->beginTime.tv_sec * TIME_VAL_US + spool->beginTime.tv_usec) > TIME_VAL_US) {
+        OHOS::Media::MediaEvent event;
+        if (event.CreateMsg("The gst_surface_pool_request_loop function is called in a second: %d",
+            spool->callCnt)) {
+            event.EventWrite("PLAYER_STATISTICS", OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "PLAYER");
+            spool->callCnt = 0;
+        } else {
+            GST_ERROR_OBJECT(pool, "Failed to call CreateMsg");
+        }
+    }
+
     if (!spool->started) {
         GST_BUFFER_POOL_UNLOCK(spool);
         GST_WARNING_OBJECT(spool, "task is paused, exit");
