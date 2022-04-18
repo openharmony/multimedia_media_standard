@@ -86,7 +86,7 @@ ohos_static_library("media_engine_gst_avcodec") {
 
   deps = [
     "//foundation/graphic/standard/frameworks/surface:surface",
-    "//foundation/multimedia/media_standard/services/engine/common/avcodeclist:media_engine_common_avcodeclist",
+    "//foundation/multimedia/media_standard/services/engine/common:media_engine_common",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins:media_engine_gst_plugins_common",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
