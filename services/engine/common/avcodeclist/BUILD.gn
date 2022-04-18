@@ -39,7 +39,6 @@ config("media_engine_common_avcodeclist_config") {
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/services/engine_intf",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common",
     "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiocommon/include",
     "//utils/native/base/include",
     "//third_party/libxml2/include",
@@ -59,8 +58,10 @@ ohos_static_library("media_engine_common_avcodeclist") {
   ]
 
   deps = [
+    "//foundation/multimedia/media_standard/services/utils:media_format",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/libxml2:xml2",
+    "//utils/native/base:utils",
   ]
 
   external_deps = [
