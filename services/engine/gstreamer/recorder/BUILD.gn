@@ -78,7 +78,6 @@ ohos_static_library("media_engine_gst_recorder") {
 
   deps = [
     "//foundation/graphic/standard/frameworks/surface:surface",
-    "//foundation/multimedia/media_standard/services/engine/common:media_engine_common",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gobject",
