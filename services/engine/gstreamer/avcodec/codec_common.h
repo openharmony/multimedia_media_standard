@@ -28,12 +28,6 @@
 
 namespace OHOS {
 namespace Media {
-/**
- * @brief Enumerates the codec mime type.
- *
- * @since 3.1
- * @version 3.1
- */
 enum InnerCodecMimeType : int32_t {
     CODEC_MIMIE_TYPE_DEFAULT = -1,
     /** H263 */
@@ -62,6 +56,17 @@ enum VideoEncoderBitrateMode : int32_t {
     VIDEO_ENCODER_BITRATE_MODE_CBR = 0,
     VIDEO_ENCODER_BITRATE_MODE_VBR,
     VIDEO_ENCODER_BITRATE_MODE_CQ,
+};
+
+enum BufferFilterMode : int32_t {
+    BUFFER_FILTER_MODE_INVALID = 0,
+    BUFFER_FILTER_MODE_ADD_ADTS,
+};
+
+struct AdtsFixedHeader {
+    int32_t objectType = 0;
+    int32_t samplingIndex = 0;
+    int32_t channelConfig = 0;
 };
 
 struct BufferWrapper {
@@ -103,8 +108,11 @@ struct ProcessorConfig {
     GstCaps *caps_ = nullptr;
     bool needCodecData_ = false;
     bool needParser_ = false;
+    bool needFilter_ = false;
     bool isEncoder_ = false;
     uint32_t bufferSize_ = 0;
+    BufferFilterMode filterMode_;
+    AdtsFixedHeader adtsHead_;
 };
 
 std::string PixelFormatToGst(VideoPixelFormat pixel);
