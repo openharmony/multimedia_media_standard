@@ -105,7 +105,6 @@ ohos_shared_library("media_service") {
   deps = [
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//foundation/graphic/standard/frameworks/surface:surface",
-    "//foundation/multimedia/media_standard/services/engine/common:media_engine_common",
     "//foundation/multimedia/media_standard/services/utils:media_format",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//utils/native/base:utils",
