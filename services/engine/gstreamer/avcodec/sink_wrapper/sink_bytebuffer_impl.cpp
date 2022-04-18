@@ -14,12 +14,14 @@
  */
 
 #include "sink_bytebuffer_impl.h"
+#include "securec.h"
 #include "gst_shmem_memory.h"
 #include "media_log.h"
 #include "scope_guard.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "SinkBytebufferImpl"};
+    constexpr int32_t ADTS_HEAD_SIZE = 7;
 }
 
 namespace OHOS {
@@ -56,6 +58,9 @@ int32_t SinkBytebufferImpl::Configure(std::shared_ptr<ProcessorConfig> config)
 
     GstMemSinkCallbacks sinkCallbacks = { EosCb, nullptr, NewSampleCb };
     gst_mem_sink_set_callback(GST_MEM_SINK(sink_), &sinkCallbacks, this, nullptr);
+
+    needAdtsTransform_ = config->needFilter_ && config->filterMode_ == BUFFER_FILTER_MODE_ADD_ADTS;
+    adtsHead_ = config->adtsHead_;
 
     return MSERR_OK;
 }
@@ -178,7 +183,15 @@ int32_t SinkBytebufferImpl::HandleNewSampleCb(GstBuffer *buffer)
         gst_buffer_unmap(buffer, &map);
         return MSERR_UNKNOWN;
     }
-    info.size = static_cast<int32_t>(map.size);
+    if (needAdtsTransform_) {
+        if (AddAdtsHead(shmem->mem, map.size) != MSERR_OK) {
+            gst_buffer_unmap(buffer, &map);
+            return MSERR_UNKNOWN;
+        }
+        info.size = static_cast<int32_t>(map.size) + ADTS_HEAD_SIZE;
+    } else {
+        info.size = static_cast<int32_t>(map.size);
+    }
     constexpr uint64_t nsToUs = 1000;
     info.presentationTimeUs = static_cast<int64_t>(GST_BUFFER_PTS(buffer) / nsToUs);
     obs->OnOutputBufferAvailable(index, info, AVCODEC_BUFFER_FLAG_NONE);
@@ -209,6 +222,33 @@ int32_t SinkBytebufferImpl::FindBufferIndex(uint32_t &index, std::shared_ptr<AVS
         bufWrap->mem_ = mem.get();
         bufferList_.push_back(bufWrap);
     }
+
+    return MSERR_OK;
+}
+
+int32_t SinkBytebufferImpl::AddAdtsHead(std::shared_ptr<AVSharedMemory> mem, int32_t rawFrameSize)
+{
+    CHECK_AND_RETURN_RET(mem != nullptr && mem->GetBase() != nullptr && rawFrameSize > 0, MSERR_UNKNOWN);
+
+    int32_t adtsFrameSize = rawFrameSize + ADTS_HEAD_SIZE;
+    CHECK_AND_RETURN_RET(mem->GetSize() >= adtsFrameSize, MSERR_UNKNOWN);
+
+    uint8_t *base = mem->GetBase();
+    for (int32_t i = adtsFrameSize - 1; i > ADTS_HEAD_SIZE - 1; i--) {
+        base[i] = base[i - ADTS_HEAD_SIZE];
+    }
+    CHECK_AND_RETURN_RET(memset_s(base, mem->GetSize(), 0, ADTS_HEAD_SIZE) == EOK, MSERR_UNKNOWN);
+
+    base[0] = 0xFF; // syncword 8 bits
+    base[1] = 0xF1; // syncword 4 bits + MPEG version + layer + protection absent
+    int32_t proflie = adtsHead_.objectType - 1;
+    // profile + sampling frequency index + private bit + channel configuration 1 bits
+    base[2] = static_cast<uint8_t>((proflie << 6) + (adtsHead_.samplingIndex << 2) + (adtsHead_.channelConfig >> 2));
+    // channel configuration 2 bits + original + home + copyright id bit + copyright id start + frame length 2 bits
+    base[3] = static_cast<uint8_t>(((adtsHead_.channelConfig & 0x03) << 6) + (adtsFrameSize >> 11)) ;
+    base[4] = static_cast<uint8_t>((adtsFrameSize & 0x7FF) >> 3); // frame length 8 bits
+    base[5] = static_cast<uint8_t>(((adtsFrameSize & 0x07) << 5) + 0x1F); // frame length 5 bits + buffer fullness
+    base[6] = 0xFC;
 
     return MSERR_OK;
 }
