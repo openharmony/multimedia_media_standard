@@ -364,6 +364,7 @@ void VideoCaptureSfImpl::OnBufferAvailable()
         }
     }
 
+    MEDIA_LOGD("bufferAvailableCount_ is %{public}d", bufferAvailableCount_);
     bufferAvailableCount_++;
 }
 
