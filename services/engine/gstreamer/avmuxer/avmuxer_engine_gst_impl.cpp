@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,7 +37,7 @@ namespace {
     constexpr uint32_t MULTIPLY10000 = 10000;
     constexpr uint32_t MAX_VIDEO_TRACK_NUM = 1;
     constexpr uint32_t MAX_AUDIO_TRACK_NUM = 16;
-    constexpr uint32_t BASE_TIME = 1000;
+    constexpr uint32_t US_TO_NS = 1000;
 }
 
 namespace OHOS {
@@ -143,19 +143,19 @@ int32_t AVMuxerEngineGstImpl::SetLocation(float latitude, float longitude)
     return MSERR_OK;
 }
 
-int32_t AVMuxerEngineGstImpl::SetOrientationHint(int32_t degrees)
+int32_t AVMuxerEngineGstImpl::SetRotation(int32_t ratation)
 {
-    MEDIA_LOGD("SetOrientationHint");
+    MEDIA_LOGD("SetRotation");
     CHECK_AND_RETURN_RET_LOG(muxBin_ != nullptr, MSERR_INVALID_OPERATION, "Muxbin does not exist");
 
     bool setRotationToMux = true;
-    if (degrees != ROTATION_90 && degrees != ROTATION_180 && degrees != ROTATION_270) {
+    if (ratation != ROTATION_90 && ratation != ROTATION_180 && ratation != ROTATION_270) {
         setRotationToMux = false;
-        MEDIA_LOGW("Invalid rotation: %{public}d, keep default 0", degrees);
+        MEDIA_LOGW("Invalid rotation: %{public}d, keep default 0", ratation);
     }
 
     if (setRotationToMux) {
-        g_object_set(muxBin_, "degrees", degrees, nullptr);
+        g_object_set(muxBin_, "ratation", ratation, nullptr);
     }
 
     return MSERR_OK;
@@ -191,14 +191,18 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
         MEDIA_LOGE("Failed to check track type");
         return MSERR_INVALID_VAL;
     }
-    int32_t ret = AVMuxerUtil::SetCaps(trackDesc, mimeType, srcCaps);
+
+    int32_t ret = AVMuxerUtil::SetCaps(trackDesc, mimeType, &srcCaps);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Failed to call SetCaps");
     (*trackNum)++;
 
     trackInfo_[trackId].caps_ = srcCaps;
+
+    gst_caps_ref(trackInfo_[trackId].caps_);
+    MEDIA_LOGD("caps ref: %{public}d", GST_MINI_OBJECT(trackInfo_[trackId].caps_)->refcount);
     std::string name = "src_";
     name += static_cast<char>('0' + trackId);
-    gst_mux_bin_add_track(muxBin_, name.c_str(), std::get<1>(MIME_MAP_TYPE.at(mimeType)).c_str(),
+    gst_mux_bin_add_track(muxBin_, name.c_str(), (name + std::get<1>(MIME_MAP_TYPE.at(mimeType))).c_str(),
         AVMuxerUtil::CheckType(trackInfo_[trackId].mimeType_));
 
     return MSERR_OK;
@@ -236,8 +240,9 @@ int32_t AVMuxerEngineGstImpl::WriteData(std::shared_ptr<AVSharedMemory> sampleDa
     GstBuffer *buffer = gst_buffer_new();
     CHECK_AND_RETURN_RET_LOG(buffer != nullptr, MSERR_NO_MEMORY, "Failed to call gst_buffer_new");
     gst_buffer_append_memory(buffer, mem);
-    GST_BUFFER_DTS(buffer) = static_cast<uint64_t>(sampleInfo.timeMs * BASE_TIME);
-    GST_BUFFER_PTS(buffer) = static_cast<uint64_t>(sampleInfo.timeMs * BASE_TIME);
+
+    GST_BUFFER_DTS(buffer) = static_cast<uint64_t>(sampleInfo.timeUs * US_TO_NS);
+    GST_BUFFER_PTS(buffer) = static_cast<uint64_t>(sampleInfo.timeUs * US_TO_NS);
 
     GstFlowReturn ret = gst_app_src_push_buffer(src, buffer);
     CHECK_AND_RETURN_RET_LOG(ret == GST_FLOW_OK, MSERR_INVALID_OPERATION, "Failed to call gst_app_src_push_buffer");
@@ -255,7 +260,7 @@ int32_t AVMuxerEngineGstImpl::WriteTrackSample(std::shared_ptr<AVSharedMemory> s
     CHECK_AND_RETURN_RET_LOG(sampleData != nullptr, MSERR_INVALID_VAL, "sampleData is nullptr");
     CHECK_AND_RETURN_RET_LOG(trackInfo_[sampleInfo.trackIdx].needData_ == true, MSERR_INVALID_OPERATION,
         "Failed to push data, the queue is full");
-    CHECK_AND_RETURN_RET_LOG(sampleInfo.timeMs >= 0, MSERR_INVALID_VAL, "Failed to check dts, dts muxt >= 0");
+    CHECK_AND_RETURN_RET_LOG(sampleInfo.timeUs >= 0, MSERR_INVALID_VAL, "Failed to check dts, dts muxt >= 0");
     
     int32_t ret;
     GstAppSrc *src = trackInfo_[sampleInfo.trackIdx].src_;
@@ -263,6 +268,8 @@ int32_t AVMuxerEngineGstImpl::WriteTrackSample(std::shared_ptr<AVSharedMemory> s
 
     if ((sampleInfo.flags & AVCODEC_BUFFER_FLAG_CODEC_DATA) &&
         trackInfo_[sampleInfo.trackIdx].hasCodecData_ != true) {
+        CHECK_AND_RETURN_RET_LOG(trackInfo_[sampleInfo.trackIdx].caps_ != nullptr,
+            MSERR_INVALID_OPERATION, "Failed to check caps");
         g_object_set(src, "caps", trackInfo_[sampleInfo.trackIdx].caps_, nullptr);
         ret = WriteData(sampleData, sampleInfo, src);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Failed to call WriteData");
@@ -358,6 +365,9 @@ void AVMuxerEngineGstImpl::OnNotifyMessage(const InnerMessage &msg)
 
 void AVMuxerEngineGstImpl::Clear()
 {
+    for (auto iter = trackInfo_.begin(); iter != trackInfo_.end(); iter++) {
+        gst_caps_unref(iter->second.caps_);
+    }
     trackInfo_.clear();
     endFlag_ = false;
     errHappened_ = false;

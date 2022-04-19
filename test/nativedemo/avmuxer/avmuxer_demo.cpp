@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -143,10 +143,10 @@ namespace {
         192, 192, 192, 192, 192, 192, 192, 192
     };
     std::map<std::string, std::tuple<uint32_t, uint32_t, const int32_t*, std::string>> CODEC_PARAMETER = {
-        {"h264", {33333, 501, H264_FRAME_SIZE, "/data/media/test.h264"}},
-        {"mpeg4", {16666, 602, MPEG4_FRAME_SIZE, "/data/media/test.mpeg4"}},
-        {"aac", {23220, 433, AAC_FRAME_SIZE, "/data/media/test.aac"}},
-        {"mp3", {23220, 575, MP3_FRAME_SIZE, "/data/media/test.mp3"}}
+        {"h264", {33333, sizeof(H264_FRAME_SIZE) / sizeof(int32_t), H264_FRAME_SIZE, "/data/media/test.h264"}},
+        {"mpeg4", {16666, sizeof(MPEG4_FRAME_SIZE) / sizeof(int32_t), MPEG4_FRAME_SIZE, "/data/media/test.mpeg4"}},
+        {"aac", {23220, sizeof(AAC_FRAME_SIZE) / sizeof(int32_t), AAC_FRAME_SIZE, "/data/media/test.aac"}},
+        {"mp3", {23220, sizeof(MP3_FRAME_SIZE) / sizeof(int32_t), MP3_FRAME_SIZE, "/data/media/test.mp3"}}
     };
 
     constexpr uint32_t DURATION_INDEX = 0;
@@ -173,33 +173,33 @@ namespace {
 }
 namespace OHOS {
 namespace Media {
-bool AVMuxerDemo::PushBuffer(std::shared_ptr<std::ifstream> File, const int32_t *FrameArray,
-    int32_t i, int32_t trackId, int64_t stamp)
+bool AVMuxerDemo::PushBuffer(std::shared_ptr<std::ifstream> File, const int32_t frameSize,
+    int32_t i, int32_t TrackId, int64_t stamp)
 {
-    if (FrameArray == nullptr) {
-        std::cout << "Frame array error" << std::endl;
+    if (frameSize == 0) {
+        std::cout << "Frame size error" << std::endl;
         return false;
     }
-    uint8_t *buffer = (uint8_t *)malloc(sizeof(char) * (*FrameArray));
+    uint8_t *buffer = (uint8_t *)malloc(sizeof(char) * (frameSize));
     if (buffer == nullptr) {
         std::cout << "no memory" << std::endl;
         return false;
     }
-    (void)File->read((char *)buffer, *FrameArray);
-    std::shared_ptr<AVMemory> aVMem = std::make_shared<AVMemory>(buffer, *FrameArray);
-    aVMem->SetRange(0, *FrameArray);
+    (void)File->read((char *)buffer, frameSize);
+    std::shared_ptr<AVMemory> aVMem = std::make_shared<AVMemory>(buffer, frameSize);
+    aVMem->SetRange(0, frameSize);
     TrackSampleInfo info;
-    info.size = *FrameArray;
-    info.trackIdx = trackId;
+    info.size = frameSize;
+    info.trackIdx = TrackId;
 
     if (i == 0) {
-        info.timeMs = 0;
+        info.timeUs = 0;
         info.flags = AVCODEC_BUFFER_FLAG_CODEC_DATA;
-    } else if ((i == 1 && trackId == videotrackId_) || trackId == audioTrackId_) {
-        info.timeMs = stamp;
+    } else if ((i == 1 && TrackId == videoTrackId_) || TrackId == audioTrackId_) {
+        info.timeUs = stamp;
         info.flags = AVCODEC_BUFFER_FLAG_SYNC_FRAME;
     } else {
-        info.timeMs = stamp;
+        info.timeUs = stamp;
         info.flags = AVCODEC_BUFFER_FLAG_PARTIAL_FRAME;
     }
 
@@ -213,7 +213,7 @@ bool AVMuxerDemo::PushBuffer(std::shared_ptr<std::ifstream> File, const int32_t 
     return true;
 }
 
-std::shared_ptr<std::ifstream> openFile(const std::string filePath)
+std::shared_ptr<std::ifstream> OpenFile(const std::string &filePath)
 {
     auto file = std::make_unique<std::ifstream>();
     file->open(filePath, std::ios::in | std::ios::binary);
@@ -229,14 +229,14 @@ void AVMuxerDemo::WriteTrackSample()
     int32_t audioLen = audioFile_ == nullptr ? INT32_MAX : audioFrameNum_;
     while (i < videoLen && i < audioLen) {
         if (videoFile_ != nullptr) {
-            if (!PushBuffer(videoFile_, videoFrameArray_, i, videotrackId_, videoStamp)) {
+            if (!PushBuffer(videoFile_, *videoFrameArray_, i, videoTrackId_, videoStamp)) {
                 break;
             }
             videoFrameArray_++;
             videoStamp += videoTimeDuration_;
         }
         if (audioFile_ != nullptr) {
-            if (!PushBuffer(audioFile_, audioFrameArray_, i, audioTrackId_, audioStamp)) {
+            if (!PushBuffer(audioFile_, *audioFrameArray_, i, audioTrackId_, audioStamp)) {
                 break;
             }
             audioFrameArray_++;
@@ -248,18 +248,18 @@ void AVMuxerDemo::WriteTrackSample()
     }
 }
 
-void AVMuxerDemo::SetParameter(std::string &type)
+void AVMuxerDemo::SetParameter(const std::string &type)
 {
     if (type == "h264" || type == "mpeg4") {
         videoTimeDuration_ = std::get<DURATION_INDEX>(CODEC_PARAMETER[type]);
         videoFrameNum_ = std::get<FRAME_NUM_INDEX>(CODEC_PARAMETER[type]);
         videoFrameArray_ = std::get<FRAME_SIZE_INDEX>(CODEC_PARAMETER[type]);
-        videoFile_ = openFile(std::get<FILE_PATH_INDEX>(CODEC_PARAMETER[type]));
+        videoFile_ = OpenFile(std::get<FILE_PATH_INDEX>(CODEC_PARAMETER[type]));
     } else {
         audioTimeDuration_ = std::get<DURATION_INDEX>(CODEC_PARAMETER[type]);
         audioFrameNum_ = std::get<FRAME_NUM_INDEX>(CODEC_PARAMETER[type]);
         audioFrameArray_ = std::get<FRAME_SIZE_INDEX>(CODEC_PARAMETER[type]);
-        audioFile_ = openFile(std::get<FILE_PATH_INDEX>(CODEC_PARAMETER[type]));
+        audioFile_ = OpenFile(std::get<FILE_PATH_INDEX>(CODEC_PARAMETER[type]));
     }
 }
 
@@ -282,8 +282,8 @@ bool AVMuxerDemo::AddTrackVideo(std::string &videoType)
         std::cout << "Failed to check video type" << std::endl;
         return false;
     }
-    avmuxer_->AddTrack(trackDesc, videotrackId_);
-    std::cout << "trackId is: " << videotrackId_ << std::endl;
+    avmuxer_->AddTrack(trackDesc, videoTrackId_);
+    std::cout << "trackId is: " << videoTrackId_ << std::endl;
 
     return true;
 }
@@ -347,7 +347,7 @@ void AVMuxerDemo::DoNext()
     }
     avmuxer_->SetOutput(fd, format);
     avmuxer_->SetLocation(LATITUDE, LONGITUDE);
-    avmuxer_->SetOrientationHint(RATATION);
+    avmuxer_->SetRotation(RATATION);
 
     if ((mode == VIDEO_AUDIO_MODE && (AddTrackVideo(videoType_) == false ||
         AddTrackAudio(audioType_) == false)) ||
