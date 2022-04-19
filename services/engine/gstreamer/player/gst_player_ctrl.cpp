@@ -856,9 +856,8 @@ void GstPlayerCtrl::OnSourceSetupCb(const GstPlayer *player, GstElement *src, Gs
         }
         (void)playerGst->appsrcWarp_->SetAppsrc(src);
     } else if (strstr(eleTypeName, "GstCurlHttpSrc") != nullptr) {
-        gboolean sslStrict = static_cast<gboolean>(false);
-        g_object_set(src, "ssl-strict", sslStrict, nullptr);
-        MEDIA_LOGI("disable curl_http ssl strict");
+        g_object_set(src, "ssl-ca-file", "/etc/ssl/certs/cacert.pem", nullptr);
+        MEDIA_LOGI("setup curl_http ca_file done");
     }
 }
 
