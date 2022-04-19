@@ -69,8 +69,11 @@ bool TestPlayerSeekFuzz::FuzzSeek(uint8_t* data, size_t size)
         cout << "Play fail" << endl;
         return false;
     }
-    ret = player_->Seek(*reinterpret_cast<int32_t *>(data), SEEK_NEXT_SYNC);
-    sleep(1);
+    if (size >= 4) {
+        ret = player_->Seek(*reinterpret_cast<int32_t *>(data), SEEK_NEXT_SYNC);
+        sleep(1);
+    }
+
     ret = player_->Release();
     if (ret != 0) {
         cout << "Release fail" << endl;
