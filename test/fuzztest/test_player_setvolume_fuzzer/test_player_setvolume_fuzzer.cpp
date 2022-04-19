@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
+#include "test_player_setvolume_fuzzer.h"
 #include <iostream>
 #include "string_ex.h"
 #include "media_errors.h"
 #include "directory_ex.h"
 #include "ui/rs_surface_node.h"
 #include "window_option.h"
-#include "test_player_setvolume_fuzzer.h"
 
 using namespace std;
 using namespace OHOS;
