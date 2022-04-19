@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -103,7 +103,7 @@ static int32_t parseParam(FormatParam &param, const MediaDescription &trackDesc,
 static void AddOptionCaps(GstCaps *src_caps, const std::string &mimeType)
 {
     for (auto& elements : optionCapsMap[mimeType]) {
-        switch (std::get<1>(elements)) {
+        switch (std::get<CAPS_FIELD_TYPE_INDEX>(elements)) {
             case G_TYPE_BOOLEAN:
             case G_TYPE_INT:
                 gst_caps_set_simple(src_caps,
@@ -125,8 +125,9 @@ static void AddOptionCaps(GstCaps *src_caps, const std::string &mimeType)
     }
 }
 
-static void CreateCaps(FormatParam &param, const std::string &mimeType, GstCaps *src_caps)
+static GstCaps *CreateCaps(FormatParam &param, const std::string &mimeType)
 {
+    GstCaps *src_caps = nullptr;
     if (AVMuxerUtil::CheckType(mimeType) == VIDEO) {
         src_caps = gst_caps_new_simple(std::get<0>(MIME_MAP_TYPE.at(mimeType)).c_str(),
             "width", G_TYPE_INT, param.width,
@@ -140,20 +141,22 @@ static void CreateCaps(FormatParam &param, const std::string &mimeType, GstCaps 
             nullptr);
     } else {
         MEDIA_LOGE("Failed to check track type");
-        return;
+        return nullptr;
     }
     AddOptionCaps(src_caps, mimeType);
+
+    return src_caps;
 }
 
 int32_t AVMuxerUtil::SetCaps(const MediaDescription &trackDesc, const std::string &mimeType,
-    GstCaps *src_caps)
+    GstCaps **src_caps)
 {
     MEDIA_LOGD("Set %{public}s cpas", mimeType.c_str());
     bool ret;
     FormatParam param;
     ret = parseParam(param, trackDesc, mimeType);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "Failed to call parseParam");
-    CreateCaps(param, mimeType, src_caps);
+    *src_caps = CreateCaps(param, mimeType);
 
     return MSERR_OK;
 }
