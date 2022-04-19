@@ -11,15 +11,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 ###############################################################################
 group("fuzztest") {
   testonly = true
   deps = []
   deps += [
     # deps file
-    "test_Player_Seek_fuzzer:test_Player_Seek_fuzzer",
-    "test_Player_SetVolume_fuzzer:test_Player_SetVolume_fuzzer",
+    "test_player_seek_fuzzer:test_player_seek_fuzzer",
+    "test_player_setvolume_fuzzer:test_player_setvolume_fuzzer",
   ]
 }
 ###############################################################################
