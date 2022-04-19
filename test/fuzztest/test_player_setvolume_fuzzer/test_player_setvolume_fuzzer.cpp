@@ -33,7 +33,7 @@ TestPlayerSetVolumeFuzz::~TestPlayerSetVolumeFuzz()
 {
 }
 
-bool TestPlayerSetVolumeFuzz::FuzzSetVolume(const uint8_t* data, size_t size)
+bool TestPlayerSetVolumeFuzz::FuzzSetVolume(uint8_t* data, size_t size)
 {
     player_ = OHOS::Media::PlayerFactory::CreatePlayer();
     if (player_ == nullptr) {
@@ -69,7 +69,7 @@ bool TestPlayerSetVolumeFuzz::FuzzSetVolume(const uint8_t* data, size_t size)
         cout << "Play fail" << endl;
         return false;
     }
-    ret = player_->SetVolume(static_cast<float>(*data), static_cast<float>(*data));
+    ret = player_->SetVolume(*reinterpret_cast<float *>(*data), static_cast<float>(*data));
     sleep(1);
     ret = player_->Release();
     if (ret != 0) {
@@ -79,7 +79,7 @@ bool TestPlayerSetVolumeFuzz::FuzzSetVolume(const uint8_t* data, size_t size)
     return true;
 }
 
-bool OHOS::Media::FuzzPlayerSetVolume(const uint8_t* data, size_t size)
+bool OHOS::Media::FuzzPlayerSetVolume(uint8_t* data, size_t size)
 {
     auto player = std::make_unique<TestPlayerSetVolumeFuzz>();
     if (player == nullptr) {
@@ -90,7 +90,7 @@ bool OHOS::Media::FuzzPlayerSetVolume(const uint8_t* data, size_t size)
 }
 
 /* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerTestOneInput(uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Media::FuzzPlayerSetVolume(data, size);

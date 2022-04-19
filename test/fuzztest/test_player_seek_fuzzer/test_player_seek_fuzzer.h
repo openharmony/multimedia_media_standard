@@ -21,13 +21,13 @@
 
 namespace OHOS {
 namespace Media {
-bool FuzzPlayerSeek(const uint8_t* data, size_t size);
+bool FuzzPlayerSeek(uint8_t* data, size_t size);
 
 class TestPlayerSeekFuzz : public TestPlayer {
 public:
     TestPlayerSeekFuzz();
     ~TestPlayerSeekFuzz();
-    bool FuzzSeek(const uint8_t* data, size_t size);
+    bool FuzzSeek(uint8_t* data, size_t size);
 };
 
 }

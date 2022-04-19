@@ -21,13 +21,13 @@
 
 namespace OHOS {
 namespace Media {
-bool FuzzPlayerSetVolume(const uint8_t* data, size_t size);
+bool FuzzPlayerSetVolume(uint8_t* data, size_t size);
 
 class TestPlayerSetVolumeFuzz : public TestPlayer {
 public:
     TestPlayerSetVolumeFuzz();
     ~TestPlayerSetVolumeFuzz();
-    bool FuzzSetVolume(const uint8_t* data, size_t size);
+    bool FuzzSetVolume(uint8_t* data, size_t size);
 };
 }
 }
