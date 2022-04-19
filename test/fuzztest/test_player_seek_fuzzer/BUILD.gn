@@ -25,6 +25,7 @@ ohos_fuzztest("test_player_seek_fuzzer") {
     "//foundation/multimedia/media_standard/services/utils/include",
     "//graphic/standard/interfaces/innerkits/surface",
     "//foundation/windowmanager/interfaces/innerkits/wm",
+    "//foundation/multimedia/media_standard/test/fuzztest/",
   ]
   cflags = [
     "-g",
@@ -32,7 +33,10 @@ ohos_fuzztest("test_player_seek_fuzzer") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-  sources = [ "test_player_seek_fuzzer.cpp" ]
+  sources = [
+    "../test_player.cpp",
+    "test_player_seek_fuzzer.cpp",
+  ]
   deps = [
     "//foundation/graphic/standard:libsurface",
     "//foundation/graphic/standard/frameworks/surface:surface",

@@ -17,35 +17,17 @@
 #define TEST_PLAYER_SETVOLUME_FUZZER_H
 
 #define FUZZ_PROJECT_NAME "test_player_setvolume_fuzzer"
-#include "player.h"
-#include "window.h"
-#include "surface.h"
-#include "display_type.h"
+#include "test_player.h"
 
 namespace OHOS {
 namespace Media {
 bool FuzzPlayerSetVolume(const uint8_t* data, size_t size);
 
-class TestPlayer : public NoCopyable {
+class TestPlayerSetVolumeFuzz : public TestPlayer {
 public:
-    TestPlayer();
-    ~TestPlayer();
-    sptr<Surface> GetVideoSurface();
+    TestPlayerSetVolumeFuzz();
+    ~TestPlayerSetVolumeFuzz();
     bool FuzzSetVolume(const uint8_t* data, size_t size);
-
-private:
-    int32_t SetFdSource(const std::string &path);
-    sptr<Rosen::Window> previewWindow_ = nullptr;
-    std::shared_ptr<Player> player_ = nullptr;
-};
-
-class TestPlayerCallback : public PlayerCallback {
-public:
-    TestPlayerCallback() = default;
-    ~TestPlayerCallback() = default;
-    DISALLOW_COPY_AND_MOVE(TestPlayerCallback);
-    void OnError(PlayerErrorType errorType, int32_t errorCode);
-    void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody = {});
 };
 }
 }

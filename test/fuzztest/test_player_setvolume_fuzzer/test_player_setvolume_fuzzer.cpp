@@ -25,99 +25,15 @@ using namespace std;
 using namespace OHOS;
 using namespace OHOS::Media;
 
-void TestPlayerCallback::OnError(PlayerErrorType errorType, int32_t errorCode)
-{
-    (void)errorType;
-    cout << "Error received, errorCode:" << MSErrorToString(static_cast<MediaServiceErrCode>(errorCode)) << endl;
-}
-
-void TestPlayerCallback::OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
-{
-    (void)infoBody;
-    switch (type) {
-        case INFO_TYPE_SEEKDONE:
-            cout << "PlayerCallback: OnSeekDone currentPositon is " << extra << endl;
-            break;
-        case INFO_TYPE_SPEEDDONE:
-            cout << "PlayerCallback: SpeedDone " << endl;
-            break;
-        case INFO_TYPE_EOS:
-            cout << "PlayerCallback: OnEndOfStream isLooping is " << extra << endl;
-            break;
-        case INFO_TYPE_BUFFERING_UPDATE:
-            break;
-        case INFO_TYPE_STATE_CHANGE:
-            break;
-        case INFO_TYPE_POSITION_UPDATE:
-            cout << "OnPositionUpdated position is " << extra << endl;
-            break;
-        case INFO_TYPE_MESSAGE:
-            cout << "PlayerCallback: OnMessage is " << extra << endl;
-            break;
-        case INFO_TYPE_RESOLUTION_CHANGE:
-            break;
-        case INFO_TYPE_VOLUME_CHANGE:
-            cout << "PlayerCallback: volume changed" << endl;
-            break;
-        default:
-            break;
-    }
-}
-
-TestPlayer::TestPlayer()
+TestPlayerSetVolumeFuzz::TestPlayerSetVolumeFuzz()
 {
 }
 
-TestPlayer::~TestPlayer()
+TestPlayerSetVolumeFuzz::~TestPlayerSetVolumeFuzz()
 {
-    if (previewWindow_ != nullptr) {
-        previewWindow_->Destroy();
-        previewWindow_ = nullptr;
-    }
 }
 
-sptr<Surface> TestPlayer::GetVideoSurface()
-{
-    sptr<Rosen::WindowOption> option = new Rosen::WindowOption();
-    option->SetWindowRect({ 0, 0, 640, 480 });
-    option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_LAUNCHING);
-    option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
-    previewWindow_ = Rosen::Window::Create("xcomponent_window_fuzztest", option);
-    if (previewWindow_ == nullptr || previewWindow_->GetSurfaceNode() == nullptr) {
-        cout << "previewWindow_ is nullptr" << endl;
-        return nullptr;
-    }
-    previewWindow_->Show();
-    return previewWindow_->GetSurfaceNode()->GetSurface();
-}
-
-int32_t TestPlayer::SetFdSource(const string &path)
-{
-    int32_t fd = open(path.c_str(), O_RDONLY);
-    if (fd < 0) {
-        cout << "Open file failed" << endl;
-        return -1;
-    }
-    int32_t offset = 0;
-
-    struct stat64 buffer;
-    if (fstat64(fd, &buffer) != 0) {
-        cout << "Get file state failed" << endl;
-        return -1;
-    }
-    int64_t length = static_cast<int64_t>(buffer.st_size);
-    cout << "fd = " << fd << ", offset = " << offset << ", length = " << length << endl;
-
-    int32_t ret = player_->SetSource(fd, offset, length);
-    if (ret != 0) {
-        cout << "SetSource fail" << endl;
-        return -1;
-    }
-    (void)close(fd);
-    return 0;
-}
-
-bool TestPlayer::FuzzSetVolume(const uint8_t* data, size_t size)
+bool TestPlayerSetVolumeFuzz::FuzzSetVolume(const uint8_t* data, size_t size)
 {
     player_ = OHOS::Media::PlayerFactory::CreatePlayer();
     if (player_ == nullptr) {
@@ -165,7 +81,7 @@ bool TestPlayer::FuzzSetVolume(const uint8_t* data, size_t size)
 
 bool OHOS::Media::FuzzPlayerSetVolume(const uint8_t* data, size_t size)
 {
-    auto player = std::make_unique<TestPlayer>();
+    auto player = std::make_unique<TestPlayerSetVolumeFuzz>();
     if (player == nullptr) {
         cout << "player is null" << endl;
         return 0;
