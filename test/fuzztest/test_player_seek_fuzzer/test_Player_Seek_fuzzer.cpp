@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,7 @@
 
 #include <iostream>
 #include <stdint.h>
-#include "test_Player_SetVolume_fuzzer.h"
+#include "test_player_seek_fuzzer.h"
 #include "string_ex.h"
 #include "media_errors.h"
 #include "directory_ex.h"
@@ -108,7 +108,7 @@ int32_t TestPlayer::SetFdSource(const string &path)
     cout << "fd = " << fd << ", offset = " << offset << ", length = " << length << endl;
 
     int32_t ret = player_->SetSource(fd, offset, length);
-    if (ret !=  0) {
+    if (ret != 0) {
         cout << "SetSource fail" << endl;
         return -1;
     }
@@ -116,7 +116,7 @@ int32_t TestPlayer::SetFdSource(const string &path)
     return 0;
 }
 
-bool TestPlayer::FuzzSetVolume(const uint8_t* data, size_t size)
+bool TestPlayer::FuzzSeek(const uint8_t* data, size_t size)
 {
     player_ = OHOS::Media::PlayerFactory::CreatePlayer();
     if (player_ == nullptr) {
@@ -142,41 +142,46 @@ bool TestPlayer::FuzzSetVolume(const uint8_t* data, size_t size)
     }
 
     ret = player_->PrepareAsync();
-    if (ret !=  0) {
+    if (ret != 0) {
         cout << "PrepareAsync fail" << endl;
         return false;
     }
     sleep(1);
     ret = player_->Play();
-    if (ret !=  0) {
+    if (ret != 0) {
         cout << "Play fail" << endl;
         return false;
     }
-    ret = player_->SetVolume(static_cast<float>(*data), static_cast<float>(*data));
+    ret = player_->Seek(static_cast<int32_t>(*data), SEEK_NEXT_SYNC);
     sleep(1);
     ret = player_->Release();
-    if (ret !=  0) {
+    if (ret != 0) {
         cout << "Release fail" << endl;
         return false;
     }
     return true;
 }
 
-bool OHOS::Media::FuzzPlayerSetVolume(const uint8_t* data, size_t size)
+bool OHOS::Media::FuzzPlayerSeek(const uint8_t* data, size_t size)
 {
     auto player = std::make_unique<TestPlayer>();
     if (player == nullptr) {
         cout << "player is null" << endl;
         return 0;
     }
-    return player->FuzzSetVolume(data, size);
+    cout << " size is " << size << " data is ";
+    for (size_t i = 0; i < size; i++) {
+        cout << data[i];
+    }
+    cout << "" << endl;
+    return player->FuzzSeek(data, size);
 }
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Media::FuzzPlayerSetVolume(data, size);
+    OHOS::Media::FuzzPlayerSeek(data, size);
     return 0;
 }
 
