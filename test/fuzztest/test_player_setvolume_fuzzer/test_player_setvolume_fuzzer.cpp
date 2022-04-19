@@ -69,8 +69,11 @@ bool TestPlayerSetVolumeFuzz::FuzzSetVolume(uint8_t* data, size_t size)
         cout << "Play fail" << endl;
         return false;
     }
-    ret = player_->SetVolume(*reinterpret_cast<float *>(*data), static_cast<float>(*data));
-    sleep(1);
+    if (size >= 4) {
+       ret = player_->SetVolume(*reinterpret_cast<float *>(data), static_cast<float>(data));
+        sleep(1); 
+    } 
+
     ret = player_->Release();
     if (ret != 0) {
         cout << "Release fail" << endl;
