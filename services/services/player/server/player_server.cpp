@@ -115,7 +115,7 @@ int32_t PlayerServer::SetSource(int32_t fd, int64_t offset, int64_t size)
     int32_t ret = InitPlayEngine(uriHelper->FormattedUri());
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetSource Failed!");
     uriHelper_ = std::move(uriHelper);
-    config_.url = uriHelper_.FormattedUri();
+    config_.url = uriHelper_->FormattedUri();
     return ret;
 }
 
