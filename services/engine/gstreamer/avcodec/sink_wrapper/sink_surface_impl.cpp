@@ -77,6 +77,12 @@ int32_t SinkSurfaceImpl::SetOutputSurface(sptr<Surface> surface)
     return MSERR_OK;
 }
 
+int32_t SinkSurfaceImpl::SetOutputBuffersCount(uint32_t maxBuffers)
+{
+    g_object_set(G_OBJECT(sink_), "max-pool-capacity", maxBuffers, nullptr);
+    return MSERR_OK;
+}
+
 int32_t SinkSurfaceImpl::SetParameter(const Format &format)
 {
     return MSERR_OK;
