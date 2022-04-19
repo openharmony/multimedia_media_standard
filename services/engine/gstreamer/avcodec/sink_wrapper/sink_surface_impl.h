@@ -32,6 +32,7 @@ public:
     int32_t Configure(std::shared_ptr<ProcessorConfig> config) override;
     int32_t Flush() override;
     int32_t SetOutputSurface(sptr<Surface> surface) override;
+    int32_t SetOutputBuffersCount(uint32_t maxBuffers) override;
     int32_t SetParameter(const Format &format) override;
     int32_t ReleaseOutputBuffer(uint32_t index, bool render) override;
     int32_t SetCallback(const std::weak_ptr<IAVCodecEngineObs> &obs) override;
