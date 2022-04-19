@@ -215,7 +215,7 @@ napi_value AVMuxerNapi::SetOutput(napi_env env, napi_callback_info info)
     if (args[1] != nullptr && napi_typeof(env, args[1], &valueType) == napi_ok && valueType == napi_string) {
         asyncContext->format_ = CommonNapi::GetStringArgument(env, args[1]);
     }
-    asyncContext->callbackRef = CommonNapi::CreateReference(env, args[2]);
+    asyncContext->callbackRef = CommonNapi::CreateReference(env, args[2]);  // args[2]:callback
     asyncContext->deferred = CommonNapi::CreatePromise(env, asyncContext->callbackRef, result);
 
     // get jsAVMuxer
@@ -337,7 +337,7 @@ napi_value AVMuxerNapi::AddTrack(napi_env env, napi_callback_info info)
 
     // get args
     napi_value jsThis = nullptr;
-    napi_value args[2] = {nullptr};
+    napi_value args[2] = {nullptr};  // args[0]:MediaDescription args[1]:callback
     size_t argCount = 2;
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
@@ -454,7 +454,7 @@ napi_value AVMuxerNapi::WriteTrackSample(napi_env env, napi_callback_info info)
     CHECK_AND_RETURN_RET_LOG(asyncContext != nullptr, result, "Failed to create AVMuxerNapiAsyncContext instance");
 
     napi_value jsThis = nullptr;
-    napi_value args[4] = {nullptr};
+    napi_value args[4] = {nullptr};  // args[0]:arrayBuffer args[1]:offset args[2]:TrackSampleInfo args[3]:callback
     size_t argCount = 4;
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsThis != nullptr,
