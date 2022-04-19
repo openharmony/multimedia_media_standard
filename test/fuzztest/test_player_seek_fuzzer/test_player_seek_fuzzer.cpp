@@ -63,6 +63,7 @@ void TestPlayerCallback::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
             break;
     }
 }
+
 TestPlayer::TestPlayer()
 {
 }
@@ -74,6 +75,7 @@ TestPlayer::~TestPlayer()
         previewWindow_ = nullptr;
     }
 }
+
 sptr<Surface> TestPlayer::GetVideoSurface()
 {
     sptr<Rosen::WindowOption> option = new Rosen::WindowOption();
