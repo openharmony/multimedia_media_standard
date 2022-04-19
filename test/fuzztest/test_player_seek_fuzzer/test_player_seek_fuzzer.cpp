@@ -33,7 +33,7 @@ TestPlayerSeekFuzz::~TestPlayerSeekFuzz()
 {
 }
 
-bool TestPlayerSeekFuzz::FuzzSeek(const uint8_t* data, size_t size)
+bool TestPlayerSeekFuzz::FuzzSeek(uint8_t* data, size_t size)
 {
     player_ = OHOS::Media::PlayerFactory::CreatePlayer();
     if (player_ == nullptr) {
@@ -69,7 +69,7 @@ bool TestPlayerSeekFuzz::FuzzSeek(const uint8_t* data, size_t size)
         cout << "Play fail" << endl;
         return false;
     }
-    ret = player_->Seek(static_cast<int32_t>(*data), SEEK_NEXT_SYNC);
+    ret = player_->Seek(*reinterpret_cast<int32_t *>(data), SEEK_NEXT_SYNC);
     sleep(1);
     ret = player_->Release();
     if (ret != 0) {
@@ -79,23 +79,18 @@ bool TestPlayerSeekFuzz::FuzzSeek(const uint8_t* data, size_t size)
     return true;
 }
 
-bool OHOS::Media::FuzzPlayerSeek(const uint8_t* data, size_t size)
+bool OHOS::Media::FuzzPlayerSeek(uint8_t* data, size_t size)
 {
     auto player = std::make_unique<TestPlayerSeekFuzz>();
     if (player == nullptr) {
         cout << "player is null" << endl;
         return 0;
     }
-    cout << " size is " << size << " data is ";
-    for (size_t i = 0; i < size; i++) {
-        cout << data[i];
-    }
-    cout << "" << endl;
     return player->FuzzSeek(data, size);
 }
 
 /* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerTestOneInput(uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Media::FuzzPlayerSeek(data, size);
