@@ -32,6 +32,7 @@ namespace {
     constexpr int BUFFER_LOW_PERCENT_DEFAULT = 1;
     constexpr int BUFFER_HIGH_PERCENT_DEFAULT = 4;
     constexpr int BUFFER_FULL_PERCENT_DEFAULT = 100;
+    constexpr guint MAX_SOFT_BUFFERS = 10;
 
     using namespace OHOS::Media;
     using StreamToServiceErrFunc = void (*)(const gchar *name, int32_t &errorCode);
@@ -192,9 +193,13 @@ void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, G
         return;
     }
 
-    if (metaStr.find("Sink/Video") != std::string::npos && playerGst->isHardWare_) {
-        GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
-        g_object_set(G_OBJECT(src), "caps", caps, nullptr);
+    if (metaStr.find("Sink/Video") != std::string::npos) {
+        if (playerGst->isHardWare_) {
+            GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
+            g_object_set(G_OBJECT(src), "caps", caps, nullptr);
+        } else {
+            g_object_set(G_OBJECT(src), "max-pool-capacity", MAX_SOFT_BUFFERS, nullptr);
+        }
         return;
     }
 }

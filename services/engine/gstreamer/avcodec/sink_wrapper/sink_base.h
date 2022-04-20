@@ -45,6 +45,11 @@ public:
         return MSERR_INVALID_OPERATION;
     }
 
+    virtual int32_t SetOutputBuffersCount(uint32_t maxBuffers)
+    {
+        return MSERR_INVALID_OPERATION;
+    }
+
     virtual std::shared_ptr<AVSharedMemory> GetOutputBuffer(uint32_t index)
     {
         return nullptr;

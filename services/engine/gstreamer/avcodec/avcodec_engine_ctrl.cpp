@@ -21,6 +21,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecEngineCtrl"};
+    constexpr guint MAX_SOFT_BUFFERS = 10;
 }
 
 namespace OHOS {
@@ -40,6 +41,7 @@ int32_t AVCodecEngineCtrl::Init(AVCodecType type, bool useSoftware, const std::s
 {
     MEDIA_LOGD("Enter Init");
     codecType_ = type;
+    isUseSoftWare_ = useSoftware;
     gstPipeline_ = GST_PIPELINE_CAST(gst_object_ref_sink(gst_pipeline_new("codec-pipeline")));
     CHECK_AND_RETURN_RET(gstPipeline_ != nullptr, MSERR_NO_MEMORY);
 
@@ -241,6 +243,9 @@ int32_t AVCodecEngineCtrl::SetOutputSurface(sptr<Surface> surface)
         CHECK_AND_RETURN_RET_LOG(sink_ != nullptr, MSERR_NO_MEMORY, "No memory");
         CHECK_AND_RETURN_RET(sink_->Init() == MSERR_OK, MSERR_UNKNOWN);
         CHECK_AND_RETURN_RET(sink_->SetCallback(obs_) == MSERR_OK, MSERR_UNKNOWN);
+        if (isUseSoftWare_) {
+            CHECK_AND_RETURN_RET(sink_->SetOutputBuffersCount(MAX_SOFT_BUFFERS) == MSERR_OK, MSERR_UNKNOWN);
+        }
     }
     if (sink_->SetOutputSurface(surface) == MSERR_OK) {
         useSurfaceRender_ = true;
