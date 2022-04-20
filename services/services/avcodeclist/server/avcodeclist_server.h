@@ -16,9 +16,9 @@
 #ifndef AVCODECLIST_SERVER_H
 #define AVCODECLIST_SERVER_H
 
+#include <mutex>
 #include "i_avcodeclist_service.h"
 #include "i_avcodeclist_engine.h"
-#include "time_monitor.h"
 #include "nocopyable.h"
 
 namespace OHOS {
@@ -29,13 +29,6 @@ public:
     AVCodecListServer();
     virtual ~AVCodecListServer();
 
-    enum AVCodecListStatus : int32_t {
-        AVCODECLIST_UNINITIALIZED = 0,
-        AVCODECLIST_INITIALIZED,
-        AVCODECLIST_END_OF_STREAM,
-        AVCODECLIST_ERROR,
-    };
-
     std::string FindVideoDecoder(const Format &format) override;
     std::string FindVideoEncoder(const Format &format) override;
     std::string FindAudioDecoder(const Format &format) override;
@@ -44,7 +37,6 @@ public:
 
 private:
     int32_t Init();
-    AVCodecListStatus status_ = AVCODECLIST_UNINITIALIZED;
     std::unique_ptr<IAVCodecListEngine> codecListEngine_;
     std::mutex mutex_;
     std::mutex cbMutex_;

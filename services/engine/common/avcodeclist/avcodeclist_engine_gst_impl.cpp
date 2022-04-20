@@ -206,16 +206,6 @@ std::string AVCodecListEngineGstImpl::FindAudioEncoder(const Format &format)
 std::vector<CapabilityData> AVCodecListEngineGstImpl::GetCodecCapabilityInfos()
 {
     AVCodecAbilitySingleton& codecAbilityInstance = AVCodecAbilitySingleton::GetInstance();
-    if (!codecAbilityInstance.IsParsered()) {
-        bool ret = codecAbilityInstance.ParseHardwareCapability();
-        if (!ret) {
-            MEDIA_LOGD("ParseHardwareCapability failed");
-        }
-        ret = codecAbilityInstance.ParseCodecXml();
-        if (!ret) {
-            MEDIA_LOGD("ParseCodecXml failed");
-        }
-    }
     return codecAbilityInstance.GetCapabilityDataArray();
 }
 } // namespace Media

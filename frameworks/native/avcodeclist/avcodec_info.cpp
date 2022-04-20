@@ -92,7 +92,7 @@ VideoCaps::~VideoCaps()
 
 std::shared_ptr<AVCodecInfo> VideoCaps::GetCodecInfo()
 {
-    std::shared_ptr<AVCodecInfo> codecInfo = std::make_shared<AVCodecInfo>((data_));
+    std::shared_ptr<AVCodecInfo> codecInfo = std::make_shared<AVCodecInfo>(data_);
     CHECK_AND_RETURN_RET_LOG(codecInfo != nullptr, nullptr, "create codecInfo failed");
 
     return codecInfo;
@@ -488,7 +488,7 @@ AudioCaps::~AudioCaps()
 
 std::shared_ptr<AVCodecInfo> AudioCaps::GetCodecInfo()
 {
-    std::shared_ptr<AVCodecInfo> codecInfo = std::make_shared<AVCodecInfo>((data_));
+    std::shared_ptr<AVCodecInfo> codecInfo = std::make_shared<AVCodecInfo>(data_);
     CHECK_AND_RETURN_RET_LOG(codecInfo != nullptr, nullptr, "create codecInfo failed");
     return codecInfo;
 }
