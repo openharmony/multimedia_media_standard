@@ -17,6 +17,7 @@
 #include <gst/gst.h>
 #include "media_errors.h"
 #include "media_log.h"
+#include "ipc_skeleton.h"
 #include "recorder_private_param.h"
 
 namespace {
@@ -33,6 +34,10 @@ int32_t AudioSource::Init()
         return MSERR_INVALID_OPERATION;
     }
     g_object_set(gstElem_, "source-type", desc_.type_, nullptr);
+
+    int32_t appUid = IPCSkeleton::GetCallingUid();
+    g_object_set(gstElem_, "app-uid", appUid, nullptr);
+
     return MSERR_OK;
 }
 
