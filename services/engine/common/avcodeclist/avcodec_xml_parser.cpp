@@ -116,6 +116,31 @@ const std::unordered_map<std::string, AVCodecType> CODEC_TYPE_MAP = {
 
 AVCodecXmlParser::AVCodecXmlParser()
 {
+    capabilityKeys_ = {
+        "codecName",
+        "codecType",
+        "mimeType",
+        "isVendor",
+        "bitrate",
+        "channels",
+        "sampleRate",
+        "format",
+        "profiles",
+        "complexity",
+        "bitrateMode",
+        "alignment",
+        "width",
+        "height",
+        "frameRate",
+        "encodeQuality",
+        "quality",
+        "levels",
+        "blockPerFrame",
+        "blockPerSecond",
+        "blockSize",
+        "profileLevelsMap",
+        "measuredFrameRate",
+    };
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
 }
 
@@ -156,7 +181,7 @@ void AVCodecXmlParser::Destroy()
 bool AVCodecXmlParser::ParseInternal(xmlNode *node)
 {
     xmlNode *currNode = node;
-    for (; currNode; currNode = currNode->next) {
+    for (; currNode != nullptr; currNode = currNode->next) {
         if (XML_ELEMENT_NODE == currNode->type) {
             switch (GetNodeNameAsInt(currNode)) {
                 case AUDIO_DECODER:
@@ -455,16 +480,17 @@ bool AVCodecXmlParser::ParseData(xmlNode *node)
     xmlNode *child = node->xmlChildrenNode;
     std::string capabilityValue;
     CapabilityData capabilityData;
-    for (; child; child = child->next) {
-        if (xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("Item"))) {
+    for (; child != nullptr; child = child->next) {
+        if (!xmlStrEqual(child->name, reinterpret_cast<const xmlChar*>("Item"))) {
             continue;
         }
         for (auto it = capabilityKeys_.begin(); it != capabilityKeys_.end(); it++) {
             std::string capabilityKey = *it;
-
             if (xmlHasProp(child, reinterpret_cast<xmlChar*>(const_cast<char*>(capabilityKey.c_str())))) {
-                capabilityValue = std::string(reinterpret_cast<char*>(xmlGetProp(child,
-                    reinterpret_cast<xmlChar*>(const_cast<char*>(capabilityKey.c_str())))));
+                xmlChar *pXmlProp = xmlGetProp(
+                    child, reinterpret_cast<xmlChar*>(const_cast<char*>(capabilityKey.c_str())));
+                CHECK_AND_CONTINUE(pXmlProp != nullptr);
+                capabilityValue = std::string(reinterpret_cast<char*>(pXmlProp));
                 bool ret = SetCapabilityData(capabilityData, capabilityKey, capabilityValue);
                 CHECK_AND_RETURN_RET_LOG(ret != false, false, "SetCapabilityData failed");
                 break;
@@ -477,19 +503,19 @@ bool AVCodecXmlParser::ParseData(xmlNode *node)
 
 NodeName AVCodecXmlParser::GetNodeNameAsInt(xmlNode *node) const
 {
-    if (!xmlStrcmp(node->name, reinterpret_cast<const xmlChar*>("Codecs"))) {
+    if (xmlStrEqual(node->name, reinterpret_cast<const xmlChar*>("Codecs"))) {
         return CODECS;
-    } else if (!xmlStrcmp(node->name, reinterpret_cast<const xmlChar*>("AudioCodecs"))) {
+    } else if (xmlStrEqual(node->name, reinterpret_cast<const xmlChar*>("AudioCodecs"))) {
         return AUDIO_CODECS;
-    } else if (!xmlStrcmp(node->name, reinterpret_cast<const xmlChar*>("VideoCodecs"))) {
+    } else if (xmlStrEqual(node->name, reinterpret_cast<const xmlChar*>("VideoCodecs"))) {
         return VIDEO_CODECS;
-    } else if (!xmlStrcmp(node->name, reinterpret_cast<const xmlChar*>("AudioDecoder"))) {
+    } else if (xmlStrEqual(node->name, reinterpret_cast<const xmlChar*>("AudioDecoder"))) {
         return AUDIO_DECODER;
-    } else if (!xmlStrcmp(node->name, reinterpret_cast<const xmlChar*>("AudioEncoder"))) {
+    } else if (xmlStrEqual(node->name, reinterpret_cast<const xmlChar*>("AudioEncoder"))) {
         return AUDIO_ENCODER;
-    } else if (!xmlStrcmp(node->name, reinterpret_cast<const xmlChar*>("VideoDecoder"))) {
+    } else if (xmlStrEqual(node->name, reinterpret_cast<const xmlChar*>("VideoDecoder"))) {
         return VIDEO_DECODER;
-    } else if (!xmlStrcmp(node->name, reinterpret_cast<const xmlChar*>("VideoEncoder"))) {
+    } else if (xmlStrEqual(node->name, reinterpret_cast<const xmlChar*>("VideoEncoder"))) {
         return VIDEO_ENCODER;
     } else {
         return UNKNOWN;

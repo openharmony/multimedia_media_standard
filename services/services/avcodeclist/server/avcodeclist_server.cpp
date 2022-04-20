@@ -52,14 +52,12 @@ int32_t AVCodecListServer::Init()
     codecListEngine_ = engineFactory->CreateAVCodecListEngine();
     CHECK_AND_RETURN_RET_LOG(codecListEngine_ != nullptr, MSERR_CREATE_REC_ENGINE_FAILED,
         "Failed to create codec list engine");
-    status_ = AVCODECLIST_INITIALIZED;
     return MSERR_OK;
 }
 
 std::string AVCodecListServer::FindVideoDecoder(const Format &format)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(status_ == AVCODECLIST_INITIALIZED, "", "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecListEngine_ != nullptr, "", "engine is nullptr");
 
     return codecListEngine_->FindVideoDecoder(format);
@@ -68,23 +66,22 @@ std::string AVCodecListServer::FindVideoDecoder(const Format &format)
 std::string AVCodecListServer::FindVideoEncoder(const Format &format)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(status_ == AVCODECLIST_INITIALIZED, "", "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecListEngine_ != nullptr, "", "engine is nullptr");
 
     return codecListEngine_->FindVideoEncoder(format);
 }
+
 std::string AVCodecListServer::FindAudioDecoder(const Format &format)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(status_ == AVCODECLIST_INITIALIZED, "", "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecListEngine_ != nullptr, "", "engine is nullptr");
 
     return codecListEngine_->FindAudioDecoder(format);
 }
+
 std::string AVCodecListServer::FindAudioEncoder(const Format &format)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(status_ == AVCODECLIST_INITIALIZED, "", "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecListEngine_ != nullptr, "", "engine is nullptr");
 
     return codecListEngine_->FindAudioEncoder(format);

@@ -61,7 +61,7 @@ config("media_service_config") {
     "//foundation/multimedia/media_standard/services/services/common",
     "//utils/native/base/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/avcodeclist",
+    "//foundation/multimedia/media_standard/services/engine/common/avcodeclist",
   ]
 
   if (target_cpu == "arm") {
@@ -107,7 +107,6 @@ ohos_shared_library("media_service") {
   deps = [
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//foundation/graphic/standard/frameworks/surface:surface",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/avcodeclist:media_engine_gst_avcodeclist",
     "//foundation/multimedia/media_standard/services/utils:media_format",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//utils/native/base:utils",

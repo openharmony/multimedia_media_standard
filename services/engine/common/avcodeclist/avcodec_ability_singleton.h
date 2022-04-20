@@ -20,12 +20,12 @@
 #include "avcodec_info.h"
 namespace OHOS {
 namespace Media {
-class AVCodecAbilitySingleton : public NoCopyable {
+class __attribute__((visibility("default"))) AVCodecAbilitySingleton : public NoCopyable {
 public:
     ~AVCodecAbilitySingleton();
     static AVCodecAbilitySingleton& GetInstance();
     bool ParseCodecXml();
-    bool ParseHardwareCapability();
+    bool RegisterCapability(const std::vector<CapabilityData> &registerCapabilityDataArray);
     bool IsParsered() const;
     std::vector<CapabilityData> GetCapabilityDataArray() const;
 

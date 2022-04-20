@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace Media {
-class AVCodecListEngineGstImpl : public IAVCodecListEngine, public NoCopyable {
+class __attribute__((visibility("default"))) AVCodecListEngineGstImpl : public IAVCodecListEngine, public NoCopyable {
 public:
     AVCodecListEngineGstImpl();
     ~AVCodecListEngineGstImpl();

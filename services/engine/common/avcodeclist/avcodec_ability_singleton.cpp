@@ -15,7 +15,6 @@
 
 #include "avcodec_ability_singleton.h"
 #include "avcodec_xml_parser.h"
-#include "codec_plugins_capability.h"
 #include "media_log.h"
 #include "media_errors.h"
 
@@ -28,6 +27,10 @@ namespace Media {
 AVCodecAbilitySingleton& AVCodecAbilitySingleton::GetInstance()
 {
     static AVCodecAbilitySingleton instance;
+    bool ret = instance.ParseCodecXml();
+    if (!ret) {
+        MEDIA_LOGD("ParseCodecXml failed");
+    }
     return instance;
 }
 
@@ -43,6 +46,9 @@ AVCodecAbilitySingleton::~AVCodecAbilitySingleton()
 
 bool AVCodecAbilitySingleton::ParseCodecXml()
 {
+    if (isParsered_) {
+        return true;
+    }
     AVCodecXmlParser xmlParser;
     bool ret = xmlParser.LoadConfiguration();
     if (!ret) {
@@ -62,12 +68,11 @@ bool AVCodecAbilitySingleton::ParseCodecXml()
     return true;
 }
 
-bool AVCodecAbilitySingleton::ParseHardwareCapability()
+bool AVCodecAbilitySingleton::RegisterCapability(const std::vector<CapabilityData> &registerCapabilityDataArray)
 {
-    MEDIA_LOGD("ParseHardwareCapability start");
-    std::vector<CapabilityData> data = CodecPluginsCapability::GetInstance().GetCodecPluginsCapability();
-    capabilityDataArray_.insert(capabilityDataArray_.end(), data.begin(), data.end());
-    MEDIA_LOGD("ParseHardwareCapability end");
+    capabilityDataArray_.insert(capabilityDataArray_.end(), registerCapabilityDataArray.begin(),
+        registerCapabilityDataArray.end());
+    MEDIA_LOGD("RegisterCapability success");
     return true;
 }
 
