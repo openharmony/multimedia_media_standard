@@ -23,7 +23,6 @@
 
 namespace OHOS {
 namespace Media {
-
 class TestPlayer : public NoCopyable {
 public:
     TestPlayer();
