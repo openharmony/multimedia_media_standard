@@ -62,6 +62,7 @@ private:
     bool isEncoder_ = false;
     bool flushAtStart_ = false;
     bool isStart_ = false;
+    bool isUseSoftWare_ = false;
 };
 } // namespace Media
 } // namespace OHOS
