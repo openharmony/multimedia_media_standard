@@ -16,7 +16,7 @@
 #include "gst_surface_mem_sink.h"
 #include <cinttypes>
 #include "surface.h"
-#include "gst_surface_pool.h"
+#include "gst_producer_surface_pool.h"
 #include "buffer_type_meta.h"
 #include "media_log.h"
 #include "param_wrapper.h"
@@ -98,7 +98,7 @@ static void gst_surface_mem_sink_init(GstSurfaceMemSink *sink)
     g_return_if_fail(priv != nullptr);
     sink->priv = priv;
     sink->priv->surface = nullptr;
-    sink->priv->pool = GST_SURFACE_POOL_CAST(gst_surface_pool_new());
+    sink->priv->pool = GST_PRODUCER_SURFACE_POOL_CAST(gst_producer_surface_pool_new());
     sink->prerollBuffer = nullptr;
     sink->firstRenderFrame = TRUE;
     sink->dump.enable_dump = FALSE;
@@ -267,7 +267,7 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     GstSurfacePool *pool = surface_sink->priv->pool;
     g_return_val_if_fail(pool != nullptr, FALSE);
     g_return_val_if_fail(gst_buffer_pool_set_active(GST_BUFFER_POOL(pool), FALSE), FALSE);
-    (void)gst_surface_pool_set_surface(pool, surface_sink->priv->surface);
+    (void)gst_producer_surface_pool_set_surface(pool, surface_sink->priv->surface);
 
     GstVideoInfo info;
     GST_DEBUG("begin gst_video_info_from_caps");
