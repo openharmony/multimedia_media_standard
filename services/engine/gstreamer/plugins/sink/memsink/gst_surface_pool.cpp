@@ -280,7 +280,9 @@ static void gst_surface_pool_request_loop(GstSurfacePool *spool)
             GST_ERROR_OBJECT(pool, "Failed to call CreateMsg");
         }
     }
-
+    while (g_list_length(spool->preAllocated) != 0 && spool->started) {
+        GST_BUFFER_POOL_WAIT(spool);
+    }
     if (!spool->started) {
         GST_BUFFER_POOL_UNLOCK(spool);
         GST_WARNING_OBJECT(spool, "task is paused, exit");
@@ -491,6 +493,7 @@ static GstFlowReturn gst_surface_pool_acquire_buffer(GstBufferPool *pool,
             spool->preAllocated = g_list_delete_link(spool->preAllocated, node);
             GST_DEBUG_OBJECT(spool, "acquire buffer from preallocated buffers");
             spool->freeBufCnt -= 1;
+            GST_BUFFER_POOL_NOTIFY(spool);
             ret = GST_FLOW_OK;
             break;
         }
