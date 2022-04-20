@@ -70,7 +70,7 @@ bool TestPlayerSetVolumeFuzz::FuzzSetVolume(uint8_t* data, size_t size)
         return false;
     }
     if (size >= sizeof(float)) {
-       ret = player_->SetVolume(*reinterpret_cast<float *>(data), *reinterpret_cast<float *>(data));
+        ret = player_->SetVolume(*reinterpret_cast<float *>(data), *reinterpret_cast<float *>(data));
         sleep(1); 
     } 
 
