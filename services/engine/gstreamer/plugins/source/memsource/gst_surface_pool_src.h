@@ -16,7 +16,7 @@
 #ifndef __GST_SURFACE_POOL_SRC_H__
 #define __GST_SURFACE_POOL_SRC_H__
 
-#include "gst_mem_pool_src.h"
+#include "gst_mem_src.h"
 #include "surface.h"
 
 G_BEGIN_DECLS

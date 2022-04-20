@@ -292,7 +292,7 @@ static void gst_surface_pool_src_init_surface(GstSurfacePoolSrc *src)
 {
     g_return_if_fail(src != nullptr && src->consumerSurface != nullptr);
     // The internal function do not need judge whether it is empty
-    GstMemPoolSrc *memsrc = GST_MEM_POOL_SRC(src);
+    GstMemPoolSrc *memsrc = GST_MEM_SRC(src);
     sptr<Surface> surface = src->consumerSurface;
     guint width = DEFAULT_VIDEO_WIDTH;
     guint height = DEFAULT_VIDEO_HEIGHT;
@@ -330,7 +330,7 @@ static gboolean gst_surface_pool_src_get_pool(GstSurfacePoolSrc *surfacesrc, Gst
     if (surfacesrc->pool == nullptr) {
         return FALSE;
     }
-    GstMemPoolSrc *memsrc = GST_MEM_POOL_SRC(surfacesrc);
+    GstMemPoolSrc *memsrc = GST_MEM_SRC(surfacesrc);
     memsrc->buffer_num = max_buf;
     gboolean is_video = gst_query_find_allocation_meta(query, GST_VIDEO_META_API_TYPE, nullptr);
     if (is_video) {
