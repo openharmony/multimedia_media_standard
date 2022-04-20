@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef __GST_MEM_POOL_SRC_H__
-#define __GST_MEM_POOL_SRC_H__
+#ifndef __GST_MEM_SRC_H__
+#define __GST_MEM_SRC_H__
 
 #include <gst/base/gstbasesrc.h>
 
@@ -24,18 +24,18 @@ G_BEGIN_DECLS
 #define GST_API_EXPORT __attribute__((visibility("default")))
 #endif
 
-#define GST_TYPE_MEM_POOL_SRC (gst_mem_pool_src_get_type())
-#define GST_MEM_POOL_SRC(obj) \
+#define GST_TYPE_MEM_POOL_SRC (gst_mem_src_get_type())
+#define GST_MEM_SRC(obj) \
     (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_MEM_POOL_SRC, GstMemPoolSrc))
-#define GST_MEM_POOL_SRC_CLASS(klass) \
+#define GST_MEM_SRC_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_MEM_POOL_SRC, GstMemPoolSrcClass))
-#define GST_MEM_POOL_SRC_GET_CLASS(obj) \
+#define GST_MEM_SRC_GET_CLASS(obj) \
     (G_TYPE_INSTANCE_GET_CLASS((obj), GST_TYPE_MEM_POOL_SRC, GstMemPoolSrcClass))
 #define GST_IS_MEM_POOL_SRC(obj) \
     (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_MEM_POOL_SRC))
 #define GST_IS_MEM_POOL_SRC_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_MEM_POOL_SRC))
-#define GST_MEM_POOL_SRC_CAST(obj) ((GstMemPoolSrc*)(obj))
+#define GST_MEM_SRC_CAST(obj) ((GstMemPoolSrc*)(obj))
 
 typedef struct _GstMemPoolSrc GstMemPoolSrc;
 typedef struct _GstMemPoolSrcClass GstMemPoolSrcClass;
@@ -61,16 +61,16 @@ struct _GstMemPoolSrcClass {
 };
 
 // for subclass to use
-GST_API_EXPORT GstFlowReturn gst_mem_pool_src_buffer_available(GstMemPoolSrc *memsrc);
+GST_API_EXPORT GstFlowReturn gst_mem_src_buffer_available(GstMemPoolSrc *memsrc);
 // for app to use
-GST_API_EXPORT GstBuffer *gst_mem_pool_src_pull_buffer(GstMemPoolSrc *memsrc);
+GST_API_EXPORT GstBuffer *gst_mem_src_pull_buffer(GstMemPoolSrc *memsrc);
 
-GST_API_EXPORT GstFlowReturn gst_mem_pool_src_push_buffer(GstMemPoolSrc *memsrc, GstBuffer *buffer);
+GST_API_EXPORT GstFlowReturn gst_mem_src_push_buffer(GstMemPoolSrc *memsrc, GstBuffer *buffer);
 
-GST_API_EXPORT void gst_mem_pool_src_set_callback(GstMemPoolSrc *memsrc, BufferAvailable callback,
+GST_API_EXPORT void gst_mem_src_set_callback(GstMemPoolSrc *memsrc, BufferAvailable callback,
     gpointer user_data, GDestroyNotify notify);
 
-GST_API_EXPORT GType gst_mem_pool_src_get_type(void);
+GST_API_EXPORT GType gst_mem_src_get_type(void);
 
 G_END_DECLS
 #endif
