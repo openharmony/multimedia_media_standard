@@ -13,23 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef __GST_SHMEM_POOL_SRC_H__
-#define __GST_SHMEM_POOL_SRC_H__
+#ifndef __GST_SHMEM_SRC_H__
+#define __GST_SHMEM_SRC_H__
 
-#include "gst_mem_pool_src.h"
+#include "gst_mem_src.h"
 
 G_BEGIN_DECLS
 
-#define GST_TYPE_SHMEM_POOL_SRC (gst_shmem_pool_src_get_type())
-#define GST_SHMEM_POOL_SRC(obj) \
+#define GST_TYPE_SHMEM_POOL_SRC (gst_shmem_src_get_type())
+#define GST_SHMEM_SRC(obj) \
     (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_SHMEM_POOL_SRC, GstShmemPoolSrc))
-#define GST_SHMEM_POOL_SRC_CLASS(klass) \
+#define GST_SHMEM_SRC_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_SHMEM_POOL_SRC, GstShmemPoolSrcClass))
 #define GST_IS_SHMEM_POOL_SRC(obj) \
     (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_SHMEM_POOL_SRC))
 #define GST_IS_SHMEM_POOL_SRC_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_SHMEM_POOL_SRC))
-#define GST_SHMEM_POOL_SRC_CAST(obj) ((GstShmemPoolSrc*)(obj))
+#define GST_SHMEM_SRC_CAST(obj) ((GstShmemPoolSrc*)(obj))
 
 typedef struct _GstShmemPoolSrc GstShmemPoolSrc;
 typedef struct _GstShmemPoolSrcClass GstShmemPoolSrcClass;
@@ -46,7 +46,7 @@ struct _GstShmemPoolSrcClass {
     GstMemPoolSrcClass parent_class;
 };
 
-GST_API_EXPORT GType gst_shmem_pool_src_get_type(void);
+GST_API_EXPORT GType gst_shmem_src_get_type(void);
 
 G_END_DECLS
 #endif
