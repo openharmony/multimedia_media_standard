@@ -36,6 +36,7 @@ enum {
     PROP_SAMPLE_RATE,
     PROP_CHANNELS,
     PROP_BITRATE,
+    PROP_APP_UID,
 };
 
 using namespace OHOS::Media;
@@ -100,6 +101,11 @@ static void gst_audio_capture_src_class_init(GstAudioCaptureSrcClass *klass)
             "Audio bitrate", 0, G_MAXINT32, 0,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
+    g_object_class_install_property(gobject_class, PROP_APP_UID,
+        g_param_spec_uint("appuid", "Appuid",
+            "APP UID", 0, G_MAXINT32, 0,
+            (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+
     gst_element_class_set_static_metadata(gstelement_class,
         "Audio capture source", "Source/Audio",
         "Retrieve audio frame from audio buffer queue", "OpenHarmony");
@@ -125,6 +131,7 @@ static void gst_audio_capture_src_init(GstAudioCaptureSrc *src)
     src->sample_rate = 0;
     src->is_start = FALSE;
     src->need_caps_info = TRUE;
+    src->appuid = 0;
     gst_base_src_set_blocksize(GST_BASE_SRC(src), 0);
 }
 
@@ -157,6 +164,8 @@ static void gst_audio_capture_src_set_property(GObject *object, guint prop_id,
         case PROP_BITRATE:
             src->bitrate = g_value_get_uint(value);
             break;
+        case PROP_APP_UID:
+            src->appuid = g_value_get_int(value);
         default:
             break;
     }
