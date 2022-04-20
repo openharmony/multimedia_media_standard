@@ -87,6 +87,9 @@
               "header_base": "//foundation/multimedia/media_standard/interfaces/kits/js"
             }
           }
+        ],
+        "test": [
+            "//foundation/multimedia/media_standard/test/fuzztest:fuzztest"
         ]
       }
     }
