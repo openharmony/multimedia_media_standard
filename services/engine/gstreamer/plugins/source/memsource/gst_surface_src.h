@@ -13,24 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef __GST_SURFACE_POOL_SRC_H__
-#define __GST_SURFACE_POOL_SRC_H__
+#ifndef __GST_SURFACE_SRC_H__
+#define __GST_SURFACE_SRC_H__
 
 #include "gst_mem_src.h"
 #include "surface.h"
 
 G_BEGIN_DECLS
 
-#define GST_TYPE_SURFACE_POOL_SRC (gst_surface_pool_src_get_type())
-#define GST_SURFACE_POOL_SRC(obj) \
+#define GST_TYPE_SURFACE_POOL_SRC (gst_surface_src_get_type())
+#define GST_SURFACE_SRC(obj) \
     (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_SURFACE_POOL_SRC, GstSurfacePoolSrc))
-#define GST_SURFACE_POOL_SRC_CLASS(klass) \
+#define GST_SURFACE_SRC_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_SURFACE_POOL_SRC, GstSurfacePoolSrcClass))
 #define GST_IS_SURFACE_POOL_SRC(obj) \
     (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_SURFACE_POOL_SRC))
 #define GST_IS_SURFACE_POOL_SRC_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_SURFACE_POOL_SRC))
-#define GST_SURFACE_POOL_SRC_CAST(obj) ((GstSurfacePoolSrc*)(obj))
+#define GST_SURFACE_SRC_CAST(obj) ((GstSurfacePoolSrc*)(obj))
 
 typedef struct _GstSurfacePoolSrc GstSurfacePoolSrc;
 typedef struct _GstSurfacePoolSrcClass GstSurfacePoolSrcClass;
@@ -49,7 +49,7 @@ struct _GstSurfacePoolSrcClass {
     GstMemPoolSrcClass parent_class;
 };
 
-GST_API_EXPORT GType gst_surface_pool_src_get_type(void);
+GST_API_EXPORT GType gst_surface_src_get_type(void);
 
 G_END_DECLS
 #endif

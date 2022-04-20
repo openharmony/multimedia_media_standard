@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 #include "config.h"
-#include "gst_surface_pool_src.h"
-#include "gst_shmem_pool_src.h"
+#include "gst_surface_src.h"
+#include "gst_shmem_src.h"
 
 static gboolean plugin_init(GstPlugin *plugin)
 {
