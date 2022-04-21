@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,13 +32,13 @@ struct AVMuxerNapiAsyncContext : public MediaAsyncContext {
     explicit AVMuxerNapiAsyncContext(napi_env env) : MediaAsyncContext(env) {}
     ~AVMuxerNapiAsyncContext() = default;
     AVMuxerNapi *jsAVMuxer = nullptr;
-    int32_t fd_;
+    int32_t fd_ = -1;
     std::string format_;
     MediaDescription trackDesc_;
-    int32_t trackId_;
+    int32_t trackId_ = -1;
     void *arrayBuffer_ = nullptr;
-    size_t arrayBufferSize_;
-    int32_t writeSampleFlag_;
+    size_t arrayBufferSize_ = 0;
+    int32_t writeSampleFlag_ = -1;
     TrackSampleInfo trackSampleInfo_;
 };
 
@@ -66,7 +66,7 @@ napi_value AVMuxerNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("stop", Stop),
         DECLARE_NAPI_FUNCTION("release", Release),
         DECLARE_NAPI_SETTER("location", SetLocation),
-        DECLARE_NAPI_SETTER("orientationHint", SetOrientationHint),
+        DECLARE_NAPI_SETTER("rotation", SetRotation),
     };
     
     napi_property_descriptor staticProperties[] = {
@@ -184,6 +184,7 @@ void AVMuxerNapi::AsyncSetOutput(napi_env env, void *data)
     int32_t ret = asyncContext->jsAVMuxer->avmuxerImpl_->SetOutput(asyncContext->fd_, asyncContext->format_);
     if (ret != MSERR_OK) {
         asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "Failed to call SetOutput");
+        return;
     }
     MEDIA_LOGD("Success AsyncSetOutput");
 }
@@ -199,7 +200,7 @@ napi_value AVMuxerNapi::SetOutput(napi_env env, napi_callback_info info)
 
     // get args
     napi_value jsThis = nullptr;
-    napi_value args[3] = {nullptr};
+    napi_value args[3] = {nullptr};  // args[0]:fd args[1]:format args[2]:callback
     size_t argCount = 3;
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
@@ -214,7 +215,7 @@ napi_value AVMuxerNapi::SetOutput(napi_env env, napi_callback_info info)
     if (args[1] != nullptr && napi_typeof(env, args[1], &valueType) == napi_ok && valueType == napi_string) {
         asyncContext->format_ = CommonNapi::GetStringArgument(env, args[1]);
     }
-    asyncContext->callbackRef = CommonNapi::CreateReference(env, args[2]);
+    asyncContext->callbackRef = CommonNapi::CreateReference(env, args[2]);  // args[2]:callback
     asyncContext->deferred = CommonNapi::CreatePromise(env, asyncContext->callbackRef, result);
 
     // get jsAVMuxer
@@ -269,9 +270,9 @@ napi_value AVMuxerNapi::SetLocation(napi_env env, napi_callback_info info)
     return result;
 }
 
-napi_value AVMuxerNapi::SetOrientationHint(napi_env env, napi_callback_info info)
+napi_value AVMuxerNapi::SetRotation(napi_env env, napi_callback_info info)
 {
-    MEDIA_LOGD("SetOrientationHint In");
+    MEDIA_LOGD("SetRotation In");
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     napi_value jsThis = nullptr;
@@ -292,14 +293,14 @@ napi_value AVMuxerNapi::SetOrientationHint(napi_env env, napi_callback_info info
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && valueType == napi_number, result,
         "Failed to check argument type");
     
-    int32_t degrees;
-    status = napi_get_value_int32(env, args[0], &degrees);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, result, "Failed to get degrees");
+    int32_t rotation;
+    status = napi_get_value_int32(env, args[0], &rotation);
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, result, "Failed to get rotation");
     
-    int32_t ret = avmuxer->avmuxerImpl_->SetOrientationHint(degrees);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, result, "Failed to call SetOrientationHint");
+    int32_t ret = avmuxer->avmuxerImpl_->SetRotation(rotation);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, result, "Failed to call SetRotation");
 
-    MEDIA_LOGD("Success SetOrientationHint");
+    MEDIA_LOGD("Success SetRotation");
     return result;
 }
 
@@ -316,11 +317,12 @@ void AVMuxerNapi::AsyncAddTrack(napi_env env, void *data)
     }
 
     int32_t ret = asyncContext->jsAVMuxer->avmuxerImpl_->AddTrack(asyncContext->trackDesc_, asyncContext->trackId_);
-    MEDIA_LOGD("asyncContext->trackId_ is: %{public}d", asyncContext->trackId_);
-    asyncContext->JsResult = std::make_unique<MediaJsResultInt>(asyncContext->trackId_);
     if (ret != MSERR_OK) {
         asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "Failed to call AddTrack");
+        return;
     }
+    MEDIA_LOGD("asyncContext->trackId_ is: %{public}d", asyncContext->trackId_);
+    asyncContext->JsResult = std::make_unique<MediaJsResultInt>(asyncContext->trackId_);
     MEDIA_LOGD("Success AsyncAddTrack");
 }
 
@@ -335,7 +337,7 @@ napi_value AVMuxerNapi::AddTrack(napi_env env, napi_callback_info info)
 
     // get args
     napi_value jsThis = nullptr;
-    napi_value args[2] = {nullptr};
+    napi_value args[2] = {nullptr};  // args[0]:MediaDescription args[1]:callback
     size_t argCount = 2;
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     if (status != napi_ok || jsThis == nullptr) {
@@ -384,6 +386,7 @@ void AVMuxerNapi::AsyncStart(napi_env env, void *data)
     int32_t ret = asyncContext->jsAVMuxer->avmuxerImpl_->Start();
     if (ret != MSERR_OK) {
         asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "Failed to call Start");
+        return;
     }
     MEDIA_LOGD("Success AsyncStart");
 }
@@ -451,7 +454,7 @@ napi_value AVMuxerNapi::WriteTrackSample(napi_env env, napi_callback_info info)
     CHECK_AND_RETURN_RET_LOG(asyncContext != nullptr, result, "Failed to create AVMuxerNapiAsyncContext instance");
 
     napi_value jsThis = nullptr;
-    napi_value args[4] = {nullptr};
+    napi_value args[4] = {nullptr};  // args[0]:arrayBuffer args[1]:offset args[2]:TrackSampleInfo args[3]:callback
     size_t argCount = 4;
     napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsThis != nullptr,
@@ -464,10 +467,10 @@ napi_value AVMuxerNapi::WriteTrackSample(napi_env env, napi_callback_info info)
     }
     uint32_t offset;
     if (args[1] != nullptr && napi_typeof(env, args[1], &valueType) == napi_ok && valueType == napi_number) {
-        CHECK_AND_RETURN_RET(napi_get_value_uint32(env, args[1], &offset) == napi_ok, result, "Failed to get degrees");
+        CHECK_AND_RETURN_RET(napi_get_value_uint32(env, args[1], &offset) == napi_ok, result);
     }
     if (args[2] != nullptr && napi_typeof(env, args[2], &valueType) == napi_ok && valueType == napi_object) {
-        (void)AVCodecNapiUtil::ExtractTrackSampleInfo(env, args[2], asyncContext->trackSampleInfo_);
+        (void)CommonNapi::ExtractTrackSampleInfo(env, args[2], asyncContext->trackSampleInfo_);
     }
     asyncContext->callbackRef = CommonNapi::CreateReference(env, args[3]);
     asyncContext->deferred = CommonNapi::CreatePromise(env, asyncContext->callbackRef, result);
@@ -510,6 +513,7 @@ void AVMuxerNapi::AsyncStop(napi_env env, void *data)
     int32_t ret = asyncContext->jsAVMuxer->avmuxerImpl_->Stop();
     if (ret != MSERR_OK) {
         asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "Failed to call Stop");
+        return;
     }
     MEDIA_LOGD("Success AsyncStop");
 }

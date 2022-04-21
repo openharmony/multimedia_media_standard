@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -82,7 +82,7 @@ int32_t AVMuxerServer::SetOutput(int32_t fd, const std::string &format)
     CHECK_AND_RETURN_RET_LOG(flags != -1, MSERR_INVALID_VAL, "failed to get file status flags");
     CHECK_AND_RETURN_RET_LOG((static_cast<uint32_t>(flags) & O_WRONLY) == O_WRONLY,
         MSERR_INVALID_VAL, "Failed to check fd")
-    
+    CHECK_AND_RETURN_RET_LOG(avmuxerEngine_ != nullptr, MSERR_INVALID_OPERATION, "AVMuxer engine does not exist");
     int32_t ret = avmuxerEngine_->SetOutput(fd, format);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Failed to call SetOutput");
     curState_ = AVMUXER_OUTPUT_SET;
@@ -103,16 +103,16 @@ int32_t AVMuxerServer::SetLocation(float latitude, float longitude)
     return MSERR_OK;
 }
 
-int32_t AVMuxerServer::SetOrientationHint(int32_t degrees)
+int32_t AVMuxerServer::SetRotation(int32_t rotation)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (curState_ != AVMUXER_OUTPUT_SET && curState_ != AVMUXER_PARAMETER_SET) {
-        MEDIA_LOGE("Failed to call SetOrientationHint, currentState is %{public}d", curState_);
+        MEDIA_LOGE("Failed to call SetRotation, currentState is %{public}d", curState_);
         return MSERR_INVALID_OPERATION;
     }
     CHECK_AND_RETURN_RET_LOG(avmuxerEngine_ != nullptr, MSERR_INVALID_OPERATION, "AVMuxer engine does not exist");
-    int32_t ret = avmuxerEngine_->SetOrientationHint(degrees);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Failed to call SetOrientationHint");
+    int32_t ret = avmuxerEngine_->SetRotation(rotation);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Failed to call SetRotation");
     curState_ = AVMUXER_PARAMETER_SET;
     return MSERR_OK;
 }
@@ -148,8 +148,8 @@ int32_t AVMuxerServer::Start()
 
 int32_t AVMuxerServer::WriteTrackSample(std::shared_ptr<AVSharedMemory> sampleData, const TrackSampleInfo &info)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(sampleData != nullptr, MSERR_INVALID_VAL, "sampleData is nullptr");
+    std::lock_guard<std::mutex> lock(mutex_);
     if (curState_ != AVMUXER_STARTED && curState_ != AVMUXER_SAMPLE_WRITING) {
         MEDIA_LOGE("Failed to call Start, currentState is %{public}d", curState_);
         return MSERR_INVALID_OPERATION;
@@ -175,7 +175,9 @@ void AVMuxerServer::Release()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (curState_ != AVMUXER_IDEL) {
+        mutex_.unlock();
         Stop();
+        mutex_.lock();
     }
     avmuxerEngine_ = nullptr;
 }

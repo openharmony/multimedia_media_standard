@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,7 +37,7 @@ public:
     int32_t Init() override;
     int32_t SetOutput(int32_t fd, const std::string &format) override;
     int32_t SetLocation(float latitude, float longitude) override;
-    int32_t SetOrientationHint(int32_t degrees) override;
+    int32_t SetRotation(int32_t rotation) override;
     int32_t AddTrack(const MediaDescription &trackDesc, int32_t &trackId) override;
     int32_t Start() override;
     int32_t WriteTrackSample(std::shared_ptr<AVSharedMemory> sampleData, const TrackSampleInfo &sampleInfo) override;

@@ -31,7 +31,7 @@ private:
     static void AsyncSetOutput(napi_env env, void *data);
     static napi_value SetOutput(napi_env env, napi_callback_info info);
     static napi_value SetLocation(napi_env env, napi_callback_info info);
-    static napi_value SetOrientationHint(napi_env env, napi_callback_info info);
+    static napi_value SetRotation(napi_env env, napi_callback_info info);
     static void AsyncAddTrack(napi_env env, void *data);
     static napi_value AddTrack(napi_env env, napi_callback_info info);
     static void AsyncStart(napi_env env, void *data);

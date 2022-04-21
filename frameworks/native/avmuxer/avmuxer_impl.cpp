@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -78,10 +78,10 @@ int32_t AVMuxerImpl::SetLocation(float latitude, float longitude)
     return avmuxerService_->SetLocation(latitude, longitude);
 }
 
-int32_t AVMuxerImpl::SetOrientationHint(int32_t degrees)
+int32_t AVMuxerImpl::SetRotation(int32_t rotation)
 {
     CHECK_AND_RETURN_RET_LOG(avmuxerService_ != nullptr, MSERR_INVALID_OPERATION, "AVMuxer Service does not exist");
-    return avmuxerService_->SetOrientationHint(degrees);
+    return avmuxerService_->SetRotation(rotation);
 }
 
 int32_t AVMuxerImpl::AddTrack(const MediaDescription &trackDesc, int32_t &trackId)
@@ -103,9 +103,6 @@ int32_t AVMuxerImpl::WriteTrackSample(std::shared_ptr<AVMemory> sampleData, cons
         sampleData->Offset() + sampleData->Size() <= sampleData->Capacity() &&
         sampleData->Offset() + sampleData->Size() >= sampleData->Size(),
         MSERR_INVALID_VAL, "Invalid memory");
-    MEDIA_LOGD("sampleData->Capacity is: %{public}u, sampleData->Size is: %{public}u,"
-        "sampleData->Data is: %{public}s, sampleData->Base is: %{public}s",
-        sampleData->Capacity(), sampleData->Size(), sampleData->Data(), sampleData->Base());
     std::shared_ptr<AVSharedMemoryBase> avSharedMem =
         std::make_shared<AVSharedMemoryBase>(sampleData->Size(), AVSharedMemory::FLAGS_READ_ONLY, "sampleData");
     int32_t ret = avSharedMem->Init();
