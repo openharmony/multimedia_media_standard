@@ -52,7 +52,7 @@ struct _GstAudioCaptureSrc {
     guint32 sample_rate;
     gboolean is_start;
     gboolean need_caps_info;
-    gint32 appuid;
+    guint32 token_id;
 };
 
 struct _GstAudioCaptureSrcClass {
