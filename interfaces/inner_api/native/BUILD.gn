@@ -91,7 +91,6 @@ config("media_client_public_config") {
 
 ohos_shared_library("media_client") {
   install_enable = true
-
   if (defined(ohos_lite)) {
     sources = [
       "$MEDIA_ROOT_DIR/frameworks/native/avcodec/avcodec_audio_decoder_impl.cpp",

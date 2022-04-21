@@ -43,8 +43,6 @@ public:
     std::unique_ptr<IAVCodecEngine> CreateAVCodecEngine() override;
     std::unique_ptr<IAVCodecListEngine> CreateAVCodecListEngine() override;
     std::unique_ptr<IAVMuxerEngine> CreateAVMuxerEngine() override;
-
-    DISALLOW_COPY_AND_MOVE(GstEngineFactory);
 };
 
 int32_t GstEngineFactory::Score(Scene scene, const std::string &uri)

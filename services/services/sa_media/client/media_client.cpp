@@ -229,7 +229,6 @@ int32_t MediaClient::DestroyAVMetadataHelperService(std::shared_ptr<IAVMetadataH
     return MSERR_OK;
 }
 
-
 int32_t MediaClient::DestroyAVCodecService(std::shared_ptr<IAVCodecService> avCodec)
 {
     std::lock_guard<std::mutex> lock(mutex_);

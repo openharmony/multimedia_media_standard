@@ -46,7 +46,6 @@ std::shared_ptr<IAVMetadataHelperService> MediaLocal::CreateAVMetadataHelperServ
     return AVMetadataHelperServer::Create();
 }
 
-
 std::shared_ptr<IAVCodecService> MediaLocal::CreateAVCodecService()
 {
     return AVCodecServer::Create();
