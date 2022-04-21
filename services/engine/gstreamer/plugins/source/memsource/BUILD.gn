@@ -58,8 +58,8 @@ ohos_shared_library("gst_mem_src") {
     "gst_consumer_surface_allocator.cpp",
     "gst_consumer_surface_pool.cpp",
     "gst_mem_source_plugins.cpp",
-    "gst_shmem_pool_src.cpp",
-    "gst_surface_pool_src.cpp",
+    "gst_shmem_src.cpp",
+    "gst_surface_src.cpp",
   ]
 
   configs = [ ":gst_mem_src_config" ]
@@ -88,7 +88,7 @@ ohos_shared_library("gst_mem_src") {
 }
 
 ohos_static_library("gst_mem_src_base") {
-  sources = [ "gst_mem_pool_src.cpp" ]
+  sources = [ "gst_mem_src.cpp" ]
   configs = [ ":gst_mem_src_config" ]
   subsystem_name = "multimedia"
   part_name = "multimedia_media_standard"

@@ -58,7 +58,7 @@ int32_t SrcBytebufferImpl::Configure(const std::shared_ptr<ProcessorConfig> &con
     g_object_set(G_OBJECT(src_), "buffer-num", DEFAULT_BUFFER_NUM, nullptr);
     g_object_set(G_OBJECT(src_), "buffer-size", config->bufferSize_, nullptr);
     g_object_set(G_OBJECT(src_), "caps", config->caps_, nullptr);
-    gst_mem_pool_src_set_callback(GST_MEM_POOL_SRC(src_), BufferAvailable, this, nullptr);
+    gst_mem_src_set_callback(GST_MEM_SRC(src_), BufferAvailable, this, nullptr);
 
     needCodecData_ = config->needCodecData_;
     if (needCodecData_) {
@@ -150,7 +150,7 @@ int32_t SrcBytebufferImpl::QueueInputBuffer(uint32_t index, AVCodecBufferInfo in
     }
 
     CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
-    (void)gst_mem_pool_src_push_buffer(GST_MEM_POOL_SRC(src_), bufWrapper->gstBuffer_);
+    (void)gst_mem_src_push_buffer(GST_MEM_SRC(src_), bufWrapper->gstBuffer_);
     bufWrapper->owner_ = BufferWrapper::DOWNSTREAM;
     bufWrapper->gstBuffer_ = nullptr; // src elem take ownership of this buffer.
 
@@ -197,7 +197,7 @@ GstFlowReturn SrcBytebufferImpl::BufferAvailable(GstMemPoolSrc *memsrc, gpointer
     CHECK_AND_RETURN_RET(memsrc != nullptr, GST_FLOW_ERROR);
     CHECK_AND_RETURN_RET(userdata != nullptr, GST_FLOW_ERROR);
 
-    GstBuffer *buffer = gst_mem_pool_src_pull_buffer(memsrc);
+    GstBuffer *buffer = gst_mem_src_pull_buffer(memsrc);
     CHECK_AND_RETURN_RET(buffer != nullptr, GST_FLOW_ERROR);
 
     SrcBytebufferImpl *thiz = reinterpret_cast<SrcBytebufferImpl *>(userdata);
