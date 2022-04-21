@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,15 +26,15 @@ public:
     ~AVMuxerDemo() = default;
     void RunCase();
 private:
-    bool PushBuffer(std::shared_ptr<std::ifstream> File, const int32_t *FrameArray,
-        int32_t i, int32_t trackId_, int64_t stamp);
+    bool PushBuffer(std::shared_ptr<std::ifstream> File, const int32_t frameSize,
+        int32_t i, int32_t trackId, int64_t stamp);
     void WriteTrackSample();
+    void SetParameter(const std::string &type);
     bool AddTrackVideo(std::string &videoType);
     bool AddTrackAudio(std::string &audioType);
-    void SetParameter(std::string &type);
     void DoNext();
     std::shared_ptr<AVMuxer> avmuxer_;
-    int32_t videotrackId_ = 0;
+    int32_t videoTrackId_ = 0;
     int32_t audioTrackId_ = 0;
     int32_t videoTimeDuration_ = 0;
     int32_t audioTimeDuration_ = 0;

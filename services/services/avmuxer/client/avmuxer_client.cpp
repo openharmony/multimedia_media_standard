@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,6 +41,7 @@ AVMuxerClient::~AVMuxerClient()
     std::lock_guard<std::mutex> lock(mutex_);
     if (avmuxerProxy_ != nullptr) {
         (void)avmuxerProxy_->DestroyStub();
+        avmuxerProxy_ = nullptr;
     }
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
@@ -72,11 +73,11 @@ int32_t AVMuxerClient::SetLocation(float latitude, float longitude)
     return avmuxerProxy_->SetLocation(latitude, longitude);
 }
 
-int32_t AVMuxerClient::SetOrientationHint(int32_t degrees)
+int32_t AVMuxerClient::SetRotation(int32_t rotation)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(avmuxerProxy_ != nullptr, MSERR_NO_MEMORY, "AVMuxer Service does not exist");
-    return avmuxerProxy_->SetOrientationHint(degrees);
+    return avmuxerProxy_->SetRotation(rotation);
 }
 
 int32_t AVMuxerClient::AddTrack(const MediaDescription &trackDesc, int32_t &trackId)

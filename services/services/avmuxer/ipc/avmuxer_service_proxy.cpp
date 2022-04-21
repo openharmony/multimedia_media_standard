@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -82,8 +82,8 @@ int32_t AVMuxerServiceProxy::SetOutput(int32_t fd, const std::string &format)
         return MSERR_UNKNOWN;
     }
 
-    (void)data.WriteFileDescriptor(fd);
-    (void)data.WriteString(format);
+    CHECK_AND_RETURN_RET(data.WriteFileDescriptor(fd), MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(data.WriteString(format), MSERR_UNKNOWN);
     int error = Remote()->SendRequest(SET_OUTPUT, data, reply, option);
     CHECK_AND_RETURN_RET_LOG(error == MSERR_OK, error, "Failed to call SetOutput, error: %{public}d", error);
     return reply.ReadInt32();
@@ -100,14 +100,14 @@ int32_t AVMuxerServiceProxy::SetLocation(float latitude, float longitude)
         return MSERR_UNKNOWN;
     }
 
-    (void)data.WriteFloat(latitude);
-    (void)data.WriteFloat(longitude);
+    CHECK_AND_RETURN_RET(data.WriteFloat(latitude), MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(data.WriteFloat(longitude), MSERR_UNKNOWN);
     int error = Remote()->SendRequest(SET_LOCATION, data, reply, option);
     CHECK_AND_RETURN_RET_LOG(error == MSERR_OK, error, "Failed to call SetLocation, error: %{public}d", error);
     return reply.ReadInt32();
 }
 
-int32_t AVMuxerServiceProxy::SetOrientationHint(int32_t degrees)
+int32_t AVMuxerServiceProxy::SetRotation(int32_t rotation)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -118,9 +118,9 @@ int32_t AVMuxerServiceProxy::SetOrientationHint(int32_t degrees)
         return MSERR_UNKNOWN;
     }
 
-    (void)data.WriteInt32(degrees);
+    CHECK_AND_RETURN_RET(data.WriteInt32(rotation), MSERR_UNKNOWN);
     int error = Remote()->SendRequest(SET_ORIENTATION_HINT, data, reply, option);
-    CHECK_AND_RETURN_RET_LOG(error == MSERR_OK, error, "Failed to call SetOrientationHint, error: %{public}d", error);
+    CHECK_AND_RETURN_RET_LOG(error == MSERR_OK, error, "Failed to call SetRotation, error: %{public}d", error);
     return reply.ReadInt32();
 }
 
@@ -135,7 +135,7 @@ int32_t AVMuxerServiceProxy::AddTrack(const MediaDescription &trackDesc, int32_t
         return MSERR_UNKNOWN;
     }
 
-    (void)MediaParcel::Marshalling(data, trackDesc);
+    CHECK_AND_RETURN_RET(MediaParcel::Marshalling(data, trackDesc), MSERR_UNKNOWN);
     int error = Remote()->SendRequest(ADD_TRACK, data, reply, option);
     CHECK_AND_RETURN_RET_LOG(error == MSERR_OK, error, "Failed to call AddTrack, error: %{public}d", error);
     trackId = reply.ReadInt32();
@@ -172,10 +172,10 @@ int32_t AVMuxerServiceProxy::WriteTrackSample(std::shared_ptr<AVSharedMemory> sa
     }
 
     WriteAVSharedMemoryToParcel(sampleData, data);
-    (void)data.WriteInt32(sampleInfo.trackIdx);
-    (void)data.WriteInt64(sampleInfo.timeMs);
-    (void)data.WriteInt32(sampleInfo.size);
-    (void)data.WriteInt32(sampleInfo.flags);
+    CHECK_AND_RETURN_RET(data.WriteInt32(sampleInfo.trackIdx), MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(data.WriteInt64(sampleInfo.timeUs), MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(data.WriteInt32(sampleInfo.size), MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(data.WriteInt32(sampleInfo.flags), MSERR_UNKNOWN);
     int error = Remote()->SendRequest(WRITE_TRACK_SAMPLE, data, reply, option);
     CHECK_AND_RETURN_RET_LOG(error == MSERR_OK, error, "Failed to call WriteTrackSample, error: %{public}d", error);
     return reply.ReadInt32();
