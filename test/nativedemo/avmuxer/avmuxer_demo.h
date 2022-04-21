@@ -26,8 +26,8 @@ public:
     ~AVMuxerDemo() = default;
     void RunCase();
 private:
-    bool PushBuffer(std::shared_ptr<std::ifstream> File, const int32_t FrameSize,
-        int32_t i, int32_t TrackId, int64_t stamp);
+    bool PushBuffer(std::shared_ptr<std::ifstream> File, const int32_t frameSize,
+        int32_t i, int32_t trackId, int64_t stamp);
     void WriteTrackSample();
     void SetParameter(const std::string &type);
     bool AddTrackVideo(std::string &videoType);

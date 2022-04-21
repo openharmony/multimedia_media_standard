@@ -143,19 +143,19 @@ int32_t AVMuxerEngineGstImpl::SetLocation(float latitude, float longitude)
     return MSERR_OK;
 }
 
-int32_t AVMuxerEngineGstImpl::SetRotation(int32_t ratation)
+int32_t AVMuxerEngineGstImpl::SetRotation(int32_t rotation)
 {
     MEDIA_LOGD("SetRotation");
     CHECK_AND_RETURN_RET_LOG(muxBin_ != nullptr, MSERR_INVALID_OPERATION, "Muxbin does not exist");
 
     bool setRotationToMux = true;
-    if (ratation != ROTATION_90 && ratation != ROTATION_180 && ratation != ROTATION_270) {
+    if (rotation != ROTATION_90 && rotation != ROTATION_180 && rotation != ROTATION_270) {
         setRotationToMux = false;
-        MEDIA_LOGW("Invalid rotation: %{public}d, keep default 0", ratation);
+        MEDIA_LOGW("Invalid rotation: %{public}d, keep default 0", rotation);
     }
 
     if (setRotationToMux) {
-        g_object_set(muxBin_, "ratation", ratation, nullptr);
+        g_object_set(muxBin_, "rotation", rotation, nullptr);
     }
 
     return MSERR_OK;
@@ -202,7 +202,8 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
     MEDIA_LOGD("caps ref: %{public}d", GST_MINI_OBJECT(trackInfo_[trackId].caps_)->refcount);
     std::string name = "src_";
     name += static_cast<char>('0' + trackId);
-    gst_mux_bin_add_track(muxBin_, name.c_str(), (name + std::get<1>(MIME_MAP_TYPE.at(mimeType))).c_str(),
+    gst_mux_bin_add_track(muxBin_, name.c_str(),
+        (std::get<1>(MIME_MAP_TYPE.at(mimeType)) + std::tostring(trackId)).c_str(),
         AVMuxerUtil::CheckType(trackInfo_[trackId].mimeType_));
 
     return MSERR_OK;

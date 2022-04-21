@@ -103,7 +103,7 @@ int32_t AVMuxerServer::SetLocation(float latitude, float longitude)
     return MSERR_OK;
 }
 
-int32_t AVMuxerServer::SetRotation(int32_t ratation)
+int32_t AVMuxerServer::SetRotation(int32_t rotation)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (curState_ != AVMUXER_OUTPUT_SET && curState_ != AVMUXER_PARAMETER_SET) {
@@ -111,7 +111,7 @@ int32_t AVMuxerServer::SetRotation(int32_t ratation)
         return MSERR_INVALID_OPERATION;
     }
     CHECK_AND_RETURN_RET_LOG(avmuxerEngine_ != nullptr, MSERR_INVALID_OPERATION, "AVMuxer engine does not exist");
-    int32_t ret = avmuxerEngine_->SetRotation(ratation);
+    int32_t ret = avmuxerEngine_->SetRotation(rotation);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Failed to call SetRotation");
     curState_ = AVMUXER_PARAMETER_SET;
     return MSERR_OK;

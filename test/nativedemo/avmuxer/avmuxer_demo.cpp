@@ -169,12 +169,12 @@ namespace {
     constexpr uint32_t MP3_CHANNEL = 2;
     constexpr float LATITUDE = 30.1111;
     constexpr float LONGITUDE = 150.2222;
-    constexpr int32_t RATATION = 90;
+    constexpr int32_t ROTATION = 90;
 }
 namespace OHOS {
 namespace Media {
 bool AVMuxerDemo::PushBuffer(std::shared_ptr<std::ifstream> File, const int32_t frameSize,
-    int32_t i, int32_t TrackId, int64_t stamp)
+    int32_t i, int32_t trackId, int64_t stamp)
 {
     if (frameSize == 0) {
         std::cout << "Frame size error" << std::endl;
@@ -190,12 +190,12 @@ bool AVMuxerDemo::PushBuffer(std::shared_ptr<std::ifstream> File, const int32_t 
     aVMem->SetRange(0, frameSize);
     TrackSampleInfo info;
     info.size = frameSize;
-    info.trackIdx = TrackId;
+    info.trackIdx = trackId;
 
     if (i == 0) {
         info.timeUs = 0;
         info.flags = AVCODEC_BUFFER_FLAG_CODEC_DATA;
-    } else if ((i == 1 && TrackId == videoTrackId_) || TrackId == audioTrackId_) {
+    } else if ((i == 1 && trackId == videoTrackId_) || trackId == audioTrackId_) {
         info.timeUs = stamp;
         info.flags = AVCODEC_BUFFER_FLAG_SYNC_FRAME;
     } else {
@@ -347,7 +347,7 @@ void AVMuxerDemo::DoNext()
     }
     avmuxer_->SetOutput(fd, format);
     avmuxer_->SetLocation(LATITUDE, LONGITUDE);
-    avmuxer_->SetRotation(RATATION);
+    avmuxer_->SetRotation(ROTATION);
 
     if ((mode == VIDEO_AUDIO_MODE && (AddTrackVideo(videoType_) == false ||
         AddTrackAudio(audioType_) == false)) ||
