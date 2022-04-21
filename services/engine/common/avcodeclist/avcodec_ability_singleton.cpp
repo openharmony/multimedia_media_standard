@@ -70,7 +70,7 @@ bool AVCodecAbilitySingleton::ParseCodecXml()
 
 bool AVCodecAbilitySingleton::RegisterCapability(const std::vector<CapabilityData> &registerCapabilityDataArray)
 {
-    capabilityDataArray_.insert(capabilityDataArray_.end(), registerCapabilityDataArray.begin(),
+    capabilityDataArray_.insert(capabilityDataArray_.begin(), registerCapabilityDataArray.begin(),
         registerCapabilityDataArray.end());
     MEDIA_LOGD("RegisterCapability success");
     return true;
