@@ -57,7 +57,7 @@ struct _GstMuxBin {
 
     gint out_fd;
     gchar *mux;
-    gint ratation;
+    gint rotation;
     gint latitude;
     gint longitude;
 };
