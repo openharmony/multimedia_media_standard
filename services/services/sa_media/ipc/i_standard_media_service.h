@@ -35,6 +35,7 @@ public:
         MEDIA_AVMETADATAHELPER = 3,
         MEDIA_CODECLIST = 4,
         MEDIA_AVCODEC = 5,
+        MEDIA_AVMUXER = 6,
     };
 
     /**

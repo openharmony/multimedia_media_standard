@@ -124,6 +124,7 @@ int32_t AVMuxerServiceProxy::SetRotation(int32_t rotation)
     return reply.ReadInt32();
 }
 
+
 int32_t AVMuxerServiceProxy::AddTrack(const MediaDescription &trackDesc, int32_t &trackId)
 {
     MessageParcel data;

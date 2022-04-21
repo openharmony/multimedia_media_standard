@@ -16,6 +16,7 @@
 #include "media_capability_napi.h"
 #include <climits>
 #include "avcodec_list.h"
+#include "avmuxer.h"
 #include "avcodec_napi_utils.h"
 #include "media_log.h"
 #include "media_errors.h"
@@ -54,6 +55,7 @@ napi_value MediaCapsNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("findVideoDecoder", FindVideoDecoder),
         DECLARE_NAPI_FUNCTION("getVideoEncoderCaps", GetVideoEncoderCaps),
         DECLARE_NAPI_FUNCTION("findVideoEncoder", FindVideoEncoder),
+        DECLARE_NAPI_FUNCTION("getAVMuxerFormatList", GetAVMuxerFormatList),
     };
     napi_property_descriptor staticProperty[] = {
         DECLARE_NAPI_STATIC_FUNCTION("getMediaCapability", GetMediaCapability),
@@ -532,5 +534,51 @@ napi_value MediaCapsNapi::FindVideoEncoder(napi_env env, napi_callback_info info
 
     return result;
 }
-} // namespace Media
-} // namespace OHOS
+
+napi_value MediaCapsNapi::GetAVMuxerFormatList(napi_env env, napi_callback_info info)
+{
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    MEDIA_LOGD("GetAVMuxerFormatList In");
+
+    auto asyncCtx = std::make_unique<MediaCapsAsyncContext>(env);
+
+    napi_value jsThis = nullptr;
+    napi_value args[1] = {nullptr};
+    size_t argCount = 1;
+    napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
+    if (status != napi_ok || jsThis == nullptr) {
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to napi_get_cb_info");
+    }
+
+    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
+    asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
+
+    (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
+
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "GetAVMuxerFormatList", NAPI_AUTO_LENGTH, &resource);
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
+        [](napi_env env, void* data) {
+            auto asyncCtx = reinterpret_cast<MediaCapsAsyncContext *>(data);
+            if (asyncCtx == nullptr || asyncCtx->napi == nullptr) {
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
+                return;
+            }
+            auto avmuxer = AVMuxerFactory::CreateAVMuxer();
+            if (avmuxer == nullptr) {
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "No memory");
+                return;
+            }
+            std::vector<std::string> formatList = avmuxer->GetAVMuxerFormatList();
+            asyncCtx->JsResult = std::make_unique<MediaJsResultStringVector>(formatList);
+        },
+        MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
+
+    NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
+    asyncCtx.release();
+
+    return result;
+}
+}  // namespace Media
+}  // namespace OHOS

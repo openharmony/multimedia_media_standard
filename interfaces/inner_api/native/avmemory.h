@@ -25,7 +25,7 @@ namespace Media {
 /**
  * @brief Provides a wrap for raw byte buffer.
  */
-class __attribute__((visibility("default"))) AVMemory {
+class __attribute__((visibility("default"))) AVMemory : public NoCopyable {
 public:
     /**
      * @brief Construct a new AVMemory object with specified capacity, the raw buffer will be allocated.
@@ -35,9 +35,9 @@ public:
     /**
      * @brief Construct a new AVMemory object with specified raw buffer address and capacity.
      */
-    AVMemory(uint8_t *base, size_t capacity);
+    AVMemory(uint8_t *base, size_t capacity) : base_(base), capacity_(capacity) {};
 
-    ~AVMemory();
+    ~AVMemory() {};
 
     uint8_t *Base() const
     {
@@ -69,8 +69,6 @@ public:
         offset_ = offset;
         size_ = size;
     }
-
-    DISALLOW_COPY_AND_MOVE(AVMemory);
 
 private:
     uint8_t *base_ = nullptr;
