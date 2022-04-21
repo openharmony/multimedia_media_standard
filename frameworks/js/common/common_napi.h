@@ -20,6 +20,7 @@
 #include <vector>
 #include <unordered_map>
 #include "format.h"
+#include "avcontainer_types.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
@@ -52,6 +53,7 @@ public:
         const std::vector<int32_t> &vec);
     static bool AddNumberPropInt32(napi_env env, napi_value obj, const std::string &key, int32_t value);
     static bool AddNumberPropInt64(napi_env env, napi_value obj, const std::string &key, int64_t value);
+    static bool ExtractTrackSampleInfo(napi_env env, napi_value buffer, TrackSampleInfo &info);
 };
 
 class MediaJsResult {

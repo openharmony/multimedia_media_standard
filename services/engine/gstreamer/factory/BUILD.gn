@@ -42,11 +42,13 @@ config("media_engine_gst_factory_config") {
     "//foundation/multimedia/media_standard/services/engine/gstreamer/recorder",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/avmetadatahelper",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/avcodec",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/avmuxer",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/loader",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/playbin_adapter",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/message",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/metadata",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
@@ -56,6 +58,7 @@ config("media_engine_gst_factory_config") {
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/gstreamer/gstplugins_base/gst-libs",
+    "//third_party/gstreamer/gstplugins_base/gst-libs/gst/app",
     "//third_party/gstreamer/gstplugins_bad/gst-libs",
   ]
 }

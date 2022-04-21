@@ -41,6 +41,7 @@ private:
     static napi_value FindVideoDecoder(napi_env env, napi_callback_info info);
     static napi_value GetVideoEncoderCaps(napi_env env, napi_callback_info info);
     static napi_value FindVideoEncoder(napi_env env, napi_callback_info info);
+    static napi_value GetAVMuxerFormatList(napi_env env, napi_callback_info info);
 
     MediaCapsNapi();
     ~MediaCapsNapi();

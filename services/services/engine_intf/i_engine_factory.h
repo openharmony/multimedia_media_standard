@@ -23,6 +23,7 @@
 #include "i_avmetadatahelper_engine.h"
 #include "i_avcodec_engine.h"
 #include "i_avcodeclist_engine.h"
+#include "i_avmuxer_engine.h"
 
 namespace OHOS {
 namespace Media {
@@ -34,6 +35,7 @@ public:
         SCENE_RECORDER,
         SCENE_AVCODEC,
         SCENE_AVCODECLIST,
+        SCENE_AVMUXER,
     };
 
     virtual ~IEngineFactory() = default;
@@ -43,6 +45,7 @@ public:
     virtual std::unique_ptr<IAVMetadataHelperEngine> CreateAVMetadataHelperEngine() = 0;
     virtual std::unique_ptr<IAVCodecEngine> CreateAVCodecEngine() = 0;
     virtual std::unique_ptr<IAVCodecListEngine> CreateAVCodecListEngine() = 0;
+    virtual std::unique_ptr<IAVMuxerEngine> CreateAVMuxerEngine() = 0;
 
 protected:
     static constexpr int32_t MAX_SCORE = 100;

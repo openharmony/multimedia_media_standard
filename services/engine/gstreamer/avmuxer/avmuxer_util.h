@@ -21,11 +21,9 @@
 #include <map>
 #include <vector>
 #include <gst/gst.h>
-#include "gstappsrc.h"
 #include "i_avmuxer_engine.h"
 #include "nocopyable.h"
 #include "gst_shmem_wrap_allocator.h"
-#include "gst_mux_bin.h"
 
 namespace OHOS {
 namespace Media {
@@ -51,7 +49,7 @@ struct TrackInfo {
     bool hasCodecData_ = false;
     bool needData_ = false;
     GstCaps *caps_ = nullptr;
-    GstAppSrc *src_ = nullptr;
+    GstElement *src_ = nullptr;
     std::string mimeType_;
 };
 
@@ -61,6 +59,12 @@ struct FormatParam {
     int32_t frameRate = 0;
     int32_t channels = 0;
     int32_t rate = 0;
+};
+
+enum TrackType {
+    VIDEO = 0,
+    AUDIO = 1,
+    UNKNOWN_TYPE = -1,
 };
 
 class AVMuxerUtil {

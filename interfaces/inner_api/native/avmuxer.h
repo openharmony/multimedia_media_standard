@@ -17,10 +17,11 @@
 #define AVMUXER_H
 
 #include <string>
-#include <memory>
+#include <string_view>
 #include <vector>
+#include <memory>
 #include "avmemory.h"
-#include "media_types.h"
+#include "avcontainer_types.h"
 #include "media_description.h"
 
 namespace OHOS {
@@ -30,9 +31,9 @@ public:
     virtual ~AVMuxer() = default;
 
     virtual std::vector<std::string> GetAVMuxerFormatList() = 0;
-    virtual int32_t SetOutput(const std::string &path, const std::string &format) = 0;
+    virtual int32_t SetOutput(int32_t fd, const std::string &format) = 0;
     virtual int32_t SetLocation(float latitude, float longtitude) = 0;
-    virtual int32_t SetOrientationHint(int degrees) = 0;
+    virtual int32_t SetRotation(int ratation) = 0;
     virtual int32_t AddTrack(const MediaDescription &trackDesc, int32_t &trackIdx) = 0;
     virtual int32_t Start() = 0;
     virtual int32_t WriteTrackSample(std::shared_ptr<AVMemory> sampleData, const TrackSampleInfo &info) = 0;

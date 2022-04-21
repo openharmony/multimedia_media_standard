@@ -1,0 +1,135 @@
+# Copyright (C) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+config("media_engine_gst_avmuxer_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-std=c++17",
+    "-fno-rtti",
+    "-fno-exceptions",
+    "-Wall",
+    "-fno-common",
+    "-fstack-protector-strong",
+    "-Wshadow",
+    "-FPIC",
+    "-FS",
+    "-O2",
+    "-D_FORTIFY_SOURCE=2",
+    "-fvisibility=hidden",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wdate-time",
+  ]
+
+  include_dirs = [
+    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
+    "//foundation/multimedia/media_standard/services/services/engine_intf",
+    "//foundation/multimedia/media_standard/services/utils/include",
+    "//foundation/multimedia/media_standard/services/include",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/playbin_adapter",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/metadata",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/message",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
+    "//utils/native/base/include",
+    "//third_party/gstreamer/gstreamer",
+    "//third_party/gstreamer/gstreamer/libs",
+    "//third_party/gstreamer/gstplugins_base",
+    "//third_party/gstreamer/gstplugins_base/gst-libs",
+    "//third_party/gstreamer/gstreamer/gst",
+    "//third_party/gstreamer/gstreamer/libs/gst/base",
+    "//third_party/glib/glib",
+    "//third_party/glib",
+    "//third_party/glib/gmodule",
+  ]
+}
+
+import("//build/ohos.gni")
+
+config("gst_avmuxer_bin_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-fno-rtti",
+    "-fno-exceptions",
+    "-Wall",
+    "-fno-common",
+    "-fstack-protector-strong",
+    "-FPIC",
+    "-FS",
+    "-O2",
+    "-D_FORTIFY_SOURCE=2",
+    "-fvisibility=hidden",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wdate-time",
+  ]
+
+  include_dirs = [
+    "//utils/native/base/include",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
+    "//third_party/gstreamer/gstreamer",
+    "//third_party/gstreamer/gstreamer/libs",
+    "//third_party/gstreamer/gstplugins_base",
+    "//third_party/gstreamer/gstplugins_base/gst-libs",
+    "//third_party/gstreamer/gstplugins_base/gst-libs/gst/app",
+    "//third_party/gstreamer/gstreamer/libs/gst/base",
+    "//third_party/glib/glib",
+    "//third_party/glib",
+    "//third_party/glib/gmodule",
+  ]
+}
+
+ohos_static_library("media_engine_gst_avmuxer") {
+  sources = [
+    "avmuxer_util.cpp",
+    "avmuxer_engine_gst_impl.cpp",
+    "gst_shmem_wrap_allocator.cpp",
+  ]
+
+  configs = [ ":media_engine_gst_avmuxer_config" ]
+
+  deps = [
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+  ]
+
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+
+  subsystem_name = "multimedia"
+  part_name = "multimedia_media_standard"
+}
+
+ohos_shared_library("gst_avmuxer_bin") {
+  install_enable = true
+
+  sources = [ "gst_mux_bin.cpp" ]
+
+  configs = [ ":gst_avmuxer_bin_config" ]
+
+  deps = [
+    "//third_party/glib:glib",
+    "//third_party/glib:gmodule",
+    "//third_party/glib:gobject",
+    "//third_party/gstreamer/gstreamer:gstbase",
+    "//third_party/gstreamer/gstreamer:gstreamer",
+  ]
+
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+
+  relative_install_dir = "media/plugins"
+  subsystem_name = "multimedia"
+  part_name = "multimedia_media_standard"
+}
