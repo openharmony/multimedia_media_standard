@@ -39,8 +39,6 @@ config("media_engine_gst_avmuxer_config") {
     "//foundation/multimedia/media_standard/services/services/engine_intf",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/services/include",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/playbin_adapter",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/metadata",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/message",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",

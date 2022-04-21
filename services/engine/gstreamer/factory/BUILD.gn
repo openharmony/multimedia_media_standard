@@ -58,7 +58,6 @@ config("media_engine_gst_factory_config") {
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/gstreamer/gstplugins_base/gst-libs",
-    "//third_party/gstreamer/gstplugins_base/gst-libs/gst/app",
     "//third_party/gstreamer/gstplugins_bad/gst-libs",
   ]
 }

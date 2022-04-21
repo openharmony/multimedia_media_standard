@@ -43,7 +43,7 @@ static void gst_mux_bin_set_property(GObject *object, guint prop_id, const GValu
 static void gst_mux_bin_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *param_spec);
 static GstStateChangeReturn gst_mux_bin_change_state(GstElement *element, GstStateChange transition);
 
-void gst_mux_bin_add_track(GstMuxBin *mux_bin, const char *src_name, const char *parse_name, int32_t track_type)
+static void gst_mux_bin_add_track(GstMuxBin *mux_bin, const char *src_name, const char *parse_name, int32_t track_type)
 {
     g_return_if_fail(mux_bin != nullptr);
     g_return_if_fail(src_name != nullptr);
@@ -99,11 +99,11 @@ static void gst_mux_bin_class_init(GstMuxBinClass *klass)
         g_param_spec_int("longitude", "Longitude", "longitude of the output file",
             G_MININT32, G_MAXINT32, 0, (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
-    gst_mux_bin_signals[SIGNAL_ADD_TRACK] = 
+    gst_mux_bin_signals[SIGNAL_ADD_TRACK] =
         g_signal_new("add-track", G_TYPE_FROM_CLASS(klass),
             static_cast<GSignalFlags>(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
             G_STRUCT_OFFSET(GstMuxBinClass, add_track), NULL, NULL, NULL,
-            G_TYPE_NONE, 3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT);
+            G_TYPE_NONE, 3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT);  // 3 parameters
 
     gst_element_class_set_static_metadata(gstelement_class,
         "Mux Bin", "Generic/Bin/Mux",
