@@ -17,7 +17,7 @@
 #define SRC_BYTEBUFFER_IMPL_H
 
 #include "src_base.h"
-#include "gst_shmem_pool_src.h"
+#include "gst_shmem_src.h"
 #include "nocopyable.h"
 
 namespace OHOS {

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef GST_SURFACE_POOL_H
-#define GST_SURFACE_POOL_H
+#ifndef GST_PRODUCER_SURFACE_POOL_H
+#define GST_PRODUCER_SURFACE_POOL_H
 
 #include <gst/gst.h>
 #include <gst/video/video-info.h>
@@ -24,16 +24,16 @@
 
 G_BEGIN_DECLS
 
-#define GST_TYPE_SURFACE_POOL (gst_surface_pool_get_type())
-#define GST_SURFACE_POOL(obj) \
+#define GST_TYPE_SURFACE_POOL (gst_producer_surface_pool_get_type())
+#define GST_PRODUCER_SURFACE_POOL(obj) \
     (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_SURFACE_POOL, GstSurfacePool))
-#define GST_SURFACE_POOL_CLASS(klass) \
+#define GST_PRODUCER_SURFACE_POOL_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_SURFACE_POOL, GstSurfacePoolClass))
 #define GST_IS_SURFACE_POOL(obj) \
     (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_SURFACE_POOL))
 #define GST_IS_SURFACE_POOL_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_SURFACE_POOL))
-#define GST_SURFACE_POOL_CAST(obj) ((GstSurfacePool*)(obj))
+#define GST_PRODUCER_SURFACE_POOL_CAST(obj) ((GstSurfacePool*)(obj))
 
 typedef struct _GstSurfacePool GstSurfacePool;
 typedef struct _GstSurfacePoolClass GstSurfacePoolClass;
@@ -64,11 +64,11 @@ struct _GstSurfacePoolClass {
     GstBufferPoolClass basepool_class;
 };
 
-GType gst_surface_pool_get_type(void);
+GType gst_producer_surface_pool_get_type(void);
 
-GstSurfacePool *gst_surface_pool_new();
+GstSurfacePool *gst_producer_surface_pool_new();
 
-GST_API gboolean gst_surface_pool_set_surface(GstSurfacePool *pool, OHOS::sptr<OHOS::Surface> surface);
+GST_API gboolean gst_producer_surface_pool_set_surface(GstSurfacePool *pool, OHOS::sptr<OHOS::Surface> surface);
 
 G_END_DECLS
 

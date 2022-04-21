@@ -64,9 +64,9 @@ ohos_shared_library("gst_mem_sink") {
   ]
 
   if ("${product_name}" == "m40") {
-    sources += [ "gst_surface_pool.cpp" ]
+    sources += [ "gst_producer_surface_pool.cpp" ]
   } else {
-    sources += [ "gst_surface_pool_no_stride.cpp" ]
+    sources += [ "gst_producer_surface_pool_no_stride.cpp" ]
   }
 
   configs = [ ":gst_mem_sink_config" ]
