@@ -40,12 +40,17 @@ AudioCaptureAsImpl::~AudioCaptureAsImpl()
     }
 }
 
-int32_t AudioCaptureAsImpl::SetCaptureParameter(uint32_t bitrate, uint32_t channels, uint32_t sampleRate)
+int32_t AudioCaptureAsImpl::SetCaptureParameter(uint32_t bitrate, uint32_t channels, uint32_t sampleRate,
+    int32_t appUid, uint32_t appTokenId)
 {
     (void)bitrate;
     MEDIA_LOGD("SetCaptureParameter in, channels:%{public}u, sampleRate:%{public}u", channels, sampleRate);
     if (audioCapturer_ == nullptr) {
-        audioCapturer_ = AudioStandard::AudioCapturer::Create(AudioStandard::AudioStreamType::STREAM_MUSIC);
+        AudioStandard::AppInfo appInfo = {};
+        appInfo.appUid = appUid;
+        appInfo.appTokenId = appTokenId;
+
+        audioCapturer_ = AudioStandard::AudioCapturer::Create(AudioStandard::AudioStreamType::STREAM_MUSIC, appInfo);
         CHECK_AND_RETURN_RET_LOG(audioCapturer_ != nullptr, MSERR_NO_MEMORY, "create audio capturer failed");
     }
     audioCacheCtrl_ = std::make_unique<AudioCacheCtrl>();

@@ -38,7 +38,8 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    virtual int32_t SetCaptureParameter(uint32_t bitrate, uint32_t channels, uint32_t sampleRate) = 0;
+    virtual int32_t SetCaptureParameter(uint32_t bitrate, uint32_t channels, uint32_t sampleRate, int32_t appUid,
+        uint32_t appTokenId) = 0;
 
     /**
      * @brief Gets the encoding bit rate, number of audio channels and sampling rate for recording.

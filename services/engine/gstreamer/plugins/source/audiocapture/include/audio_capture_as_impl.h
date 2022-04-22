@@ -45,7 +45,8 @@ public:
     AudioCaptureAsImpl();
     virtual ~AudioCaptureAsImpl();
 
-    int32_t SetCaptureParameter(uint32_t bitrate, uint32_t channels, uint32_t sampleRate) override;
+    int32_t SetCaptureParameter(uint32_t bitrate, uint32_t channels, uint32_t sampleRate, int32_t appUid,
+        uint32_t appTokenId) override;
     int32_t GetCaptureParameter(uint32_t &bitrate, uint32_t &channels, uint32_t &sampleRate) override;
     int32_t GetSegmentInfo(uint64_t &start) override;
     int32_t StartAudioCapture() override;
