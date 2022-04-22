@@ -189,12 +189,10 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
     GstSurfaceMemSinkPrivate *priv = surface_sink->priv;
     GST_OBJECT_LOCK(surface_sink);
 
-    if (surface_sink->firstRenderFrame && is_preroll) {
-        GST_DEBUG_OBJECT(surface_sink, "first render frame");
-        GST_OBJECT_UNLOCK(surface_sink);
-        return GST_FLOW_OK;
+    if (surface_sink->firstRenderFrame) {
+        GST_WARNING_OBJECT(surface_sink, "KPI-TRACE: first render frame");
+        surface_sink->firstRenderFrame = FALSE;
     }
-    surface_sink->firstRenderFrame = FALSE;
 
     for (guint i = 0; i < gst_buffer_n_memory(buffer); i++) {
         GstMemory *memory = gst_buffer_peek_memory(buffer, i);
