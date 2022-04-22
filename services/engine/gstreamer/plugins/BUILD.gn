@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 
 group("media_engine_gst_plugins") {
   deps = [
+    "../avmuxer:gst_avmuxer_bin",
     "bin/codecbin:gst_codec_bin",
     "codec:codec_plugins",
     "sink/audiosink:gst_audio_server_sink",
@@ -22,7 +23,6 @@ group("media_engine_gst_plugins") {
     "source/audiocapture:gst_audio_capture_src",
     "source/memsource:gst_mem_src",
     "source/videocapture:gst_surface_video_src",
-    "../avmuxer:gst_avmuxer_bin",
   ]
 }
 
