@@ -73,5 +73,3 @@ ohos_static_library("media_engine_gst_avmuxer") {
   subsystem_name = "multimedia"
   part_name = "multimedia_media_standard"
 }
-
-

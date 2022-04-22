@@ -13,31 +13,52 @@
  * limitations under the License.
  */
 
-#ifndef AVMEMORY_H
-#define AVMEMORY_H
+#ifndef AVCONTAINER_TYPES_H
+#define AVCONTAINER_TYPES_H
 
-#include <cstdint>
-#include <cstring>
 #include "nocopyable.h"
+#include "av_common.h"
+#include "avcodec_common.h"
 
 namespace OHOS {
 namespace Media {
 /**
- * @brief Provides a wrap for raw byte buffer.
+ * @brief Enumerates the container format types.
  */
-class __attribute__((visibility("default"))) AVMemory : public NoCopyable {
+class ContainerFormatType {
 public:
-    /**
-     * @brief Construct a new AVMemory object with specified capacity, the raw buffer will be allocated.
-     */
-    explicit AVMemory(size_t capacity);
+    static constexpr std::string_view CFT_MPEG_4A = "m4a";
+    static constexpr std::string_view CFT_MPEG_4 = "mp4";
+};
 
+/**
+ * @brief Description information of a sample associated a media track.
+ */
+struct TrackSampleInfo {
     /**
-     * @brief Construct a new AVMemory object with specified raw buffer address and capacity.
+     * @brief the id of track that this sample belongs to.
      */
+    uint32_t trackIdx;
+    /**
+     * @brief the presentation timestamp in microseconds.
+     */
+    int64_t timeUs;
+    /**
+     * @brief the size in bytes.
+     */
+    uint32_t size;
+    /**
+     * @brief the flags associated with the sample, this
+     * maybe be a combination of multiple {@link AVCodecBufferFlag}.
+     */
+    AVCodecBufferFlag flags;
+};
+
+class AVMemory : public NoCopyable {
+public:
     AVMemory(uint8_t *base, size_t capacity) : base_(base), capacity_(capacity) {};
 
-    ~AVMemory() {};
+    ~AVMemory() = default;
 
     uint8_t *Base() const
     {
@@ -75,8 +96,7 @@ private:
     size_t offset_ = 0;
     size_t size_ = 0;
     size_t capacity_ = 0;
-    bool ownership_ = false;
 };
 } // namespace Media
 } // namespace OHOS
-#endif // AVMEMORY_H
+#endif // AVCONTAINER_TYPES_H

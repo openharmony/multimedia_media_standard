@@ -39,13 +39,40 @@ public:
     };
 
     virtual ~IEngineFactory() = default;
-    virtual int32_t Score(Scene scene, const std::string &uri = "") { return 0; };
-    virtual std::unique_ptr<IPlayerEngine> CreatePlayerEngine() { return nullptr; };
-    virtual std::unique_ptr<IRecorderEngine> CreateRecorderEngine() { return nullptr; };
-    virtual std::unique_ptr<IAVMetadataHelperEngine> CreateAVMetadataHelperEngine() { return nullptr; };
-    virtual std::unique_ptr<IAVCodecEngine> CreateAVCodecEngine() { return nullptr; };
-    virtual std::unique_ptr<IAVCodecListEngine> CreateAVCodecListEngine() { return nullptr; };
-    virtual std::unique_ptr<IAVMuxerEngine> CreateAVMuxerEngine() { return nullptr; };
+    virtual int32_t Score(Scene scene, const std::string &uri = "")
+    {
+        return 0;
+    }
+
+    virtual std::unique_ptr<IPlayerEngine> CreatePlayerEngine()
+    {
+        return nullptr;
+    }
+
+    virtual std::unique_ptr<IRecorderEngine> CreateRecorderEngine()
+    {
+        return nullptr;
+    }
+
+    virtual std::unique_ptr<IAVMetadataHelperEngine> CreateAVMetadataHelperEngine()
+    {
+        return nullptr;
+    }
+
+    virtual std::unique_ptr<IAVCodecEngine> CreateAVCodecEngine()
+    {
+        return nullptr;
+    }
+
+    virtual std::unique_ptr<IAVCodecListEngine> CreateAVCodecListEngine()
+    {
+        return nullptr;
+    }
+    
+    virtual std::unique_ptr<IAVMuxerEngine> CreateAVMuxerEngine()
+    {
+        return nullptr;
+    }
 
 protected:
     static constexpr int32_t MAX_SCORE = 100;

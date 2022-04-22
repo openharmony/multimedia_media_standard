@@ -17,8 +17,7 @@
 #define AVSPLITER_H
 
 #include <string>
-#include "avmemory.h"
-#include "avcontainer_types.h"
+#include "avcontainer_common.h"
 #include "media_data_source.h"
 #include "media_description.h"
 
