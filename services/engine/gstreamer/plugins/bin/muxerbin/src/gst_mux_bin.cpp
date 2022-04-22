@@ -15,7 +15,6 @@
 
 #include "config.h"
 #include "gst_mux_bin.h"
-#include "gstappsrc.h"
 #include "gstbasesink.h"
 #include "gstbaseparse.h"
 

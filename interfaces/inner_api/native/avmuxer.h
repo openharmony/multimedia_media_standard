@@ -19,8 +19,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "avmemory.h"
-#include "avcontainer_types.h"
+#include "avcontainer_common.h"
 #include "media_description.h"
 
 namespace OHOS {
