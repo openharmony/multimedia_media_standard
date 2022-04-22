@@ -406,7 +406,7 @@ void MediaServerManager::DestroyDumper(StubType type, sptr<IRemoteObject> object
 
 void MediaServerManager::DestroyDumperForPid(pid_t pid)
 {
-    for (auto dumpers : dumperTbl_) {
+    for (auto &dumpers : dumperTbl_) {
         for (auto it = dumpers.second.begin(); it != dumpers.second.end();) {
             if (it->pid_ == pid) {
                 it = dumpers.second.erase(it);
