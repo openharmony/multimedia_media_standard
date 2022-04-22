@@ -15,9 +15,9 @@
 
 #include "avmuxer_engine_gst_impl.h"
 #include <unistd.h>
+#include "gst_utils.h"
 #include "media_errors.h"
 #include "media_log.h"
-#include "gstbaseparse.h"
 #include "uri_helper.h"
 
 namespace {

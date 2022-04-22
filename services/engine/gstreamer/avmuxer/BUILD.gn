@@ -93,8 +93,8 @@ config("gst_avmuxer_bin_config") {
 
 ohos_static_library("media_engine_gst_avmuxer") {
   sources = [
-    "avmuxer_util.cpp",
     "avmuxer_engine_gst_impl.cpp",
+    "avmuxer_util.cpp",
     "gst_shmem_wrap_allocator.cpp",
   ]
 
