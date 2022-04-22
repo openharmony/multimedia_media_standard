@@ -61,10 +61,10 @@ struct FormatParam {
     int32_t rate = 0;
 };
 
-enum TrackType {
+enum TrackType : int32_t {
+    UNKNOWN_TYPE = -1,
     VIDEO = 0,
     AUDIO = 1,
-    UNKNOWN_TYPE = -1,
 };
 
 class AVMuxerUtil {
