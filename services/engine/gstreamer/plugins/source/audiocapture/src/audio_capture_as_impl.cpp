@@ -183,11 +183,6 @@ void AudioCaptureAsImpl::GetAudioCaptureBuffer()
 
 std::shared_ptr<AudioBuffer> AudioCaptureAsImpl::GetBuffer()
 {
-    if (curState_.load() == RECORDER_PAUSED) {
-        audioCacheCtrl_->pausedTime_ = audioCacheCtrl_->timestamp_;
-        MEDIA_LOGD("audio pause timestamp %{public}" PRIu64 "", audioCacheCtrl_->pausedTime_);
-    }
-
     std::unique_lock<std::mutex> loopLock(audioCacheCtrl_->captureMutex_);
     audioCacheCtrl_->captureCond_.wait(loopLock, [this]() { return audioCacheCtrl_->captureQueue_.size() > 0; });
 
@@ -195,10 +190,28 @@ std::shared_ptr<AudioBuffer> AudioCaptureAsImpl::GetBuffer()
         return nullptr;
     }
 
+    if (curState_.load() == RECORDER_RESUME && !audioCacheCtrl_->captureQueue_.empty() && audioResume_.load()) {
+        std::shared_ptr<AudioBuffer> tempBuffer = audioCacheCtrl_->captureQueue_.front();
+        audioCacheCtrl_->pausedTime_ = tempBuffer->timestamp;
+        MEDIA_LOGD("audio pause timestamp %{public}" PRIu64 "", audioCacheCtrl_->pausedTime_);
+    }
+
     std::shared_ptr<AudioBuffer> bufferOut = audioCacheCtrl_->captureQueue_.front();
     audioCacheCtrl_->captureQueue_.pop();
 
+    if (curState_.load() == RECORDER_RESUME && audioResume_.load()) {
+        audioResume_.store(false);
+        bufferOut->timestamp = bufferOut->timestamp - audioCacheCtrl_->totalPauseTime_;
+        MEDIA_LOGD("audio pause timestamp %{public}" PRIu64 "", audioCacheCtrl_->pausedTime_);
+        MEDIA_LOGD("%{public}zu audio 1 buffer has been dropped", audioCacheCtrl_->captureQueue_.size());
+        while (!audioCacheCtrl_->captureQueue_.empty()) {
+            audioCacheCtrl_->captureQueue_.pop();
+        }
+        return bufferOut;
+    }
+
     if (curState_.load() == RECORDER_PAUSED) {
+        audioResume_.store(false);
         audioCacheCtrl_->pausedTime_ = bufferOut->timestamp;
         MEDIA_LOGD("audio pause timestamp %{public}" PRIu64 "", audioCacheCtrl_->pausedTime_);
         MEDIA_LOGD("%{public}zu audio buffer has been dropped", audioCacheCtrl_->captureQueue_.size());
@@ -208,6 +221,7 @@ std::shared_ptr<AudioBuffer> AudioCaptureAsImpl::GetBuffer()
     }
     if (curState_.load() == RECORDER_RESUME) {
         curState_.store(RECORDER_RUNNING);
+        audioResume_.store(true);
         audioCacheCtrl_->resumeTime_ = bufferOut->timestamp;
         MEDIA_LOGD("audio resume timestamp %{public}" PRIu64 "", audioCacheCtrl_->resumeTime_);
         audioCacheCtrl_->persistTime_ = std::fabs(audioCacheCtrl_->resumeTime_ - audioCacheCtrl_->pausedTime_);
@@ -216,7 +230,6 @@ std::shared_ptr<AudioBuffer> AudioCaptureAsImpl::GetBuffer()
             audioCacheCtrl_->pausedCount_, audioCacheCtrl_->totalPauseTime_);
     }
     bufferOut->timestamp = bufferOut->timestamp - audioCacheCtrl_->totalPauseTime_;
-    audioCacheCtrl_->timestamp_ = bufferOut->timestamp;
     return bufferOut;
 }
 
@@ -256,6 +269,11 @@ int32_t AudioCaptureAsImpl::StopAudioCapture()
     if (audioCapturer_->GetStatus() != AudioStandard::CapturerState::CAPTURER_RELEASED) {
         CHECK_AND_RETURN_RET(audioCapturer_->Release(), MSERR_UNKNOWN);
     }
+
+    while (!audioCacheCtrl_->captureQueue_.empty()) {
+        audioCacheCtrl_->captureQueue_.pop();
+    }
+
     audioCapturer_ = nullptr;
     audioCacheCtrl_ = nullptr;
     curState_.store(RECORDER_INITIALIZED);
