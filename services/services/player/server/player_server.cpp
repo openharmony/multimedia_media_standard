@@ -92,7 +92,7 @@ int32_t PlayerServer::SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc
     CHECK_AND_RETURN_RET_LOG(dataSrc != nullptr, MSERR_INVALID_VAL, "data source is nullptr");
     MEDIA_LOGW("KPI-TRACE: PlayerServer SetSource in(dataSrc)");
     dataSrc_ = dataSrc;
-    std::string url = "MediaDataSource";
+    std::string url = "media data source";
     config_.url = url;
     int32_t ret = InitPlayEngine(url);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetObs Failed!");
@@ -115,7 +115,7 @@ int32_t PlayerServer::SetSource(int32_t fd, int64_t offset, int64_t size)
     int32_t ret = InitPlayEngine(uriHelper->FormattedUri());
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetSource Failed!");
     uriHelper_ = std::move(uriHelper);
-    config_.url = uriHelper_->FormattedUri();
+    config_.url = "file descriptor source";
     return ret;
 }
 
