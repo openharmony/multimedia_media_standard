@@ -42,9 +42,9 @@ struct _GstTrackInfo {
 };
 
 enum _TrackType : int32_t {
+    UNKNOWN_TYPE = -1,
     VIDEO = 0,
     AUDIO = 1,
-    UNKNOWN_TYPE = -1,
 };
 
 struct _GstMuxBin {

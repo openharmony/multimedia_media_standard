@@ -52,7 +52,7 @@ static void gst_mux_bin_add_track(GstMuxBin *mux_bin, const char *src_name, cons
     g_return_if_fail(info != nullptr);
     info->srcName_ = g_strdup((char *)src_name);
     info->parseName_ = g_strdup((char *)parse_name);
-    switch ((TrackType)track_type) {
+    switch (static_cast<TrackType>(track_type)) {
         case VIDEO:
             mux_bin->video_src_list = g_slist_append(mux_bin->video_src_list, info);
             break;

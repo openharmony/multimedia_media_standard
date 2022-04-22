@@ -75,7 +75,7 @@ private:
     size_t offset_ = 0;
     size_t size_ = 0;
     size_t capacity_ = 0;
-    bool ownership = false;
+    bool ownership_ = false;
 };
 } // namespace Media
 } // namespace OHOS

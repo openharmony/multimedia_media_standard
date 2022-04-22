@@ -39,13 +39,13 @@ public:
     };
 
     virtual ~IEngineFactory() = default;
-    virtual int32_t Score(Scene scene, const std::string &uri = "") = 0;
-    virtual std::unique_ptr<IPlayerEngine> CreatePlayerEngine() = 0;
-    virtual std::unique_ptr<IRecorderEngine> CreateRecorderEngine() = 0;
-    virtual std::unique_ptr<IAVMetadataHelperEngine> CreateAVMetadataHelperEngine() = 0;
-    virtual std::unique_ptr<IAVCodecEngine> CreateAVCodecEngine() = 0;
-    virtual std::unique_ptr<IAVCodecListEngine> CreateAVCodecListEngine() = 0;
-    virtual std::unique_ptr<IAVMuxerEngine> CreateAVMuxerEngine() = 0;
+    virtual int32_t Score(Scene scene, const std::string &uri = "") { return 0; };
+    virtual std::unique_ptr<IPlayerEngine> CreatePlayerEngine() { return nullptr; };
+    virtual std::unique_ptr<IRecorderEngine> CreateRecorderEngine() { return nullptr; };
+    virtual std::unique_ptr<IAVMetadataHelperEngine> CreateAVMetadataHelperEngine() { return nullptr; };
+    virtual std::unique_ptr<IAVCodecEngine> CreateAVCodecEngine() { return nullptr; };
+    virtual std::unique_ptr<IAVCodecListEngine> CreateAVCodecListEngine() { return nullptr; };
+    virtual std::unique_ptr<IAVMuxerEngine> CreateAVMuxerEngine() { return nullptr; };
 
 protected:
     static constexpr int32_t MAX_SCORE = 100;

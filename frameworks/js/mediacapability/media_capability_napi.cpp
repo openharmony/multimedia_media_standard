@@ -559,7 +559,7 @@ napi_value MediaCapsNapi::GetAVMuxerFormatList(napi_env env, napi_callback_info 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "GetAVMuxerFormatList", NAPI_AUTO_LENGTH, &resource);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
-        [](napi_env env, void* data) {
+        [](napi_env env, void *data) {
             auto asyncCtx = reinterpret_cast<MediaCapsAsyncContext *>(data);
             if (asyncCtx == nullptr || asyncCtx->napi == nullptr) {
                 asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
