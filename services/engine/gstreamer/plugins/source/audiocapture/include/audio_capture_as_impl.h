@@ -32,7 +32,6 @@ struct AudioCacheCtrl {
     std::condition_variable captureCond_;
     std::condition_variable pauseCond_;
     std::queue<std::shared_ptr<AudioBuffer>> captureQueue_;
-    uint64_t timestamp_ = 0;
     uint64_t pausedTime_ = 0; // the timestamp when audio pause called
     uint64_t resumeTime_ = 0; // the timestamp when audio resume called
     uint32_t pausedCount_ = 0; // the paused count times
@@ -73,6 +72,7 @@ private:
     std::unique_ptr<std::thread> captureLoop_;
     std::mutex pauseMutex_;
     std::atomic<int32_t> curState_ = RECORDER_INITIALIZED;
+    std::atomic<bool> audioResume_ { true };
 };
 } // namespace Media
 } // namespace OHOS
