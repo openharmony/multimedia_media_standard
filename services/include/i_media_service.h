@@ -103,8 +103,8 @@ public:
      *
      * @param pointer to the recorder service.
      * @return Returns a valid pointer if the setting is successful;
-     * @since 3.2
-     * @version 3.2
+     * @since 1.0
+     * @version 1.0
      */
     virtual int32_t DestroyRecorderService(std::shared_ptr<IRecorderService> recorder) = 0;
 
