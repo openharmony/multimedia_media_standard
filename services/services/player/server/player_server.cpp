@@ -520,6 +520,13 @@ int32_t PlayerServer::SetPlaybackSpeed(PlaybackRateMode mode)
         }
     }
 
+    if (config_.speedMode == mode) {
+        MEDIA_LOGD("The speed mode is same, mode = %{public}d", mode);
+        Format format;
+        OnInfo(INFO_TYPE_SPEEDDONE, 0, format);
+        return MSERR_OK;
+    }
+
     if (playerEngine_ != nullptr) {
         int ret = playerEngine_->SetPlaybackSpeed(mode);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine SetPlaybackSpeed Failed!");
