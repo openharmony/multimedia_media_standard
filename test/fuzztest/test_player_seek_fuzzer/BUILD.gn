@@ -17,7 +17,7 @@ import("//build/test.gni")
 module_output_path = "media_standard/fuzztest"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("test_player_seek_fuzzer") {
+ohos_fuzztest("PlayerSeekFuzzTest") {
   module_out_path = module_output_path
 
   include_dirs = [
