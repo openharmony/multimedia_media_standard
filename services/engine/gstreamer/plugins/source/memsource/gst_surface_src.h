@@ -21,22 +21,22 @@
 
 G_BEGIN_DECLS
 
-#define GST_TYPE_SURFACE_POOL_SRC (gst_surface_src_get_type())
+#define GST_TYPE_SURFACE_SRC (gst_surface_src_get_type())
 #define GST_SURFACE_SRC(obj) \
-    (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_SURFACE_POOL_SRC, GstSurfacePoolSrc))
+    (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_SURFACE_SRC, GstSurfaceSrc))
 #define GST_SURFACE_SRC_CLASS(klass) \
-    (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_SURFACE_POOL_SRC, GstSurfacePoolSrcClass))
-#define GST_IS_SURFACE_POOL_SRC(obj) \
-    (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_SURFACE_POOL_SRC))
-#define GST_IS_SURFACE_POOL_SRC_CLASS(klass) \
-    (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_SURFACE_POOL_SRC))
-#define GST_SURFACE_SRC_CAST(obj) ((GstSurfacePoolSrc*)(obj))
+    (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_SURFACE_SRC, GstSurfaceSrcClass))
+#define GST_IS_SURFACE_SRC(obj) \
+    (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_SURFACE_SRC))
+#define GST_IS_SURFACE_SRC_CLASS(klass) \
+    (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_SURFACE_SRC))
+#define GST_SURFACE_SRC_CAST(obj) ((GstSurfaceSrc*)(obj))
 
-typedef struct _GstSurfacePoolSrc GstSurfacePoolSrc;
-typedef struct _GstSurfacePoolSrcClass GstSurfacePoolSrcClass;
+typedef struct _GstSurfaceSrc GstSurfaceSrc;
+typedef struct _GstSurfaceSrcClass GstSurfaceSrcClass;
 
-struct _GstSurfacePoolSrc {
-    GstMemPoolSrc memsrc;
+struct _GstSurfaceSrc {
+    GstMemSrc memsrc;
     OHOS::sptr<OHOS::Surface> consumerSurface;
     OHOS::sptr<OHOS::Surface> producerSurface;
     GstBufferPool *pool;
@@ -45,8 +45,8 @@ struct _GstSurfacePoolSrc {
     gboolean flushing;
 };
 
-struct _GstSurfacePoolSrcClass {
-    GstMemPoolSrcClass parent_class;
+struct _GstSurfaceSrcClass {
+    GstMemSrcClass parent_class;
 };
 
 GST_API_EXPORT GType gst_surface_src_get_type(void);
