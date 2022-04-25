@@ -29,7 +29,7 @@ namespace {
 GST_DEBUG_CATEGORY_STATIC(gst_mem_src_debug_category);
 #define GST_CAT_DEFAULT gst_mem_src_debug_category
 
-struct _GstMemPoolSrcPrivate {
+struct _GstMemSrcPrivate {
     BufferAvailable buffer_available;
     gboolean emit_signals;
     gpointer user_data;
@@ -53,7 +53,7 @@ enum {
     PROP_BUFFER_SIZE,
 };
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(GstMemPoolSrc, gst_mem_src, GST_TYPE_BASE_SRC);
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE(GstMemSrc, gst_mem_src, GST_TYPE_BASE_SRC);
 
 static guint gst_mem_src_signals[LAST_SIGNAL] = { 0 };
 static void gst_mem_src_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec);
@@ -63,12 +63,12 @@ static gboolean gst_mem_src_is_seekable(GstBaseSrc *basesrc);
 static gboolean gst_mem_src_negotiate(GstBaseSrc *basesrc);
 static void gst_mem_src_dispose(GObject *object);
 
-static void gst_mem_src_class_init(GstMemPoolSrcClass *klass)
+static void gst_mem_src_class_init(GstMemSrcClass *klass)
 {
     g_return_if_fail(klass != nullptr);
     GObjectClass *gobject_class = reinterpret_cast<GObjectClass *>(klass);
     GstBaseSrcClass *gstbasesrc_class = reinterpret_cast<GstBaseSrcClass *>(klass);
-    GST_DEBUG_CATEGORY_INIT(gst_mem_src_debug_category, "mempoolsrc", 0, "mem pool src base class");
+    GST_DEBUG_CATEGORY_INIT(gst_mem_src_debug_category, "memsrc", 0, "mem src base class");
     gobject_class->set_property = gst_mem_src_set_property;
     gobject_class->get_property = gst_mem_src_get_property;
     gobject_class->dispose = gst_mem_src_dispose;
@@ -100,13 +100,13 @@ static void gst_mem_src_class_init(GstMemPoolSrcClass *klass)
     gst_mem_src_signals[SIGNAL_PULL_BUFFER] =
         g_signal_new("pull-buffer", G_TYPE_FROM_CLASS(gobject_class),
             static_cast<GSignalFlags>(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
-            G_STRUCT_OFFSET(GstMemPoolSrcClass, pull_buffer), nullptr, nullptr, nullptr,
+            G_STRUCT_OFFSET(GstMemSrcClass, pull_buffer), nullptr, nullptr, nullptr,
             GST_TYPE_BUFFER, 0, G_TYPE_NONE);
 
     gst_mem_src_signals[SIGNAL_PUSH_BUFFER] =
         g_signal_new("push-buffer", G_TYPE_FROM_CLASS(gobject_class),
             static_cast<GSignalFlags>(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION),
-            G_STRUCT_OFFSET(GstMemPoolSrcClass, push_buffer), nullptr, nullptr, nullptr,
+            G_STRUCT_OFFSET(GstMemSrcClass, push_buffer), nullptr, nullptr, nullptr,
             GST_TYPE_FLOW_RETURN, 1, GST_TYPE_BUFFER);
 
     gstbasesrc_class->is_seekable = gst_mem_src_is_seekable;
@@ -114,10 +114,10 @@ static void gst_mem_src_class_init(GstMemPoolSrcClass *klass)
     gstbasesrc_class->negotiate = gst_mem_src_negotiate;
 }
 
-static void gst_mem_src_init(GstMemPoolSrc *memsrc)
+static void gst_mem_src_init(GstMemSrc *memsrc)
 {
     g_return_if_fail(memsrc != nullptr);
-    auto priv = reinterpret_cast<GstMemPoolSrcPrivate *>(gst_mem_src_get_instance_private(memsrc));
+    auto priv = reinterpret_cast<GstMemSrcPrivate *>(gst_mem_src_get_instance_private(memsrc));
     g_return_if_fail(priv != nullptr);
     gst_base_src_set_format(GST_BASE_SRC(memsrc), GST_FORMAT_TIME);
     gst_base_src_set_live(GST_BASE_SRC(memsrc), TRUE);
@@ -130,7 +130,7 @@ static void gst_mem_src_init(GstMemPoolSrc *memsrc)
     priv->emit_signals = FALSE;
 }
 
-GstFlowReturn gst_mem_src_buffer_available(GstMemPoolSrc *memsrc)
+GstFlowReturn gst_mem_src_buffer_available(GstMemSrc *memsrc)
 {
     GST_DEBUG_OBJECT(memsrc, "Buffer available");
     g_return_val_if_fail(memsrc != nullptr && memsrc->priv != nullptr, GST_FLOW_ERROR);
@@ -153,11 +153,11 @@ GstFlowReturn gst_mem_src_buffer_available(GstMemPoolSrc *memsrc)
 static gboolean gst_mem_src_negotiate(GstBaseSrc *basesrc)
 {
     g_return_val_if_fail(basesrc != nullptr, FALSE);
-    GstMemPoolSrc *memsrc = GST_MEM_SRC(basesrc);
+    GstMemSrc *memsrc = GST_MEM_SRC(basesrc);
     return gst_base_src_set_caps(basesrc, memsrc->caps);
 }
 
-void gst_mem_src_set_caps(GstMemPoolSrc *memsrc, const GstCaps *caps)
+void gst_mem_src_set_caps(GstMemSrc *memsrc, const GstCaps *caps)
 {
     g_return_if_fail(memsrc != nullptr);
     GST_DEBUG_OBJECT(memsrc, "Setting caps to %s", gst_caps_to_string(caps));
@@ -174,7 +174,7 @@ void gst_mem_src_set_caps(GstMemPoolSrc *memsrc, const GstCaps *caps)
     GST_OBJECT_UNLOCK(memsrc);
 }
 
-void gst_mem_src_set_emit_signals(GstMemPoolSrc *memsrc, gboolean emit)
+void gst_mem_src_set_emit_signals(GstMemSrc *memsrc, gboolean emit)
 {
     g_return_if_fail(memsrc != nullptr && memsrc->priv != nullptr);
     auto priv = memsrc->priv;
@@ -183,7 +183,7 @@ void gst_mem_src_set_emit_signals(GstMemPoolSrc *memsrc, gboolean emit)
     GST_OBJECT_UNLOCK(memsrc);
 }
 
-void gst_mem_src_set_buffer_size(GstMemPoolSrc *memsrc, guint size)
+void gst_mem_src_set_buffer_size(GstMemSrc *memsrc, guint size)
 {
     g_return_if_fail(memsrc != nullptr);
     GST_OBJECT_LOCK(memsrc);
@@ -191,7 +191,7 @@ void gst_mem_src_set_buffer_size(GstMemPoolSrc *memsrc, guint size)
     GST_OBJECT_UNLOCK(memsrc);
 }
 
-void gst_mem_src_set_buffer_num(GstMemPoolSrc *memsrc, guint num)
+void gst_mem_src_set_buffer_num(GstMemSrc *memsrc, guint num)
 {
     g_return_if_fail(memsrc != nullptr);
     GST_OBJECT_LOCK(memsrc);
@@ -207,7 +207,7 @@ static gboolean gst_mem_src_is_seekable(GstBaseSrc *basesrc)
 
 static void gst_mem_src_dispose(GObject *object)
 {
-    GstMemPoolSrc *memsrc = GST_MEM_SRC(object);
+    GstMemSrc *memsrc = GST_MEM_SRC(object);
     g_return_if_fail(memsrc != nullptr && memsrc->priv != nullptr);
     auto priv = memsrc->priv;
 
@@ -228,7 +228,7 @@ static void gst_mem_src_dispose(GObject *object)
 
 static void gst_mem_src_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    GstMemPoolSrc *memsrc = GST_MEM_SRC(object);
+    GstMemSrc *memsrc = GST_MEM_SRC(object);
     g_return_if_fail(memsrc != nullptr);
     (void)pspec;
     switch (prop_id) {
@@ -251,7 +251,7 @@ static void gst_mem_src_set_property(GObject *object, guint prop_id, const GValu
 
 static void gst_mem_src_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    GstMemPoolSrc *memsrc = GST_MEM_SRC(object);
+    GstMemSrc *memsrc = GST_MEM_SRC(object);
     g_return_if_fail(memsrc != nullptr);
     g_return_if_fail(value != nullptr);
     (void)pspec;
@@ -287,7 +287,7 @@ static gboolean gst_mem_src_query(GstBaseSrc *src, GstQuery *query)
     return TRUE;
 }
 
-void gst_mem_src_set_callback(GstMemPoolSrc *memsrc, BufferAvailable callback,
+void gst_mem_src_set_callback(GstMemSrc *memsrc, BufferAvailable callback,
     gpointer user_data, GDestroyNotify notify)
 {
     g_return_if_fail(memsrc != nullptr && memsrc->priv != nullptr);
@@ -300,11 +300,11 @@ void gst_mem_src_set_callback(GstMemPoolSrc *memsrc, BufferAvailable callback,
 }
 
 
-GstBuffer *gst_mem_src_pull_buffer(GstMemPoolSrc *memsrc)
+GstBuffer *gst_mem_src_pull_buffer(GstMemSrc *memsrc)
 {
     GST_DEBUG_OBJECT(memsrc, "Pull buffer");
     g_return_val_if_fail(memsrc != nullptr, nullptr);
-    GstMemPoolSrcClass *memclass = GST_MEM_SRC_GET_CLASS(memsrc);
+    GstMemSrcClass *memclass = GST_MEM_SRC_GET_CLASS(memsrc);
 
     g_return_val_if_fail(memclass != nullptr, nullptr);
     if (memclass->pull_buffer) {
@@ -314,11 +314,11 @@ GstBuffer *gst_mem_src_pull_buffer(GstMemPoolSrc *memsrc)
     return nullptr;
 }
 
-GstFlowReturn gst_mem_src_push_buffer(GstMemPoolSrc *memsrc, GstBuffer *buffer)
+GstFlowReturn gst_mem_src_push_buffer(GstMemSrc *memsrc, GstBuffer *buffer)
 {
     GST_DEBUG_OBJECT(memsrc, "Push buffer");
     g_return_val_if_fail(memsrc != nullptr, GST_FLOW_ERROR);
-    GstMemPoolSrcClass *memclass = GST_MEM_SRC_GET_CLASS(memsrc);
+    GstMemSrcClass *memclass = GST_MEM_SRC_GET_CLASS(memsrc);
 
     g_return_val_if_fail(memclass != nullptr, GST_FLOW_ERROR);
     if (memclass->push_buffer) {
