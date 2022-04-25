@@ -25,15 +25,15 @@ using namespace std;
 using namespace OHOS;
 using namespace OHOS::Media;
 
-TestPlayerSetVolumeFuzz::TestPlayerSetVolumeFuzz()
+PlayerSetVolumeFuzzer::PlayerSetVolumeFuzzer()
 {
 }
 
-TestPlayerSetVolumeFuzz::~TestPlayerSetVolumeFuzz()
+PlayerSetVolumeFuzzer::~PlayerSetVolumeFuzzer()
 {
 }
 
-bool TestPlayerSetVolumeFuzz::FuzzSetVolume(uint8_t* data, size_t size)
+bool PlayerSetVolumeFuzzer::FuzzSetVolume(uint8_t* data, size_t size)
 {
     player_ = OHOS::Media::PlayerFactory::CreatePlayer();
     if (player_ == nullptr) {
@@ -84,7 +84,7 @@ bool TestPlayerSetVolumeFuzz::FuzzSetVolume(uint8_t* data, size_t size)
 
 bool OHOS::Media::FuzzPlayerSetVolume(uint8_t* data, size_t size)
 {
-    auto player = std::make_unique<TestPlayerSetVolumeFuzz>();
+    auto player = std::make_unique<PlayerSetVolumeFuzzer>();
     if (player == nullptr) {
         cout << "player is null" << endl;
         return 0;
