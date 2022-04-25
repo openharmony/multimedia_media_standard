@@ -20,30 +20,30 @@
 
 G_BEGIN_DECLS
 
-#define GST_TYPE_SHMEM_POOL_SRC (gst_shmem_src_get_type())
+#define GST_TYPE_SHMEM_SRC (gst_shmem_src_get_type())
 #define GST_SHMEM_SRC(obj) \
-    (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_SHMEM_POOL_SRC, GstShmemPoolSrc))
+    (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_SHMEM_SRC, GstShmemSrc))
 #define GST_SHMEM_SRC_CLASS(klass) \
-    (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_SHMEM_POOL_SRC, GstShmemPoolSrcClass))
-#define GST_IS_SHMEM_POOL_SRC(obj) \
-    (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_SHMEM_POOL_SRC))
-#define GST_IS_SHMEM_POOL_SRC_CLASS(klass) \
-    (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_SHMEM_POOL_SRC))
-#define GST_SHMEM_SRC_CAST(obj) ((GstShmemPoolSrc*)(obj))
+    (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_SHMEM_SRC, GstShmemSrcClass))
+#define GST_IS_SHMEM_SRC(obj) \
+    (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_SHMEM_SRC))
+#define GST_IS_SHMEM_SRC_CLASS(klass) \
+    (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_SHMEM_SRC))
+#define GST_SHMEM_SRC_CAST(obj) ((GstShmemSrc*)(obj))
 
-typedef struct _GstShmemPoolSrc GstShmemPoolSrc;
-typedef struct _GstShmemPoolSrcClass GstShmemPoolSrcClass;
-typedef struct _GstShmemPoolSrcPrivate GstShmemPoolSrcPrivate;
+typedef struct _GstShmemSrc GstShmemSrc;
+typedef struct _GstShmemSrcClass GstShmemSrcClass;
+typedef struct _GstShmemSrcPrivate GstShmemSrcPrivate;
 
-struct _GstShmemPoolSrc {
-    GstMemPoolSrc memsrc;
+struct _GstShmemSrc {
+    GstMemSrc memsrc;
 
     /* < private > */
-    GstShmemPoolSrcPrivate *priv;
+    GstShmemSrcPrivate *priv;
 };
 
-struct _GstShmemPoolSrcClass {
-    GstMemPoolSrcClass parent_class;
+struct _GstShmemSrcClass {
+    GstMemSrcClass parent_class;
 };
 
 GST_API_EXPORT GType gst_shmem_src_get_type(void);

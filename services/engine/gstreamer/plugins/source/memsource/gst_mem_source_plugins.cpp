@@ -19,12 +19,12 @@
 static gboolean plugin_init(GstPlugin *plugin)
 {
     gboolean ret = FALSE;
-    if (gst_element_register(plugin, "surfacesrc", GST_RANK_PRIMARY, GST_TYPE_SURFACE_POOL_SRC)) {
+    if (gst_element_register(plugin, "surfacesrc", GST_RANK_PRIMARY, GST_TYPE_SURFACE_SRC)) {
         ret = TRUE;
     } else {
         GST_WARNING_OBJECT(plugin, "register surfacesrc failed");
     }
-    if (gst_element_register(plugin, "shmemsrc", GST_RANK_PRIMARY, GST_TYPE_SHMEM_POOL_SRC)) {
+    if (gst_element_register(plugin, "shmemsrc", GST_RANK_PRIMARY, GST_TYPE_SHMEM_SRC)) {
         ret = TRUE;
     } else {
         GST_WARNING_OBJECT(plugin, "register shmemsrc failed");
