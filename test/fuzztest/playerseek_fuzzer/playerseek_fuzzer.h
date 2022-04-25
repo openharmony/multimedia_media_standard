@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#ifndef TEST_PLAYER_SEEK_FUZZER_H
-#define TEST_PLAYER_SEEK_FUZZER_H
+#ifndef PLAYERSEEK_FUZZER_H
+#define PLAYERSEEK_FUZZER_H
 
-#define FUZZ_PROJECT_NAME "test_player_seek_fuzzer"
+#define FUZZ_PROJECT_NAME "playerseek_fuzzer"
 #include "test_player.h"
 
 namespace OHOS {

@@ -17,7 +17,7 @@ import("//build/test.gni")
 module_output_path = "media_standard/fuzztest"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("PlayerSeekFuzzTest") {
+ohos_fuzztest("PlayerSetVolumeFuzzTest") {
   module_out_path = module_output_path
 
   include_dirs = [
@@ -35,7 +35,7 @@ ohos_fuzztest("PlayerSeekFuzzTest") {
   ]
   sources = [
     "../test_player.cpp",
-    "test_player_seek_fuzzer.cpp",
+    "playersetvolume_fuzzer.cpp",
   ]
   deps = [
     "//foundation/graphic/standard:libsurface",

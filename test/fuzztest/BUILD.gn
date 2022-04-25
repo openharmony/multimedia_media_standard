@@ -17,8 +17,8 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    "test_player_seek_fuzzer:PlayerSeekFuzzTest",
-    "test_player_setvolume_fuzzer:PlayerSetVolumeFuzzTest",
+    "playerseek_fuzzer:PlayerSeekFuzzTest",
+    "playersetvolume_fuzzer:PlayerSetVolumeFuzzTest",
   ]
 }
 ###############################################################################

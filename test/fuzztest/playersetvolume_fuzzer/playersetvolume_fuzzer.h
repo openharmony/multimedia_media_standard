@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#ifndef TEST_PLAYER_SETVOLUME_FUZZER_H
-#define TEST_PLAYER_SETVOLUME_FUZZER_H
+#ifndef PLAYERSETVOLUME_FUZZER_H
+#define PLAYERSETVOLUME_FUZZER_H
 
-#define FUZZ_PROJECT_NAME "test_player_setvolume_fuzzer"
+#define FUZZ_PROJECT_NAME "playersetvolume_fuzzer"
 #include "test_player.h"
 
 namespace OHOS {

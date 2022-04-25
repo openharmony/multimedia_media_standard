@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "test_player_seek_fuzzer.h"
+#include "playersetvolume_fuzzer.h"
 #include <iostream>
 #include "string_ex.h"
 #include "media_errors.h"
@@ -25,15 +25,15 @@ using namespace std;
 using namespace OHOS;
 using namespace OHOS::Media;
 
-TestPlayerSeekFuzz::TestPlayerSeekFuzz()
+TestPlayerSetVolumeFuzz::TestPlayerSetVolumeFuzz()
 {
 }
 
-TestPlayerSeekFuzz::~TestPlayerSeekFuzz()
+TestPlayerSetVolumeFuzz::~TestPlayerSetVolumeFuzz()
 {
 }
 
-bool TestPlayerSeekFuzz::FuzzSeek(uint8_t* data, size_t size)
+bool TestPlayerSetVolumeFuzz::FuzzSetVolume(uint8_t* data, size_t size)
 {
     player_ = OHOS::Media::PlayerFactory::CreatePlayer();
     if (player_ == nullptr) {
@@ -69,10 +69,10 @@ bool TestPlayerSeekFuzz::FuzzSeek(uint8_t* data, size_t size)
         cout << "Play fail" << endl;
         return false;
     }
-    if (size >= sizeof(int32_t)) {
-        ret = player_->Seek(*reinterpret_cast<int32_t *>(data), SEEK_NEXT_SYNC);
-        sleep(1);
-    }
+    if (size >= sizeof(float)) {
+        ret = player_->SetVolume(*reinterpret_cast<float *>(data), *reinterpret_cast<float *>(data));
+        sleep(1); 
+    } 
 
     ret = player_->Release();
     if (ret != 0) {
@@ -82,21 +82,21 @@ bool TestPlayerSeekFuzz::FuzzSeek(uint8_t* data, size_t size)
     return true;
 }
 
-bool OHOS::Media::FuzzPlayerSeek(uint8_t* data, size_t size)
+bool OHOS::Media::FuzzPlayerSetVolume(uint8_t* data, size_t size)
 {
-    auto player = std::make_unique<TestPlayerSeekFuzz>();
+    auto player = std::make_unique<TestPlayerSetVolumeFuzz>();
     if (player == nullptr) {
         cout << "player is null" << endl;
         return 0;
     }
-    return player->FuzzSeek(data, size);
+    return player->FuzzSetVolume(data, size);
 }
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Media::FuzzPlayerSeek(data, size);
+    OHOS::Media::FuzzPlayerSetVolume(data, size);
     return 0;
 }
 
