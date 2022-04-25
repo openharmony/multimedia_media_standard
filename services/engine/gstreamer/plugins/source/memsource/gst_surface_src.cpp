@@ -53,21 +53,21 @@ enum {
     PROP_MAX_FRAME_RATE,
 };
 
-G_DEFINE_TYPE(GstSurfacePoolSrc, gst_surface_src, GST_TYPE_MEM_POOL_SRC);
+G_DEFINE_TYPE(GstSurfaceSrc, gst_surface_src, GST_TYPE_MEM_SRC);
 
 static void gst_surface_src_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec);
 static void gst_surface_src_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec);
 static GstStateChangeReturn gst_surface_src_change_state(GstElement *element, GstStateChange transition);
-static gboolean gst_surface_src_create_surface(GstSurfacePoolSrc *src);
-static gboolean gst_surface_src_create_pool(GstSurfacePoolSrc *src);
-static void gst_surface_src_destroy_surface(GstSurfacePoolSrc *src);
-static void gst_surface_src_destroy_pool(GstSurfacePoolSrc *src);
+static gboolean gst_surface_src_create_surface(GstSurfaceSrc *src);
+static gboolean gst_surface_src_create_pool(GstSurfaceSrc *src);
+static void gst_surface_src_destroy_surface(GstSurfaceSrc *src);
+static void gst_surface_src_destroy_pool(GstSurfaceSrc *src);
 static gboolean gst_surface_src_decide_allocation(GstBaseSrc *basesrc, GstQuery *query);
 static GstFlowReturn gst_surface_src_fill(GstBaseSrc *src, guint64 offset, guint size, GstBuffer *buf);
-static void gst_surface_src_init_surface(GstSurfacePoolSrc *src);
+static void gst_surface_src_init_surface(GstSurfaceSrc *src);
 static gboolean gst_surface_src_send_event(GstElement *element, GstEvent *event);
 
-static void gst_surface_src_class_init(GstSurfacePoolSrcClass *klass)
+static void gst_surface_src_class_init(GstSurfaceSrcClass *klass)
 {
     g_return_if_fail(klass != nullptr);
     GObjectClass *gobject_class = reinterpret_cast<GObjectClass*>(klass);
@@ -109,7 +109,7 @@ static void gst_surface_src_class_init(GstSurfacePoolSrcClass *klass)
     gst_element_class_add_static_pad_template(gstelement_class, &gst_src_template);
 }
 
-static void gst_surface_src_init(GstSurfacePoolSrc *surfacesrc)
+static void gst_surface_src_init(GstSurfaceSrc *surfacesrc)
 {
     g_return_if_fail(surfacesrc != nullptr);
     surfacesrc->pool = nullptr;
@@ -120,7 +120,7 @@ static void gst_surface_src_init(GstSurfacePoolSrc *surfacesrc)
 
 static void gst_surface_src_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    GstSurfacePoolSrc *src = GST_SURFACE_SRC(object);
+    GstSurfaceSrc *src = GST_SURFACE_SRC(object);
     g_return_if_fail(src != nullptr);
     g_return_if_fail(value != nullptr);
     (void)pspec;
@@ -138,7 +138,7 @@ static void gst_surface_src_get_property(GObject *object, guint prop_id, GValue 
 
 static void gst_surface_src_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    GstSurfacePoolSrc *src = GST_SURFACE_SRC(object);
+    GstSurfaceSrc *src = GST_SURFACE_SRC(object);
     g_return_if_fail(src != nullptr && value != nullptr);
     (void)pspec;
     switch (prop_id) {
@@ -179,7 +179,7 @@ static GstFlowReturn gst_surface_src_fill(GstBaseSrc *src, guint64 offset, guint
 
 static GstStateChangeReturn gst_surface_src_change_state(GstElement *element, GstStateChange transition)
 {
-    GstSurfacePoolSrc *surfacesrc = GST_SURFACE_SRC(element);
+    GstSurfaceSrc *surfacesrc = GST_SURFACE_SRC(element);
     g_return_val_if_fail(surfacesrc != nullptr, GST_STATE_CHANGE_FAILURE);
     switch (transition) {
         case GST_STATE_CHANGE_NULL_TO_READY:
@@ -209,7 +209,7 @@ static GstStateChangeReturn gst_surface_src_change_state(GstElement *element, Gs
     return ret;
 }
 
-static gboolean gst_surface_src_create_surface(GstSurfacePoolSrc *surfacesrc)
+static gboolean gst_surface_src_create_surface(GstSurfaceSrc *surfacesrc)
 {
     g_return_val_if_fail(surfacesrc != nullptr, FALSE);
     sptr<Surface> consumerSurface = Surface::CreateSurfaceAsConsumer();
@@ -227,7 +227,7 @@ static gboolean gst_surface_src_create_surface(GstSurfacePoolSrc *surfacesrc)
 
 static gboolean gst_surface_src_send_event(GstElement *element, GstEvent *event)
 {
-    GstSurfacePoolSrc *surfacesrc = GST_SURFACE_SRC(element);
+    GstSurfaceSrc *surfacesrc = GST_SURFACE_SRC(element);
     g_return_val_if_fail(surfacesrc != nullptr, FALSE);
     g_return_val_if_fail(event != nullptr, FALSE);
     GST_DEBUG_OBJECT(surfacesrc, "New event %s", GST_EVENT_TYPE_NAME(event));
@@ -255,7 +255,7 @@ static gboolean gst_surface_src_send_event(GstElement *element, GstEvent *event)
     return GST_ELEMENT_CLASS(parent_class)->send_event(element, event);
 }
 
-static gboolean gst_surface_src_create_pool(GstSurfacePoolSrc *surfacesrc)
+static gboolean gst_surface_src_create_pool(GstSurfaceSrc *surfacesrc)
 {
     GstAllocationParams params;
     gst_allocation_params_init(&params);
@@ -276,23 +276,23 @@ static gboolean gst_surface_src_create_pool(GstSurfacePoolSrc *surfacesrc)
     return TRUE;
 }
 
-static void gst_surface_src_destroy_pool(GstSurfacePoolSrc *src)
+static void gst_surface_src_destroy_pool(GstSurfaceSrc *src)
 {
     gst_object_unref(src->pool);
     src->pool = nullptr;
 }
 
-static void gst_surface_src_destroy_surface(GstSurfacePoolSrc *src)
+static void gst_surface_src_destroy_surface(GstSurfaceSrc *src)
 {
     src->consumerSurface = nullptr;
     src->producerSurface = nullptr;
 }
 
-static void gst_surface_src_init_surface(GstSurfacePoolSrc *src)
+static void gst_surface_src_init_surface(GstSurfaceSrc *src)
 {
     g_return_if_fail(src != nullptr && src->consumerSurface != nullptr);
     // The internal function do not need judge whether it is empty
-    GstMemPoolSrc *memsrc = GST_MEM_SRC(src);
+    GstMemSrc *memsrc = GST_MEM_SRC(src);
     sptr<Surface> surface = src->consumerSurface;
     guint width = DEFAULT_VIDEO_WIDTH;
     guint height = DEFAULT_VIDEO_HEIGHT;
@@ -323,14 +323,14 @@ static void gst_surface_src_init_surface(GstSurfacePoolSrc *src)
     }
 }
 
-static gboolean gst_surface_src_get_pool(GstSurfacePoolSrc *surfacesrc, GstQuery *query, GstCaps *outcaps,
+static gboolean gst_surface_src_get_pool(GstSurfaceSrc *surfacesrc, GstQuery *query, GstCaps *outcaps,
     guint min_buf, guint max_buf)
 {
     g_return_val_if_fail(surfacesrc != nullptr && query != nullptr && surfacesrc->consumerSurface != nullptr, FALSE);
     if (surfacesrc->pool == nullptr) {
         return FALSE;
     }
-    GstMemPoolSrc *memsrc = GST_MEM_SRC(surfacesrc);
+    GstMemSrc *memsrc = GST_MEM_SRC(surfacesrc);
     memsrc->buffer_num = max_buf;
     gboolean is_video = gst_query_find_allocation_meta(query, GST_VIDEO_META_API_TYPE, nullptr);
     if (is_video) {
@@ -360,7 +360,7 @@ static gboolean gst_surface_src_get_pool(GstSurfacePoolSrc *surfacesrc, GstQuery
 
 static gboolean gst_surface_src_decide_allocation(GstBaseSrc *basesrc, GstQuery *query)
 {
-    GstSurfacePoolSrc *surfacesrc = GST_SURFACE_SRC(basesrc);
+    GstSurfaceSrc *surfacesrc = GST_SURFACE_SRC(basesrc);
     g_return_val_if_fail(basesrc != nullptr && query != nullptr, FALSE);
     GST_OBJECT_LOCK(surfacesrc);
     surfacesrc->need_flush = TRUE;
