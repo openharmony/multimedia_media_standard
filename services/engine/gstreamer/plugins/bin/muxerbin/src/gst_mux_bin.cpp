@@ -15,6 +15,7 @@
 
 #include "config.h"
 #include "gst_mux_bin.h"
+#include "av_common.h"
 #include "gstbasesink.h"
 #include "gstbaseparse.h"
 
@@ -51,11 +52,11 @@ static void gst_mux_bin_add_track(GstMuxBin *mux_bin, const char *src_name, cons
     g_return_if_fail(info != nullptr);
     info->srcName_ = g_strdup((char *)src_name);
     info->parseName_ = g_strdup((char *)parse_name);
-    switch (static_cast<TrackType>(track_type)) {
-        case VIDEO:
+    switch (static_cast<OHOS::Media::MediaType>(track_type)) {
+        case OHOS::Media::MEDIA_TYPE_VID:
             mux_bin->video_src_list = g_slist_append(mux_bin->video_src_list, info);
             break;
-        case AUDIO:
+        case OHOS::Media::MEDIA_TYPE_AUD:
             mux_bin->audio_src_list = g_slist_append(mux_bin->audio_src_list, info);
             break;
         default:
@@ -268,17 +269,17 @@ static GstElement *create_parse(GstMuxBin *mux_bin, const char* parse_name)
     return parse;
 }
 
-static bool create_src(GstMuxBin *mux_bin, TrackType track_type)
+static bool create_src(GstMuxBin *mux_bin, OHOS::Media::MediaType track_type)
 {
     g_return_val_if_fail(mux_bin != nullptr, false);
     GST_INFO_OBJECT(mux_bin, "create_src");
 
     GSList *iter = nullptr;
     switch (track_type) {
-        case VIDEO:
+        case OHOS::Media::MEDIA_TYPE_VID:
             iter = mux_bin->video_src_list;
             break;
-        case AUDIO:
+        case OHOS::Media::MEDIA_TYPE_AUD:
             iter = mux_bin->audio_src_list;
             break;
         default:
@@ -305,12 +306,12 @@ static bool create_element(GstMuxBin *mux_bin)
         return false;
     }
 
-    if (!create_src(mux_bin, VIDEO)) {
+    if (!create_src(mux_bin, OHOS::Media::MEDIA_TYPE_VID)) {
         GST_ERROR_OBJECT(mux_bin, "Failed to call create_video_src");
         return false;
     }
 
-    if (!create_src(mux_bin, AUDIO)) {
+    if (!create_src(mux_bin, OHOS::Media::MEDIA_TYPE_AUD)) {
         GST_ERROR_OBJECT(mux_bin, "Failed to call create_audio_src");
         return false;
     }
@@ -365,16 +366,16 @@ static bool connect_parse(GstMuxBin *mux_bin, GstElement *parse, GstPad *upstrea
     return true;
 }
 
-static bool connect_element(GstMuxBin *mux_bin, TrackType type)
+static bool connect_element(GstMuxBin *mux_bin, OHOS::Media::MediaType type)
 {
     g_return_val_if_fail(mux_bin != nullptr, false);
     g_return_val_if_fail(mux_bin->split_mux_sink != nullptr, false);
     GST_INFO_OBJECT(mux_bin, "connect_element");
 
     GSList *iter = nullptr;
-    if (type == VIDEO) {
+    if (type == OHOS::Media::MEDIA_TYPE_VID) {
         iter = mux_bin->video_src_list;
-    } else if (type == AUDIO) {
+    } else if (type == OHOS::Media::MEDIA_TYPE_AUD) {
         iter = mux_bin->audio_src_list;
     } else {
         GST_ERROR_OBJECT(mux_bin, "Failed to check track type");
@@ -384,9 +385,9 @@ static bool connect_element(GstMuxBin *mux_bin, TrackType type)
     while (iter != nullptr) {
         GstPad *src_src_pad = gst_element_get_static_pad(((GstTrackInfo *)(iter->data))->src_, "src");
         GstPad *split_mux_sink_sink_pad = nullptr;
-        if (type == VIDEO) {
+        if (type == OHOS::Media::MEDIA_TYPE_VID) {
             split_mux_sink_sink_pad = gst_element_get_request_pad(mux_bin->split_mux_sink, "video");
-        } else if (type == AUDIO) {
+        } else if (type == OHOS::Media::MEDIA_TYPE_AUD) {
             split_mux_sink_sink_pad = gst_element_get_request_pad(mux_bin->split_mux_sink, "audio_%u");
         }
         if (strstr(((GstTrackInfo *)(iter->data))->parseName_, "parse")) {
@@ -428,11 +429,11 @@ static GstStateChangeReturn gst_mux_bin_change_state(GstElement *element, GstSta
             }
             break;
         case GST_STATE_CHANGE_READY_TO_PAUSED:
-            if (!connect_element(mux_bin, VIDEO)) {
+            if (!connect_element(mux_bin, OHOS::Media::MEDIA_TYPE_VID)) {
                 GST_ERROR_OBJECT(mux_bin, "Failed to connect element");
                 return GST_STATE_CHANGE_FAILURE;
             }
-            if (!connect_element(mux_bin, AUDIO)) {
+            if (!connect_element(mux_bin, OHOS::Media::MEDIA_TYPE_AUD)) {
                 GST_ERROR_OBJECT(mux_bin, "Failed to connect element");
                 return GST_STATE_CHANGE_FAILURE;
             }

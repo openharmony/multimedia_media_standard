@@ -34,7 +34,7 @@ public:
     int32_t SetRotation(int32_t rotation) override;
     int32_t AddTrack(const MediaDescription &trackDesc, int32_t &trackId) override;
     int32_t Start() override;
-    int32_t WriteTrackSample(std::shared_ptr<AVMemory> sampleData, const TrackSampleInfo &info) override;
+    int32_t WriteTrackSample(std::shared_ptr<AVContainerMemory> sampleData, const TrackSampleInfo &info) override;
     int32_t Stop() override;
     void Release() override;
 private:

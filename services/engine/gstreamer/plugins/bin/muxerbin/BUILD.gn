@@ -30,17 +30,19 @@ config("gst_avmuxer_bin_config") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Werror",
+    "-Wunused-parameter"
   ]
 
   include_dirs = [
     "include",
     "//utils/native/base/include",
+    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/gstreamer/gstplugins_base",
     "//third_party/gstreamer/gstplugins_base/gst-libs",
-    "//third_party/gstreamer/gstplugins_base/gst-libs/gst/app",
     "//third_party/gstreamer/gstreamer/libs/gst/base",
     "//third_party/glib/glib",
     "//third_party/glib",

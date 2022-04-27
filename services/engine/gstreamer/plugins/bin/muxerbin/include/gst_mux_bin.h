@@ -41,12 +41,6 @@ struct _GstTrackInfo {
     GstElement *parse_;
 };
 
-enum _TrackType : int32_t {
-    UNKNOWN_TYPE = -1,
-    VIDEO = 0,
-    AUDIO = 1,
-};
-
 struct _GstMuxBin {
     GstPipeline parent_;
 
@@ -70,7 +64,6 @@ struct _GstMuxBinClass {
 using GstMuxBin = struct _GstMuxBin;
 using GstMuxBinClass = struct _GstMuxBinClass;
 using GstTrackInfo = struct _GstTrackInfo;
-using TrackType = enum _TrackType;
 
 G_GNUC_INTERNAL GType gst_mux_bin_get_type(void);
 

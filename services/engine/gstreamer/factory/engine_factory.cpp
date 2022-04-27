@@ -87,6 +87,7 @@ std::unique_ptr<IAVCodecListEngine> GstEngineFactory::CreateAVCodecListEngine()
     GstLoader::Instance().UpdateLogLevel();
     return std::make_unique<AVCodecListEngineGstImpl>();
 }
+
 std::unique_ptr<IAVMuxerEngine> GstEngineFactory::CreateAVMuxerEngine()
 {
     GstLoader::Instance().UpdateLogLevel();

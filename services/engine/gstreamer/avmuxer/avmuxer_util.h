@@ -24,26 +24,10 @@
 #include "i_avmuxer_engine.h"
 #include "nocopyable.h"
 #include "gst_shmem_wrap_allocator.h"
+#include "av_common.h"
 
 namespace OHOS {
 namespace Media {
-const std::map<std::string, std::string> FORMAT_TO_MUX {
-    {"mp4", "mp4mux"},
-    {"m4a", "mp4mux"}
-};
-
-const std::map<std::string, std::set<std::string>> FORMAT_TO_MIME {
-    {"mp4", {"video/avc", "video/mp4v-es", "video/h263", "audio/mp4a-latm", "audio/mpeg"}},
-    {"m4a", {"audio/mp4a-latm"}}
-};
-
-const std::map<const std::string, std::tuple<const std::string, std::string>> MIME_MAP_TYPE {
-    {"video/avc", {"video/x-h264", "h264parse"}},
-    {"video/h263", {"video/x-h263", ""}},
-    {"video/mp4v-es", {"video/mpeg", "mpeg4videoparse"}},
-    {"audio/mp4a-latm", {"audio/mpeg", "aacparse"}},
-    {"audio/mpeg", {"audio/mpeg", ""}}
-};
 
 struct TrackInfo {
     bool hasCodecData_ = false;
@@ -61,20 +45,19 @@ struct FormatParam {
     int32_t rate = 0;
 };
 
-enum TrackType : int32_t {
-    UNKNOWN_TYPE = -1,
-    VIDEO = 0,
-    AUDIO = 1,
-};
-
 class AVMuxerUtil {
 public:
     AVMuxerUtil() = delete;
     ~AVMuxerUtil() = delete;
 
-    static TrackType CheckType(const std::string &mimeType);
     static int32_t SetCaps(const MediaDescription &trackDesc, const std::string &mimeType,
         GstCaps **src_caps);
+    static std::vector<std::string> FindFormat();
+    static bool FindMux(const std::string &format, std::string &mux);
+    static bool FindMimeTypes(const std::string &format, std::set<std::string> &mimeTypes);
+    static bool FindInnerTypes(const std::string &mimeType, std::string &innerType);
+    static bool FindParse(const std::string &mimeType, std::string &parse);
+    static bool FindMediaType(const std::string &mimeType, MediaType &mediaType);
 };
 }  // namespace Media
 }  // namespace OHOS
