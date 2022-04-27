@@ -54,11 +54,11 @@ struct TrackSampleInfo {
     AVCodecBufferFlag flags;
 };
 
-class AVMemory : public NoCopyable {
+class AVContainerMemory : public NoCopyable {
 public:
-    AVMemory(uint8_t *base, size_t capacity) : base_(base), capacity_(capacity) {};
+    AVContainerMemory(uint8_t *base, size_t capacity) : base_(base), capacity_(capacity) {};
 
-    ~AVMemory() = default;
+    ~AVContainerMemory() = default;
 
     uint8_t *Base() const
     {

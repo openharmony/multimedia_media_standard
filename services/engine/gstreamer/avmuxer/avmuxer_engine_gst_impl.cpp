@@ -39,6 +39,7 @@ namespace OHOS {
 namespace Media {
 static void StartFeed(GstElement *src, guint length, gpointer userData)
 {
+    (void)length;
     CHECK_AND_RETURN_LOG(src != nullptr, "AppSrc does not exist");
     CHECK_AND_RETURN_LOG(userData != nullptr, "User data does not exist");
     std::map<int32_t, TrackInfo> trackInfo = *reinterpret_cast<std::map<int32_t, TrackInfo> *>(userData);
@@ -80,7 +81,7 @@ AVMuxerEngineGstImpl::~AVMuxerEngineGstImpl()
 int32_t AVMuxerEngineGstImpl::Init()
 {
     MEDIA_LOGD("Init");
-    muxBin_ = GST_ELEMENT_CAST(gst_object_ref_sink(gst_element_factory_make("muxbin", "avmuxerbin")));
+    muxBin_ = GST_ELEMENT(gst_object_ref_sink(gst_element_factory_make("muxbin", "avmuxerbin")));
     CHECK_AND_RETURN_RET_LOG(muxBin_ != nullptr, MSERR_UNKNOWN, "Failed to create muxbin");
 
     int32_t ret = SetupMsgProcessor();
@@ -97,11 +98,7 @@ std::vector<std::string> AVMuxerEngineGstImpl::GetAVMuxerFormatList()
     MEDIA_LOGD("GetAVMuxerFormatList");
     CHECK_AND_RETURN_RET_LOG(muxBin_ != nullptr, std::vector<std::string>(), "Muxbin does not exist");
 
-    std::vector<std::string> formatList;
-    for (auto& formats : FORMAT_TO_MIME) {
-        formatList.push_back(formats.first);
-    }
-    return formatList;
+    return AVMuxerUtil::FindFormat();
 }
 
 int32_t AVMuxerEngineGstImpl::SetOutput(int32_t fd, const std::string &format)
@@ -109,7 +106,9 @@ int32_t AVMuxerEngineGstImpl::SetOutput(int32_t fd, const std::string &format)
     MEDIA_LOGD("SetOutput");
     CHECK_AND_RETURN_RET_LOG(muxBin_ != nullptr, MSERR_INVALID_OPERATION, "Muxbin does not exist");
 
-    g_object_set(muxBin_, "fd", fd, "mux", FORMAT_TO_MUX.at(format).c_str(), nullptr);
+    std::string mux;
+    CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindMux(format, mux), MSERR_INVALID_VAL, "Illegal format");
+    g_object_set(muxBin_, "fd", fd, "mux", mux.c_str(), nullptr);
     format_ = format;
 
     return MSERR_OK;
@@ -164,7 +163,9 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
     std::string mimeType;
     bool val = trackDesc.GetStringValue(std::string(MediaDescriptionKey::MD_KEY_CODEC_MIME), mimeType);
     CHECK_AND_RETURN_RET_LOG(val = true, MSERR_INVALID_VAL, "Failed to get MD_KEY_CODEC_MIME");
-    CHECK_AND_RETURN_RET_LOG(FORMAT_TO_MIME.at(format_).find(mimeType) != FORMAT_TO_MIME.at(format_).end(),
+    std::set<std::string> mimeTypes;
+    CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindMimeTypes(format_, mimeTypes), MSERR_INVALID_VAL, "Illegal format");
+    CHECK_AND_RETURN_RET_LOG(mimeTypes.find(mimeType) != mimeTypes.end(),
         MSERR_INVALID_OPERATION, "The mime type can not be added in current container format");
 
     trackId = trackInfo_.size() + 1;
@@ -174,11 +175,14 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
 
     GstCaps *srcCaps = nullptr;
     uint32_t *trackNum = nullptr;
-    if (AVMuxerUtil::CheckType(trackInfo_[trackId].mimeType_) == VIDEO) {
+    MediaType mediaType;
+    CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindMediaType(trackInfo_[trackId].mimeType_, mediaType), MSERR_INVALID_VAL,
+        "Illegal mimeType");
+    if (mediaType == MEDIA_TYPE_VID) {
         CHECK_AND_RETURN_RET_LOG(videoTrackNum_ < MAX_VIDEO_TRACK_NUM, MSERR_INVALID_OPERATION,
             "Only 1 video Tracks can be added");
         trackNum = &videoTrackNum_;
-    } else if (AVMuxerUtil::CheckType(trackInfo_[trackId].mimeType_) == AUDIO) {
+    } else if (mediaType == MEDIA_TYPE_AUD) {
         CHECK_AND_RETURN_RET_LOG(audioTrackNum_ < MAX_AUDIO_TRACK_NUM, MSERR_INVALID_OPERATION,
             "Only 16 audio Tracks can be added");
         trackNum = &audioTrackNum_;
@@ -197,9 +201,11 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
     MEDIA_LOGD("caps ref: %{public}d", GST_MINI_OBJECT(trackInfo_[trackId].caps_)->refcount);
     std::string name = "src_";
     name += static_cast<char>('0' + trackId);
+    std::string parse;
+    CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindParse(mimeType, parse), MSERR_INVALID_VAL, "Illegal mimeType");
     g_signal_emit_by_name(muxBin_, "add-track", name.c_str(),
-        (std::get<1>(MIME_MAP_TYPE.at(mimeType)) + std::to_string(trackId)).c_str(),
-        static_cast<int32_t>(AVMuxerUtil::CheckType(trackInfo_[trackId].mimeType_)));
+        (parse + std::to_string(trackId)).c_str(),
+        static_cast<int32_t>(mediaType));
 
     return MSERR_OK;
 }

@@ -472,25 +472,6 @@ bool CommonNapi::AddNumberPropInt64(napi_env env, napi_value obj, const std::str
     return true;
 }
 
-bool CommonNapi::ExtractTrackSampleInfo(napi_env env, napi_value buffer, TrackSampleInfo &info)
-{
-    CHECK_AND_RETURN_RET(buffer != nullptr, false);
-
-    napi_value trackSampleInfo;
-    CHECK_AND_RETURN_RET(napi_get_named_property(env, buffer, "sampleInfo", &trackSampleInfo) == napi_ok, false);
-    CHECK_AND_RETURN_RET(CommonNapi::GetPropertyUint32(env, trackSampleInfo, "size", info.size) == true, false);
-    int32_t flags;
-    CHECK_AND_RETURN_RET(CommonNapi::GetPropertyInt32(env, trackSampleInfo, "flags", flags) == true, false);
-    info.flags = static_cast<AVCodecBufferFlag>(flags);
-    double milliTime;
-    CHECK_AND_RETURN_RET(CommonNapi::GetPropertyDouble(env, trackSampleInfo, "timeUs", milliTime) == true, false);
-    constexpr int32_t MS_TO_US = 1000;
-    info.timeUs = milliTime * MS_TO_US;
-    CHECK_AND_RETURN_RET(CommonNapi::GetPropertyUint32(env, buffer, "trackIndex", info.trackIdx) == true, false);
-
-    return true;
-}
-
 napi_status MediaJsResultStringVector::GetJsResult(napi_env env, napi_value &result)
 {
     napi_status status;

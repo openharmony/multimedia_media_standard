@@ -32,6 +32,8 @@ config("media_engine_gst_avmuxer_config") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Werror",
+    "-Wunused-parameter"
   ]
 
   include_dirs = [
@@ -44,14 +46,9 @@ config("media_engine_gst_avmuxer_config") {
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
     "//utils/native/base/include",
     "//third_party/gstreamer/gstreamer",
-    "//third_party/gstreamer/gstreamer/libs",
-    "//third_party/gstreamer/gstplugins_base",
-    "//third_party/gstreamer/gstplugins_base/gst-libs",
     "//third_party/gstreamer/gstreamer/gst",
-    "//third_party/gstreamer/gstreamer/libs/gst/base",
-    "//third_party/glib/glib",
     "//third_party/glib",
-    "//third_party/glib/gmodule",
+    "//third_party/glib/glib",
   ]
 }
 

@@ -186,7 +186,7 @@ bool AVMuxerDemo::PushBuffer(std::shared_ptr<std::ifstream> File, const int32_t 
         return false;
     }
     (void)File->read((char *)buffer, frameSize);
-    std::shared_ptr<AVMemory> aVMem = std::make_shared<AVMemory>(buffer, frameSize);
+    std::shared_ptr<AVContainerMemory> aVMem = std::make_shared<AVContainerMemory>(buffer, frameSize);
     aVMem->SetRange(0, frameSize);
     TrackSampleInfo info;
     info.size = frameSize;
