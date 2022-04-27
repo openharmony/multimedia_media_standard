@@ -33,7 +33,7 @@ config("media_engine_gst_avmuxer_config") {
     "-Wfloat-equal",
     "-Wdate-time",
     "-Werror",
-    "-Wunused-parameter"
+    "-Wunused-parameter",
   ]
 
   include_dirs = [

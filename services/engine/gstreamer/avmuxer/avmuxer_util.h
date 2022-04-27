@@ -28,7 +28,6 @@
 
 namespace OHOS {
 namespace Media {
-
 struct TrackInfo {
     bool hasCodecData_ = false;
     bool needData_ = false;
