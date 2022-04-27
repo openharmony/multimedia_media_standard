@@ -31,7 +31,7 @@ config("gst_avmuxer_bin_config") {
     "-Wfloat-equal",
     "-Wdate-time",
     "-Werror",
-    "-Wunused-parameter"
+    "-Wunused-parameter",
   ]
 
   include_dirs = [

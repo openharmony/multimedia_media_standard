@@ -489,7 +489,7 @@ napi_value AVMuxerNapi::WriteTrackSample(napi_env env, napi_callback_info info)
         CHECK_AND_RETURN_RET(napi_get_value_uint32(env, args[1], &offset) == napi_ok, result);
     }
     if (args[2] != nullptr && napi_typeof(env, args[2], &valueType) == napi_ok && valueType == napi_object) {
-        (void)ExtractTrackSampleInfo(env, args[2], asyncContext->trackSampleInfo_);
+        (void)ExtractTrackSampleInfo(env, args[2], asyncContext->trackSampleInfo_);  // args[2]:TrackSampleInfo
     }
     asyncContext->callbackRef = CommonNapi::CreateReference(env, args[3]);
     asyncContext->deferred = CommonNapi::CreatePromise(env, asyncContext->callbackRef, result);
