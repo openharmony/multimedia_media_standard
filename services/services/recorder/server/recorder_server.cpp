@@ -430,6 +430,7 @@ int32_t RecorderServer::Stop(bool block)
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = recorderEngine_->Stop(block);
     status_ = (ret == MSERR_OK ? REC_INITIALIZED : REC_ERROR);
+    BehaviorEventWrite(GetStatusDescription(status_), "Recorder");
     return ret;
 }
 
