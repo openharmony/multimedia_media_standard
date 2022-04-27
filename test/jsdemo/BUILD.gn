@@ -54,7 +54,7 @@ ohos_shared_library("mediademo") {
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/ace/napi:ace_napi",
+    "//foundation/arkui/napi:ace_napi",
     "//foundation/graphic/standard/frameworks/surface:surface",
     "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
