@@ -303,10 +303,10 @@ int32_t AudioRecorderNapi::GetAudioProperties(napi_env env, napi_value args, Aud
         fileFormat = JS_DEFAULT_ENCORD_TYPE;
     }
     switch (audioEncoder) {
-        case JS_DEFAULT_ENCORD_TYPE:
         case JS_AAC_LC:
             properties.audioCodecFormat = AAC_LC;
             break;
+        case JS_DEFAULT_ENCORD_TYPE:
         default:
             return MSERR_INVALID_VAL;
     }
