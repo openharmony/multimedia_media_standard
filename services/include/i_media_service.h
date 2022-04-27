@@ -163,8 +163,8 @@ public:
      *
      * @param pointer to the avmuxer service.
      * @return Returns a valid pointer if the setting is successful;
-     * @since 1.0
-     * @version 1.0
+     * @since 3.2
+     * @version 3.2
      */
     virtual int32_t DestroyAVMuxerService(std::shared_ptr<IAVMuxerService> avmuxer) = 0;
 };
