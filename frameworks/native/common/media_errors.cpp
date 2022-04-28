@@ -47,7 +47,7 @@ const std::map<MediaServiceErrCode, std::string> MSERRCODE_INFOS = {
     {MSERR_VID_ENC_FAILED, "video encode failed"},
     {MSERR_AUD_DEC_FAILED, "audio decode failed"},
     {MSERR_VID_DEC_FAILED, "video decode failed"},
-    {MSERR_MUXER_FAILED, "stream muxer failed"},
+    {MSERR_MUXER_FAILED, "stream avmuxer failed"},
     {MSERR_DEMUXER_FAILED, "stream demuxer or parser failed"},
     {MSERR_OPEN_FILE_FAILED, "open file failed"},
     {MSERR_FILE_ACCESS_FAILED, "read or write file failed"},

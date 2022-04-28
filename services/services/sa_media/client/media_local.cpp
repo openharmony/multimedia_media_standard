@@ -21,6 +21,7 @@
 #include "player_server.h"
 #include "recorder_server.h"
 #include "avcodeclist_server.h"
+#include "avmuxer_server.h"
 
 namespace OHOS {
 namespace Media {
@@ -55,6 +56,11 @@ std::shared_ptr<IAVCodecListService> MediaLocal::CreateAVCodecListService()
     return AVCodecListServer::Create();
 }
 
+std::shared_ptr<IAVMuxerService> MediaLocal::CreateAVMuxerService()
+{
+    return AVMuxerServer::Create();
+}
+
 int32_t MediaLocal::DestroyRecorderService(std::shared_ptr<IRecorderService> recorder)
 {
     (void)recorder;
@@ -82,6 +88,11 @@ int32_t MediaLocal::DestroyAVCodecService(std::shared_ptr<IAVCodecService> avCod
 int32_t MediaLocal::DestroyAVCodecListService(std::shared_ptr<IAVCodecListService> avCodecList)
 {
     (void)avCodecList;
+    return MSERR_OK;
+}
+int32_t MediaLocal::DestroyAVMuxerService(std::shared_ptr<IAVMuxerService> avmuxer)
+{
+    (void)avmuxer;
     return MSERR_OK;
 }
 } // namespace Media

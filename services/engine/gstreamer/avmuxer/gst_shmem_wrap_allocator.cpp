@@ -49,6 +49,9 @@ GstMemory *gst_shmem_wrap(GstAllocator *allocator, std::shared_ptr<OHOS::Media::
 
 static GstMemory *gst_shmem_wrap_allocator_alloc(GstAllocator *allocator, gsize size, GstAllocationParams *params)
 {
+    (void)allocator;
+    (void)size;
+    (void)params;
     return nullptr;
 }
 
@@ -67,6 +70,8 @@ static void gst_shmem_wrap_allocator_free(GstAllocator *allocator, GstMemory *me
 
 static gpointer gst_shmem_wrap_allocator_mem_map(GstMemory *mem, gsize maxsize, GstMapFlags flags)
 {
+    (void)maxsize;
+    (void)flags;
     g_return_val_if_fail(mem != nullptr, nullptr);
     g_return_val_if_fail(gst_is_shmem_memory(mem), nullptr);
 
@@ -90,7 +95,7 @@ static GstMemory *gst_shmem_wrap_allocator_mem_share(GstMemory *mem, gssize offs
     g_return_val_if_fail(offset >= 0 && static_cast<gsize>(offset) < mem->size, nullptr);
     GstShMemMemory *sub = nullptr;
     GstMemory *parent = nullptr;
-    GST_DEBUG("offset is: %d, size is: %d", offset, size);
+
     /* find the real parent */
     if ((parent = mem->parent) == NULL) {
         parent = (GstMemory *)mem;
@@ -111,7 +116,6 @@ static GstMemory *gst_shmem_wrap_allocator_mem_share(GstMemory *mem, gssize offs
         mem->align,
         mem->offset + offset,
         size);
-    GST_DEBUG("mem->offset is: %d", mem->offset + offset);
     
     sub->mem = reinterpret_cast<GstShMemMemory *>(mem)->mem;
     return GST_MEMORY_CAST(sub);

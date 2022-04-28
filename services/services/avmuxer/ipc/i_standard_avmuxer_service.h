@@ -18,7 +18,6 @@
 
 #include "i_avmuxer_service.h"
 #include "iremote_proxy.h"
-#include "iremote_stub.h"
 
 namespace OHOS {
 namespace Media {

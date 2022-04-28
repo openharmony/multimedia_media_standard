@@ -38,6 +38,7 @@ static napi_value Export(napi_env env, napi_value exports)
     OHOS::Media::VideoEncoderNapi::Init(env, exports);
     OHOS::Media::VideoPlayerNapi::Init(env, exports);
     OHOS::Media::VideoRecorderNapi::Init(env, exports);
+    OHOS::Media::AVMuxerNapi::Init(env, exports);
     OHOS::Media::MediaEnumNapi::Init(env, exports);
     return exports;
 }
