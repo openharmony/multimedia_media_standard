@@ -14,15 +14,10 @@
  */
 
 #include "avmuxer_engine_gst_impl.h"
-#include <iostream>
 #include <unistd.h>
 #include "gst_utils.h"
-#include "gstappsrc.h"
 #include "media_errors.h"
 #include "media_log.h"
-#include "convert_codec_data.h"
-#include "gstbaseparse.h"
-#include "gst_mux_bin.h"
 #include "uri_helper.h"
 
 namespace {
@@ -42,8 +37,9 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-static void StartFeed(GstAppSrc *src, guint length, gpointer userData)
+static void StartFeed(GstElement *src, guint length, gpointer userData)
 {
+    (void)length;
     CHECK_AND_RETURN_LOG(src != nullptr, "AppSrc does not exist");
     CHECK_AND_RETURN_LOG(userData != nullptr, "User data does not exist");
     std::map<int32_t, TrackInfo> trackInfo = *reinterpret_cast<std::map<int32_t, TrackInfo> *>(userData);
@@ -55,7 +51,7 @@ static void StartFeed(GstAppSrc *src, guint length, gpointer userData)
     }
 }
 
-static void StopFeed(GstAppSrc *src, gpointer userData)
+static void StopFeed(GstElement *src, gpointer userData)
 {
     CHECK_AND_RETURN_LOG(src != nullptr, "AppSrc does not exist");
     CHECK_AND_RETURN_LOG(userData != nullptr, "User data does not exist");
@@ -85,7 +81,7 @@ AVMuxerEngineGstImpl::~AVMuxerEngineGstImpl()
 int32_t AVMuxerEngineGstImpl::Init()
 {
     MEDIA_LOGD("Init");
-    muxBin_ = GST_MUX_BIN(gst_element_factory_make("muxbin", "avmuxerbin"));
+    muxBin_ = GST_ELEMENT(gst_object_ref_sink(gst_element_factory_make("muxbin", "avmuxerbin")));
     CHECK_AND_RETURN_RET_LOG(muxBin_ != nullptr, MSERR_UNKNOWN, "Failed to create muxbin");
 
     int32_t ret = SetupMsgProcessor();
@@ -102,11 +98,7 @@ std::vector<std::string> AVMuxerEngineGstImpl::GetAVMuxerFormatList()
     MEDIA_LOGD("GetAVMuxerFormatList");
     CHECK_AND_RETURN_RET_LOG(muxBin_ != nullptr, std::vector<std::string>(), "Muxbin does not exist");
 
-    std::vector<std::string> formatList;
-    for (auto& formats : FORMAT_TO_MIME) {
-        formatList.push_back(formats.first);
-    }
-    return formatList;
+    return AVMuxerUtil::FindFormat();
 }
 
 int32_t AVMuxerEngineGstImpl::SetOutput(int32_t fd, const std::string &format)
@@ -114,7 +106,9 @@ int32_t AVMuxerEngineGstImpl::SetOutput(int32_t fd, const std::string &format)
     MEDIA_LOGD("SetOutput");
     CHECK_AND_RETURN_RET_LOG(muxBin_ != nullptr, MSERR_INVALID_OPERATION, "Muxbin does not exist");
 
-    g_object_set(muxBin_, "fd", fd, "mux", FORMAT_TO_MUX.at(format).c_str(), nullptr);
+    std::string mux;
+    CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindMux(format, mux), MSERR_INVALID_VAL, "Illegal format");
+    g_object_set(muxBin_, "fd", fd, "mux", mux.c_str(), nullptr);
     format_ = format;
 
     return MSERR_OK;
@@ -169,7 +163,9 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
     std::string mimeType;
     bool val = trackDesc.GetStringValue(std::string(MediaDescriptionKey::MD_KEY_CODEC_MIME), mimeType);
     CHECK_AND_RETURN_RET_LOG(val = true, MSERR_INVALID_VAL, "Failed to get MD_KEY_CODEC_MIME");
-    CHECK_AND_RETURN_RET_LOG(FORMAT_TO_MIME.at(format_).find(mimeType) != FORMAT_TO_MIME.at(format_).end(),
+    std::set<std::string> mimeTypes;
+    CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindMimeTypes(format_, mimeTypes), MSERR_INVALID_VAL, "Illegal format");
+    CHECK_AND_RETURN_RET_LOG(mimeTypes.find(mimeType) != mimeTypes.end(),
         MSERR_INVALID_OPERATION, "The mime type can not be added in current container format");
 
     trackId = trackInfo_.size() + 1;
@@ -179,11 +175,14 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
 
     GstCaps *srcCaps = nullptr;
     uint32_t *trackNum = nullptr;
-    if (AVMuxerUtil::CheckType(trackInfo_[trackId].mimeType_) == VIDEO) {
+    MediaType mediaType;
+    CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindMediaType(trackInfo_[trackId].mimeType_, mediaType), MSERR_INVALID_VAL,
+        "Illegal mimeType");
+    if (mediaType == MEDIA_TYPE_VID) {
         CHECK_AND_RETURN_RET_LOG(videoTrackNum_ < MAX_VIDEO_TRACK_NUM, MSERR_INVALID_OPERATION,
             "Only 1 video Tracks can be added");
         trackNum = &videoTrackNum_;
-    } else if (AVMuxerUtil::CheckType(trackInfo_[trackId].mimeType_) == AUDIO) {
+    } else if (mediaType == MEDIA_TYPE_AUD) {
         CHECK_AND_RETURN_RET_LOG(audioTrackNum_ < MAX_AUDIO_TRACK_NUM, MSERR_INVALID_OPERATION,
             "Only 16 audio Tracks can be added");
         trackNum = &audioTrackNum_;
@@ -202,9 +201,11 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
     MEDIA_LOGD("caps ref: %{public}d", GST_MINI_OBJECT(trackInfo_[trackId].caps_)->refcount);
     std::string name = "src_";
     name += static_cast<char>('0' + trackId);
-    gst_mux_bin_add_track(muxBin_, name.c_str(),
-        (std::get<1>(MIME_MAP_TYPE.at(mimeType)) + std::tostring(trackId)).c_str(),
-        AVMuxerUtil::CheckType(trackInfo_[trackId].mimeType_));
+    std::string parse;
+    CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindParse(mimeType, parse), MSERR_INVALID_VAL, "Illegal mimeType");
+    g_signal_emit_by_name(muxBin_, "add-track", name.c_str(),
+        (parse + std::to_string(trackId)).c_str(),
+        static_cast<int32_t>(mediaType));
 
     return MSERR_OK;
 }
@@ -216,13 +217,13 @@ int32_t AVMuxerEngineGstImpl::Start()
     CHECK_AND_RETURN_RET_LOG(muxBin_ != nullptr, MSERR_INVALID_OPERATION, "Muxbin does not exist");
     gst_element_set_state(GST_ELEMENT_CAST(muxBin_), GST_STATE_PLAYING);
 
-    GstAppSrcCallbacks callbacks = {&StartFeed, &StopFeed, nullptr};
     for (auto& info : trackInfo_) {
         std::string name = "src_";
         name += static_cast<char>('0' + info.first);
-        GstAppSrc *src = GST_APP_SRC_CAST(gst_bin_get_by_name(GST_BIN_CAST(muxBin_), name.c_str()));
+        GstElement *src = gst_bin_get_by_name(GST_BIN_CAST(muxBin_), name.c_str());
         CHECK_AND_RETURN_RET_LOG(src != nullptr, MSERR_INVALID_OPERATION, "src does not exist");
-        gst_app_src_set_callbacks(src, &callbacks, reinterpret_cast<gpointer *>(&trackInfo_), nullptr);
+        g_signal_connect(src, "need-data", G_CALLBACK(StartFeed), reinterpret_cast<gpointer *>(&trackInfo_));
+        g_signal_connect(src, "enough-data", G_CALLBACK(StopFeed), reinterpret_cast<gpointer *>(&trackInfo_));
         info.second.src_ = src;
     }
 
@@ -230,7 +231,7 @@ int32_t AVMuxerEngineGstImpl::Start()
 }
 
 int32_t AVMuxerEngineGstImpl::WriteData(std::shared_ptr<AVSharedMemory> sampleData,
-    const TrackSampleInfo &sampleInfo, GstAppSrc *src)
+    const TrackSampleInfo &sampleInfo, GstElement *src)
 {
     CHECK_AND_RETURN_RET_LOG(sampleData != nullptr, MSERR_INVALID_VAL, "sampleData is nullptr");
     CHECK_AND_RETURN_RET_LOG(src != nullptr, MSERR_INVALID_VAL, "src is nullptr");
@@ -245,8 +246,9 @@ int32_t AVMuxerEngineGstImpl::WriteData(std::shared_ptr<AVSharedMemory> sampleDa
     GST_BUFFER_DTS(buffer) = static_cast<uint64_t>(sampleInfo.timeUs * US_TO_NS);
     GST_BUFFER_PTS(buffer) = static_cast<uint64_t>(sampleInfo.timeUs * US_TO_NS);
 
-    GstFlowReturn ret = gst_app_src_push_buffer(src, buffer);
-    CHECK_AND_RETURN_RET_LOG(ret == GST_FLOW_OK, MSERR_INVALID_OPERATION, "Failed to call gst_app_src_push_buffer");
+    GstFlowReturn ret;
+    g_signal_emit_by_name(src, "push-buffer", buffer, &ret);
+    CHECK_AND_RETURN_RET_LOG(ret == GST_FLOW_OK, MSERR_INVALID_OPERATION, "Failed to call g_signal_emit_by_name");
 
     return MSERR_OK;
 }
@@ -264,7 +266,7 @@ int32_t AVMuxerEngineGstImpl::WriteTrackSample(std::shared_ptr<AVSharedMemory> s
     CHECK_AND_RETURN_RET_LOG(sampleInfo.timeUs >= 0, MSERR_INVALID_VAL, "Failed to check dts, dts muxt >= 0");
     
     int32_t ret;
-    GstAppSrc *src = trackInfo_[sampleInfo.trackIdx].src_;
+    GstElement *src = trackInfo_[sampleInfo.trackIdx].src_;
     CHECK_AND_RETURN_RET_LOG(src != nullptr, MSERR_INVALID_VAL, "Failed to get AppSrc");
 
     if ((sampleInfo.flags & AVCODEC_BUFFER_FLAG_CODEC_DATA) &&
@@ -295,7 +297,7 @@ int32_t AVMuxerEngineGstImpl::Stop()
     GstFlowReturn ret;
     if (isPlay_) {
         for (auto& info : trackInfo_) {
-            ret = gst_app_src_end_of_stream(info.second.src_);
+            g_signal_emit_by_name(info.second.src_, "end-of-stream", &ret);
             CHECK_AND_RETURN_RET_LOG(ret == GST_FLOW_OK, ret, "Failed to push end of stream");
         }
         cond_.wait(lock, [this]() {

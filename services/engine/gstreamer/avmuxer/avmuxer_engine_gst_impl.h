@@ -21,7 +21,6 @@
 #include <tuple>
 #include "nocopyable.h"
 #include "i_avmuxer_engine.h"
-#include "gst_mux_bin.h"
 #include "gst_msg_processor.h"
 #include "gst_shmem_wrap_allocator.h"
 #include "avmuxer_util.h"
@@ -44,12 +43,12 @@ public:
     int32_t Stop() override;
 private:
     void SetParse(const std::string &mimeType);
-    int32_t WriteData(std::shared_ptr<AVSharedMemory> sampleData, const TrackSampleInfo &sampleInfo, GstAppSrc *src);
+    int32_t WriteData(std::shared_ptr<AVSharedMemory> sampleData, const TrackSampleInfo &sampleInfo, GstElement *src);
     int32_t SetupMsgProcessor();
     void OnNotifyMessage(const InnerMessage &msg);
     void Clear();
 
-    GstMuxBin *muxBin_ = nullptr;
+    GstElement *muxBin_ = nullptr;
     std::map<int32_t, TrackInfo> trackInfo_;
     std::mutex mutex_;
     std::condition_variable cond_;

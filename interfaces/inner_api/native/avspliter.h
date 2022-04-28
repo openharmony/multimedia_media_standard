@@ -17,8 +17,7 @@
 #define AVSPLITER_H
 
 #include <string>
-#include "avmemory.h"
-#include "avcontainer_types.h"
+#include "avcontainer_common.h"
 #include "media_data_source.h"
 #include "media_description.h"
 
@@ -128,12 +127,12 @@ public:
      * be read. If the Codec Specific Data exists, it will be output before any frame data.
      * Such data would be marked using the flag {@link AVCodecBufferFlag::AVCODEC_BUFFER_FLAG_CODEC_DATA}.
      *
-     * @param buffer the destination output buffer, see{@link AVMemory}.
+     * @param buffer the destination output buffer, see{@link AVContainerMemory}.
      * @param info the sample's description information, see {@link TrackSampleInfo}.
      * @return Returns {@link MSERR_OK} if the reading is success, returns an error code
      * otherwise.
      */
-    virtual int32_t ReadTrackSample(std::shared_ptr<AVMemory> buffer, TrackSampleInfo &info) = 0;
+    virtual int32_t ReadTrackSample(std::shared_ptr<AVContainerMemory> buffer, TrackSampleInfo &info) = 0;
 
     /**
      * @brief Seek all track to specified time position according the given seek mode.

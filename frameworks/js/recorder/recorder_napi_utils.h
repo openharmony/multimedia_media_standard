@@ -18,7 +18,7 @@
 
 #include "av_common.h"
 #include "avcodec_info.h"
-#include "avcontainer_types.h"
+#include "avcontainer_common.h"
 #include "recorder.h"
 
 namespace OHOS {
