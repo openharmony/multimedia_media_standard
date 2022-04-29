@@ -18,7 +18,7 @@
 #include "securec.h"
 #include "media_log.h"
 #include "media_errors.h"
-#include "bytrace.h"
+#include "hitrace_meter.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaDFX"};

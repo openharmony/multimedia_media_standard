@@ -118,7 +118,7 @@ ohos_shared_library("media_service") {
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
-    "bytrace_standard:bytrace_core",
+    "hitrace_native:hitrace_meter",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
