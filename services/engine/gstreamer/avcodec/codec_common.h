@@ -64,9 +64,9 @@ enum BufferFilterMode : int32_t {
 };
 
 struct AdtsFixedHeader {
-    int32_t objectType = 0;
-    int32_t samplingIndex = 0;
-    int32_t channelConfig = 0;
+    uint32_t objectType = 0;
+    uint32_t samplingIndex = 0;
+    uint32_t channelConfig = 0;
 };
 
 struct BufferWrapper {
