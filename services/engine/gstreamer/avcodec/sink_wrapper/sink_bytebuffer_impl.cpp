@@ -21,7 +21,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "SinkBytebufferImpl"};
-    constexpr int32_t ADTS_HEAD_SIZE = 7;
+    constexpr uint32_t ADTS_HEAD_SIZE = 7;
 }
 
 namespace OHOS {
@@ -188,7 +188,7 @@ int32_t SinkBytebufferImpl::HandleNewSampleCb(GstBuffer *buffer)
             gst_buffer_unmap(buffer, &map);
             return MSERR_UNKNOWN;
         }
-        info.size = static_cast<int32_t>(map.size) + ADTS_HEAD_SIZE;
+        info.size = static_cast<int32_t>(map.size) + static_cast<int32_t>(ADTS_HEAD_SIZE);
     } else {
         info.size = static_cast<int32_t>(map.size);
     }
@@ -226,15 +226,15 @@ int32_t SinkBytebufferImpl::FindBufferIndex(uint32_t &index, std::shared_ptr<AVS
     return MSERR_OK;
 }
 
-int32_t SinkBytebufferImpl::AddAdtsHead(std::shared_ptr<AVSharedMemory> mem, int32_t rawFrameSize)
+int32_t SinkBytebufferImpl::AddAdtsHead(std::shared_ptr<AVSharedMemory> mem, uint32_t rawFrameSize)
 {
     CHECK_AND_RETURN_RET(mem != nullptr && mem->GetBase() != nullptr && rawFrameSize > 0, MSERR_UNKNOWN);
 
-    int32_t adtsFrameSize = rawFrameSize + ADTS_HEAD_SIZE;
+    uint32_t adtsFrameSize = rawFrameSize + ADTS_HEAD_SIZE;
     CHECK_AND_RETURN_RET(mem->GetSize() >= adtsFrameSize, MSERR_UNKNOWN);
 
     uint8_t *base = mem->GetBase();
-    for (int32_t i = adtsFrameSize - 1; i > ADTS_HEAD_SIZE - 1; i--) {
+    for (uint32_t i = adtsFrameSize - 1; i > ADTS_HEAD_SIZE - 1; i--) {
         base[i] = base[i - ADTS_HEAD_SIZE];
     }
     CHECK_AND_RETURN_RET(memset_s(base, mem->GetSize(), 0, ADTS_HEAD_SIZE) == EOK, MSERR_UNKNOWN);
