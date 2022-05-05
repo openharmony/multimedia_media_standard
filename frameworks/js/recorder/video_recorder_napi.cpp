@@ -703,21 +703,16 @@ int32_t VideoRecorderNapi::SetVideoRecorderProperties(std::unique_ptr<VideoRecor
 int32_t VideoRecorderNapi::SetUrl(const std::string &urlPath)
 {
     CHECK_AND_RETURN_RET_LOG(recorder_ != nullptr, MSERR_INVALID_OPERATION, "No memory");
-    const std::string fileHead = "file://";
     const std::string fdHead = "fd://";
     int32_t fd = -1;
 
-    if (urlPath.find(fileHead) != std::string::npos) {
-        std::string filePath = urlPath.substr(fileHead.size());
-        int32_t ret = recorder_->SetOutputPath(filePath);
-        CHECK_AND_RETURN_RET(ret == MSERR_OK, MSERR_INVALID_OPERATION);
-    } else if (urlPath.find(fdHead) != std::string::npos) {
+    if (urlPath.find(fdHead) != std::string::npos) {
         std::string inputFd = urlPath.substr(fdHead.size());
         CHECK_AND_RETURN_RET(StrToInt(inputFd, fd) == true, MSERR_INVALID_VAL);
         CHECK_AND_RETURN_RET(fd >= 0, MSERR_INVALID_OPERATION);
         CHECK_AND_RETURN_RET(recorder_->SetOutputFile(fd) == MSERR_OK, MSERR_INVALID_OPERATION);
     } else {
-        MEDIA_LOGE("invalid input uri, neither file nor fd!");
+        MEDIA_LOGE("invalid input uri, not a fd!");
         return MSERR_INVALID_OPERATION;
     }
 

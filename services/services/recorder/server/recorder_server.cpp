@@ -281,15 +281,6 @@ int32_t RecorderServer::SetOutputFormat(OutputFormatType format)
     return ret;
 }
 
-int32_t RecorderServer::SetOutputPath(const std::string &path)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_CONFIGURED, MSERR_INVALID_OPERATION);
-    CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
-    OutFilePath outFilePath(path);
-    return recorderEngine_->Configure(DUMMY_SOURCE_ID, outFilePath);
-}
-
 int32_t RecorderServer::SetOutputFile(int32_t fd)
 {
     std::lock_guard<std::mutex> lock(mutex_);

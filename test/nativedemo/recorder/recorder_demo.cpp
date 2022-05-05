@@ -338,8 +338,6 @@ int32_t RecorderDemo::SetFormat(const std::string &recorderType) const
 
     ret = recorder_->SetMaxDuration(g_videoRecorderConfig.duration);
     DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetMaxDuration failed ");
-    ret = recorder_->SetOutputPath(g_videoRecorderConfig.outPath);
-    DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetOutputPath failed ");
     std::shared_ptr<RecorderCallbackDemo> cb = std::make_shared<RecorderCallbackDemo>();
     ret = recorder_->SetRecorderCallback(cb);
     DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetRecorderCallback failed ");
