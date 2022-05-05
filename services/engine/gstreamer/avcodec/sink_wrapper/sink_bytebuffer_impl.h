@@ -44,7 +44,7 @@ private:
 
     int32_t HandleNewSampleCb(GstBuffer *buffer);
     int32_t FindBufferIndex(uint32_t &index, std::shared_ptr<AVSharedMemory> mem);
-    int32_t AddAdtsHead(std::shared_ptr<AVSharedMemory> mem, int32_t size);
+    int32_t AddAdtsHead(std::shared_ptr<AVSharedMemory> mem, uint32_t size);
 
     std::mutex mutex_;
     std::vector<std::shared_ptr<BufferWrapper>> bufferList_;
