@@ -234,9 +234,8 @@ int32_t SinkBytebufferImpl::AddAdtsHead(std::shared_ptr<AVSharedMemory> mem, uin
     CHECK_AND_RETURN_RET(mem->GetSize() >= adtsFrameSize, MSERR_UNKNOWN);
 
     uint8_t *base = mem->GetBase();
-    for (uint32_t i = adtsFrameSize - 1; i > ADTS_HEAD_SIZE - 1; i--) {
-        base[i] = base[i - ADTS_HEAD_SIZE];
-    }
+    CHECK_AND_RETURN_RET(memmove_s(base + ADTS_HEAD_SIZE, mem->GetSize() - ADTS_HEAD_SIZE, base, rawFrameSize) == EOK,
+        MSERR_UNKNOWN);
     CHECK_AND_RETURN_RET(memset_s(base, mem->GetSize(), 0, ADTS_HEAD_SIZE) == EOK, MSERR_UNKNOWN);
 
     base[0] = 0xFF; // syncword 8 bits
