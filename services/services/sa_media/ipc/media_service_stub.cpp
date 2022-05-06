@@ -126,18 +126,18 @@ int32_t MediaServiceStub::SetDeathListener(const sptr<IRemoteObject> &object)
     return MSERR_OK;
 }
 
-void MediaServiceStub::ClientDied(pid_t pid)
-{
-    MEDIA_LOGE("client pid is dead, pid:%{public}d", pid);
-    (void)DestroyStubForPid(pid);
-}
-
 int32_t MediaServiceStub::GetSystemAbility(MessageParcel &data, MessageParcel &reply)
 {
     MediaSystemAbility id = static_cast<MediaSystemAbility>(data.ReadInt32());
     sptr<IRemoteObject> listenerObj = data.ReadRemoteObject();
     (void)reply.WriteRemoteObject(GetSubSystemAbility(id, listenerObj));
     return MSERR_OK;
+}
+
+void MediaServiceStub::ClientDied(pid_t pid)
+{
+    MEDIA_LOGE("client pid is dead, pid:%{public}d", pid);
+    (void)DestroyStubForPid(pid);
 }
 } // namespace Media
 } // namespace OHOS
