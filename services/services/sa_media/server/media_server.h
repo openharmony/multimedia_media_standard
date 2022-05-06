@@ -25,11 +25,13 @@ namespace Media {
 class MediaServer : public SystemAbility, public MediaServiceStub {
     DECLARE_SYSTEM_ABILITY(MediaServer);
 public:
-    explicit MediaServer(int32_t systemAbilityId, bool runOnCreate = true);
+    MediaServer(int32_t systemAbilityId, bool runOnCreate = true);
     ~MediaServer();
 
     // IStandardMediaService override
-    sptr<IRemoteObject> GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId) override;
+    sptr<IRemoteObject> GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId,
+        const sptr<IRemoteObject> &listener) override;
+
 protected:
     // SystemAbility override
     void OnDump() override;
