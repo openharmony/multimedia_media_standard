@@ -101,6 +101,12 @@ int MediaServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
+void MediaServiceStub::ClientDied(pid_t pid)
+{
+    MEDIA_LOGE("client pid is dead, pid:%{public}d", pid);
+    (void)DestroyStubForPid(pid);
+}
+
 int32_t MediaServiceStub::SetDeathListener(const sptr<IRemoteObject> &object)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -132,12 +138,6 @@ int32_t MediaServiceStub::GetSystemAbility(MessageParcel &data, MessageParcel &r
     sptr<IRemoteObject> listenerObj = data.ReadRemoteObject();
     (void)reply.WriteRemoteObject(GetSubSystemAbility(id, listenerObj));
     return MSERR_OK;
-}
-
-void MediaServiceStub::ClientDied(pid_t pid)
-{
-    MEDIA_LOGE("client pid is dead, pid:%{public}d", pid);
-    (void)DestroyStubForPid(pid);
 }
 } // namespace Media
 } // namespace OHOS
