@@ -40,7 +40,6 @@ MediaServiceStub::~MediaServiceStub()
 void MediaServiceStub::Init()
 {
     mediaFuncs_[GET_SUBSYSTEM] = &MediaServiceStub::GetSystemAbility;
-    mediaFuncs_[SET_LISTENER_OBJ] = &MediaServiceStub::SetListenerObject;
 }
 
 int32_t MediaServiceStub::DestroyStubForPid(pid_t pid)
@@ -102,28 +101,15 @@ int MediaServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-sptr<IRemoteObject> MediaServiceStub::GetSystemAbility(MediaSystemAbility id)
-{
-    MEDIA_LOGI("GET_SUBSYSTEM");
-    sptr<IRemoteObject> object = GetSubSystemAbility(id);
-    if (object == nullptr) {
-        MEDIA_LOGE("failed to get subsystem service object");
-        return nullptr;
-    }
-
-    return object;
-}
-
 void MediaServiceStub::ClientDied(pid_t pid)
 {
     MEDIA_LOGE("client pid is dead, pid:%{public}d", pid);
     (void)DestroyStubForPid(pid);
 }
 
-int32_t MediaServiceStub::SetListenerObject(const sptr<IRemoteObject> &object)
+int32_t MediaServiceStub::SetDeathListener(const sptr<IRemoteObject> &object)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-
     CHECK_AND_RETURN_RET_LOG(object != nullptr, MSERR_NO_MEMORY, "set listener object is nullptr");
 
     sptr<IStandardMediaListener> mediaListener = iface_cast<IStandardMediaListener>(object);
@@ -149,14 +135,8 @@ int32_t MediaServiceStub::SetListenerObject(const sptr<IRemoteObject> &object)
 int32_t MediaServiceStub::GetSystemAbility(MessageParcel &data, MessageParcel &reply)
 {
     MediaSystemAbility id = static_cast<MediaSystemAbility>(data.ReadInt32());
-    (void)reply.WriteRemoteObject(GetSystemAbility(id));
-    return MSERR_OK;
-}
-
-int32_t MediaServiceStub::SetListenerObject(MessageParcel &data, MessageParcel &reply)
-{
-    sptr<IRemoteObject> object = data.ReadRemoteObject();
-    (void)reply.WriteInt32(SetListenerObject(object));
+    sptr<IRemoteObject> listenerObj = data.ReadRemoteObject();
+    (void)reply.WriteRemoteObject(GetSubSystemAbility(id, listenerObj));
     return MSERR_OK;
 }
 } // namespace Media

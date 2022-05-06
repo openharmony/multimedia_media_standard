@@ -34,7 +34,8 @@ MediaServiceProxy::~MediaServiceProxy()
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-sptr<IRemoteObject> MediaServiceProxy::GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId)
+sptr<IRemoteObject> MediaServiceProxy::GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId,
+    const sptr<IRemoteObject> &listener)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -45,7 +46,8 @@ sptr<IRemoteObject> MediaServiceProxy::GetSubSystemAbility(IStandardMediaService
         return nullptr;
     }
 
-    data.WriteInt32(static_cast<int32_t>(subSystemId));
+    (void)data.WriteInt32(static_cast<int32_t>(subSystemId));
+    (void)data.WriteRemoteObject(listener);
     int error = Remote()->SendRequest(MediaServiceMsg::GET_SUBSYSTEM, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("Create player proxy failed, error: %{public}d", error);
@@ -53,27 +55,6 @@ sptr<IRemoteObject> MediaServiceProxy::GetSubSystemAbility(IStandardMediaService
     }
 
     return reply.ReadRemoteObject();
-}
-
-int32_t MediaServiceProxy::SetListenerObject(const sptr<IRemoteObject> &object)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    if (!data.WriteInterfaceToken(MediaServiceProxy::GetDescriptor())) {
-        MEDIA_LOGE("Failed to write descriptor");
-        return MSERR_UNKNOWN;
-    }
-
-    (void)data.WriteRemoteObject(object);
-    int error = Remote()->SendRequest(SET_LISTENER_OBJ, data, reply, option);
-    if (error != MSERR_OK) {
-        MEDIA_LOGE("Set listener obj failed, error: %{public}d", error);
-        return error;
-    }
-
-    return reply.ReadInt32();
 }
 } // namespace Media
 } // namespace OHOS
