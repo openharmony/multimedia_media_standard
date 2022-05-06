@@ -242,19 +242,6 @@ public:
     virtual int32_t SetOutputFormat(OutputFormatType format) = 0;
 
     /**
-     * @brief Sets the output file path.
-     *
-     * This function must be called before {@link Prepare} and One of them {@link SetOutputFile} must be set.
-     *
-     * @param path Indicates the output file path.
-     * @return Returns {@link SUCCESS} if the setting is successful; returns an error code defined
-     * in {@link media_errors.h} otherwise.
-     * @since 1.0
-     * @version 1.0
-     */
-    virtual int32_t SetOutputPath(const std::string &path) = 0;
-
-    /**
      * @brief Sets the file descriptor (FD) of the output file.
      *
      * This function must be called before {@link Prepare}.

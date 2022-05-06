@@ -48,7 +48,6 @@ public:
     int32_t SetDataSource(DataSourceType dataType, int32_t &sourceId) override;
     int32_t SetMaxDuration(int32_t duration) override;
     int32_t SetOutputFormat(OutputFormatType format) override;
-    int32_t SetOutputPath(const std::string &path) override;
     int32_t SetOutputFile(int32_t fd) override;
     int32_t SetNextOutputFile(int32_t fd) override;
     int32_t SetMaxFileSize(int64_t size) override;
@@ -84,7 +83,6 @@ private:
     int32_t SetDataSource(MessageParcel &data, MessageParcel &reply);
     int32_t SetMaxDuration(MessageParcel &data, MessageParcel &reply);
     int32_t SetOutputFormat(MessageParcel &data, MessageParcel &reply);
-    int32_t SetOutputPath(MessageParcel &data, MessageParcel &reply);
     int32_t SetOutputFile(MessageParcel &data, MessageParcel &reply);
     int32_t SetNextOutputFile(MessageParcel &data, MessageParcel &reply);
     int32_t SetMaxFileSize(MessageParcel &data, MessageParcel &reply);
