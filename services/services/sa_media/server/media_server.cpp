@@ -16,6 +16,7 @@
 #include "media_server.h"
 #include "iservice_registry.h"
 #include "media_log.h"
+#include "media_errors.h"
 #include "system_ability_definition.h"
 #include "media_server_manager.h"
 
@@ -56,7 +57,8 @@ void MediaServer::OnStop()
     MEDIA_LOGD("MediaServer OnStop");
 }
 
-sptr<IRemoteObject> MediaServer::GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId)
+sptr<IRemoteObject> MediaServer::GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId,
+    const sptr<IRemoteObject> &listener)
 {
     switch (subSystemId) {
         case MediaSystemAbility::MEDIA_RECORDER: {
@@ -82,6 +84,8 @@ sptr<IRemoteObject> MediaServer::GetSubSystemAbility(IStandardMediaService::Medi
             return nullptr;
         }
     }
+    int32_t ret = MediaServiceStub::SetDeathListener(listener);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "failed set death listener");
 }
 
 int32_t MediaServer::Dump(int fd, const std::vector<std::u16string> &args)
