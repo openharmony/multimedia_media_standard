@@ -164,12 +164,6 @@ int32_t RecorderImpl::SetOutputFormat(OutputFormatType format)
     return recorderService_->SetOutputFormat(format);
 }
 
-int32_t RecorderImpl::SetOutputPath(const std::string &path)
-{
-    CHECK_AND_RETURN_RET_LOG(recorderService_ != nullptr, MSERR_INVALID_OPERATION, "recorder service does not exist..");
-    return recorderService_->SetOutputPath(path);
-}
-
 int32_t RecorderImpl::SetOutputFile(int32_t fd)
 {
     CHECK_AND_RETURN_RET_LOG(recorderService_ != nullptr, MSERR_INVALID_OPERATION, "recorder service does not exist..");
