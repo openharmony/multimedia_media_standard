@@ -262,6 +262,7 @@ bool AudioRecorderNapi::GetAudioEncAndFileFormat(napi_env env, napi_value args, 
 {
     bool ret = false;
     properties.outputFormatType = FORMAT_MPEG_4;
+    properties.audioCodecFormat = AAC_LC;
 
     napi_status status = napi_has_named_property(env, args, "fileFormat", &ret);
     if (status == napi_ok && ret) {
@@ -314,7 +315,7 @@ int32_t AudioRecorderNapi::GetAudioProperties(napi_env env, napi_value args, Aud
     properties.sourceType = AUDIO_MIC;
 
     bool ret = GetAudioEncAndFileFormat(env, args, properties);
-    CHECK_AND_RETURN_RET_LOG(ret == true, MSERR_INVALID_OPERATION, "get audio format or encode failed");
+    CHECK_AND_RETURN_RET_LOG(ret == true, MSERR_INVALID_OPERATION, "invalid audio encode or format");
 
     napi_value geoLocation = nullptr;
     napi_get_named_property(env, args, "location", &geoLocation);
