@@ -25,7 +25,7 @@ namespace Media {
 class MediaServer : public SystemAbility, public MediaServiceStub {
     DECLARE_SYSTEM_ABILITY(MediaServer);
 public:
-    MediaServer(int32_t systemAbilityId, bool runOnCreate = true);
+    explicit MediaServer(int32_t systemAbilityId, bool runOnCreate = true);
     ~MediaServer();
 
     // IStandardMediaService override
