@@ -47,7 +47,7 @@ config("gst_surface_video_src_config") {
     "//third_party/glib/glib",
     "//third_party/glib",
     "//third_party/glib/gmodule",
-    "foundation/graphic/standard/interfaces/innerkits/common",
+    "foundation/graphic/graphic/interfaces/innerkits/common",
   ]
 }
 
@@ -65,7 +65,7 @@ ohos_shared_library("gst_surface_video_src") {
   configs = [ ":gst_surface_video_src_config" ]
 
   deps = [
-    "//foundation/graphic/standard:libsurface",
+    "//foundation/graphic/graphic:libsurface",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",
