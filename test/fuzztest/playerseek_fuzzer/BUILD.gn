@@ -23,7 +23,7 @@ ohos_fuzztest("PlayerSeekFuzzTest") {
   include_dirs = [
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/utils/include",
-    "//graphic/standard/interfaces/innerkits/surface",
+    "//graphic/graphic/interfaces/innerkits/surface",
     "//foundation/windowmanager/interfaces/innerkits/wm",
     "//foundation/multimedia/media_standard/test/fuzztest/",
   ]
@@ -38,9 +38,9 @@ ohos_fuzztest("PlayerSeekFuzzTest") {
     "playerseek_fuzzer.cpp",
   ]
   deps = [
-    "//foundation/graphic/standard:libsurface",
-    "//foundation/graphic/standard/frameworks/surface:surface",
-    "//foundation/graphic/standard/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic:libsurface",
+    "//foundation/graphic/graphic/frameworks/surface:surface",
+    "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client",
     "//foundation/windowmanager/wm:libwm",
   ]
   external_deps = [
