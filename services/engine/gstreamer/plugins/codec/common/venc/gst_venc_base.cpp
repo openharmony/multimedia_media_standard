@@ -47,6 +47,7 @@ static gboolean gst_venc_base_decide_allocation(GstVideoEncoder *encoder, GstQue
 static gboolean gst_venc_base_propose_allocation(GstVideoEncoder *encoder, GstQuery *query);
 static gboolean gst_codec_return_is_ok(const GstVencBase *encoder, gint ret,
     const char *error_name, gboolean need_report);
+static GstStateChangeReturn gst_venc_base_change_state(GstElement *element, GstStateChange transition);
 
 enum {
     PROP_0,
@@ -81,6 +82,7 @@ static void gst_venc_base_class_init(GstVencBaseClass *klass)
     video_encoder_class->sink_event = gst_venc_base_event;
     video_encoder_class->decide_allocation = gst_venc_base_decide_allocation;
     video_encoder_class->propose_allocation = gst_venc_base_propose_allocation;
+    element_class->change_state = gst_venc_base_change_state;
 
     g_object_class_install_property(gobject_class, PROP_BITRATE,
         g_param_spec_uint("bitrate", "Bitrate", "Bitrate in bits per second",
@@ -434,6 +436,7 @@ static gboolean gst_venc_base_negotiate(GstVencBase *self)
     g_return_val_if_fail(GST_VIDEO_ENCODER_SRC_PAD(self) != nullptr, FALSE);
     g_return_val_if_fail(gst_venc_base_set_outstate(self), FALSE);
     g_return_val_if_fail(gst_video_encoder_negotiate(GST_VIDEO_ENCODER(self)), FALSE);
+    GST_WARNING_OBJECT(self, "KPI-TRACE-VENC: negotiate end");
     return TRUE;
 }
 
@@ -556,6 +559,51 @@ static void gst_venc_debug_output_time(GstVencBase *self)
     }
 }
 
+static GstStateChangeReturn gst_venc_base_change_state(GstElement *element, GstStateChange transition)
+{
+    g_return_val_if_fail(element != nullptr, GST_STATE_CHANGE_FAILURE);
+    GstVencBase *self = GST_VENC_BASE(element);
+
+    GST_DEBUG_OBJECT(element, "change state %d", transition);
+    switch (transition) {
+        case GST_STATE_CHANGE_PAUSED_TO_READY:
+            GST_WARNING_OBJECT(self, "KPI-TRACE-VENC: stop start");
+            break;
+        case GST_STATE_CHANGE_READY_TO_NULL:
+            GST_WARNING_OBJECT(self, "KPI-TRACE-VENC: close start");
+            break;
+        default:
+            break;
+    }
+
+    GstStateChangeReturn ret = GST_ELEMENT_CLASS(parent_class)->change_state(element, transition);
+
+    switch (transition) {
+        case GST_STATE_CHANGE_PAUSED_TO_READY:
+            GST_WARNING_OBJECT(self, "KPI-TRACE-VENC: stop end");
+            break;
+        case GST_STATE_CHANGE_READY_TO_NULL:
+            GST_WARNING_OBJECT(self, "KPI-TRACE-VENC: close end");
+            break;
+        default:
+            break;
+    }
+    return ret;
+}
+
+void gst_venc_base_handle_frame_after(GstVencBase *self, GstVideoCodecFrame *frame)
+{
+    g_return_if_fail(frame != nullptr);
+    g_return_if_fail(self != nullptr);
+    gst_buffer_unref(frame->input_buffer);
+    frame->input_buffer = nullptr;
+    self->last_pts = frame->pts;
+    if (self->first_in_frame) {
+        self->first_in_frame = FALSE;
+        self->first_frame_pts = frame->pts;
+    }
+}
+
 static GstFlowReturn gst_venc_base_handle_frame(GstVideoEncoder *encoder, GstVideoCodecFrame *frame)
 {
     GST_DEBUG_OBJECT(encoder, "Handle frame");
@@ -563,6 +611,9 @@ static GstFlowReturn gst_venc_base_handle_frame(GstVideoEncoder *encoder, GstVid
     g_return_val_if_fail(frame != nullptr, GST_FLOW_ERROR);
     GstVencBase *self = GST_VENC_BASE(encoder);
     g_return_val_if_fail(self != nullptr && self->encoder != nullptr, GST_FLOW_ERROR);
+    if (self->first_in_frame) {
+        GST_WARNING_OBJECT(self, "KPI-TRACE-VENC: first in frame");
+    }
     if (gst_venc_base_is_flushing(self)) {
         return GST_FLOW_FLUSHING;
     }
@@ -580,6 +631,7 @@ static GstFlowReturn gst_venc_base_handle_frame(GstVideoEncoder *encoder, GstVid
         if (gst_pad_start_task(pad, (GstTaskFunction)gst_venc_base_loop, encoder, nullptr) != TRUE) {
             return GST_FLOW_ERROR;
         }
+        GST_WARNING_OBJECT(self, "KPI-TRACE-VENC: start end");
     }
     GST_VIDEO_ENCODER_STREAM_UNLOCK(self);
     gst_venc_debug_input_time(self);
@@ -600,13 +652,7 @@ static GstFlowReturn gst_venc_base_handle_frame(GstVideoEncoder *encoder, GstVid
             GST_ELEMENT_WARNING(self, STREAM, ENCODE, ("Hardware encoder error!"), ("pull"));
             ret = GST_FLOW_ERROR;
     }
-    gst_buffer_unref(frame->input_buffer);
-    frame->input_buffer = nullptr;
-    self->last_pts = frame->pts;
-    if (self->first_in_frame) {
-        self->first_in_frame = FALSE;
-        self->first_frame_pts = frame->pts;
-    }
+    gst_venc_base_handle_frame_after(self, frame);
     return ret;
 }
 
@@ -618,6 +664,7 @@ static GstFlowReturn gst_venc_base_finish_output_buffer(GstVencBase *self, GstBu
     GstFlowReturn flow_ret = GST_FLOW_OK;
     gst_venc_debug_output_time(self);
     if (self->first_out_frame) {
+        GST_WARNING_OBJECT(self, "KPI-TRACE-VENC: first out frame");
         self->first_out_frame = FALSE;
         GST_BUFFER_PTS(buffer) = self->first_frame_pts;
         flow_ret = gst_pad_push(GST_VIDEO_ENCODER_SRC_PAD(self), buffer);
@@ -835,6 +882,7 @@ static gboolean gst_venc_base_event(GstVideoEncoder *encoder, GstEvent *event)
 
     switch (GST_EVENT_TYPE(event)) {
         case GST_EVENT_FLUSH_START:
+            GST_WARNING_OBJECT(self, "KPI-TRACE-VENC: flush start");
             if (self->encoder != nullptr) {
                 (void)self->encoder->Flush(GST_CODEC_INPUT);
             }
@@ -851,6 +899,14 @@ static gboolean gst_venc_base_event(GstVideoEncoder *encoder, GstEvent *event)
     }
 
     gboolean ret = GST_VIDEO_ENCODER_CLASS(parent_class)->sink_event(encoder, event);
+
+    switch (GST_EVENT_TYPE(event)) {
+        case GST_EVENT_FLUSH_STOP:
+            GST_WARNING_OBJECT(self, "KPI-TRACE-VENC: flush stop");
+            break;
+        default:
+            break;
+    }
     return ret;
 }
 

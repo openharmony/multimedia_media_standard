@@ -62,6 +62,7 @@ struct _GstVdecBasePort {
     gint64 last_frame_time;
     gboolean enable_dump;
     FILE *dump_file;
+    gboolean first_frame;
 };
 
 struct _DisplayRect {
@@ -98,7 +99,6 @@ struct _GstVdecBase {
     guint coding_outbuf_cnt;
     guint out_buffer_cnt;
     guint out_buffer_max_cnt;
-    gboolean first_frame;
     std::list<GstClockTime> pts_list;
     GstClockTime last_pts;
     gboolean flushing_stoping;
