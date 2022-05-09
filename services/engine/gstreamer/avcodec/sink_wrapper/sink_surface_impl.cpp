@@ -83,6 +83,12 @@ int32_t SinkSurfaceImpl::SetOutputBuffersCount(uint32_t maxBuffers)
     return MSERR_OK;
 }
 
+int32_t SinkSurfaceImpl::SetCacheBuffersCount(uint32_t cacheBuffers)
+{
+    g_object_set(G_OBJECT(sink_), "cache-buffers-num", cacheBuffers, nullptr);
+    return MSERR_OK;
+}
+
 int32_t SinkSurfaceImpl::SetParameter(const Format &format)
 {
     return MSERR_OK;

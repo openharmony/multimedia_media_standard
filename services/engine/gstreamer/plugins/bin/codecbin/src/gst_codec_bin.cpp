@@ -31,7 +31,8 @@ enum {
     PROP_REQUEST_I_FRAME,
     PROP_BITRATE,
     PROP_VENDOR,
-    PROP_USE_SURFACE_INPUT
+    PROP_USE_SURFACE_INPUT,
+    PROP_USE_SURFACE_OUTPUT
 };
 
 #define gst_codec_bin_parent_class parent_class
@@ -120,9 +121,13 @@ static void gst_codec_bin_class_init(GstCodecBinClass *klass)
     g_object_class_install_property(gobject_class, PROP_USE_SURFACE_INPUT,
         g_param_spec_boolean("use-surface-input", "use surface input", "The source is surface",
             FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_USE_SURFACE_OUTPUT,
+        g_param_spec_boolean("use-surface-output", "use surface output", "The sink is surface",
+            FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
     gst_element_class_set_static_metadata(gstelement_class,
-        "Codec Bin", "Bin/Decoder&Encoder",
-        "Auto construct codec pipeline", "OpenHarmony");
+        "Codec Bin", "Bin/Decoder&Encoder", "Auto construct codec pipeline", "OpenHarmony");
 
     gstelement_class->change_state = gst_codec_bin_change_state;
 }
@@ -145,6 +150,7 @@ static void gst_codec_bin_init(GstCodecBin *bin)
     bin->need_sink_convert = FALSE;
     bin->need_parser = FALSE;
     bin->is_input_surface = FALSE;
+    bin->is_output_surface = FALSE;
 }
 
 static void gst_codec_bin_finalize(GObject *object)
@@ -191,22 +197,22 @@ static void gst_codec_bin_set_property(GObject *object, guint prop_id,
             bin->need_parser = g_value_get_boolean(value);
             break;
         case PROP_REQUEST_I_FRAME:
-            if (bin->coder != nullptr) {
-                g_object_set(bin->coder, "req-i-frame", g_value_get_uint(value), nullptr);
-            }
+            g_return_if_fail(bin->coder != nullptr);
+            g_object_set(bin->coder, "req-i-frame", g_value_get_uint(value), nullptr);
             break;
         case PROP_BITRATE:
-            if (bin->coder != nullptr) {
-                g_object_set(bin->coder, "bitrate", g_value_get_uint(value), nullptr);
-            }
+            g_return_if_fail(bin->coder != nullptr);
+            g_object_set(bin->coder, "bitrate", g_value_get_uint(value), nullptr);
             break;
         case PROP_VENDOR:
-            if (bin->coder != nullptr) {
-                g_object_set(bin->coder, "vendor", g_value_get_pointer(value), nullptr);
-            }
+            g_return_if_fail(bin->coder != nullptr);
+            g_object_set(bin->coder, "vendor", g_value_get_pointer(value), nullptr);
             break;
         case PROP_USE_SURFACE_INPUT:
             bin->is_input_surface = g_value_get_boolean(value);
+            break;
+        case PROP_USE_SURFACE_OUTPUT:
+            bin->is_output_surface = g_value_get_boolean(value);
             break;
         default:
             break;
@@ -247,7 +253,6 @@ static gboolean create_coder(GstCodecBin *bin)
     g_return_val_if_fail(bin->type != CODEC_BIN_TYPE_UNKNOWN, FALSE);
     bin->coder = gst_element_factory_make(bin->coder_name, "coder");
     g_return_val_if_fail(bin->coder != nullptr, FALSE);
-    g_object_set(bin->coder, "enable-surface", bin->is_input_surface, nullptr);
     return TRUE;
 }
 
@@ -395,6 +400,20 @@ static gboolean operate_element(GstCodecBin *bin)
     g_return_val_if_fail(bin != nullptr, FALSE);
     g_return_val_if_fail(bin->sink != nullptr, FALSE);
     g_object_set(bin->sink, "sync", FALSE, nullptr);
+    if (bin->type == CODEC_BIN_TYPE_VIDEO_DECODER && bin->use_software == FALSE && bin->is_output_surface) {
+        g_object_set(bin->coder, "performance-mode", TRUE, nullptr);
+        g_object_set(bin->sink, "performance-mode", TRUE, nullptr);
+        GstCaps *caps;
+        g_object_get(bin->sink, "caps", &caps, nullptr);
+        g_object_set(bin->coder, "sink-caps", caps, nullptr);
+        gst_caps_unref(caps);
+        GstBufferPool *pool;
+        g_object_get(bin->sink, "surface-pool", &pool, nullptr);
+        g_object_set(bin->coder, "surface-pool", pool, nullptr);
+    }
+    if (bin->type == CODEC_BIN_TYPE_VIDEO_ENCODER && bin->use_software == FALSE) {
+        g_object_set(bin->coder, "enable-surface", bin->is_input_surface, nullptr);
+    }
     return TRUE;
 }
 

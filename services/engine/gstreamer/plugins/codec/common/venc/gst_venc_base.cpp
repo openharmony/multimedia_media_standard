@@ -591,7 +591,7 @@ static GstStateChangeReturn gst_venc_base_change_state(GstElement *element, GstS
     return ret;
 }
 
-void gst_venc_base_handle_frame_after(GstVencBase *self, GstVideoCodecFrame *frame)
+static void gst_venc_base_handle_frame_after(GstVencBase *self, GstVideoCodecFrame *frame)
 {
     g_return_if_fail(frame != nullptr);
     g_return_if_fail(self != nullptr);

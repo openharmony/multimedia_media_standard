@@ -100,6 +100,7 @@ private:
     void PauseSync();
     void OnNotify(PlayerStates state);
     void GetAudioSink();
+    void GetVideoSink();
     void HandleStopNotify();
     void HandlePlayBackNotify();
     uint64_t GetPositionInner();
@@ -150,6 +151,7 @@ private:
     int32_t videoWidth_ = 0;
     int32_t videoHeight_ = 0;
     bool isHardWare_ = false;
+    GstElement *videoSink_ = nullptr;
 };
 } // namespace Media
 } // namespace OHOS

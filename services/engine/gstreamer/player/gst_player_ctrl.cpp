@@ -33,6 +33,7 @@ namespace {
     constexpr int BUFFER_HIGH_PERCENT_DEFAULT = 4;
     constexpr int BUFFER_FULL_PERCENT_DEFAULT = 100;
     constexpr guint MAX_SOFT_BUFFERS = 10;
+    constexpr guint DEFAULT_CACHE_BUFFERS = 1;
 
     using namespace OHOS::Media;
     using StreamToServiceErrFunc = void (*)(const gchar *name, int32_t &errorCode);
@@ -190,15 +191,29 @@ void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, G
 
     if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {
         playerGst->isHardWare_ = true;
+        if (!playerGst->preparing_) {
+            // For hls scene.
+            return;
+        }
+        // For performance mode.
+        playerGst->GetVideoSink();
+        CHECK_AND_RETURN_LOG(playerGst->videoSink_ != nullptr, "videoSink is null");
+        g_object_set(G_OBJECT(src), "performance-mode", TRUE, nullptr);
+        g_object_set(G_OBJECT(playerGst->videoSink_), "performance-mode", TRUE, nullptr);
+        GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
+        g_object_set(G_OBJECT(playerGst->videoSink_), "caps", caps, nullptr);
+        g_object_set(G_OBJECT(src), "sink-caps", caps, nullptr);
+        gst_caps_unref(caps);
+        GstBufferPool *pool;
+        g_object_get(playerGst->videoSink_, "surface-pool", &pool, nullptr);
+        g_object_set(G_OBJECT(src), "surface-pool", pool, nullptr);
         return;
     }
 
     if (metaStr.find("Sink/Video") != std::string::npos) {
-        if (playerGst->isHardWare_) {
-            GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
-            g_object_set(G_OBJECT(src), "caps", caps, nullptr);
-        } else {
+        if (!playerGst->isHardWare_) {
             g_object_set(G_OBJECT(src), "max-pool-capacity", MAX_SOFT_BUFFERS, nullptr);
+            g_object_set(G_OBJECT(src), "cache-buffers-num", DEFAULT_CACHE_BUFFERS, nullptr);
         }
         return;
     }
@@ -416,6 +431,10 @@ void GstPlayerCtrl::Stop()
         gst_object_unref(audioSink_);
         audioSink_ = nullptr;
     }
+    if (videoSink_ != nullptr) {
+        gst_object_unref(videoSink_);
+        videoSink_ = nullptr;
+    }
     if (rateTask_ != nullptr) {
         rateTask_->Cancel();
         rateTask_ = nullptr;
@@ -585,6 +604,20 @@ double GstPlayerCtrl::GetRate()
 PlayerStates GstPlayerCtrl::GetState() const
 {
     return currentState_;
+}
+
+void GstPlayerCtrl::GetVideoSink()
+{
+    GstElement *playbin = gst_player_get_pipeline(gstPlayer_);
+    CHECK_AND_RETURN_LOG(playbin != nullptr, "playbin is null");
+
+    if (videoSink_ != nullptr) {
+        gst_object_unref(videoSink_);
+        videoSink_ = nullptr;
+    }
+    g_object_get(playbin, "video-sink", &videoSink_, nullptr);
+
+    gst_object_unref(playbin);
 }
 
 void GstPlayerCtrl::GetAudioSink()

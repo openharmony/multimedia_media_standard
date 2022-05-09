@@ -38,6 +38,7 @@ namespace {
 enum {
     PROP_0,
     PROP_DYNAMIC_BUFFER_NUM,
+    PROP_CACHE_BUFFERS_NUM,
 };
 
 #define GST_BUFFER_POOL_LOCK(pool)   (g_mutex_lock(&(pool)->lock))
@@ -95,6 +96,11 @@ static void gst_producer_surface_pool_class_init(GstSurfacePoolClass *klass)
             0, G_MAXUINT, DEFAULT_PROP_DYNAMIC_BUFFER_NUM,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
+    g_object_class_install_property(gobjectClass, PROP_CACHE_BUFFERS_NUM,
+        g_param_spec_uint("cache-buffers-num", "Cached Buffer Num",
+            "Set cached buffer nums for pool thread loop",
+            0, G_MAXUINT, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
     poolClass->get_options = gst_producer_surface_pool_get_options;
     poolClass->set_config = gst_producer_surface_pool_set_config;
     poolClass->start = gst_producer_surface_pool_start;
@@ -129,6 +135,8 @@ static void gst_producer_surface_pool_init(GstSurfacePool *pool)
     pool->beginTime = {0};
     pool->endTime = {0};
     pool->callCnt = 0;
+    pool->isDynamicCached = FALSE;
+    pool->cachedBuffers = 0;
 }
 
 static void gst_producer_surface_pool_finalize(GObject *obj)
@@ -167,6 +175,11 @@ static void gst_producer_surface_pool_set_property(GObject *object, guint prop_i
             guint dynamicBuffers = g_value_get_uint(value);
             g_return_if_fail(dynamicBuffers != 0);
             GST_BUFFER_POOL_LOCK(spool);
+            if (spool->freeBufCnt + dynamicBuffers < spool->maxBuffers) {
+                GST_BUFFER_POOL_UNLOCK(spool);
+                GST_ERROR_OBJECT(spool, "set queue size failed for free buffers %u", spool->freeBufCnt);
+                return;
+            }
             spool->freeBufCnt += (dynamicBuffers - spool->maxBuffers);
             spool->maxBuffers = dynamicBuffers;
             OHOS::SurfaceError err = spool->surface->SetQueueSize(spool->maxBuffers);
@@ -176,6 +189,13 @@ static void gst_producer_surface_pool_set_property(GObject *object, guint prop_i
                 return;
             }
             GST_DEBUG_OBJECT(spool, "set max buffer count: %u", spool->maxBuffers);
+            GST_BUFFER_POOL_UNLOCK(spool);
+            break;
+        }
+        case PROP_CACHE_BUFFERS_NUM: {
+            GST_BUFFER_POOL_LOCK(spool);
+            spool->isDynamicCached = TRUE;
+            spool->cachedBuffers = g_value_get_uint(value);
             GST_BUFFER_POOL_UNLOCK(spool);
             break;
         }
@@ -350,7 +370,7 @@ static void gst_producer_surface_pool_request_loop(GstSurfacePool *spool)
         }
     }
 
-    while (g_list_length(spool->preAllocated) != 0 && spool->started) {
+    while (spool->isDynamicCached && g_list_length(spool->preAllocated) >= spool->cachedBuffers && spool->started) {
         GST_BUFFER_POOL_WAIT(spool);
     }
 
