@@ -32,7 +32,13 @@ namespace {
         { GST_VIDEO_FORMAT_I420, PIXEL_FMT_YCBCR_420_P },
     };
     constexpr int32_t TIME_VAL_US = 1000000;
+    constexpr guint32 DEFAULT_PROP_DYNAMIC_BUFFER_NUM = 10;
 }
+
+enum {
+    PROP_0,
+    PROP_DYNAMIC_BUFFER_NUM,
+};
 
 #define GST_BUFFER_POOL_LOCK(pool)   (g_mutex_lock(&(pool)->lock))
 #define GST_BUFFER_POOL_UNLOCK(pool) (g_mutex_unlock(&(pool)->lock))
@@ -57,6 +63,9 @@ static GstFlowReturn gst_producer_surface_pool_acquire_buffer(GstBufferPool *poo
     GstBuffer **buffer, GstBufferPoolAcquireParams *params);
 static void gst_producer_surface_pool_release_buffer(GstBufferPool *pool, GstBuffer *buffer);
 static void gst_producer_surface_pool_flush_start(GstBufferPool *pool);
+static void gst_producer_surface_pool_set_property(GObject *object, guint prop_id,
+    const GValue *value, GParamSpec *pspec);
+static void gst_producer_surface_pool_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec);
 
 static void clear_preallocated_buffer(GstSurfacePool *spool)
 {
@@ -76,8 +85,16 @@ static void gst_producer_surface_pool_class_init(GstSurfacePoolClass *klass)
     g_return_if_fail(klass != nullptr);
     GstBufferPoolClass *poolClass = GST_BUFFER_POOL_CLASS (klass);
     GObjectClass *gobjectClass = G_OBJECT_CLASS(klass);
-
+    gobjectClass->set_property = gst_producer_surface_pool_set_property;
+    gobjectClass->get_property = gst_producer_surface_pool_get_property;
     gobjectClass->finalize = gst_producer_surface_pool_finalize;
+
+    g_object_class_install_property(gobjectClass, PROP_DYNAMIC_BUFFER_NUM,
+        g_param_spec_uint("dynamic-buffer-num", "Dynamic Buffer Num",
+            "Dynamic set buffer num when pool is active",
+            0, G_MAXUINT, DEFAULT_PROP_DYNAMIC_BUFFER_NUM,
+            (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+
     poolClass->get_options = gst_producer_surface_pool_get_options;
     poolClass->set_config = gst_producer_surface_pool_set_config;
     poolClass->start = gst_producer_surface_pool_start;
@@ -134,6 +151,58 @@ static void gst_producer_surface_pool_finalize(GObject *obj)
     }
 
     G_OBJECT_CLASS(parent_class)->finalize(obj);
+}
+
+static void gst_producer_surface_pool_set_property(GObject *object, guint prop_id,
+    const GValue *value, GParamSpec *pspec)
+{
+    g_return_if_fail(object != nullptr);
+    g_return_if_fail(value != nullptr);
+    g_return_if_fail(pspec != nullptr);
+    GstSurfacePool *spool = GST_PRODUCER_SURFACE_POOL(object);
+
+    switch (prop_id) {
+        case PROP_DYNAMIC_BUFFER_NUM: {
+            g_return_if_fail(spool->surface != nullptr);
+            guint dynamicBuffers = g_value_get_uint(value);
+            g_return_if_fail(dynamicBuffers != 0);
+            GST_BUFFER_POOL_LOCK(spool);
+            spool->freeBufCnt += (dynamicBuffers - spool->maxBuffers);
+            spool->maxBuffers = dynamicBuffers;
+            OHOS::SurfaceError err = spool->surface->SetQueueSize(spool->maxBuffers);
+            if (err != OHOS::SurfaceError::SURFACE_ERROR_OK) {
+                GST_BUFFER_POOL_UNLOCK(spool);
+                GST_ERROR_OBJECT(spool, "set queue size to %u failed", spool->maxBuffers);
+                return;
+            }
+            GST_DEBUG_OBJECT(spool, "set max buffer count: %u", spool->maxBuffers);
+            GST_BUFFER_POOL_UNLOCK(spool);
+            break;
+        }
+        default:
+            G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+            break;
+    }
+}
+
+static void gst_producer_surface_pool_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
+{
+    g_return_if_fail(object != nullptr);
+    g_return_if_fail(value != nullptr);
+    g_return_if_fail(pspec != nullptr);
+    GstSurfacePool *spool = GST_PRODUCER_SURFACE_POOL(object);
+
+    switch (prop_id) {
+        case PROP_DYNAMIC_BUFFER_NUM: {
+            GST_BUFFER_POOL_LOCK(spool);
+            g_value_set_uint(value, spool->maxBuffers);
+            GST_BUFFER_POOL_UNLOCK(spool);
+            break;
+        }
+        default:
+            G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+            break;
+    }
 }
 
 GstSurfacePool *gst_producer_surface_pool_new()
