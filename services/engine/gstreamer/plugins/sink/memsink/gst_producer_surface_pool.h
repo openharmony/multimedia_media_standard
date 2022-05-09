@@ -58,6 +58,8 @@ struct _GstSurfacePool {
     timeval beginTime;
     timeval endTime;
     int32_t callCnt;
+    gboolean isDynamicCached;
+    guint cachedBuffers;
 };
 
 struct _GstSurfacePoolClass {

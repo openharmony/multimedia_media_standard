@@ -50,6 +50,11 @@ public:
         return MSERR_INVALID_OPERATION;
     }
 
+    virtual int32_t SetCacheBuffersCount(uint32_t cacheBuffers)
+    {
+        return MSERR_INVALID_OPERATION;
+    }
+
     virtual std::shared_ptr<AVSharedMemory> GetOutputBuffer(uint32_t index)
     {
         return nullptr;
