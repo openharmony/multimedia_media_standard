@@ -33,7 +33,7 @@ struct AudioCacheCtrl {
     std::condition_variable pauseCond_;
     std::queue<std::shared_ptr<AudioBuffer>> captureQueue_;
     uint64_t lastTimeStamp_ = 0;
-    uint64_t pausedTime_ = 0; // the timestamp when audio pause called
+    uint64_t pausedTime_ = -1; // the timestamp when audio pause called
     uint64_t resumeTime_ = 0; // the timestamp when audio resume called
     uint32_t pausedCount_ = 0; // the paused count times
     uint64_t persistTime_ = 0;
