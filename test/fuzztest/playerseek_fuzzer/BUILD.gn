@@ -14,11 +14,12 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
-module_output_path = "media_standard/fuzztest"
+module_output_path = "media_standard/media_player"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("PlayerSeekFuzzTest") {
   module_out_path = module_output_path
+  fuzz_config_file = "//foundation//multimedia/media_standard/test/fuzztest/playerseek_fuzzer"
 
   include_dirs = [
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
