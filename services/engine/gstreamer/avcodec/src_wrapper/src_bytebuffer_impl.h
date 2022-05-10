@@ -38,7 +38,7 @@ public:
     int32_t SetCallback(const std::weak_ptr<IAVCodecEngineObs> &obs) override;
 
 private:
-    static GstFlowReturn BufferAvailable(GstMemPoolSrc *memsrc, gpointer userdata);
+    static GstFlowReturn BufferAvailable(GstMemSrc *memsrc, gpointer userdata);
     int32_t HandleCodecBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag);
     int32_t HandleBufferAvailable(GstBuffer *buffer);
     int32_t FindBufferIndex(uint32_t &index, const std::shared_ptr<AVSharedMemory> &mem);

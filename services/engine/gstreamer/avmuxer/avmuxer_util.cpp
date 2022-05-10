@@ -20,9 +20,6 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVMuxerUtil"};
-    constexpr uint32_t CAPS_FIELD_NAME_INDEX = 0;
-    constexpr uint32_t CAPS_FIELD_TYPE_INDEX = 1;
-    constexpr uint32_t CAPS_FIELD_VALUE_INDEX = 2;
 }
 
 namespace OHOS {
@@ -42,7 +39,37 @@ struct MultiValue {
     } val_ = {0};
 };
 
-std::map<std::string, std::vector<std::tuple<std::string, GType, MultiValue>>> optionCapsMap = {
+struct FormatInfo {
+    std::string mux_;
+    std::set<std::string> mimeTypes_;
+};
+
+struct MimeInfo {
+    std::string innerType_;
+    std::string parse_;
+    MediaType mediaType_;
+};
+
+struct CapsInfo {
+    std::string key_;
+    GType type_;
+    MultiValue value_;
+};
+
+const std::map<std::string, FormatInfo> FORMAT_INFO = {
+    {"mp4", {"mp4mux", {"video/avc", "video/mp4v-es", "video/h263", "audio/mp4a-latm", "audio/mpeg"}}},
+    {"m4a", {"mp4mux", {"audio/mp4a-latm"}}},
+};
+
+const std::map<const std::string, MimeInfo> MIME_INFO = {
+    {"video/avc", {"video/x-h264", "h264parse", MEDIA_TYPE_VID}},
+    {"video/h263", {"video/x-h263", "", MEDIA_TYPE_VID}},
+    {"video/mp4v-es", {"video/mpeg", "mpeg4videoparse", MEDIA_TYPE_VID}},
+    {"audio/mp4a-latm", {"audio/mpeg", "aacparse", MEDIA_TYPE_AUD}},
+    {"audio/mpeg", {"audio/mpeg", "", MEDIA_TYPE_AUD}}
+};
+
+std::map<std::string, std::vector<CapsInfo>> optionCapsMap = {
     {"video/avc", {
         {"alignment", G_TYPE_STRING, MultiValue("nal")},
         {"stream-format", G_TYPE_STRING, MultiValue("byte-stream")}
@@ -63,33 +90,24 @@ std::map<std::string, std::vector<std::tuple<std::string, GType, MultiValue>>> o
     }}
 };
 
-TrackType AVMuxerUtil::CheckType(const std::string &mimeType)
-{
-    if (mimeType.find("video") == 0) {
-        return VIDEO;
-    } else if (mimeType.find("audio") == 0) {
-        return AUDIO;
-    } else {
-        return UNKNOWN_TYPE;
-    }
-}
-
 static int32_t parseParam(FormatParam &param, const MediaDescription &trackDesc, const std::string &mimeType)
 {
-    if (AVMuxerUtil::CheckType(mimeType) == VIDEO) {
-        CHECK_AND_RETURN_RET_LOG(trackDesc.GetIntValue(MediaDescriptionKey::MD_KEY_WIDTH, param.width) == true,
+    MediaType mediaType;
+    CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindMediaType(mimeType, mediaType), MSERR_INVALID_VAL, "Illegal mimeType");
+    if (mediaType == MEDIA_TYPE_VID) {
+        CHECK_AND_RETURN_RET_LOG(trackDesc.GetIntValue(MediaDescriptionKey::MD_KEY_WIDTH, param.width),
             MSERR_INVALID_VAL, "Failed to get MD_KEY_WIDTH");
-        CHECK_AND_RETURN_RET_LOG(trackDesc.GetIntValue(MediaDescriptionKey::MD_KEY_HEIGHT, param.height) == true,
+        CHECK_AND_RETURN_RET_LOG(trackDesc.GetIntValue(MediaDescriptionKey::MD_KEY_HEIGHT, param.height),
             MSERR_INVALID_VAL, "Failed to get MD_KEY_HEIGHT");
-        CHECK_AND_RETURN_RET_LOG(trackDesc.GetIntValue(MediaDescriptionKey::MD_KEY_FRAME_RATE, param.frameRate) == true,
+        CHECK_AND_RETURN_RET_LOG(trackDesc.GetIntValue(MediaDescriptionKey::MD_KEY_FRAME_RATE, param.frameRate),
             MSERR_INVALID_VAL, "Failed to get MD_KEY_FRAME_RATE");
         MEDIA_LOGD("width is: %{public}d, height is: %{public}d, frameRate is: %{public}d",
             param.width, param.height, param.frameRate);
-    } else if (AVMuxerUtil::CheckType(mimeType) == AUDIO) {
+    } else if (mediaType == MEDIA_TYPE_AUD) {
         CHECK_AND_RETURN_RET_LOG(
-            trackDesc.GetIntValue(MediaDescriptionKey::MD_KEY_CHANNEL_COUNT, param.channels) == true,
+            trackDesc.GetIntValue(MediaDescriptionKey::MD_KEY_CHANNEL_COUNT, param.channels),
             MSERR_INVALID_VAL, "Failed to get MD_KEY_CHANNEL_COUNT");
-        CHECK_AND_RETURN_RET_LOG(trackDesc.GetIntValue(MediaDescriptionKey::MD_KEY_SAMPLE_RATE, param.rate) == true,
+        CHECK_AND_RETURN_RET_LOG(trackDesc.GetIntValue(MediaDescriptionKey::MD_KEY_SAMPLE_RATE, param.rate),
             MSERR_INVALID_VAL, "Failed to get MD_KEY_SAMPLE_RATE");
         MEDIA_LOGD("channels is: %{public}d, rate is: %{public}d", param.channels, param.rate);
     } else {
@@ -103,20 +121,20 @@ static int32_t parseParam(FormatParam &param, const MediaDescription &trackDesc,
 static void AddOptionCaps(GstCaps *src_caps, const std::string &mimeType)
 {
     for (auto& elements : optionCapsMap[mimeType]) {
-        switch (std::get<CAPS_FIELD_TYPE_INDEX>(elements)) {
+        switch (elements.type_) {
             case G_TYPE_BOOLEAN:
             case G_TYPE_INT:
                 gst_caps_set_simple(src_caps,
-                    std::get<CAPS_FIELD_NAME_INDEX>(elements).c_str(),
-                    std::get<CAPS_FIELD_TYPE_INDEX>(elements),
-                    std::get<CAPS_FIELD_VALUE_INDEX>(elements).val_.intVal,
+                    elements.key_.c_str(),
+                    elements.type_,
+                    elements.value_.val_.intVal,
                     nullptr);
                 break;
             case G_TYPE_STRING:
                 gst_caps_set_simple(src_caps,
-                    std::get<CAPS_FIELD_NAME_INDEX>(elements).c_str(),
-                    std::get<CAPS_FIELD_TYPE_INDEX>(elements),
-                    std::get<CAPS_FIELD_VALUE_INDEX>(elements).val_.stringVal,
+                    elements.key_.c_str(),
+                    elements.type_,
+                    elements.value_.val_.stringVal,
                     nullptr);
                 break;
             default:
@@ -128,14 +146,18 @@ static void AddOptionCaps(GstCaps *src_caps, const std::string &mimeType)
 static GstCaps *CreateCaps(FormatParam &param, const std::string &mimeType)
 {
     GstCaps *src_caps = nullptr;
-    if (AVMuxerUtil::CheckType(mimeType) == VIDEO) {
-        src_caps = gst_caps_new_simple(std::get<0>(MIME_MAP_TYPE.at(mimeType)).c_str(),
+    std::string innerType;
+    MediaType mediaType;
+    CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindInnerTypes(mimeType, innerType), nullptr, "Illegal mimeType");
+    CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindMediaType(mimeType, mediaType), nullptr, "Illegal mimeType");
+    if (mediaType == MEDIA_TYPE_VID) {
+        src_caps = gst_caps_new_simple(innerType.c_str(),
             "width", G_TYPE_INT, param.width,
             "height", G_TYPE_INT, param.height,
             "framerate", GST_TYPE_FRACTION, param.frameRate, 1,
             nullptr);
-    } else if (AVMuxerUtil::CheckType(mimeType) == AUDIO) {
-        src_caps = gst_caps_new_simple(std::get<0>(MIME_MAP_TYPE.at(mimeType)).c_str(),
+    } else if (mediaType == MEDIA_TYPE_AUD) {
+        src_caps = gst_caps_new_simple(innerType.c_str(),
             "channels", G_TYPE_INT, param.channels,
             "rate", G_TYPE_INT, param.rate,
             nullptr);
@@ -159,6 +181,60 @@ int32_t AVMuxerUtil::SetCaps(const MediaDescription &trackDesc, const std::strin
     *src_caps = CreateCaps(param, mimeType);
 
     return MSERR_OK;
+}
+
+std::vector<std::string> AVMuxerUtil::FindFormat()
+{
+    std::vector<std::string> formatList;
+    for (auto& formats : FORMAT_INFO) {
+        formatList.push_back(formats.first);
+    }
+    return formatList;
+}
+
+bool AVMuxerUtil::FindMux(const std::string &format, std::string &mux)
+{
+    if (FORMAT_INFO.find(format) == FORMAT_INFO.end()) {
+        return false;
+    }
+    mux = FORMAT_INFO.at(format).mux_;
+    return true;
+}
+
+bool AVMuxerUtil::FindMimeTypes(const std::string &format, std::set<std::string> &mimeTypes)
+{
+    if (FORMAT_INFO.find(format) == FORMAT_INFO.end()) {
+        return false;
+    }
+    mimeTypes = FORMAT_INFO.at(format).mimeTypes_;
+    return true;
+}
+
+bool AVMuxerUtil::FindInnerTypes(const std::string &mimeType, std::string &innerType)
+{
+    if (MIME_INFO.find(mimeType) == MIME_INFO.end()) {
+        return false;
+    }
+    innerType = MIME_INFO.at(mimeType).innerType_;
+    return true;
+}
+
+bool AVMuxerUtil::FindParse(const std::string &mimeType, std::string &parse)
+{
+    if (MIME_INFO.find(mimeType) == MIME_INFO.end()) {
+        return false;
+    }
+    parse = MIME_INFO.at(mimeType).parse_;
+    return true;
+}
+
+bool AVMuxerUtil::FindMediaType(const std::string &mimeType, MediaType &mediaType)
+{
+    if (MIME_INFO.find(mimeType) == MIME_INFO.end()) {
+        return false;
+    }
+    mediaType = MIME_INFO.at(mimeType).mediaType_;
+    return true;
 }
 }
 }

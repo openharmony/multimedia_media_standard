@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef TEST_PLAYER_SEEK_FUZZER_H
-#define TEST_PLAYER_SEEK_FUZZER_H
+#ifndef PLAYERSETVOLUME_FUZZER_H
+#define PLAYERSETVOLUME_FUZZER_H
 
-#define FUZZ_PROJECT_NAME "test_player_seek_fuzzer"
+#define FUZZ_PROJECT_NAME "playersetvolume_fuzzer"
 #include "test_player.h"
 
 namespace OHOS {
 namespace Media {
-bool FuzzPlayerSeek(uint8_t* data, size_t size);
+bool FuzzPlayerSetVolume(uint8_t* data, size_t size);
 
-class TestPlayerSeekFuzz : public TestPlayer {
+class PlayerSetVolumeFuzzer : public TestPlayer {
 public:
-    TestPlayerSeekFuzz();
-    ~TestPlayerSeekFuzz();
-    bool FuzzSeek(uint8_t* data, size_t size);
+    PlayerSetVolumeFuzzer();
+    ~PlayerSetVolumeFuzzer();
+    bool FuzzSetVolume(uint8_t* data, size_t size);
 };
 }
 }

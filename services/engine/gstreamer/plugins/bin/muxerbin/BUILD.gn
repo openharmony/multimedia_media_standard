@@ -13,10 +13,11 @@
 
 import("//build/ohos.gni")
 
-config("gst_codec_plugins_common_config") {
+config("gst_avmuxer_bin_config") {
   visibility = [ ":*" ]
 
   cflags = [
+    "-fno-rtti",
     "-fno-exceptions",
     "-Wall",
     "-fno-common",
@@ -29,62 +30,44 @@ config("gst_codec_plugins_common_config") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
-    "-DOHOS_EXT_FUNC",
+    "-Werror",
+    "-Wunused-parameter",
   ]
-  cflags_cc = [ "-frtti" ]
 
   include_dirs = [
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common/vdec",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common/venc",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common/video",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common",
-    "//base/hiviewdfx/interfaces/innerkits/libhilog/include",
+    "include",
     "//utils/native/base/include",
-    "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/gstreamer/gstplugins_base",
     "//third_party/gstreamer/gstplugins_base/gst-libs",
+    "//third_party/gstreamer/gstreamer/libs/gst/base",
     "//third_party/glib/glib",
     "//third_party/glib",
     "//third_party/glib/gmodule",
   ]
 }
 
-ohos_static_library("gst_codec_plugins_common") {
-  sources = [
-    "vdec/gst_vdec_base.cpp",
-    "vdec/gst_vdec_h264.cpp",
-    "vdec/gst_vdec_h265.cpp",
-    "vdec/gst_vdec_mpeg2.cpp",
-    "vdec/gst_vdec_mpeg4.cpp",
-    "venc/gst_venc_base.cpp",
-    "venc/gst_venc_h264.cpp",
-    "venc/gst_venc_h265.cpp",
-    "venc/gst_venc_mpeg4.cpp",
-  ]
+ohos_shared_library("gst_avmuxer_bin") {
+  install_enable = true
 
-  configs = [ ":gst_codec_plugins_common_config" ]
+  sources = [ "src/gst_mux_bin.cpp" ]
+
+  configs = [ ":gst_avmuxer_bin_config" ]
 
   deps = [
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
-    "//foundation/graphic/graphic:libsurface",
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",
-    "//third_party/gstreamer/gstplugins_base:gstvideo",
     "//third_party/gstreamer/gstreamer:gstbase",
     "//third_party/gstreamer/gstreamer:gstreamer",
   ]
 
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
-  ]
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
+  relative_install_dir = "media/plugins"
   subsystem_name = "multimedia"
   part_name = "multimedia_media_standard"
 }

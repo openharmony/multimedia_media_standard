@@ -16,6 +16,7 @@
 #ifndef AVCONTAINER_TYPES_H
 #define AVCONTAINER_TYPES_H
 
+#include "nocopyable.h"
 #include "av_common.h"
 #include "avcodec_common.h"
 
@@ -51,6 +52,50 @@ struct TrackSampleInfo {
      * maybe be a combination of multiple {@link AVCodecBufferFlag}.
      */
     AVCodecBufferFlag flags;
+};
+
+class AVContainerMemory : public NoCopyable {
+public:
+    AVContainerMemory(uint8_t *base, size_t capacity) : base_(base), capacity_(capacity) {};
+
+    ~AVContainerMemory() = default;
+
+    uint8_t *Base() const
+    {
+        return base_;
+    }
+
+    uint8_t *Data() const
+    {
+        return base_ + offset_;
+    }
+
+    size_t Capacity() const
+    {
+        return capacity_;
+    }
+
+    size_t Size() const
+    {
+        return size_;
+    }
+
+    size_t Offset() const
+    {
+        return offset_;
+    }
+
+    void SetRange(size_t offset, size_t size)
+    {
+        offset_ = offset;
+        size_ = size;
+    }
+
+private:
+    uint8_t *base_ = nullptr;
+    size_t offset_ = 0;
+    size_t size_ = 0;
+    size_t capacity_ = 0;
 };
 } // namespace Media
 } // namespace OHOS
