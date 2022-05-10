@@ -60,6 +60,9 @@ void MediaServer::OnStop()
 sptr<IRemoteObject> MediaServer::GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId,
     const sptr<IRemoteObject> &listener)
 {
+    int32_t ret = MediaServiceStub::SetDeathListener(listener);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "failed set death listener");
+
     switch (subSystemId) {
         case MediaSystemAbility::MEDIA_RECORDER: {
             return MediaServerManager::GetInstance().CreateStubObject(MediaServerManager::RECORDER);
@@ -84,8 +87,6 @@ sptr<IRemoteObject> MediaServer::GetSubSystemAbility(IStandardMediaService::Medi
             return nullptr;
         }
     }
-    int32_t ret = MediaServiceStub::SetDeathListener(listener);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "failed set death listener");
 }
 
 int32_t MediaServer::Dump(int fd, const std::vector<std::u16string> &args)
