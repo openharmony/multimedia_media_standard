@@ -38,7 +38,7 @@ GST_STATIC_PAD_TEMPLATE("src",
     GST_PAD_ALWAYS,
     GST_STATIC_CAPS_ANY);
 
-struct _GstShmemPoolSrcPrivate {
+struct _GstShmemSrcPrivate {
     GRecMutex shmem_lock;
     GstTask *shmem_task;
     gboolean task_start;
@@ -58,31 +58,31 @@ struct _GstShmemPoolSrcPrivate {
     gboolean need_start_task;
 };
 
-G_DEFINE_TYPE_WITH_PRIVATE(GstShmemPoolSrc, gst_shmem_src, GST_TYPE_MEM_POOL_SRC);
+G_DEFINE_TYPE_WITH_PRIVATE(GstShmemSrc, gst_shmem_src, GST_TYPE_MEM_SRC);
 
 static GstStateChangeReturn gst_shmem_src_change_state(GstElement *element, GstStateChange transition);
 static gboolean gst_shmem_src_decide_allocation(GstBaseSrc *basesrc, GstQuery *query);
-static gboolean gst_shmem_src_start_task(GstShmemPoolSrc *shmemsrc);
-static gboolean gst_shmem_src_pause_task(GstShmemPoolSrc *shmemsrc);
-static gboolean gst_shmem_src_stop_task(GstShmemPoolSrc *shmemsrc);
+static gboolean gst_shmem_src_start_task(GstShmemSrc *shmemsrc);
+static gboolean gst_shmem_src_pause_task(GstShmemSrc *shmemsrc);
+static gboolean gst_shmem_src_stop_task(GstShmemSrc *shmemsrc);
 static void gst_mem_src_dispose(GObject *object);
 static void gst_shmem_src_finalize(GObject *object);
-static void gst_shmem_src_flush_queue(GstShmemPoolSrc *shmemsrc);
+static void gst_shmem_src_flush_queue(GstShmemSrc *shmemsrc);
 static gboolean gst_shmem_src_send_event(GstElement *element, GstEvent *event);
-GstBuffer *gst_shmem_src_pull_buffer(GstMemPoolSrc *memsrc);
-GstFlowReturn gst_shmem_src_push_buffer(GstMemPoolSrc *memsrc, GstBuffer *buffer);
+GstBuffer *gst_shmem_src_pull_buffer(GstMemSrc *memsrc);
+GstFlowReturn gst_shmem_src_push_buffer(GstMemSrc *memsrc, GstBuffer *buffer);
 static GstFlowReturn gst_shmem_src_create(GstBaseSrc *src, guint64 offset, guint size, GstBuffer **buffer);
-static void gst_shmem_src_loop(GstShmemPoolSrc *shmemsrc);
+static void gst_shmem_src_loop(GstShmemSrc *shmemsrc);
 static gboolean gst_shmem_src_unlock(GstBaseSrc *src);
 static gboolean gst_shmem_src_unlock_stop(GstBaseSrc *src);
 
-static void gst_shmem_src_class_init(GstShmemPoolSrcClass *klass)
+static void gst_shmem_src_class_init(GstShmemSrcClass *klass)
 {
     g_return_if_fail(klass != nullptr);
     GObjectClass *gobject_class = reinterpret_cast<GObjectClass *>(klass);
     GstElementClass *gstelement_class = reinterpret_cast<GstElementClass *>(klass);
     GstBaseSrcClass *gstbasesrc_class = reinterpret_cast<GstBaseSrcClass *>(klass);
-    GstMemPoolSrcClass *gstmemsrc_class = reinterpret_cast<GstMemPoolSrcClass *>(klass);
+    GstMemSrcClass *gstmemsrc_class = reinterpret_cast<GstMemSrcClass *>(klass);
     GST_DEBUG_CATEGORY_INIT(gst_shmem_src_debug_category, "shmempoolsrc", 0, "shmem pool src base class");
     gobject_class->finalize = gst_shmem_src_finalize;
     gobject_class->dispose = gst_mem_src_dispose;
@@ -101,10 +101,10 @@ static void gst_shmem_src_class_init(GstShmemPoolSrcClass *klass)
     gst_element_class_add_static_pad_template(gstelement_class, &gst_src_template);
 }
 
-static void gst_shmem_src_init(GstShmemPoolSrc *shmemsrc)
+static void gst_shmem_src_init(GstShmemSrc *shmemsrc)
 {
     g_return_if_fail(shmemsrc != nullptr);
-    auto priv = reinterpret_cast<GstShmemPoolSrcPrivate*>(gst_shmem_src_get_instance_private(shmemsrc));
+    auto priv = reinterpret_cast<GstShmemSrcPrivate*>(gst_shmem_src_get_instance_private(shmemsrc));
     g_return_if_fail(priv != nullptr);
     shmemsrc->priv = priv;
     g_rec_mutex_init(&shmemsrc->priv->shmem_lock);
@@ -126,7 +126,7 @@ static void gst_shmem_src_init(GstShmemPoolSrc *shmemsrc)
     gst_allocation_params_init(&priv->allocParams);
 }
 
-static void gst_shmem_src_flush_queue(GstShmemPoolSrc *shmemsrc)
+static void gst_shmem_src_flush_queue(GstShmemSrc *shmemsrc)
 {
     g_return_if_fail(shmemsrc != nullptr && shmemsrc->priv != nullptr);
     GstMiniObject *object = nullptr;
@@ -142,7 +142,7 @@ static void gst_shmem_src_flush_queue(GstShmemPoolSrc *shmemsrc)
 
 static void gst_mem_src_dispose(GObject *object)
 {
-    GstShmemPoolSrc *shmemsrc = GST_SHMEM_SRC(object);
+    GstShmemSrc *shmemsrc = GST_SHMEM_SRC(object);
     g_return_if_fail(shmemsrc != nullptr);
     auto priv = shmemsrc->priv;
     g_return_if_fail(priv != nullptr);
@@ -172,7 +172,7 @@ static void gst_mem_src_dispose(GObject *object)
 
 static void gst_shmem_src_finalize(GObject *object)
 {
-    GstShmemPoolSrc *shmemsrc = GST_SHMEM_SRC(object);
+    GstShmemSrc *shmemsrc = GST_SHMEM_SRC(object);
     g_return_if_fail(shmemsrc != nullptr);
     auto priv = shmemsrc->priv;
     g_return_if_fail(priv != nullptr);
@@ -186,7 +186,7 @@ static void gst_shmem_src_finalize(GObject *object)
     gst_queue_array_free(priv->queue);
 }
 
-static gboolean gst_shmem_src_task_need_wait(GstShmemPoolSrc *shmemsrc)
+static gboolean gst_shmem_src_task_need_wait(GstShmemSrc *shmemsrc)
 {
     auto priv = shmemsrc->priv;
 
@@ -202,11 +202,11 @@ static gboolean gst_shmem_src_task_need_wait(GstShmemPoolSrc *shmemsrc)
     return TRUE;
 }
 
-static void gst_shmem_src_loop(GstShmemPoolSrc *shmemsrc)
+static void gst_shmem_src_loop(GstShmemSrc *shmemsrc)
 {
     GST_DEBUG_OBJECT(shmemsrc, "Loop start");
     g_return_if_fail(shmemsrc != nullptr && shmemsrc->priv != nullptr);
-    GstMemPoolSrc *memsrc = GST_MEM_SRC(shmemsrc);
+    GstMemSrc *memsrc = GST_MEM_SRC(shmemsrc);
     auto priv = shmemsrc->priv;
 
     g_mutex_lock(&priv->priv_lock);
@@ -249,10 +249,10 @@ static void gst_shmem_src_loop(GstShmemPoolSrc *shmemsrc)
     }
 }
 
-GstBuffer *gst_shmem_src_pull_buffer(GstMemPoolSrc *memsrc)
+GstBuffer *gst_shmem_src_pull_buffer(GstMemSrc *memsrc)
 {
     GST_DEBUG_OBJECT(memsrc, "Pull buffer");
-    GstShmemPoolSrc *shmemsrc = GST_SHMEM_SRC(memsrc);
+    GstShmemSrc *shmemsrc = GST_SHMEM_SRC(memsrc);
     g_return_val_if_fail(shmemsrc != nullptr && shmemsrc->priv != nullptr, nullptr);
     auto priv = shmemsrc->priv;
     g_mutex_lock(&priv->priv_lock);
@@ -263,10 +263,10 @@ GstBuffer *gst_shmem_src_pull_buffer(GstMemPoolSrc *memsrc)
     return buffer;
 }
 
-GstFlowReturn gst_shmem_src_push_buffer(GstMemPoolSrc *memsrc, GstBuffer *buffer)
+GstFlowReturn gst_shmem_src_push_buffer(GstMemSrc *memsrc, GstBuffer *buffer)
 {
     GST_DEBUG_OBJECT(memsrc, "Push buffer ref %u", (reinterpret_cast<GObject*>(buffer)->ref_count));
-    GstShmemPoolSrc *shmemsrc = GST_SHMEM_SRC(memsrc);
+    GstShmemSrc *shmemsrc = GST_SHMEM_SRC(memsrc);
     g_return_val_if_fail(shmemsrc != nullptr && shmemsrc->priv != nullptr, GST_FLOW_ERROR);
     auto priv = shmemsrc->priv;
     g_mutex_lock(&priv->queue_lock);
@@ -276,7 +276,7 @@ GstFlowReturn gst_shmem_src_push_buffer(GstMemPoolSrc *memsrc, GstBuffer *buffer
     return GST_FLOW_OK;
 }
 
-static gboolean gst_shmem_src_start_task(GstShmemPoolSrc *shmemsrc)
+static gboolean gst_shmem_src_start_task(GstShmemSrc *shmemsrc)
 {
     GST_INFO_OBJECT(shmemsrc, "Start task");
     auto priv = shmemsrc->priv;
@@ -290,7 +290,7 @@ static gboolean gst_shmem_src_start_task(GstShmemPoolSrc *shmemsrc)
     return ret;
 }
 
-static gboolean gst_shmem_src_pause_task(GstShmemPoolSrc *shmemsrc)
+static gboolean gst_shmem_src_pause_task(GstShmemSrc *shmemsrc)
 {
     GST_INFO_OBJECT(shmemsrc, "Pause task");
     auto priv = shmemsrc->priv;
@@ -302,7 +302,7 @@ static gboolean gst_shmem_src_pause_task(GstShmemPoolSrc *shmemsrc)
     return ret;
 }
 
-static gboolean gst_shmem_src_stop_task(GstShmemPoolSrc *shmemsrc)
+static gboolean gst_shmem_src_stop_task(GstShmemSrc *shmemsrc)
 {
     GST_INFO_OBJECT(shmemsrc, "Stop task");
     auto priv = shmemsrc->priv;
@@ -329,7 +329,7 @@ static gboolean gst_shmem_src_stop_task(GstShmemPoolSrc *shmemsrc)
 
 static GstStateChangeReturn gst_shmem_src_change_state(GstElement *element, GstStateChange transition)
 {
-    GstShmemPoolSrc *shmemsrc = GST_SHMEM_SRC(element);
+    GstShmemSrc *shmemsrc = GST_SHMEM_SRC(element);
     g_return_val_if_fail(shmemsrc != nullptr && shmemsrc->priv != nullptr, GST_STATE_CHANGE_FAILURE);
     switch (transition) {
         case GST_STATE_CHANGE_PAUSED_TO_PLAYING:
@@ -354,7 +354,7 @@ static GstStateChangeReturn gst_shmem_src_change_state(GstElement *element, GstS
     return ret;
 }
 
-static void gst_shmem_src_set_pool_flushing(GstShmemPoolSrc *shmemsrc, gboolean flushing)
+static void gst_shmem_src_set_pool_flushing(GstShmemSrc *shmemsrc, gboolean flushing)
 {
     g_return_if_fail(shmemsrc != nullptr && shmemsrc->priv != nullptr);
     auto priv = shmemsrc->priv;
@@ -372,7 +372,7 @@ static void gst_shmem_src_set_pool_flushing(GstShmemPoolSrc *shmemsrc, gboolean 
     }
 }
 
-static gboolean gst_shmem_src_handle_eos_event(GstShmemPoolSrc *shmemsrc)
+static gboolean gst_shmem_src_handle_eos_event(GstShmemSrc *shmemsrc)
 {
     // just mark eos to avoiding the basesrc to process the eos too early, otherwise
     // the buffers in the queue will be dropped due to the eos event.
@@ -399,7 +399,7 @@ static gboolean gst_shmem_src_handle_eos_event(GstShmemPoolSrc *shmemsrc)
     return TRUE;
 }
 
-static gboolean gst_shmem_src_handle_flush_start(GstShmemPoolSrc *shmemsrc)
+static gboolean gst_shmem_src_handle_flush_start(GstShmemSrc *shmemsrc)
 {
     auto priv = shmemsrc->priv;
     g_mutex_lock(&priv->queue_lock);
@@ -420,7 +420,7 @@ static gboolean gst_shmem_src_handle_flush_start(GstShmemPoolSrc *shmemsrc)
     return TRUE;
 }
 
-static gboolean gst_shmem_src_handle_flush_stop(GstShmemPoolSrc *shmemsrc)
+static gboolean gst_shmem_src_handle_flush_stop(GstShmemSrc *shmemsrc)
 {
     auto priv = shmemsrc->priv;
     g_mutex_lock(&priv->queue_lock);
@@ -447,7 +447,7 @@ static gboolean gst_shmem_src_handle_flush_stop(GstShmemPoolSrc *shmemsrc)
 
 static gboolean gst_shmem_src_unlock(GstBaseSrc *src)
 {
-    GstShmemPoolSrc *shmemsrc = GST_SHMEM_SRC(src);
+    GstShmemSrc *shmemsrc = GST_SHMEM_SRC(src);
     g_return_val_if_fail(shmemsrc != nullptr && shmemsrc->priv != nullptr, FALSE);
 
     GST_DEBUG_OBJECT(shmemsrc, "unblock...");
@@ -463,7 +463,7 @@ static gboolean gst_shmem_src_unlock(GstBaseSrc *src)
 
 static gboolean gst_shmem_src_unlock_stop(GstBaseSrc *src)
 {
-    GstShmemPoolSrc *shmemsrc = GST_SHMEM_SRC(src);
+    GstShmemSrc *shmemsrc = GST_SHMEM_SRC(src);
     g_return_val_if_fail(shmemsrc != nullptr && shmemsrc->priv != nullptr, FALSE);
 
     GST_DEBUG_OBJECT(shmemsrc, "unblock stop...");
@@ -479,7 +479,7 @@ static gboolean gst_shmem_src_unlock_stop(GstBaseSrc *src)
 
 static gboolean gst_shmem_src_send_event(GstElement *element, GstEvent *event)
 {
-    GstShmemPoolSrc *shmemsrc = GST_SHMEM_SRC(element);
+    GstShmemSrc *shmemsrc = GST_SHMEM_SRC(element);
     g_return_val_if_fail(shmemsrc != nullptr && shmemsrc->priv != nullptr, FALSE);
     g_return_val_if_fail(event != nullptr, FALSE);
     GST_DEBUG_OBJECT(shmemsrc, "New event %s", GST_EVENT_TYPE_NAME(event));
@@ -505,7 +505,7 @@ static GstFlowReturn gst_shmem_src_create(GstBaseSrc *src, guint64 offset, guint
     GST_DEBUG_OBJECT(src, "Source create");
     (void)offset;
     (void)size;
-    GstShmemPoolSrc *shmemsrc = GST_SHMEM_SRC(src);
+    GstShmemSrc *shmemsrc = GST_SHMEM_SRC(src);
     g_return_val_if_fail(shmemsrc != nullptr && shmemsrc->priv != nullptr, GST_FLOW_ERROR);
     g_return_val_if_fail(buffer != nullptr, GST_FLOW_ERROR);
     auto priv = shmemsrc->priv;
@@ -540,7 +540,7 @@ static GstFlowReturn gst_shmem_src_create(GstBaseSrc *src, guint64 offset, guint
     return GST_FLOW_OK;
 }
 
-static GstBufferPool *gst_shmem_src_new_shmem_pool(GstShmemPoolSrc *shmemsrc, GstCaps *caps,
+static GstBufferPool *gst_shmem_src_new_shmem_pool(GstShmemSrc *shmemsrc, GstCaps *caps,
     guint size, guint buffer_cnt, gboolean is_video)
 {
     g_return_val_if_fail(shmemsrc != nullptr, nullptr);
@@ -569,12 +569,12 @@ static GstBufferPool *gst_shmem_src_new_shmem_pool(GstShmemPoolSrc *shmemsrc, Gs
     return GST_BUFFER_POOL(pool);
 }
 
-static gboolean gst_shmem_src_set_shmem_pool(GstShmemPoolSrc *shmemsrc, GstBufferPool *pool,
+static gboolean gst_shmem_src_set_shmem_pool(GstShmemSrc *shmemsrc, GstBufferPool *pool,
     GstQuery *query, guint buffer_cnt)
 {
     g_return_val_if_fail(shmemsrc != nullptr && shmemsrc->priv != nullptr, FALSE);
     g_return_val_if_fail(query != nullptr, FALSE);
-    GstMemPoolSrc *memsrc = GST_MEM_SRC(shmemsrc);
+    GstMemSrc *memsrc = GST_MEM_SRC(shmemsrc);
     GstCaps *outcaps = nullptr;
     auto priv = shmemsrc->priv;
     // buffer size default is buffer_size
@@ -608,9 +608,9 @@ static gboolean gst_shmem_src_set_shmem_pool(GstShmemPoolSrc *shmemsrc, GstBuffe
 
 static gboolean gst_shmem_src_decide_allocation(GstBaseSrc *basesrc, GstQuery *query)
 {
-    GstShmemPoolSrc *shmemsrc = GST_SHMEM_SRC(basesrc);
+    GstShmemSrc *shmemsrc = GST_SHMEM_SRC(basesrc);
     g_return_val_if_fail(basesrc != nullptr && query != nullptr, FALSE);
-    GstMemPoolSrc *memsrc = GST_MEM_SRC(basesrc);
+    GstMemSrc *memsrc = GST_MEM_SRC(basesrc);
     g_return_val_if_fail(memsrc != nullptr, FALSE);
     GstBufferPool *pool = nullptr;
     guint size = 0;

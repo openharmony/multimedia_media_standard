@@ -42,11 +42,13 @@ config("media_engine_gst_factory_config") {
     "//foundation/multimedia/media_standard/services/engine/gstreamer/recorder",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/avmetadatahelper",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/avcodec",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/avmuxer",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/loader",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/playbin_adapter",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/message",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/metadata",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
@@ -65,11 +67,11 @@ ohos_static_library("media_engine_gst_factory") {
 
   configs = [
     ":media_engine_gst_factory_config",
-    "//foundation/graphic/standard/frameworks/surface:surface_public_config",
+    "//foundation/graphic/graphic/frameworks/surface:surface_public_config",
   ]
 
   deps = [
-    "//foundation/graphic/standard/frameworks/surface:surface",
+    "//foundation/graphic/graphic/frameworks/surface:surface",
     "//utils/native/base:utils",
   ]
 

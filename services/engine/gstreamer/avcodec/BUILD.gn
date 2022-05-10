@@ -80,12 +80,12 @@ ohos_static_library("media_engine_gst_avcodec") {
 
   configs = [
     ":media_engine_gst_avcodec_config",
-    "//foundation/graphic/standard/frameworks/surface:surface_public_config",
+    "//foundation/graphic/graphic/frameworks/surface:surface_public_config",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils_public_config",
   ]
 
   deps = [
-    "//foundation/graphic/standard/frameworks/surface:surface",
+    "//foundation/graphic/graphic/frameworks/surface:surface",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins:media_engine_gst_plugins_common",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",

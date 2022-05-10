@@ -50,6 +50,8 @@ config("media_service_config") {
     "avcodec/server",
     "avcodeclist/ipc",
     "avcodeclist/server",
+    "avmuxer/ipc",
+    "avmuxer/server",
     "//base/security/access_token/interfaces/innerkits/access_token/include",
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara/include",
     "//base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include",
@@ -82,6 +84,8 @@ ohos_shared_library("media_service") {
     "avcodeclist/server/avcodeclist_server.cpp",
     "avmetadatahelper/ipc/avmetadatahelper_service_stub.cpp",
     "avmetadatahelper/server/avmetadatahelper_server.cpp",
+    "avmuxer/ipc/avmuxer_service_stub.cpp",
+    "avmuxer/server/avmuxer_server.cpp",
     "common/avsharedmemory_ipc.cpp",
     "factory/engine_factory_repo.cpp",
     "media_data_source/ipc/media_data_source_proxy.cpp",
@@ -101,12 +105,12 @@ ohos_shared_library("media_service") {
 
   configs = [
     ":media_service_config",
-    "//foundation/graphic/standard/frameworks/surface:surface_public_config",
+    "//foundation/graphic/graphic/frameworks/surface:surface_public_config",
   ]
 
   deps = [
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
-    "//foundation/graphic/standard/frameworks/surface:surface",
+    "//foundation/graphic/graphic/frameworks/surface:surface",
     "//foundation/multimedia/media_standard/services/utils:media_format",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//utils/native/base:utils",
@@ -114,7 +118,7 @@ ohos_shared_library("media_service") {
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
-    "bytrace_standard:bytrace_core",
+    "hitrace_native:hitrace_meter",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",

@@ -21,6 +21,7 @@
 #include "i_standard_recorder_service.h"
 #include "i_standard_player_service.h"
 #include "i_standard_avmetadatahelper_service.h"
+#include "i_standard_avmuxer_service.h"
 #include "media_log.h"
 #include "media_errors.h"
 
@@ -46,21 +47,6 @@ MediaClient::~MediaClient()
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-int32_t MediaClient::CreateListenerObject()
-{
-    listenerStub_ = new(std::nothrow) MediaListenerStub();
-    CHECK_AND_RETURN_RET_LOG(listenerStub_ != nullptr, MSERR_NO_MEMORY,
-        "failed to new MediaListenerStub object");
-    CHECK_AND_RETURN_RET_LOG(mediaProxy_ != nullptr, MSERR_NO_MEMORY,
-        "AVMetadataHelperClient service does not exist.");
-
-    sptr<IRemoteObject> object = listenerStub_->AsObject();
-    CHECK_AND_RETURN_RET_LOG(object != nullptr, MSERR_NO_MEMORY, "listener object is nullptr..");
-
-    MEDIA_LOGD("SetListenerObject");
-    return mediaProxy_->SetListenerObject(object);
-}
-
 bool MediaClient::IsAlived()
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -79,7 +65,7 @@ std::shared_ptr<IRecorderService> MediaClient::CreateRecorderService()
     }
 
     sptr<IRemoteObject> object = mediaProxy_->GetSubSystemAbility(
-        IStandardMediaService::MediaSystemAbility::MEDIA_RECORDER);
+        IStandardMediaService::MediaSystemAbility::MEDIA_RECORDER, listenerStub_->AsObject());
     CHECK_AND_RETURN_RET_LOG(object != nullptr, nullptr, "recorder proxy object is nullptr.");
 
     sptr<IStandardRecorderService> recorderProxy = iface_cast<IStandardRecorderService>(object);
@@ -101,7 +87,7 @@ std::shared_ptr<IPlayerService> MediaClient::CreatePlayerService()
     }
 
     sptr<IRemoteObject> object = mediaProxy_->GetSubSystemAbility(
-        IStandardMediaService::MediaSystemAbility::MEDIA_PLAYER);
+        IStandardMediaService::MediaSystemAbility::MEDIA_PLAYER, listenerStub_->AsObject());
     CHECK_AND_RETURN_RET_LOG(object != nullptr, nullptr, "player proxy object is nullptr.");
 
     sptr<IStandardPlayerService> playerProxy = iface_cast<IStandardPlayerService>(object);
@@ -123,7 +109,7 @@ std::shared_ptr<IAVCodecListService> MediaClient::CreateAVCodecListService()
     }
 
     sptr<IRemoteObject> object = mediaProxy_->GetSubSystemAbility(
-        IStandardMediaService::MediaSystemAbility::MEDIA_CODECLIST);
+        IStandardMediaService::MediaSystemAbility::MEDIA_CODECLIST, listenerStub_->AsObject());
     CHECK_AND_RETURN_RET_LOG(object != nullptr, nullptr, "avcodeclist proxy object is nullptr.");
 
     sptr<IStandardAVCodecListService> avCodecListProxy = iface_cast<IStandardAVCodecListService>(object);
@@ -145,7 +131,7 @@ std::shared_ptr<IAVMetadataHelperService> MediaClient::CreateAVMetadataHelperSer
     }
 
     sptr<IRemoteObject> object = mediaProxy_->GetSubSystemAbility(
-        IStandardMediaService::MediaSystemAbility::MEDIA_AVMETADATAHELPER);
+        IStandardMediaService::MediaSystemAbility::MEDIA_AVMETADATAHELPER, listenerStub_->AsObject());
     CHECK_AND_RETURN_RET_LOG(object != nullptr, nullptr, "avmetadatahelper proxy object is nullptr.");
 
     sptr<IStandardAVMetadataHelperService> avMetadataHelperProxy = iface_cast<IStandardAVMetadataHelperService>(object);
@@ -167,7 +153,7 @@ std::shared_ptr<IAVCodecService> MediaClient::CreateAVCodecService()
     }
 
     sptr<IRemoteObject> object = mediaProxy_->GetSubSystemAbility(
-        IStandardMediaService::MediaSystemAbility::MEDIA_AVCODEC);
+        IStandardMediaService::MediaSystemAbility::MEDIA_AVCODEC, listenerStub_->AsObject());
     CHECK_AND_RETURN_RET_LOG(object != nullptr, nullptr, "avcodec proxy object is nullptr.");
 
     sptr<IStandardAVCodecService> avCodecProxy = iface_cast<IStandardAVCodecService>(object);
@@ -179,6 +165,28 @@ std::shared_ptr<IAVCodecService> MediaClient::CreateAVCodecService()
     std::lock_guard<std::mutex> lock(mutex_);
     avCodecClientList_.push_back(avCodec);
     return avCodec;
+}
+
+std::shared_ptr<IAVMuxerService> MediaClient::CreateAVMuxerService()
+{
+    if (!IsAlived()) {
+        MEDIA_LOGE("media service does not exist.");
+        return nullptr;
+    }
+
+    sptr<IRemoteObject> object = mediaProxy_->GetSubSystemAbility(
+        IStandardMediaService::MediaSystemAbility::MEDIA_AVMUXER, listenerStub_->AsObject());
+    CHECK_AND_RETURN_RET_LOG(object != nullptr, nullptr, "avmuxer proxy object is nullptr.");
+
+    sptr<IStandardAVMuxerService> avmuxerProxy = iface_cast<IStandardAVMuxerService>(object);
+    CHECK_AND_RETURN_RET_LOG(avmuxerProxy != nullptr, nullptr, "muxer proxy is nullptr.");
+
+    std::shared_ptr<AVMuxerClient> avmuxer = AVMuxerClient::Create(avmuxerProxy);
+    CHECK_AND_RETURN_RET_LOG(avmuxer != nullptr, nullptr, "failed to create avmuxer client.");
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    avmuxerClientList_.push_back(avmuxer);
+    return avmuxer;
 }
 
 int32_t MediaClient::DestroyRecorderService(std::shared_ptr<IRecorderService> recorder)
@@ -222,6 +230,14 @@ int32_t MediaClient::DestroyAVCodecListService(std::shared_ptr<IAVCodecListServi
     return MSERR_OK;
 }
 
+int32_t MediaClient::DestroyAVMuxerService(std::shared_ptr<IAVMuxerService> avmuxer)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(avmuxer != nullptr, MSERR_NO_MEMORY, "input avmuxer is nullptr.");
+    avmuxerClientList_.remove(avmuxer);
+    return MSERR_OK;
+}
+
 sptr<IStandardMediaService> MediaClient::GetMediaProxy()
 {
     MEDIA_LOGD("enter");
@@ -245,9 +261,8 @@ sptr<IStandardMediaService> MediaClient::GetMediaProxy()
         return nullptr;
     }
 
-    int32_t ret = CreateListenerObject();
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "failed to new MediaListener.");
-
+    listenerStub_ = new(std::nothrow) MediaListenerStub();
+    CHECK_AND_RETURN_RET_LOG(listenerStub_ != nullptr, nullptr, "failed to new MediaListenerStub");
     return mediaProxy_;
 }
 
@@ -294,6 +309,13 @@ void MediaClient::MediaServerDied(pid_t pid)
         auto avCodecListClient = std::static_pointer_cast<AVCodecListClient>(it);
         if (avCodecListClient != nullptr) {
             avCodecListClient->MediaServerDied();
+        }
+    }
+
+    for (auto &it : avmuxerClientList_) {
+        auto avmuxer = std::static_pointer_cast<AVMuxerClient>(it);
+        if (avmuxer != nullptr) {
+            avmuxer->MediaServerDied();
         }
     }
 }

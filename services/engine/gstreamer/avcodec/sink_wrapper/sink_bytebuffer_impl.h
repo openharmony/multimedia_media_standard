@@ -44,6 +44,7 @@ private:
 
     int32_t HandleNewSampleCb(GstBuffer *buffer);
     int32_t FindBufferIndex(uint32_t &index, std::shared_ptr<AVSharedMemory> mem);
+    int32_t AddAdtsHead(std::shared_ptr<AVSharedMemory> mem, uint32_t size);
 
     std::mutex mutex_;
     std::vector<std::shared_ptr<BufferWrapper>> bufferList_;
@@ -51,6 +52,8 @@ private:
     bool isFirstFrame_ = true;
     Format bufferFormat_;
     bool isEos_ = false;
+    bool needAdtsTransform_ = false;
+    AdtsFixedHeader adtsHead_;
 };
 } // namespace Media
 } // namespace OHOS

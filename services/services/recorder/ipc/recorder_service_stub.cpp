@@ -67,7 +67,6 @@ int32_t RecorderServiceStub::Init()
     recFuncs_[SET_DATA_SOURCE] = &RecorderServiceStub::SetDataSource;
     recFuncs_[SET_MAX_DURATION] = &RecorderServiceStub::SetMaxDuration;
     recFuncs_[SET_OUTPUT_FORMAT] = &RecorderServiceStub::SetOutputFormat;
-    recFuncs_[SET_OUTPUT_PATH] = &RecorderServiceStub::SetOutputPath;
     recFuncs_[SET_OUTPUT_FILE] = &RecorderServiceStub::SetOutputFile;
     recFuncs_[SET_NEXT_OUTPUT_FILE] = &RecorderServiceStub::SetNextOutputFile;
     recFuncs_[SET_MAX_FILE_SIZE] = &RecorderServiceStub::SetMaxFileSize;
@@ -223,12 +222,6 @@ int32_t RecorderServiceStub::SetOutputFormat(OutputFormatType format)
 {
     CHECK_AND_RETURN_RET_LOG(recorderServer_ != nullptr, MSERR_NO_MEMORY, "recorder server is nullptr");
     return recorderServer_->SetOutputFormat(format);
-}
-
-int32_t RecorderServiceStub::SetOutputPath(const std::string &path)
-{
-    CHECK_AND_RETURN_RET_LOG(recorderServer_ != nullptr, MSERR_NO_MEMORY, "recorder server is nullptr");
-    return recorderServer_->SetOutputPath(path);
 }
 
 int32_t RecorderServiceStub::SetOutputFile(int32_t fd)
@@ -455,13 +448,6 @@ int32_t RecorderServiceStub::SetOutputFormat(MessageParcel &data, MessageParcel 
     int32_t type = data.ReadInt32();
     OutputFormatType formatType = static_cast<OutputFormatType>(type);
     reply.WriteInt32(SetOutputFormat(formatType));
-    return MSERR_OK;
-}
-
-int32_t RecorderServiceStub::SetOutputPath(MessageParcel &data, MessageParcel &reply)
-{
-    std::string path = data.ReadString();
-    reply.WriteInt32(SetOutputPath(path));
     return MSERR_OK;
 }
 

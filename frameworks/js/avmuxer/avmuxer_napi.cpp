@@ -430,6 +430,25 @@ napi_value AVMuxerNapi::Start(napi_env env, napi_callback_info info)
     return result;
 }
 
+bool ExtractTrackSampleInfo(napi_env env, napi_value buffer, TrackSampleInfo &info)
+{
+    CHECK_AND_RETURN_RET(buffer != nullptr, false);
+
+    napi_value trackSampleInfo;
+    CHECK_AND_RETURN_RET(napi_get_named_property(env, buffer, "sampleInfo", &trackSampleInfo) == napi_ok, false);
+    CHECK_AND_RETURN_RET(CommonNapi::GetPropertyUint32(env, trackSampleInfo, "size", info.size) == true, false);
+    int32_t flags;
+    CHECK_AND_RETURN_RET(CommonNapi::GetPropertyInt32(env, trackSampleInfo, "flags", flags) == true, false);
+    info.flags = static_cast<AVCodecBufferFlag>(flags);
+    double milliTime;
+    CHECK_AND_RETURN_RET(CommonNapi::GetPropertyDouble(env, trackSampleInfo, "timeUs", milliTime) == true, false);
+    constexpr int32_t MS_TO_US = 1000;
+    info.timeUs = milliTime * MS_TO_US;
+    CHECK_AND_RETURN_RET(CommonNapi::GetPropertyUint32(env, buffer, "trackIndex", info.trackIdx) == true, false);
+
+    return true;
+}
+
 void AVMuxerNapi::AsyncWriteTrackSample(napi_env env, void *data)
 {
     MEDIA_LOGD("AsyncWriteTrackSample In");
@@ -470,7 +489,7 @@ napi_value AVMuxerNapi::WriteTrackSample(napi_env env, napi_callback_info info)
         CHECK_AND_RETURN_RET(napi_get_value_uint32(env, args[1], &offset) == napi_ok, result);
     }
     if (args[2] != nullptr && napi_typeof(env, args[2], &valueType) == napi_ok && valueType == napi_object) {
-        (void)CommonNapi::ExtractTrackSampleInfo(env, args[2], asyncContext->trackSampleInfo_);
+        (void)ExtractTrackSampleInfo(env, args[2], asyncContext->trackSampleInfo_);  // args[2]:TrackSampleInfo
     }
     asyncContext->callbackRef = CommonNapi::CreateReference(env, args[3]);
     asyncContext->deferred = CommonNapi::CreatePromise(env, asyncContext->callbackRef, result);
@@ -481,7 +500,7 @@ napi_value AVMuxerNapi::WriteTrackSample(napi_env env, napi_callback_info info)
         asyncContext->jsAVMuxer->avmuxerImpl_ == nullptr) {
         asyncContext->SignError(MSERR_EXT_NO_MEMORY, "jsAVMuxer or avmuxerImpl_ is nullptr");
     } else {
-        std::shared_ptr<AVMemory> avMem = std::make_shared<AVMemory>(static_cast<uint8_t *>(
+        std::shared_ptr<AVContainerMemory> avMem = std::make_shared<AVContainerMemory>(static_cast<uint8_t *>(
             asyncContext->arrayBuffer_), asyncContext->arrayBufferSize_);
         avMem->SetRange(offset, asyncContext->trackSampleInfo_.size);
         asyncContext->writeSampleFlag_ =

@@ -29,7 +29,9 @@ public:
     ~MediaServer();
 
     // IStandardMediaService override
-    sptr<IRemoteObject> GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId) override;
+    sptr<IRemoteObject> GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId,
+        const sptr<IRemoteObject> &listener) override;
+
 protected:
     // SystemAbility override
     void OnDump() override;

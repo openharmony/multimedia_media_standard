@@ -24,6 +24,7 @@ ohos_shared_library("media_engine_gst") {
   deps = [
     "avcodec:media_engine_gst_avcodec",
     "avmetadatahelper:media_engine_gst_avmeta",
+    "avmuxer:media_engine_gst_avmuxer",
     "common:media_engine_gst_common",
     "factory:media_engine_gst_factory",
     "loader:media_engine_gst_loader",

@@ -31,14 +31,14 @@ public:
 
     using MediaStubFunc = int32_t(MediaServiceStub::*)(MessageParcel &data, MessageParcel &reply);
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
-    int32_t SetListenerObject(const sptr<IRemoteObject> &object) override;
+
+protected:
+    int32_t SetDeathListener(const sptr<IRemoteObject> &object);
 
 private:
     void Init();
-    void ClientDied(pid_t pid);
-    sptr<IRemoteObject> GetSystemAbility(MediaSystemAbility id);
     int32_t GetSystemAbility(MessageParcel &data, MessageParcel &reply);
-    int32_t SetListenerObject(MessageParcel &data, MessageParcel &reply);
+    void ClientDied(pid_t pid);
     int32_t DestroyStubForPid(pid_t pid);
 
     std::map<pid_t, sptr<MediaDeathRecipient>> deathRecipientMap_;

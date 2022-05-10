@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "test_player_seek_fuzzer.h"
+#include "playerseek_fuzzer.h"
 #include <iostream>
 #include "string_ex.h"
 #include "media_errors.h"
@@ -25,15 +25,15 @@ using namespace std;
 using namespace OHOS;
 using namespace OHOS::Media;
 
-TestPlayerSeekFuzz::TestPlayerSeekFuzz()
+PlayerSeekFuzzer::PlayerSeekFuzzer()
 {
 }
 
-TestPlayerSeekFuzz::~TestPlayerSeekFuzz()
+PlayerSeekFuzzer::~PlayerSeekFuzzer()
 {
 }
 
-bool TestPlayerSeekFuzz::FuzzSeek(uint8_t* data, size_t size)
+bool PlayerSeekFuzzer::FuzzSeek(uint8_t* data, size_t size)
 {
     player_ = OHOS::Media::PlayerFactory::CreatePlayer();
     if (player_ == nullptr) {
@@ -84,7 +84,7 @@ bool TestPlayerSeekFuzz::FuzzSeek(uint8_t* data, size_t size)
 
 bool OHOS::Media::FuzzPlayerSeek(uint8_t* data, size_t size)
 {
-    auto player = std::make_unique<TestPlayerSeekFuzz>();
+    auto player = std::make_unique<PlayerSeekFuzzer>();
     if (player == nullptr) {
         cout << "player is null" << endl;
         return 0;

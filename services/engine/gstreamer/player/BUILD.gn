@@ -42,8 +42,8 @@ config("media_engine_gst_player_config") {
     "//foundation/multimedia/audio_standard/frameworks/innerkitsimpl/common/include",
     "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiocommon/include",
     "//foundation/multimedia/audio_standard/interfaces/innerkits/native/audiomanager/include",
-    "//foundation/graphic/standard/frameworks/surface/include",
-    "//foundation/graphic/standard/utils/sync_fence/export",
+    "//foundation/graphic/graphic/frameworks/surface/include",
+    "//foundation/graphic/graphic/utils/sync_fence/export",
     "//drivers/peripheral/audio/interfaces/include",
     "//drivers/framework/include/utils/",
     "//drivers/peripheral/display/interfaces/include",
@@ -71,14 +71,14 @@ ohos_static_library("media_engine_gst_player") {
 
   configs = [
     ":media_engine_gst_player_config",
-    "//foundation/graphic/standard/frameworks/surface:surface_public_config",
+    "//foundation/graphic/graphic/frameworks/surface:surface_public_config",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils_public_config",
   ]
 
   deps = [
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
-    "//foundation/graphic/standard/frameworks/surface:surface",
-    "//foundation/graphic/standard/utils:sync_fence",
+    "//foundation/graphic/graphic/frameworks/surface:surface",
+    "//foundation/graphic/graphic/utils:sync_fence",
     "//foundation/multimedia/audio_standard/interfaces/inner_api/native/audiomanager:audio_client",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",

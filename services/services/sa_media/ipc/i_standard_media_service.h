@@ -35,21 +35,22 @@ public:
         MEDIA_AVMETADATAHELPER = 3,
         MEDIA_CODECLIST = 4,
         MEDIA_AVCODEC = 5,
+        MEDIA_AVMUXER = 6,
     };
 
     /**
-     * Create Player/Recorder Service Ability
+     * Create Player/Recorder/AVCodec/Codeclist/AVMuxer/Split/AVmetadata Service Ability
      *
      * @return Returns remote object sptr, nullptr on failure.
      */
-    virtual sptr<IRemoteObject> GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId) = 0;
-    virtual int32_t SetListenerObject(const sptr<IRemoteObject> &object) = 0;
+    virtual sptr<IRemoteObject> GetSubSystemAbility(IStandardMediaService::MediaSystemAbility subSystemId,
+        const sptr<IRemoteObject> &listener) = 0;
+
     /**
      * IPC code ID
      */
     enum MediaServiceMsg {
         GET_SUBSYSTEM = 0,
-        SET_LISTENER_OBJ,
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"IStandardMediaService");

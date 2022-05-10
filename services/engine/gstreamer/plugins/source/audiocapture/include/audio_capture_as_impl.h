@@ -33,7 +33,7 @@ struct AudioCacheCtrl {
     std::condition_variable pauseCond_;
     std::queue<std::shared_ptr<AudioBuffer>> captureQueue_;
     uint64_t lastTimeStamp_ = 0;
-    uint64_t pausedTime_ = 0; // the timestamp when audio pause called
+    uint64_t pausedTime_ = -1; // the timestamp when audio pause called
     uint64_t resumeTime_ = 0; // the timestamp when audio resume called
     uint32_t pausedCount_ = 0; // the paused count times
     uint64_t persistTime_ = 0;
@@ -45,7 +45,8 @@ public:
     AudioCaptureAsImpl();
     virtual ~AudioCaptureAsImpl();
 
-    int32_t SetCaptureParameter(uint32_t bitrate, uint32_t channels, uint32_t sampleRate) override;
+    int32_t SetCaptureParameter(uint32_t bitrate, uint32_t channels, uint32_t sampleRate, int32_t appUid,
+        uint32_t appTokenId) override;
     int32_t GetCaptureParameter(uint32_t &bitrate, uint32_t &channels, uint32_t &sampleRate) override;
     int32_t GetSegmentInfo(uint64_t &start) override;
     int32_t StartAudioCapture() override;
