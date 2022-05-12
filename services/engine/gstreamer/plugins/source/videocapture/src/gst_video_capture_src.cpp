@@ -383,7 +383,6 @@ static void gst_video_capture_src_pause(GstVideoCaptureSrc *src)
     GstBufferPool *bufferpool = GST_BUFFER_POOL(surfacesrc->pool);
     gst_buffer_pool_set_flushing(bufferpool, TRUE);
     gst_buffer_pool_set_flushing(bufferpool, FALSE);
-
 }
 
 static void gst_video_capture_src_resume(GstVideoCaptureSrc *src)
