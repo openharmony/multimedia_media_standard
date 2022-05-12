@@ -15,6 +15,7 @@
 #include "config.h"
 #include "gst_surface_src.h"
 #include "gst_shmem_src.h"
+#include "gst_video_capture_src.h"
 
 static gboolean plugin_init(GstPlugin *plugin)
 {
@@ -29,6 +30,12 @@ static gboolean plugin_init(GstPlugin *plugin)
     } else {
         GST_WARNING_OBJECT(plugin, "register shmemsrc failed");
     }
+    if (gst_element_register(plugin, "videocapturesrc", GST_RANK_PRIMARY, GST_TYPE_VIDEO_CAPTURE_SRC)) {
+        ret = TRUE;
+    } else {
+        GST_WARNING_OBJECT(plugin, "register videocapturesrc failed");
+    }
+
     return ret;
 }
 

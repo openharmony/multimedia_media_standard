@@ -29,6 +29,7 @@ static gboolean gst_buffer_type_meta_init(GstMeta *meta, gpointer params, GstBuf
     buffer_meta->fenceFd = -1;
     buffer_meta->memFlag = 0;
     buffer_meta->bufferFlag = 0;
+    buffer_meta->pixelFormat = 0;
 
     return TRUE;
 }
@@ -122,7 +123,7 @@ GstBufferTypeMeta *gst_buffer_add_buffer_vir_meta(GstBuffer *buffer, intptr_t bu
 }
 
 GstBufferTypeMeta *gst_buffer_add_buffer_handle_meta(GstBuffer *buffer, intptr_t buf,
-    int32_t fenceFd, uint32_t bufferFlag)
+    GstBuferHandleConfig config)
 {
     g_return_val_if_fail(buffer != NULL, FALSE);
     GstBufferTypeMeta *buffer_meta = NULL;
@@ -132,8 +133,10 @@ GstBufferTypeMeta *gst_buffer_add_buffer_handle_meta(GstBuffer *buffer, intptr_t
 
     buffer_meta->type = BUFFER_TYPE_HANDLE;
     buffer_meta->buf = buf;
-    buffer_meta->fenceFd = fenceFd;
-    buffer_meta->bufferFlag = bufferFlag;
+    buffer_meta->fenceFd = config.fenceFd;
+    buffer_meta->bufferFlag = config.bufferFlag;
+    buffer_meta->pixelFormat = config.pixelFormat;
+    buffer_meta->length = config.length;
     return buffer_meta;
 }
 

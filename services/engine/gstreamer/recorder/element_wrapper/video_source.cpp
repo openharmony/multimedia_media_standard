@@ -24,6 +24,7 @@
 namespace {
 using namespace OHOS::Media;
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "VideoSource"};
+constexpr uint32_t DEFAULT_FRAME_RATE = 25;
 static const std::unordered_map<int32_t, int32_t> SOURCE_TYPE_STREAM_TYPE = {
     { VideoSourceType::VIDEO_SOURCE_SURFACE_ES, VideoStreamType::VIDEO_STREAM_TYPE_ES_AVC },
     { VideoSourceType::VIDEO_SOURCE_SURFACE_YUV, VideoStreamType::VIDEO_STREAM_TYPE_YUV_420 },
@@ -40,12 +41,13 @@ int32_t VideoSource::Init()
         return MSERR_INVALID_VAL;
     }
 
-    gstElem_ = gst_element_factory_make("surfacevideosrc", name_.c_str());
+    gstElem_ = gst_element_factory_make("videocapturesrc", name_.c_str());
     if (gstElem_ == nullptr) {
         MEDIA_LOGE("Create videosource gst element failed! sourceId: %{public}d", desc_.handle_);
         return MSERR_INVALID_OPERATION;
     }
 
+    streamType_ = iter->second;
     g_object_set(gstElem_, "stream-type", iter->second, nullptr);
     return MSERR_OK;
 }
@@ -64,6 +66,30 @@ int32_t VideoSource::Configure(const RecorderParam &recParam)
     return MSERR_OK;
 }
 
+void VideoSource::SetCaps(int32_t width, int32_t height)
+{
+    GstCaps *caps = nullptr;
+    if (streamType_ == VideoStreamType::VIDEO_STREAM_TYPE_ES_AVC) {
+        caps = = gst_caps_new_simple("video/x-h264",
+            "width", G_TYPE_INT, width,
+            "height", G_TYPE_INT, height,
+            "framerate", GST_TYPE_FRACTION, DEFAULT_FRAME_RATE, 1,
+            "alignment", G_TYPE_STRING, "nal",
+            "stream-format", G_TYPE_STRING, "byte-stream",
+            nullptr);
+    } else {
+        caps = gst_caps_new_simple("video/x-raw",
+            "format", G_TYPE_STRING, "NV21",
+            "width", G_TYPE_INT, width,
+            "height", G_TYPE_INT, height,
+            "framerate", GST_TYPE_FRACTION, DEFAULT_FRAME_RATE, 1,
+            nullptr);
+    }
+
+    g_object_set(gstElem_, "caps", caps, nullptr);
+    gst_caps_unref(caps);
+}
+
 int32_t VideoSource::ConfigureVideoRectangle(const RecorderParam &recParam)
 {
     if (recParam.type != RecorderPublicParamType::VID_RECTANGLE) {
@@ -79,6 +105,9 @@ int32_t VideoSource::ConfigureVideoRectangle(const RecorderParam &recParam)
     MEDIA_LOGI("configure video source width height: %{public}d * %{public}d", param.width, param.height);
     g_object_set(gstElem_, "surface-width", static_cast<uint32_t>(param.width),
                  "surface-height", static_cast<uint32_t>(param.height), nullptr);
+
+    SetCaps(param.width, param.height);
+
     MarkParameter(param.type);
     width_ = param.width;
     height_ = param.height;
