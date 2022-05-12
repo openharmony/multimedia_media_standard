@@ -66,6 +66,11 @@ enum AVMetadataCode : int32_t {
      */
     AV_KEY_AUTHOR = 3,
     /**
+     * The metadata key to retrieve the information about the created time of
+     * the media source.
+     */
+    AV_KEY_DATE_TIME = 4,
+    /**
      * The metadata key to retrieve the information about the composer of
      * the media source.
      */
