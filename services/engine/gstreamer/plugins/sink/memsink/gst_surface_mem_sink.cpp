@@ -31,6 +31,9 @@ struct _GstSurfaceMemSinkPrivate {
 enum {
     PROP_0,
     PROP_SURFACE,
+    PROP_SURFACE_POOL,
+    PROP_CACHE_BUFFERS_NUM,
+    PROP_PERFORMANCE_MODE,
 };
 
 static GstStaticPadTemplate g_sinktemplate = GST_STATIC_PAD_TEMPLATE("sink",
@@ -83,6 +86,20 @@ static void gst_surface_mem_sink_class_init(GstSurfaceMemSinkClass *klass)
             "Surface for rendering output",
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
+    g_object_class_install_property(gobject_class, PROP_SURFACE_POOL,
+        g_param_spec_pointer("surface-pool", "Surface Pool",
+            "Surface pool for rendering output buffers",
+            (GParamFlags)(G_PARAM_READABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_CACHE_BUFFERS_NUM,
+        g_param_spec_uint("cache-buffers-num", "Cache Buffers Num",
+            "The cache buffers num in pool",
+            0, G_MAXUINT, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_PERFORMANCE_MODE,
+        g_param_spec_boolean("performance-mode", "performance mode", "performance mode",
+            FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
     mem_sink_class->do_propose_allocation = gst_surface_mem_sink_do_propose_allocation;
     mem_sink_class->do_app_render = gst_surface_mem_sink_do_app_render;
     base_sink_class->event = gst_surface_mem_sink_event;
@@ -101,8 +118,10 @@ static void gst_surface_mem_sink_init(GstSurfaceMemSink *sink)
     sink->priv->pool = GST_PRODUCER_SURFACE_POOL_CAST(gst_producer_surface_pool_new());
     sink->prerollBuffer = nullptr;
     sink->firstRenderFrame = TRUE;
+    sink->preInitPool = FALSE;
     sink->dump.enable_dump = FALSE;
     sink->dump.dump_file = nullptr;
+    sink->performanceMode = FALSE;
     GstMemSink *memSink = GST_MEM_SINK_CAST(sink);
     memSink->max_pool_capacity = SURFACE_MAX_QUEUE_SIZE;
     gst_surface_mem_sink_dump_from_sys_param(sink);
@@ -150,9 +169,18 @@ static void gst_surface_mem_sink_set_property(GObject *object, guint propId, con
             OHOS::sptr<OHOS::Surface> surface_ref = reinterpret_cast<OHOS::Surface *>(surface);
             GST_OBJECT_LOCK(surface_sink);
             priv->surface = surface_ref;
+            gst_producer_surface_pool_set_surface(priv->pool, surface_ref);
             GST_OBJECT_UNLOCK(surface_sink);
             break;
         }
+        case PROP_CACHE_BUFFERS_NUM: {
+            guint cache_buffer_num = g_value_get_uint(value);
+            g_object_set(G_OBJECT(priv->pool), "cache-buffers-num", cache_buffer_num, nullptr);
+            break;
+        }
+        case PROP_PERFORMANCE_MODE:
+            surface_sink->performanceMode = g_value_get_boolean(value);
+            break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID(object, propId, pspec);
             break;
@@ -173,6 +201,20 @@ static void gst_surface_mem_sink_get_property(GObject *object, guint propId, GVa
             g_return_if_fail(priv->surface != nullptr);
             g_value_set_pointer(value, priv->surface.GetRefPtr());
             GST_OBJECT_UNLOCK(surface_sink);
+            break;
+        }
+        case PROP_SURFACE_POOL: {
+            GST_OBJECT_LOCK(surface_sink);
+            ON_SCOPE_EXIT(0) { GST_OBJECT_UNLOCK(surface_sink); };
+            g_value_set_pointer(value, priv->pool);
+            GstSurfaceAllocator *allocator = gst_surface_allocator_new();
+            g_return_if_fail(allocator != nullptr);
+            ON_SCOPE_EXIT(1) { gst_object_unref(allocator); };
+            GstStructure *config = gst_buffer_pool_get_config(GST_BUFFER_POOL(priv->pool));
+            g_return_if_fail(config != nullptr);
+            gst_buffer_pool_config_set_allocator(config, GST_ALLOCATOR_CAST(allocator), nullptr);
+            (void)gst_buffer_pool_set_config(GST_BUFFER_POOL(priv->pool), config);
+            surface_sink->preInitPool = TRUE;
             break;
         }
         default:
@@ -248,6 +290,11 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
         GST_ERROR_OBJECT(surface_sink, "no need buffer pool, unexpected!");
         return FALSE;
     }
+    if (surface_sink->performanceMode && surface_sink->preInitPool) {
+        GST_INFO_OBJECT(surface_sink, "pool pre init");
+        surface_sink->preInitPool = FALSE;
+        return TRUE;
+    }
 
     GST_OBJECT_LOCK(surface_sink);
     ON_SCOPE_EXIT(0) { GST_OBJECT_UNLOCK(surface_sink); };
@@ -265,7 +312,6 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     GstSurfacePool *pool = surface_sink->priv->pool;
     g_return_val_if_fail(pool != nullptr, FALSE);
     g_return_val_if_fail(gst_buffer_pool_set_active(GST_BUFFER_POOL(pool), FALSE), FALSE);
-    (void)gst_producer_surface_pool_set_surface(pool, surface_sink->priv->surface);
 
     GstVideoInfo info;
     GST_DEBUG("begin gst_video_info_from_caps");
@@ -275,6 +321,7 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
 
     GstSurfaceAllocator *allocator = gst_surface_allocator_new();
     g_return_val_if_fail(allocator != nullptr, FALSE);
+    ON_SCOPE_EXIT(1) { gst_object_unref(allocator); };
     GstStructure *params = gst_structure_new("mem", "memtype", G_TYPE_STRING, "surface", nullptr);
     gst_query_add_allocation_param(query, GST_ALLOCATOR_CAST(allocator), nullptr);
     gst_query_add_allocation_meta(query, GST_VIDEO_META_API_TYPE, nullptr);
@@ -282,17 +329,13 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     gst_structure_free(params);
 
     GstStructure *config = gst_buffer_pool_get_config(GST_BUFFER_POOL_CAST(pool));
-    if (config == nullptr) {
-        gst_object_unref(allocator);
-        return FALSE;
-    }
+    g_return_val_if_fail(config != nullptr, FALSE);
 
     gst_buffer_pool_config_set_params(config, caps, info.size, minBuffers, maxBuffers);
     gst_buffer_pool_config_set_allocator(config, GST_ALLOCATOR_CAST(allocator), nullptr);
     // set config will take ownership of the config, we dont need to free it.
     ret = gst_buffer_pool_set_config(GST_BUFFER_POOL_CAST(pool), config);
 
-    gst_object_unref(allocator);
     return ret;
 }
 

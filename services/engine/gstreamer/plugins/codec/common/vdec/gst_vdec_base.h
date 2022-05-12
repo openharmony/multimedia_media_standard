@@ -108,6 +108,9 @@ struct _GstVdecBase {
     gint real_stride;
     gint real_stride_height;
     DisplayRect rect;
+    gboolean pre_init_pool;
+    gboolean performance_mode;
+    GstCaps *sink_caps;
 };
 
 struct _GstVdecBaseClass {
