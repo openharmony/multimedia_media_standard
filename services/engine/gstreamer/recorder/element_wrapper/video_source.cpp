@@ -70,7 +70,7 @@ void VideoSource::SetCaps(int32_t width, int32_t height)
 {
     GstCaps *caps = nullptr;
     if (streamType_ == VideoStreamType::VIDEO_STREAM_TYPE_ES_AVC) {
-        caps = = gst_caps_new_simple("video/x-h264",
+        caps = gst_caps_new_simple("video/x-h264",
             "width", G_TYPE_INT, width,
             "height", G_TYPE_INT, height,
             "framerate", GST_TYPE_FRACTION, DEFAULT_FRAME_RATE, 1,
