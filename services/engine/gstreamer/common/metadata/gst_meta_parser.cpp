@@ -25,6 +25,7 @@
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "GstMetaParser"};
     static GType GST_SAMPLE_TYPE = gst_sample_get_type();
+    static GType GST_DATE_TIME_TYPE = gst_date_time_get_type();
     constexpr size_t FORMATTED_TIME_NUM_SIZE = 2;
 }
 
@@ -48,7 +49,7 @@ static const std::unordered_map<std::string_view, MetaParseItem> GST_TAG_PARSE_I
     { GST_TAG_ALBUM_ARTIST, { INNER_META_KEY_ALBUM_ARTIST, G_TYPE_STRING } },
     { GST_TAG_ARTIST, { INNER_META_KEY_ARTIST, G_TYPE_STRING } },
     { GST_TAG_COMPOSER, { INNER_META_KEY_COMPOSER, G_TYPE_STRING } },
-    { GST_TAG_DATE_TIME, { INNER_META_KEY_DATE_TIME, G_TYPE_STRING, DateTimeMetaSetter } },
+    { GST_TAG_DATE_TIME, { INNER_META_KEY_DATE_TIME, GST_DATE_TIME_TYPE, DateTimeMetaSetter } },
     { GST_TAG_GENRE, { INNER_META_KEY_GENRE, G_TYPE_STRING } },
     { GST_TAG_TITLE, { INNER_META_KEY_TITLE, G_TYPE_STRING } },
     { GST_TAG_AUTHOR, { INNER_META_KEY_AUTHOR, G_TYPE_STRING } },
@@ -89,7 +90,7 @@ static const std::unordered_map<std::string_view, std::string_view> FILE_MIME_TY
 
 static void ParseGValue(const GValue &value, const MetaParseItem &item, Format &metadata)
 {
-    if (G_VALUE_TYPE(&value) != item.valGType && item.toKey.data() != GST_TAG_DATE_TIME) {
+    if (G_VALUE_TYPE(&value) != item.valGType) {
         MEDIA_LOGE("value type for key %{public}s is expected, curr is %{public}s, but expect %{public}s",
             item.toKey.data(), g_type_name(G_VALUE_TYPE(&value)), g_type_name(item.valGType));
         return;
