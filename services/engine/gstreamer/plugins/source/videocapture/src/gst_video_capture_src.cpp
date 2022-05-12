@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include "config.h"
 #include "gst_video_capture_src.h"
 #include <gst/gst.h>
 #include "gst_video_capture_pool.h"
@@ -124,8 +123,6 @@ static void gst_video_capture_src_class_init(GstVideoCaptureSrcClass *klass)
 static void gst_video_capture_src_init(GstVideoCaptureSrc *videocapturesrc)
 {
     g_return_if_fail(videocapturesrc != nullptr);
-    gst_base_src_set_format(GST_BASE_SRC(videocapturesrc), GST_FORMAT_TIME);
-    gst_base_src_set_live(GST_BASE_SRC(videocapturesrc), TRUE);
 
     // private param
     videocapturesrc->video_frame_rate = DEFAULT_FRAME_RATE;
@@ -141,7 +138,7 @@ static void gst_video_capture_src_init(GstVideoCaptureSrc *videocapturesrc)
     videocapturesrc->resume_time = 0;
     videocapturesrc->paused_count = 0;
     videocapturesrc->persist_time = 0;
-    videocapturesrc->total_pauseTime = 0;
+    videocapturesrc->total_pause_time = 0;
 }
 
 static void gst_video_capture_src_finalize(GObject *object)
@@ -327,13 +324,13 @@ static void gst_video_caputre_deal_with_pts(GstVideoCaptureSrc *src, GstBuffer *
         src->persist_time = fabs(src->resume_time - src->paused_time) - src->min_interval;
         GST_INFO_OBJECT(src, "video resume timestamp % " G_GINT64_FORMAT "", src->resume_time);
         src->paused_time = -1; // reset pause time
-        src->total_pauseTime += src->persist_time;
+        src->total_pause_time += src->persist_time;
         GST_INFO_OBJECT(src, "video has %d times pause, total PauseTime: % " G_GINT64_FORMAT "",
-            src->paused_count, src->total_pauseTime);
+            src->paused_count, src->total_pause_time);
     }
 
     src->last_timestamp = timestamp; // updata last_timestamp
-    GST_BUFFER_PTS (buf) = timestamp - src->total_pauseTime; // running state timestamp to encoder is upwith pause
+    GST_BUFFER_PTS (buf) = timestamp - src->total_pause_time; // running state timestamp to encoder is upwith pause
 }
 
 static GstFlowReturn gst_video_capture_src_fill(GstBaseSrc *src, guint64 offset, guint size, GstBuffer *buf)
@@ -343,6 +340,7 @@ static GstFlowReturn gst_video_capture_src_fill(GstBaseSrc *src, guint64 offset,
     (void)offset;
     (void)size;
     GstBufferTypeMeta *meta = gst_buffer_get_buffer_type_meta(buf);
+    g_return_val_if_fail(meta != nullptr, GST_FLOW_ERROR);
     if (meta != nullptr && (meta->bufferFlag & BUFFER_FLAG_EOS)) {
         return GST_FLOW_EOS;
     }
@@ -389,6 +387,7 @@ static void gst_video_capture_src_resume(GstVideoCaptureSrc *src)
 {
     g_return_if_fail(src != nullptr);
     GstSurfaceSrc *surfacesrc = GST_SURFACE_SRC(src);
+    g_return_if_fail(surfacesrc->pool != nullptr);
 
     g_object_set(surfacesrc->pool, "suspend", FALSE, nullptr);
 
