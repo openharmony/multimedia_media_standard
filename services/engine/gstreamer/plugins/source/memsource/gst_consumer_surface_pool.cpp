@@ -187,6 +187,19 @@ static void gst_consumer_surface_pool_flush_start(GstBufferPool *pool)
         gst_buffer_unref(priv->cache_buffer);
         priv->cache_buffer = nullptr;
     }
+
+    // clear cache buffer
+    while (priv->available_buf_count > 0) {
+        sptr<SurfaceBuffer> buffer = nullptr;
+        gint32 fencefd = -1;
+        gint64 timestamp = 0;
+        Rect damage = {0, 0, 0, 0};
+        if (priv->consumer_surface->AcquireBuffer(buffer, fencefd, timestamp, damage) == SURFACE_ERROR_OK) {
+            (void)priv->consumer_surface->ReleaseBuffer(buffer, fencefd);
+        }
+        priv->available_buf_count--;
+    }
+
     surfacepool->priv->flushing = TRUE;
     g_cond_signal(&priv->buffer_available_con);
     g_mutex_unlock(&priv->pool_lock);
@@ -265,6 +278,7 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
             } else if (g_cond_wait_until(&priv->buffer_available_con, &priv->pool_lock, priv->repeat_interval)) {
                 GST_INFO_OBJECT(surfacepool, "Repeat previous frame after waiting given microseconds");
                 repeat = TRUE;
+                break;
             }
         }
         if (priv->flushing || !priv->start) {
@@ -287,7 +301,9 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
             surfacemem = reinterpret_cast<GstConsumerSurfaceMemory*>(mem);
             add_buffer_info(surfacepool, surfacemem, *buffer);
         }
-        priv->available_buf_count--;
+        if (!repeat) {
+            priv->available_buf_count--;
+        }
 
         // check whether needs to drop frame to ensure the maximum frame rate
         if (surfacemem != nullptr && priv->max_frame_rate > 0 && !priv->is_first_buffer &&
@@ -371,7 +387,8 @@ static void add_buffer_info(GstConsumerSurfacePool *pool, GstConsumerSurfaceMemo
     if (mem->is_eos_frame) {
         bufferFlag = BUFFER_FLAG_EOS;
     }
-    gst_buffer_add_buffer_handle_meta(buffer, mem->buffer_handle, mem->fencefd, bufferFlag);
+    GstBuferHandleConfig config = { mem->fencefd, bufferFlag, mem->data_size, mem->pixel_format };
+    gst_buffer_add_buffer_handle_meta(buffer, mem->buffer_handle, config);
 
     if (mem->timestamp < 0) {
         GST_WARNING_OBJECT(pool, "Invalid timestamp: < 0");

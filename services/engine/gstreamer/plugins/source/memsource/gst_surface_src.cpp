@@ -59,7 +59,8 @@ static void gst_surface_src_get_property(GObject *object, guint prop_id, GValue 
 static void gst_surface_src_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec);
 static GstStateChangeReturn gst_surface_src_change_state(GstElement *element, GstStateChange transition);
 static gboolean gst_surface_src_create_surface(GstSurfaceSrc *src);
-static gboolean gst_surface_src_create_pool(GstSurfaceSrc *src);
+static GstBufferPool *gst_surface_src_create_pool();
+static gboolean gst_surface_src_init_pool(GstSurfaceSrc *src);
 static void gst_surface_src_destroy_surface(GstSurfaceSrc *src);
 static void gst_surface_src_destroy_pool(GstSurfaceSrc *src);
 static gboolean gst_surface_src_decide_allocation(GstBaseSrc *basesrc, GstQuery *query);
@@ -73,6 +74,7 @@ static void gst_surface_src_class_init(GstSurfaceSrcClass *klass)
     GObjectClass *gobject_class = reinterpret_cast<GObjectClass*>(klass);
     GstElementClass *gstelement_class = reinterpret_cast<GstElementClass*>(klass);
     GstBaseSrcClass *gstbasesrc_class = reinterpret_cast<GstBaseSrcClass*>(klass);
+    GstMemSrcClass *gstmemsrc_class = reinterpret_cast<GstMemSrcClass*>(klass);
     GST_DEBUG_CATEGORY_INIT(gst_surface_src_debug_category, "surfacepoolsrc", 0, "surface pool src base class");
     gobject_class->get_property = gst_surface_src_get_property;
     gobject_class->set_property = gst_surface_src_set_property;
@@ -102,6 +104,7 @@ static void gst_surface_src_class_init(GstSurfaceSrcClass *klass)
     gstelement_class->send_event = gst_surface_src_send_event;
     gstbasesrc_class->fill = gst_surface_src_fill;
     gstbasesrc_class->decide_allocation = gst_surface_src_decide_allocation;
+    gstmemsrc_class->create_pool = gst_surface_src_create_pool;
     gst_element_class_set_static_metadata(gstelement_class,
         "surface mem source", "Source/Surface/Pool",
         "Retrieve frame from surface buffer queue with raw data", "OpenHarmony");
@@ -184,7 +187,7 @@ static GstStateChangeReturn gst_surface_src_change_state(GstElement *element, Gs
     switch (transition) {
         case GST_STATE_CHANGE_NULL_TO_READY:
             g_return_val_if_fail(gst_surface_src_create_surface(surfacesrc) == TRUE, GST_STATE_CHANGE_FAILURE);
-            g_return_val_if_fail(gst_surface_src_create_pool(surfacesrc) == TRUE, GST_STATE_CHANGE_FAILURE);
+            g_return_val_if_fail(gst_surface_src_init_pool(surfacesrc) == TRUE, GST_STATE_CHANGE_FAILURE);
             break;
         case GST_STATE_CHANGE_READY_TO_PAUSED:
             gst_surface_src_init_surface(surfacesrc);
@@ -255,11 +258,23 @@ static gboolean gst_surface_src_send_event(GstElement *element, GstEvent *event)
     return GST_ELEMENT_CLASS(parent_class)->send_event(element, event);
 }
 
-static gboolean gst_surface_src_create_pool(GstSurfaceSrc *surfacesrc)
+static GstBufferPool *gst_surface_src_create_pool()
 {
+    return gst_consumer_surface_pool_new();
+}
+
+static gboolean gst_surface_src_init_pool(GstSurfaceSrc *surfacesrc)
+{
+    GstMemSrcClass *memsrcclass = GST_MEM_SRC_GET_CLASS(surfacesrc);
+    g_return_val_if_fail(memsrcclass != nullptr, FALSE);
     GstAllocationParams params;
+    GstBufferPool *pool = nullptr;
     gst_allocation_params_init(&params);
-    GstBufferPool *pool = gst_consumer_surface_pool_new();
+
+    if (memsrcclass->create_pool) {
+        pool = memsrcclass->create_pool();
+    }
+
     g_return_val_if_fail(pool != nullptr, FALSE);
     ON_SCOPE_EXIT(0) { gst_object_unref(pool); };
     GstAllocator *allocator = gst_consumer_surface_allocator_new();
@@ -338,7 +353,9 @@ static gboolean gst_surface_src_get_pool(GstSurfaceSrc *surfacesrc, GstQuery *qu
         GstVideoInfo info;
         gst_video_info_init(&info);
         gst_video_info_from_caps(&info, outcaps);
-        memsrc->buffer_size = info.size;
+        if (info.size != 0) {
+            memsrc->buffer_size = info.size;
+        }
     }
     GST_INFO_OBJECT(surfacesrc, "update buffer num %u", memsrc->buffer_num);
     SurfaceError ret = surfacesrc->consumerSurface->SetQueueSize(memsrc->buffer_num);
@@ -353,7 +370,13 @@ static gboolean gst_surface_src_get_pool(GstSurfaceSrc *surfacesrc, GstQuery *qu
     if (gst_buffer_pool_set_config(surfacesrc->pool, config) != TRUE) {
         GST_WARNING_OBJECT(surfacesrc, "set config failed");
     }
-    gst_query_set_nth_allocation_pool(query, 0, surfacesrc->pool, memsrc->buffer_num, min_buf, max_buf);
+
+    if (gst_query_get_n_allocation_pools(query) > 0) {
+        gst_query_set_nth_allocation_pool(query, 0, surfacesrc->pool, memsrc->buffer_num, min_buf, max_buf);
+    } else {
+        gst_query_add_allocation_pool(query, surfacesrc->pool, memsrc->buffer_num, min_buf, max_buf);
+    }
+
     GST_DEBUG_OBJECT(surfacesrc, "set surface pool success");
     return TRUE;
 }

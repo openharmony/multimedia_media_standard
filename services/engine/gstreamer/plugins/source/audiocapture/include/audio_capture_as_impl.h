@@ -74,6 +74,7 @@ private:
     std::unique_ptr<std::thread> captureLoop_;
     std::mutex pauseMutex_;
     std::atomic<int32_t> curState_ = RECORDER_INITIALIZED;
+    uint64_t lastInputTime_ = 0;
 };
 } // namespace Media
 } // namespace OHOS

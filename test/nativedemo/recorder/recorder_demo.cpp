@@ -143,11 +143,11 @@ int32_t RecorderDemo::GetStubFile()
     return MSERR_OK;
 }
 
-int64_t RecorderDemo::GetPts()
+uint64_t RecorderDemo::GetPts()
 {
     struct timespec timestamp = {0, 0};
     clock_gettime(CLOCK_MONOTONIC, &timestamp);
-    int64_t time = timestamp.tv_sec * SEC_TO_NS + timestamp.tv_nsec;
+    uint64_t time = (uint64_t)timestamp.tv_sec * SEC_TO_NS + (uint64_t)timestamp.tv_nsec;
     return time;
 }
 
