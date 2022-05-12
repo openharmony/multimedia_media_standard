@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include "config.h"
 #include "gst_video_capture_pool.h"
 #include <gst/gst.h>
 #include "media_errors.h"
