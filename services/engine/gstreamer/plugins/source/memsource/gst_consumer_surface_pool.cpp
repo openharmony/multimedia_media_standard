@@ -263,9 +263,7 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
     g_return_val_if_fail(surfacepool != nullptr && surfacepool->priv != nullptr, GST_FLOW_ERROR);
     GstBufferPoolClass *pclass = GST_BUFFER_POOL_GET_CLASS(pool);
     g_return_val_if_fail(pclass != nullptr, GST_FLOW_ERROR);
-    if (!pclass->alloc_buffer) {
-        return GST_FLOW_NOT_SUPPORTED;
-    }
+    g_return_val_if_fail(pclass->alloc_buffer != nullptr, GST_FLOW_NOT_SUPPORTED);
     auto priv = surfacepool->priv;
     g_mutex_lock(&priv->pool_lock);
     ON_SCOPE_EXIT(0) { g_mutex_unlock(&priv->pool_lock); };
@@ -276,7 +274,6 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
             if (priv->repeat_interval == 0 || priv->cache_buffer == nullptr) {
                 g_cond_wait(&priv->buffer_available_con, &priv->pool_lock);
             } else if (g_cond_wait_until(&priv->buffer_available_con, &priv->pool_lock, priv->repeat_interval)) {
-                GST_INFO_OBJECT(surfacepool, "Repeat previous frame after waiting given microseconds");
                 repeat = TRUE;
                 break;
             }
