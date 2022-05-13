@@ -814,7 +814,7 @@ static gboolean gst_venc_base_set_format(GstVideoEncoder *encoder, GstVideoCodec
 
     is_format_change = is_format_change || self->width != info->width;
     is_format_change = is_format_change || self->height != GST_VIDEO_INFO_FIELD_HEIGHT(info);
-    is_format_change = is_format_change || (self->frame_rate == 0 && info->fps_n != 0);
+    is_format_change = is_format_change || (self->frame_rate != info->fps_n && info->fps_n != 0);
 
     if (is_format_change) {
         self->width = info->width;

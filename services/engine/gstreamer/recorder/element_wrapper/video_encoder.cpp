@@ -79,6 +79,7 @@ int32_t VideoEncoder::CreateH264Element()
         return MSERR_INVALID_OPERATION;
     }
     g_object_set(gstElem_, "i-frame-interval", DEFAULT_I_FRAME_INTERVAL, nullptr);
+    g_object_set(gstElem_, "enable_surface", TRUE, nullptr);
 
     MEDIA_LOGI("use %{public}s", encorderName.c_str());
     return MSERR_OK;
