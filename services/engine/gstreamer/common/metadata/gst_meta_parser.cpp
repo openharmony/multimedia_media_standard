@@ -16,6 +16,8 @@
 #include "gst_meta_parser.h"
 #include <functional>
 #include <vector>
+#include <sstream>
+#include <iomanip>
 #include "av_common.h"
 #include "media_errors.h"
 #include "media_log.h"
@@ -338,40 +340,37 @@ static bool DateTimeMetaSetter(const GValue &gval, const std::string_view &key, 
     GstDateTime *dateTime = (GstDateTime *)g_value_dup_boxed(&gval);
     CHECK_AND_RETURN_RET(dateTime != nullptr, false);
 
-    std::string_view str;
-    if (gst_date_time_has_day(dateTime)) {
+    std::stringstream time;
+    if (gst_date_time_has_year(dateTime)) {
         std::string year = std::to_string(gst_date_time_get_year(dateTime));
-        std::string month = std::to_string(gst_date_time_get_month(dateTime));
-        std::string day = std::to_string(gst_date_time_get_day(dateTime));
-        year = year.size() < FORMATTED_TIME_NUM_SIZE ? std::string("0") + year : year;
-        month = month.size() < FORMATTED_TIME_NUM_SIZE ? std::string("0") + month : month;
-        day = day.size() < FORMATTED_TIME_NUM_SIZE ? std::string("0") + day : day;
-
-        std::string time = year + std::string("-") + month + std::string("-") + day;
-
-        if (gst_date_time_has_second(dateTime)) {
-            std::string hour = std::to_string(gst_date_time_get_hour(dateTime));
-            std::string minute = std::to_string(gst_date_time_get_minute(dateTime));
-            std::string second = std::to_string(gst_date_time_get_second(dateTime));
-            hour = hour.size() < FORMATTED_TIME_NUM_SIZE ? std::string("0") + hour : hour;
-            minute = minute.size() < FORMATTED_TIME_NUM_SIZE ? std::string("0") + minute : minute;
-            second = second.size() < FORMATTED_TIME_NUM_SIZE ? std::string("0") + second : second;
-
-            time += std::string(" ") + hour + std::string(":") + minute + std::string(":") + second;
-        }
-        str = time;
-    } else if (gst_date_time_has_year(dateTime)) {
-        std::string year = std::to_string(gst_date_time_get_year(dateTime));
-        year = year.size() < FORMATTED_TIME_NUM_SIZE ? std::string("0") + year : year;
-        std::string time = year;
-
-        if (gst_date_time_has_month(dateTime)) {
-            std::string month = std::to_string(gst_date_time_get_month(dateTime));
-            month = month.size() < FORMATTED_TIME_NUM_SIZE ? std::string("0") + month : month;
-            time += std::string("-") + month;
-        }
-        str = time;
+        time << std::setfill('0') << std::setw(FORMATTED_TIME_NUM_SIZE) << year;
     }
+
+    if (gst_date_time_has_month(dateTime)) {
+        std::string month = std::to_string(gst_date_time_get_month(dateTime));
+        time << "-" << std::setfill('0') << std::setw(FORMATTED_TIME_NUM_SIZE) << month;
+    }
+
+    if (gst_date_time_get_day(dateTime)) {
+        std::string day = std::to_string(gst_date_time_get_day(dateTime));
+        time << "-" << std::setfill('0') << std::setw(FORMATTED_TIME_NUM_SIZE) << day;
+    }
+
+    if (gst_date_time_has_time(dateTime)) {
+        std::string hour = std::to_string(gst_date_time_get_hour(dateTime));
+        std::string minute = std::to_string(gst_date_time_get_minute(dateTime));
+        time << " " << std::setfill('0') << std::setw(FORMATTED_TIME_NUM_SIZE) << hour << ":" <<
+            std::setfill('0') << std::setw(FORMATTED_TIME_NUM_SIZE) << minute;
+    }
+
+    if (gst_date_time_has_second(dateTime)) {
+        std::string second = std::to_string(gst_date_time_get_second(dateTime));
+        time << ":" << std::setfill('0') << std::setw(FORMATTED_TIME_NUM_SIZE) << second;
+    }
+    std::string_view str = time.str();
+
+    gst_date_time_unref(dateTime);
+    dateTime = nullptr;
 
     bool ret = metadata.PutStringValue(key, str);
     MEDIA_LOGD("Key: %{public}s, value: %{public}s", key.data(), str.data());
