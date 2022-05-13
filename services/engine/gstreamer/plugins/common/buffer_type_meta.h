@@ -28,7 +28,7 @@ extern "C" {
 #define GST_BUFFER_TYPE_META_INFO (gst_buffer_type_meta_get_info())
 typedef struct _GstBufferTypeMeta GstBufferTypeMeta;
 typedef struct _GstBufferFdConfig GstBufferFdConfig;
-typedef struct _GstBuferHandleConfig GstBuferHandleConfig;
+typedef struct _GstBufferHandleConfig GstBufferHandleConfig;
 
 typedef enum {
     FLAGS_READ_WRITE = 0x1,
@@ -66,7 +66,7 @@ struct _GstBufferFdConfig {
     uint32_t bufferFlag;
 };
 
-struct _GstBuferHandleConfig {
+struct _GstBufferHandleConfig {
     int32_t fenceFd;
     uint32_t bufferFlag;
     uint32_t length;
@@ -83,7 +83,7 @@ GST_API_EXPORT GstBufferTypeMeta *gst_buffer_add_buffer_vir_meta(GstBuffer *buff
     intptr_t buf, uint32_t bufferFlag);
 
 GST_API_EXPORT GstBufferTypeMeta *gst_buffer_add_buffer_handle_meta(GstBuffer *buffer, intptr_t buf,
-    GstBuferHandleConfig config);
+    GstBufferHandleConfig config);
 
 GST_API_EXPORT GstBufferTypeMeta *gst_buffer_add_buffer_fd_meta(GstBuffer *buffer, intptr_t buf,
     GstBufferFdConfig config);
