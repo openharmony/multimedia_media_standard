@@ -510,7 +510,7 @@ static GstFlowReturn gst_producer_surface_pool_alloc_buffer(GstBufferPool *pool,
     auto buffer_handle = buf->GetBufferHandle();
     g_return_val_if_fail(buffer_handle != nullptr, GST_FLOW_ERROR);
     int32_t stride = buffer_handle->stride;
-    GstBuferHandleConfig config = { memory->fence, 0, 0, 0 };
+    GstBufferHandleConfig config = { memory->fence, 0, 0, 0 };
     gst_buffer_add_buffer_handle_meta(*buffer, reinterpret_cast<intptr_t>(buffer_handle), config);
 
     GstVideoInfo *info = &spool->info;

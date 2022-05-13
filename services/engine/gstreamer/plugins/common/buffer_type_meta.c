@@ -123,7 +123,7 @@ GstBufferTypeMeta *gst_buffer_add_buffer_vir_meta(GstBuffer *buffer, intptr_t bu
 }
 
 GstBufferTypeMeta *gst_buffer_add_buffer_handle_meta(GstBuffer *buffer, intptr_t buf,
-    GstBuferHandleConfig config)
+    GstBufferHandleConfig config)
 {
     g_return_val_if_fail(buffer != NULL, FALSE);
     GstBufferTypeMeta *buffer_meta = NULL;

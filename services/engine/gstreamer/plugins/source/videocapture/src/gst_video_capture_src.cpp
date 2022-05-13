@@ -129,6 +129,7 @@ static void gst_video_capture_src_init(GstVideoCaptureSrc *videocapturesrc)
     videocapturesrc->src_caps = nullptr;
     videocapturesrc->is_first_buffer = true;
     videocapturesrc->video_width = 0;
+
     videocapturesrc->video_height = 0;
     videocapturesrc->cur_state = RECORDER_INITIALIZED;
     videocapturesrc->min_interval = 0;
