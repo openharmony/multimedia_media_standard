@@ -91,6 +91,13 @@ int32_t MediaServerManager::Dump(int32_t fd, const std::vector<std::u16string> &
         return OHOS::INVALID_OPERATION;
     }
 
+    dumpString += "------------------AVMetaServer------------------\n";
+    if (WriteInfo(fd, dumpString, dumperTbl_[StubType::AVMETADATAHELPER],
+        argSets.find(u"avmetadata") != argSets.end()) != OHOS::NO_ERROR) {
+        MEDIA_LOGW("Failed to write AVMetaServer information");
+        return OHOS::INVALID_OPERATION;
+    }
+
     return OHOS::NO_ERROR;
 }
 
@@ -183,9 +190,6 @@ sptr<IRemoteObject> MediaServerManager::CreateRecorderStubObject()
         recorderStubMap_[object] = pid;
 
         Dumper dumper;
-        dumper.entry_ = [recorder = recorderStub](int32_t fd) -> int32_t {
-            return recorder->DumpInfo(fd);
-        };
         dumper.pid_ = pid;
         dumper.uid_ = IPCSkeleton::GetCallingUid();
         dumper.remoteObject_ = object;
@@ -213,7 +217,18 @@ sptr<IRemoteObject> MediaServerManager::CreateAVMetadataHelperStubObject()
     if (object != nullptr) {
         pid_t pid = IPCSkeleton::GetCallingPid();
         avMetadataHelperStubMap_[object] = pid;
-        MEDIA_LOGD("The number of avmetadatahelper services(%{public}zu).", avMetadataHelperStubMap_.size());
+
+        Dumper dumper;
+        dumper.entry_ = [avMeta = avMetadataHelperStub](int32_t fd) -> int32_t {
+            return avMeta->DumpInfo(fd);
+        };
+        dumper.pid_ = pid;
+        dumper.uid_ = IPCSkeleton::GetCallingUid();
+        dumper.remoteObject_ = object;
+        dumperTbl_[StubType::AVMETADATAHELPER].emplace_back(dumper);
+
+        MEDIA_LOGD("The number of avmetadatahelper services(%{public}zu) pid(%{public}d).",
+            avMetadataHelperStubMap_.size(), pid);
     }
     return object;
 }
