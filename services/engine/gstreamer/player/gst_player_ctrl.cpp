@@ -14,6 +14,7 @@
  */
 
 #include "gst_player_ctrl.h"
+#include <playback/gstplay-enum.h>
 #include "media_log.h"
 #include "audio_system_manager.h"
 #include "media_errors.h"
@@ -126,6 +127,9 @@ int32_t GstPlayerCtrl::SetUrl(const std::string &url)
     CHECK_AND_RETURN_RET_LOG(gstPlayer_ != nullptr, MSERR_INVALID_VAL, "gstPlayer_ is nullptr");
     gst_player_set_uri(gstPlayer_, url.c_str());
     currentState_ = PLAYER_PREPARING;
+    if (url.find("http") == 0 || url.find("https") == 0) {
+        isNetWorkPlay_ = true;
+    }
     return MSERR_OK;
 }
 
@@ -165,6 +169,50 @@ int32_t GstPlayerCtrl::SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs)
     return MSERR_OK;
 }
 
+void GstPlayerCtrl::RemoveGstPlaySinkVideoConvertPlugin()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is null");
+
+    GstElement *playbin = gst_player_get_pipeline(gstPlayer_);
+    int32_t flags = 0;
+
+    g_object_get(playbin, "flags", &flags, nullptr);
+    flags |= (GST_PLAY_FLAG_NATIVE_VIDEO | GST_PLAY_FLAG_HARDWARE_VIDEO);
+    flags &= ~GST_PLAY_FLAG_SOFT_COLORBALANCE;
+    MEDIA_LOGD("set gstplaysink flags %{public}d", flags);
+    // set playsink remove GstPlaySinkVideoConvert, for first-frame performance optimization
+    g_object_set(playbin, "flags", flags, nullptr);
+    gst_object_unref(playbin);
+}
+
+GValueArray* GstPlayerCtrl::OnAutoplugSortCb(const GstElement *uriDecoder, GstPad *pad, GstCaps *caps,
+                                             GValueArray *factories, GstPlayerCtrl *playerGst)
+{
+    CHECK_AND_RETURN_RET_LOG(uriDecoder != nullptr, nullptr, "uriDecoder is null");
+    CHECK_AND_RETURN_RET_LOG(pad != nullptr, nullptr, "pad is null");
+    CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "caps is null");
+    CHECK_AND_RETURN_RET_LOG(factories != nullptr, nullptr, "factories is null");
+    CHECK_AND_RETURN_RET_LOG(playerGst != nullptr, nullptr, "playerGst is null");
+
+    if (playerGst->isPlaySinkFlagsSet_) {
+        return nullptr;
+    }
+
+    for (uint32_t i = 0; i < factories->n_values; i++) {
+        GstElementFactory *factory =
+            static_cast<GstElementFactory *>(g_value_get_object(g_value_array_get_nth(factories, i)));
+        if (strstr(gst_element_factory_get_metadata(factory, GST_ELEMENT_METADATA_KLASS),
+            "Codec/Decoder/Video/Hardware")) {
+            MEDIA_LOGD("set remove GstPlaySinkVideoConvert plugins from pipeline");
+            playerGst->RemoveGstPlaySinkVideoConvertPlugin();
+            playerGst->isPlaySinkFlagsSet_ = true;
+            break;
+        }
+    }
+    return nullptr;
+}
+
 void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, GstPlayerCtrl *playerGst)
 {
     CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
@@ -180,13 +228,18 @@ void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, G
 
     MEDIA_LOGD("get element_name %{public}s, get metadata %{public}s", GST_ELEMENT_NAME(src), metadata);
     std::string metaStr(metadata);
+    std::string elementName(GST_ELEMENT_NAME(src));
 
     if (metaStr.find("Codec/Demuxer") != std::string::npos || metaStr.find("Codec/Parser") != std::string::npos) {
         if (!playerGst->trackParse_->GetDemuxerElementFind()) {
-            playerGst->signalIds_.push_back(g_signal_connect(src,
-                "pad-added", G_CALLBACK(GstPlayerTrackParse::OnPadAddedCb), playerGst->trackParse_.get()));
+            g_signal_connect(src,
+                "pad-added", G_CALLBACK(GstPlayerTrackParse::OnPadAddedCb), playerGst->trackParse_.get());
             playerGst->trackParse_->SetDemuxerElementFind(true);
         }
+    }
+
+    if (playerGst->isNetWorkPlay_ == false && elementName.find("uridecodebin") != std::string::npos) {
+        g_signal_connect(src, "autoplug-sort", G_CALLBACK(OnAutoplugSortCb), playerGst);
     }
 
     if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {

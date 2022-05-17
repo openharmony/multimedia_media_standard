@@ -78,6 +78,8 @@ public:
     static void OnBufferingTimeCb(const GstPlayer *player, guint64 bufferingTime, guint mqNumId,
         GstPlayerCtrl *playerGst);
     static void OnMqNumUseBufferingCb(const GstPlayer *player, guint mqNumUseBuffering, GstPlayerCtrl *playerGst);
+    static GValueArray* OnAutoplugSortCb(const GstElement *uriDecoder, GstPad *pad, GstCaps *caps,
+                                         GValueArray *factories, GstPlayerCtrl *playerGst);
 private:
     PlayerStates ProcessStoppedState();
     PlayerStates ProcessPausedState();
@@ -107,6 +109,7 @@ private:
     void ProcessCachedPercent(const GstPlayer *cbPlayer, int32_t percent);
     void ProcessBufferingTime(const GstPlayer *cbPlayer, guint64 bufferingTime, guint mqNumId);
     void ProcessMqNumUseBuffering(const GstPlayer *cbPlayer, uint32_t mqNumUseBuffering);
+    void RemoveGstPlaySinkVideoConvertPlugin();
     bool IsLiveMode() const;
     bool SetAudioRendererInfo(const Format &param);
     std::mutex mutex_;
@@ -152,6 +155,8 @@ private:
     int32_t videoHeight_ = 0;
     bool isHardWare_ = false;
     GstElement *videoSink_ = nullptr;
+    bool isPlaySinkFlagsSet_ = false;
+    bool isNetWorkPlay_ = false;
 };
 } // namespace Media
 } // namespace OHOS
