@@ -16,6 +16,8 @@
 #include "gst_meta_parser.h"
 #include <functional>
 #include <vector>
+#include <sstream>
+#include <iomanip>
 #include "av_common.h"
 #include "media_errors.h"
 #include "media_log.h"
@@ -25,6 +27,8 @@
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "GstMetaParser"};
     static GType GST_SAMPLE_TYPE = gst_sample_get_type();
+    static GType GST_DATE_TIME_TYPE = gst_date_time_get_type();
+    constexpr size_t FORMATTED_TIME_NUM_SIZE = 2;
 }
 
 namespace OHOS {
@@ -40,12 +44,14 @@ struct MetaParseItem {
 static bool ParseGValueSimple(const GValue &value, const MetaParseItem &item, Format &metadata);
 static bool FractionMetaSetter(const GValue &gval, const std::string_view &key, Format &metadata);
 static bool ImageMetaSetter(const GValue &gval, const std::string_view &key, Format &metadata);
+static bool DateTimeMetaSetter(const GValue &gval, const std::string_view &key, Format &metadata);
 
 static const std::unordered_map<std::string_view, MetaParseItem> GST_TAG_PARSE_ITEMS = {
     { GST_TAG_ALBUM, { INNER_META_KEY_ALBUM, G_TYPE_STRING } },
     { GST_TAG_ALBUM_ARTIST, { INNER_META_KEY_ALBUM_ARTIST, G_TYPE_STRING } },
     { GST_TAG_ARTIST, { INNER_META_KEY_ARTIST, G_TYPE_STRING } },
     { GST_TAG_COMPOSER, { INNER_META_KEY_COMPOSER, G_TYPE_STRING } },
+    { GST_TAG_DATE_TIME, { INNER_META_KEY_DATE_TIME, GST_DATE_TIME_TYPE, DateTimeMetaSetter } },
     { GST_TAG_GENRE, { INNER_META_KEY_GENRE, G_TYPE_STRING } },
     { GST_TAG_TITLE, { INNER_META_KEY_TITLE, G_TYPE_STRING } },
     { GST_TAG_AUTHOR, { INNER_META_KEY_AUTHOR, G_TYPE_STRING } },
@@ -326,6 +332,49 @@ static bool ImageMetaSetter(const GValue &gval, const std::string_view &key, For
                key.data(), ret, mime, mapInfo.size);
 
     gst_buffer_unmap(imageBuf, &mapInfo);
+    return ret;
+}
+
+static bool DateTimeMetaSetter(const GValue &gval, const std::string_view &key, Format &metadata)
+{
+    GstDateTime *dateTime = (GstDateTime *)g_value_dup_boxed(&gval);
+    CHECK_AND_RETURN_RET(dateTime != nullptr, false);
+
+    std::stringstream time;
+    if (gst_date_time_has_year(dateTime)) {
+        std::string year = std::to_string(gst_date_time_get_year(dateTime));
+        time << std::setfill('0') << std::setw(FORMATTED_TIME_NUM_SIZE) << year;
+    }
+
+    if (gst_date_time_has_month(dateTime)) {
+        std::string month = std::to_string(gst_date_time_get_month(dateTime));
+        time << "-" << std::setfill('0') << std::setw(FORMATTED_TIME_NUM_SIZE) << month;
+    }
+
+    if (gst_date_time_get_day(dateTime)) {
+        std::string day = std::to_string(gst_date_time_get_day(dateTime));
+        time << "-" << std::setfill('0') << std::setw(FORMATTED_TIME_NUM_SIZE) << day;
+    }
+
+    if (gst_date_time_has_time(dateTime)) {
+        std::string hour = std::to_string(gst_date_time_get_hour(dateTime));
+        std::string minute = std::to_string(gst_date_time_get_minute(dateTime));
+        time << " " << std::setfill('0') << std::setw(FORMATTED_TIME_NUM_SIZE) << hour << ":" <<
+            std::setfill('0') << std::setw(FORMATTED_TIME_NUM_SIZE) << minute;
+    }
+
+    if (gst_date_time_has_second(dateTime)) {
+        std::string second = std::to_string(gst_date_time_get_second(dateTime));
+        time << ":" << std::setfill('0') << std::setw(FORMATTED_TIME_NUM_SIZE) << second;
+    }
+    std::string_view str = time.str();
+
+    gst_date_time_unref(dateTime);
+    dateTime = nullptr;
+
+    bool ret = metadata.PutStringValue(key, str);
+    MEDIA_LOGD("Key: %{public}s, value: %{public}s", key.data(), str.data());
+
     return ret;
 }
 } // namespace Media

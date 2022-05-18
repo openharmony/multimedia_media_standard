@@ -22,7 +22,6 @@ group("media_engine_gst_plugins") {
     "sink/memsink:gst_mem_sink",
     "source/audiocapture:gst_audio_capture_src",
     "source/memsource:gst_mem_src",
-    "source/videocapture:gst_surface_video_src",
   ]
 }
 

@@ -14,6 +14,7 @@
  */
 
 #include "gst_player_ctrl.h"
+#include <playback/gstplay-enum.h>
 #include "media_log.h"
 #include "audio_system_manager.h"
 #include "media_errors.h"
@@ -33,6 +34,7 @@ namespace {
     constexpr int BUFFER_HIGH_PERCENT_DEFAULT = 4;
     constexpr int BUFFER_FULL_PERCENT_DEFAULT = 100;
     constexpr guint MAX_SOFT_BUFFERS = 10;
+    constexpr guint DEFAULT_CACHE_BUFFERS = 1;
 
     using namespace OHOS::Media;
     using StreamToServiceErrFunc = void (*)(const gchar *name, int32_t &errorCode);
@@ -125,6 +127,9 @@ int32_t GstPlayerCtrl::SetUrl(const std::string &url)
     CHECK_AND_RETURN_RET_LOG(gstPlayer_ != nullptr, MSERR_INVALID_VAL, "gstPlayer_ is nullptr");
     gst_player_set_uri(gstPlayer_, url.c_str());
     currentState_ = PLAYER_PREPARING;
+    if (url.find("http") == 0 || url.find("https") == 0) {
+        isNetWorkPlay_ = true;
+    }
     return MSERR_OK;
 }
 
@@ -164,6 +169,50 @@ int32_t GstPlayerCtrl::SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs)
     return MSERR_OK;
 }
 
+void GstPlayerCtrl::RemoveGstPlaySinkVideoConvertPlugin()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is null");
+
+    GstElement *playbin = gst_player_get_pipeline(gstPlayer_);
+    int32_t flags = 0;
+
+    g_object_get(playbin, "flags", &flags, nullptr);
+    flags |= (GST_PLAY_FLAG_NATIVE_VIDEO | GST_PLAY_FLAG_HARDWARE_VIDEO);
+    flags &= ~GST_PLAY_FLAG_SOFT_COLORBALANCE;
+    MEDIA_LOGD("set gstplaysink flags %{public}d", flags);
+    // set playsink remove GstPlaySinkVideoConvert, for first-frame performance optimization
+    g_object_set(playbin, "flags", flags, nullptr);
+    gst_object_unref(playbin);
+}
+
+GValueArray* GstPlayerCtrl::OnAutoplugSortCb(const GstElement *uriDecoder, GstPad *pad, GstCaps *caps,
+                                             GValueArray *factories, GstPlayerCtrl *playerGst)
+{
+    CHECK_AND_RETURN_RET_LOG(uriDecoder != nullptr, nullptr, "uriDecoder is null");
+    CHECK_AND_RETURN_RET_LOG(pad != nullptr, nullptr, "pad is null");
+    CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "caps is null");
+    CHECK_AND_RETURN_RET_LOG(factories != nullptr, nullptr, "factories is null");
+    CHECK_AND_RETURN_RET_LOG(playerGst != nullptr, nullptr, "playerGst is null");
+
+    if (playerGst->isPlaySinkFlagsSet_) {
+        return nullptr;
+    }
+
+    for (uint32_t i = 0; i < factories->n_values; i++) {
+        GstElementFactory *factory =
+            static_cast<GstElementFactory *>(g_value_get_object(g_value_array_get_nth(factories, i)));
+        if (strstr(gst_element_factory_get_metadata(factory, GST_ELEMENT_METADATA_KLASS),
+            "Codec/Decoder/Video/Hardware")) {
+            MEDIA_LOGD("set remove GstPlaySinkVideoConvert plugins from pipeline");
+            playerGst->RemoveGstPlaySinkVideoConvertPlugin();
+            playerGst->isPlaySinkFlagsSet_ = true;
+            break;
+        }
+    }
+    return nullptr;
+}
+
 void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, GstPlayerCtrl *playerGst)
 {
     CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
@@ -179,26 +228,45 @@ void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, G
 
     MEDIA_LOGD("get element_name %{public}s, get metadata %{public}s", GST_ELEMENT_NAME(src), metadata);
     std::string metaStr(metadata);
+    std::string elementName(GST_ELEMENT_NAME(src));
 
     if (metaStr.find("Codec/Demuxer") != std::string::npos || metaStr.find("Codec/Parser") != std::string::npos) {
         if (!playerGst->trackParse_->GetDemuxerElementFind()) {
-            playerGst->signalIds_.push_back(g_signal_connect(src,
-                "pad-added", G_CALLBACK(GstPlayerTrackParse::OnPadAddedCb), playerGst->trackParse_.get()));
+            g_signal_connect(src,
+                "pad-added", G_CALLBACK(GstPlayerTrackParse::OnPadAddedCb), playerGst->trackParse_.get());
             playerGst->trackParse_->SetDemuxerElementFind(true);
         }
     }
 
+    if (playerGst->isNetWorkPlay_ == false && elementName.find("uridecodebin") != std::string::npos) {
+        g_signal_connect(src, "autoplug-sort", G_CALLBACK(OnAutoplugSortCb), playerGst);
+    }
+
     if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {
         playerGst->isHardWare_ = true;
+        if (!playerGst->preparing_) {
+            // For hls scene.
+            return;
+        }
+        // For performance mode.
+        playerGst->GetVideoSink();
+        CHECK_AND_RETURN_LOG(playerGst->videoSink_ != nullptr, "videoSink is null");
+        g_object_set(G_OBJECT(src), "performance-mode", TRUE, nullptr);
+        g_object_set(G_OBJECT(playerGst->videoSink_), "performance-mode", TRUE, nullptr);
+        GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
+        g_object_set(G_OBJECT(playerGst->videoSink_), "caps", caps, nullptr);
+        g_object_set(G_OBJECT(src), "sink-caps", caps, nullptr);
+        gst_caps_unref(caps);
+        GstBufferPool *pool;
+        g_object_get(playerGst->videoSink_, "surface-pool", &pool, nullptr);
+        g_object_set(G_OBJECT(src), "surface-pool", pool, nullptr);
         return;
     }
 
     if (metaStr.find("Sink/Video") != std::string::npos) {
-        if (playerGst->isHardWare_) {
-            GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
-            g_object_set(G_OBJECT(src), "caps", caps, nullptr);
-        } else {
+        if (!playerGst->isHardWare_) {
             g_object_set(G_OBJECT(src), "max-pool-capacity", MAX_SOFT_BUFFERS, nullptr);
+            g_object_set(G_OBJECT(src), "cache-buffers-num", DEFAULT_CACHE_BUFFERS, nullptr);
         }
         return;
     }
@@ -416,6 +484,10 @@ void GstPlayerCtrl::Stop()
         gst_object_unref(audioSink_);
         audioSink_ = nullptr;
     }
+    if (videoSink_ != nullptr) {
+        gst_object_unref(videoSink_);
+        videoSink_ = nullptr;
+    }
     if (rateTask_ != nullptr) {
         rateTask_->Cancel();
         rateTask_ = nullptr;
@@ -585,6 +657,20 @@ double GstPlayerCtrl::GetRate()
 PlayerStates GstPlayerCtrl::GetState() const
 {
     return currentState_;
+}
+
+void GstPlayerCtrl::GetVideoSink()
+{
+    GstElement *playbin = gst_player_get_pipeline(gstPlayer_);
+    CHECK_AND_RETURN_LOG(playbin != nullptr, "playbin is null");
+
+    if (videoSink_ != nullptr) {
+        gst_object_unref(videoSink_);
+        videoSink_ = nullptr;
+    }
+    g_object_get(playbin, "video-sink", &videoSink_, nullptr);
+
+    gst_object_unref(playbin);
 }
 
 void GstPlayerCtrl::GetAudioSink()
@@ -846,14 +932,23 @@ void GstPlayerCtrl::OnSourceSetupCb(const GstPlayer *player, GstElement *src, Gs
     CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
     CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
     CHECK_AND_RETURN_LOG(src != nullptr, "self is null");
-    if (playerGst->appsrcWarp_ == nullptr) {
-        MEDIA_LOGD("appsrc is null, is not stream mode");
-        return;
-    }
+
     GstElementFactory *elementFac = gst_element_get_factory(src);
     const gchar *eleTypeName = g_type_name(gst_element_factory_get_element_type(elementFac));
-    if ((eleTypeName != nullptr) && (strstr(eleTypeName, "GstAppSrc") != nullptr)) {
+    if (eleTypeName == nullptr) {
+        MEDIA_LOGW("eleTypeName is nullptr");
+        return;
+    }
+
+    if (strstr(eleTypeName, "GstAppSrc") != nullptr) {
+        if (playerGst->appsrcWarp_ == nullptr) {
+            MEDIA_LOGD("appsrc is null, is not stream mode");
+            return;
+        }
         (void)playerGst->appsrcWarp_->SetAppsrc(src);
+    } else if (strstr(eleTypeName, "GstCurlHttpSrc") != nullptr) {
+        g_object_set(src, "ssl-ca-file", "/etc/ssl/certs/cacert.pem", nullptr);
+        MEDIA_LOGI("setup curl_http ca_file done");
     }
 }
 

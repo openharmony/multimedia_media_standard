@@ -18,7 +18,7 @@
 #include "securec.h"
 #include "media_log.h"
 #include "media_errors.h"
-#include "bytrace.h"
+#include "hitrace_meter.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaDFX"};
@@ -76,24 +76,24 @@ void FaultEventWrite(std::string msg, std::string moudle)
 
 MediaTrace::MediaTrace(const std::string &funcName)
 {
-    StartTrace(BYTRACE_TAG_ZMEDIA, funcName);
+    StartTrace(HITRACE_TAG_ZMEDIA, funcName);
     isSync_ = true;
 }
 
 void MediaTrace::TraceBegin(const std::string &funcName, int32_t taskId)
 {
-    StartAsyncTrace(BYTRACE_TAG_ZMEDIA, funcName, taskId);
+    StartAsyncTrace(HITRACE_TAG_ZMEDIA, funcName, taskId);
 }
 
 void MediaTrace::TraceEnd(const std::string &funcName, int32_t taskId)
 {
-    FinishAsyncTrace(BYTRACE_TAG_ZMEDIA, funcName, taskId);
+    FinishAsyncTrace(HITRACE_TAG_ZMEDIA, funcName, taskId);
 }
 
 MediaTrace::~MediaTrace()
 {
     if (isSync_) {
-        FinishTrace(BYTRACE_TAG_ZMEDIA);
+        FinishTrace(HITRACE_TAG_ZMEDIA);
     }
 }
 } // namespace Media

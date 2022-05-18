@@ -30,6 +30,9 @@ struct _GstConsumerSurfaceMemory {
     gint32 is_key_frame;
     OHOS::Rect damage;
     gboolean is_eos_frame;
+    gint32 data_size;
+    gint32 is_codec_frame;
+    guint32 pixel_format;
 };
 
 gboolean gst_is_consumer_surface_memory(GstMemory *mem);
