@@ -258,7 +258,7 @@ static bool ParseGValueSimple(const GValue &value, const MetaParseItem &item, Fo
         default:
             break;
     }
-    return true;
+    return ret;
 }
 
 static bool FractionMetaSetter(const GValue &gval, const std::string_view &key, Format &metadata)

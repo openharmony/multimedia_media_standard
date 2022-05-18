@@ -980,7 +980,6 @@ static gboolean gst_venc_base_decide_allocation(GstVideoEncoder *encoder, GstQue
     gst_query_parse_allocation(query, &outcaps, nullptr);
 
     GstAllocationParams params;
-    gboolean update_pool = FALSE;
     guint index = 0;
     gst_allocation_params_init(&params);
     guint pool_num = gst_query_get_n_allocation_pools(query);
@@ -992,7 +991,6 @@ static gboolean gst_venc_base_decide_allocation(GstVideoEncoder *encoder, GstQue
             gst_object_unref(pool);
             pool = nullptr;
         }
-        update_pool = TRUE;
     } else {
         pool = nullptr;
     }
