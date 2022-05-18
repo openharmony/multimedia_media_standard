@@ -827,11 +827,12 @@ static GstFlowReturn gst_vdec_base_handle_frame(GstVideoDecoder *decoder, GstVid
     GstVdecBase *self = GST_VDEC_BASE(decoder);
     ON_SCOPE_EXIT(0) { gst_video_codec_frame_unref(frame); };
     g_return_val_if_fail(GST_IS_VDEC_BASE(self), GST_FLOW_ERROR);
-    g_return_val_if_fail(self != nullptr || frame != nullptr || self->decoder != nullptr, GST_FLOW_ERROR);
+    g_return_val_if_fail(self != nullptr && frame != nullptr && self->decoder != nullptr, GST_FLOW_ERROR);
     if (self->input.first_frame) {
         GST_WARNING_OBJECT(decoder, "KPI-TRACE-VDEC: first in frame");
         self->input.first_frame = FALSE;
     }
+
     if (gst_vdec_base_is_flushing(self)) {
         return GST_FLOW_FLUSHING;
     }
@@ -1158,7 +1159,7 @@ static void gst_vdec_base_loop(GstVdecBase *self)
             flow_ret = push_output_buffer(self, gst_buffer);
             break;
         case GST_CODEC_FORMAT_CHANGE:
-            flow_ret = gst_vdec_base_format_change(self);
+            (void)gst_vdec_base_format_change(self);
             return;
         case GST_CODEC_EOS:
             self->coding_outbuf_cnt--;
