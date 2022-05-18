@@ -327,7 +327,8 @@ bool AVMuxerDemo::AddTrackAudio(std::string &audioType)
     return true;
 }
 
-void AVMuxerDemo::SetMode(int32_t mode) {
+void AVMuxerDemo::SetMode(int32_t mode)
+{
     switch (mode) {
         case VIDEO_AUDIO_MODE:
             std::cout << "Please enter video type, note: only support h264 and mpeg4" << std::endl;
