@@ -32,6 +32,7 @@ public:
     void Dump() override;
 
 private:
+    void SetCaps(int32_t width, int32_t height);
     int32_t ConfigureVideoRectangle(const RecorderParam &recParam);
     int32_t ConfigureVideoFrameRate(const RecorderParam &recParam);
     int32_t ConfigureCaptureRate(const RecorderParam &recParam);
@@ -40,6 +41,7 @@ private:
     int32_t height_ = 0;
     int32_t frameRate_ = 0;
     double capRate_ = 0;
+    int32_t streamType_ = 0;
 };
 } // namespace Media
 } // namespace OHOS

@@ -17,6 +17,7 @@
 #include "gst_consumer_surface_memory.h"
 #include "media_log.h"
 #include "scope_guard.h"
+#include "securec.h"
 
 using namespace OHOS;
 
@@ -61,8 +62,11 @@ static GstMemory *gst_consumer_surface_allocator_alloc(GstAllocator *allocator, 
     sptr<SurfaceBuffer> surface_buffer = nullptr;
     gint32 fencefd = -1;
     gint64 timestamp = 0;
-    gboolean endOfStream = false;
+    gint32 data_size = 0;
+    gint32 is_codec_frame = 0;
+    gboolean end_of_stream = false;
     gboolean is_key_frame = FALSE;
+    uint32_t pixel_format = 0;
     Rect damage = {0, 0, 0, 0};
     if (surface->AcquireBuffer(surface_buffer, fencefd, timestamp, damage) != SURFACE_ERROR_OK) {
         GST_WARNING_OBJECT(allocator, "Acquire surface buffer failed");
@@ -74,17 +78,24 @@ static GstMemory *gst_consumer_surface_allocator_alloc(GstAllocator *allocator, 
     const sptr<OHOS::BufferExtraData>& extraData = surface_buffer->GetExtraData();
     if (extraData != nullptr) {
         (void)extraData->ExtraGet("timeStamp", timestamp);
-        (void)extraData->ExtraGet("endOfStream", endOfStream);
+        (void)extraData->ExtraGet("endOfStream", end_of_stream);
+        (void)extraData->ExtraGet("dataSize", data_size);
+        (void)extraData->ExtraGet("isKeyFrame", is_codec_frame);
     }
+
+    pixel_format = surface_buffer->GetFormat();
 
     gst_memory_init(GST_MEMORY_CAST(mem), GST_MEMORY_FLAG_NO_SHARE,
         allocator, nullptr, surface_buffer->GetSize(), 0, 0, size);
     mem->surface_buffer = surface_buffer;
     mem->fencefd = fencefd;
     mem->timestamp = timestamp;
+    mem->data_size = data_size;
     mem->is_key_frame = is_key_frame;
+    mem->is_codec_frame = is_codec_frame;
+    mem->pixel_format = pixel_format;
     mem->damage = damage;
-    mem->is_eos_frame = endOfStream;
+    mem->is_eos_frame = end_of_stream;
     mem->buffer_handle = reinterpret_cast<intptr_t>(surface_buffer->GetBufferHandle());
     GST_INFO_OBJECT(allocator, "acquire surface buffer");
 
@@ -124,6 +135,64 @@ static void gst_consumer_surface_allocator_mem_unmap(GstMemory *mem)
     (void)mem;
 }
 
+static GstMemory *gst_consumer_surface_allocator_mem_copy(GstConsumerSurfaceMemory *mem, gssize offset, gssize size)
+{
+    g_return_val_if_fail(mem != nullptr && mem->surface_buffer != nullptr, nullptr);
+    g_return_val_if_fail(mem->surface_buffer->GetVirAddr() != nullptr, nullptr);
+
+    gssize realOffset = 0;
+    if (((gint64)mem->parent.offset + offset) > INT32_MAX) {
+        GST_ERROR("invalid offset");
+        return nullptr;
+    } else {
+        realOffset = static_cast<gssize>(mem->parent.offset) + offset;
+    }
+    g_return_val_if_fail(realOffset >= 0, nullptr);
+
+    if (size == -1) {
+        if (((gint64)mem->parent.size - offset) > INT32_MAX) {
+            GST_ERROR("invalid size");
+            return nullptr;
+        } else {
+            size = static_cast<gssize>(mem->parent.size) - offset;
+        }
+    }
+    g_return_val_if_fail(size > 0, nullptr);
+
+    if ((size < INT32_MAX) && ((INT32_MAX - size) <= realOffset)) {
+        GST_ERROR("invalid limit");
+        return nullptr;
+    }
+
+    gsize realLimit = static_cast<gsize>(size) + static_cast<gsize>(realOffset);
+    g_return_val_if_fail(realLimit <= static_cast<gsize>(mem->surface_buffer->GetSize()), nullptr);
+
+    GstMemory *copy = gst_allocator_alloc(nullptr, static_cast<gsize>(size), nullptr);
+    g_return_val_if_fail(copy != nullptr, nullptr);
+
+    GstMapInfo info = GST_MAP_INFO_INIT;
+    if (!gst_memory_map(copy, &info, GST_MAP_WRITE)) {
+        gst_memory_unref(copy);
+        GST_ERROR("map failed");
+        return nullptr;
+    }
+
+    uint8_t *src = static_cast<uint8_t *>(mem->surface_buffer->GetVirAddr()) + realOffset;
+    errno_t rc = memcpy_s(info.data, info.size, src, static_cast<size_t>(size));
+    if (rc != EOK) {
+        GST_ERROR("memcpy failed");
+        gst_memory_unmap(copy, &info);
+        gst_memory_unref(copy);
+        return nullptr;
+    }
+
+    gst_memory_unmap(copy, &info);
+    GST_LOG("copy memory: 0x%06" PRIXPTR " for size: %" G_GSSIZE_FORMAT ", offset: %" G_GSSIZE_FORMAT
+        ", gstmemory: 0x%06" PRIXPTR, FAKE_POINTER(mem), size, offset, FAKE_POINTER(copy));
+
+    return copy;
+}
+
 static void gst_consumer_surface_allocator_init(GstConsumerSurfaceAllocator *sallocator)
 {
     GstAllocator *allocator = GST_ALLOCATOR_CAST(sallocator);
@@ -138,6 +207,7 @@ static void gst_consumer_surface_allocator_init(GstConsumerSurfaceAllocator *sal
     allocator->mem_type = GST_CONSUMER_SURFACE_MEMORY_TYPE;
     allocator->mem_map = (GstMemoryMapFunction)gst_consumer_surface_allocator_mem_map;
     allocator->mem_unmap = (GstMemoryUnmapFunction)gst_consumer_surface_allocator_mem_unmap;
+    allocator->mem_copy = (GstMemoryCopyFunction)gst_consumer_surface_allocator_mem_copy;
 }
 
 static void gst_consumer_surface_allocator_finalize(GObject *obj)

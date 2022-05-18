@@ -40,12 +40,17 @@ AudioCaptureAsImpl::~AudioCaptureAsImpl()
     }
 }
 
-int32_t AudioCaptureAsImpl::SetCaptureParameter(uint32_t bitrate, uint32_t channels, uint32_t sampleRate)
+int32_t AudioCaptureAsImpl::SetCaptureParameter(uint32_t bitrate, uint32_t channels, uint32_t sampleRate,
+    int32_t appUid, uint32_t appTokenId)
 {
     (void)bitrate;
     MEDIA_LOGD("SetCaptureParameter in, channels:%{public}u, sampleRate:%{public}u", channels, sampleRate);
     if (audioCapturer_ == nullptr) {
-        audioCapturer_ = AudioStandard::AudioCapturer::Create(AudioStandard::AudioStreamType::STREAM_MUSIC);
+        AudioStandard::AppInfo appInfo = {};
+        appInfo.appUid = appUid;
+        appInfo.appTokenId = appTokenId;
+
+        audioCapturer_ = AudioStandard::AudioCapturer::Create(AudioStandard::AudioStreamType::STREAM_MUSIC, appInfo);
         CHECK_AND_RETURN_RET_LOG(audioCapturer_ != nullptr, MSERR_NO_MEMORY, "create audio capturer failed");
     }
     audioCacheCtrl_ = std::make_unique<AudioCacheCtrl>();
@@ -121,7 +126,10 @@ int32_t AudioCaptureAsImpl::GetSegmentInfo(uint64_t &start)
         MEDIA_LOGW("audio frame pts too long, this shouldn't happen");
     }
     start = timeStamp.time.tv_nsec + timeStamp.time.tv_sec * SEC_TO_NANOSECOND;
-    MEDIA_LOGI("timestamp from audioCapturer: %{public}" PRIu64 "", start);
+    MEDIA_LOGD("timestamp from audioCapturer: %{public}" PRIu64 "", start);
+    MEDIA_LOGI("audioCapturer timestamp has increased: %{public}" PRIu64 "", start - lastInputTime_);
+    lastInputTime_ = start;
+
     return MSERR_OK;
 }
 

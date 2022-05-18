@@ -22,6 +22,7 @@
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVCodecEngineCtrl"};
     constexpr guint MAX_SOFT_BUFFERS = 10;
+    constexpr guint DEFAULT_CACHE_BUFFERS = 1;
 }
 
 namespace OHOS {
@@ -245,6 +246,7 @@ int32_t AVCodecEngineCtrl::SetOutputSurface(sptr<Surface> surface)
         CHECK_AND_RETURN_RET(sink_->SetCallback(obs_) == MSERR_OK, MSERR_UNKNOWN);
         if (isUseSoftWare_) {
             CHECK_AND_RETURN_RET(sink_->SetOutputBuffersCount(MAX_SOFT_BUFFERS) == MSERR_OK, MSERR_UNKNOWN);
+            CHECK_AND_RETURN_RET(sink_->SetCacheBuffersCount(DEFAULT_CACHE_BUFFERS) == MSERR_OK, MSERR_UNKNOWN);
         }
     }
     if (sink_->SetOutputSurface(surface) == MSERR_OK) {
@@ -252,7 +254,8 @@ int32_t AVCodecEngineCtrl::SetOutputSurface(sptr<Surface> surface)
     } else {
         return MSERR_UNKNOWN;
     }
-
+    CHECK_AND_RETURN_RET(codecBin_ != nullptr, MSERR_UNKNOWN);
+    g_object_set(codecBin_, "use-surface-output", TRUE, nullptr);
     MEDIA_LOGD("SetOutputSurface success");
     return MSERR_OK;
 }
