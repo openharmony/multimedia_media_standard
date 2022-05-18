@@ -20,7 +20,8 @@ config("videodisplaymanager_public_config") {
 ohos_shared_library("videodisplaymanager") {
   sources = [ "src/videodisplaymanager.cpp" ]
 
-  include_dirs = [ "//foundation/graphic/graphic/frameworks/surface/include" ]
+  include_dirs =
+      [ "//foundation/graphic/graphic_2d/frameworks/surface/include" ]
 
   public_configs = [
     ":videodisplaymanager_public_config",
@@ -29,7 +30,7 @@ ohos_shared_library("videodisplaymanager") {
 
   public_deps = [
     "//drivers/peripheral/display/hdi_service/video_layer/client:video_layer_client",
-    "//foundation/graphic/graphic/frameworks/surface:surface",
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface",
   ]
 
   external_deps = [
