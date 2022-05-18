@@ -175,7 +175,7 @@ void GstPlayerCtrl::RemoveGstPlaySinkVideoConvertPlugin()
     CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is null");
 
     GstElement *playbin = gst_player_get_pipeline(gstPlayer_);
-    int32_t flags = 0;
+    uint32_t flags = 0;
 
     g_object_get(playbin, "flags", &flags, nullptr);
     flags |= (GST_PLAY_FLAG_NATIVE_VIDEO | GST_PLAY_FLAG_HARDWARE_VIDEO);
