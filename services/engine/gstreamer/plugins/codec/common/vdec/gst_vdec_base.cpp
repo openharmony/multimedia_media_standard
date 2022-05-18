@@ -739,7 +739,8 @@ static GstFlowReturn gst_vdec_base_handle_frame(GstVideoDecoder *decoder, GstVid
     GstVdecBase *self = GST_VDEC_BASE(decoder);
     ON_SCOPE_EXIT(0) { gst_video_codec_frame_unref(frame); };
     g_return_val_if_fail(GST_IS_VDEC_BASE(self), GST_FLOW_ERROR);
-    g_return_val_if_fail(self != nullptr || frame != nullptr || self->decoder != nullptr, GST_FLOW_ERROR);
+    g_return_val_if_fail(self != nullptr || frame != nullptr, GST_FLOW_ERROR);
+    g_return_val_if_fail(self->decoder != nullptr, GST_FLOW_ERROR);
     if (gst_vdec_base_is_flushing(self)) {
         return GST_FLOW_FLUSHING;
     }
