@@ -85,6 +85,8 @@ GstPlayerCtrl::~GstPlayerCtrl()
     for (auto &signalId : signalIds_) {
         g_signal_handler_disconnect(gstPlayer_, signalId);
     }
+    g_object_unref(gstPlayer_);
+    gstPlayer_ = nullptr;
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 

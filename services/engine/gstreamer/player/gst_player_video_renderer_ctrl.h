@@ -36,7 +36,6 @@ public:
     const GstElement *GetVideoSink() const;
     const GstElement *GetAudioSink() const;
     const sptr<Surface> GetProducerSurface() const;
-    int32_t SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs);
 
 private:
     sptr<Surface> producerSurface_ = nullptr;
@@ -46,7 +45,6 @@ private:
     GstCaps *audioCaps_ = nullptr;
     uint32_t queueSize_ = 0;
     std::vector<gulong> signalIds_;
-    std::weak_ptr<IPlayerEngineObs> obs_;
 };
 
 class GstPlayerVideoRendererFactory {
@@ -54,7 +52,6 @@ public:
     GstPlayerVideoRendererFactory() = delete;
     ~GstPlayerVideoRendererFactory() = delete;
     static GstPlayerVideoRenderer *Create(const std::shared_ptr<GstPlayerVideoRendererCtrl> &rendererCtrl);
-    static void Destroy(GstPlayerVideoRenderer *renderer);
 };
 } // namespace Media
 } // namespace OHOS
