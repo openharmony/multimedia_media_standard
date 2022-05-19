@@ -187,7 +187,7 @@ void RecorderDemo::HDICreateESBuffer()
         (void)memcpy_s(addr, *frameLenArray, tempBuffer, *frameLenArray);
 
         if (isStart_.load()) {
-            pts_= GetPts();
+            pts_= (int64_t)(GetPts());
             isStart_.store(false);
         }
 
@@ -240,7 +240,7 @@ void RecorderDemo::HDICreateYUVBuffer()
         }
 
         // get time
-        pts_= GetPts();
+        pts_= (int64_t)(GetPts());
         (void)buffer->GetExtraData()->ExtraSet("dataSize", static_cast<int32_t>(YUV_BUFFER_SIZE));
         (void)buffer->GetExtraData()->ExtraSet("timeStamp", pts_);
         (void)buffer->GetExtraData()->ExtraSet("isKeyFrame", isKeyFrame_);
