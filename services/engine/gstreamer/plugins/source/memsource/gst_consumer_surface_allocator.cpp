@@ -66,7 +66,7 @@ static GstMemory *gst_consumer_surface_allocator_alloc(GstAllocator *allocator, 
     gint32 is_codec_frame = 0;
     gboolean end_of_stream = false;
     gboolean is_key_frame = FALSE;
-    uint32_t pixel_format = 0;
+    int32_t pixel_format = 0;
     Rect damage = {0, 0, 0, 0};
     if (surface->AcquireBuffer(surface_buffer, fencefd, timestamp, damage) != SURFACE_ERROR_OK) {
         GST_WARNING_OBJECT(allocator, "Acquire surface buffer failed");

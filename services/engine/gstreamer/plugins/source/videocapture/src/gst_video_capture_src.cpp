@@ -64,7 +64,7 @@ G_DEFINE_TYPE(GstVideoCaptureSrc, gst_video_capture_src, GST_TYPE_SURFACE_SRC);
 
 static void gst_video_capture_src_finalize(GObject *object);
 static void gst_video_capture_src_set_stream_type(GstVideoCaptureSrc *src, gint stream_type);
-static void gst_video_capture_src_set_caps(GstVideoCaptureSrc *src, uint32_t pixelFormat);
+static void gst_video_capture_src_set_caps(GstVideoCaptureSrc *src, int32_t pixelFormat);
 static void gst_video_capture_src_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec);
 static void gst_video_capture_src_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec);
 static GstStateChangeReturn gst_video_capture_src_change_state(GstElement *element, GstStateChange transition);
@@ -168,7 +168,7 @@ static void gst_video_capture_src_set_stream_type(GstVideoCaptureSrc *src, gint 
     }
 }
 
-static void gst_video_capture_src_set_caps(GstVideoCaptureSrc *src, uint32_t pixelFormat)
+static void gst_video_capture_src_set_caps(GstVideoCaptureSrc *src, int32_t pixelFormat)
 {
     g_return_if_fail(src != nullptr);
 
