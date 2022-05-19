@@ -222,21 +222,11 @@ void RecorderDemo::HDICreateYUVBuffer()
         sptr<SyncFence> tempFence = new SyncFence(releaseFence);
         tempFence->Wait(100); // 100ms
 
-        auto addr = static_cast<uint8_t *>(buffer->GetVirAddr());
-        if (addr == nullptr) {
-            cout << "GetVirAddr failed" << endl;
-            (void)producerSurface_->CancelBuffer(buffer);
-            break;
-        }
-        char *tempBuffer = static_cast<char *>(malloc(sizeof(char) * YUV_BUFFER_SIZE));
-        if (tempBuffer == nullptr) {
-            (void)producerSurface_->CancelBuffer(buffer);
-            break;
-        }
+        char *tempBuffer = (char *)(buffer->GetVirAddr());
         (void)memset_s(tempBuffer, YUV_BUFFER_SIZE, color_, YUV_BUFFER_SIZE);
 
         srand((int)time(0));
-        for (uint32_t i = 0; i < YUV_BUFFER_SIZE - 1; i += 100) {  // 100 is the steps between noise
+        for (uint32_t i = 0; i < YUV_BUFFER_SIZE - 1; i += (YUV_BUFFER_SIZE - 1)) {  // 100 is the steps between noise
             if (i >= YUV_BUFFER_SIZE - 1) {
                 break;
             }
@@ -249,12 +239,6 @@ void RecorderDemo::HDICreateYUVBuffer()
             color_ = 0xFF;
         }
 
-        errno_t mRet = memcpy_s(addr, YUV_BUFFER_SIZE, tempBuffer, YUV_BUFFER_SIZE);
-        if (mRet != EOK) {
-            (void)producerSurface_->CancelBuffer(buffer);
-            free(tempBuffer);
-            break;
-        }
         // get time
         pts_= GetPts();
         (void)buffer->GetExtraData()->ExtraSet("dataSize", static_cast<int32_t>(YUV_BUFFER_SIZE));
@@ -263,7 +247,6 @@ void RecorderDemo::HDICreateYUVBuffer()
         count_++;
         (count_ % 30) == 0 ? (isKeyFrame_ = 1) : (isKeyFrame_ = 0); // keyframe every 30fps
         (void)producerSurface_->FlushBuffer(buffer, -1, g_yuvFlushConfig);
-        free(tempBuffer);
     }
     cout << "exit camera hdi loop" << endl;
 }
