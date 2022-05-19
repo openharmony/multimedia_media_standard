@@ -91,7 +91,7 @@ private:
     void OnSeekDone();
     void OnEndOfStream();
     void OnMessage(int32_t extra) const;
-    void OnBufferingUpdate(const std::string Message) const;
+    void OnBufferingUpdate(const std::string &Message) const;
     void OnResolutionChange(int32_t width, int32_t height);
     void InitDuration();
     void PlaySync();

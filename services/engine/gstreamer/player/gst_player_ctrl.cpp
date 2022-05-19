@@ -1101,7 +1101,7 @@ void GstPlayerCtrl::OnMessage(int32_t extra) const
     }
 }
 
-void GstPlayerCtrl::OnBufferingUpdate(const std::string Message) const
+void GstPlayerCtrl::OnBufferingUpdate(const std::string &Message) const
 {
     MEDIA_LOGI("On Message callback info: %{public}s", Message.c_str());
     std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
