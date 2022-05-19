@@ -357,6 +357,7 @@ void AVMuxerDemo::DoNext()
     std::cout << "Please enter mode, 0: video + audio, 1: video, 2: audio" << std::endl;
     int32_t mode;
     std::cin >> mode;
+    SetMode(mode);
     
     path_ = videoType_ + audioType_ + "." + format_;
     int32_t fd = open(path_.c_str(), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
