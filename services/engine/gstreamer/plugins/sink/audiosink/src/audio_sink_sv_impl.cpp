@@ -178,9 +178,12 @@ int32_t AudioSinkSvImpl::Drain()
 
 int32_t AudioSinkSvImpl::Flush()
 {
-    MEDIA_LOGD("Flush");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
-    CHECK_AND_RETURN_RET(audioRenderer_->Flush() == true, MSERR_UNKNOWN);
+    if (audioRenderer_->GetStatus() == OHOS::AudioStandard::RENDERER_RUNNING) {
+        MEDIA_LOGD("Flush");
+        CHECK_AND_RETURN_RET(audioRenderer_->Flush() == true, MSERR_UNKNOWN);
+    }
+    
     return MSERR_OK;
 }
 
