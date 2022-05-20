@@ -244,9 +244,6 @@ int32_t PlayerEngineGstImpl::GstPlayerPrepare() const
     }
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetUrl failed");
 
-    ret = rendererCtrl_->SetCallbacks(obs_);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetCallbacks failed");
-
     ret = playerCtrl_->SetCallbacks(obs_);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetCallbacks failed");
 
