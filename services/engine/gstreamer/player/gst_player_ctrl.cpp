@@ -87,6 +87,8 @@ GstPlayerCtrl::~GstPlayerCtrl()
     for (auto &signalId : signalIds_) {
         g_signal_handler_disconnect(gstPlayer_, signalId);
     }
+    g_object_unref(gstPlayer_);
+    gstPlayer_ = nullptr;
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
@@ -1194,7 +1196,7 @@ void GstPlayerCtrl::OnMessage(int32_t extra) const
     }
 }
 
-void GstPlayerCtrl::OnBufferingUpdate(const std::string Message) const
+void GstPlayerCtrl::OnBufferingUpdate(const std::string &Message) const
 {
     MEDIA_LOGI("On Message callback info: %{public}s", Message.c_str());
     std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();

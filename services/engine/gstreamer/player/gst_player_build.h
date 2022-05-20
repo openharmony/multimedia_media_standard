@@ -41,9 +41,6 @@ private:
     void Release();
     GMainContext *context_ = nullptr;
     GMainLoop *loop_ = nullptr;
-    GstPlayerVideoRenderer *videoRenderer_ = nullptr;
-    GstPlayerSignalDispatcher *signalDispatcher_ = nullptr;
-    GstPlayer *gstPlayer_ = nullptr;
     std::shared_ptr<GstPlayerCtrl> playerCtrl_ = nullptr;
     std::shared_ptr<GstPlayerVideoRendererCtrl> rendererCtrl_ = nullptr;
     std::mutex mutex_;
