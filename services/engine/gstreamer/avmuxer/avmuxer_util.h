@@ -30,7 +30,7 @@ namespace OHOS {
 namespace Media {
 struct TrackInfo {
     bool hasCodecData_ = false;
-    bool needData_ = false;
+    bool needData_ = true;
     GstCaps *caps_ = nullptr;
     GstElement *src_ = nullptr;
     std::string mimeType_;

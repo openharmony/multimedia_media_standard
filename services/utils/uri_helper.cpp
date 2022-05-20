@@ -266,18 +266,6 @@ bool UriHelper::CorrectFdParam()
     return true;
 }
 
-bool UriHelper::ParseFdUri(int32_t &fd, int64_t &offset, int64_t size)
-{
-    if (type_ != URI_TYPE_FD) {
-        return false;
-    }
-
-    fd = fd_;
-    offset = offset_;
-    size = size_;
-    return true;
-}
-
 uint8_t UriHelper::UriType() const
 {
     return type_;

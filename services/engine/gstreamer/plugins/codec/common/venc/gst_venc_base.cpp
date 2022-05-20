@@ -597,7 +597,7 @@ static GstStateChangeReturn gst_venc_base_change_state(GstElement *element, GstS
     return ret;
 }
 
-void gst_venc_base_handle_frame_after(GstVencBase *self, GstVideoCodecFrame *frame)
+static void gst_venc_base_handle_frame_after(GstVencBase *self, GstVideoCodecFrame *frame)
 {
     g_return_if_fail(frame != nullptr);
     g_return_if_fail(self != nullptr);
@@ -822,7 +822,7 @@ static gboolean gst_venc_base_set_format(GstVideoEncoder *encoder, GstVideoCodec
 
     is_format_change = is_format_change || self->width != info->width;
     is_format_change = is_format_change || self->height != GST_VIDEO_INFO_FIELD_HEIGHT(info);
-    is_format_change = is_format_change || (self->frame_rate == 0 && info->fps_n != 0);
+    is_format_change = is_format_change || (self->frame_rate != info->fps_n && info->fps_n != 0);
 
     if (is_format_change) {
         self->width = info->width;
@@ -987,7 +987,6 @@ static gboolean gst_venc_base_decide_allocation(GstVideoEncoder *encoder, GstQue
     gst_query_parse_allocation(query, &outcaps, nullptr);
 
     GstAllocationParams params;
-    gboolean update_pool = FALSE;
     guint index = 0;
     gst_allocation_params_init(&params);
     guint pool_num = gst_query_get_n_allocation_pools(query);
@@ -999,7 +998,6 @@ static gboolean gst_venc_base_decide_allocation(GstVideoEncoder *encoder, GstQue
             gst_object_unref(pool);
             pool = nullptr;
         }
-        update_pool = TRUE;
     } else {
         pool = nullptr;
     }

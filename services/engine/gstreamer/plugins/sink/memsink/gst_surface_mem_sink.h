@@ -45,7 +45,9 @@ struct _GstSurfaceMemSinkDump {
 struct _GstSurfaceMemSink {
     GstMemSink memsink;
     GstBuffer *prerollBuffer;
-    bool firstRenderFrame;
+    gboolean firstRenderFrame;
+    gboolean preInitPool;
+    gboolean performanceMode;
     /* < private > */
     GstSurfaceMemSinkPrivate *priv;
     GstSurfaceMemSinkDump dump;

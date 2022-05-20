@@ -141,7 +141,7 @@ int32_t GstAppsrcWarp::SetAppsrc(GstElement *appSrc)
     MEDIA_LOGD("set Appsrc");
     ClearAppsrc();
     appSrc_ = static_cast<GstElement *>(gst_object_ref(appSrc));
-    CHECK_AND_RETURN_RET_LOG(appSrc_ != nullptr, MSERR_INVALID_VAL, "gstPlayer_ is nullptr");
+    CHECK_AND_RETURN_RET_LOG(appSrc_ != nullptr, MSERR_INVALID_VAL, "appSrc_ is nullptr");
     SetCallBackForAppSrc();
     return MSERR_OK;
 }

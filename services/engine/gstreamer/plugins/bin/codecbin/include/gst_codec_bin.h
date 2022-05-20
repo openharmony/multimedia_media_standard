@@ -53,6 +53,7 @@ struct _GstCodecBin {
     gboolean need_sink_convert;
     gboolean need_parser;
     gboolean is_input_surface;
+    gboolean is_output_surface;
 };
 
 struct _GstCodecBinClass {

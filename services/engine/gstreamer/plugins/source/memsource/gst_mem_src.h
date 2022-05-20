@@ -58,6 +58,7 @@ struct _GstMemSrcClass {
     // for API and action calling, subclass need accomplish it
     GstBuffer *(*pull_buffer) (GstMemSrc *memsrc);
     GstFlowReturn (*push_buffer) (GstMemSrc *memsrc, GstBuffer *buffer);
+    GstBufferPool *(*create_pool) ();
 };
 
 // for subclass to use

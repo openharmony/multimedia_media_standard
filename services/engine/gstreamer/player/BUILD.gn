@@ -32,6 +32,7 @@ config("media_engine_gst_player_config") {
     "-Wfloat-equal",
     "-Wdate-time",
     "-DOHOS_EXT_FUNC",
+    "-DOHOS_OPT_COMPAT",
   ]
 
   include_dirs = [
@@ -49,6 +50,7 @@ config("media_engine_gst_player_config") {
     "//drivers/peripheral/display/interfaces/include",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
+    "//third_party/gstreamer/gstplugins_base/gst",
     "//third_party/gstreamer/gstplugins_base/gst-libs",
     "//third_party/gstreamer/gstplugins_bad/gst-libs",
     "//third_party/glib/glib",

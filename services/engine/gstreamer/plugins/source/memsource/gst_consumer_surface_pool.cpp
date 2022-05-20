@@ -187,6 +187,19 @@ static void gst_consumer_surface_pool_flush_start(GstBufferPool *pool)
         gst_buffer_unref(priv->cache_buffer);
         priv->cache_buffer = nullptr;
     }
+
+    // clear cache buffer
+    while (priv->available_buf_count > 0) {
+        sptr<SurfaceBuffer> buffer = nullptr;
+        gint32 fencefd = -1;
+        gint64 timestamp = 0;
+        Rect damage = {0, 0, 0, 0};
+        if (priv->consumer_surface->AcquireBuffer(buffer, fencefd, timestamp, damage) == SURFACE_ERROR_OK) {
+            (void)priv->consumer_surface->ReleaseBuffer(buffer, fencefd);
+        }
+        priv->available_buf_count--;
+    }
+
     surfacepool->priv->flushing = TRUE;
     g_cond_signal(&priv->buffer_available_con);
     g_mutex_unlock(&priv->pool_lock);
@@ -250,9 +263,7 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
     g_return_val_if_fail(surfacepool != nullptr && surfacepool->priv != nullptr, GST_FLOW_ERROR);
     GstBufferPoolClass *pclass = GST_BUFFER_POOL_GET_CLASS(pool);
     g_return_val_if_fail(pclass != nullptr, GST_FLOW_ERROR);
-    if (!pclass->alloc_buffer) {
-        return GST_FLOW_NOT_SUPPORTED;
-    }
+    g_return_val_if_fail(pclass->alloc_buffer != nullptr, GST_FLOW_NOT_SUPPORTED);
     auto priv = surfacepool->priv;
     g_mutex_lock(&priv->pool_lock);
     ON_SCOPE_EXIT(0) { g_mutex_unlock(&priv->pool_lock); };
@@ -263,8 +274,8 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
             if (priv->repeat_interval == 0 || priv->cache_buffer == nullptr) {
                 g_cond_wait(&priv->buffer_available_con, &priv->pool_lock);
             } else if (g_cond_wait_until(&priv->buffer_available_con, &priv->pool_lock, priv->repeat_interval)) {
-                GST_INFO_OBJECT(surfacepool, "Repeat previous frame after waiting given microseconds");
                 repeat = TRUE;
+                break;
             }
         }
         if (priv->flushing || !priv->start) {
@@ -287,7 +298,9 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
             surfacemem = reinterpret_cast<GstConsumerSurfaceMemory*>(mem);
             add_buffer_info(surfacepool, surfacemem, *buffer);
         }
-        priv->available_buf_count--;
+        if (!repeat) {
+            priv->available_buf_count--;
+        }
 
         // check whether needs to drop frame to ensure the maximum frame rate
         if (surfacemem != nullptr && priv->max_frame_rate > 0 && !priv->is_first_buffer &&
@@ -371,7 +384,8 @@ static void add_buffer_info(GstConsumerSurfacePool *pool, GstConsumerSurfaceMemo
     if (mem->is_eos_frame) {
         bufferFlag = BUFFER_FLAG_EOS;
     }
-    gst_buffer_add_buffer_handle_meta(buffer, mem->buffer_handle, mem->fencefd, bufferFlag);
+    GstBufferHandleConfig config = { mem->fencefd, bufferFlag, mem->data_size, mem->pixel_format };
+    gst_buffer_add_buffer_handle_meta(buffer, mem->buffer_handle, config);
 
     if (mem->timestamp < 0) {
         GST_WARNING_OBJECT(pool, "Invalid timestamp: < 0");

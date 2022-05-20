@@ -118,6 +118,9 @@ int32_t RecorderPipelineBuilder::SetVideoSource(const RecorderSourceDesc &desc)
     videoConverElem_ = CreateElement("VideoConverter", desc, false);
     CHECK_AND_RETURN_RET(videoConverElem_ != nullptr, MSERR_INVALID_VAL);
 
+    videoParseElem_ = CreateElement("VideoParse", desc, false);
+    CHECK_AND_RETURN_RET(videoParseElem_ != nullptr, MSERR_INVALID_VAL);
+
     // check yuv
     if (desc.type_ == VideoSourceType::VIDEO_SOURCE_SURFACE_YUV) {
         videoEncElem_ = CreateElement("VideoEncoder", desc, false);
@@ -129,7 +132,8 @@ int32_t RecorderPipelineBuilder::SetVideoSource(const RecorderSourceDesc &desc)
         ADD_LINK_DESC(videoEncElem_, muxSink_, "src", "video", true, false);
     } else {
         // es stream
-        ADD_LINK_DESC(videoSrcElem_, muxSink_, "src", "video", true, false);
+        ADD_LINK_DESC(videoSrcElem_, videoParseElem_, "src", "sink", true, true);
+        ADD_LINK_DESC(videoParseElem_, muxSink_, "src", "video", true, false);
     }
 
     return MSERR_OK;

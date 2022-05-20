@@ -33,6 +33,7 @@ private:
     bool AddTrackVideo(std::string &videoType);
     bool AddTrackAudio(std::string &audioType);
     void DoNext();
+    void SetMode(int32_t mode);
     std::shared_ptr<AVMuxer> avmuxer_;
     int32_t videoTrackId_ = 0;
     int32_t audioTrackId_ = 0;
@@ -46,6 +47,8 @@ private:
     std::shared_ptr<std::ifstream> audioFile_ = nullptr;
     std::string videoType_ = std::string("");
     std::string audioType_ = std::string("");
+    std::string path_ = std::string("");
+    std::string format_ = std::string("");
 };
 }  // namespace Media
 }  // namespace OHOS
