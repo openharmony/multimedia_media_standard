@@ -55,7 +55,7 @@ struct _GstBufferTypeMeta {
     int32_t fenceFd;
     uint32_t memFlag;
     uint32_t bufferFlag;
-    uint32_t pixelFormat;
+    int32_t pixelFormat;
 };
 
 struct _GstBufferFdConfig {
@@ -70,7 +70,7 @@ struct _GstBufferHandleConfig {
     int32_t fenceFd;
     uint32_t bufferFlag;
     uint32_t length;
-    uint32_t pixelFormat;
+    int32_t pixelFormat;
 };
 
 GST_API_EXPORT GType gst_buffer_type_meta_api_get_type(void);

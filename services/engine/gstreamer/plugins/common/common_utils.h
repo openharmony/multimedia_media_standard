@@ -20,22 +20,6 @@
 #include <gst/gst.h>
 
 // only C style code is accepted in this file
-struct VideoFrameBuffer {
-    uint32_t keyFrameFlag;
-    uint64_t timeStamp;
-    uint64_t duration;
-    uint64_t size;
-    uint32_t pixelFormat;
-    GstBuffer *gstBuffer;
-};
-
-struct EsAvcCodecBuffer {
-    uint32_t width;
-    uint32_t height;
-    uint64_t segmentStart;
-    GstBuffer *gstCodecBuffer;
-};
-
 enum VideoStreamType {
     VIDEO_STREAM_TYPE_UNKNOWN = 0,
     VIDEO_STREAM_TYPE_ES_AVC,
