@@ -31,6 +31,7 @@ inline constexpr std::string_view INNER_META_KEY_AUTHOR = "author";
 inline constexpr std::string_view INNER_META_KEY_BITRATE = "bitrate";
 inline constexpr std::string_view INNER_META_KEY_CHANNEL_COUNT = "channel-count";
 inline constexpr std::string_view INNER_META_KEY_COMPOSER = "composer";
+inline constexpr std::string_view INNER_META_KEY_DATE_TIME = "datetime";
 inline constexpr std::string_view INNER_META_KEY_DURATION = "duration";
 inline constexpr std::string_view INNER_META_KEY_FRAMERATE = "frame-rate";
 inline constexpr std::string_view INNER_META_KEY_GENRE = "genre";

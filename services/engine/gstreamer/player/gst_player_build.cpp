@@ -32,30 +32,6 @@ public:
         CHECK_AND_RETURN_RET_LOG(context != nullptr, nullptr, "context is nullptr");
         return gst_player_g_main_context_signal_dispatcher_new(context);
     }
-
-    static void Destroy(GstPlayerSignalDispatcher *dispatcher)
-    {
-        CHECK_AND_RETURN_LOG(dispatcher != nullptr, "dispatcher is nullptr");
-        gst_object_unref(dispatcher);
-    }
-};
-
-class GstPlayerFactory {
-public:
-    GstPlayerFactory() = delete;
-    ~GstPlayerFactory() = delete;
-    static GstPlayer *Create(GstPlayerVideoRenderer *renderer, GstPlayerSignalDispatcher *dispatcher)
-    {
-        CHECK_AND_RETURN_RET_LOG(renderer != nullptr, nullptr, "renderer is nullptr");
-        CHECK_AND_RETURN_RET_LOG(dispatcher != nullptr, nullptr, "dispatcher is nullptr");
-        return gst_player_new(renderer, dispatcher);
-    }
-
-    static void Destroy(GstPlayer *player)
-    {
-        CHECK_AND_RETURN_LOG(player != nullptr, "player is nullptr");
-        gst_object_unref(player);
-    }
 };
 
 GstPlayerBuild::GstPlayerBuild()
@@ -77,44 +53,27 @@ std::shared_ptr<GstPlayerVideoRendererCtrl> GstPlayerBuild::BuildRendererCtrl(sp
         MEDIA_LOGI("This is an video scene.");
     }
 
-    context_ =  g_main_context_new();
-    CHECK_AND_RETURN_RET_LOG(context_ != nullptr, nullptr, "g_main_context_new failed..");
-
-    g_main_context_push_thread_default(context_);
-
     rendererCtrl_ = std::make_shared<GstPlayerVideoRendererCtrl>(surface);
-    if (rendererCtrl_ == nullptr) {
-        Release();
-        MEDIA_LOGE("rendererCtrl_ is nullptr");
-        return nullptr;
-    }
-
     return rendererCtrl_;
 }
 
 std::shared_ptr<GstPlayerCtrl> GstPlayerBuild::BuildPlayerCtrl()
 {
-    if (rendererCtrl_ == nullptr) {
-        MEDIA_LOGE("rendererCtrl_ is nullptr");
-        return nullptr;
-    }
+    CHECK_AND_RETURN_RET_LOG(rendererCtrl_ != nullptr, nullptr, "rendererCtrl_ is nullptr");
 
-    videoRenderer_ = GstPlayerVideoRendererFactory::Create(rendererCtrl_);
-    signalDispatcher_ = GstPlayerSingnalDispatcherFactory::Create(context_);
-    if (signalDispatcher_ == nullptr || videoRenderer_ == nullptr) {
-        Release();
-        MEDIA_LOGE("signalDispatcher_ or videoRenderer_ is nullptr");
-        return nullptr;
-    }
+    context_ =  g_main_context_new();
+    CHECK_AND_RETURN_RET_LOG(context_ != nullptr, nullptr, "g_main_context_new failed..");
 
-    gstPlayer_ = GstPlayerFactory::Create(videoRenderer_, signalDispatcher_);
-    playerCtrl_ = std::make_shared<GstPlayerCtrl>(gstPlayer_);
-    if (gstPlayer_ == nullptr || playerCtrl_ == nullptr) {
-        Release();
-        MEDIA_LOGE("gstPlayer_ or playerCtrl_ is nullptr");
-        return nullptr;
+    GstPlayerVideoRenderer *videoRenderer = GstPlayerVideoRendererFactory::Create(rendererCtrl_);
+    GstPlayerSignalDispatcher *signalDispatcher = GstPlayerSingnalDispatcherFactory::Create(context_);
+    if (videoRenderer == nullptr || signalDispatcher == nullptr) {
+        MEDIA_LOGW("videoRenderer or signalDispatcher is nullptr");
     }
+    
+    GstPlayer *gstPlayer = gst_player_new(videoRenderer, signalDispatcher);
+    CHECK_AND_RETURN_RET_LOG(gstPlayer != nullptr, nullptr, "create gstPlayer failed..");
 
+    playerCtrl_ = std::make_shared<GstPlayerCtrl>(gstPlayer);
     return playerCtrl_;
 }
 
@@ -124,7 +83,9 @@ void GstPlayerBuild::CreateLoop()
     CHECK_AND_RETURN_LOG(context_ != nullptr, "context_ is nullptr");
 
     loop_ = g_main_loop_new(context_, FALSE);
-    CHECK_AND_RETURN_LOG(loop_ != nullptr, "gstPlayer_ is nullptr");
+    CHECK_AND_RETURN_LOG(loop_ != nullptr, "loop_ is nullptr");
+
+    g_main_context_push_thread_default(context_);
 
     GSource *source = g_idle_source_new();
     g_source_set_callback(source, (GSourceFunc)GstPlayerBuild::MainLoopRunCb, this,
@@ -137,6 +98,8 @@ void GstPlayerBuild::CreateLoop()
     // wait g_main_loop_quit
     g_main_loop_unref(loop_);
     loop_ = nullptr;
+
+    g_main_context_pop_thread_default(context_);
 }
 
 gboolean GstPlayerBuild::MainLoopRunCb(GstPlayerBuild *build)
@@ -171,23 +134,7 @@ void GstPlayerBuild::Release()
     playerCtrl_ = nullptr;
     rendererCtrl_ = nullptr;
 
-    if (gstPlayer_ != nullptr) {
-        GstPlayerFactory::Destroy(gstPlayer_);
-        gstPlayer_ = nullptr;
-    }
-
-    if (signalDispatcher_ != nullptr) {
-        GstPlayerSingnalDispatcherFactory::Destroy(signalDispatcher_);
-        signalDispatcher_ = nullptr;
-    }
-
-    if (videoRenderer_ != nullptr) {
-        GstPlayerVideoRendererFactory::Destroy(videoRenderer_);
-        videoRenderer_ = nullptr;
-    }
-
     if (context_ != nullptr) {
-        g_main_context_pop_thread_default(context_);
         g_main_context_unref(context_);
         context_ = nullptr;
     }

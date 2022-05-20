@@ -81,23 +81,23 @@ static void gst_mux_bin_class_init(GstMuxBinClass *klass)
 
     g_object_class_install_property(gobject_class, PROP_FD,
         g_param_spec_int("fd", "FD", "fd of the output file",
-            G_MININT32, G_MAXINT32, -1, (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+            G_MININT32, G_MAXINT32, -1, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
     g_object_class_install_property(gobject_class, PROP_MUX,
         g_param_spec_string("mux", "Mux", "type of the mux",
-            nullptr, (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+            nullptr, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
     g_object_class_install_property(gobject_class, PROP_DEGREES,
         g_param_spec_int("rotation", "Rotation", "rotation angle of the output file",
-            0, G_MAXINT32, 0, (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+            0, G_MAXINT32, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
     g_object_class_install_property(gobject_class, PROP_LATITUDE,
         g_param_spec_int("latitude", "Latitude", "latitude of the output file",
-            G_MININT32, G_MAXINT32, 0, (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+            G_MININT32, G_MAXINT32, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
     g_object_class_install_property(gobject_class, PROP_LONGITUDE,
         g_param_spec_int("longitude", "Longitude", "longitude of the output file",
-            G_MININT32, G_MAXINT32, 0, (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+            G_MININT32, G_MAXINT32, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
     gst_mux_bin_signals[SIGNAL_ADD_TRACK] =
         g_signal_new("add-track", G_TYPE_FROM_CLASS(klass),
@@ -197,27 +197,8 @@ static void gst_mux_bin_get_property(GObject *object, guint prop_id,
 {
     g_return_if_fail(object != nullptr);
     g_return_if_fail(value != nullptr);
+    (void)prop_id;
     (void)param_spec;
-    GstMuxBin *mux_bin = GST_MUX_BIN(object);
-    switch (prop_id) {
-        case PROP_FD:
-            g_value_set_int(value, mux_bin->out_fd);
-            break;
-        case PROP_MUX:
-            g_value_set_string(value, mux_bin->mux);
-            break;
-        case PROP_DEGREES:
-            g_value_set_int(value, mux_bin->rotation);
-            break;
-        case PROP_LATITUDE:
-            g_value_set_int(value, mux_bin->latitude);
-            break;
-        case PROP_LONGITUDE:
-            g_value_set_int(value, mux_bin->longitude);
-            break;
-        default:
-            break;
-    }
 }
 
 static bool create_splitmuxsink(GstMuxBin *mux_bin)
@@ -290,6 +271,11 @@ static bool create_src(GstMuxBin *mux_bin, OHOS::Media::MediaType track_type)
         g_return_val_if_fail(appSrc != nullptr, false);
         g_object_set(appSrc, "is-live", true, "format", GST_FORMAT_TIME, nullptr);
         ((GstTrackInfo *)(iter->data))->src_ = appSrc;
+        if (strstr(((GstTrackInfo *)(iter->data))->parseName_, "parse")) {
+            GstElement *parse = create_parse(mux_bin, ((GstTrackInfo *)(iter->data))->parseName_);
+            g_return_val_if_fail(parse != nullptr, false);
+            ((GstTrackInfo *)(iter->data))->parse_ = parse;
+        }
         iter = iter->next;
     }
 
@@ -330,12 +316,20 @@ static bool add_element_to_bin(GstMuxBin *mux_bin)
     while (iter != nullptr) {
         ret = gst_bin_add(GST_BIN(mux_bin), ((GstTrackInfo *)(iter->data))->src_);
         g_return_val_if_fail(ret == TRUE, false);
+        if (((GstTrackInfo *)(iter->data))->parse_ != nullptr) {
+            ret = gst_bin_add(GST_BIN(mux_bin), ((GstTrackInfo *)(iter->data))->parse_);
+            g_return_val_if_fail(ret == TRUE, false);
+        }
         iter = iter->next;
     }
     iter = mux_bin->audio_src_list;
     while (iter != nullptr) {
         ret = gst_bin_add(GST_BIN(mux_bin), ((GstTrackInfo *)(iter->data))->src_);
         g_return_val_if_fail(ret == TRUE, false);
+        if (((GstTrackInfo *)(iter->data))->parse_ != nullptr) {
+            ret = gst_bin_add(GST_BIN(mux_bin), ((GstTrackInfo *)(iter->data))->parse_);
+            g_return_val_if_fail(ret == TRUE, false);
+        }
         iter = iter->next;
     }
     ret = gst_bin_add(GST_BIN(mux_bin), mux_bin->split_mux_sink);
@@ -381,7 +375,7 @@ static bool connect_element(GstMuxBin *mux_bin, OHOS::Media::MediaType type)
         GST_ERROR_OBJECT(mux_bin, "Failed to check track type");
         return false;
     }
-    bool ret;
+    
     while (iter != nullptr) {
         GstPad *src_src_pad = gst_element_get_static_pad(((GstTrackInfo *)(iter->data))->src_, "src");
         GstPad *split_mux_sink_sink_pad = nullptr;
@@ -390,12 +384,8 @@ static bool connect_element(GstMuxBin *mux_bin, OHOS::Media::MediaType type)
         } else if (type == OHOS::Media::MEDIA_TYPE_AUD) {
             split_mux_sink_sink_pad = gst_element_get_request_pad(mux_bin->split_mux_sink, "audio_%u");
         }
-        if (strstr(((GstTrackInfo *)(iter->data))->parseName_, "parse")) {
-            GstElement *parse = create_parse(mux_bin, ((GstTrackInfo *)(iter->data))->parseName_);
-            g_return_val_if_fail(parse != nullptr, false);
-            ret = gst_bin_add(GST_BIN(mux_bin), parse);
-            g_return_val_if_fail(ret == TRUE, false);
-            if (!connect_parse(mux_bin, parse, src_src_pad, split_mux_sink_sink_pad)) {
+        if (((GstTrackInfo *)(iter->data))->parse_ != nullptr) {
+            if (!connect_parse(mux_bin, ((GstTrackInfo *)(iter->data))->parse_, src_src_pad, split_mux_sink_sink_pad)) {
                 GST_ERROR_OBJECT(mux_bin, "Failed to call connect_parse");
                 return false;
             }

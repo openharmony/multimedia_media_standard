@@ -34,11 +34,13 @@ config("gst_mem_src_config") {
   ]
 
   include_dirs = [
+    "//drivers/peripheral/display/interfaces/include",
     "//utils/native/base/include",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/source/memsource",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/source/videocapture/include",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/gstreamer/gstplugins_base",
@@ -55,6 +57,8 @@ ohos_shared_library("gst_mem_src") {
   install_enable = true
 
   sources = [
+    "../videocapture/src/gst_video_capture_pool.cpp",
+    "../videocapture/src/gst_video_capture_src.cpp",
     "gst_consumer_surface_allocator.cpp",
     "gst_consumer_surface_pool.cpp",
     "gst_mem_source_plugins.cpp",

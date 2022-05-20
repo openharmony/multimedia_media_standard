@@ -281,23 +281,11 @@ int32_t GstPlayerVideoRendererCtrl::InitAudioSink(const GstElement *playbin)
     return MSERR_OK;
 }
 
-int32_t GstPlayerVideoRendererCtrl::SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs)
-{
-    obs_ = obs;
-    return MSERR_OK;
-}
-
 GstPlayerVideoRenderer *GstPlayerVideoRendererFactory::Create(
     const std::shared_ptr<GstPlayerVideoRendererCtrl> &rendererCtrl)
 {
     CHECK_AND_RETURN_RET_LOG(rendererCtrl != nullptr, nullptr, "rendererCtrl is nullptr..");
     return player_video_renderer_new(rendererCtrl);
-}
-
-void GstPlayerVideoRendererFactory::Destroy(GstPlayerVideoRenderer *renderer)
-{
-    CHECK_AND_RETURN_LOG(renderer != nullptr, "renderer is nullptr");
-    gst_object_unref(renderer);
 }
 } // namespace Media
 } // namespace OHOS

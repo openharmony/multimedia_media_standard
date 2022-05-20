@@ -161,8 +161,8 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
     CHECK_AND_RETURN_RET_LOG(muxBin_ != nullptr, MSERR_INVALID_OPERATION, "Muxbin does not exist");
 
     std::string mimeType;
-    bool val = trackDesc.GetStringValue(std::string(MediaDescriptionKey::MD_KEY_CODEC_MIME), mimeType);
-    CHECK_AND_RETURN_RET_LOG(val = true, MSERR_INVALID_VAL, "Failed to get MD_KEY_CODEC_MIME");
+    bool val = trackDesc.GetStringValue(MediaDescriptionKey::MD_KEY_CODEC_MIME, mimeType);
+    CHECK_AND_RETURN_RET_LOG(val, MSERR_INVALID_VAL, "Failed to get MD_KEY_CODEC_MIME");
     std::set<std::string> mimeTypes;
     CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindMimeTypes(format_, mimeTypes), MSERR_INVALID_VAL, "Illegal format");
     CHECK_AND_RETURN_RET_LOG(mimeTypes.find(mimeType) != mimeTypes.end(),
@@ -171,13 +171,11 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
     trackId = trackInfo_.size() + 1;
     trackInfo_[trackId] = TrackInfo();
     trackInfo_[trackId].mimeType_ = mimeType;
-    trackInfo_[trackId].needData_ = true;
 
     GstCaps *srcCaps = nullptr;
     uint32_t *trackNum = nullptr;
     MediaType mediaType;
-    CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindMediaType(trackInfo_[trackId].mimeType_, mediaType), MSERR_INVALID_VAL,
-        "Illegal mimeType");
+    CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindMediaType(mimeType, mediaType), MSERR_INVALID_VAL, "Illegal mimeType");
     if (mediaType == MEDIA_TYPE_VID) {
         CHECK_AND_RETURN_RET_LOG(videoTrackNum_ < MAX_VIDEO_TRACK_NUM, MSERR_INVALID_OPERATION,
             "Only 1 video Tracks can be added");
@@ -191,9 +189,11 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
         return MSERR_INVALID_VAL;
     }
 
-    int32_t ret = AVMuxerUtil::SetCaps(trackDesc, mimeType, &srcCaps);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Failed to call SetCaps");
-    (*trackNum)++;
+    if (AVMuxerUtil::SetCaps(trackDesc, mimeType, &srcCaps) != MSERR_OK) {
+        MEDIA_LOGE("Failed to call SetCaps");
+        trackInfo_.erase(trackId);
+        return MSERR_INVALID_VAL;
+    }
 
     trackInfo_[trackId].caps_ = srcCaps;
 
@@ -202,10 +202,14 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
     std::string name = "src_";
     name += static_cast<char>('0' + trackId);
     std::string parse;
-    CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindParse(mimeType, parse), MSERR_INVALID_VAL, "Illegal mimeType");
+    if (!AVMuxerUtil::FindParse(mimeType, parse)) {
+        MEDIA_LOGE("Failed to call FindParse");
+        trackInfo_.erase(trackId);
+        return MSERR_INVALID_VAL;
+    }
     g_signal_emit_by_name(muxBin_, "add-track", name.c_str(),
-        (parse + std::to_string(trackId)).c_str(),
-        static_cast<int32_t>(mediaType));
+        (parse + std::to_string(trackId)).c_str(), static_cast<int32_t>(mediaType));
+    (*trackNum)++;
 
     return MSERR_OK;
 }
@@ -351,11 +355,7 @@ void AVMuxerEngineGstImpl::OnNotifyMessage(const InnerMessage &msg)
             std::unique_lock<std::mutex> lock(mutex_);
             MEDIA_LOGD("State change");
             GstState currState = static_cast<GstState>(msg.detail2);
-            if (currState == GST_STATE_READY) {
-                isReady_ = true;
-            } else if (currState == GST_STATE_PAUSED) {
-                isPause_ = true;
-            } else if (currState == GST_STATE_PLAYING) {
+            if (currState == GST_STATE_PLAYING) {
                 isPlay_ = true;
             }
             cond_.notify_all();
@@ -374,8 +374,6 @@ void AVMuxerEngineGstImpl::Clear()
     trackInfo_.clear();
     endFlag_ = false;
     errHappened_ = false;
-    isReady_ = false;
-    isPause_ = false;
     isPlay_ = false;
     mutex_.unlock();
     msgProcessor_->Reset();

@@ -131,7 +131,7 @@ static GstMemory *gst_shmem_allocator_mem_copy(GstShMemMemory *mem, gssize offse
     }
     g_return_val_if_fail(size > 0, nullptr);
 
-    if ((UINT32_MAX - size) <= realOffset) {
+    if ((size < INT32_MAX) && ((INT32_MAX - size) <= realOffset)) {
         GST_ERROR("invalid limit");
         return nullptr;
     }
