@@ -368,6 +368,7 @@ void AVMuxerDemo::DoNext()
     if (avmuxer_->SetOutput(fd, format_) != MSERR_OK ||
         avmuxer_->SetLocation(LATITUDE, LONGITUDE) != MSERR_OK ||
         avmuxer_->SetRotation(ROTATION) != MSERR_OK) {
+        (void)::close(fd);
         return;
     }
 
@@ -375,15 +376,18 @@ void AVMuxerDemo::DoNext()
         AddTrackAudio(audioType_) == false)) ||
         (mode == VIDEO_MODE && (AddTrackVideo(videoType_) == false)) ||
         (mode == AUDIO_MODE && (AddTrackAudio(audioType_) == false))) {
+        (void)::close(fd);
         return;
     }
 
     if (avmuxer_->Start() != MSERR_OK) {
+        (void)::close(fd);
         return;
     }
     WriteTrackSample();
 
     if (avmuxer_->Stop() != MSERR_OK) {
+        (void)::close(fd);
         return;
     }
     avmuxer_->Release();
