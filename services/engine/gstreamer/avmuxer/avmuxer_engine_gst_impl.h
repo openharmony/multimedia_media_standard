@@ -58,8 +58,6 @@ private:
     uint32_t videoTrackNum_ = 0;
     uint32_t audioTrackNum_ = 0;
     std::string format_;
-    bool isReady_ = false;
-    bool isPause_ = false;
     bool isPlay_ = false;
     GstShMemWrapAllocator *allocator_;
 };
