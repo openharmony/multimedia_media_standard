@@ -52,6 +52,8 @@ struct _GstSurfaceMemSink {
     GstSurfaceMemSinkPrivate *priv;
     GstSurfaceMemSinkDump dump;
     GstCaps *caps;
+    guint lastRate;
+    guint renderCnt;
 };
 
 struct _GstSurfaceMemSinkClass {
