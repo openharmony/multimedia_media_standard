@@ -93,7 +93,7 @@ struct _GstVencBase {
     GstClockTime last_pts;
     GstClockTime first_frame_pts;
     guint i_frame_interval;
-    gboolean flushing_stoping;
+    gboolean flushing_stopping;
     gboolean encoder_start;
 };
 

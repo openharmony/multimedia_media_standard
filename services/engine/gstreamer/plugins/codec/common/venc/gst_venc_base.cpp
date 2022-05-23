@@ -216,7 +216,7 @@ static void gst_venc_base_init(GstVencBase *self)
     self->last_pts = GST_CLOCK_TIME_NONE;
     self->first_frame_pts = GST_CLOCK_TIME_NONE;
     self->i_frame_interval = 0;
-    self->flushing_stoping = FALSE;
+    self->flushing_stopping = FALSE;
     self->encoder_start = FALSE;
 }
 
@@ -377,7 +377,7 @@ static gboolean gst_venc_base_flush(GstVideoEncoder *encoder)
     g_return_val_if_fail(self->encoder != nullptr, FALSE);
     GST_DEBUG_OBJECT(self, "Flush start");
 
-    if (!self->flushing_stoping) {
+    if (!self->flushing_stopping) {
         gst_venc_base_set_flushing(self, TRUE);
         gint ret = self->encoder->Flush(GST_CODEC_ALL);
         (void)gst_codec_return_is_ok(self, ret, "flush", FALSE);
@@ -899,14 +899,14 @@ static gboolean gst_venc_base_event(GstVideoEncoder *encoder, GstEvent *event)
             self->encoder_start = FALSE;
             break;
         case GST_EVENT_FLUSH_STOP:
-            self->flushing_stoping = TRUE;
+            self->flushing_stopping = TRUE;
             self->encoder_start = FALSE;
             ret = GST_VIDEO_ENCODER_CLASS(parent_class)->sink_event(encoder, event);
             if (self->encoder != nullptr) {
                 (void)self->encoder->Flush(GST_CODEC_OUTPUT);
             }
             gst_venc_base_set_flushing(self, FALSE);
-            self->flushing_stoping = FALSE;
+            self->flushing_stopping = FALSE;
             GST_WARNING_OBJECT(self, "KPI-TRACE-VENC: flush stop");
             return ret;
         default:
