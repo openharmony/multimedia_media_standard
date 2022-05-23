@@ -858,19 +858,16 @@ static GstFlowReturn gst_vdec_base_handle_frame(GstVideoDecoder *decoder, GstVid
         self->input.first_frame = FALSE;
     }
     if (gst_vdec_base_is_flushing(self)) {
-        GST_VIDEO_DECODER_STREAM_UNLOCK(self);
         return GST_FLOW_FLUSHING;
     }
     gst_vdec_base_clean_all_frames(decoder);
     if (!self->prepared) {
         if (!gst_vdec_base_prepare(self)) {
             GST_WARNING_OBJECT(self, "hdi video dec enable failed");
-            GST_VIDEO_DECODER_STREAM_UNLOCK(self);
             return GST_FLOW_ERROR;
         }
 
         if (gst_vdec_base_is_flushing(self)) {
-            GST_VIDEO_DECODER_STREAM_UNLOCK(self);
             return GST_FLOW_FLUSHING;
         }
         self->prepared = TRUE;
@@ -884,7 +881,6 @@ static GstFlowReturn gst_vdec_base_handle_frame(GstVideoDecoder *decoder, GstVid
     }
     if (gst_pad_get_task_state(pad) != GST_TASK_STARTED &&
         gst_pad_start_task(pad, (GstTaskFunction)gst_vdec_base_loop, decoder, nullptr) != TRUE) {
-        GST_VIDEO_DECODER_STREAM_UNLOCK(self);
         return GST_FLOW_ERROR;
     }
     GST_VIDEO_DECODER_STREAM_UNLOCK(self);
