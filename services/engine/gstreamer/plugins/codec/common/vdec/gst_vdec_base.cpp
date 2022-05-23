@@ -680,11 +680,13 @@ static gboolean gst_vdec_base_prepare(GstVdecBase *self)
     // Negotiate with downstream and get format
     g_return_val_if_fail(gst_vdec_base_negotiate(self), FALSE);
 
-    // Check allocate input buffer already
-    gst_vdec_base_check_allocate_input(self);
+    if (!gst_vdec_base_is_flushing(self)) {
+        // Check allocate input buffer already
+        gst_vdec_base_check_allocate_input(self);
 
-    // To allocate output memory, we need to give the size
-    g_return_val_if_fail(gst_vdec_base_allocate_out_buffers(self), FALSE);
+        // To allocate output memory, we need to give the size
+        g_return_val_if_fail(gst_vdec_base_allocate_out_buffers(self), FALSE);
+    }
 
     return TRUE;
 }
@@ -821,6 +823,29 @@ static void gst_vdec_base_get_frame_pts(GstVdecBase *self, GstVideoCodecFrame *f
     g_mutex_unlock(&self->lock);
 }
 
+static GstFlowReturn gst_vdec_base_push_input_buffer(GstVideoDecoder *decoder, GstVideoCodecFrame *frame)
+{
+    GstVdecBase *self = GST_VDEC_BASE(decoder);
+    gst_vdec_debug_input_time(self);
+    gst_vdec_base_dump_input_buffer(self, frame->input_buffer);
+    gst_vdec_base_get_frame_pts(self, frame);
+    gint codec_ret = self->decoder->PushInputBuffer(frame->input_buffer);
+    GST_VIDEO_DECODER_STREAM_LOCK(self);
+    GstFlowReturn ret = GST_FLOW_OK;
+    switch (codec_ret) {
+        case GST_CODEC_OK:
+            break;
+        case GST_CODEC_FLUSH:
+            ret = GST_FLOW_FLUSHING;
+            GST_DEBUG_OBJECT(self, "Flushing");
+            break;
+        default:
+            ret = GST_FLOW_ERROR;
+            GST_ELEMENT_WARNING(self, STREAM, ENCODE, ("Hardware encoder error!"), ("pull"));
+    }
+    return ret;
+}
+
 static GstFlowReturn gst_vdec_base_handle_frame(GstVideoDecoder *decoder, GstVideoCodecFrame *frame)
 {
     GST_DEBUG_OBJECT(decoder, "Handle frame");
@@ -842,6 +867,10 @@ static GstFlowReturn gst_vdec_base_handle_frame(GstVideoDecoder *decoder, GstVid
             GST_WARNING_OBJECT(self, "hdi video dec enable failed");
             return GST_FLOW_ERROR;
         }
+
+        if (gst_vdec_base_is_flushing(self)) {
+            return GST_FLOW_FLUSHING;
+        }
         self->prepared = TRUE;
     }
     GstPad *pad = GST_VIDEO_DECODER_SRC_PAD(self);
@@ -856,23 +885,8 @@ static GstFlowReturn gst_vdec_base_handle_frame(GstVideoDecoder *decoder, GstVid
         return GST_FLOW_ERROR;
     }
     GST_VIDEO_DECODER_STREAM_UNLOCK(self);
-    gst_vdec_debug_input_time(self);
-    gst_vdec_base_dump_input_buffer(self, frame->input_buffer);
-    gst_vdec_base_get_frame_pts(self, frame);
-    gint codec_ret = self->decoder->PushInputBuffer(frame->input_buffer);
-    GST_VIDEO_DECODER_STREAM_LOCK(self);
-    GstFlowReturn ret = GST_FLOW_OK;
-    switch (codec_ret) {
-        case GST_CODEC_OK:
-            break;
-        case GST_CODEC_FLUSH:
-            ret = GST_FLOW_FLUSHING;
-            GST_DEBUG_OBJECT(self, "Flushing");
-            break;
-        default:
-            ret = GST_FLOW_ERROR;
-            GST_ELEMENT_WARNING(self, STREAM, ENCODE, ("Hardware encoder error!"), ("pull"));
-    }
+
+    GstFlowReturn ret = gst_vdec_base_push_input_buffer(decoder, frame);
     return ret;
 }
 
@@ -1342,6 +1356,10 @@ static gboolean gst_vdec_base_event(GstVideoDecoder *decoder, GstEvent *event)
         case GST_EVENT_FLUSH_START:
             {
                 GST_WARNING_OBJECT(self, "KPI-TRACE-VDEC: flush start");
+                if (!self->prepared) {
+                    gst_vdec_base_set_flushing(self, TRUE);
+                    break;
+                }
                 GST_VIDEO_DECODER_STREAM_LOCK(self);
                 gst_vdec_base_set_flushing(self, TRUE);
                 self->decoder_start = FALSE;
