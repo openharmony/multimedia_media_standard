@@ -290,6 +290,10 @@ static gboolean gst_audio_server_sink_set_caps(GstBaseSink *basesink, GstCaps *c
     g_return_val_if_fail(sink->audio_sink->GetMinimumBufferSize(sink->min_buffer_size) == MSERR_OK, FALSE);
     g_return_val_if_fail(sink->audio_sink->GetMinimumFrameCount(sink->min_frame_count) == MSERR_OK, FALSE);
 
+    if (GST_STATE(sink) == GST_STATE_PLAYING) {
+        g_return_val_if_fail(sink->audio_sink->Start() == MSERR_OK, FALSE);
+    }
+
     return TRUE;
 }
 
