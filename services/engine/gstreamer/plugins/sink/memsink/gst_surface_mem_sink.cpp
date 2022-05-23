@@ -122,6 +122,8 @@ static void gst_surface_mem_sink_init(GstSurfaceMemSink *sink)
     sink->dump.enable_dump = FALSE;
     sink->dump.dump_file = nullptr;
     sink->performanceMode = FALSE;
+    sink->lastRate = 0;
+    sink->renderCnt = 0;
     GstMemSink *memSink = GST_MEM_SINK_CAST(sink);
     memSink->max_pool_capacity = SURFACE_MAX_QUEUE_SIZE;
     gst_surface_mem_sink_dump_from_sys_param(sink);
@@ -223,6 +225,27 @@ static void gst_surface_mem_sink_get_property(GObject *object, guint propId, GVa
     }
 }
 
+static gboolean gst_surface_mem_sink_drop_frame_check(GstSurfaceMemSink *surface_sink)
+{
+    GstBaseSink *gst_base_sink = GST_BASE_SINK(surface_sink);
+    static guint dropFrameArray[] = {0, 1, 0, 1, 0, 0, 1};
+
+    guint rate = (guint)(gst_base_sink->segment.rate * 100);   // 100 : rate double convert to uint
+    if (surface_sink->lastRate != rate) {
+        surface_sink->lastRate = rate;
+        surface_sink->renderCnt = 0;
+    }
+    surface_sink->renderCnt++;
+
+    if ((rate == 125 && surface_sink->renderCnt % 5 == 0) ||  // 125 : 1.25 * 100 && 5 : drop frame inteval
+        (rate == 175 && dropFrameArray[surface_sink->renderCnt % 7]) ||  // 175 : 1.75 * 100 && 7 : drop frame inteval
+        (rate == 200 && surface_sink->renderCnt % 2 == 0)) {  // 200 : 2.00 * 100 && 2 : drop frame inteval
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, GstBuffer *buffer, bool is_preroll)
 {
     g_return_val_if_fail(memsink != nullptr && buffer != nullptr, GST_FLOW_ERROR);
@@ -230,6 +253,12 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
     g_return_val_if_fail(surface_sink != nullptr, GST_FLOW_ERROR);
     GstSurfaceMemSinkPrivate *priv = surface_sink->priv;
     GST_OBJECT_LOCK(surface_sink);
+
+    if (gst_surface_mem_sink_drop_frame_check(surface_sink) == FALSE) {
+        GST_OBJECT_UNLOCK(surface_sink);
+        GST_DEBUG_OBJECT(surface_sink, "user set rate, drop same frame");
+        return GST_FLOW_OK;
+    }
 
     if (surface_sink->firstRenderFrame) {
         GST_WARNING_OBJECT(surface_sink, "KPI-TRACE: first render frame");
