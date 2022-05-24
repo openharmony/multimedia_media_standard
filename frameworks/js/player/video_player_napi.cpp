@@ -75,6 +75,7 @@ napi_value VideoPlayerNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("setVolume", SetVolume),
         DECLARE_NAPI_FUNCTION("getTrackDescription", GetTrackDescription),
         DECLARE_NAPI_FUNCTION("setSpeed", SetSpeed),
+        DECLARE_NAPI_FUNCTION("selectBitRate", SelectBitRate),
 
         DECLARE_NAPI_GETTER_SETTER("dataSrc", GetDataSrc, SetDataSrc),
         DECLARE_NAPI_GETTER_SETTER("url", GetUrl, SetUrl),
@@ -867,6 +868,45 @@ napi_value VideoPlayerNapi::SetSpeed(napi_env env, napi_callback_info info)
     return result;
 }
 
+napi_value VideoPlayerNapi::SelectBitRate(napi_env env, napi_callback_info info)
+{
+    napi_value undefinedResult = nullptr;
+    napi_get_undefined(env, &undefinedResult);
+
+    MEDIA_LOGD("SelectBitRate In");
+    size_t argCount = 1;
+    napi_value args[1] = { nullptr };
+    napi_value jsThis = nullptr;
+    napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
+    if (status != napi_ok || jsThis == nullptr || args[0] == nullptr) {
+        MEDIA_LOGE("Failed to retrieve details about the callback");
+        return undefinedResult;
+    }
+
+    VideoPlayerNapi *jsPlayer = nullptr;
+    status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&jsPlayer));
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "Failed to retrieve instance");
+
+    napi_valuetype valueType = napi_undefined;
+    if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_boolean) {
+        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        return undefinedResult;
+    }
+
+    int32_t bitRate = 0;
+    status = napi_get_value_int32(env, args[0], &bitRate);
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_get_value_int32 error");
+
+    CHECK_AND_RETURN_RET_LOG(jsPlayer->nativePlayer_ != nullptr, undefinedResult, "No memory");
+    int32_t ret = jsPlayer->nativePlayer_->SelectBitRate(bitRate);
+    if (ret != MSERR_OK) {
+        jsPlayer->OnErrorCallback(MSERR_EXT_UNKNOWN);
+        return undefinedResult;
+    }
+    MEDIA_LOGD("SelectBitRate success");
+    return undefinedResult;
+}
+
 void VideoPlayerNapi::AsyncGetTrackDescription(napi_env env, void *data)
 {
     auto asyncContext = reinterpret_cast<VideoPlayerAsyncContext *>(data);
@@ -1048,7 +1088,6 @@ napi_value VideoPlayerNapi::SetLoop(napi_env env, napi_callback_info info)
     MEDIA_LOGD("SetLoop success");
     return undefinedResult;
 }
-
 
 napi_value VideoPlayerNapi::GetLoop(napi_env env, napi_callback_info info)
 {

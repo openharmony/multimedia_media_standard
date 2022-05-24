@@ -472,7 +472,60 @@ void PlayerCallbackNapi::OnJsCallBackIntVec(PlayerJsCallback *jsCb) const
             const size_t argCount = 2;
             napi_value result = nullptr;
             nstatus = napi_call_function(env, nullptr, jsCallback, argCount, args, &result);
-            CHECK_AND_BREAK_LOG(nstatus == napi_ok, "%{public}s fail to call seekDone callback", request.c_str());
+            CHECK_AND_BREAK_LOG(nstatus == napi_ok, "%{public}s fail to call callback", request.c_str());
+        } while (0);
+        delete event;
+        delete work;
+    });
+    if (ret != 0) {
+        MEDIA_LOGE("Failed to execute libuv work queue");
+        delete jsCb;
+        delete work;
+    }
+}
+
+void PlayerCallbackNapi::OnJsCallBackIntArray(PlayerJsCallback *jsCb) const
+{
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(env_, &loop);
+    if (loop == nullptr) {
+        delete jsCb;
+        return;
+    }
+
+    uv_work_t *work = new(std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        MEDIA_LOGE("No memory");
+        delete jsCb;
+        return;
+    }
+    work->data = reinterpret_cast<void *>(jsCb);
+
+    int ret = uv_queue_work(loop, work, [] (uv_work_t *work) {}, [] (uv_work_t *work, int status) {
+        // Js Thread
+        CHECK_AND_RETURN_LOG(work != nullptr, "work is nullptr");
+        PlayerJsCallback *event = reinterpret_cast<PlayerJsCallback *>(work->data);
+        std::string request = event->callbackName;
+        napi_env env = event->callback->env_;
+        napi_ref callback = event->callback->cb_;
+        MEDIA_LOGD("JsCallBack %{public}s, size = %{public}zu", request.c_str(), event->valueVec.size());
+
+        do {
+            CHECK_AND_BREAK_LOG(status != UV_ECANCELED, "%{public}s canceled", request.c_str());
+
+            napi_value jsCallback = nullptr;
+            napi_status nstatus = napi_get_reference_value(env, callback, &jsCallback);
+            CHECK_AND_BREAK_LOG(nstatus == napi_ok && jsCallback != nullptr,
+                "%{public}s failed call callback", request.c_str());
+
+            napi_value array = nullptr;
+            bool ret = CommonNapi::AddArrayInt(env, array, event->valueVec);
+            CHECK_AND_BREAK_LOG(ret == true, "%{public}s failed call callback", request.c_str());
+
+            napi_value result = nullptr;
+            napi_value args[1] = {array};
+            nstatus = napi_call_function(env, nullptr, jsCallback, 1, args, &result);
+            CHECK_AND_BREAK_LOG(nstatus == napi_ok, "%{public}s fail to call callback", request.c_str());
         } while (0);
         delete event;
         delete work;

@@ -868,6 +868,9 @@ static GstFlowReturn gst_vdec_base_handle_frame(GstVideoDecoder *decoder, GstVid
             return GST_FLOW_ERROR;
         }
 
+        /* When the resolution of HLS changes, the new one will block on the pad port and wait for connection.
+            At this time, if the seek operation is issued, the pad port will be activated. At this time,
+            the negotiation is unreliable and the frame data needs to be refreshed */
         if (gst_vdec_base_is_flushing(self)) {
             return GST_FLOW_FLUSHING;
         }

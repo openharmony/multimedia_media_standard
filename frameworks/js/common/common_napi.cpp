@@ -325,6 +325,24 @@ bool CommonNapi::AddArrayProperty(napi_env env, napi_value obj, const std::strin
     return true;
 }
 
+bool CommonNapi::AddArrayInt(napi_env env, napi_value &array, const std::vector<int32_t> &vec)
+{
+    if (vec.size() == 0) {
+        return false;
+    }
+
+    napi_status status = napi_create_array_with_length(env, vec.size(), &array);
+    CHECK_AND_RETURN_RET(status == napi_ok, false);
+
+    for (uint32_t i = 0; i < vec.size(); i++) {
+        napi_value number = nullptr;
+        (void)napi_create_int32(env, vec.at(i), &number);
+        (void)napi_set_element(env, array, i, number);
+    }
+
+    return true;
+}
+
 bool CommonNapi::SetPropertyInt32(napi_env env, napi_value &obj, const std::string &key, int32_t value)
 {
     CHECK_AND_RETURN_RET(obj != nullptr, false);

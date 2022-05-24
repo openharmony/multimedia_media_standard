@@ -74,6 +74,7 @@ private:
     void OnSeekDoneCb(int32_t position);
     void OnSpeedDoneCb(int32_t speedMode);
     void OnVolumeDoneCb();
+    void OnBitRateCb(const Format &infoBody) const;
     void DequeueAsyncWork();
     static void UvWorkCallBack(uv_work_t *work, int status);
     void OnJsCallBack(VideoPlayerAsyncContext *context) const;
@@ -88,6 +89,7 @@ private:
     std::shared_ptr<AutoRef> startRenderFrameCallback_ = nullptr;
     std::shared_ptr<AutoRef> videoSizeChangedCallback_ = nullptr;
     std::shared_ptr<AutoRef> playbackCompletedCallback_ = nullptr;
+    std::shared_ptr<AutoRef> bitrateCallback_ = nullptr;
     int32_t width_ = 0;
     int32_t height_ = 0;
 };

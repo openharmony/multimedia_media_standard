@@ -465,6 +465,26 @@ int32_t PlayerServiceProxy::GetPlaybackSpeed(PlaybackRateMode &mode)
     return reply.ReadInt32();
 }
 
+int32_t PlayerServiceProxy::SelectBitRate(uint32_t bitRate)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(PlayerServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
+    data.WriteInt32(bitRate);
+    int error = Remote()->SendRequest(SET_BIT_RATE, data, reply, option);
+    if (error != MSERR_OK) {
+        MEDIA_LOGE("SelectBitRate failed, error: %{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
 int32_t PlayerServiceProxy::SetVideoSurface(sptr<Surface> surface)
 {
     MessageParcel data;
