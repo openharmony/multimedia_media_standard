@@ -89,7 +89,7 @@ public:
         GET_AUDIO_TRACK_INFO,
         GET_VIDEO_WIDTH,
         GET_VIDEO_HEIGHT,
-        SET_BIT_RATE
+        SELECT_BIT_RATE
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"IStandardPlayerService");

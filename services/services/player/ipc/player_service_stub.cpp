@@ -81,7 +81,7 @@ int32_t PlayerServiceStub::Init()
     playerFuncs_[GET_AUDIO_TRACK_INFO] = &PlayerServiceStub::GetAudioTrackInfo;
     playerFuncs_[GET_VIDEO_WIDTH] = &PlayerServiceStub::GetVideoWidth;
     playerFuncs_[GET_VIDEO_HEIGHT] = &PlayerServiceStub::GetVideoHeight;
-    playerFuncs_[SET_BIT_RATE] = &PlayerServiceStub::SelectBitRate;
+    playerFuncs_[SELECT_BIT_RATE] = &PlayerServiceStub::SelectBitRate;
     return MSERR_OK;
 }
 

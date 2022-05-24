@@ -175,7 +175,7 @@ int32_t GstPlayerCtrl::SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs)
     signalIds_.push_back(g_signal_connect(gstPlayer_, "resolution-changed", G_CALLBACK(OnResolutionChanegdCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "element-setup", G_CALLBACK(OnElementSetupCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "bitrate-parse-complete",
-        G_CALLBACK(OnManifestParseCompleteCb), this));
+        G_CALLBACK(OnBitRateParseCompleteCb), this));
 
     obs_ = obs;
     currentState_ = PLAYER_PREPARING;
@@ -285,17 +285,17 @@ void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, G
     }
 }
 
-void GstPlayerCtrl::OnManifestParseCompleteCb(const GstPlayer *player,
+void GstPlayerCtrl::OnBitRateParseCompleteCb(const GstPlayer *player,
     uint32_t *bitrateInfo, uint32_t bitrateNum, GstPlayerCtrl *playerGst)
 {
     CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
     CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
     CHECK_AND_RETURN_LOG(bitrateInfo != nullptr, "bitrateInfo is null");
 
-    playerGst->OnManifestParseComplete(bitrateInfo, bitrateNum);
+    playerGst->OnBitRateParseComplete(bitrateInfo, bitrateNum);
 }
 
-void GstPlayerCtrl::OnManifestParseComplete(uint32_t *bitrateInfo, uint32_t bitrateNum)
+void GstPlayerCtrl::OnBitRateParseComplete(uint32_t *bitrateInfo, uint32_t bitrateNum)
 {
     MEDIA_LOGD("bitrateNum = %{public}u", bitrateNum);
     for (uint32_t i = 0; i < bitrateNum; i++) {

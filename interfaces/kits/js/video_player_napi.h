@@ -91,8 +91,8 @@ private:
     static napi_value SetVolume(napi_env env, napi_callback_info info);
 
     /**
-     * SelectBitRate(vol: number, callback:AsyncCallback<void>): void
-     * SelectBitRate(vol: number): Promise<void>
+     * SelectBitRate(bitRate: number, callback:AsyncCallback<void>): void
+     * SelectBitRate(bitRate: number): Promise<void>
      */
     static napi_value SelectBitRate(napi_env env, napi_callback_info info);
 

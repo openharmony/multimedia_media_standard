@@ -75,7 +75,7 @@ public:
     static void OnElementSetupCb(const GstPlayer *player, GstElement *src, GstPlayerCtrl *playerGst);
     static void OnResolutionChanegdCb(const GstPlayer *player,
         int32_t width, int32_t height, GstPlayerCtrl *playerGst);
-    static void OnManifestParseCompleteCb(const GstPlayer *player, uint32_t *bitrateInfo,
+    static void OnBitRateParseCompleteCb(const GstPlayer *player, uint32_t *bitrateInfo,
         uint32_t bitrateNum, GstPlayerCtrl *playerGst);
     static void OnCachedPercentCb(const GstPlayer *player, guint percent, GstPlayerCtrl *playerGst);
     static void OnBufferingTimeCb(const GstPlayer *player, guint64 bufferingTime, guint mqNumId,
@@ -113,7 +113,7 @@ private:
     void ProcessBufferingTime(const GstPlayer *cbPlayer, guint64 bufferingTime, guint mqNumId);
     void ProcessMqNumUseBuffering(const GstPlayer *cbPlayer, uint32_t mqNumUseBuffering);
     void RemoveGstPlaySinkVideoConvertPlugin();
-    void OnManifestParseComplete(uint32_t *bitrateInfo, uint32_t bitrateNum);
+    void OnBitRateParseComplete(uint32_t *bitrateInfo, uint32_t bitrateNum);
     bool IsLiveMode() const;
     bool SetAudioRendererInfo(const Format &param);
     std::mutex mutex_;
