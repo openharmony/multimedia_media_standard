@@ -57,6 +57,7 @@ public:
     int32_t SetParameter(const Format &param) override;
     int32_t SetPlayerCallback(const std::shared_ptr<PlayerCallback> &callback) override;
     int32_t DumpInfo(int32_t fd);
+    int32_t SelectBitRate(uint32_t bitRate) override;
 
     // IPlayerEngineObs override
     void OnError(PlayerErrorType errorType, int32_t errorCode) override;

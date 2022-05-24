@@ -462,5 +462,15 @@ int32_t PlayerEngineGstImpl::SetVolume(float leftVolume, float rightVolume)
     }
     return MSERR_OK;
 }
+
+int32_t PlayerEngineGstImpl::SelectBitRate(uint32_t bitRate)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (playerCtrl_ != nullptr) {
+        MEDIA_LOGD("SelectBitRate in");
+        playerCtrl_->SelectBitRate(bitRate);
+    }
+    return MSERR_OK;
+}
 } // namespace Media
 } // namespace OHOS

@@ -219,6 +219,13 @@ int32_t PlayerClient::GetPlaybackSpeed(PlaybackRateMode &mode)
     return playerProxy_->GetPlaybackSpeed(mode);
 }
 
+int32_t PlayerClient::SelectBitRate(uint32_t bitRate)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
+    return playerProxy_->SelectBitRate(bitRate);
+}
+
 int32_t PlayerClient::GetDuration(int32_t &duration)
 {
     std::lock_guard<std::mutex> lock(mutex_);

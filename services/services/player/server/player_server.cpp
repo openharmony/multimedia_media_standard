@@ -548,6 +548,16 @@ int32_t PlayerServer::GetPlaybackSpeed(PlaybackRateMode &mode)
     return MSERR_OK;
 }
 
+int32_t PlayerServer::SelectBitRate(uint32_t bitRate)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (playerEngine_ != nullptr) {
+        int ret = playerEngine_->SelectBitRate(bitRate);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine SelectBitRate Failed!");
+    }
+    return MSERR_OK;
+}
+
 int32_t PlayerServer::SetVideoSurface(sptr<Surface> surface)
 {
     std::lock_guard<std::mutex> lock(mutex_);

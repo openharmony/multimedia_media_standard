@@ -114,6 +114,15 @@ void GstPlayerCtrl::SetBufferingInfo()
         "high-percent", BUFFER_HIGH_PERCENT_DEFAULT, nullptr);
 }
 
+void GstPlayerCtrl::SelectBitRate(uint32_t bitRate)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
+    MEDIA_LOGD("SelectBitRate bitRate = %{public}u", bitRate);
+
+    g_object_set(gstPlayer_, "connection-speed", static_cast<uint64_t>(bitRate), nullptr);
+}
+
 void GstPlayerCtrl::SetHttpTimeOut()
 {
     std::unique_lock<std::mutex> lock(mutex_);
@@ -165,6 +174,8 @@ int32_t GstPlayerCtrl::SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs)
     signalIds_.push_back(g_signal_connect(gstPlayer_, "mq-num-use-buffering", G_CALLBACK(OnMqNumUseBufferingCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "resolution-changed", G_CALLBACK(OnResolutionChanegdCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "element-setup", G_CALLBACK(OnElementSetupCb), this));
+    signalIds_.push_back(g_signal_connect(gstPlayer_, "bitrate-parse-complete",
+        G_CALLBACK(OnManifestParseCompleteCb), this));
 
     obs_ = obs;
     currentState_ = PLAYER_PREPARING;
@@ -271,6 +282,32 @@ void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, G
             g_object_set(G_OBJECT(src), "cache-buffers-num", DEFAULT_CACHE_BUFFERS, nullptr);
         }
         return;
+    }
+}
+
+void GstPlayerCtrl::OnManifestParseCompleteCb(const GstPlayer *player,
+    uint32_t *bitrateInfo, uint32_t bitrateNum, GstPlayerCtrl *playerGst)
+{
+    CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
+    CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
+    CHECK_AND_RETURN_LOG(bitrateInfo != nullptr, "bitrateInfo is null");
+
+    playerGst->OnManifestParseComplete(bitrateInfo, bitrateNum);
+}
+
+void GstPlayerCtrl::OnManifestParseComplete(uint32_t *bitrateInfo, uint32_t bitrateNum)
+{
+    MEDIA_LOGD("bitrateNum = %{public}u", bitrateNum);
+    for (uint32_t i = 0; i < bitrateNum; i++) {
+        MEDIA_LOGD("bitrate = %{public}u", bitrateInfo[i]);
+    }
+
+    Format format;
+    (void)format.PutBuffer(std::string(PlayerKeys::PLAYER_BITRATE),
+        static_cast<uint8_t *>(static_cast<void *>(bitrateInfo)), bitrateNum * sizeof(uint32_t));
+    std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
+    if (tempObs != nullptr) {
+        tempObs->OnInfo(INFO_TYPE_BITRATE, 0, format);
     }
 }
 
