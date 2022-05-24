@@ -48,10 +48,12 @@ public:
     void RunCase(const std::string &path);
 
 private:
+    void DoCmd(const std::string &cmd);
     void DoNext();
     void Seek(const std::string &cmd);
     void SetLoop(const std::string &cmd);
     void SetPlaybackSpeed(const std::string &cmd) const;
+    void SelectBitRate(const std::string &cmd) const;
     int32_t GetPlaying();
     int32_t GetLooping();
     void GetCurrentTime();
@@ -89,6 +91,7 @@ private:
     void PrintState(PlayerStates state) const;
     void PrintResolution(const Format &infoBody) const;
     void PrintBufferingUpdate(const Format &infoBody) const;
+    void PrintBitRate(const Format &infoBody) const;
     int32_t updateCount_ = 0;
     int32_t bufferingOut_ = 0;
     PlayerStates state_ = PLAYER_STATE_ERROR;

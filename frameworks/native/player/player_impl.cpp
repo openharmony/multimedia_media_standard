@@ -211,6 +211,13 @@ int32_t PlayerImpl::GetPlaybackSpeed(PlaybackRateMode &mode)
     return playerService_->GetPlaybackSpeed(mode);
 }
 
+int32_t PlayerImpl::SelectBitRate(uint32_t bitRate)
+{
+    CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
+
+    return playerService_->SelectBitRate(bitRate);
+}
+
 int32_t PlayerImpl::GetDuration(int32_t &duration)
 {
     CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");

@@ -63,6 +63,9 @@ void PlayerCallbackDemo::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
         case INFO_TYPE_BUFFERING_UPDATE:
             PrintBufferingUpdate(infoBody);
             break;
+        case INFO_TYPE_BITRATE_COLLECT:
+            PrintBitRate(infoBody);
+            break;
         case INFO_TYPE_STATE_CHANGE:
             state_ = static_cast<PlayerStates>(extra);
             PrintState(state_);
@@ -114,17 +117,46 @@ void PlayerCallbackDemo::PrintResolution(const Format &infoBody) const
 void PlayerCallbackDemo::PrintBufferingUpdate(const Format &infoBody) const
 {
     int32_t value = 0;
-    if (infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_START), value)) {
+    if (infoBody.ContainKey(std::string(PlayerKeys::PLAYER_BUFFERING_START))) {
+        infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_START), value);
         cout << "PlayerCallback: OnMessage is buffering start" << endl;
-    } else if (infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_END), value)) {
+    } else if (infoBody.ContainKey(std::string(PlayerKeys::PLAYER_BUFFERING_END))) {
+        infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_END), value);
         cout << "PlayerCallback: OnMessage is buffering end" << endl;
-    } else if (infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_PERCENT), value)) {
+    } else if (infoBody.ContainKey(std::string(PlayerKeys::PLAYER_BUFFERING_PERCENT))) {
+        infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_PERCENT), value);
         if ((static_cast<uint32_t>(bufferingOut_) & PERCENT) == PERCENT) {
             cout << "OnBufferingPercent update is " << value << "%" << endl;
         }
-    } else if (infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_CACHED_DURATION), value)) {
+    } else if (infoBody.ContainKey(std::string(PlayerKeys::PLAYER_CACHED_DURATION))) {
+        infoBody.GetIntValue(std::string(PlayerKeys::PLAYER_CACHED_DURATION), value);
         if ((static_cast<uint32_t>(bufferingOut_) & TIME) == TIME) {
             cout << "OnCachedDuration update is " << value << "ms" << endl;
+        }
+    }
+}
+
+void PlayerCallbackDemo::PrintBitRate(const Format &infoBody) const
+{
+    uint8_t *addr = nullptr;
+    size_t size  = 0;
+    uint32_t bitrate = 0;
+    if (infoBody.ContainKey(std::string(PlayerKeys::PLAYER_BITRATE))) {
+        infoBody.GetBuffer(std::string(PlayerKeys::PLAYER_BITRATE), &addr, size);
+        if (addr == nullptr) {
+            return;
+        }
+
+        while (size > 0) {
+            if ((size - sizeof(uint32_t)) < 0) {
+                break;
+            }
+
+            bitrate = *(static_cast<uint32_t *>(static_cast<void *>(addr)));
+            cout << "hls bitrate : " << bitrate << endl;
+
+            addr += sizeof(uint32_t);
+            size -= sizeof(uint32_t);
         }
     }
 }
@@ -345,6 +377,21 @@ void PlayerDemo::SetPlaybackSpeed(const std::string &cmd) const
     }
 }
 
+void PlayerDemo::SelectBitRate(const std::string &cmd) const
+{
+    int32_t bitRate = 0;
+    if (!StrToInt(cmd, bitRate)) {
+        cout << "You need to configure the loop parameter" << endl;
+        return;
+    }
+
+    if (player_->SelectBitRate(bitRate) != 0) {
+        cout << "Operation Failed" << endl;
+    } else {
+        cout << "Operation OK" << endl;
+    }
+}
+
 void PlayerDemo::SetLoop(const std::string &cmd)
 {
     int32_t loopEn = -1;
@@ -380,6 +427,36 @@ void PlayerDemo::GetCurrentTime()
     cout << "GetCurrentTime:" << time << endl;
 }
 
+void PlayerDemo::DoCmd(const std::string &cmd)
+{
+    if (cmd.find("source ") != std::string::npos) {
+        (void)SelectSource(cmd.substr(cmd.find("source ") + std::string("source ").length()));
+    } else if (cmd.find("seek ") != std::string::npos) {
+        Seek(cmd.substr(cmd.find("seek ") + std::string("seek ").length()));
+    } else if (cmd.find("volume ") != std::string::npos) {
+        std::string volume = cmd.substr(cmd.find("volume ") + std::string("volume ").length());
+        if (!volume.empty()) {
+            (void)player_->SetVolume(std::stof(volume.c_str()), std::stof(volume.c_str()));
+        }
+    } else if (cmd.find("duration") != std::string::npos) {
+        int32_t duration = -1;
+        (void)player_->GetDuration(duration);
+        cout << "GetDuration:" << duration << endl;
+    } else if (cmd.find("time") != std::string::npos) {
+        GetCurrentTime();
+    } else if (cmd.find("loop ") != std::string::npos) {
+        SetLoop(cmd.substr(cmd.find("loop ") + std::string("loop ").length()));
+    } else if (cmd.find("speed ") != std::string::npos) {
+        SetPlaybackSpeed(cmd.substr(cmd.find("speed ") + std::string("speed ").length()));
+    } else if (cmd.find("trackinfo") != std::string::npos) {
+        GetTrackInfo();
+    } else if (cmd.find("videosize") != std::string::npos) {
+        cout << "video width: " << player_->GetVideoWidth() << ", height: " << player_->GetVideoHeight();
+    } else if (cmd.find("bitrate ") != std::string::npos) {
+        SelectBitRate(cmd.substr(cmd.find("bitrate ") + std::string("bitrate ").length()));
+    }
+}
+
 void PlayerDemo::DoNext()
 {
     std::string cmd;
@@ -394,40 +471,11 @@ void PlayerDemo::DoNext()
                 dataSrc_->Reset();
             }
             continue;
-        } else if (cmd.find("source ") != std::string::npos) {
-            (void)SelectSource(cmd.substr(cmd.find("source ") + std::string("source ").length()));
-            continue;
-        } else if (cmd.find("seek ") != std::string::npos) {
-            Seek(cmd.substr(cmd.find("seek ") + std::string("seek ").length()));
-            continue;
-        } else if (cmd.find("volume ") != std::string::npos) {
-            std::string volume = cmd.substr(cmd.find("volume ") + std::string("volume ").length());
-            if (!volume.empty()) {
-                (void)player_->SetVolume(std::stof(volume.c_str()), std::stof(volume.c_str()));
-            }
-            continue;
-        } else if (cmd.find("duration") != std::string::npos) {
-            int32_t duration = -1;
-            (void)player_->GetDuration(duration);
-            cout << "GetDuration:" << duration << endl;
-            continue;
-        } else if (cmd.find("time") != std::string::npos) {
-            GetCurrentTime();
-            continue;
-        } else if (cmd.find("loop ") != std::string::npos) {
-            SetLoop(cmd.substr(cmd.find("loop ") + std::string("loop ").length()));
-            continue;
-        } else if (cmd.find("speed ") != std::string::npos) {
-            SetPlaybackSpeed(cmd.substr(cmd.find("speed ") + std::string("speed ").length()));
-            continue;
-        } else if (cmd.find("trackinfo") != std::string::npos) {
-            GetTrackInfo();
-            continue;
-        } else if (cmd.find("videosize") != std::string::npos) {
-            cout << "video width: " << player_->GetVideoWidth() << ", height: " << player_->GetVideoHeight();
-            continue;
         } else if (cmd.find("quit") != std::string::npos || cmd == "q") {
             break;
+        } else {
+            DoCmd(cmd);
+            continue;
         }
     }
 }

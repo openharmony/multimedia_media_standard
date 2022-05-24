@@ -243,6 +243,17 @@ public:
     virtual int32_t SetPlaybackSpeed(PlaybackRateMode mode) = 0;
 
     /**
+     * @brief set the bit rate use for hls player
+     *
+     * @param bitRate the bit rate.
+     * @return Returns {@link MSERR_OK} if the bit rate is set successfully; returns an error code defined
+     * in {@link media_errors.h} otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    virtual int32_t SelectBitRate(uint32_t bitRate) = 0;
+
+    /**
      * @brief get the current player playback rate
      *
      * @param mode the rate mode {@link PlaybackRateMode} which can get.

@@ -53,6 +53,7 @@ public:
         const std::vector<int32_t> &vec);
     static bool AddNumberPropInt32(napi_env env, napi_value obj, const std::string &key, int32_t value);
     static bool AddNumberPropInt64(napi_env env, napi_value obj, const std::string &key, int64_t value);
+    static bool AddArrayInt(napi_env env, napi_value &array, const std::vector<int32_t> &vec);
 };
 
 class MediaJsResult {
