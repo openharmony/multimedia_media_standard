@@ -42,6 +42,7 @@ ohos_shared_library("media") {
     "//foundation/multimedia/media_standard/frameworks/js/common",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//third_party/libuv/include",
+    "//third_party/bounds_checking_function/include",
   ]
 
   sources = [
@@ -103,8 +104,8 @@ ohos_shared_library("media") {
     "//foundation/graphic/graphic/frameworks/surface:surface",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//third_party/bounds_checking_function:libsec_static",
     "//utils/native/base:utils",
-    "//utils/native/base:utilsecurec",
   ]
 
   external_deps = [
