@@ -427,6 +427,36 @@ void PlayerDemo::GetCurrentTime()
     cout << "GetCurrentTime:" << time << endl;
 }
 
+void PlayerDemo::DoCmd(const std::string &cmd) const
+{
+    if (cmd.find("source ") != std::string::npos) {
+        (void)SelectSource(cmd.substr(cmd.find("source ") + std::string("source ").length()));
+    } else if (cmd.find("seek ") != std::string::npos) {
+        Seek(cmd.substr(cmd.find("seek ") + std::string("seek ").length()));
+    } else if (cmd.find("volume ") != std::string::npos) {
+        std::string volume = cmd.substr(cmd.find("volume ") + std::string("volume ").length());
+        if (!volume.empty()) {
+            (void)player_->SetVolume(std::stof(volume.c_str()), std::stof(volume.c_str()));
+        }
+    } else if (cmd.find("duration") != std::string::npos) {
+        int32_t duration = -1;
+        (void)player_->GetDuration(duration);
+        cout << "GetDuration:" << duration << endl;
+    } else if (cmd.find("time") != std::string::npos) {
+        GetCurrentTime();
+    } else if (cmd.find("loop ") != std::string::npos) {
+        SetLoop(cmd.substr(cmd.find("loop ") + std::string("loop ").length()));
+    } else if (cmd.find("speed ") != std::string::npos) {
+        SetPlaybackSpeed(cmd.substr(cmd.find("speed ") + std::string("speed ").length()));
+    } else if (cmd.find("trackinfo") != std::string::npos) {
+        GetTrackInfo();
+    } else if (cmd.find("videosize") != std::string::npos) {
+        cout << "video width: " << player_->GetVideoWidth() << ", height: " << player_->GetVideoHeight();
+    } else if (cmd.find("bitrate ") != std::string::npos) {
+        SelectBitRate(cmd.substr(cmd.find("bitrate ") + std::string("bitrate ").length()));
+    }
+}
+
 void PlayerDemo::DoNext()
 {
     std::string cmd;
@@ -441,43 +471,11 @@ void PlayerDemo::DoNext()
                 dataSrc_->Reset();
             }
             continue;
-        } else if (cmd.find("source ") != std::string::npos) {
-            (void)SelectSource(cmd.substr(cmd.find("source ") + std::string("source ").length()));
-            continue;
-        } else if (cmd.find("seek ") != std::string::npos) {
-            Seek(cmd.substr(cmd.find("seek ") + std::string("seek ").length()));
-            continue;
-        } else if (cmd.find("volume ") != std::string::npos) {
-            std::string volume = cmd.substr(cmd.find("volume ") + std::string("volume ").length());
-            if (!volume.empty()) {
-                (void)player_->SetVolume(std::stof(volume.c_str()), std::stof(volume.c_str()));
-            }
-            continue;
-        } else if (cmd.find("duration") != std::string::npos) {
-            int32_t duration = -1;
-            (void)player_->GetDuration(duration);
-            cout << "GetDuration:" << duration << endl;
-            continue;
-        } else if (cmd.find("time") != std::string::npos) {
-            GetCurrentTime();
-            continue;
-        } else if (cmd.find("loop ") != std::string::npos) {
-            SetLoop(cmd.substr(cmd.find("loop ") + std::string("loop ").length()));
-            continue;
-        } else if (cmd.find("speed ") != std::string::npos) {
-            SetPlaybackSpeed(cmd.substr(cmd.find("speed ") + std::string("speed ").length()));
-            continue;
-        } else if (cmd.find("trackinfo") != std::string::npos) {
-            GetTrackInfo();
-            continue;
-        } else if (cmd.find("videosize") != std::string::npos) {
-            cout << "video width: " << player_->GetVideoWidth() << ", height: " << player_->GetVideoHeight();
-            continue;
-        } else if (cmd.find("bitrate ") != std::string::npos) {
-            SelectBitRate(cmd.substr(cmd.find("bitrate ") + std::string("bitrate ").length()));
-            continue;
         } else if (cmd.find("quit") != std::string::npos || cmd == "q") {
             break;
+        } else {
+            DoCmd(cmd);
+            continue;
         }
     }
 }
