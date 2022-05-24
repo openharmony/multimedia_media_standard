@@ -361,6 +361,30 @@ static gboolean gst_vdec_base_start(GstVideoDecoder *decoder)
     return TRUE;
 }
 
+static void gst_vdec_base_stop_after(GstVdecBase *self)
+{
+    g_return_if_fail(self != nullptr);
+    self->prepared = FALSE;
+    self->input.first_frame = TRUE;
+    self->output.first_frame = TRUE;
+    self->decoder_start = FALSE;
+    self->pre_init_pool = FALSE;
+    self->performance_mode = FALSE;
+    gst_vdec_base_set_flushing(self, FALSE);
+    if (self->input.dump_file != nullptr) {
+        fclose(self->input.dump_file);
+        self->input.dump_file = nullptr;
+    }
+    if (self->output.dump_file != nullptr) {
+        fclose(self->output.dump_file);
+        self->output.dump_file = nullptr;
+    }
+    if (self->sink_caps) {
+        gst_caps_unref(self->sink_caps);
+        self->sink_caps = nullptr;
+    }
+}
+
 static gboolean gst_vdec_base_stop(GstVideoDecoder *decoder)
 {
     GstVdecBase *self = GST_VDEC_BASE(decoder);
@@ -398,26 +422,8 @@ static gboolean gst_vdec_base_stop(GstVideoDecoder *decoder)
         gst_object_unref(self->outpool);
         self->outpool = nullptr;
     }
-    self->prepared = FALSE;
-    self->input.first_frame = TRUE;
-    self->output.first_frame = TRUE;
-    self->decoder_start = FALSE;
-    self->pre_init_pool = FALSE;
-    self->performance_mode = FALSE;
-    gst_vdec_base_set_flushing(self, FALSE);
+    gst_vdec_base_stop_after(self);
     GST_DEBUG_OBJECT(self, "Stop decoder end");
-    if (self->input.dump_file != nullptr) {
-        fclose(self->input.dump_file);
-        self->input.dump_file = nullptr;
-    }
-    if (self->output.dump_file != nullptr) {
-        fclose(self->output.dump_file);
-        self->output.dump_file = nullptr;
-    }
-    if (self->sink_caps) {
-        gst_caps_unref(self->sink_caps);
-        self->sink_caps = nullptr;
-    }
     return TRUE;
 }
 
@@ -1212,6 +1218,11 @@ static gboolean gst_vdec_caps_fix_sink_caps(GstVdecBase *self)
     g_return_val_if_fail(templ_caps != nullptr, FALSE);
     ON_SCOPE_EXIT(0) { gst_caps_unref(templ_caps); };
     GstCaps *pool_caps = gst_caps_intersect(self->sink_caps, templ_caps);
+    if (gst_caps_is_empty(pool_caps)) {
+        gst_caps_unref(pool_caps);
+        GST_ERROR_OBJECT(self, "pool caps is null with sink caps%" GST_PTR_FORMAT, self->sink_caps);
+        return FALSE;
+    }
     pool_caps = gst_caps_fixate(pool_caps);
     g_return_val_if_fail(pool_caps != nullptr, FALSE);
     gst_caps_unref(self->sink_caps);
