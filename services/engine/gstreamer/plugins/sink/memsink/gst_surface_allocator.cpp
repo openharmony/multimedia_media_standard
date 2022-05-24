@@ -53,6 +53,11 @@ GstSurfaceMemory *gst_surface_allocator_alloc(GstSurfaceAllocator *allocator, Gs
     if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK || surface_buffer == nullptr) {
         return nullptr;
     }
+    ret = surface_buffer->Map();
+    if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
+        GST_ERROR("surface_buffer Map failed");
+        return nullptr;
+    }
     OHOS::sptr<OHOS::SyncFence> autoFence = new(std::nothrow) OHOS::SyncFence(release_fence);
     if (autoFence != nullptr) {
         autoFence->Wait(100); // 100ms
