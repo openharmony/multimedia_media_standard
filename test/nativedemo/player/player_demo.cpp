@@ -427,7 +427,7 @@ void PlayerDemo::GetCurrentTime()
     cout << "GetCurrentTime:" << time << endl;
 }
 
-void PlayerDemo::DoCmd(const std::string &cmd) const
+void PlayerDemo::DoCmd(const std::string &cmd)
 {
     if (cmd.find("source ") != std::string::npos) {
         (void)SelectSource(cmd.substr(cmd.find("source ") + std::string("source ").length()));
