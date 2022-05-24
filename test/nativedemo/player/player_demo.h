@@ -48,6 +48,7 @@ public:
     void RunCase(const std::string &path);
 
 private:
+    void DoCmd(const std::string &cmd) const;
     void DoNext();
     void Seek(const std::string &cmd);
     void SetLoop(const std::string &cmd);
