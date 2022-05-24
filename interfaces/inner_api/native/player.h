@@ -408,14 +408,12 @@ public:
 
     /**
      * @brief set the bit rate use for hls player
-     * 
      * the playback bitrate expressed in bits per second, expressed in bits per second,
      * which is only valid for HLS protocol network flow. By default,
      * the player will select the appropriate bit rate and speed according to the network connection.
      * report the effective bit rate linked list by "INFO_TYPE_BITRATE_COLLECT"
      * set and select the specified bit rate, and select the bit rate that is less than and closest
      * to the specified bit rate for playback. When ready, read it to query the currently selected bit rate.
-     * 
      * @param bitRate the bit rate, The unit is bps.
      * @return Returns {@link MSERR_OK} if the bit rate is set successfully; returns an error code defined
      * in {@link media_errors.h} otherwise.
