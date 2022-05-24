@@ -99,7 +99,7 @@ enum PlayerOnInfoType : int32_t {
     INFO_TYPE_BUFFERING_UPDATE,
     /* return hls bitrate.
        Bitrate is to convert data into uint8_t array storage,
-       which needs to be forcibly converted to uint32_t through offset access*/
+       which needs to be forcibly converted to uint32_t through offset access. */
     INFO_TYPE_BITRATE,
     /* return the message with extra information in format. */
     INFO_TYPE_EXTRA_FORMAT
