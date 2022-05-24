@@ -477,7 +477,7 @@ int32_t PlayerServiceProxy::SelectBitRate(uint32_t bitRate)
     }
 
     data.WriteInt32(bitRate);
-    int error = Remote()->SendRequest(SET_BIT_RATE, data, reply, option);
+    int error = Remote()->SendRequest(SELECT_BIT_RATE, data, reply, option);
     if (error != MSERR_OK) {
         MEDIA_LOGE("SelectBitRate failed, error: %{public}d", error);
         return error;
