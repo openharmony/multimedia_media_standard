@@ -307,7 +307,7 @@ void GstPlayerCtrl::OnManifestParseComplete(uint32_t *bitrateInfo, uint32_t bitr
         static_cast<uint8_t *>(static_cast<void *>(bitrateInfo)), bitrateNum * sizeof(uint32_t));
     std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
     if (tempObs != nullptr) {
-        tempObs->OnInfo(INFO_TYPE_BITRATE, 0, format);
+        tempObs->OnInfo(INFO_TYPE_BITRATE_COLLECT, 0, format);
     }
 }
 

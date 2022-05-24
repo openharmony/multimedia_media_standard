@@ -57,7 +57,7 @@ int PlayerListenerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mess
             if (type == INFO_TYPE_EXTRA_FORMAT ||
                 type == INFO_TYPE_RESOLUTION_CHANGE ||
                 type == INFO_TYPE_BUFFERING_UPDATE ||
-                type == INFO_TYPE_BITRATE) {
+                type == INFO_TYPE_BITRATE_COLLECT) {
                 (void)MediaParcel::Unmarshalling(data, format);
             } else {
                 extra = data.ReadInt32();

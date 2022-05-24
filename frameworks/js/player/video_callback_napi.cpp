@@ -22,7 +22,7 @@ constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "VideoCallb
 const std::string START_RENDER_FRAME_CALLBACK_NAME = "startRenderFrame";
 const std::string VIDEO_SIZE_CHANGED_CALLBACK_NAME = "videoSizeChanged";
 const std::string PLAYBACK_COMPLETED_CALLBACK_NAME = "playbackCompleted";
-const std::string BITRATE_UPDATE_CALLBACK_NAME = "bitrateUpdate";
+const std::string BITRATE_COLLECTED_CALLBACK_NAME = "availableBitrateCollected";
 }
 
 namespace OHOS {
@@ -45,7 +45,7 @@ void VideoCallbackNapi::SaveCallbackReference(const std::string &callbackName, n
     if ((callbackName == START_RENDER_FRAME_CALLBACK_NAME) ||
         (callbackName == VIDEO_SIZE_CHANGED_CALLBACK_NAME) ||
         (callbackName == PLAYBACK_COMPLETED_CALLBACK_NAME) ||
-        (callbackName == BITRATE_UPDATE_CALLBACK_NAME)) {
+        (callbackName == BITRATE_COLLECTED_CALLBACK_NAME)) {
         napi_ref callback = nullptr;
         napi_status status = napi_create_reference(env_, args, 1, &callback);
         CHECK_AND_RETURN_LOG(status == napi_ok && callback != nullptr, "creating reference for callback fail");
@@ -56,8 +56,8 @@ void VideoCallbackNapi::SaveCallbackReference(const std::string &callbackName, n
             videoSizeChangedCallback_ = cb;
         } else if (callbackName == PLAYBACK_COMPLETED_CALLBACK_NAME) {
             playbackCompletedCallback_= cb;
-        } else if (callbackName == BITRATE_UPDATE_CALLBACK_NAME) {
-            bitrateCallback_ = cb;
+        } else if (callbackName == BITRATE_COLLECTED_CALLBACK_NAME) {
+            bitrateColledtedCallback_ = cb;
         } else {
             MEDIA_LOGW("Unknown callback type: %{public}s", callbackName.c_str());
         }
@@ -147,8 +147,8 @@ void VideoCallbackNapi::OnInfo(PlayerOnInfoType type, int32_t extra, const Forma
         case INFO_TYPE_VOLUME_CHANGE:
             VideoCallbackNapi::OnVolumeDoneCb();
             break;
-        case INFO_TYPE_BITRATE:
-            VideoCallbackNapi::OnBitRateCb(infoBody);
+        case INFO_TYPE_BITRATE_COLLECT:
+            VideoCallbackNapi::OnBitRateCollectedCb(infoBody);
             break;
         default:
             // video + audio common info
@@ -315,14 +315,14 @@ void VideoCallbackNapi::OnStateChangeCb(PlayerStates state)
     }
 }
 
-void VideoCallbackNapi::OnBitRateCb(const Format &infoBody) const
+void VideoCallbackNapi::OnBitRateCollectedCb(const Format &infoBody) const
 {
-    CHECK_AND_RETURN_LOG(bitrateCallback_ != nullptr, "Cannot find the reference of bitrate callback");
+    CHECK_AND_RETURN_LOG(bitrateColledtedCallback_ != nullptr, "Cannot find the reference of bitrate callback");
 
     PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
     CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
-    cb->callback = bitrateCallback_;
-    cb->callbackName = BITRATE_UPDATE_CALLBACK_NAME;
+    cb->callback = bitrateColledtedCallback_;
+    cb->callbackName = BITRATE_COLLECTED_CALLBACK_NAME;
 
     uint8_t *addr = nullptr;
     size_t size  = 0;
