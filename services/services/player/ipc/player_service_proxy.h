@@ -53,6 +53,7 @@ public:
     int32_t SetParameter(const Format &param) override;
     int32_t DestroyStub() override;
     int32_t SetPlayerCallback() override;
+    int32_t SelectBitRate(uint32_t bitRate) override;
 
 private:
     static inline BrokerDelegator<PlayerServiceProxy> delegator_;

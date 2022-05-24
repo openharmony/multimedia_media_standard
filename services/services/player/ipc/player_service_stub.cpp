@@ -81,6 +81,7 @@ int32_t PlayerServiceStub::Init()
     playerFuncs_[GET_AUDIO_TRACK_INFO] = &PlayerServiceStub::GetAudioTrackInfo;
     playerFuncs_[GET_VIDEO_WIDTH] = &PlayerServiceStub::GetVideoWidth;
     playerFuncs_[GET_VIDEO_HEIGHT] = &PlayerServiceStub::GetVideoHeight;
+    playerFuncs_[SELECT_BIT_RATE] = &PlayerServiceStub::SelectBitRate;
     return MSERR_OK;
 }
 
@@ -260,6 +261,12 @@ int32_t PlayerServiceStub::GetPlaybackSpeed(PlaybackRateMode &mode)
 {
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->GetPlaybackSpeed(mode);
+}
+
+int32_t PlayerServiceStub::SelectBitRate(uint32_t bitRate)
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->SelectBitRate(bitRate);
 }
 
 int32_t PlayerServiceStub::SetVideoSurface(sptr<Surface> surface)
@@ -480,6 +487,13 @@ int32_t PlayerServiceStub::GetPlaybackSpeed(MessageParcel &data, MessageParcel &
     int32_t ret = GetPlaybackSpeed(mode);
     reply.WriteInt32(mode);
     reply.WriteInt32(ret);
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::SelectBitRate(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t bitrate = data.ReadInt32();
+    reply.WriteInt32(SelectBitRate(static_cast<uint32_t>(bitrate)));
     return MSERR_OK;
 }
 

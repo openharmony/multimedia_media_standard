@@ -52,6 +52,7 @@ protected:
     void OnJsCallBackError(PlayerJsCallback *jsCb) const;
     void OnJsCallBackInt(PlayerJsCallback *jsCb) const;
     void OnJsCallBackIntVec(PlayerJsCallback *jsCb) const;
+    void OnJsCallBackIntArray(PlayerJsCallback *jsCb) const;
 
 private:
     void OnSeekDoneCb(int32_t currentPositon) const;

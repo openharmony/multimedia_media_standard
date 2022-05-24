@@ -60,6 +60,11 @@ public:
     virtual int32_t SetLooping(bool loop) = 0;
     virtual int32_t SetParameter(const Format &param) = 0;
     virtual int32_t SetObs(const std::weak_ptr<IPlayerEngineObs> &obs) = 0;
+    virtual int32_t SelectBitRate(uint32_t bitRate)
+    {
+        (void)bitRate;
+        return 0;
+    }
 };
 } // namespace Media
 } // namespace OHOS

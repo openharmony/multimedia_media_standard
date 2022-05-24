@@ -58,6 +58,7 @@ public:
     void SetRingBufferMaxSize(uint64_t size);
     void SetBufferingInfo();
     void SetHttpTimeOut();
+    void SelectBitRate(uint32_t bitRate);
     static void OnStateChangedCb(const GstPlayer *player, GstPlayerState state, GstPlayerCtrl *playerGst);
     static void OnEndOfStreamCb(const GstPlayer *player, GstPlayerCtrl *playerGst);
     static void StreamDecErrorParse(const gchar *name, int32_t &errorCode);
@@ -74,6 +75,8 @@ public:
     static void OnElementSetupCb(const GstPlayer *player, GstElement *src, GstPlayerCtrl *playerGst);
     static void OnResolutionChanegdCb(const GstPlayer *player,
         int32_t width, int32_t height, GstPlayerCtrl *playerGst);
+    static void OnBitRateParseCompleteCb(const GstPlayer *player, uint32_t *bitrateInfo,
+        uint32_t bitrateNum, GstPlayerCtrl *playerGst);
     static void OnCachedPercentCb(const GstPlayer *player, guint percent, GstPlayerCtrl *playerGst);
     static void OnBufferingTimeCb(const GstPlayer *player, guint64 bufferingTime, guint mqNumId,
         GstPlayerCtrl *playerGst);
@@ -110,6 +113,7 @@ private:
     void ProcessBufferingTime(const GstPlayer *cbPlayer, guint64 bufferingTime, guint mqNumId);
     void ProcessMqNumUseBuffering(const GstPlayer *cbPlayer, uint32_t mqNumUseBuffering);
     void RemoveGstPlaySinkVideoConvertPlugin();
+    void OnBitRateParseComplete(uint32_t *bitrateInfo, uint32_t bitrateNum);
     bool IsLiveMode() const;
     bool SetAudioRendererInfo(const Format &param);
     std::mutex mutex_;
