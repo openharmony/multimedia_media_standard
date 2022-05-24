@@ -63,7 +63,7 @@ void PlayerCallbackDemo::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
         case INFO_TYPE_BUFFERING_UPDATE:
             PrintBufferingUpdate(infoBody);
             break;
-        case INFO_TYPE_BITRATE:
+        case INFO_TYPE_BITRATE_COLLECT:
             PrintBitRate(infoBody);
             break;
         case INFO_TYPE_STATE_CHANGE:
