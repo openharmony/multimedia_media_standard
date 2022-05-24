@@ -37,8 +37,8 @@ private:
     std::shared_ptr<AVMuxer> avmuxer_;
     int32_t videoTrackId_ = 0;
     int32_t audioTrackId_ = 0;
-    int32_t videoTimeDuration_ = 0;
-    int32_t audioTimeDuration_ = 0;
+    uint32_t videoTimeDuration_ = 0;
+    uint32_t audioTimeDuration_ = 0;
     uint32_t videoFrameNum_ = 0;
     uint32_t audioFrameNum_ = 0;
     const int32_t *videoFrameArray_ = nullptr;
