@@ -105,12 +105,12 @@ ohos_shared_library("media_service") {
 
   configs = [
     ":media_service_config",
-    "//foundation/graphic/graphic/frameworks/surface:surface_public_config",
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface_public_config",
   ]
 
   deps = [
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
-    "//foundation/graphic/graphic/frameworks/surface:surface",
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/multimedia/media_standard/services/utils:media_format",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//utils/native/base:utils",
