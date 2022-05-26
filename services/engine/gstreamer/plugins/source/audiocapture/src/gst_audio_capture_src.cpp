@@ -38,7 +38,7 @@ enum {
     PROP_BITRATE,
     PROP_TOKEN_ID,
     PROP_APP_UID,
-    PROP_AUDIO_STOP
+    PROP_BYPASS_AUDIO_SERVICE
 };
 
 using namespace OHOS::Media;
@@ -113,9 +113,10 @@ static void gst_audio_capture_src_class_init(GstAudioCaptureSrcClass *klass)
             "APP UID", 0, G_MAXINT32, 0,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
-    g_object_class_install_property(gobject_class, PROP_AUDIO_STOP,
-        g_param_spec_boolean("audio-stop", "Audio Stop", "audio source set to stop",
-            FALSE, (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+    g_object_class_install_property(gobject_class, PROP_BYPASS_AUDIO_SERVICE,
+        g_param_spec_boolean("bypass-audio-service", "Bypass Audio Service",
+        "do not enable audio service", FALSE,
+        (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
     gst_element_class_set_static_metadata(gstelement_class,
         "Audio capture source", "Source/Audio",
@@ -144,7 +145,7 @@ static void gst_audio_capture_src_init(GstAudioCaptureSrc *src)
     src->need_caps_info = TRUE;
     src->token_id = 0;
     src->appuid = 0;
-    src->audio_stop = FALSE;
+    src->bypass_audio = FALSE;
     gst_base_src_set_blocksize(GST_BASE_SRC(src), 0);
 }
 
@@ -183,8 +184,8 @@ static void gst_audio_capture_src_set_property(GObject *object, guint prop_id,
         case PROP_APP_UID:
             src->appuid = g_value_get_int(value);
             break;
-        case PROP_AUDIO_STOP:
-            src->audio_stop = g_value_get_boolean(value);
+        case PROP_BYPASS_AUDIO_SERVICE:
+            src->bypass_audio = g_value_get_boolean(value);
         default:
             break;
     }
@@ -290,7 +291,7 @@ static GstStateChangeReturn gst_state_change_forward_direction(GstAudioCaptureSr
                 g_return_val_if_fail(src->audio_capture->StartAudioCapture() == MSERR_OK, GST_STATE_CHANGE_FAILURE);
                 src->is_start = TRUE;
             } else {
-                if (!src->audio_stop) {
+                if (!src->bypass_audio) {
                     g_return_val_if_fail(src->audio_capture->ResumeAudioCapture() == MSERR_OK,
                         GST_STATE_CHANGE_FAILURE);
                 }
@@ -316,7 +317,7 @@ static GstStateChangeReturn gst_audio_capture_src_change_state(GstElement *eleme
     switch (transition) {
         case GST_STATE_CHANGE_PLAYING_TO_PAUSED:
             g_return_val_if_fail(src->audio_capture != nullptr, GST_STATE_CHANGE_FAILURE);
-            if (!src->audio_stop) {
+            if (!src->bypass_audio) {
                 g_return_val_if_fail(src->audio_capture->PauseAudioCapture() == MSERR_OK, GST_STATE_CHANGE_FAILURE);
             }
             break;
