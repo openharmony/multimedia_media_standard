@@ -28,6 +28,8 @@ public:
     int32_t Init() override;
     int32_t Configure(const RecorderParam &recParam) override;
     int32_t CheckConfigReady() override;
+    int32_t Prepare() override;
+    int32_t Stop() override;
     void Dump() override;
 
 private:
