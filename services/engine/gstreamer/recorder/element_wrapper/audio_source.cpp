@@ -123,6 +123,20 @@ int32_t AudioSource::CheckConfigReady()
     return MSERR_OK;
 }
 
+int32_t AudioSource::Prepare()
+{
+    MEDIA_LOGD("audio source prepare enter");
+    g_object_set(gstElem_, "bypass-audio-service", FALSE, nullptr);
+    return MSERR_OK;
+}
+
+int32_t AudioSource::Stop()
+{
+    MEDIA_LOGD("audio source stop enter");
+    g_object_set(gstElem_, "bypass-audio-service", TRUE, nullptr);
+    return MSERR_OK;
+}
+
 void AudioSource::Dump()
 {
     MEDIA_LOGI("Audio [sourceId = 0x%{public}x]: sample rate = %{public}d, "
