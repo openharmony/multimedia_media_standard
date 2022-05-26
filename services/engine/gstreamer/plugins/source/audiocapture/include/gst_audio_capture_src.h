@@ -54,6 +54,7 @@ struct _GstAudioCaptureSrc {
     gboolean need_caps_info;
     guint32 token_id;
     gint32 appuid;
+    gboolean audio_stop;
 };
 
 struct _GstAudioCaptureSrcClass {
