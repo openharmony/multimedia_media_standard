@@ -83,6 +83,8 @@ enum PlayerOnInfoType : int32_t {
     INFO_TYPE_SEEKDONE = 1,
     /* return the message when speeding done. */
     INFO_TYPE_SPEEDDONE,
+    /* return the message when select bitrate done */
+    INFO_TYPE_BITRATEDONE,
     /* return the message when playback is end of steam.  */
     INFO_TYPE_EOS,
     /* return the message when PlayerStates changed.  */
