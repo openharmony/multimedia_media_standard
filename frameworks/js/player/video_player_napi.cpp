@@ -75,7 +75,7 @@ napi_value VideoPlayerNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("setVolume", SetVolume),
         DECLARE_NAPI_FUNCTION("getTrackDescription", GetTrackDescription),
         DECLARE_NAPI_FUNCTION("setSpeed", SetSpeed),
-        DECLARE_NAPI_FUNCTION("selectBitRate", SelectBitRate),
+        DECLARE_NAPI_FUNCTION("selectBitRate", SelectBitrate),
 
         DECLARE_NAPI_GETTER_SETTER("dataSrc", GetDataSrc, SetDataSrc),
         DECLARE_NAPI_GETTER_SETTER("url", GetUrl, SetUrl),
@@ -913,7 +913,7 @@ napi_value VideoPlayerNapi::SelectBitrate(napi_env env, napi_callback_info info)
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncContext->jsPlayer));
     // async work
     napi_value resource = nullptr;
-    napi_create_string_utf8(env, "SelectBitRate", NAPI_AUTO_LENGTH, &resource);
+    napi_create_string_utf8(env, "SelectBitrate", NAPI_AUTO_LENGTH, &resource);
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, [](napi_env env, void* data) {},
         CompleteAsyncWork, static_cast<void *>(asyncContext.get()), &asyncContext->work));
     NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
