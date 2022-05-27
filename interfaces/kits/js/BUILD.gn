@@ -104,7 +104,7 @@ ohos_shared_library("media") {
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
-    "//third_party/bounds_checking_function:libsec_static",
+    "//third_party/bounds_checking_function:libsec_shared",
     "//utils/native/base:utils",
   ]
 
