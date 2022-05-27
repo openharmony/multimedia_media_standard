@@ -58,7 +58,7 @@ public:
     void SetRingBufferMaxSize(uint64_t size);
     void SetBufferingInfo();
     void SetHttpTimeOut();
-    void SelectBitRate(uint32_t bitRate);
+    int32_t SelectBitRate(uint32_t bitRate);
     static void OnStateChangedCb(const GstPlayer *player, GstPlayerState state, GstPlayerCtrl *playerGst);
     static void OnEndOfStreamCb(const GstPlayer *player, GstPlayerCtrl *playerGst);
     static void StreamDecErrorParse(const gchar *name, int32_t &errorCode);
@@ -116,6 +116,7 @@ private:
     void OnBitRateParseComplete(uint32_t *bitrateInfo, uint32_t bitrateNum);
     bool IsLiveMode() const;
     bool SetAudioRendererInfo(const Format &param);
+    void SetBitRate(uint32_t bitRate);
     std::mutex mutex_;
     std::condition_variable condVarPlaySync_;
     std::condition_variable condVarPauseSync_;
@@ -141,7 +142,9 @@ private:
     bool seekDoneNeedCb_ = false;
     bool endOfStreamCb_ = false;
     bool preparing_ = false;
+    bool decPluginRegister_ = false;
     std::vector<gulong> signalIds_;
+    std::vector<uint32_t> bitRateVec_;
     gulong signalIdVolume_ = 0;
     GstElement *audioSink_ = nullptr;
     float volume_; // inited at the constructor
