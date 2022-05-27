@@ -879,7 +879,7 @@ napi_value VideoPlayerNapi::SetSpeed(napi_env env, napi_callback_info info)
     return result;
 }
 
-napi_value VideoPlayerNapi::SelectBitRate(napi_env env, napi_callback_info info)
+napi_value VideoPlayerNapi::SelectBitrate(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
