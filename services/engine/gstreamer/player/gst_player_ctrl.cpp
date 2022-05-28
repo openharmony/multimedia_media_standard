@@ -142,8 +142,7 @@ void GstPlayerCtrl::SetBitRate(uint32_t bitRate)
     std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
     if (tempObs != nullptr) {
         Format format;
-        (void)format.PutIntValue(std::string(PlayerKeys::PLAYER_BITRATE), static_cast<int32_t>(bitRate));
-        tempObs->OnInfo(INFO_TYPE_BITRATEDONE, 0, format);
+        tempObs->OnInfo(INFO_TYPE_BITRATEDONE, static_cast<int32_t>(bitRate), format);
     }
 }
 

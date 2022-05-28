@@ -75,7 +75,7 @@ napi_value VideoPlayerNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("setVolume", SetVolume),
         DECLARE_NAPI_FUNCTION("getTrackDescription", GetTrackDescription),
         DECLARE_NAPI_FUNCTION("setSpeed", SetSpeed),
-        DECLARE_NAPI_FUNCTION("selectBitRate", SelectBitrate),
+        DECLARE_NAPI_FUNCTION("selectBitrate", SelectBitrate),
 
         DECLARE_NAPI_GETTER_SETTER("dataSrc", GetDataSrc, SetDataSrc),
         DECLARE_NAPI_GETTER_SETTER("url", GetUrl, SetUrl),
