@@ -57,6 +57,9 @@ void PlayerCallbackDemo::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
         case INFO_TYPE_SPEEDDONE:
             cout << "PlayerCallback: SpeedDone " << endl;
             break;
+        case INFO_TYPE_BITRATEDONE:
+            cout << "PlayerCallback: BitRateDone " << endl;
+            break;
         case INFO_TYPE_EOS:
             cout << "PlayerCallback: OnEndOfStream isLooping is " << extra << endl;
             break;

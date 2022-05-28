@@ -91,10 +91,10 @@ private:
     static napi_value SetVolume(napi_env env, napi_callback_info info);
 
     /**
-     * SelectBitRate(bitRate: number, callback:AsyncCallback<void>): void
-     * SelectBitRate(bitRate: number): Promise<void>
+     * SelectBitrate(bitRate: number, callback:AsyncCallback<number>): void
+     * SelectBitrate(bitRate: number): Promise<number>
      */
-    static napi_value SelectBitRate(napi_env env, napi_callback_info info);
+    static napi_value SelectBitrate(napi_env env, napi_callback_info info);
 
     /**
      * url: string
@@ -152,6 +152,7 @@ private:
     static void AsyncGetTrackDescription(napi_env env, void *data);
     static void AsyncSetDisplaySurface(napi_env env, void *data);
     static void CompleteAsyncWork(napi_env env, napi_status status, void *data);
+    static int32_t ProcessWork(napi_env env, napi_status status, void *data);
     void OnErrorCallback(MediaServiceExtErrCode errCode);
     void ReleaseDataSource(std::shared_ptr<MediaDataSourceCallback> dataSourceCb);
     VideoPlayerNapi();

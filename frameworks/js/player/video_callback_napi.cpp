@@ -87,6 +87,9 @@ void VideoCallbackNapi::QueueAsyncWork(VideoPlayerAsyncContext *context)
         case AsyncWorkType::ASYNC_WORK_VOLUME:
             contextVolumeQue_.push(context);
             break;
+        case AsyncWorkType::ASYNC_WORK_BITRATE:
+            contextBitRateQue_.push(context);
+            break;
         default:
             MEDIA_LOGE("QueueAsyncWork type:%{public}d error", context->asyncWorkType);
             break;
@@ -120,6 +123,12 @@ void VideoCallbackNapi::ClearAsyncWork()
         delete context;
         context = nullptr;
     }
+    while (!contextBitRateQue_.empty()) {
+        VideoPlayerAsyncContext *context = contextBitRateQue_.front();
+        contextBitRateQue_.pop();
+        delete context;
+        context = nullptr;
+    }
 }
 
 void VideoCallbackNapi::OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
@@ -143,6 +152,9 @@ void VideoCallbackNapi::OnInfo(PlayerOnInfoType type, int32_t extra, const Forma
             break;
         case INFO_TYPE_SPEEDDONE:
             VideoCallbackNapi::OnSpeedDoneCb(extra);
+            break;
+        case INFO_TYPE_BITRATEDONE:
+            VideoCallbackNapi::OnBitRateDoneCb(extra);
             break;
         case INFO_TYPE_VOLUME_CHANGE:
             VideoCallbackNapi::OnVolumeDoneCb();
@@ -190,6 +202,22 @@ void VideoCallbackNapi::OnSpeedDoneCb(int32_t speedMode)
     }
 
     context->JsResult = std::make_unique<MediaJsResultInt>(context->speedMode);
+    // Switch Napi threads
+    VideoCallbackNapi::OnJsCallBack(context);
+}
+
+void VideoCallbackNapi::OnBitRateDoneCb(int32_t bitRate)
+{
+    if (contextBitRateQue_.empty()) {
+        MEDIA_LOGD("OnBitRateDoneCb is called, But contextBitRateQue_ is empty");
+        return;
+    }
+
+    VideoPlayerAsyncContext *context = contextBitRateQue_.front();
+    CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
+    contextBitRateQue_.pop();
+
+    context->JsResult = std::make_unique<MediaJsResultInt>(bitRate);
     // Switch Napi threads
     VideoCallbackNapi::OnJsCallBack(context);
 }
