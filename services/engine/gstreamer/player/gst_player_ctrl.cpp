@@ -114,13 +114,36 @@ void GstPlayerCtrl::SetBufferingInfo()
         "high-percent", BUFFER_HIGH_PERCENT_DEFAULT, nullptr);
 }
 
-void GstPlayerCtrl::SelectBitRate(uint32_t bitRate)
+int32_t GstPlayerCtrl::SelectBitRate(uint32_t bitRate)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (bitRateVec_.empty()) {
+        MEDIA_LOGE("BitRate is empty");
+        return MSERR_INVALID_OPERATION;
+    }
+
+    auto task = std::make_shared<TaskHandler<void>>([this, bitRate] { SetBitRate(bitRate); });
+    if (taskQue_.EnqueueTask(task) != 0) {
+        MEDIA_LOGE("SelectBitRate fail");
+        return MSERR_INVALID_OPERATION;
+    }
+
+    return MSERR_OK;
+}
+
+void GstPlayerCtrl::SetBitRate(uint32_t bitRate)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_LOG(gstPlayer_ != nullptr, "gstPlayer_ is nullptr");
     MEDIA_LOGD("SelectBitRate bitRate = %{public}u", bitRate);
 
     g_object_set(gstPlayer_, "connection-speed", static_cast<uint64_t>(bitRate), nullptr);
+
+    std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
+    if (tempObs != nullptr) {
+        Format format;
+        tempObs->OnInfo(INFO_TYPE_BITRATEDONE, static_cast<int32_t>(bitRate), format);
+    }
 }
 
 void GstPlayerCtrl::SetHttpTimeOut()
@@ -257,11 +280,12 @@ void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, G
 
     if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {
         playerGst->isHardWare_ = true;
-        if (!playerGst->preparing_) {
-            // For hls scene.
+        if (playerGst->decPluginRegister_) {
+            // For hls scene when change codec, the second codec should not go performance mode process.
             return;
         }
         // For performance mode.
+        playerGst->decPluginRegister_ = true;
         playerGst->GetVideoSink();
         CHECK_AND_RETURN_LOG(playerGst->videoSink_ != nullptr, "videoSink is null");
         g_object_set(G_OBJECT(src), "performance-mode", TRUE, nullptr);
@@ -300,6 +324,7 @@ void GstPlayerCtrl::OnBitRateParseComplete(uint32_t *bitrateInfo, uint32_t bitra
     MEDIA_LOGD("bitrateNum = %{public}u", bitrateNum);
     for (uint32_t i = 0; i < bitrateNum; i++) {
         MEDIA_LOGD("bitrate = %{public}u", bitrateInfo[i]);
+        bitRateVec_.push_back(bitrateInfo[i]);
     }
 
     Format format;

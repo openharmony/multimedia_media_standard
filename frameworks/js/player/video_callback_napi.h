@@ -32,6 +32,7 @@ enum class AsyncWorkType : int32_t {
     ASYNC_WORK_SEEK,
     ASYNC_WORK_SPEED,
     ASYNC_WORK_VOLUME,
+    ASYNC_WORK_BITRATE,
     ASYNC_WORK_INVALID,
 };
 
@@ -44,6 +45,7 @@ struct VideoPlayerAsyncContext : public MediaAsyncContext {
     int32_t seekPosition = 0;
     int32_t seekMode = SEEK_PREVIOUS_SYNC;
     int32_t speedMode = SPEED_FORWARD_1_00_X;
+    int32_t bitRate = 0;
     std::string surface = "";
 };
 
@@ -74,6 +76,7 @@ private:
     void OnSeekDoneCb(int32_t position);
     void OnSpeedDoneCb(int32_t speedMode);
     void OnVolumeDoneCb();
+    void OnBitRateDoneCb(int32_t bitRate);
     void OnBitRateCollectedCb(const Format &infoBody) const;
     void DequeueAsyncWork();
     static void UvWorkCallBack(uv_work_t *work, int status);
@@ -86,6 +89,7 @@ private:
     std::queue<VideoPlayerAsyncContext *> contextSeekQue_;
     std::queue<VideoPlayerAsyncContext *> contextSpeedQue_;
     std::queue<VideoPlayerAsyncContext *> contextVolumeQue_;
+    std::queue<VideoPlayerAsyncContext *> contextBitRateQue_;
     std::shared_ptr<AutoRef> startRenderFrameCallback_ = nullptr;
     std::shared_ptr<AutoRef> videoSizeChangedCallback_ = nullptr;
     std::shared_ptr<AutoRef> playbackCompletedCallback_ = nullptr;
