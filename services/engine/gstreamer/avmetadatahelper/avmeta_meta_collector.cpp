@@ -190,8 +190,6 @@ bool AVMetaMetaCollector::IsCollecteCompleted()
 std::shared_ptr<AVSharedMemory> AVMetaMetaCollector::FetchArtPicture()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    cond_.wait(lock, [this]() { return CheckCollectCompleted() || stopCollecting_; });
-
     std::shared_ptr<AVSharedMemory> result = nullptr;
     for (auto &elemCollector : elemCollectors_) {
         if (elemCollector != nullptr) {
