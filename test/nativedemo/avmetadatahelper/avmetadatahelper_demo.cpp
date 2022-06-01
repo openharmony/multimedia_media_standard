@@ -67,6 +67,7 @@ static const std::unordered_map<int32_t, std::string_view> AVMETA_KEY_TO_STRING_
     AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_TITLE),
     AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_VIDEO_HEIGHT),
     AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_VIDEO_WIDTH),
+    AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_VIDEO_ORIENTATION),
 };
 
 static struct jpeg_compress_struct jpeg;

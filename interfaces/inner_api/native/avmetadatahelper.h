@@ -119,6 +119,11 @@ enum AVMetadataCode : int32_t {
      * If the media contains video, this key retrieves its width.
      */
     AV_KEY_VIDEO_WIDTH = 37,
+    /**
+     * The metadata key to retrieve the information about the video
+     * orientation.
+     */
+    AV_KEY_VIDEO_ORIENTATION = 38,
 };
 
 /**
