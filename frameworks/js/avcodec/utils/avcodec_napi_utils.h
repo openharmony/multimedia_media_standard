@@ -21,6 +21,7 @@
 #include "format.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "recorder_profiles.h"
 
 namespace OHOS {
 namespace Media {

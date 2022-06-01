@@ -25,6 +25,7 @@ config("media_client_local_config") {
     "$MEDIA_ROOT_DIR/services/services/factory",
     "$MEDIA_ROOT_DIR/services/services/engine_intf",
     "$MEDIA_ROOT_DIR/services/services/avcodeclist/server",
+    "$MEDIA_ROOT_DIR/services/services/recorder_profiles/server",
     "$MEDIA_ROOT_DIR/services/services/avmuxer/server",
   ]
 }
@@ -45,6 +46,8 @@ config("media_client_ipc_config") {
     "$MEDIA_ROOT_DIR/services/services/avcodec/ipc",
     "$MEDIA_ROOT_DIR/services/services/avcodeclist/client",
     "$MEDIA_ROOT_DIR/services/services/avcodeclist/ipc",
+    "$MEDIA_ROOT_DIR/services/services/recorder_profiles/client",
+    "$MEDIA_ROOT_DIR/services/services/recorder_profiles/ipc",
     "$MEDIA_ROOT_DIR/services/services/avmuxer/client",
     "$MEDIA_ROOT_DIR/services/services/avmuxer/ipc",
   ]
@@ -104,6 +107,7 @@ ohos_shared_library("media_client") {
       "$MEDIA_ROOT_DIR/frameworks/native/common/media_errors.cpp",
       "$MEDIA_ROOT_DIR/frameworks/native/player/player_impl.cpp",
       "$MEDIA_ROOT_DIR/frameworks/native/recorder/recorder_impl.cpp",
+      "$MEDIA_ROOT_DIR/frameworks/native/recorder_profiles/recorder_profiles_impl.cpp",
       "$MEDIA_ROOT_DIR/services/services/avcodec/server/avcodec_server.cpp",
       "$MEDIA_ROOT_DIR/services/services/avcodeclist/server/avcodeclist_server.cpp",
       "$MEDIA_ROOT_DIR/services/services/avmetadatahelper/server/avmetadatahelper_server.cpp",
@@ -111,6 +115,7 @@ ohos_shared_library("media_client") {
       "$MEDIA_ROOT_DIR/services/services/factory/engine_factory_repo.cpp",
       "$MEDIA_ROOT_DIR/services/services/player/server/player_server.cpp",
       "$MEDIA_ROOT_DIR/services/services/recorder/server/recorder_server.cpp",
+      "$MEDIA_ROOT_DIR/services/services/recorder_profiles/server/recorder_profiles_server.cpp",
       "$MEDIA_ROOT_DIR/services/services/sa_media/client/media_local.cpp",
     ]
 
@@ -146,6 +151,7 @@ ohos_shared_library("media_client") {
       "$MEDIA_ROOT_DIR/frameworks/native/common/media_errors.cpp",
       "$MEDIA_ROOT_DIR/frameworks/native/player/player_impl.cpp",
       "$MEDIA_ROOT_DIR/frameworks/native/recorder/recorder_impl.cpp",
+      "$MEDIA_ROOT_DIR/frameworks/native/recorder_profiles/recorder_profiles_impl.cpp",
       "$MEDIA_ROOT_DIR/services/services/avcodec/client/avcodec_client.cpp",
       "$MEDIA_ROOT_DIR/services/services/avcodec/ipc/avcodec_listener_stub.cpp",
       "$MEDIA_ROOT_DIR/services/services/avcodec/ipc/avcodec_service_proxy.cpp",
@@ -163,11 +169,14 @@ ohos_shared_library("media_client") {
       "$MEDIA_ROOT_DIR/services/services/recorder/client/recorder_client.cpp",
       "$MEDIA_ROOT_DIR/services/services/recorder/ipc/recorder_listener_stub.cpp",
       "$MEDIA_ROOT_DIR/services/services/recorder/ipc/recorder_service_proxy.cpp",
+      "$MEDIA_ROOT_DIR/services/services/recorder_profiles/client/recorder_profiles_client.cpp",
+      "$MEDIA_ROOT_DIR/services/services/recorder_profiles/ipc/recorder_profiles_service_proxy.cpp",
       "$MEDIA_ROOT_DIR/services/services/sa_media/client/media_client.cpp",
       "$MEDIA_ROOT_DIR/services/services/sa_media/ipc/avcodeclist_parcel.cpp",
       "$MEDIA_ROOT_DIR/services/services/sa_media/ipc/media_listener_stub.cpp",
       "$MEDIA_ROOT_DIR/services/services/sa_media/ipc/media_parcel.cpp",
       "$MEDIA_ROOT_DIR/services/services/sa_media/ipc/media_service_proxy.cpp",
+      "$MEDIA_ROOT_DIR/services/services/sa_media/ipc/recorder_profiles_parcel.cpp",
       "$MEDIA_ROOT_DIR/services/utils/avsharedmemorybase.cpp",
     ]
 

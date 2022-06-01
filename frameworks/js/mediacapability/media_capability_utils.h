@@ -17,6 +17,7 @@
 #define MEDIA_CAPABILITY_NAPI_UTILS_H
 
 #include "common_napi.h"
+#include "recorder_profiles.h"
 
 namespace OHOS {
 namespace Media {
@@ -74,6 +75,52 @@ public:
 private:
     std::string name_;
     bool isDecoder_;
+};
+
+class MediaJsAudioRecorderCapsArray : public MediaJsResult {
+public:
+    explicit MediaJsAudioRecorderCapsArray(std::vector<std::shared_ptr<OHOS::Media::AudioRecorderCaps>> value)
+        : value_(value)
+    {
+    }
+    ~MediaJsAudioRecorderCapsArray() = default;
+    napi_status GetJsResult(napi_env env, napi_value &result) override;
+
+private:
+    std::vector<std::shared_ptr<OHOS::Media::AudioRecorderCaps>> value_;
+};
+
+class MediaJsVideoRecorderCapsArray : public MediaJsResult {
+public:
+    explicit MediaJsVideoRecorderCapsArray(std::vector<std::shared_ptr<OHOS::Media::VideoRecorderCaps>> value)
+        : value_(value)
+    {
+    }
+    ~MediaJsVideoRecorderCapsArray() = default;
+    napi_status GetJsResult(napi_env env, napi_value &result) override;
+
+private:
+    std::vector<std::shared_ptr<OHOS::Media::VideoRecorderCaps>> value_;
+};
+
+class MediaJsVideoRecorderProfile : public MediaJsResult {
+public:
+    explicit MediaJsVideoRecorderProfile(std::shared_ptr<OHOS::Media::VideoRecorderProfile> value)
+        : value_(value)
+    {
+    }
+    ~MediaJsVideoRecorderProfile() = default;
+    napi_status GetJsResult(napi_env env, napi_value &result) override;
+
+private:
+    std::shared_ptr<OHOS::Media::VideoRecorderProfile> value_;
+};
+
+class MediaCapabilityUtil {
+public:
+    MediaCapabilityUtil() = delete;
+    ~MediaCapabilityUtil() = delete;
+    static bool ExtractAudioRecorderProfile(napi_env env, napi_value profile, AudioRecorderProfile &result);
 };
 } // namespace Media
 } // namespace OHOS

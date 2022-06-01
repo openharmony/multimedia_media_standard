@@ -123,6 +123,28 @@ std::shared_ptr<IAVCodecListService> MediaClient::CreateAVCodecListService()
     return avCodecList;
 }
 
+std::shared_ptr<IRecorderProfilesService> MediaClient::CreateRecorderProfilesService()
+{
+    if (!IsAlived()) {
+        MEDIA_LOGE("media service does not exist.");
+        return nullptr;
+    }
+
+    sptr<IRemoteObject> object = mediaProxy_->GetSubSystemAbility(
+        IStandardMediaService::MediaSystemAbility::RECORDER_PROFILES, listenerStub_->AsObject());
+    CHECK_AND_RETURN_RET_LOG(object != nullptr, nullptr, "recorderProfiles proxy object is nullptr.");
+
+    sptr<IStandardRecorderProfilesService> recorderProfilesProxy = iface_cast<IStandardRecorderProfilesService>(object);
+    CHECK_AND_RETURN_RET_LOG(recorderProfilesProxy != nullptr, nullptr, "recorderProfiles proxy is nullptr.");
+
+    std::shared_ptr<RecorderProfilesClient> recorderProfiles = RecorderProfilesClient::Create(recorderProfilesProxy);
+    CHECK_AND_RETURN_RET_LOG(recorderProfiles != nullptr, nullptr, "failed to create recorderProfiles client.");
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    recorderProfilesClientList_.push_back(recorderProfiles);
+    return recorderProfiles;
+}
+
 std::shared_ptr<IAVMetadataHelperService> MediaClient::CreateAVMetadataHelperService()
 {
     if (!IsAlived()) {
@@ -230,6 +252,14 @@ int32_t MediaClient::DestroyAVCodecListService(std::shared_ptr<IAVCodecListServi
     return MSERR_OK;
 }
 
+int32_t MediaClient::DestroyMediaProfileService(std::shared_ptr<IRecorderProfilesService> recorderProfiles)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(recorderProfiles != nullptr, MSERR_NO_MEMORY, "input recorderProfiles is nullptr.");
+    recorderProfilesClientList_.remove(recorderProfiles);
+    return MSERR_OK;
+}
+
 int32_t MediaClient::DestroyAVMuxerService(std::shared_ptr<IAVMuxerService> avmuxer)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -309,6 +339,13 @@ void MediaClient::MediaServerDied(pid_t pid)
         auto avCodecListClient = std::static_pointer_cast<AVCodecListClient>(it);
         if (avCodecListClient != nullptr) {
             avCodecListClient->MediaServerDied();
+        }
+    }
+
+    for (auto &it : recorderProfilesClientList_) {
+        auto recorderProfilesClient = std::static_pointer_cast<RecorderProfilesClient>(it);
+        if (recorderProfilesClient != nullptr) {
+            recorderProfilesClient->MediaServerDied();
         }
     }
 

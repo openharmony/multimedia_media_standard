@@ -23,6 +23,7 @@
 #include "recorder_client.h"
 #include "player_client.h"
 #include "avcodeclist_client.h"
+#include "recorder_profiles_client.h"
 #include "avmetadatahelper_client.h"
 #include "avcodec_client.h"
 #include "avmuxer_client.h"
@@ -40,12 +41,14 @@ public:
     std::shared_ptr<IAVMetadataHelperService> CreateAVMetadataHelperService() override;
     std::shared_ptr<IAVCodecService> CreateAVCodecService() override;
     std::shared_ptr<IAVCodecListService> CreateAVCodecListService() override;
+    std::shared_ptr<IRecorderProfilesService> CreateRecorderProfilesService() override;
     std::shared_ptr<IAVMuxerService> CreateAVMuxerService() override;
     int32_t DestroyRecorderService(std::shared_ptr<IRecorderService> recorder) override;
     int32_t DestroyPlayerService(std::shared_ptr<IPlayerService> player) override;
     int32_t DestroyAVMetadataHelperService(std::shared_ptr<IAVMetadataHelperService> avMetadataHelper) override;
     int32_t DestroyAVCodecService(std::shared_ptr<IAVCodecService> avCodec) override;
     int32_t DestroyAVCodecListService(std::shared_ptr<IAVCodecListService> avCodecList) override;
+    int32_t DestroyMediaProfileService(std::shared_ptr<IRecorderProfilesService> recorderProfiles) override;
     int32_t DestroyAVMuxerService(std::shared_ptr<IAVMuxerService> avmuxer) override;
 
 private:
@@ -61,6 +64,7 @@ private:
     std::list<std::shared_ptr<IAVMetadataHelperService>> avMetadataHelperClientList_;
     std::list<std::shared_ptr<IAVCodecService>> avCodecClientList_;
     std::list<std::shared_ptr<IAVCodecListService>> avCodecListClientList_;
+    std::list<std::shared_ptr<IRecorderProfilesService>> recorderProfilesClientList_;
     std::list<std::shared_ptr<IAVMuxerService>> avmuxerClientList_;
     std::mutex mutex_;
 };

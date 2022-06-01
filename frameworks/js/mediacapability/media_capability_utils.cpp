@@ -18,6 +18,7 @@
 #include "avcodec_list.h"
 #include "media_log.h"
 #include "media_errors.h"
+#include "recorder_profiles.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaCapsNapiUtil"};
@@ -213,6 +214,145 @@ napi_status MediaJsVideoCapsDynamic::GetJsResult(napi_env env, napi_value &resul
     }
 
     return napi_ok;
+}
+
+napi_status MediaJsAudioRecorderCapsArray::GetJsResult(napi_env env, napi_value &result)
+{
+    CHECK_AND_RETURN_RET(!value_.empty(), napi_generic_failure);
+
+    napi_status status = napi_create_array_with_length(env, value_.size(), &result);
+    CHECK_AND_RETURN_RET(status == napi_ok, status);
+
+    int32_t index = 0;
+    for (auto it = value_.begin(); it != value_.end(); it++) {
+        CHECK_AND_CONTINUE((*it) != nullptr);
+
+        napi_value obj = nullptr;
+        status = napi_create_object(env, &obj);
+        CHECK_AND_CONTINUE(status == napi_ok);
+
+        std::string outString = (*it)->containerFormatType;
+        (void)CommonNapi::AddStringProperty(env, obj, "outputFormat", outString);
+
+        outString = (*it)->mimeType;
+        (void)CommonNapi::AddStringProperty(env, obj, "audioEncoderMime", outString);
+
+        Range range = (*it)->bitrate;
+        (void)CommonNapi::AddRangeProperty(env, obj, "bitrateRange", range.minVal, range.maxVal);
+
+        std::vector<int32_t> vec = (*it)->sampleRate;
+        (void)CommonNapi::AddArrayProperty(env, obj, "sampleRates", vec);
+
+        range = (*it)->channels;
+        (void)CommonNapi::AddRangeProperty(env, obj, "channelRange", range.minVal, range.maxVal);
+
+        (void)napi_set_element(env, result, index, obj);
+        index++;
+    }
+
+    return status;
+}
+
+napi_status MediaJsVideoRecorderCapsArray::GetJsResult(napi_env env, napi_value &result)
+{
+    CHECK_AND_RETURN_RET(!value_.empty(), napi_generic_failure);
+
+    napi_status status = napi_create_array_with_length(env, value_.size(), &result);
+    CHECK_AND_RETURN_RET(status == napi_ok, status);
+
+    int32_t index = 0;
+    for (auto it = value_.begin(); it != value_.end(); it++) {
+        CHECK_AND_CONTINUE((*it) != nullptr);
+
+        napi_value obj = nullptr;
+        status = napi_create_object(env, &obj);
+        CHECK_AND_CONTINUE(status == napi_ok);
+
+        std::string outString = (*it)->containerFormatType;
+        (void)CommonNapi::AddStringProperty(env, obj, "outputFormat", outString);
+
+        outString = (*it)->audioEncoderMime;
+        (void)CommonNapi::AddStringProperty(env, obj, "audioEncoderMime", outString);
+
+        Range range = (*it)->audioBitrateRange;
+        (void)CommonNapi::AddRangeProperty(env, obj, "audioBitrateRange", range.minVal, range.maxVal);
+
+        std::vector<int32_t> vec = (*it)->audioSampleRates;
+        (void)CommonNapi::AddArrayProperty(env, obj, "audioSampleRates", vec);
+
+        range = (*it)->audioChannelRange;
+        (void)CommonNapi::AddRangeProperty(env, obj, "audioChannelRange", range.minVal, range.maxVal);
+
+        range = (*it)->videoBitrateRange;
+        (void)CommonNapi::AddRangeProperty(env, obj, "videoBitrateRange", range.minVal, range.maxVal);
+
+        range = (*it)->videoFramerateRange;
+        (void)CommonNapi::AddRangeProperty(env, obj, "videoFramerateRange", range.minVal, range.maxVal);
+
+        outString = (*it)->videoEncoderMime;
+        (void)CommonNapi::AddStringProperty(env, obj, "videoEncoderMime", outString);
+
+        range = (*it)->videoWidthRange;
+        (void)CommonNapi::AddRangeProperty(env, obj, "videoWidthRange", range.minVal, range.maxVal);
+
+        range = (*it)->videoHeightRange;
+        (void)CommonNapi::AddRangeProperty(env, obj, "videoHeightRange", range.minVal, range.maxVal);
+
+        (void)napi_set_element(env, result, index, obj);
+        index++;
+    }
+
+    return status;
+}
+
+napi_status MediaJsVideoRecorderProfile::GetJsResult(napi_env env, napi_value &result)
+{
+    napi_status ret = napi_ok;
+    bool setRet = true;
+    CHECK_AND_RETURN_RET(value_ != nullptr, napi_generic_failure);
+    CHECK_AND_RETURN_RET((ret = napi_create_object(env, &result)) == napi_ok, ret);
+
+    setRet = CommonNapi::SetPropertyInt32(env, result, "audioBitrate", value_->audioBitrate);
+    CHECK_AND_RETURN_RET(setRet == true, napi_generic_failure);
+    setRet = CommonNapi::SetPropertyInt32(env, result, "audioChannels", value_->audioChannels);
+    CHECK_AND_RETURN_RET(setRet == true, napi_generic_failure);
+    setRet = CommonNapi::SetPropertyString(env, result, "audioCodec", value_->audioCodec);
+    CHECK_AND_RETURN_RET(setRet == true, napi_generic_failure);
+    setRet = CommonNapi::SetPropertyInt32(env, result, "audioSampleRate", value_->audioSampleRate);
+    CHECK_AND_RETURN_RET(setRet == true, napi_generic_failure);
+    setRet = CommonNapi::SetPropertyInt32(env, result, "durationTime", value_->durationTime);
+    CHECK_AND_RETURN_RET(setRet == true, napi_generic_failure);
+    setRet = CommonNapi::SetPropertyString(env, result, "fileFormat", value_->containerFormatType);
+    CHECK_AND_RETURN_RET(setRet == true, napi_generic_failure);
+    setRet = CommonNapi::SetPropertyInt32(env, result, "qualityLevel", value_->qualityLevel);
+    CHECK_AND_RETURN_RET(setRet == true, napi_generic_failure);
+    setRet = CommonNapi::SetPropertyInt32(env, result, "videoBitrate", value_->videoBitrate);
+    CHECK_AND_RETURN_RET(setRet == true, napi_generic_failure);
+    setRet = CommonNapi::SetPropertyString(env, result, "videoCodec", value_->videoCodec);
+    CHECK_AND_RETURN_RET(setRet == true, napi_generic_failure);
+    setRet = CommonNapi::SetPropertyInt32(env, result, "videoFrameWidth", value_->videoFrameWidth);
+    CHECK_AND_RETURN_RET(setRet == true, napi_generic_failure);
+    setRet = CommonNapi::SetPropertyInt32(env, result, "videoFrameHeight", value_->videoFrameHeight);
+    CHECK_AND_RETURN_RET(setRet == true, napi_generic_failure);
+    setRet = CommonNapi::SetPropertyInt32(env, result, "videoFrameRate", value_->videoFrameRate);
+    CHECK_AND_RETURN_RET(setRet == true, napi_generic_failure);
+
+    return ret;
+}
+
+bool MediaCapabilityUtil::ExtractAudioRecorderProfile(napi_env env, napi_value profile, AudioRecorderProfile &result)
+{
+    CHECK_AND_RETURN_RET(profile != nullptr, false);
+    bool ret = true;
+    result.containerFormatType = CommonNapi::GetPropertyString(env, profile, "outputFormat");
+    result.audioCodec = CommonNapi::GetPropertyString(env, profile, "audioEncoderMime");
+    ret = CommonNapi::GetPropertyInt32(env, profile, "bitrate", result.audioBitrate);
+    CHECK_AND_RETURN_RET(ret != false, false);
+    ret = CommonNapi::GetPropertyInt32(env, profile, "sampleRate", result.audioSampleRate);
+    CHECK_AND_RETURN_RET(ret != false, false);
+    ret = CommonNapi::GetPropertyInt32(env, profile, "channel", result.audioChannels);
+    CHECK_AND_RETURN_RET(ret != false, false);
+    return ret;
 }
 } // namespace Media
 } // namespace OHOS

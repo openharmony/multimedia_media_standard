@@ -23,6 +23,8 @@
 #include "recorder.h"
 #include "avcodec_info.h"
 #include "avcodec_common.h"
+#include "recorder_profiles.h"
+#include "avcontainer_common.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaEnumNapi"};
@@ -96,9 +98,15 @@ static const std::vector<struct JsEnumInt> g_mediaType = {
 };
 
 static const std::vector<struct JsEnumInt> g_videoRecorderQualityLevel = {
-    { "RECORDER_QUALITY_LOW", MediaType::MEDIA_TYPE_AUD },
-    { "RECORDER_QUALITY_HIGH", MediaType::MEDIA_TYPE_VID },
-    { "MEDIA_TYPE_SUBTITLE", MediaType::MEDIA_TYPE_SUBTITLE },
+    { "RECORDER_QUALITY_LOW", VideoRecorderQualityLevel::RECORDER_QUALITY_LOW },
+    { "RECORDER_QUALITY_HIGH", VideoRecorderQualityLevel::RECORDER_QUALITY_HIGH },
+    { "RECORDER_QUALITY_QCIF", VideoRecorderQualityLevel::RECORDER_QUALITY_QCIF },
+    { "RECORDER_QUALITY_CIF", VideoRecorderQualityLevel::RECORDER_QUALITY_CIF },
+    { "RECORDER_QUALITY_480P", VideoRecorderQualityLevel::RECORDER_QUALITY_480P },
+    { "RECORDER_QUALITY_720P", VideoRecorderQualityLevel::RECORDER_QUALITY_720P },
+    { "RECORDER_QUALITY_1080P", VideoRecorderQualityLevel::RECORDER_QUALITY_1080P },
+    { "RECORDER_QUALITY_QVGA", VideoRecorderQualityLevel::RECORDER_QUALITY_QVGA },
+    { "RECORDER_QUALITY_2160P", VideoRecorderQualityLevel::RECORDER_QUALITY_2160P },
 };
 
 static const std::vector<struct JsEnumInt> g_audioSourceType = {
@@ -218,8 +226,8 @@ static const std::vector<struct JsEnumInt> g_VP8Profile = {
 };
 
 static const std::vector<struct JsEnumString> g_containerFormatType = {
-    { "CFT_MPEG_4", "mp4" },
-    { "CFT_MPEG_4A", "m4a" },
+    { "CFT_MPEG_4", ContainerFormatType::CFT_MPEG_4 },
+    { "CFT_MPEG_4A", ContainerFormatType::CFT_MPEG_4A },
 };
 
 static const std::vector<struct JsEnumString> g_codecMimeType = {
@@ -279,6 +287,7 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "AudioOutputFormat", g_recorderAudioOutputFormat },
     { "PlaybackSpeed", g_playbackSpeed },
     { "MediaType", g_mediaType },
+    { "VideoRecorderQualityLevel", g_videoRecorderQualityLevel },
     { "AudioSourceType", g_audioSourceType },
     { "VideoSourceType", g_videoSourceType },
     { "FrameFlags", g_frameFlags },
