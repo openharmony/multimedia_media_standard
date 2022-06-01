@@ -72,7 +72,8 @@
               "header_files": [
                   "player.h",
                   "recorder.h",
-                  "avcodec_list.h"
+                  "avcodec_list.h",
+                  "recorder_profiles.h"
               ],
               "header_base": "//foundation/multimedia/media_standard/interfaces/inner_api/native"
             }

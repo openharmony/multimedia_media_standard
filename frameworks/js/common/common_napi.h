@@ -54,12 +54,28 @@ public:
     static bool AddNumberPropInt32(napi_env env, napi_value obj, const std::string &key, int32_t value);
     static bool AddNumberPropInt64(napi_env env, napi_value obj, const std::string &key, int64_t value);
     static bool AddArrayInt(napi_env env, napi_value &array, const std::vector<int32_t> &vec);
+    static bool AddStringProperty(napi_env env, napi_value obj, const std::string &key, std::string value);
 };
 
 class MediaJsResult {
 public:
     virtual ~MediaJsResult() = default;
     virtual napi_status GetJsResult(napi_env env, napi_value &result) = 0;
+};
+
+class MediaJsResultBoolean : public MediaJsResult {
+public:
+    explicit MediaJsResultBoolean(bool value)
+        : value_(value)
+    {
+    }
+    ~MediaJsResultBoolean() = default;
+    napi_status GetJsResult(napi_env env, napi_value &result) override
+    {
+        return napi_get_boolean(env, value_, &result);
+    }
+private:
+    bool value_;
 };
 
 class MediaJsResultInt : public MediaJsResult {

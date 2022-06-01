@@ -50,6 +50,8 @@ config("media_service_config") {
     "avcodec/server",
     "avcodeclist/ipc",
     "avcodeclist/server",
+    "recorder_profiles/ipc",
+    "recorder_profiles/server",
     "avmuxer/ipc",
     "avmuxer/server",
     "//base/security/access_token/interfaces/innerkits/access_token/include",
@@ -64,6 +66,7 @@ config("media_service_config") {
     "//utils/native/base/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
     "//foundation/multimedia/media_standard/services/engine/common/avcodeclist",
+    "//foundation/multimedia/media_standard/services/engine/common/recorder_profiles",
   ]
 
   if (target_cpu == "arm") {
@@ -76,6 +79,8 @@ ohos_shared_library("media_service") {
 
   sources = [
     "//foundation/multimedia/media_standard/frameworks/native/common/media_errors.cpp",
+    "//foundation/multimedia/media_standard/services/engine/common/recorder_profiles/recorder_profiles_ability_singleton.cpp",
+    "//foundation/multimedia/media_standard/services/engine/common/recorder_profiles/recorder_profiles_xml_parser.cpp",
     "//foundation/multimedia/media_standard/services/utils/avsharedmemorybase.cpp",
     "avcodec/ipc/avcodec_listener_proxy.cpp",
     "avcodec/ipc/avcodec_service_stub.cpp",
@@ -95,10 +100,13 @@ ohos_shared_library("media_service") {
     "recorder/ipc/recorder_listener_proxy.cpp",
     "recorder/ipc/recorder_service_stub.cpp",
     "recorder/server/recorder_server.cpp",
+    "recorder_profiles/ipc/recorder_profiles_service_stub.cpp",
+    "recorder_profiles/server/recorder_profiles_server.cpp",
     "sa_media/ipc/avcodeclist_parcel.cpp",
     "sa_media/ipc/media_listener_proxy.cpp",
     "sa_media/ipc/media_parcel.cpp",
     "sa_media/ipc/media_service_stub.cpp",
+    "sa_media/ipc/recorder_profiles_parcel.cpp",
     "sa_media/server/media_server.cpp",
     "sa_media/server/media_server_manager.cpp",
   ]
