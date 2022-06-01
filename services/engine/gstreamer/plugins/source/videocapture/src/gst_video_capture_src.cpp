@@ -199,7 +199,8 @@ static void gst_video_capture_src_set_caps(GstVideoCaptureSrc *src, int32_t pixe
         src->src_caps = gst_caps_new_simple("video/x-h264",
             "framerate", GST_TYPE_FRACTION, src->video_frame_rate, 1,
             "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1,
-            "stream-format", G_TYPE_STRING, "avc",
+            "alignment", G_TYPE_STRING, "nal",
+            "stream-format", G_TYPE_STRING, "byte-stream",
             nullptr);
     } else {
         src->src_caps = gst_caps_new_simple("video/x-raw",
