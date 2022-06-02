@@ -335,7 +335,7 @@ int32_t AudioCaptureAsImpl::WakeUpAudioThreads()
         audioCacheCtrl_->captureCond_.notify_all();
     }
 
-   return MSERR_OK;
+    return MSERR_OK;
 }
 } // namespace Media
 } // namespace OHOS
