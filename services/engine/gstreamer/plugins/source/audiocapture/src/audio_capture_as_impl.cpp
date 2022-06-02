@@ -316,5 +316,26 @@ int32_t AudioCaptureAsImpl::ResumeAudioCapture()
     MEDIA_LOGD("exit ResumeAudioCapture");
     return MSERR_OK;
 }
+
+int32_t AudioCaptureAsImpl::WakeUpAudioThreads()
+{
+    MEDIA_LOGD("wake up threads when paused state");
+
+    CHECK_AND_RETURN_RET(audioCapturer_ != nullptr, MSERR_INVALID_OPERATION);
+
+    {
+        std::unique_lock<std::mutex> lock(pauseMutex_);
+        curState_.store(RECORDER_STOP);
+        audioCacheCtrl_->pauseCond_.notify_all();
+    }
+
+   {
+        std::unique_lock<std::mutex> loopLock(audioCacheCtrl_->captureMutex_);
+        audioCacheCtrl_->captureQueue_.push(nullptr); // to wake up the loop thread
+        audioCacheCtrl_->captureCond_.notify_all();
+   }
+
+   return MSERR_OK;
+}
 } // namespace Media
 } // namespace OHOS
