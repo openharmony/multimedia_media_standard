@@ -294,6 +294,9 @@ static GstStateChangeReturn gst_state_change_forward_direction(GstAudioCaptureSr
                 if (!src->bypass_audio) {
                     g_return_val_if_fail(src->audio_capture->ResumeAudioCapture() == MSERR_OK,
                         GST_STATE_CHANGE_FAILURE);
+                } else {
+                    g_return_val_if_fail(src->audio_capture->WakeUpAudioThreads() == MSERR_OK,
+                        GST_STATE_CHANGE_FAILURE);
                 }
             }
             break;

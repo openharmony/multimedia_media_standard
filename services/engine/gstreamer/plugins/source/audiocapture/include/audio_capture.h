@@ -125,6 +125,18 @@ public:
      * @version 1.0
      */
     virtual std::shared_ptr<AudioBuffer> GetBuffer() = 0;
+
+    /**
+     * @brief wake up all the thread when called audio recorder stop in paused state.
+     *
+     * This function must be called after {@link PauseAudioCapture}.
+     *
+     * @return Returns {@link SUCCESS} if the thread is waked success; returns an error code defined
+     * in {@link media_errors.h} otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    virtual int32_t WakeUpAudioThreads() = 0;
 };
 } // namespace Media
 } // namespace OHOS
