@@ -329,11 +329,11 @@ int32_t AudioCaptureAsImpl::WakeUpAudioThreads()
         audioCacheCtrl_->pauseCond_.notify_all();
     }
 
-   {
+    {
         std::unique_lock<std::mutex> loopLock(audioCacheCtrl_->captureMutex_);
         audioCacheCtrl_->captureQueue_.push(nullptr); // to wake up the loop thread
         audioCacheCtrl_->captureCond_.notify_all();
-   }
+    }
 
    return MSERR_OK;
 }
