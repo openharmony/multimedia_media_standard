@@ -184,7 +184,7 @@ GstFlowReturn GstPlayerVideoRendererCap::NewSampleCb(GstMemSink *memSink, GstBuf
     MEDIA_LOGI("NewSampleCb in");
     CHECK_AND_RETURN_RET(gst_mem_sink_app_render(memSink, sample) == GST_FLOW_OK, GST_FLOW_ERROR);
 
-    FirstRenderFrame();
+    FirstRenderFrame(userData);
     return GST_FLOW_OK;
 }
 
@@ -194,7 +194,7 @@ GstFlowReturn GstPlayerVideoRendererCap::NewPrerollCb(GstMemSink *memSink, GstBu
     MEDIA_LOGI("NewPrerollCb in");
     CHECK_AND_RETURN_RET(gst_mem_sink_app_preroll_render(memSink, sample) == GST_FLOW_OK, GST_FLOW_ERROR);
 
-    FirstRenderFrame();
+    FirstRenderFrame(userData);
     return GST_FLOW_OK;
 }
 
@@ -310,7 +310,7 @@ int32_t GstPlayerVideoRendererCtrl::SetCallbacks(const std::weak_ptr<IPlayerEngi
 
 std:shared_ptr<IPlayerEngineObs> GstPlayerVideoRendererCtrl::GetCallBacks()
 {
-    ostd::shared_ptr<IPlayerEngineObs> obs = obs_.lock();
+    std::shared_ptr<IPlayerEngineObs> obs = obs_.lock();
     return obs;
 }
 
