@@ -46,6 +46,7 @@ public:
     static void EosCb(GstMemSink *memSink, gpointer userData);
     static GstFlowReturn NewSampleCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData);
     static GstFlowReturn NewPrerollCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData);
+    static void FirstRenderFrame(gpointer userData);
 };
 
 struct _PlayerVideoRenderer {
@@ -154,6 +155,22 @@ GstElement *GstPlayerVideoRendererCap::CreateVideoSink(const GstCaps *caps, cons
     return sink;
 }
 
+void FirstRenderFrame(gpointer userData)
+{
+    CHECK_AND_RETURN_LOG(userData != nullptr, nullptr, "input userData is nullptr..");
+    GstPlayerVideoRendererCtrl *rendererCtrl = reinterpret_cast<GstPlayerVideoRendererCtrl *>(userData);
+
+    if (rendererCtrl->GetFirstRenderFrameFlag()) {
+        std::shared_ptr<IPlayerEngineObs> tempObs = rendererCtrl->GetCallbacks();
+        if (tempObs != nullptr) {
+            Format format;
+            tempObs->OnInfo(INFO_TYPE_MESSAGE, PlayerMessageType::PLAYER_INFO_VIDEO_RENDERING_START, format);
+            rendererCtrl->SetFirstRenderFrameFlag(false)
+            MEDIA_LOGW("KPI-TRACE: FIRST-VIDEO-FRAME rendered");
+        }
+    }
+}
+
 void GstPlayerVideoRendererCap::EosCb(GstMemSink *memSink, gpointer userData)
 {
     (void)memSink;
@@ -166,6 +183,8 @@ GstFlowReturn GstPlayerVideoRendererCap::NewSampleCb(GstMemSink *memSink, GstBuf
     (void)userData;
     MEDIA_LOGI("NewSampleCb in");
     CHECK_AND_RETURN_RET(gst_mem_sink_app_render(memSink, sample) == GST_FLOW_OK, GST_FLOW_ERROR);
+
+    FirstRenderFrame();
     return GST_FLOW_OK;
 }
 
@@ -174,6 +193,8 @@ GstFlowReturn GstPlayerVideoRendererCap::NewPrerollCb(GstMemSink *memSink, GstBu
     (void)userData;
     MEDIA_LOGI("NewPrerollCb in");
     CHECK_AND_RETURN_RET(gst_mem_sink_app_preroll_render(memSink, sample) == GST_FLOW_OK, GST_FLOW_ERROR);
+
+    FirstRenderFrame();
     return GST_FLOW_OK;
 }
 
@@ -285,6 +306,22 @@ int32_t GstPlayerVideoRendererCtrl::SetCallbacks(const std::weak_ptr<IPlayerEngi
 {
     obs_ = obs;
     return MSERR_OK;
+}
+
+std:shared_ptr<IPlayerEngineObs> GstPlayerVideoRendererCtrl::GetCallBacks()
+{
+    ostd::shared_ptr<IPlayerEngineObs> obs = obs_.lock();
+    return obs;
+}
+
+void GstPlayerVideoRendererCtrl::SetFisrtRenderFrameFlag(bool fisrtRenderFrame)
+{
+    fisrtRenderFrame_ = fisrtRenderFrame;
+}
+
+bool GstPlayerVideoRendererCtrl:::GetFisrtRenderFrameFlag();
+{
+    return fisrtRenderFrame_;
 }
 
 GstPlayerVideoRenderer *GstPlayerVideoRendererFactory::Create(
