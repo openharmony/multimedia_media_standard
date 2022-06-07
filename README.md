@@ -60,4 +60,6 @@ The structure of the repository directory is as follows:
 
 ## Repositories Involved<a name="section1533973044317"></a>
 
-Media repository: multimedia\media_standard
+Media repository
+
+**multimedia\media_standard**
