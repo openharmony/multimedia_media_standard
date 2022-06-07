@@ -314,14 +314,14 @@ std:shared_ptr<IPlayerEngineObs> GstPlayerVideoRendererCtrl::GetCallBacks()
     return obs;
 }
 
-void GstPlayerVideoRendererCtrl::SetFisrtRenderFrameFlag(bool fisrtRenderFrame)
+void GstPlayerVideoRendererCtrl::SetFirstRenderFrameFlag(bool firstRenderFrame)
 {
-    fisrtRenderFrame_ = fisrtRenderFrame;
+    firstRenderFrame_ = firstRenderFrame;
 }
 
-bool GstPlayerVideoRendererCtrl:::GetFisrtRenderFrameFlag();
+bool GstPlayerVideoRendererCtrl:::GetFirstRenderFrameFlag();
 {
-    return fisrtRenderFrame_;
+    return firstRenderFrame_;
 }
 
 GstPlayerVideoRenderer *GstPlayerVideoRendererFactory::Create(

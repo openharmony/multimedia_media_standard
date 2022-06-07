@@ -38,8 +38,8 @@ public:
     const sptr<Surface> GetProducerSurface() const;
     int32_t SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs);
     std:shared_ptr<IPlayerEngineObs> GetCallBacks();
-    void SetFisrtRenderFrameFlag(bool fisrtRenderFrame);
-    bool GetFisrtRenderFrameFlag();
+    void SetFirstRenderFrameFlag(bool firstRenderFrame);
+    bool GetFirstRenderFrameFlag();
 
 private:
     sptr<Surface> producerSurface_ = nullptr;
@@ -50,7 +50,7 @@ private:
     uint32_t queueSize_ = 0;
     std::vector<gulong> signalIds_;
     std::weak_ptr<IPlayerEngineObs> obs_;
-    bool fisrtRenderFrame_ = true;
+    bool firstRenderFrame_ = true;
 };
 
 class GstPlayerVideoRendererFactory {
