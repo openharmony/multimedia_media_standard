@@ -45,6 +45,7 @@ static bool ParseGValueSimple(const GValue &value, const MetaParseItem &item, Fo
 static bool FractionMetaSetter(const GValue &gval, const std::string_view &key, Format &metadata);
 static bool ImageMetaSetter(const GValue &gval, const std::string_view &key, Format &metadata);
 static bool DateTimeMetaSetter(const GValue &gval, const std::string_view &key, Format &metadata);
+static bool OrientationMetaSetter(const GValue &gval, const std::string_view &key, Format &metadata);
 
 static const std::unordered_map<std::string_view, MetaParseItem> GST_TAG_PARSE_ITEMS = {
     { GST_TAG_ALBUM, { INNER_META_KEY_ALBUM, G_TYPE_STRING } },
@@ -58,6 +59,7 @@ static const std::unordered_map<std::string_view, MetaParseItem> GST_TAG_PARSE_I
     { GST_TAG_DURATION, { INNER_META_KEY_DURATION, G_TYPE_UINT64 } },
     { GST_TAG_BITRATE, { INNER_META_KEY_BITRATE, G_TYPE_UINT } },
     { GST_TAG_IMAGE, { INNER_META_KEY_IMAGE, GST_SAMPLE_TYPE, ImageMetaSetter } },
+    { GST_TAG_IMAGE_ORIENTATION, { INNER_META_KEY_VIDEO_ORIENTATION, G_TYPE_STRING, OrientationMetaSetter } },
 };
 
 static const std::unordered_map<std::string_view, MetaParseItem> GST_CAPS_PARSE_ITEMS = {
@@ -81,6 +83,11 @@ static const std::unordered_map<std::string_view, std::string_view> FILE_MIME_TY
     { "video/quicktime, variant=(string)iso", FILE_MIMETYPE_VIDEO_MP4 },
     { "video/quicktime, variant=(string)3gpp", FILE_MIMETYPE_VIDEO_MP4 },
     { "video/quicktime, variant=(string)3g2", FILE_MIMETYPE_VIDEO_MP4 },
+    { "video/x-matroska", FILE_MIMETYPE_VIDEO_MKV},  // mkv
+    { "audio/x-matroska", FILE_MIMETYPE_AUDIO_MKV},  // mkv
+    { "video/mpegts", FILE_MIMETYPE_VIDEO_MPEGTS},  // mpeg-ts
+    { "video/webm", FILE_MIMETYPE_VIDEO_WEBM},  // webm
+    { "audio/webm", FILE_MIMETYPE_AUDIO_WEBM},  // webm
     { "audio/x-m4a", FILE_MIMETYPE_AUDIO_MP4 },
     { "audio/mpeg", FILE_MIMETYPE_AUDIO_AAC }, // aac
     { "application/x-id3", FILE_MIMETYPE_AUDIO_MP3 }, // mp3
@@ -374,6 +381,26 @@ static bool DateTimeMetaSetter(const GValue &gval, const std::string_view &key, 
 
     bool ret = metadata.PutStringValue(key, str);
     MEDIA_LOGD("Key: %{public}s, value: %{public}s", key.data(), str.data());
+
+    return ret;
+}
+
+static bool OrientationMetaSetter(const GValue &gval, const std::string_view &key, Format &metadata)
+{
+    std::string str = g_value_get_string(&gval);
+    CHECK_AND_RETURN_RET_LOG(!str.empty(), false, "Parse key %{public}s failed", key.data());
+    bool ret = false;
+
+    std::string::size_type pos = std::string::npos;
+    if ((pos = str.find("-")) == std::string::npos) {
+        ret = false;
+    } else {
+        std::string subStr = str.substr(pos + 1, str.length() - pos);
+        uint32_t rotate = std::stol(subStr, nullptr, 10);  // 10 : decimalism
+        MEDIA_LOGI("Get rotate str is %{public}s", subStr.c_str());
+        MEDIA_LOGI("Get rotate is %{public}u", rotate);
+        ret = metadata.PutIntValue(key, static_cast<int32_t>(rotate));
+    }
 
     return ret;
 }
