@@ -161,7 +161,7 @@ void GstPlayerVideoRendererCap::FirstRenderFrame(gpointer userData)
     GstPlayerVideoRendererCtrl *rendererCtrl = reinterpret_cast<GstPlayerVideoRendererCtrl *>(userData);
 
     if (rendererCtrl->GetFirstRenderFrameFlag()) {
-        std::shared_ptr<IPlayerEngineObs> tempObs = rendererCtrl->GetCallbacks();
+        std::shared_ptr<IPlayerEngineObs> tempObs = rendererCtrl->GetCallBacks();
         if (tempObs != nullptr) {
             Format format;
             tempObs->OnInfo(INFO_TYPE_MESSAGE, PlayerMessageType::PLAYER_INFO_VIDEO_RENDERING_START, format);
@@ -319,7 +319,7 @@ void GstPlayerVideoRendererCtrl::SetFirstRenderFrameFlag(bool firstRenderFrame)
     firstRenderFrame_ = firstRenderFrame;
 }
 
-bool GstPlayerVideoRendererCtrl:::GetFirstRenderFrameFlag()
+bool GstPlayerVideoRendererCtrl::GetFirstRenderFrameFlag()
 {
     return firstRenderFrame_;
 }
