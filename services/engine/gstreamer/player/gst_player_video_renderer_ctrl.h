@@ -37,7 +37,7 @@ public:
     const GstElement *GetAudioSink() const;
     const sptr<Surface> GetProducerSurface() const;
     int32_t SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs);
-    std:shared_ptr<IPlayerEngineObs> GetCallBacks();
+    std::shared_ptr<IPlayerEngineObs> GetCallBacks();
     void SetFirstRenderFrameFlag(bool firstRenderFrame);
     bool GetFirstRenderFrameFlag();
 
