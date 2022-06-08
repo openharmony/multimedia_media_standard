@@ -64,6 +64,12 @@ const std::map<AVCProfile, std::string> AVC_PROFILE_TO_STRING = {
     {AVC_PROFILE_MAIN, "main"},
 };
 
+const std::map<HEVCProfile, std::string> HEVC_PROFILE_TO_STRING = {
+    {HEVC_PROFILE_MAIN, "main"},
+    {HEVC_PROFILE_MAIN_10, "main-10"},
+    {HEVC_PROFILE_MAIN_STILL, "main-still-picture"},
+};
+
 const std::map<std::string_view, InnerCodecMimeType> MIME_TO_CODEC_NAME = {
     {CodecMimeType::VIDEO_H263, CODEC_MIMIE_TYPE_VIDEO_H263},
     {CodecMimeType::VIDEO_AVC, CODEC_MIMIE_TYPE_VIDEO_AVC},
@@ -97,6 +103,14 @@ std::string AVCProfileToGst(AVCProfile profile)
 {
     if (AVC_PROFILE_TO_STRING.count(profile) != 0) {
         return AVC_PROFILE_TO_STRING.at(profile);
+    }
+    return "Invalid";
+}
+
+std::string HEVCProfileToGst(HEVCProfile profile)
+{
+    if (HEVC_PROFILE_TO_STRING.count(profile) != 0) {
+        return HEVC_PROFILE_TO_STRING.at(profile);
     }
     return "Invalid";
 }
