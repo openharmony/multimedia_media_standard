@@ -44,7 +44,7 @@ public:
         return 0;
     }
 
-    virtual std::unique_ptr<IPlayerEngine> CreatePlayerEngine()
+    virtual std::unique_ptr<IPlayerEngine> CreatePlayerEngine(int32_t uid = 0, int32_t pid = 0)
     {
         return nullptr;
     }
