@@ -45,6 +45,8 @@ struct _GstAudioServerSink {
     guint bits_per_sample;
     guint channels;
     guint sample_rate;
+    gint appuid;
+    gint apppid;
     gfloat volume;
     gfloat max_volume;
     gfloat min_volume;

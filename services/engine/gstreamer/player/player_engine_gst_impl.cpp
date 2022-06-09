@@ -35,7 +35,8 @@ constexpr float SPEED_2_00_X = 2.00;
 constexpr size_t MAX_URI_SIZE = 4096;
 constexpr uint64_t RING_BUFFER_MAX_SIZE = 5242880; // 5 * 1024 * 1024
 
-PlayerEngineGstImpl::PlayerEngineGstImpl()
+PlayerEngineGstImpl::PlayerEngineGstImpl(int32_t uid, int32_t pid)
+    : appuid_(uid), apppid_(pid)
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
 }
@@ -167,6 +168,7 @@ void PlayerEngineGstImpl::PlayerLoop()
 
     rendererCtrl_ = playerBuild_->BuildRendererCtrl(producerSurface_);
     CHECK_AND_RETURN_LOG(rendererCtrl_ != nullptr, "rendererCtrl_ is nullptr");
+    rendererCtrl_->SetAppInfo(appuid_, apppid_);
 
     playerCtrl_ = playerBuild_->BuildPlayerCtrl();
     CHECK_AND_RETURN_LOG(playerCtrl_ != nullptr, "playerCtrl_ is nullptr");
