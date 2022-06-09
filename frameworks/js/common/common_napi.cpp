@@ -223,7 +223,7 @@ napi_status CommonNapi::CreateError(napi_env env, int32_t errCode, const std::st
     }
 
     napi_value errCodeVal = nullptr;
-    nstatus = napi_create_int32(env, errCode - MS_ERR_OFFSET, &errCodeVal);
+    nstatus = napi_create_int32(env, errCode, &errCodeVal);
     if (nstatus != napi_ok || errCodeVal == nullptr) {
         MEDIA_LOGE("create error code number val fail");
         return napi_invalid_arg;
