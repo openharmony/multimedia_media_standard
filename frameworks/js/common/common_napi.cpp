@@ -177,7 +177,7 @@ napi_status CommonNapi::FillErrorArgs(napi_env env, int32_t errCode, const napi_
 
     napi_value errCodeVal = nullptr;
     int32_t errCodeInt = errCode;
-    status = napi_create_int32(env, errCodeInt - MS_ERR_OFFSET, &errCodeVal);
+    status = napi_create_int32(env, errCodeInt, &errCodeVal);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && errCodeVal != nullptr, napi_invalid_arg,
         "create error code number val fail");
 
