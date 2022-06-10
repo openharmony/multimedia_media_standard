@@ -60,7 +60,7 @@
           "//foundation/multimedia/media_standard/interfaces/kits/js:media",
           "//foundation/multimedia/media_standard/interfaces/kits/js:media_js",
           "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager",
-          "//foundation/multimedia/media_standard/test/nativedemo:media_demo",
+          "//foundation/multimedia/media_standard/test/nativedemo:media_demo",          
           "//foundation/multimedia/media_standard/test/jsdemo:media_demo_js",
           "//foundation/multimedia/media_standard/test/jsdemo:mediademo"
         ],
@@ -90,7 +90,8 @@
           }
         ],
         "test": [
-            "//foundation/multimedia/media_standard/test/fuzztest:fuzztest"
+            "//foundation/multimedia/media_standard/test/fuzztest:fuzztest",
+            "//foundation/multimedia/media_standard/test:media_unit_test"
         ]
       }
     }
