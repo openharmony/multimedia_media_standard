@@ -29,6 +29,13 @@ class ContainerFormatType {
 public:
     static constexpr std::string_view CFT_MPEG_4A = "m4a";
     static constexpr std::string_view CFT_MPEG_4 = "mp4";
+    static constexpr std::string_view CFT_MPEG_TS = "mpeg-ts";
+    static constexpr std::string_view CFT_MKV = "mkv";
+    static constexpr std::string_view CFT_WEBM = "webm";
+    static constexpr std::string_view CFT_OGG = "ogg";
+    static constexpr std::string_view CFT_WAV = "wav";
+    static constexpr std::string_view CFT_AAC = "aac";
+    static constexpr std::string_view CFT_FLAC = "flac";
 };
 
 /**

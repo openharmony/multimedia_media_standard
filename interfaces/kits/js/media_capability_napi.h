@@ -20,6 +20,8 @@
 #include "media_capability_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "common_napi.h"
+#include "recorder_profiles.h"
 
 namespace OHOS {
 namespace Media {
@@ -41,6 +43,11 @@ private:
     static napi_value FindVideoDecoder(napi_env env, napi_callback_info info);
     static napi_value GetVideoEncoderCaps(napi_env env, napi_callback_info info);
     static napi_value FindVideoEncoder(napi_env env, napi_callback_info info);
+    static napi_value GetAudioRecorderCaps(napi_env env, napi_callback_info info);
+    static napi_value IsAudioRecoderConfigSupported(napi_env env, napi_callback_info info);
+    static napi_value GetVideoRecorderCaps(napi_env env, napi_callback_info info);
+    static napi_value GetVideoRecorderProfile(napi_env env, napi_callback_info info);
+    static napi_value HasVideoRecorderProfile(napi_env env, napi_callback_info info);
     static napi_value GetAVMuxerFormatList(napi_env env, napi_callback_info info);
 
     MediaCapsNapi();
@@ -57,6 +64,9 @@ struct MediaCapsAsyncContext : public MediaAsyncContext {
 
     MediaCapsNapi *napi = nullptr;
     Format format;
+    int32_t sourceId = 0;
+    int32_t qualityLevel = 0;
+    AudioRecorderProfile profile;
 };
 } // namespace Media
 } // namespace OHOS
