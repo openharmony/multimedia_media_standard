@@ -146,6 +146,16 @@ void GstPlayerCtrl::SetBitRate(uint32_t bitRate)
     }
 }
 
+void GstPlayerCtrl::SetVideoScaleType(VideoScaleType videoScaleType)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (videoSink_ != nullptr) {
+        g_object_set(videoSink_, "video-scale-type", static_cast<uint32_t>(videoScaleType), nullptr);
+    } else {
+        videoScaleType_ = videoScaleType;
+    }
+}
+
 void GstPlayerCtrl::SetHttpTimeOut()
 {
     std::unique_lock<std::mutex> lock(mutex_);
@@ -290,6 +300,7 @@ void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, G
         CHECK_AND_RETURN_LOG(playerGst->videoSink_ != nullptr, "videoSink is null");
         g_object_set(G_OBJECT(src), "performance-mode", TRUE, nullptr);
         g_object_set(G_OBJECT(playerGst->videoSink_), "performance-mode", TRUE, nullptr);
+        g_object_set(G_OBJECT(playerGst->videoSink_), "video-scale-type", playerGst->videoScaleType_, nullptr);
         GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
         g_object_set(G_OBJECT(playerGst->videoSink_), "caps", caps, nullptr);
         g_object_set(G_OBJECT(src), "sink-caps", caps, nullptr);
@@ -302,6 +313,9 @@ void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, G
 
     if (metaStr.find("Sink/Video") != std::string::npos) {
         if (!playerGst->isHardWare_) {
+            playerGst->GetVideoSink();
+            CHECK_AND_RETURN_LOG(playerGst->videoSink_ != nullptr, "videoSink is null");
+            g_object_set(G_OBJECT(playerGst->videoSink_), "video-scale-type", playerGst->videoScaleType_, nullptr);
             g_object_set(G_OBJECT(src), "max-pool-capacity", MAX_SOFT_BUFFERS, nullptr);
             g_object_set(G_OBJECT(src), "cache-buffers-num", DEFAULT_CACHE_BUFFERS, nullptr);
         }

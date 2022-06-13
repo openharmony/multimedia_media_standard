@@ -54,6 +54,7 @@ private:
     void SetLoop(const std::string &cmd);
     void SetPlaybackSpeed(const std::string &cmd) const;
     void SelectBitRate(const std::string &cmd) const;
+    void SetVideoScaleType(const std::string &cmd) const;
     int32_t GetPlaying();
     int32_t GetLooping();
     void GetCurrentTime();
@@ -68,6 +69,7 @@ private:
     int32_t SelectBufferingOut();
     int32_t ChangeModeToSpeed(const PlaybackRateMode &mode, double &rate) const;
     int32_t ChangeSpeedToMode(const double &rate, PlaybackRateMode &mode) const;
+    void SetVideoScaleType();
     sptr<Surface> GetSubWindowSurface();
     void RegisterTable();
     sptr<Rosen::Window> previewWindow_ = nullptr;

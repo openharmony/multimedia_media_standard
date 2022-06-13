@@ -59,6 +59,7 @@ public:
     void SetBufferingInfo();
     void SetHttpTimeOut();
     int32_t SelectBitRate(uint32_t bitRate);
+    void SetVideoScaleType(VideoScaleType videoScaleType);
     static void OnStateChangedCb(const GstPlayer *player, GstPlayerState state, GstPlayerCtrl *playerGst);
     static void OnEndOfStreamCb(const GstPlayer *player, GstPlayerCtrl *playerGst);
     static void StreamDecErrorParse(const gchar *name, int32_t &errorCode);
@@ -164,6 +165,7 @@ private:
     GstElement *videoSink_ = nullptr;
     bool isPlaySinkFlagsSet_ = false;
     bool isNetWorkPlay_ = false;
+    VideoScaleType videoScaleType_ = VIDEO_SCALE_TYPE_FIT;
 };
 } // namespace Media
 } // namespace OHOS

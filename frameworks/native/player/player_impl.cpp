@@ -218,6 +218,13 @@ int32_t PlayerImpl::SelectBitRate(uint32_t bitRate)
     return playerService_->SelectBitRate(bitRate);
 }
 
+int32_t PlayerImpl::SetVideoScaleType(VideoScaleType videoScaleType)
+{
+    CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
+
+    return playerService_->SetVideoScaleType(videoScaleType);
+}
+
 int32_t PlayerImpl::GetDuration(int32_t &duration)
 {
     CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");

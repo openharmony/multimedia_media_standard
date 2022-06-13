@@ -56,6 +56,7 @@ public:
     int32_t SetParameter(const Format &param) override;
     int32_t SetLooping(bool loop) override;
     int32_t SelectBitRate(uint32_t bitRate) override;
+    int32_t SetVideoScaleType(VideoScaleType videoScaleType) override;
 
 private:
     double ChangeModeToSpeed(const PlaybackRateMode &mode) const;
@@ -74,6 +75,7 @@ private:
     std::weak_ptr<IPlayerEngineObs> obs_;
     sptr<Surface> producerSurface_ = nullptr;
     std::string url_ = "";
+    VideoScaleType videoScaleType_ = VIDEO_SCALE_TYPE_FIT;
     std::condition_variable condVarSync_;
     bool gstPlayerInit_ = false;
     std::unique_ptr<std::thread> playerThread_;

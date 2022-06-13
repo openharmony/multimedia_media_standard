@@ -20,6 +20,18 @@
 #define gst_surface_allocator_parent_class parent_class
 G_DEFINE_TYPE(GstSurfaceAllocator, gst_surface_allocator, GST_TYPE_ALLOCATOR);
 
+enum VideoScaleType {
+    VIDEO_SCALE_TYPE_FIT,
+    VIDEO_SCALE_TYPE_FIT_CROP,
+}
+
+namespace {
+    const std::unordered_map<VideoScaleType>, OHOS::ScalingMode> SCALEMODE_MAP = {
+        { VIDEO_SCALE_TYPE_FIT, OHOS::SCALING_MODE_SCALE_TO_WINDOW },
+        { VIDEO_SCALE_TYPE_FIT_CROP, OHOS::SCALING_MODE_SCALE_CROP},
+    };
+}
+
 gboolean gst_surface_allocator_set_surface(GstSurfaceAllocator *allocator, OHOS::sptr<OHOS::Surface> surface)
 {
     if (allocator == nullptr) {
@@ -32,6 +44,14 @@ gboolean gst_surface_allocator_set_surface(GstSurfaceAllocator *allocator, OHOS:
     }
     allocator->surface = surface;
     return TRUE;
+}
+
+OHOS::ScalingMode gst_surface_allocator_get_scale_type(GstSurfaceAllocParam param)
+{
+    if (SCALEMODE_MAP.find(static_cast<VideoScaleType>(param.scaleType)) == SCALEMODE_MAP.end()) {
+        return OHOS::SCALING_MODE_SCALE_TO_WINDOW;
+    }
+    return SCALEMODE_MAP.at(static_cast<VideoScaleType>(param.scaleType));
 }
 
 GstSurfaceMemory *gst_surface_allocator_alloc(GstSurfaceAllocator *allocator, GstSurfaceAllocParam param)
@@ -51,6 +71,11 @@ GstSurfaceMemory *gst_surface_allocator_alloc(GstSurfaceAllocator *allocator, Gs
         GST_INFO("there is no more buffers");
     }
     if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK || surface_buffer == nullptr) {
+        return nullptr;
+    }
+    ret = allocator->surface->SetScalingMode(surface_buffer->GetSeqNum(), gst_surface_allocator_get_scale_type(param));
+    if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
+        GST_ERROR("set scaling mode failed");
         return nullptr;
     }
     ret = surface_buffer->Map();

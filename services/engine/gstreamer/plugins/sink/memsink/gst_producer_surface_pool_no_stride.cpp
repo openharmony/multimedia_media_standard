@@ -39,6 +39,7 @@ enum {
     PROP_0,
     PROP_DYNAMIC_BUFFER_NUM,
     PROP_CACHE_BUFFERS_NUM,
+    PROP_VIDEO_SCALE_TYPE,
 };
 
 #define GST_BUFFER_POOL_LOCK(pool)   (g_mutex_lock(&(pool)->lock))
@@ -100,6 +101,11 @@ static void gst_producer_surface_pool_class_init (GstSurfacePoolClass *klass)
         g_param_spec_uint("cache-buffers-num", "Cached Buffer Num",
             "Set cached buffer nums for pool thread loop",
             0, G_MAXUINT, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+            
+    g_object_class_install_property(gobjectClass, PROP_VIDEO_SCALE_TYPE,
+        g_param_spec_uint("video-scale-type", "Video Scale Type",
+            "Set video scale type for graphic",
+            0, G_MAXUINT, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
     poolClass->get_options = gst_producer_surface_pool_get_options;
     poolClass->set_config = gst_producer_surface_pool_set_config;
@@ -137,6 +143,7 @@ static void gst_producer_surface_pool_init (GstSurfacePool *pool)
     pool->callCnt = 0;
     pool->isDynamicCached = FALSE;
     pool->cachedBuffers = 0;
+    pool->scaleType = 0;
 }
 
 static void gst_producer_surface_pool_finalize(GObject *obj)
@@ -198,6 +205,11 @@ static void gst_producer_surface_pool_set_property(GObject *object, guint prop_i
             spool->cachedBuffers = g_value_get_uint(value);
             GST_BUFFER_POOL_UNLOCK(spool);
             break;
+        }
+        case PROP_VIDEO_SCALE_TYPE: {
+            GST_BUFFER_POOL_LOCK(spool);
+            spool->scaleType = g_value_get_uint(value);
+            GST_BUFFER_POOL_UNLOCK(spool);
         }
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -488,7 +500,8 @@ static GstFlowReturn do_alloc_memory_locked(GstSurfacePool *spool,
     GstVideoInfo *info = &spool->info;
     GstSurfaceAllocParam allocParam = {
         GST_VIDEO_INFO_WIDTH(info), GST_VIDEO_INFO_HEIGHT(info), spool->format, spool->usage,
-        (params != nullptr ? ((params->flags & GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT) != 0) : FALSE)
+        (params != nullptr ? ((params->flags & GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT) != 0) : FALSE),
+        spool->scaleType
     };
 
     GST_DEBUG_OBJECT(spool, "do_alloc_memory_locked");

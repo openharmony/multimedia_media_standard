@@ -244,6 +244,8 @@ int32_t PlayerEngineGstImpl::GstPlayerPrepare() const
     }
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetUrl failed");
 
+    playerCtrl_->SetVideoScaleType(videoScaleType_);
+
     ret = playerCtrl_->SetCallbacks(obs_);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetCallbacks failed");
 
@@ -469,6 +471,18 @@ int32_t PlayerEngineGstImpl::SelectBitRate(uint32_t bitRate)
     if (playerCtrl_ != nullptr) {
         MEDIA_LOGD("SelectBitRate in");
         playerCtrl_->SelectBitRate(bitRate);
+    }
+    return MSERR_OK;
+}
+
+int32_t PlayerEngineGstImpl::SetVideoScaleType(VideoScaleType videoScaleType)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (playerCtrl_ != nullptr) {
+        MEDIA_LOGD("SetVideoScaleType in");
+        playerCtrl_->SetVideoScaleType(videoScaleType);
+    } else {
+        videoScaleType_ = videoScaleType;
     }
     return MSERR_OK;
 }
