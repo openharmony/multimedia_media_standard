@@ -79,6 +79,9 @@ sptr<IRemoteObject> MediaServer::GetSubSystemAbility(IStandardMediaService::Medi
         case MediaSystemAbility::MEDIA_AVCODEC: {
             return MediaServerManager::GetInstance().CreateStubObject(MediaServerManager::AVCODEC);
         }
+        case MediaSystemAbility::RECORDER_PROFILES: {
+            return MediaServerManager::GetInstance().CreateStubObject(MediaServerManager::RECORDERPROFILES);
+        }
         case MediaSystemAbility::MEDIA_AVMUXER: {
             return MediaServerManager::GetInstance().CreateStubObject(MediaServerManager::AVMUXER);
         }

@@ -14,16 +14,21 @@
 import("//build/ohos.gni")
 
 ohos_static_library("media_format") {
-  sources = [ "format.cpp" ]
+  sources = [
+    "format.cpp",
+    "xml_parse.cpp",
+  ]
 
   include_dirs = [
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//utils/native/base/include",
+    "//third_party/libxml2/include",
   ]
 
   deps = [
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//third_party/libxml2:xml2",
   ]
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
@@ -50,11 +55,13 @@ ohos_shared_library("media_service_utils") {
     "time_monitor.cpp",
     "time_perf.cpp",
     "uri_helper.cpp",
+    "xml_parse.cpp",
   ]
 
   include_dirs = [
     "//utils/native/base/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
+    "//third_party/libxml2/include",
   ]
 
   cflags = [
@@ -77,7 +84,10 @@ ohos_shared_library("media_service_utils") {
 
   configs = [ ":media_service_utils_public_config" ]
 
-  deps = [ "//utils/native/base:utils" ]
+  deps = [
+    "//third_party/libxml2:xml2",
+    "//utils/native/base:utils",
+  ]
 
   external_deps = [
     "hisysevent_native:libhisysevent",

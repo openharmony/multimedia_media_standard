@@ -19,6 +19,7 @@
 #include "player_service_stub.h"
 #include "avmetadatahelper_service_stub.h"
 #include "avcodeclist_service_stub.h"
+#include "recorder_profiles_service_stub.h"
 #include "avmuxer_service_stub.h"
 #include "media_log.h"
 #include "media_errors.h"
@@ -128,6 +129,9 @@ sptr<IRemoteObject> MediaServerManager::CreateStubObject(StubType type)
         }
         case AVCODEC: {
             return CreateAVCodecStubObject();
+        }
+        case RECORDERPROFILES: {
+            return CreateRecorderProfilesStubObject();
         }
         case AVMUXER: {
             return CreateAVMuxerStubObject();
@@ -283,6 +287,27 @@ sptr<IRemoteObject> MediaServerManager::CreateAVCodecStubObject()
     return object;
 }
 
+sptr<IRemoteObject> MediaServerManager::CreateRecorderProfilesStubObject()
+{
+    if (recorderProfilesStubMap_.size() >= SERVER_MAX_NUMBER) {
+        MEDIA_LOGE("The number of recorder_profiles services(%{public}zu) has reached the upper limit."
+            "Please release the applied resources.", recorderProfilesStubMap_.size());
+        return nullptr;
+    }
+    sptr<RecorderProfilesServiceStub> recorderProfilesStub = RecorderProfilesServiceStub::Create();
+    if (recorderProfilesStub == nullptr) {
+        MEDIA_LOGE("failed to create recorderProfilesStub");
+        return nullptr;
+    }
+    sptr<IRemoteObject> object = recorderProfilesStub->AsObject();
+    if (object != nullptr) {
+        pid_t pid = IPCSkeleton::GetCallingPid();
+        recorderProfilesStubMap_[object] = pid;
+        MEDIA_LOGD("The number of recorder_profiles services(%{public}zu).", recorderProfilesStubMap_.size());
+    }
+    return object;
+}
+
 sptr<IRemoteObject> MediaServerManager::CreateAVMuxerStubObject()
 {
     if (avmuxerStubMap_.size() >= SERVER_MAX_NUMBER) {
@@ -370,6 +395,18 @@ void MediaServerManager::DestroyStubObject(StubType type, sptr<IRemoteObject> ob
             MEDIA_LOGE("find avcodeclist object failed, pid(%{public}d).", pid);
             break;
         }
+        case RECORDERPROFILES: {
+            for (auto it = recorderProfilesStubMap_.begin(); it != recorderProfilesStubMap_.end(); it++) {
+                if (it->first == object) {
+                    MEDIA_LOGD("destroy mediaprofile stub services(%{public}zu) pid(%{public}d).",
+                        recorderProfilesStubMap_.size(), pid);
+                    (void)recorderProfilesStubMap_.erase(it);
+                    return;
+                }
+            }
+            MEDIA_LOGE("find mediaprofile object failed, pid(%{public}d).", pid);
+            break;
+        }
         case AVMUXER: {
             for (auto it = avmuxerStubMap_.begin(); it != avmuxerStubMap_.end(); it++) {
                 if (it->first == object) {
@@ -442,6 +479,16 @@ void MediaServerManager::DestroyStubObjectForPid(pid_t pid)
         }
     }
     MEDIA_LOGD("avcodeclist stub services(%{public}zu).", avCodecListStubMap_.size());
+
+    MEDIA_LOGD("mediaprofile stub services(%{public}zu) pid(%{public}d).", recorderProfilesStubMap_.size(), pid);
+    for (auto itMediaProfile = recorderProfilesStubMap_.begin(); itMediaProfile != recorderProfilesStubMap_.end();) {
+        if (itMediaProfile->second == pid) {
+            itMediaProfile = recorderProfilesStubMap_.erase(itMediaProfile);
+        } else {
+            itMediaProfile++;
+        }
+    }
+    MEDIA_LOGD("mediaprofile stub services(%{public}zu).", recorderProfilesStubMap_.size());
 
     MEDIA_LOGD("avmuxer stub services(%{public}zu) pid(%{public}d).", avmuxerStubMap_.size(), pid);
     for (auto itAVMuxer = avmuxerStubMap_.begin(); itAVMuxer != avmuxerStubMap_.end();) {

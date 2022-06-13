@@ -22,6 +22,7 @@
 #include "i_avmetadatahelper_service.h"
 #include "i_avcodec_service.h"
 #include "i_avcodeclist_service.h"
+#include "i_recorder_profiles_service.h"
 #include "i_avmuxer_service.h"
 
 namespace OHOS {
@@ -62,6 +63,17 @@ public:
      * @version 1.0
      */
     virtual std::shared_ptr<IAVCodecListService> CreateAVCodecListService() = 0;
+
+    /**
+     * @brief Create a mediaprofile service.
+     *
+     * All player functions must be created and obtained first.
+     *
+     * @return Returns a valid pointer if the setting is successful;
+     * @since 3.2
+     * @version 3.2
+     */
+    virtual std::shared_ptr<IRecorderProfilesService> CreateRecorderProfilesService() = 0;
 
     /**
      * @brief Create an avmetadatahelper service.
@@ -156,6 +168,18 @@ public:
      */
     virtual int32_t DestroyAVCodecListService(std::shared_ptr<IAVCodecListService> avCodecList) = 0;
 
+    /**
+     * @brief Destroy a mediaprofile service.
+     *
+     * call the API to destroy the mediaprofile service.
+     *
+     * @param pointer to the mediaprofile service.
+     * @return Returns a valid pointer if the setting is successful;
+     * @since 3.2
+     * @version 3.2
+     */
+    virtual int32_t DestroyMediaProfileService(std::shared_ptr<IRecorderProfilesService> recorderProfiles) = 0;
+    
     /**
      * @brief Destroy a avmuxer service.
      *

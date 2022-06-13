@@ -21,6 +21,7 @@ ohos_executable("media_demo") {
     "./recorder",
     "./avmetadatahelper",
     "./avcodeclist",
+    "./recorder_profiles",
     "./avcodecvenc",
     "./avcodecvdec",
     "./avmuxer",
@@ -64,6 +65,7 @@ ohos_executable("media_demo") {
     "./player/data_source/media_data_source_demo_seekable.cpp",
     "./player/player_demo.cpp",
     "./recorder/recorder_demo.cpp",
+    "./recorder_profiles/recorder_profiles_demo.cpp",
   ]
 
   deps = [
