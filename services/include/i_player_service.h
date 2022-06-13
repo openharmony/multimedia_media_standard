@@ -254,6 +254,17 @@ public:
     virtual int32_t SelectBitRate(uint32_t bitRate) = 0;
 
     /**
+     * @brief set the video scale type for player
+     *
+     * @param videoScaleType the scale type {@link VideoScaleType} which can set.
+     * @return Returns {@link MSERR_OK} if the scale type is set successful; returns an error code defined
+     * in {@link media_errors.h} otherwise.
+     * @since 1.0
+     * @version 1.0
+     */
+    virtual int32_t SetVideoScaleType(VideoScaleType videoScaleType) = 0;
+    
+    /**
      * @brief get the current player playback rate
      *
      * @param mode the rate mode {@link PlaybackRateMode} which can get.

@@ -225,6 +225,11 @@ static const std::vector<struct JsEnumInt> g_VP8Profile = {
     { "VP8_PROFILE_MAIN", VP8Profile::VP8_PROFILE_MAIN },
 };
 
+static const std::vector<struct JsEnumInt> g_VideoScaleType = {
+    { "VIDEO_SCALE_TYPE_FIT", VideoScaleType::VIDEO_SCALE_TYPE_FIT },
+    { "VIDEO_SCALE_TYPE_FIT_CROP", VideoScaleType::VIDEO_SCALE_TYPE_FIT_CROP },
+};
+
 static const std::vector<struct JsEnumString> g_containerFormatType = {
     { "CFT_MPEG_4", ContainerFormatType::CFT_MPEG_4 },
     { "CFT_MPEG_4A", ContainerFormatType::CFT_MPEG_4A },
@@ -302,6 +307,7 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "MPEG4Profile", g_MPEG4Profile },
     { "H263Profile", g_H263Profile},
     { "VP8Profile", g_VP8Profile },
+    { "VideoScaleType", g_VideoScaleType},
 };
 
 static const std::map<std::string_view, const std::vector<struct JsEnumString>&> g_stringEnumClassMap = {

@@ -56,7 +56,7 @@ public:
     virtual int32_t DestroyStub() = 0;
     virtual int32_t SetPlayerCallback() = 0;
     virtual int32_t SelectBitRate(uint32_t bitRate) = 0;
-
+    virtual int32_t SetVideoScaleType(VideoScaleType videoScaleType) = 0;
     /**
      * IPC code ID
      */
@@ -89,7 +89,8 @@ public:
         GET_AUDIO_TRACK_INFO,
         GET_VIDEO_WIDTH,
         GET_VIDEO_HEIGHT,
-        SELECT_BIT_RATE
+        SELECT_BIT_RATE,
+        SET_VIDEO_SCALE_TYPE,
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"IStandardPlayerService");

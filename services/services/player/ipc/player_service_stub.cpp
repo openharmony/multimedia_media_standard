@@ -82,6 +82,7 @@ int32_t PlayerServiceStub::Init()
     playerFuncs_[GET_VIDEO_WIDTH] = &PlayerServiceStub::GetVideoWidth;
     playerFuncs_[GET_VIDEO_HEIGHT] = &PlayerServiceStub::GetVideoHeight;
     playerFuncs_[SELECT_BIT_RATE] = &PlayerServiceStub::SelectBitRate;
+    playerFuncs_[SET_VIDEO_SCALE_TYPE] = &PlayerServiceStub::SetVideoScaleType;
     return MSERR_OK;
 }
 
@@ -267,6 +268,12 @@ int32_t PlayerServiceStub::SelectBitRate(uint32_t bitRate)
 {
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->SelectBitRate(bitRate);
+}
+
+int32_t PlayerServiceStub::SetVideoScaleType(VideoScaleType videoScaleType)
+{
+    CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
+    return playerServer_->SetVideoScaleType(videoScaleType);
 }
 
 int32_t PlayerServiceStub::SetVideoSurface(sptr<Surface> surface)
@@ -494,6 +501,13 @@ int32_t PlayerServiceStub::SelectBitRate(MessageParcel &data, MessageParcel &rep
 {
     int32_t bitrate = data.ReadInt32();
     reply.WriteInt32(SelectBitRate(static_cast<uint32_t>(bitrate)));
+    return MSERR_OK;
+}
+
+int32_t PlayerServiceStub::SetVideoScaleType(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t videoScaleType = data.ReadInt32();
+    reply.WriteInt32(SetVideoScaleType(VideoScaleType(videoScaleType)));
     return MSERR_OK;
 }
 

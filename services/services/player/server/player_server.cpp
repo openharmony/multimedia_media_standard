@@ -144,7 +144,8 @@ int32_t PlayerServer::InitPlayEngine(const std::string &url)
     std::shared_ptr<IPlayerEngineObs> obs = shared_from_this();
     ret = playerEngine_->SetObs(obs);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetObs Failed!");
-
+    ret = playerEngine_->SetVideoScaleType(videoScaleType_);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetVideoScaleType Failed!");
     status_ = PLAYER_INITIALIZED;
     return MSERR_OK;
 }
@@ -554,6 +555,18 @@ int32_t PlayerServer::SelectBitRate(uint32_t bitRate)
     if (playerEngine_ != nullptr) {
         int ret = playerEngine_->SelectBitRate(bitRate);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine SelectBitRate Failed!");
+    }
+    return MSERR_OK;
+}
+
+int32_t PlayerServer::SetVideoScaleType(VideoScaleType videoScaleType)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (playerEngine_ != nullptr) {
+        int ret = playerEngine_->SetVideoScaleType(videoScaleType);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine SetVideoScaleType Failed!");
+    } else {
+        videoScaleType_ = videoScaleType;
     }
     return MSERR_OK;
 }

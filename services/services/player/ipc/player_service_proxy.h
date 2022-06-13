@@ -54,6 +54,7 @@ public:
     int32_t DestroyStub() override;
     int32_t SetPlayerCallback() override;
     int32_t SelectBitRate(uint32_t bitRate) override;
+    int32_t SetVideoScaleType(VideoScaleType videoScaleType) override;
 
 private:
     static inline BrokerDelegator<PlayerServiceProxy> delegator_;

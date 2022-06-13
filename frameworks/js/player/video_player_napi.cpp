@@ -81,6 +81,7 @@ napi_value VideoPlayerNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_GETTER_SETTER("url", GetUrl, SetUrl),
         DECLARE_NAPI_GETTER_SETTER("fdSrc", GetFdSrc, SetFdSrc),
         DECLARE_NAPI_GETTER_SETTER("loop", GetLoop, SetLoop),
+        DECLARE_NAPI_GETTER_SETTER("videoScaleType", GetVideoScaleType, SetVideoScaleType),
 
         DECLARE_NAPI_GETTER("currentTime", GetCurrentTime),
         DECLARE_NAPI_GETTER("duration", GetDuration),
@@ -1127,6 +1128,75 @@ napi_value VideoPlayerNapi::GetLoop(napi_env env, napi_callback_info info)
     status = napi_get_boolean(env, loopFlag, &jsResult);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_get_boolean error");
     MEDIA_LOGD("GetSrc success loop Status: %{public}d", loopFlag);
+    return jsResult;
+}
+
+napi_value VideoPlayerNapi::SetVideoScaleType(napi_env env, napi_callback_info info)
+{
+    napi_value undefinedResult = nullptr;
+    napi_get_undefined(env, &undefinedResult);
+
+    MEDIA_LOGD("SetVideoScaleType In");
+    size_t argCount = 1;
+    napi_value args[1] = { nullptr };
+    napi_value jsThis = nullptr;
+    napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
+    if (status != napi_ok || jsThis == nullptr || args[0] == nullptr) {
+        MEDIA_LOGE("Failed to retrieve details about the callback");
+        return undefinedResult;
+    }
+
+    VideoPlayerNapi *jsPlayer = nullptr;
+    status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&jsPlayer));
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "Failed to retrieve instance");
+
+    napi_valuetype valueType = napi_undefined;
+    if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_number) {
+        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        return undefinedResult;
+    }
+
+    int32_t videoScaleType = 0;
+    status = napi_get_value_int32(env, args[0], &videoScaleType);
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_get_value_int32 error");
+    if (videoScaleType > VIDEO_SCALE_TYPE_FIT_CROP || videoScaleType < VIDEO_SCALE_TYPE_FIT) {
+        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        return undefinedResult;
+    }
+    jsPlayer->videoScaleType_ = videoScaleType;
+    CHECK_AND_RETURN_RET_LOG(jsPlayer->nativePlayer_ != nullptr, undefinedResult, "No memory");
+    int32_t ret = jsPlayer->nativePlayer_->SetVideoScaleType(VideoScaleType(videoScaleType));
+    if (ret != MSERR_OK) {
+        jsPlayer->OnErrorCallback(MSERR_EXT_UNKNOWN);
+        return undefinedResult;
+    }
+    MEDIA_LOGD("SetVideoScaleType success");
+    return undefinedResult;
+}
+
+napi_value VideoPlayerNapi::GetVideoScaleType(napi_env env, napi_callback_info info)
+{
+    napi_value undefinedResult = nullptr;
+    napi_get_undefined(env, &undefinedResult);
+
+    napi_value jsThis = nullptr;
+    size_t argCount = 0;
+    napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
+    if (status != napi_ok || jsThis == nullptr) {
+        MEDIA_LOGE("Failed to retrieve details about the callback");
+        return undefinedResult;
+    }
+
+    VideoPlayerNapi *jsPlayer = nullptr;
+    status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&jsPlayer));
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "Failed to retrieve instance");
+
+    CHECK_AND_RETURN_RET_LOG(jsPlayer->nativePlayer_ != nullptr, undefinedResult, "No memory");
+    
+    napi_value jsResult = nullptr;
+    status = napi_create_int32(env, jsPlayer->videoScaleType_, &jsResult);
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_create_int32 error");
+    MEDIA_LOGD("GetVideoScaleType success");
     return jsResult;
 }
 

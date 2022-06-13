@@ -60,6 +60,7 @@ public:
     int32_t SetPlayerCallback() override;
     int32_t DumpInfo(int32_t fd);
     int32_t SelectBitRate(uint32_t bitRate) override;
+    int32_t SetVideoScaleType(VideoScaleType videoScaleType) override;
 
 private:
     PlayerServiceStub();
@@ -93,6 +94,7 @@ private:
     int32_t DestroyStub(MessageParcel &data, MessageParcel &reply);
     int32_t SetPlayerCallback(MessageParcel &data, MessageParcel &reply);
     int32_t SelectBitRate(MessageParcel &data, MessageParcel &reply);
+    int32_t SetVideoScaleType(MessageParcel &data, MessageParcel &reply);
 
     std::mutex mutex_;
     std::shared_ptr<PlayerCallback> playerCallback_ = nullptr;
