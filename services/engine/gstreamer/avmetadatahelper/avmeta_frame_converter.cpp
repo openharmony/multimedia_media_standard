@@ -97,7 +97,12 @@ int32_t AVMetaFrameConverter::PrepareConvert(GstCaps &inCaps)
 
     if (lastCaps_ == nullptr || !gst_caps_is_equal(lastCaps_, &inCaps)) {
         MEDIA_LOGI("caps changed");
-        MEDIA_LOGI("current caps: %{public}s", gst_caps_to_string(&inCaps));
+        gchar *capstr = gst_caps_to_string(&inCaps);
+        if (capstr != nullptr) {
+            MEDIA_LOGI("current caps: %{public}s", capstr);
+            g_free(capstr);
+            capstr = nullptr;
+        }
         int32_t ret = ChangeState(GST_STATE_READY);
         CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
