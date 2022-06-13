@@ -396,10 +396,10 @@ static bool OrientationMetaSetter(const GValue &gval, const std::string_view &ke
         ret = false;
     } else {
         std::string subStr = str.substr(pos + 1, str.length() - pos);
-        uint32_t rotate = std::stol(subStr, nullptr, 10);  // 10 : decimalism
+        int32_t rotate = std::stol(subStr, nullptr, 10);  // 10 : decimalism
         MEDIA_LOGI("Get rotate str is %{public}s", subStr.c_str());
-        MEDIA_LOGI("Get rotate is %{public}u", rotate);
-        ret = metadata.PutIntValue(key, static_cast<int32_t>(rotate));
+        MEDIA_LOGI("Get rotate is %{public}d", rotate);
+        ret = metadata.PutIntValue(key, rotate);
     }
 
     return ret;
