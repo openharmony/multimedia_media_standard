@@ -395,7 +395,7 @@ void PlayerDemo::SelectBitRate(const std::string &cmd) const
     }
 }
 
-void PlayerDemo::SetVideoScaleType(const std::string &cmd)
+void PlayerDemo::SetVideoScaleType(const std::string &cmd) const
 {
     int32_t videoScaleType = 0;
     if (!StrToInt(cmd, videoScaleType)) {
@@ -404,7 +404,7 @@ void PlayerDemo::SetVideoScaleType(const std::string &cmd)
     }
     Format format;
     format.PutIntValue(PlayerKeys::VIDEO_SCALE_TYPE, videoScaleType);
-    if (player_->SetVideoScaleType(format) != 0) {
+    if (player_->SetParameter(format) != 0) {
         cout << "Operation Failed" << endl;
     } else {
         cout << "Operation OK" << endl;

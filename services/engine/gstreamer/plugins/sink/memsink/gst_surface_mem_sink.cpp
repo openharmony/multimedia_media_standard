@@ -101,7 +101,7 @@ static void gst_surface_mem_sink_class_init(GstSurfaceMemSinkClass *klass)
         g_param_spec_boolean("performance-mode", "performance mode", "performance mode",
             FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
-    g_object_class_install_property(gobjectClass, PROP_VIDEO_SCALE_TYPE,
+    g_object_class_install_property(gobject_class, PROP_VIDEO_SCALE_TYPE,
         g_param_spec_uint("video-scale-type", "Video Scale Type",
             "Set video scale type for graphic",
             0, G_MAXUINT, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));

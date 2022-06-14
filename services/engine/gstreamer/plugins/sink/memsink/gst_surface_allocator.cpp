@@ -23,10 +23,10 @@ G_DEFINE_TYPE(GstSurfaceAllocator, gst_surface_allocator, GST_TYPE_ALLOCATOR);
 enum VideoScaleType {
     VIDEO_SCALE_TYPE_FIT,
     VIDEO_SCALE_TYPE_FIT_CROP,
-}
+};
 
 namespace {
-    const std::unordered_map<VideoScaleType>, OHOS::ScalingMode> SCALEMODE_MAP = {
+    const std::unordered_map<VideoScaleType, OHOS::ScalingMode> SCALEMODE_MAP = {
         { VIDEO_SCALE_TYPE_FIT, OHOS::SCALING_MODE_SCALE_TO_WINDOW },
         { VIDEO_SCALE_TYPE_FIT_CROP, OHOS::SCALING_MODE_SCALE_CROP},
     };
