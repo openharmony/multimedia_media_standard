@@ -54,6 +54,7 @@ public:
     int32_t PauseAudioCapture() override;
     int32_t ResumeAudioCapture() override;
     std::shared_ptr<AudioBuffer> GetBuffer() override;
+    int32_t WakeUpAudioThreads() override;
 
 private:
     std::unique_ptr<OHOS::AudioStandard::AudioCapturer> audioCapturer_ = nullptr;
