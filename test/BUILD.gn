@@ -17,7 +17,6 @@ group("media_unit_test") {
   testonly = true
 
   deps = [
-    "unittest/native_test:native_unit_test",
-    "unittest/service_test:service_unit_test"
+    "unittest/player_test:player_unit_test"
   ]
 }

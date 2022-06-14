@@ -13,15 +13,15 @@
 
 import("//build/test.gni")
 
-module_output_path = "multimedia_media_standard/native"
+module_output_path = "multimedia_media_standard/player"
 
-ohos_unittest("native_unit_test") {
+ohos_unittest("player_unit_test") {
   module_out_path = module_output_path
   include_dirs = [
     "./include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/frameworks/native/player",
-    "//graphic/graphic/interfaces/innerkits/surface",
+    "//graphic/graphic_2d/interfaces/innerkits/surface",
     "//foundation/windowmanager/interfaces/innerkits/wm"
   ]
 
@@ -34,11 +34,11 @@ ohos_unittest("native_unit_test") {
 
   deps = [ 
     "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
-    "//foundation/graphic/graphic:libsurface",
-    "//foundation/graphic/graphic/frameworks/surface:surface",
-    "//foundation/graphic/graphic/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/windowmanager/wm:libwm"
   ]
 
-  resource_config_file = "//foundation/multimedia/media_standard/test/resources/ohos_test.xml"
+  resource_config_file = "//foundation/multimedia/media_standard/test/unittest/resources/ohos_test.xml"
 }
