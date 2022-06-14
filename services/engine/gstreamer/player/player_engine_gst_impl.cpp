@@ -416,8 +416,10 @@ int32_t PlayerEngineGstImpl::SetLooping(bool loop)
 int32_t PlayerEngineGstImpl::SetParameter(const Format &param)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (playerCtrl_ != nullptr) {
-        return playerCtrl_->SetParameter(param);
+    if (param.ContainKey(PlayerKeys::VIDEO_SCALE_TYPE)) {
+        int32_t videoScaleType = 0;
+        param.GetIntValue(PlayerKeys::VIDEO_SCALE_TYPE, videoScaleType);
+        return SetVideoScaleType(VideoScaleType(videoScaleType));
     }
 
     return MSERR_OK;

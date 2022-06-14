@@ -226,13 +226,6 @@ int32_t PlayerClient::SelectBitRate(uint32_t bitRate)
     return playerProxy_->SelectBitRate(bitRate);
 }
 
-int32_t SetVideoScaleType(VideoScaleType videoScaleType)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerProxy_ != nullptr, MSERR_NO_MEMORY, "player service does not exist..");
-    return playerProxy_->SetVideoScaleType(videoScaleType);
-}
-
 int32_t PlayerClient::GetDuration(int32_t &duration)
 {
     std::lock_guard<std::mutex> lock(mutex_);

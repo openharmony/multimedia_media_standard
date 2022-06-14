@@ -402,7 +402,9 @@ void PlayerDemo::SetVideoScaleType(const std::string &cmd)
         cout << "video scale type input invaild" << endl;
         return;
     }
-    if (player_->SetVideoScaleType(VideoScaleType(videoScaleType)) != 0) {
+    Format format;
+    format.PutIntValue(PlayerKeys::VIDEO_SCALE_TYPE, videoScaleType);
+    if (player_->SetVideoScaleType(format) != 0) {
         cout << "Operation Failed" << endl;
     } else {
         cout << "Operation OK" << endl;

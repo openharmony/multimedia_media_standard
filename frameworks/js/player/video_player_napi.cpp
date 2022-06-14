@@ -1163,9 +1163,15 @@ napi_value VideoPlayerNapi::SetVideoScaleType(napi_env env, napi_callback_info i
         jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
         return undefinedResult;
     }
+    if (jsPlayer->url_.empty()) {
+        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_STATE);
+        return undefinedResult;
+    }
     jsPlayer->videoScaleType_ = videoScaleType;
+    Format format;
+    (void)format.PutIntValue(PlayerKeys::VIDEO_SCALE_TYPE, videoScaleType);
     CHECK_AND_RETURN_RET_LOG(jsPlayer->nativePlayer_ != nullptr, undefinedResult, "No memory");
-    int32_t ret = jsPlayer->nativePlayer_->SetVideoScaleType(VideoScaleType(videoScaleType));
+    int32_t ret = jsPlayer->nativePlayer_->SetParameter(format);
     if (ret != MSERR_OK) {
         jsPlayer->OnErrorCallback(MSERR_EXT_UNKNOWN);
         return undefinedResult;

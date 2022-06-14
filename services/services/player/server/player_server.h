@@ -58,7 +58,6 @@ public:
     int32_t SetPlayerCallback(const std::shared_ptr<PlayerCallback> &callback) override;
     int32_t DumpInfo(int32_t fd);
     int32_t SelectBitRate(uint32_t bitRate) override;
-    int32_t SetVideoScaleType(VideoScaleType videoScaleType) override;
     // IPlayerEngineObs override
     void OnError(PlayerErrorType errorType, int32_t errorCode) override;
     void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody = {}) override;
@@ -90,7 +89,6 @@ private:
         std::string url;
     } config_;
     std::string lastErrMsg_;
-    VideoScaleType videoScaleType_ = VIDEO_SCALE_TYPE_FIT;
 };
 } // namespace Media
 } // namespace OHOS
