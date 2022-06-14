@@ -23,9 +23,9 @@
 namespace OHOS {
 namespace Media{
 
-class PlayerCallBackTest : public PlayerCallback {
+class PlayerCallbackTest : public PlayerCallback, public NoCopyable {
 public:
-    ~PlayerCallBackTest() {}
+    ~PlayerCallbackTest() {}
     void OnError(PlayerErrorType errorType, int32_t errorCode) override {}
     void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody) override {}
 };
@@ -40,6 +40,10 @@ public:
     void SetUp(void);
     // TearDown: Called after each test cases
     void TearDown(void);
+protected:
+    std::shared_ptr<Player> player = nullptr;
+    sptr<Rosen::Window> previewWindow_ = nullptr;
+    sptr<Surface> GetVideoSurface();
 };    
 } // namespace Media
 } // namespace OHOS
