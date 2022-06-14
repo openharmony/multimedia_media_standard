@@ -28,7 +28,7 @@ public:
     /**
      * sub system ability ID
      */
-    enum MediaSystemAbility {
+    enum MediaSystemAbility : int32_t {
         MEDIA_PLAYER = 0,
         MEDIA_RECORDER = 1,
         MEDIA_CODEC = 2,
@@ -50,7 +50,7 @@ public:
     /**
      * IPC code ID
      */
-    enum MediaServiceMsg {
+    enum MediaServiceMsg : int32_t {
         GET_SUBSYSTEM = 0,
     };
 
