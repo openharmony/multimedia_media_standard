@@ -41,6 +41,7 @@ public:
     static constexpr std::string_view PLAYER_CACHED_DURATION = "cached_duration";
     static constexpr std::string_view CONTENT_TYPE = "content_type";
     static constexpr std::string_view STREAM_USAGE = "stream_usage";
+    static constexpr std::string_view VIDEO_SCALE_TYPE = "video_scale_type";
 };
 
 enum BufferingInfoType : int32_t {
@@ -157,8 +158,6 @@ enum VideoScaleType : int32_t {
      * The content is stretched to the fit the display surface rendering area. When
      * the aspect ratio of the content is not same as the display surface, the aspect
      * of the content is not maintained. This is the default scale type.
-     * @since 9
-     * @syscap SystemCapability.Multimedia.Media.VideoPlayer
      */
     VIDEO_SCALE_TYPE_FIT = 0,
 
@@ -166,11 +165,10 @@ enum VideoScaleType : int32_t {
      * The content is stretched to the fit the display surface rendering area. When
      * the aspect ratio of the content is not the same as the display surface, content's
      * aspect ratio is maintained and the content is cropped to fit the display surface.
-     * @since 9
-     * @syscap SystemCapability.Multimedia.Media.VideoPlayer
      */
-    VIDEO_SCALE_TYPE_FIT_CROP
-}
+    VIDEO_SCALE_TYPE_FIT_CROP,
+};
+
 class PlayerCallback {
 public:
     virtual ~PlayerCallback() = default;
@@ -442,17 +440,6 @@ public:
      * @version 1.0
      */
     virtual int32_t SelectBitRate(uint32_t bitRate) = 0;
-
-    /**
-     * @brief set the video scale type for player
-     *
-     * @param videoScaleType the scale type {@link VideoScaleType} which can set.
-     * @return Returns {@link MSERR_OK} if the scale type is set successful; returns an error code defined
-     * in {@link media_errors.h} otherwise.
-     * @since 1.0
-     * @version 1.0
-     */
-    virtual int32_t SetVideoScaleType(VideoScaleType videoScaleType) = 0;
     
     /**
      * @brief Method to set the surface.

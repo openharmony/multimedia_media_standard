@@ -210,6 +210,7 @@ static void gst_producer_surface_pool_set_property(GObject *object, guint prop_i
             GST_BUFFER_POOL_LOCK(spool);
             spool->scaleType = g_value_get_uint(value);
             GST_BUFFER_POOL_UNLOCK(spool);
+            break;
         }
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
