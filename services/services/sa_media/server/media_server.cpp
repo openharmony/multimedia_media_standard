@@ -92,7 +92,7 @@ sptr<IRemoteObject> MediaServer::GetSubSystemAbility(IStandardMediaService::Medi
     }
 }
 
-int32_t MediaServer::Dump(int fd, const std::vector<std::u16string> &args)
+int32_t MediaServer::Dump(int32_t fd, const std::vector<std::u16string> &args)
 {
     if (fd <= 0) {
         MEDIA_LOGW("Failed to check fd");
