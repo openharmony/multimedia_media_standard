@@ -21,7 +21,7 @@
 
 namespace OHOS {
 #undef LOG_DOMAIN
-#define LOG_DOMAIN 0xD002B00
+#define LOG_DOMAIN 0xD002B2B
 
 #define __FILENAME__ (__builtin_strrchr(__FILE__, '/') ? __builtin_strrchr(__FILE__, '/') + 1 : __FILE__)
 
