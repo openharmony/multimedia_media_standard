@@ -65,6 +65,11 @@ public:
         (void)bitRate;
         return 0;
     }
+    virtual int32_t SetVideoScaleType(VideoScaleType videoScaleType)
+    {
+        (void)videoScaleType;
+        return 0;
+    }
 };
 } // namespace Media
 } // namespace OHOS

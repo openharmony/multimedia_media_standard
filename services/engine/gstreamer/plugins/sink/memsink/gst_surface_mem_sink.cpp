@@ -34,6 +34,7 @@ enum {
     PROP_SURFACE_POOL,
     PROP_CACHE_BUFFERS_NUM,
     PROP_PERFORMANCE_MODE,
+    PROP_VIDEO_SCALE_TYPE,
 };
 
 static GstStaticPadTemplate g_sinktemplate = GST_STATIC_PAD_TEMPLATE("sink",
@@ -99,6 +100,11 @@ static void gst_surface_mem_sink_class_init(GstSurfaceMemSinkClass *klass)
     g_object_class_install_property(gobject_class, PROP_PERFORMANCE_MODE,
         g_param_spec_boolean("performance-mode", "performance mode", "performance mode",
             FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_VIDEO_SCALE_TYPE,
+        g_param_spec_uint("video-scale-type", "Video Scale Type",
+            "Set video scale type for graphic",
+            0, G_MAXUINT, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
     mem_sink_class->do_propose_allocation = gst_surface_mem_sink_do_propose_allocation;
     mem_sink_class->do_app_render = gst_surface_mem_sink_do_app_render;
@@ -183,6 +189,12 @@ static void gst_surface_mem_sink_set_property(GObject *object, guint propId, con
         case PROP_PERFORMANCE_MODE:
             surface_sink->performanceMode = g_value_get_boolean(value);
             break;
+
+        case PROP_VIDEO_SCALE_TYPE: {
+            guint video_scale_type = g_value_get_uint(value);
+            g_object_set(G_OBJECT(priv->pool), "video-scale-type", video_scale_type, nullptr);
+            break;
+        }
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID(object, propId, pspec);
             break;

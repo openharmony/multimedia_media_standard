@@ -60,6 +60,7 @@ struct _GstSurfacePool {
     int32_t callCnt;
     gboolean isDynamicCached;
     guint cachedBuffers;
+    guint scale_type;
 };
 
 struct _GstSurfacePoolClass {

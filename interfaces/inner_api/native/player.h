@@ -41,6 +41,7 @@ public:
     static constexpr std::string_view PLAYER_CACHED_DURATION = "cached_duration";
     static constexpr std::string_view CONTENT_TYPE = "content_type";
     static constexpr std::string_view STREAM_USAGE = "stream_usage";
+    static constexpr std::string_view VIDEO_SCALE_TYPE = "video_scale_type";
 };
 
 enum BufferingInfoType : int32_t {
@@ -150,6 +151,22 @@ enum PlaybackRateMode : int32_t {
     SPEED_FORWARD_1_75_X,
     /* Video playback at 2.0x normal speed */
     SPEED_FORWARD_2_00_X,
+};
+
+enum VideoScaleType : int32_t {
+    /**
+     * The content is stretched to the fit the display surface rendering area. When
+     * the aspect ratio of the content is not same as the display surface, the aspect
+     * of the content is not maintained. This is the default scale type.
+     */
+    VIDEO_SCALE_TYPE_FIT = 0,
+
+    /**
+     * The content is stretched to the fit the display surface rendering area. When
+     * the aspect ratio of the content is not the same as the display surface, content's
+     * aspect ratio is maintained and the content is cropped to fit the display surface.
+     */
+    VIDEO_SCALE_TYPE_FIT_CROP,
 };
 
 class PlayerCallback {
@@ -423,7 +440,7 @@ public:
      * @version 1.0
      */
     virtual int32_t SelectBitRate(uint32_t bitRate) = 0;
-
+    
     /**
      * @brief Method to set the surface.
      *
