@@ -395,6 +395,21 @@ void PlayerDemo::SelectBitRate(const std::string &cmd) const
     }
 }
 
+void PlayerDemo::SetVideoScaleType(const std::string &cmd) const
+{
+    int32_t videoScaleType = 0;
+    if (!StrToInt(cmd, videoScaleType)) {
+        cout << "video scale type input invaild" << endl;
+        return;
+    }
+    Format format;
+    format.PutIntValue(PlayerKeys::VIDEO_SCALE_TYPE, videoScaleType);
+    if (player_->SetParameter(format) != 0) {
+        cout << "Operation Failed" << endl;
+    } else {
+        cout << "Operation OK" << endl;
+    }
+}
 void PlayerDemo::SetLoop(const std::string &cmd)
 {
     int32_t loopEn = -1;
@@ -457,6 +472,8 @@ void PlayerDemo::DoCmd(const std::string &cmd)
         cout << "video width: " << player_->GetVideoWidth() << ", height: " << player_->GetVideoHeight();
     } else if (cmd.find("bitrate ") != std::string::npos) {
         SelectBitRate(cmd.substr(cmd.find("bitrate ") + std::string("bitrate ").length()));
+    } else if (cmd.find("videoscaletype ") != std::string::npos) {
+        SetVideoScaleType(cmd.substr(cmd.find("videoscaletype ") + std::string("videoscaletype ").length()));
     }
 }
 
@@ -577,6 +594,15 @@ int32_t PlayerDemo::SelectSource(const string &pathOuter)
     return ret;
 }
 
+void PlayerDemo::SetVideoScaleType()
+{
+    cout << "Please select video scale type(default 0):" << endl;
+    cout << "0:VIDEO_SCALE_TYPE_FIT" << endl;
+    cout << "1:VIDEO_SCALE_TYPE_FIT_CROP" << endl;
+    string type;
+    (void)getline(cin, type);
+    SetVideoScaleType(type);
+}
 int32_t PlayerDemo::SelectBufferingOut()
 {
     cout << "Please enter the number of mode(no buffering info):" << endl;
@@ -644,7 +670,7 @@ void PlayerDemo::RunCase(const string &path)
             cout << "SetVideoSurface fail" << endl;
         }
     }
-
+    SetVideoScaleType();
     ret = player_->PrepareAsync();
     if (ret !=  0) {
         cout << "PrepareAsync fail" << endl;

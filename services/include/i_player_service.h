@@ -252,7 +252,7 @@ public:
      * @version 1.0
      */
     virtual int32_t SelectBitRate(uint32_t bitRate) = 0;
-
+    
     /**
      * @brief get the current player playback rate
      *

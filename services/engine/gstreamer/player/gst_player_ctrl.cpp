@@ -146,6 +146,16 @@ void GstPlayerCtrl::SetBitRate(uint32_t bitRate)
     }
 }
 
+void GstPlayerCtrl::SetVideoScaleType(VideoScaleType videoScaleType)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (videoSink_ != nullptr) {
+        g_object_set(videoSink_, "video-scale-type", static_cast<uint32_t>(videoScaleType), nullptr);
+    } else {
+        videoScaleType_ = videoScaleType;
+    }
+}
+
 void GstPlayerCtrl::SetHttpTimeOut()
 {
     std::unique_lock<std::mutex> lock(mutex_);
@@ -279,34 +289,43 @@ void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, G
     }
 
     if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {
-        playerGst->isHardWare_ = true;
-        if (playerGst->decPluginRegister_) {
-            // For hls scene when change codec, the second codec should not go performance mode process.
-            return;
-        }
-        // For performance mode.
-        playerGst->decPluginRegister_ = true;
-        playerGst->GetVideoSink();
-        CHECK_AND_RETURN_LOG(playerGst->videoSink_ != nullptr, "videoSink is null");
-        g_object_set(G_OBJECT(src), "performance-mode", TRUE, nullptr);
-        g_object_set(G_OBJECT(playerGst->videoSink_), "performance-mode", TRUE, nullptr);
-        GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
-        g_object_set(G_OBJECT(playerGst->videoSink_), "caps", caps, nullptr);
-        g_object_set(G_OBJECT(src), "sink-caps", caps, nullptr);
-        gst_caps_unref(caps);
-        GstBufferPool *pool;
-        g_object_get(playerGst->videoSink_, "surface-pool", &pool, nullptr);
-        g_object_set(G_OBJECT(src), "surface-pool", pool, nullptr);
-        return;
+        playerGst->HardwareDecoderElementSetupCb(src, playerGst);
     }
 
     if (metaStr.find("Sink/Video") != std::string::npos) {
         if (!playerGst->isHardWare_) {
+            playerGst->GetVideoSink();
+            CHECK_AND_RETURN_LOG(playerGst->videoSink_ != nullptr, "videoSink is null");
+            g_object_set(G_OBJECT(playerGst->videoSink_), "video-scale-type", playerGst->videoScaleType_, nullptr);
             g_object_set(G_OBJECT(src), "max-pool-capacity", MAX_SOFT_BUFFERS, nullptr);
             g_object_set(G_OBJECT(src), "cache-buffers-num", DEFAULT_CACHE_BUFFERS, nullptr);
         }
         return;
     }
+}
+
+void GstPlayerCtrl::HardwareDecoderElementSetupCb(GstElement *src, GstPlayerCtrl *playerGst)
+{
+    playerGst->isHardWare_ = true;
+    if (playerGst->decPluginRegister_) {
+        // For hls scene when change codec, the second codec should not go performance mode process.
+        return;
+    }
+    // For performance mode.
+    playerGst->decPluginRegister_ = true;
+    playerGst->GetVideoSink();
+    CHECK_AND_RETURN_LOG(playerGst->videoSink_ != nullptr, "videoSink is null");
+    g_object_set(G_OBJECT(src), "performance-mode", TRUE, nullptr);
+    g_object_set(G_OBJECT(playerGst->videoSink_), "performance-mode", TRUE, nullptr);
+    g_object_set(G_OBJECT(playerGst->videoSink_), "video-scale-type", playerGst->videoScaleType_, nullptr);
+    GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
+    g_object_set(G_OBJECT(playerGst->videoSink_), "caps", caps, nullptr);
+    g_object_set(G_OBJECT(src), "sink-caps", caps, nullptr);
+    gst_caps_unref(caps);
+    GstBufferPool *pool;
+    g_object_get(playerGst->videoSink_, "surface-pool", &pool, nullptr);
+    g_object_set(G_OBJECT(src), "surface-pool", pool, nullptr);
+    return;
 }
 
 void GstPlayerCtrl::OnBitRateParseCompleteCb(const GstPlayer *player,
