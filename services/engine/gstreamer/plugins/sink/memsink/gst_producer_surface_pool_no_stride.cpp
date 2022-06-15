@@ -143,7 +143,7 @@ static void gst_producer_surface_pool_init (GstSurfacePool *pool)
     pool->callCnt = 0;
     pool->isDynamicCached = FALSE;
     pool->cachedBuffers = 0;
-    pool->scaleType = 0;
+    pool->scale_type = 0;
 }
 
 static void gst_producer_surface_pool_finalize(GObject *obj)
@@ -208,7 +208,7 @@ static void gst_producer_surface_pool_set_property(GObject *object, guint prop_i
         }
         case PROP_VIDEO_SCALE_TYPE: {
             GST_BUFFER_POOL_LOCK(spool);
-            spool->scaleType = g_value_get_uint(value);
+            spool->scale_type = g_value_get_uint(value);
             GST_BUFFER_POOL_UNLOCK(spool);
             break;
         }
@@ -502,7 +502,7 @@ static GstFlowReturn do_alloc_memory_locked(GstSurfacePool *spool,
     GstSurfaceAllocParam allocParam = {
         GST_VIDEO_INFO_WIDTH(info), GST_VIDEO_INFO_HEIGHT(info), spool->format, spool->usage,
         (params != nullptr ? ((params->flags & GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT) != 0) : FALSE),
-        spool->scaleType
+        spool->scale_type
     };
 
     GST_DEBUG_OBJECT(spool, "do_alloc_memory_locked");

@@ -193,6 +193,7 @@ static void gst_surface_mem_sink_set_property(GObject *object, guint propId, con
         case PROP_VIDEO_SCALE_TYPE: {
             guint video_scale_type = g_value_get_uint(value);
             g_object_set(G_OBJECT(priv->pool), "video-scale-type", video_scale_type, nullptr);
+            break;
         }
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID(object, propId, pspec);

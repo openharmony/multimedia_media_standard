@@ -121,7 +121,7 @@ private:
      * videoScaleType?: VideoScaleType
      */
     static napi_value SetVideoScaleType(napi_env env, napi_callback_info info);
-    static napi_value GetVideoScaleType(napi_env env, napi_callback_info info); 
+    static napi_value GetVideoScaleType(napi_env env, napi_callback_info info);
     /**
      * readonly currentTime: number
      */
