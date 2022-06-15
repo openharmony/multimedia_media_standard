@@ -61,6 +61,7 @@ int32_t WriteInfo(int32_t fd, std::string &dumpString, std::vector<Dumper> dumpe
     } else {
         MEDIA_LOGI("%{public}s", dumpString.c_str());
     }
+    dumpString.clear();
 
     return OHOS::NO_ERROR;
 }
