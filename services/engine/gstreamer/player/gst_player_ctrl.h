@@ -84,6 +84,7 @@ public:
     static void OnMqNumUseBufferingCb(const GstPlayer *player, guint mqNumUseBuffering, GstPlayerCtrl *playerGst);
     static GValueArray* OnAutoplugSortCb(const GstElement *uriDecoder, GstPad *pad, GstCaps *caps,
                                          GValueArray *factories, GstPlayerCtrl *playerGst);
+    static void HardwareDecoderElementSetupCb(GstElement *src, GstPlayerCtrl *playerGst);
 private:
     PlayerStates ProcessStoppedState();
     PlayerStates ProcessPausedState();
