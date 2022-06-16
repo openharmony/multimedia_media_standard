@@ -22,7 +22,8 @@ ohos_unittest("player_unit_test") {
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/frameworks/native/player",
     "//graphic/graphic_2d/interfaces/innerkits/surface",
-    "//foundation/windowmanager/interfaces/innerkits/wm"
+    "//foundation/windowmanager/interfaces/innerkits/wm",
+    "//foundation/multimedia/media_standard/test/unittest/common/include"
   ]
 
   cflags = [
@@ -30,7 +31,11 @@ ohos_unittest("player_unit_test") {
     "-Werror",
   ]
 
-  sources = [ "src/player_unit_test.cpp" ]
+  sources = [ 
+    "src/player_unit_test.cpp",
+    "src/player_mock.cpp",
+    "//foundation/multimedia/media_standard/test/unittest/common/src/TestParamsConfig.cpp" 
+  ]
 
   deps = [ 
     "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
