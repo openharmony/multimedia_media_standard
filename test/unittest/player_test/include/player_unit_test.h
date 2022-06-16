@@ -17,18 +17,11 @@
 #define PLAYER_UNIT_TEST_H
 
 #include "gtest/gtest.h"
-#include "player.h"
+#include "player_mock.h"
 #include "window.h"
 
 namespace OHOS {
 namespace Media{
-
-class PlayerCallbackTest : public PlayerCallback, public NoCopyable {
-public:
-    ~PlayerCallbackTest() {}
-    void OnError(PlayerErrorType errorType, int32_t errorCode) override {}
-    void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody) override {}
-};
 
 class PlayerUnitTest : public testing::Test {
 public:
@@ -41,9 +34,8 @@ public:
     // TearDown: Called after each test cases
     void TearDown(void);
 protected:
-    std::shared_ptr<Player> player = nullptr;
-    sptr<Rosen::Window> previewWindow_ = nullptr;
-    sptr<Surface> GetVideoSurface();
+    std::shared_ptr<Player_mock> player_ = nullptr;
+    std::shared_ptr<PlayerSignal> testObj = nullptr;
 };    
 } // namespace Media
 } // namespace OHOS
