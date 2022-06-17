@@ -132,10 +132,13 @@ int32_t AudioSinkSvImpl::GetMinVolume(float &volume)
     return MSERR_OK;
 }
 
-int32_t AudioSinkSvImpl::Prepare()
+int32_t AudioSinkSvImpl::Prepare(int32_t appUid, int32_t appPid)
 {
     MEDIA_LOGD("audioRenderer Prepare In");
-    audioRenderer_ = AudioStandard::AudioRenderer::Create(AudioStandard::AudioStreamType::STREAM_MUSIC);
+    AudioStandard::AppInfo appInfo = {};
+    appInfo.appUid = appUid;
+    appInfo.appPid = appPid;
+    audioRenderer_ = AudioStandard::AudioRenderer::Create(AudioStandard::AudioStreamType::STREAM_MUSIC, appInfo);
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
     MEDIA_LOGD("audioRenderer Prepare Out");
     return MSERR_OK;

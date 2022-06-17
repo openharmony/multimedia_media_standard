@@ -25,6 +25,12 @@ class AudioCapture {
 public:
     virtual ~AudioCapture() = default;
 
+    struct AppInfo {
+        int32_t appUid { 0 };
+        uint32_t appTokenId { 0 };
+        int32_t appPid { 0 };
+    };
+
     /**
      * @brief Sets the encoding bit rate, number of audio channels and sampling rate for recording.
      *
@@ -38,8 +44,8 @@ public:
      * @since 1.0
      * @version 1.0
      */
-    virtual int32_t SetCaptureParameter(uint32_t bitrate, uint32_t channels, uint32_t sampleRate, int32_t appUid,
-        uint32_t appTokenId) = 0;
+    virtual int32_t SetCaptureParameter(uint32_t bitrate, uint32_t channels, uint32_t sampleRate,
+        const AppInfo &appInfo) = 0;
 
     /**
      * @brief Gets the encoding bit rate, number of audio channels and sampling rate for recording.

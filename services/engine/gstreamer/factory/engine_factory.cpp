@@ -37,7 +37,7 @@ public:
     ~GstEngineFactory() = default;
 
     int32_t Score(Scene scene, const std::string &uri) override;
-    std::unique_ptr<IPlayerEngine> CreatePlayerEngine() override;
+    std::unique_ptr<IPlayerEngine> CreatePlayerEngine(int32_t uid = 0, int32_t pid = 0) override;
     std::unique_ptr<IRecorderEngine> CreateRecorderEngine() override;
     std::unique_ptr<IAVMetadataHelperEngine> CreateAVMetadataHelperEngine() override;
     std::unique_ptr<IAVCodecEngine> CreateAVCodecEngine() override;
@@ -52,10 +52,10 @@ int32_t GstEngineFactory::Score(Scene scene, const std::string &uri)
     return MIN_SCORE + 1;
 }
 
-std::unique_ptr<IPlayerEngine> GstEngineFactory::CreatePlayerEngine()
+std::unique_ptr<IPlayerEngine> GstEngineFactory::CreatePlayerEngine(int32_t uid, int32_t pid)
 {
     GstLoader::Instance().UpdateLogLevel();
-    return std::make_unique<PlayerEngineGstImpl>();
+    return std::make_unique<PlayerEngineGstImpl>(uid, pid);
 }
 
 std::unique_ptr<IAVMetadataHelperEngine> GstEngineFactory::CreateAVMetadataHelperEngine()
