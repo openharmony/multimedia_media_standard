@@ -45,6 +45,7 @@ void PlayerCallbackTest::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
         case INFO_TYPE_STATE_CHANGE:
             state_ = static_cast<PlayerStates>(extra);
             test_->SetState(state_);  
+            notify(state_);
             break;
         case INFO_TYPE_POSITION_UPDATE:
             position_ = extra;
@@ -52,6 +53,25 @@ void PlayerCallbackTest::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
         default:
             break;
     }
+}
+
+void PlayerCallbackTest::notify(PlayerStates currentState)
+{
+    if (currentState == PLAYER_PREPARED) {
+        test_->condVarPrepare_.notify_all();
+    } else if (currentState == PLAYER_STARTED) {
+        test_->condVarPlay_.notify_all();
+    } else if (currentState == PLAYER_PAUSED) {
+        test_->condVarPause_.notify_all();
+    } else if (currentState == PLAYER_STOPPED) {
+        test_->condVarStop_.notify_all();
+    } else if(currentState == PLAYER_IDLE) {
+        test_->condVarReset_.notify_all();
+    }
+    // auto range = test_->condVarMultiMap_.equal_range(currentState);
+    // for (auto iter = range.first; iter != range.second; ++iter) {
+    //     (iter->second).notify_all();
+    // }
 }
 
 void PlayerCallbackTest::SeekNotify(int32_t extra, const Format &infoBody)
@@ -133,24 +153,32 @@ int32_t Player_mock::PrepareAsync()
     int ret = player_->PrepareAsync();
     if (ret == MSERR_OK && test_->state_ != PLAYER_PREPARED) {
         std::unique_lock<std::mutex> lockPrepare(test_->mutexPrepare_);
-        test_->condVarPrepare_.wait_for(lockPrepare, std::chrono::seconds(WAITSECOND));
-        if (test_->state_ != PLAYER_PREPARED) {
-            return -1;
-        }
+        test_->condVarPrepare_.wait(lockPrepare, [this] { return test_->state_ == PLAYER_PREPARED; });
     }
+    // if (ret == MSERR_OK && test_->state_ != PLAYER_PREPARED) {
+    //     std::unique_lock<std::mutex> lockPrepare(test_->mutexPrepare_);
+    //     test_->condVarPrepare_.wait_for(lockPrepare, std::chrono::seconds(WAITSECOND));
+    //     if (test_->state_ != PLAYER_PREPARED) {
+    //         return -1;
+    //     }
+    // }
     return ret;
 }
 
 int32_t Player_mock::Play()
 {
     int32_t ret = player_->Play();
-    if (ret == MSERR_OK && test_->state_ != PLAYER_STARTED) {
+    if (ret == MSERR_OK) {
         std::unique_lock<std::mutex> lockPlay(test_->mutexPlay_);
-        test_->condVarPrepare_.wait_for(lockPlay, std::chrono::seconds(WAITSECOND));
-        if (test_->state_ != PLAYER_STARTED) {
-            return -1;
-        }
+        test_->condVarPlay_.wait(lockPlay, [this] { return test_->state_ == PLAYER_STARTED; });
     }
+    // if (ret == MSERR_OK && test_->state_ != PLAYER_STARTED) {
+    //     std::unique_lock<std::mutex> lockPlay(test_->mutexPlay_);
+    //     test_->condVarPlay_.wait_for(lockPlay, std::chrono::seconds(WAITSECOND));
+    //     if (test_->state_ != PLAYER_STARTED) {
+    //         return -1;
+    //     }
+    // }
     return ret;
 }
 
@@ -159,11 +187,15 @@ int32_t Player_mock::Pause()
     int32_t ret = player_->Pause();
     if (ret == MSERR_OK && test_->state_ != PLAYER_PAUSED) {
         std::unique_lock<std::mutex> lockPause(test_->mutexPause_);
-        test_->condVarPause_.wait_for(lockPause, std::chrono::seconds(WAITSECOND));
-        if (test_->state_ != PLAYER_PAUSED) {
-            return -1;
-        }
+        test_->condVarPause_.wait(lockPause, [this] { return test_->state_ == PLAYER_PAUSED; });
     }
+    // if (ret == MSERR_OK && test_->state_ != PLAYER_PAUSED) {
+    //     std::unique_lock<std::mutex> lockPause(test_->mutexPause_);
+    //     test_->condVarPause_.wait_for(lockPause, std::chrono::seconds(WAITSECOND));
+    //     if (test_->state_ != PLAYER_PAUSED) {
+    //         return -1;
+    //     }
+    // }
     return ret;    
 }
 
@@ -172,11 +204,15 @@ int32_t Player_mock::Stop()
     int32_t ret = player_->Stop();
     if (ret == MSERR_OK && test_->state_ != PLAYER_STOPPED) {
         std::unique_lock<std::mutex> lockStop(test_->mutexStop_);
-        test_->condVarStop_.wait_for(lockStop, std::chrono::seconds(WAITSECOND));
-        if (test_->state_ != PLAYER_STOPPED) {
-            return -1;
-        }
+        test_->condVarStop_.wait(lockStop, [this] { return test_->state_ == PLAYER_STOPPED; });
     }
+    // if (ret == MSERR_OK && test_->state_ != PLAYER_STOPPED) {
+    //     std::unique_lock<std::mutex> lockStop(test_->mutexStop_);
+    //     test_->condVarStop_.wait_for(lockStop, std::chrono::seconds(WAITSECOND));
+    //     if (test_->state_ != PLAYER_STOPPED) {
+    //         return -1;
+    //     }
+    // }
     return ret;
 }
 
@@ -185,12 +221,18 @@ int32_t Player_mock::Reset()
     int32_t ret = player_->Reset(); 
     if (ret == MSERR_OK && test_->state_ != PLAYER_IDLE) {
         std::unique_lock<std::mutex> lockReset(test_->mutexReset_);
-        //test_->condVarReset_.wait(lockReset, [&]{return is_finished;});
-        test_->condVarReset_.wait_for(lockReset, std::chrono::seconds(WAITSECOND));
+        test_->condVarReset_.wait(lockReset, [this] { return test_->state_ == PLAYER_STOPPED; });
         if (test_->state_ != PLAYER_IDLE) {
             return -1;
         }
     }
+    // if (ret == MSERR_OK && test_->state_ != PLAYER_IDLE) {
+    //     std::unique_lock<std::mutex> lockReset(test_->mutexReset_);
+    //     test_->condVarReset_.wait_for(lockReset, std::chrono::seconds(WAITSECOND));
+    //     if (test_->state_ != PLAYER_IDLE) {
+    //         return -1;
+    //     }
+    // }
     return ret;
 }
 

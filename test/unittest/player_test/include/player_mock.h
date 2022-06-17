@@ -19,7 +19,7 @@
 #include "player.h"
 #include "TestParamsConfig.h"
 #include "window.h"
-
+#include "unordered_map"
 namespace OHOS {
 namespace Media{ 
 
@@ -41,9 +41,10 @@ public:
     std::condition_variable condVarStop_;   
     std::condition_variable condVarReset_;
     std::condition_variable condVarSeek_;    
-    
+    //std::unordered_multimap<PlayerStates, std::condition_variable> condVarMultiMap_;
     void SetState(PlayerStates state);
     void SetSeekResult(bool seekDoneFlag);
+    //explicit PlayerSignal(std::unordered_multimap condVarMultiMap);
 };
 
 class Player_mock : public NoCopyable{
@@ -86,7 +87,7 @@ public:
     void OnError(PlayerErrorType errorType, int32_t errorCode) override {}
     void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody) override;
     void SeekNotify(int32_t extra, const Format &infoBody);
-
+    void notify(PlayerStates currentState);
 private:
     std::shared_ptr<PlayerSignal> test_;
     bool seekDoneFlag_ = false;
