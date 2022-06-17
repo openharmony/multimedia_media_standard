@@ -29,7 +29,6 @@ public:
     int32_t seekPosition_;
     bool seekDoneFlag_;
     PlayerSeekMode seekMode_ = PlayerSeekMode::SEEK_CLOSEST;
-    bool mutexFlag_ = true;
     std::mutex mutexPrepare_;
     std::mutex mutexPlay_;
     std::mutex mutexPause_;

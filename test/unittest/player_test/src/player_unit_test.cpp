@@ -35,12 +35,13 @@ void PlayerUnitTest::SetUp(void)
 {
     testObj = std::make_shared<PlayerSignal>();
     player_ = std::make_shared<Player_mock>(testObj);
-    EXPECT_TRUE(player_->CreatePlayer());
     ASSERT_NE(nullptr, player_);
+    EXPECT_TRUE(player_->CreatePlayer());
 }
 
 void PlayerUnitTest::TearDown(void)
 {
+    player_->Reset();
     player_->Release();
 }
 
@@ -75,7 +76,6 @@ HWTEST_F(PlayerUnitTest, Player_PrePare_001, TestSize.Level0)
     std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(testObj);
     EXPECT_EQ(MSERR_OK, player_->SetPlayerCallback(player_CallbackTest));
     EXPECT_EQ(MSERR_OK, player_->Prepare());
-    EXPECT_EQ(MSERR_OK, player_->Reset());
 }
 
 HWTEST_F(PlayerUnitTest, Player_PrePareAsync_001, TestSize.Level0) 
@@ -84,7 +84,6 @@ HWTEST_F(PlayerUnitTest, Player_PrePareAsync_001, TestSize.Level0)
     std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(testObj);
     EXPECT_EQ(MSERR_OK, player_->SetPlayerCallback(player_CallbackTest));
     EXPECT_EQ(MSERR_OK, player_->PrepareAsync());   
-    EXPECT_EQ(MSERR_OK, player_->Reset());
 }
 
 HWTEST_F(PlayerUnitTest, Player_SetVideoSurface_001, TestSize.Level0) 
@@ -104,7 +103,6 @@ HWTEST_F(PlayerUnitTest, Player_Play_001, TestSize.Level0)
     EXPECT_EQ(MSERR_OK, player_->PrepareAsync());
     EXPECT_EQ(MSERR_OK, player_->Play());
     EXPECT_TRUE(player_->IsPlaying());
-    EXPECT_EQ(MSERR_OK, player_->Reset());
 }
 
 HWTEST_F(PlayerUnitTest, Player_Stop_001, TestSize.Level0) 
@@ -119,7 +117,6 @@ HWTEST_F(PlayerUnitTest, Player_Stop_001, TestSize.Level0)
     EXPECT_EQ(MSERR_OK, player_->Play());
     EXPECT_TRUE(player_->IsPlaying());
     EXPECT_EQ(MSERR_OK, player_->Stop());
-    EXPECT_EQ(MSERR_OK, player_->Reset());
 }
 
 HWTEST_F(PlayerUnitTest, Player_Pause_001, TestSize.Level0) 
@@ -135,7 +132,6 @@ HWTEST_F(PlayerUnitTest, Player_Pause_001, TestSize.Level0)
     EXPECT_TRUE(player_->IsPlaying());
     EXPECT_EQ(MSERR_OK, player_->Pause());
     EXPECT_FALSE(player_->IsPlaying());
-    EXPECT_EQ(MSERR_OK, player_->Reset());
 }
 
 HWTEST_F(PlayerUnitTest, Player_Seek_001, TestSize.Level0) 
@@ -153,7 +149,6 @@ HWTEST_F(PlayerUnitTest, Player_Seek_001, TestSize.Level0)
     int32_t time;
     EXPECT_EQ(MSERR_OK, player_->GetCurrentTime(time));
     EXPECT_NEAR(SEEK_TIME_2_SEC, time, DELTA_TIME);
-    EXPECT_EQ(MSERR_OK, player_->Reset());
 }
 
 } // namespace Media
