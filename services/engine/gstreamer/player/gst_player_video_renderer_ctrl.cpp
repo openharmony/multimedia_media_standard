@@ -40,7 +40,8 @@ public:
     ~GstPlayerVideoRendererCap() = delete;
     static GstElement *CreateSink(GstPlayerVideoRenderer *renderer, GstPlayer *player);
     using DataAvailableFunc = GstFlowReturn (*)(const GstElement *appsink, gpointer userData);
-    static GstElement *CreateAudioSink(const GstCaps *caps, const DataAvailableFunc callback, const gpointer userData);
+    static GstElement *CreateAudioSink(const GstCaps *caps, const DataAvailableFunc callback, const gpointer userData,
+        int32_t uid, int32_t pid);
     static GstElement *CreateVideoSink(const GstCaps *caps, const gpointer userData);
     static GstPadProbeReturn SinkPadProbeCb(GstPad *pad, GstPadProbeInfo *info, gpointer userData);
     static void EosCb(GstMemSink *memSink, gpointer userData);
@@ -113,7 +114,7 @@ GstElement *GstPlayerVideoRendererCap::CreateSink(GstPlayerVideoRenderer *render
 }
 
 GstElement *GstPlayerVideoRendererCap::CreateAudioSink(const GstCaps *caps,
-    const DataAvailableFunc callback, const gpointer userData)
+    const DataAvailableFunc callback, const gpointer userData, int32_t uid, int32_t pid)
 {
     (void)callback;
     (void)caps;
@@ -122,6 +123,9 @@ GstElement *GstPlayerVideoRendererCap::CreateAudioSink(const GstCaps *caps,
 
     auto sink = gst_element_factory_make("audioserversink", nullptr);
     CHECK_AND_RETURN_RET_LOG(sink != nullptr, nullptr, "gst_element_factory_make failed..");
+   
+    g_object_set(G_OBJECT(sink), "app-uid", uid, nullptr);
+    g_object_set(G_OBJECT(sink), "app-pid", pid, nullptr);
 
     GstPad *pad = gst_element_get_static_pad(sink, "sink");
     if (pad == nullptr) {
@@ -294,7 +298,8 @@ int32_t GstPlayerVideoRendererCtrl::InitAudioSink(const GstElement *playbin)
                                          "channels", G_TYPE_INT, channels, nullptr);
         CHECK_AND_RETURN_RET_LOG(audioCaps_ != nullptr, MSERR_INVALID_OPERATION, "gst_caps_new_simple failed..");
 
-        audioSink_ = GstPlayerVideoRendererCap::CreateAudioSink(audioCaps_, nullptr, reinterpret_cast<gpointer>(this));
+        audioSink_ = GstPlayerVideoRendererCap::CreateAudioSink(audioCaps_, nullptr, reinterpret_cast<gpointer>(this),
+                                                                uid_, pid_);
         CHECK_AND_RETURN_RET_LOG(audioSink_ != nullptr, MSERR_INVALID_OPERATION, "CreateAudioSink failed..");
 
         g_object_set(const_cast<GstElement *>(playbin), "audio-sink", audioSink_, nullptr);
@@ -322,6 +327,12 @@ void GstPlayerVideoRendererCtrl::SetFirstRenderFrameFlag(bool firstRenderFrame)
 bool GstPlayerVideoRendererCtrl::GetFirstRenderFrameFlag()
 {
     return firstRenderFrame_;
+}
+
+void GstPlayerVideoRendererCtrl::SetAppInfo(int32_t uid, int32_t pid)
+{
+    uid_ = uid;
+    pid_ = pid;
 }
 
 GstPlayerVideoRenderer *GstPlayerVideoRendererFactory::Create(

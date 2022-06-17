@@ -41,6 +41,9 @@ int32_t AudioSource::Init()
     int32_t appUid = IPCSkeleton::GetCallingUid();
     g_object_set(gstElem_, "app-uid", appUid, nullptr);
 
+    int32_t appPid = IPCSkeleton::GetCallingPid();
+    g_object_set(gstElem_, "app-pid", appPid, nullptr);
+
     return MSERR_OK;
 }
 

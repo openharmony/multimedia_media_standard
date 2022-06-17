@@ -43,6 +43,8 @@ enum {
     PROP_BITS_PER_SAMPLE,
     PROP_CHANNELS,
     PROP_SAMPLE_RATE,
+    PROP_APP_UID,
+    PROP_APP_PID,
     PROP_VOLUME,
     PROP_MAX_VOLUME,
     PROP_MIN_VOLUME,
@@ -90,6 +92,16 @@ static void gst_audio_server_sink_class_init(GstAudioServerSinkClass *klass)
             "Sample Rate", 0, G_MAXINT32, 0,
             (GParamFlags)(G_PARAM_READABLE | G_PARAM_STATIC_STRINGS)));
 
+    g_object_class_install_property(gobject_class, PROP_APP_UID,
+        g_param_spec_int("app-uid", "Appuid",
+            "APP UID", 0, G_MAXINT32, 0,
+            (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_APP_PID,
+        g_param_spec_int("app-pid", "Apppid",
+            "APP PID", 0, G_MAXINT32, 0,
+            (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+
     g_object_class_install_property(gobject_class, PROP_VOLUME,
         g_param_spec_float("volume", "Volume",
             "Volume", 0, G_MAXFLOAT, 0,
@@ -133,6 +145,8 @@ static void gst_audio_server_sink_init(GstAudioServerSink *sink)
     sink->bits_per_sample = DEFAULT_BITS_PER_SAMPLE;
     sink->channels = 0;
     sink->sample_rate = 0;
+    sink->appuid = 0;
+    sink->apppid = 0;
     sink->volume = DEFAULT_VOLUME;
     sink->max_volume = G_MAXFLOAT;
     sink->min_volume = 0;
@@ -212,6 +226,16 @@ static void gst_audio_server_sink_set_property(GObject *object, guint prop_id,
                 GST_INFO_OBJECT(sink, "set renderer descriptor success!");
                 g_object_notify(G_OBJECT(sink), "audio-renderer-desc");
             }
+            break;
+        case PROP_APP_UID:
+            sink->appuid = g_value_get_int(value);
+            GST_INFO_OBJECT(sink, "set app uid success!");
+            g_object_notify(G_OBJECT(sink), "app-uid");
+            break;
+        case PROP_APP_PID:
+            sink->apppid = g_value_get_int(value);
+            GST_INFO_OBJECT(sink, "set app uid success!");
+            g_object_notify(G_OBJECT(sink), "app-pid");
             break;
         default:
             break;
@@ -340,10 +364,11 @@ static gboolean gst_audio_server_sink_start(GstBaseSink *basesink)
 {
     g_return_val_if_fail(basesink != nullptr, FALSE);
     GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(basesink);
+    MEDIA_LOGI("uid: %{public}d, pid: %{public}d", sink->appuid, sink->apppid);
     g_return_val_if_fail(sink != nullptr, FALSE);
     sink->audio_sink = OHOS::Media::AudioSinkFactory::CreateAudioSink();
     g_return_val_if_fail(sink->audio_sink != nullptr, FALSE);
-    g_return_val_if_fail(sink->audio_sink->Prepare() == MSERR_OK, FALSE);
+    g_return_val_if_fail(sink->audio_sink->Prepare(sink->appuid, sink->apppid) == MSERR_OK, FALSE);
     g_return_val_if_fail(sink->audio_sink->GetMaxVolume(sink->max_volume) == MSERR_OK, FALSE);
     g_return_val_if_fail(sink->audio_sink->GetMinVolume(sink->min_volume) == MSERR_OK, FALSE);
 
