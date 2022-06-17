@@ -46,7 +46,6 @@ config("media_engine_gst_player_config") {
     "//foundation/graphic/graphic_2d/frameworks/surface/include",
     "//foundation/graphic/graphic_2d/utils/sync_fence/export",
     "//drivers/peripheral/audio/interfaces/include",
-    "//drivers/framework/include/utils/",
     "//drivers/peripheral/display/interfaces/include",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
