@@ -74,6 +74,7 @@ public:
     static void OnVolumeChangeCb(const GObject *combiner, const GParamSpec *pspec, const GstPlayerCtrl *playerGst);
     static void OnSourceSetupCb(const GstPlayer *player, GstElement *src, GstPlayerCtrl *playerGst);
     static void OnElementSetupCb(const GstPlayer *player, GstElement *src, GstPlayerCtrl *playerGst);
+    static void OnElementUnSetupCb(const GstPlayer *player, GstElement *src, GstPlayerCtrl *playerGst);
     static void OnResolutionChanegdCb(const GstPlayer *player,
         int32_t width, int32_t height, GstPlayerCtrl *playerGst);
     static void OnBitRateParseCompleteCb(const GstPlayer *player, uint32_t *bitrateInfo,
@@ -84,7 +85,6 @@ public:
     static void OnMqNumUseBufferingCb(const GstPlayer *player, guint mqNumUseBuffering, GstPlayerCtrl *playerGst);
     static GValueArray* OnAutoplugSortCb(const GstElement *uriDecoder, GstPad *pad, GstCaps *caps,
                                          GValueArray *factories, GstPlayerCtrl *playerGst);
-    static void HardwareDecoderElementSetupCb(GstElement *src, GstPlayerCtrl *playerGst);
 private:
     PlayerStates ProcessStoppedState();
     PlayerStates ProcessPausedState();
@@ -119,6 +119,7 @@ private:
     bool IsLiveMode() const;
     bool SetAudioRendererInfo(const Format &param);
     void SetBitRate(uint32_t bitRate);
+    void SetupCodecCb(GstElement *src, GstPlayerCtrl *playerGst, const std::string &metaStr);
     std::mutex mutex_;
     std::condition_variable condVarPlaySync_;
     std::condition_variable condVarPauseSync_;
@@ -144,9 +145,9 @@ private:
     bool seekDoneNeedCb_ = false;
     bool endOfStreamCb_ = false;
     bool preparing_ = false;
-    bool decPluginRegister_ = false;
     std::vector<gulong> signalIds_;
     std::vector<uint32_t> bitRateVec_;
+    std::list<bool> codecTypeList_;
     gulong signalIdVolume_ = 0;
     GstElement *audioSink_ = nullptr;
     float volume_; // inited at the constructor
