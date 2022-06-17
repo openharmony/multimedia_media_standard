@@ -118,7 +118,7 @@ int32_t Player_mock::SetSource(const std::string url)
 int32_t Player_mock::Prepare()
 {
     int32_t ret = player_->Prepare();
-    if (ret == MSERR_OK && test_->mutexFlag_ == true && test_->state_ != PLAYER_PREPARED) {
+    if (ret == MSERR_OK && test_->state_ != PLAYER_PREPARED) {
         std::unique_lock<std::mutex> lockPrepare(test_->mutexPrepare_);
         test_->condVarPrepare_.wait_for(lockPrepare, std::chrono::seconds(WAITSECOND));
         if (test_->state_ != PLAYER_PREPARED) {
@@ -131,7 +131,7 @@ int32_t Player_mock::Prepare()
 int32_t Player_mock::PrepareAsync()
 {
     int ret = player_->PrepareAsync();
-    if (ret == MSERR_OK && test_->mutexFlag_ == true && test_->state_ != PLAYER_PREPARED) {
+    if (ret == MSERR_OK && test_->state_ != PLAYER_PREPARED) {
         std::unique_lock<std::mutex> lockPrepare(test_->mutexPrepare_);
         test_->condVarPrepare_.wait_for(lockPrepare, std::chrono::seconds(WAITSECOND));
         if (test_->state_ != PLAYER_PREPARED) {
@@ -144,7 +144,7 @@ int32_t Player_mock::PrepareAsync()
 int32_t Player_mock::Play()
 {
     int32_t ret = player_->Play();
-    if (ret == MSERR_OK && test_->mutexFlag_ == true && test_->state_ != PLAYER_STARTED) {
+    if (ret == MSERR_OK && test_->state_ != PLAYER_STARTED) {
         std::unique_lock<std::mutex> lockPlay(test_->mutexPlay_);
         test_->condVarPrepare_.wait_for(lockPlay, std::chrono::seconds(WAITSECOND));
         if (test_->state_ != PLAYER_STARTED) {
@@ -157,7 +157,7 @@ int32_t Player_mock::Play()
 int32_t Player_mock::Pause()
 {
     int32_t ret = player_->Pause();
-    if (ret == MSERR_OK && test_->mutexFlag_ == true && test_->state_ != PLAYER_PAUSED) {
+    if (ret == MSERR_OK && test_->state_ != PLAYER_PAUSED) {
         std::unique_lock<std::mutex> lockPause(test_->mutexPause_);
         test_->condVarPause_.wait_for(lockPause, std::chrono::seconds(WAITSECOND));
         if (test_->state_ != PLAYER_PAUSED) {
@@ -170,7 +170,7 @@ int32_t Player_mock::Pause()
 int32_t Player_mock::Stop()
 {
     int32_t ret = player_->Stop();
-    if (ret == MSERR_OK && test_->mutexFlag_ == true && test_->state_ != PLAYER_STOPPED) {
+    if (ret == MSERR_OK && test_->state_ != PLAYER_STOPPED) {
         std::unique_lock<std::mutex> lockStop(test_->mutexStop_);
         test_->condVarStop_.wait_for(lockStop, std::chrono::seconds(WAITSECOND));
         if (test_->state_ != PLAYER_STOPPED) {
@@ -183,7 +183,7 @@ int32_t Player_mock::Stop()
 int32_t Player_mock::Reset()
 {
     int32_t ret = player_->Reset(); 
-    if (ret == MSERR_OK && test_->mutexFlag_ == true && test_->state_ != PLAYER_IDLE) {
+    if (ret == MSERR_OK && test_->state_ != PLAYER_IDLE) {
         std::unique_lock<std::mutex> lockReset(test_->mutexReset_);
         //test_->condVarReset_.wait(lockReset, [&]{return is_finished;});
         test_->condVarReset_.wait_for(lockReset, std::chrono::seconds(WAITSECOND));
@@ -217,7 +217,7 @@ int32_t Player_mock::Seek(int32_t mseconds, PlayerSeekMode mode)
     }
     test_->seekMode_ = mode;
     int32_t ret = player_->Seek(mseconds, mode);
-    if (ret == MSERR_OK && test_->mutexFlag_ == true && test_->seekDoneFlag_ == false) {
+    if (ret == MSERR_OK && test_->seekDoneFlag_ == false) {
         std::unique_lock<std::mutex> lockSeek(test_->mutexSeek_);
         test_->condVarSeek_.wait_for(lockSeek, std::chrono::seconds(WAITSECOND));
         if (test_->seekDoneFlag_ != true) {
