@@ -87,9 +87,9 @@ ohos_shared_library("media_service_utils") {
   configs = [ ":media_service_utils_public_config" ]
 
   deps = [
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//third_party/libxml2:xml2",
     "//utils/native/base:utils",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
   ]
 
   external_deps = [
