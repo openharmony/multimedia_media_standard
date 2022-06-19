@@ -32,6 +32,7 @@ config("media_service_config") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-DOHOS_MEDIA_LOG_DFX",
   ]
 
   include_dirs = [
@@ -57,6 +58,7 @@ config("media_service_config") {
     "//base/security/access_token/interfaces/innerkits/access_token/include",
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara/include",
     "//base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include",
+    "//foundation/multimedia/media_standard/services/dfx",
     "//foundation/multimedia/media_standard/services/include",
     "//foundation/multimedia/media_standard/services/services/factory",
     "//foundation/multimedia/media_standard/services/services/engine_intf",
@@ -119,6 +121,7 @@ ohos_shared_library("media_service") {
   deps = [
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//foundation/multimedia/media_standard/services/utils:media_format",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//utils/native/base:utils",
