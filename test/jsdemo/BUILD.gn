@@ -22,6 +22,7 @@ ohos_shared_library("mediademo") {
   include_dirs = [
     "//foundation/multimedia/media_standard/interfaces/kits/js",
     "//foundation/multimedia/media_standard/frameworks/js/common",
+    "//foundation/multimedia/media_standard/services/dfx",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//drivers/peripheral/display/interfaces/include",
     "//third_party/bounds_checking_function/include",
@@ -58,6 +59,7 @@ ohos_shared_library("mediademo") {
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/bounds_checking_function:libsec_static",
     "//utils/native/base:utils",

@@ -66,6 +66,7 @@ config("media_client_public_config") {
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiocommon/include",
     "//foundation/multimedia/audio_framework/interfaces/kits/js/audio_capturer/include",
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiocapturer/include",
+    "//foundation/multimedia/media_standard/services/dfx",
   ]
 
   cflags = [
@@ -80,6 +81,7 @@ config("media_client_public_config") {
     "-D_FORTIFY_SOURCE=2",
     "-Wformat=2",
     "-Wdate-time",
+    "-DOHOS_MEDIA_LOG_DFX",
   ]
 
   cflags_cc = [
@@ -130,6 +132,7 @@ ohos_shared_library("media_client") {
       "$MEDIA_ROOT_DIR/services/utils:media_service_utils",
       "//foundation/graphic/graphic_2d/frameworks/surface:surface",
       "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+      "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
       "//third_party/bounds_checking_function:libsec_static",
       "//utils/native/base:utils",
     ]
@@ -189,6 +192,7 @@ ohos_shared_library("media_client") {
     deps = [
       "//foundation/graphic/graphic_2d/frameworks/surface:surface",
       "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+      "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
       "//foundation/multimedia/media_standard/services/utils:media_format",
       "//foundation/multimedia/media_standard/services/utils:media_service_utils",
       "//third_party/bounds_checking_function:libsec_static",

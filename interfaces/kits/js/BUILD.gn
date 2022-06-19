@@ -40,6 +40,7 @@ ohos_shared_library("media") {
     "//foundation/multimedia/media_standard/frameworks/js/avmetadatahelper",
     "//foundation/multimedia/media_standard/frameworks/js/mediacapability",
     "//foundation/multimedia/media_standard/frameworks/js/common",
+    "//foundation/multimedia/media_standard/services/dfx",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//third_party/libuv/include",
     "//third_party/bounds_checking_function/include",
@@ -96,6 +97,7 @@ ohos_shared_library("media") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-DOHOS_MEDIA_LOG_DFX",
   ]
 
   deps = [
@@ -103,6 +105,7 @@ ohos_shared_library("media") {
     "//foundation/arkui/napi:ace_napi",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/bounds_checking_function:libsec_shared",
     "//utils/native/base:utils",
