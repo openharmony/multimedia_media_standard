@@ -16,9 +16,7 @@ import("//build/ohos.gni")
 ohos_shared_library("media_service_dfx") {
   install_enable = true
 
-  sources = [
-    "dfx_log_dump.cpp"
-  ]
+  sources = [ "dfx_log_dump.cpp" ]
 
   include_dirs = [
     ".",
@@ -43,13 +41,9 @@ ohos_shared_library("media_service_dfx") {
     "-Wdate-time",
   ]
 
-  deps = [
-    "//utils/native/base:utils",
-  ]
+  deps = [ "//utils/native/base:utils" ]
 
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-  ]
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
   subsystem_name = "multimedia"
   part_name = "multimedia_media_standard"
