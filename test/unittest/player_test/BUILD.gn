@@ -26,9 +26,15 @@ ohos_unittest("player_unit_test") {
     "//foundation/multimedia/media_standard/test/unittest/common/include"
   ]
 
+  assert(!is_clang)
   cflags = [
     "-Wall",
     "-Werror",
+    "-O0",
+    "-fprofile-arcs",
+    "-ftest-coverage",
+    "-o",
+    "-gcov"
   ]
 
   sources = [ 
@@ -43,6 +49,10 @@ ohos_unittest("player_unit_test") {
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/windowmanager/wm:libwm"
+  ]
+
+  libs = [
+    "//prebuilts/clang/ohos/linux-x86_64/llvm/lib/clang/10.0.1/lib/aarch64-linux-ohos/libclang_rt.profile.a"
   ]
 
   resource_config_file = "//foundation/multimedia/media_standard/test/unittest/resources/ohos_test.xml"
