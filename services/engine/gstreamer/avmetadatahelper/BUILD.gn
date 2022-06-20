@@ -35,6 +35,7 @@ config("media_engine_gst_avmeta_config") {
   ]
 
   include_dirs = [
+    "//foundation/multimedia/media_standard/services/dfx",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/services/engine_intf",
     "//foundation/multimedia/media_standard/services/utils/include",
@@ -73,6 +74,7 @@ ohos_static_library("media_engine_gst_avmeta") {
   configs = [ ":media_engine_gst_avmeta_config" ]
 
   deps = [
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins:media_engine_gst_plugins_common",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
   ]

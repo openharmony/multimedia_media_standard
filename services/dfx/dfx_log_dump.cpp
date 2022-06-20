@@ -21,7 +21,7 @@
 
 namespace {
 constexpr int32_t FILE_MAX = 100;
-constexpr int32_t FILE_LINE_MAX = 1000000;
+constexpr int32_t FILE_LINE_MAX = 50000;
 }
 namespace OHOS {
 namespace Media {
@@ -33,11 +33,7 @@ DfxLogDump &DfxLogDump::GetInstance()
 
 DfxLogDump::DfxLogDump()
 {
-#ifdef OHOS_MEDIA_LOG_DFX_ENABLE
     thread_ = std::make_unique<std::thread>(&DfxLogDump::TaskProcessor, this);
-#else
-    thread_ = nullptr;
-#endif
 }
 
 DfxLogDump::~DfxLogDump()
@@ -61,7 +57,10 @@ void DfxLogDump::DumpLog()
 
 void DfxLogDump::SaveLog(const char *level, const OHOS::HiviewDFX::HiLogLabel &label, const char *fmt, ...)
 {
-#ifdef OHOS_MEDIA_LOG_DFX_ENABLE
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (!isEnable_) {
+        return;
+    }
     std::string temp = "";
     std::string fmtStr = fmt;
     int32_t srcPos = 0;
@@ -81,7 +80,6 @@ void DfxLogDump::SaveLog(const char *level, const OHOS::HiviewDFX::HiLogLabel &l
     (void)vsnprintf_s(logBuf, maxLogLen, maxLogLen - 1, temp.c_str(), ap);
     va_end(ap);
 
-    std::unique_lock<std::mutex> lock(mutex_);
     struct timeval time = {};
     (void)gettimeofday(&time, nullptr);
     int64_t second = time.tv_sec % 60;
@@ -107,41 +105,66 @@ void DfxLogDump::SaveLog(const char *level, const OHOS::HiviewDFX::HiLogLabel &l
     logString_ += ":";
     logString_ += logBuf;
     logString_ += "\n";
-    lineCount++;
-    if (lineCount >= FILE_LINE_MAX) {
+    lineCount_++;
+    if (lineCount_ >= FILE_LINE_MAX) {
         cond_.notify_all();
     }
-#endif
+}
+
+void DfxLogDump::UpdateCheckEnable()
+{
+    std::string file = "/data/media/log/check.config";
+    std::ofstream ofStream(file);
+    if (!ofStream.is_open()) {
+        isEnable_ = false;
+    }
+    ofStream.close();
+    isEnable_ = true;
 }
 
 void DfxLogDump::TaskProcessor()
 {
     while (true) {
         std::string temp;
+        int32_t lineCount = 0;
         {
             std::unique_lock<std::mutex> lock(mutex_);
             static constexpr int32_t timeout = 60; // every 1 minute have a log
             cond_.wait_for(lock, std::chrono::seconds(timeout),
-                [this] { return isExit_ || isDump_ || lineCount >= FILE_LINE_MAX || !logString_.empty(); });
+                [this] {
+                    UpdateCheckEnable();
+                    return isExit_ || isDump_ || lineCount_ >= FILE_LINE_MAX || !logString_.empty();
+            });
             if (isExit_) {
                 return;
             }
             isDump_ = false;
-            lineCount = 0;
+            lineCount = lineCount_;
+            lineCount_ = lineCount_ >= FILE_LINE_MAX ? 0 : lineCount_;
             swap(logString_, temp);
         }
 
-        std::string file = "/data/media/";
+        std::string file = "/data/media/log";
         file += std::to_string(getpid());
         file += "hilog_media.log";
-        file += std::to_string(fileCount++);
-        std::ofstream ofStream(file);
+        file += std::to_string(fileCount_);
+        std::ofstream ofStream;
+        if (isNewFile_) {
+            ofStream.open(file, std::ios::out | std::ios::trunc);
+        } else {
+            ofStream.open(file, std::ios::out | std::ios::app);
+        }
         if (!ofStream.is_open()) {
             return;
         }
+        isNewFile_ = false;
+        if (lineCount >= FILE_LINE_MAX) {
+            isNewFile_ = true;
+            fileCount_++;
+            fileCount_ = fileCount_ > FILE_MAX ? 0 : fileCount_;
+        }
         ofStream.write(temp.c_str(), temp.size());
         ofStream.close();
-        fileCount = fileCount > FILE_MAX ? 0 : fileCount;
     }
 }
 } // namespace Media

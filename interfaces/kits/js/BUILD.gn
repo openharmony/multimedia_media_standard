@@ -97,7 +97,6 @@ ohos_shared_library("media") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
-    "-DOHOS_MEDIA_LOG_DFX",
   ]
 
   deps = [
