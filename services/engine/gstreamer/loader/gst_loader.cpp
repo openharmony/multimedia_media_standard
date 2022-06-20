@@ -71,28 +71,28 @@ static void GstLogPrint(const GstLogPrintInfo &info)
         case GST_LEVEL_TRACE: // no break
         case GST_LEVEL_LOG:   // no break
         case GST_LEVEL_DEBUG:
-            DfxLogDump::GetInstance().SaveLog(LOG_LEVEL_D, gstLable, "{%s():%d} [gst::%s:%" PRIXPTR "] %s",
+            DfxLogDump::GetInstance().SaveLog("LOGD", gstLable, "{%s():%d} [gst::%s:%" PRIXPTR "] %s",
                 info.function, info.line, objName, FAKE_POINTER(info.object), info.logMsg);
             (void)::OHOS::HiviewDFX::HiLog::Debug(gstLable,
                 "{%{public}s():%{public}d} [gst::%{public}s:%{public}" PRIXPTR "] %{public}s",
                 info.function, info.line, objName, FAKE_POINTER(info.object), info.logMsg);
             break;
         case GST_LEVEL_INFO:
-            DfxLogDump::GetInstance().SaveLog(LOG_LEVEL_I, gstLable, "{%s():%d} [gst::%s:%" PRIXPTR "] %s",
+            DfxLogDump::GetInstance().SaveLog("LOGI", gstLable, "{%s():%d} [gst::%s:%" PRIXPTR "] %s",
                 info.function, info.line, objName, FAKE_POINTER(info.object), info.logMsg);
             (void)::OHOS::HiviewDFX::HiLog::Info(gstLable,
                 "{%{public}s():%{public}d} [gst::%{public}s:%{public}" PRIXPTR "] %{public}s",
                 info.function, info.line, objName, FAKE_POINTER(info.object), info.logMsg);
             break;
         case GST_LEVEL_WARNING:
-            DfxLogDump::GetInstance().SaveLog(LOG_LEVEL_W, gstLable, "{%s():%d} [gst::%s:%" PRIXPTR "] %s",
+            DfxLogDump::GetInstance().SaveLog("LOGW", gstLable, "{%s():%d} [gst::%s:%" PRIXPTR "] %s",
                 info.function, info.line, objName, FAKE_POINTER(info.object), info.logMsg);
             (void)::OHOS::HiviewDFX::HiLog::Warn(gstLable,
                 "{%{public}s():%{public}d} [gst::%{public}s:%{public}" PRIXPTR "] %{public}s",
                 info.function, info.line, objName, FAKE_POINTER(info.object), info.logMsg);
             break;
         case GST_LEVEL_ERROR:
-            DfxLogDump::GetInstance().SaveLog(LOG_LEVEL_E, gstLable, "{%s():%d} [gst::%s:%" PRIXPTR "] %s",
+            DfxLogDump::GetInstance().SaveLog("LOGE", gstLable, "{%s():%d} [gst::%s:%" PRIXPTR "] %s",
                 info.function, info.line, objName, FAKE_POINTER(info.object), info.logMsg);
             (void)::OHOS::HiviewDFX::HiLog::Error(gstLable,
                 "{%{public}s():%{public}d} [gst::%{public}s:%{public}" PRIXPTR "] %{public}s",

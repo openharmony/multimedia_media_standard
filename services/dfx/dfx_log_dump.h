@@ -22,12 +22,6 @@
 
 namespace OHOS {
 namespace Media {
-const char *LOG_LEVEL_D = "LOGD";
-const char *LOG_LEVEL_I = "LOGI";
-const char *LOG_LEVEL_W = "LOGW";
-const char *LOG_LEVEL_E = "LOGE";
-const char *LOG_LEVEL_F = "LOGF";
-
 class __attribute__((visibility("default"))) DfxLogDump {
 public:
     static DfxLogDump &GetInstance();
