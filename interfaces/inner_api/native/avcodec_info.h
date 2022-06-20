@@ -537,7 +537,8 @@ enum AVCProfile : int32_t {
 enum HEVCProfile : int32_t {
     HEVC_PROFILE_MAIN = 0,
     HEVC_PROFILE_MAIN_10 = 1,
-    HEVC_PROFILE_MAIN_STILL = 3,
+    HEVC_PROFILE_MAIN_STILL = 2,
+    HEVC_PROFILE_MAIN_10_HDR10 = 3,
 };
 
 /**
@@ -665,6 +666,10 @@ enum HEVCLevel : int32_t {
     HEVC_LEVEL_41 = 6,
     HEVC_LEVEL_5 = 7,
     HEVC_LEVEL_51 = 8,
+    HEVC_LEVEL_52 = 9,
+    HEVC_LEVEL_6 = 10,
+    HEVC_LEVEL_61 = 11,
+    HEVC_LEVEL_62 = 12,
 };
 
 /**

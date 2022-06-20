@@ -118,6 +118,7 @@ struct ProcessorConfig {
 std::string PixelFormatToGst(VideoPixelFormat pixel);
 std::string MPEG4ProfileToGst(MPEG4Profile profile);
 std::string AVCProfileToGst(AVCProfile profile);
+std::string HEVCProfileToGst(HEVCProfile profile);
 std::string RawAudioFormatToGst(AudioStandard::AudioSampleFormat format);
 int32_t MapCodecMime(const std::string &mime, InnerCodecMimeType &name);
 int32_t CapsToFormat(GstCaps *caps, Format &format);
