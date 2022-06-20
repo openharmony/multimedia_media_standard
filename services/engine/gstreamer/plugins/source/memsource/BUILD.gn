@@ -36,7 +36,6 @@ config("gst_mem_src_config") {
   include_dirs = [
     "//drivers/peripheral/display/interfaces/include",
     "//utils/native/base/include",
-    "//foundation/multimedia/media_standard/services/dfx",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
@@ -67,7 +66,10 @@ ohos_shared_library("gst_mem_src") {
     "gst_surface_src.cpp",
   ]
 
-  configs = [ ":gst_mem_src_config" ]
+  configs = [
+    ":gst_mem_src_config",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+  ]
 
   deps = [
     "//foundation/graphic/graphic_2d:libsurface",

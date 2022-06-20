@@ -13,6 +13,11 @@
 
 import("//build/ohos.gni")
 
+config("media_service_dfx_public_config") {
+  cflags = [ "-DOHOS_MEDIA_LOG_DFX" ]
+  include_dirs = [ "//foundation/multimedia/media_standard/services/dfx" ]
+}
+
 ohos_shared_library("media_service_dfx") {
   install_enable = true
 

@@ -35,7 +35,6 @@ config("gst_plugins_common_config") {
   include_dirs = [
     "include",
     "//utils/native/base/include",
-    "//foundation/multimedia/media_standard/services/dfx",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//third_party/gstreamer/gstreamer",
@@ -51,7 +50,10 @@ config("gst_plugins_common_config") {
 ohos_shared_library("gst_media_common") {
   install_enable = true
 
-  configs = [ ":gst_plugins_common_config" ]
+  configs = [
+    ":gst_plugins_common_config",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+  ]
 
   sources = [
     "buffer_type_meta.c",

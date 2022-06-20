@@ -35,7 +35,6 @@ config("media_engine_gst_factory_config") {
 
   include_dirs = [
     "//utils/native/base/include",
-    "//foundation/multimedia/media_standard/services/dfx",
     "//foundation/multimedia/media_standard/services/include",
     "//foundation/multimedia/media_standard/services/services/engine_intf",
     "//foundation/multimedia/media_standard/services/engine/common/avcodeclist",
@@ -69,6 +68,7 @@ ohos_static_library("media_engine_gst_factory") {
   configs = [
     ":media_engine_gst_factory_config",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface_public_config",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
   ]
 
   deps = [

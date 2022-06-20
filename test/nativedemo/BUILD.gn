@@ -26,7 +26,6 @@ ohos_executable("media_demo") {
     "./avcodecvdec",
     "./avmuxer",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
-    "//foundation/multimedia/media_standard/services/dfx",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//graphic/graphic_2d/interfaces/innerkits/surface",
     "//foundation/graphic/graphic_2d/utils/sync_fence/export",
@@ -68,6 +67,8 @@ ohos_executable("media_demo") {
     "./recorder/recorder_demo.cpp",
     "./recorder_profiles/recorder_profiles_demo.cpp",
   ]
+
+  configs = [ "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config" ]
 
   deps = [
     "//foundation/graphic/graphic_2d:libsurface",
