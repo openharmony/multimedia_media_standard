@@ -21,6 +21,7 @@
 #include "media_log.h"
 #include "media_errors.h"
 #include "media_parcel.h"
+#include "parameter.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayerServiceStub"};
@@ -50,7 +51,14 @@ PlayerServiceStub::~PlayerServiceStub()
 
 int32_t PlayerServiceStub::Init()
 {
-    playerServer_ = PlayerServer::Create();
+    char useHistreamer[10] = {0}; // 10 for system parameter usage
+    auto res = GetParameter("debug.media_service.histreamer", "0", useHistreamer, sizeof(useHistreamer));
+    if (res == 1 && useHistreamer[0] == '1') {
+        MEDIA_LOGD("use histreamer");
+        playerServer_ = PlayerServerHi::Create();
+    } else {
+        playerServer_ = PlayerServer::Create();
+    }
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "failed to create PlayerServer");
 
     playerFuncs_[SET_LISTENER_OBJ] = &PlayerServiceStub::SetListenerObject;

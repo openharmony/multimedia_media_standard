@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 
-config("media_engine_gst_player_config") {
+config("media_engine_playbin_player_config") {
   visibility = [ ":*" ]
 
   cflags = [
@@ -40,6 +40,11 @@ config("media_engine_gst_player_config") {
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/services/engine_intf",
+    "//foundation/multimedia/media_standard/services/common",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/playbin_adapter",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/appsrc_wrap",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/metadata",
+    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
     "//foundation/multimedia/audio_framework/frameworks/innerkitsimpl/common/include",
     "//foundation/multimedia/audio_framework/interfaces/innerkits/native/audiocommon/include",
     "//foundation/multimedia/audio_framework/interfaces/innerkits/native/audiomanager/include",
@@ -51,6 +56,7 @@ config("media_engine_gst_player_config") {
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/gstreamer/gstplugins_base/gst",
     "//third_party/gstreamer/gstplugins_base/gst-libs",
+    "//third_party/gstreamer/gstplugins_base/gst-libs/gst/video",
     "//third_party/gstreamer/gstplugins_bad/gst-libs",
     "//third_party/glib/glib",
     "//third_party/glib",
@@ -60,18 +66,15 @@ config("media_engine_gst_player_config") {
   ]
 }
 
-ohos_static_library("media_engine_gst_player") {
+ohos_static_library("media_engine_playbin_player") {
   sources = [
-    "gst_appsrc_warp.cpp",
-    "gst_player_build.cpp",
-    "gst_player_ctrl.cpp",
-    "gst_player_track_parse.cpp",
-    "gst_player_video_renderer_ctrl.cpp",
+    "player_track_parse.cpp",
     "player_engine_gst_impl.cpp",
+    "player_sinkprovider.cpp"
   ]
 
   configs = [
-    ":media_engine_gst_player_config",
+    ":media_engine_playbin_player_config",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface_public_config",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils_public_config",
   ]
@@ -84,7 +87,6 @@ ohos_static_library("media_engine_gst_player") {
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gobject",
-    "//third_party/gstreamer/gstplugins_bad:gstplayer",
     "//third_party/gstreamer/gstplugins_base:gstvideo",
     "//third_party/gstreamer/gstreamer:gstreamer",
   ]

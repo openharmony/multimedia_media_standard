@@ -28,7 +28,7 @@ ohos_shared_library("media_engine_gst") {
     "common:media_engine_gst_common",
     "factory:media_engine_gst_factory",
     "loader:media_engine_gst_loader",
-    "player:media_engine_gst_player",
+    "player:media_engine_playbin_player",
     "plugins:media_engine_gst_plugins_common",
     "recorder:media_engine_gst_recorder",
     "//foundation/multimedia/media_standard/services/engine/common:media_engine_common",

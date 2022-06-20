@@ -27,7 +27,6 @@
 #include "state_machine.h"
 #include "gst_msg_processor.h"
 #include "task_queue.h"
-#include "playbin_task_mgr.h"
 
 namespace OHOS {
 namespace Media {
@@ -41,6 +40,7 @@ public:
 
     int32_t Init();
     int32_t SetSource(const std::string &url)  override;
+    int32_t SetSource(const std::shared_ptr<GstAppsrcWrap> &appsrcWrap) override;
     int32_t Prepare() override;
     int32_t PrepareAsync() override;
     int32_t Play() override;
@@ -48,6 +48,13 @@ public:
     int32_t Seek(int64_t timeUs, int32_t seekOption) override;
     int32_t Stop() override;
     int64_t GetDuration() override;
+    int64_t GetPosition() override;
+    int32_t SetRate(double rate) override;
+    double GetRate() override;
+    int32_t SetLoop(bool loop) override;
+    void SetVolume(const float &leftVolume, const float &rightVolume) override;
+    void SetAudioRendererInfo(int32_t rendererInfo) override;
+    int32_t SelectBitRate(uint32_t bitRate) override;
 
     void SetElemSetupListener(ElemSetupListener listener) final;
 
@@ -65,23 +72,45 @@ private:
     class PlayingState;
     class PausedState;
     class StoppedState;
+    class PlaybackCompletedState;
 
     int32_t EnterInitializedState();
     void ExitInitializedState();
-    int32_t PrepareAsyncInternel();
-    int32_t SeekInternel(int64_t timeUs, int32_t seekOption);
-    int32_t StopInternel();
+    int32_t PrepareAsyncInternal();
+    int32_t SeekInternal(int64_t timeUs, int32_t seekOption);
+    int32_t StopInternal();
+    int32_t SetRateInternal(double rate);
     void SetupCustomElement();
+    GstSeekFlags ChooseSetRateFlags(double rate);
     int32_t SetupSignalMessage();
     void QueryDuration();
+    int64_t QueryPosition();
+    int64_t QueryPositionInternal(bool isSeekDone);
+    void ProcessEndOfStream();
     static void ElementSetup(const GstElement *playbin, GstElement *elem, gpointer userdata);
+    static void SourceSetup(const GstElement *playbin, GstElement *elem, gpointer userdata);
+    static void OnVolumeChangedCb(const GstElement *playbin, GstElement *elem, gpointer userdata);
+    static void OnBitRateParseCompleteCb(const GstElement *playbin, uint32_t *bitrateInfo,
+        uint32_t bitrateNum, gpointer userdata);
+    void SetupVolumeChangedCb();
     void OnElementSetup(GstElement &elem);
+    void OnSourceSetup(const GstElement *playbin, GstElement *src,
+        const std::shared_ptr<PlayBinCtrlerBase> &playbinCtrl);
+    bool OnVideoDecoderSetup(GstElement &elem);
+    void OnAppsrcErrorMessageReceived(int32_t errorCode);
     void OnMessageReceived(const InnerMessage &msg);
     void ReportMessage(const PlayBinMessage &msg);
     void Reset() noexcept;
+    bool IsLiveSource();
+    int32_t DoInitializeForDataSource();
+    void DoInitializeForHttp();
+    void HandleCacheCtrl(const InnerMessage &msg);
+    void HandleCacheCtrlWhenNoBuffering(int32_t percent);
+    void HandleCacheCtrlWhenBuffering(int32_t percent);
 
     std::mutex mutex_;
-    PlayBinTaskMgr taskMgr_;
+    std::mutex listenerMutex_;
+    std::mutex appsrcMutex_;
     std::unique_ptr<TaskQueue> msgQueue_;
     PlayBinRenderMode renderMode_ = PlayBinRenderMode::DEFAULT_RENDER;
     PlayBinMsgNotifier notifier_;
@@ -89,14 +118,28 @@ private:
     std::shared_ptr<PlayBinSinkProvider> sinkProvider_;
     std::unique_ptr<GstMsgProcessor> msgProcessor_;
     std::string uri_;
-    gulong signalId_ = 0;
+    std::unordered_map<GstElement *, gulong> signalIds_;
+    std::vector<uint32_t> bitRateVec_;
     bool isInitialized = false;
 
     bool isErrorHappened_ = false;
     std::mutex condMutex_;
     std::condition_variable stateCond_;
 
+    PlayBinSinkProvider::SinkPtr audioSink_ = nullptr;
+    PlayBinSinkProvider::SinkPtr videoSink_ = nullptr;
+
     int64_t duration_ = 0;
+    double rate_;
+    int64_t seekPos_ = 0;
+    int64_t lastTime_ = 0;
+
+    bool isSeeking_ = false;
+    bool isRating_ = false;
+    bool isBuffering_ = false;
+
+    bool enableLooping_ = false;
+    std::shared_ptr<GstAppsrcWrap> appsrcWrap_ = nullptr;
 
     std::shared_ptr<IdleState> idleState_;
     std::shared_ptr<InitializedState> initializedState_;
@@ -105,6 +148,7 @@ private:
     std::shared_ptr<PlayingState> playingState_;
     std::shared_ptr<PausedState> pausedState_;
     std::shared_ptr<StoppedState> stoppedState_;
+    std::shared_ptr<PlaybackCompletedState> playbackCompletedState_;
 };
 } // namespace Media
 } // namespace OHOS
