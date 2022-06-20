@@ -38,15 +38,18 @@ public:
 private:
     DfxLogDump();
     ~DfxLogDump();
-    int32_t fileCount = 0;
-    int32_t lineCount = 0;
+    void UpdateCheckEnable();
+    int32_t fileCount_ = 0;
+    int32_t lineCount_ = 0;
     std::unique_ptr<std::thread> thread_;
     void TaskProcessor();
     std::mutex mutex_;
     std::condition_variable cond_;
     std::string logString_;
     bool isDump_ = false;
-    bool isExit_ = false;;
+    bool isExit_ = false;
+    bool isEnable_ = false;
+    bool isNewFile_ = true;
 };
 } // namespace Media
 } // namespace OHOS

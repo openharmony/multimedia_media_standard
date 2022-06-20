@@ -18,6 +18,8 @@
 
 #include <hilog/log.h>
 #include <cinttypes>
+#include "media_dfx_config.h"
+
 #ifdef OHOS_MEDIA_LOG_DFX
 #include "dfx_log_dump.h"
 #endif

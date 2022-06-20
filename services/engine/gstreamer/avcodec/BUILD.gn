@@ -32,7 +32,6 @@ config("media_engine_gst_avcodec_config") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
-    "-DOHOS_MEDIA_LOG_DFX",
   ]
 
   include_dirs = [
