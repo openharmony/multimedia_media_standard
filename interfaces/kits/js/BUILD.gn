@@ -40,7 +40,6 @@ ohos_shared_library("media") {
     "//foundation/multimedia/media_standard/frameworks/js/avmetadatahelper",
     "//foundation/multimedia/media_standard/frameworks/js/mediacapability",
     "//foundation/multimedia/media_standard/frameworks/js/common",
-    "//foundation/multimedia/media_standard/services/dfx",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//third_party/libuv/include",
     "//third_party/bounds_checking_function/include",
@@ -98,6 +97,8 @@ ohos_shared_library("media") {
     "-Wfloat-equal",
     "-Wdate-time",
   ]
+
+  public_configs = [ "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config" ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",

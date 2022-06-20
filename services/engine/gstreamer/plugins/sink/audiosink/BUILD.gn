@@ -35,7 +35,6 @@ config("gst_audio_server_sink_config") {
   include_dirs = [
     "include",
     "//utils/native/base/include",
-    "//foundation/multimedia/media_standard/services/dfx",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
@@ -63,7 +62,10 @@ ohos_shared_library("gst_audio_server_sink") {
     "src/gst_audio_server_sink.cpp",
   ]
 
-  configs = [ ":gst_audio_server_sink_config" ]
+  configs = [
+    ":gst_audio_server_sink_config",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+  ]
 
   deps = [
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiomanager:audio_client",

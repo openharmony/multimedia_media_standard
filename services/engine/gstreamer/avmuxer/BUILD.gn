@@ -37,7 +37,6 @@ config("media_engine_gst_avmuxer_config") {
   ]
 
   include_dirs = [
-    "//foundation/multimedia/media_standard/services/dfx",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/services/engine_intf",
     "//foundation/multimedia/media_standard/services/utils/include",
@@ -60,7 +59,10 @@ ohos_static_library("media_engine_gst_avmuxer") {
     "gst_shmem_wrap_allocator.cpp",
   ]
 
-  configs = [ ":media_engine_gst_avmuxer_config" ]
+  configs = [
+    ":media_engine_gst_avmuxer_config",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+  ]
 
   deps = [
     "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",

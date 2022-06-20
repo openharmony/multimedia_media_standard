@@ -26,6 +26,8 @@ ohos_static_library("media_format") {
     "//third_party/libxml2/include",
   ]
 
+  configs = [ "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config" ]
+
   deps = [
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/libxml2:xml2",
@@ -41,7 +43,6 @@ config("media_service_utils_public_config") {
   include_dirs = [
     "include",
     "//base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include",
-    "//foundation/multimedia/media_standard/services/dfx",
   ]
 }
 
@@ -83,7 +84,10 @@ ohos_shared_library("media_service_utils") {
     "-Wdate-time",
   ]
 
-  configs = [ ":media_service_utils_public_config" ]
+  configs = [
+    ":media_service_utils_public_config",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+  ]
 
   deps = [
     "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",

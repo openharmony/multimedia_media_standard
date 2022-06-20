@@ -66,7 +66,6 @@ config("media_client_public_config") {
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiocommon/include",
     "//foundation/multimedia/audio_framework/interfaces/kits/js/audio_capturer/include",
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiocapturer/include",
-    "//foundation/multimedia/media_standard/services/dfx",
   ]
 
   cflags = [
@@ -124,6 +123,7 @@ ohos_shared_library("media_client") {
       ":media_client_local_config",
       ":media_client_public_config",
       "//foundation/graphic/graphic_2d/frameworks/surface:surface_public_config",
+      "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
     ]
 
     deps = [
@@ -186,6 +186,7 @@ ohos_shared_library("media_client") {
       ":media_client_ipc_config",
       ":media_client_public_config",
       "//foundation/graphic/graphic_2d/frameworks/surface:surface_public_config",
+      "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
     ]
 
     deps = [
