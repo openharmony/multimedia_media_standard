@@ -26,15 +26,9 @@ ohos_unittest("player_unit_test") {
     "//foundation/multimedia/media_standard/test/unittest/common/include"
   ]
 
-  assert(!is_clang)
   cflags = [
     "-Wall",
-    "-Werror",
-    "-O0",
-    "-fprofile-arcs",
-    "-ftest-coverage",
-    "-o",
-    "-gcov"
+    "-Werror"
   ]
 
   sources = [ 
