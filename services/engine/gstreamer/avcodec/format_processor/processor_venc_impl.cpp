@@ -64,6 +64,9 @@ int32_t ProcessorVencImpl::ProcessOptional(const Format &format)
         case CODEC_MIMIE_TYPE_VIDEO_AVC:
             gstProfile_ = AVCProfileToGst(static_cast<AVCProfile>(profile_));
             break;
+        case CODEC_MIMIE_TYPE_VIDEO_HEVC:
+            gstProfile_ = HEVCProfileToGst(static_cast<HEVCProfile>(profile_));
+            break;
         default:
             break;
     }
@@ -115,6 +118,10 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetOutputPortConfig()
             break;
         case CODEC_MIMIE_TYPE_VIDEO_AVC:
             caps = gst_caps_new_simple("video/x-h264",
+                "stream-format", G_TYPE_STRING, "byte-stream", nullptr);
+            break;
+        case CODEC_MIMIE_TYPE_VIDEO_HEVC:
+            caps = gst_caps_new_simple("video/x-h265",
                 "stream-format", G_TYPE_STRING, "byte-stream", nullptr);
             break;
         default:
