@@ -55,7 +55,7 @@ void DfxLogDump::DumpLog()
     cond_.notify_all();
 }
 
-static void AddNewLog(std::string &logStr)
+static void AddNewLog(const char *level, const OHOS::HiviewDFX::HiLogLabel &label, std::string &logStr)
 {
     struct timeval time = {};
     (void)gettimeofday(&time, nullptr);
@@ -108,7 +108,7 @@ void DfxLogDump::SaveLog(const char *level, const OHOS::HiviewDFX::HiLogLabel &l
     auto ret = vsnprintf_s(logBuf, maxLogLen, maxLogLen - 1, temp.c_str(), ap);
     va_end(ap);
 
-    AddNewLog(logString_);
+    AddNewLog(level, label, logString_);
     if (ret < 0) {
         logString_ += "dump log error";
     } else {
