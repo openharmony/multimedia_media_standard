@@ -68,9 +68,9 @@ config("media_engine_playbin_player_config") {
 
 ohos_static_library("media_engine_playbin_player") {
   sources = [
-    "player_track_parse.cpp",
     "player_engine_gst_impl.cpp",
-    "player_sinkprovider.cpp"
+    "player_sinkprovider.cpp",
+    "player_track_parse.cpp",
   ]
 
   configs = [
