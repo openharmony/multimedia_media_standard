@@ -21,7 +21,7 @@
 #include "dumper.h"
 
 namespace {
-    constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayBinCtrlerBase"};
+    constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayBinState"};
 }
 
 namespace OHOS {
@@ -67,6 +67,14 @@ int32_t PlayBinCtrlerBase::BaseState::Stop()
     return MSERR_INVALID_STATE;
 }
 
+int32_t PlayBinCtrlerBase::BaseState::SetRate(double rate)
+{
+    (void)rate;
+
+    ReportInvalidOperation();
+    return MSERR_INVALID_STATE;
+}
+
 int32_t PlayBinCtrlerBase::BaseState::ChangePlayBinState(GstState targetState)
 {
     GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(ctrler_.playbin_), targetState);
@@ -78,33 +86,124 @@ int32_t PlayBinCtrlerBase::BaseState::ChangePlayBinState(GstState targetState)
     return MSERR_OK;
 }
 
+void PlayBinCtrlerBase::BaseState::HandleStateChange(const InnerMessage &msg)
+{
+    MEDIA_LOGI("state changed from %{public}s to %{public}s",
+        gst_element_state_get_name(static_cast<GstState>(msg.detail1)),
+        gst_element_state_get_name(static_cast<GstState>(msg.detail2)));
+
+    Dumper::DumpDotGraph(*ctrler_.playbin_, msg.detail1, msg.detail2);
+    if (msg.extend.has_value() && std::any_cast<GstPipeline *>(msg.extend) == ctrler_.playbin_) {
+        ProcessStateChange(msg);
+    }
+}
+
+void PlayBinCtrlerBase::BaseState::HandleDurationChange()
+{
+    MEDIA_LOGI("received duration change msg, update duration");
+    ctrler_.QueryDuration();
+}
+
+void PlayBinCtrlerBase::BaseState::HandleResolutionChange(const InnerMessage &msg)
+{
+    std::pair<int32_t, int32_t> resolution;
+    resolution.first = msg.detail1;
+    resolution.second = msg.detail2;
+    PlayBinMessage playBinMsg { PLAYBIN_MSG_SUBTYPE, PLAYBIN_SUB_MSG_VIDEO_SIZE_CHANGED, 0, resolution };
+    ctrler_.ReportMessage(playBinMsg);
+}
+
+void PlayBinCtrlerBase::BaseState::HandleAsyncDone(const InnerMessage &msg)
+{
+    if (std::any_cast<GstPipeline *>(msg.extend) == ctrler_.playbin_) {
+        GstState state = GST_STATE_NULL;
+        GstStateChangeReturn stateRet = gst_element_get_state(GST_ELEMENT_CAST(ctrler_.playbin_), &state,
+            nullptr, static_cast<GstClockTime>(0));
+
+        if ((stateRet == GST_STATE_CHANGE_SUCCESS) && (state >= GST_STATE_PAUSED)) {
+            if (ctrler_.isSeeking_) {
+                int64_t position = ctrler_.seekPos_;
+                MEDIA_LOGI("asyncdone after seek done, pos = %{public}" PRIi64 "us", position);
+                PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, position };
+                ctrler_.ReportMessage(playBinMsg);
+                ctrler_.isSeeking_ = false;
+            } else if (ctrler_.isRating_) {
+                MEDIA_LOGI("asyncdone after setRate done, rate = %{public}lf", ctrler_.rate_);
+                PlayBinMessage playBinMsg { PLAYBIN_MSG_SPEEDDONE, 0, ctrler_.rate_ };
+                ctrler_.ReportMessage(playBinMsg);
+                ctrler_.isRating_ = false;
+            } else {
+                MEDIA_LOGD("Async done, not seeking or rating!");
+            }
+        }
+    }
+}
+
+void PlayBinCtrlerBase::BaseState::HandleError(const InnerMessage &msg)
+{
+    PlayBinMessage playbinMsg { PLAYBIN_MSG_ERROR, 0, msg.detail1 };
+    ctrler_.ReportMessage(playbinMsg);
+}
+
+void PlayBinCtrlerBase::BaseState::HandleEos()
+{
+    PlayBinMessage playBinMsg = { PLAYBIN_MSG_EOS, 0, static_cast<int32_t>(ctrler_.enableLooping_), {} };
+    ctrler_.ReportMessage(playBinMsg);
+}
+
+void PlayBinCtrlerBase::BaseState::HandleBuffering(const InnerMessage &msg)
+{
+    ctrler_.HandleCacheCtrl(msg);
+}
+
+void PlayBinCtrlerBase::BaseState::HandleBufferingTime(const InnerMessage &msg)
+{
+    std::pair<uint32_t, int64_t> bufferingTimePair;
+    bufferingTimePair.first = static_cast<uint32_t>(msg.detail1);
+    bufferingTimePair.second = std::any_cast<int64_t>(msg.extend);
+    PlayBinMessage playBinMsg = { PLAYBIN_MSG_SUBTYPE, PLAYBIN_SUB_MSG_BUFFERING_TIME, 0, bufferingTimePair };
+    ctrler_.ReportMessage(playBinMsg);
+}
+
+void PlayBinCtrlerBase::BaseState::HandleUsedMqNum(const InnerMessage &msg)
+{
+    uint32_t usedMqNum = static_cast<uint32_t>(msg.detail1);
+    PlayBinMessage playBinMsg = { PLAYBIN_MSG_SUBTYPE, PLAYBIN_SUB_MSG_BUFFERING_USED_MQ_NUM, 0, usedMqNum };
+    ctrler_.ReportMessage(playBinMsg);
+}
+
 void PlayBinCtrlerBase::BaseState::OnMessageReceived(const InnerMessage &msg)
 {
-    ProcessMessage(msg);
-
-    if (msg.type == INNER_MSG_STATE_CHANGED) {
-        MEDIA_LOGI("state changed from %{public}s to %{public}s",
-                   gst_element_state_get_name(static_cast<GstState>(msg.detail1)),
-                   gst_element_state_get_name(static_cast<GstState>(msg.detail2)));
-
-        // every time the state of playbin changed, we try to awake the stateCond_'s waiters.
-        ctrler_.stateCond_.notify_one();
-
-        Dumper::DumpDotGraph(*ctrler_.playbin_, msg.detail1, msg.detail2);
-    }
-
-    if (msg.type == INNER_MSG_DURATION_CHANGED) {
-        if (this == ctrler_.preparingState_.get()) {
-            return;
-        }
-        MEDIA_LOGI("received duration change msg, update duration");
-        ctrler_.QueryDuration();
-        return;
-    }
-
-    if (msg.type == INNER_MSG_ERROR) {
-        PlayBinMessage playbinMsg { PLAYBIN_MSG_ERROR, 0, msg.detail1 };
-        ctrler_.ReportMessage(playbinMsg);
+    switch (msg.type) {
+        case INNER_MSG_STATE_CHANGED:
+            HandleStateChange(msg);
+            break;
+        case INNER_MSG_DURATION_CHANGED:
+            HandleDurationChange();
+            break;
+        case INNER_MSG_RESOLUTION_CHANGED:
+            HandleResolutionChange(msg);
+            break;
+        case INNER_MSG_ASYNC_DONE:
+            HandleAsyncDone(msg);
+            break;
+        case INNER_MSG_ERROR:
+            HandleError(msg);
+            break;
+        case INNER_MSG_EOS:
+            HandleEos();
+            break;
+        case INNER_MSG_BUFFERING:
+            HandleBuffering(msg);
+            break;
+        case INNER_MSG_BUFFERING_TIME:
+            HandleBufferingTime(msg);
+            break;
+        case INNER_MSG_BUFFERING_USED_MQ_NUM:
+            HandleUsedMqNum(msg);
+            break;
+        default:
+            break;
     }
 }
 
@@ -136,27 +235,12 @@ int32_t PlayBinCtrlerBase::PreparingState::Stop()
     return MSERR_OK;
 }
 
-void PlayBinCtrlerBase::PreparingState::ProcessMessage(const InnerMessage &msg)
+void PlayBinCtrlerBase::PreparingState::ProcessStateChange(const InnerMessage &msg)
 {
-    if (msg.type == INNER_MSG_STATE_CHANGED) {
-        if ((msg.detail1 == GST_STATE_READY) && (msg.detail2 == GST_STATE_PAUSED)) {
-            stateChanged_ = true;
-            return;
-        }
+    if ((msg.detail1 == GST_STATE_READY) && (msg.detail2 == GST_STATE_PAUSED)) {
+        ctrler_.ChangeState(ctrler_.preparedState_);
+        ctrler_.stateCond_.notify_one(); // awake the stateCond_'s waiter in Prepare()
     }
-
-    if (msg.type == INNER_MSG_ASYNC_DONE) {
-        if (stateChanged_) {
-            ctrler_.ChangeState(ctrler_.preparedState_);
-            stateChanged_ = false;
-            return;
-        }
-    }
-}
-
-void PlayBinCtrlerBase::PreparingState::StateExit()
-{
-    (void)ctrler_.taskMgr_.MarkSecondPhase();
 }
 
 void PlayBinCtrlerBase::PreparedState::StateEnter()
@@ -167,6 +251,7 @@ void PlayBinCtrlerBase::PreparedState::StateEnter()
     msg = { PLAYBIN_MSG_STATE_CHANGE, 0, PLAYBIN_STATE_PREPARED, {} };
     ctrler_.ReportMessage(msg);
 
+    ctrler_.SetupVolumeChangedCb();
     ctrler_.QueryDuration();
 }
 
@@ -182,7 +267,7 @@ int32_t PlayBinCtrlerBase::PreparedState::Play()
 
 int32_t PlayBinCtrlerBase::PreparedState::Seek(int64_t timeUs, int32_t option)
 {
-    return ctrler_.SeekInternel(timeUs, option);
+    return ctrler_.SeekInternal(timeUs, option);
 }
 
 int32_t PlayBinCtrlerBase::PreparedState::Stop()
@@ -192,23 +277,16 @@ int32_t PlayBinCtrlerBase::PreparedState::Stop()
     return MSERR_OK;
 }
 
-void PlayBinCtrlerBase::PreparedState::ProcessMessage(const InnerMessage &msg)
+int32_t PlayBinCtrlerBase::PreparedState::SetRate(double rate)
 {
-    if (msg.type == INNER_MSG_STATE_CHANGED) {
-        if ((msg.detail1 == GST_STATE_PAUSED) && (msg.detail2 == GST_STATE_PLAYING)) {
-            ctrler_.ChangeState(ctrler_.playingState_);
-            (void)ctrler_.taskMgr_.MarkSecondPhase();
-            return;
-        }
-    }
+    return ctrler_.SetRateInternal(rate);
+}
 
-    if (msg.type == INNER_MSG_ASYNC_DONE) {
-        if (ctrler_.taskMgr_.GetCurrTaskType() == PlayBinTaskType::SEEKING) {
-            MEDIA_LOGI("seek done");
-            PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, 0 };
-            ctrler_.ReportMessage(playBinMsg);
-            (void)ctrler_.taskMgr_.MarkSecondPhase();
-        }
+void PlayBinCtrlerBase::PreparedState::ProcessStateChange(const InnerMessage &msg)
+{
+    if ((msg.detail1 == GST_STATE_PAUSED) && (msg.detail2 == GST_STATE_PLAYING)) {
+        ctrler_.ChangeState(ctrler_.playingState_);
+        return;
     }
 }
 
@@ -237,7 +315,7 @@ int32_t PlayBinCtrlerBase::PlayingState::Pause()
 
 int32_t PlayBinCtrlerBase::PlayingState::Seek(int64_t timeUs, int32_t option)
 {
-    return ctrler_.SeekInternel(timeUs, option);
+    return ctrler_.SeekInternal(timeUs, option);
 }
 
 int32_t PlayBinCtrlerBase::PlayingState::Stop()
@@ -247,20 +325,39 @@ int32_t PlayBinCtrlerBase::PlayingState::Stop()
     return MSERR_OK;
 }
 
-void PlayBinCtrlerBase::PlayingState::ProcessMessage(const InnerMessage &msg)
+int32_t PlayBinCtrlerBase::PlayingState::SetRate(double rate)
 {
-    if (msg.type == INNER_MSG_STATE_CHANGED) {
-        if ((msg.detail1 == GST_STATE_PLAYING) && (msg.detail2 == GST_STATE_PAUSED)) {
-            ctrler_.ChangeState(ctrler_.pausedState_);
-            (void)ctrler_.taskMgr_.MarkSecondPhase();
-            return;
-        }
-        if ((msg.detail1 == GST_STATE_PAUSED) && (msg.detail2 == GST_STATE_PLAYING)) {
-            MEDIA_LOGI("seek done");
-            PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, 0 };
-            ctrler_.ReportMessage(playBinMsg);
-            (void)ctrler_.taskMgr_.MarkSecondPhase();
-            return;
+    return ctrler_.SetRateInternal(rate);
+}
+
+void PlayBinCtrlerBase::PlayingState::ProcessStateChange(const InnerMessage &msg)
+{
+    if ((msg.detail1 == GST_STATE_PLAYING) && (msg.detail2 == GST_STATE_PAUSED)) {
+        ctrler_.ChangeState(ctrler_.pausedState_);
+        return;
+    }
+
+    if (msg.detail2 == GST_STATE_PLAYING) {
+        GstState state = GST_STATE_NULL;
+        GstStateChangeReturn stateRet = gst_element_get_state(GST_ELEMENT_CAST(ctrler_.playbin_), &state,
+            nullptr, static_cast<GstClockTime>(0));
+        MEDIA_LOGI("zhangyue playing state = %{public}d, stateRet = %{public}d", state, stateRet);
+
+        if ((stateRet == GST_STATE_CHANGE_SUCCESS) && (state == GST_STATE_PLAYING)) {
+            if (ctrler_.isSeeking_) {
+                int64_t position = ctrler_.seekPos_;
+                MEDIA_LOGI("playing after seek done, pos = %{public}" PRIi64 "us", position);
+                PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, position };
+                ctrler_.ReportMessage(playBinMsg);
+                ctrler_.isSeeking_ = false;
+            } else if (ctrler_.isRating_) {
+                MEDIA_LOGI("playing after setRate done, rate = %{public}lf", ctrler_.rate_);
+                PlayBinMessage playBinMsg { PLAYBIN_MSG_SPEEDDONE, 0, ctrler_.rate_ };
+                ctrler_.ReportMessage(playBinMsg);
+                ctrler_.isRating_ = false;
+            } else {
+                MEDIA_LOGD("playing, not seeking or rating!");
+            }
         }
     }
 }
@@ -283,7 +380,7 @@ int32_t PlayBinCtrlerBase::PausedState::Pause()
 
 int32_t PlayBinCtrlerBase::PausedState::Seek(int64_t timeUs, int32_t option)
 {
-    return ctrler_.SeekInternel(timeUs, option);
+    return ctrler_.SeekInternal(timeUs, option);
 }
 
 int32_t PlayBinCtrlerBase::PausedState::Stop()
@@ -293,14 +390,15 @@ int32_t PlayBinCtrlerBase::PausedState::Stop()
     return MSERR_OK;
 }
 
-void PlayBinCtrlerBase::PausedState::ProcessMessage(const InnerMessage &msg)
+int32_t PlayBinCtrlerBase::PausedState::SetRate(double rate)
 {
-    if (msg.type == INNER_MSG_STATE_CHANGED) {
-        if ((msg.detail1 == GST_STATE_PAUSED) && (msg.detail2 == GST_STATE_PLAYING)) {
-            ctrler_.ChangeState(ctrler_.playingState_);
-            (void)ctrler_.taskMgr_.MarkSecondPhase();
-            return;
-        }
+    return ctrler_.SetRateInternal(rate);
+}
+
+void PlayBinCtrlerBase::PausedState::ProcessStateChange(const InnerMessage &msg)
+{
+    if ((msg.detail1 == GST_STATE_PAUSED) && (msg.detail2 == GST_STATE_PLAYING)) {
+        ctrler_.ChangeState(ctrler_.playingState_);
     }
 }
 
@@ -324,15 +422,52 @@ int32_t PlayBinCtrlerBase::StoppedState::Stop()
     return MSERR_OK;
 }
 
-void PlayBinCtrlerBase::StoppedState::ProcessMessage(const InnerMessage &msg)
+void PlayBinCtrlerBase::StoppedState::ProcessStateChange(const InnerMessage &msg)
 {
-    if (msg.type == INNER_MSG_STATE_CHANGED) {
-        if (msg.detail2 == GST_STATE_READY) {
-            PlayBinMessage playBinMsg = { PLAYBIN_MSG_STATE_CHANGE, 0, PLAYBIN_STATE_STOPPED, {} };
-            ctrler_.ReportMessage(playBinMsg);
-            (void)ctrler_.taskMgr_.MarkSecondPhase();
-            return;
-        }
+    if (msg.detail2 == GST_STATE_READY) {
+        PlayBinMessage playBinMsg = { PLAYBIN_MSG_STATE_CHANGE, 0, PLAYBIN_STATE_STOPPED, {} };
+        ctrler_.ReportMessage(playBinMsg);
+    }
+}
+
+void PlayBinCtrlerBase::PlaybackCompletedState::StateEnter()
+{
+    PlayBinMessage msg = { PLAYBIN_MSG_STATE_CHANGE, 0, PLAYBIN_STATE_PLAYBACK_COMPLETE, {} };
+    ctrler_.ReportMessage(msg);
+}
+
+int32_t PlayBinCtrlerBase::PlaybackCompletedState::Play()
+{
+    return ctrler_.SeekInternal(0, IPlayBinCtrler::PlayBinSeekMode::PREV_SYNC);
+}
+
+int32_t PlayBinCtrlerBase::PlaybackCompletedState::Stop()
+{
+    ctrler_.ChangeState(ctrler_.stoppedState_);
+    return MSERR_OK;
+}
+
+int32_t PlayBinCtrlerBase::PlaybackCompletedState::Seek(int64_t timeUs, int32_t option)
+{
+    (void)option;
+    PlayBinMessage msg = { PLAYBIN_MSG_SEEKDONE, 0, timeUs };
+    ctrler_.ReportMessage(msg);
+    return MSERR_OK;
+}
+
+int32_t PlayBinCtrlerBase::PlaybackCompletedState::SetRate(double rate)
+{
+    PlayBinMessage msg = { PLAYBIN_MSG_SPEEDDONE, 0, rate };
+    ctrler_.ReportMessage(msg);
+    return MSERR_OK;
+}
+
+void PlayBinCtrlerBase::PlaybackCompletedState::ProcessStateChange(const InnerMessage &msg)
+{
+    (void)msg;
+    if (msg.detail2 == GST_STATE_PLAYING && ctrler_.isSeeking_) {
+        ctrler_.ChangeState(ctrler_.playingState_);
+        ctrler_.isSeeking_ = false;
     }
 }
 } // namespace Media

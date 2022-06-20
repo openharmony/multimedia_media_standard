@@ -30,7 +30,7 @@ static int32_t ConvertErrorMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
 {
     GError *error = nullptr;
     gchar *debug  = nullptr;
-    gst_message_parse_error(const_cast<GstMessage *>(&gstMsg), &error, &debug);
+    gst_message_parse_error(&gstMsg, &error, &debug);
     if (error == nullptr || debug == nullptr) {
         return MSERR_UNKNOWN;
     }
@@ -49,7 +49,7 @@ static int32_t ConvertWarningMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
 {
     GError *error = nullptr;
     gchar *debug  = nullptr;
-    gst_message_parse_warning(const_cast<GstMessage *>(&gstMsg), &error, &debug);
+    gst_message_parse_warning(&gstMsg, &error, &debug);
     if (error == nullptr || debug == nullptr) {
         return MSERR_UNKNOWN;
     }
@@ -67,7 +67,7 @@ static int32_t ConvertInfoMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
 {
     GError *error = nullptr;
     gchar *debug  = nullptr;
-    gst_message_parse_info(const_cast<GstMessage *>(&gstMsg), &error, &debug);
+    gst_message_parse_info(&gstMsg, &error, &debug);
     if (error == nullptr || debug == nullptr) {
         return MSERR_UNKNOWN;
     }
@@ -86,22 +86,103 @@ static int32_t ConvertStateChangedMessage(GstMessage &gstMsg, InnerMessage &inne
     GstState oldState = GST_STATE_VOID_PENDING;
     GstState newState = GST_STATE_VOID_PENDING;
     GstState pendingState = GST_STATE_VOID_PENDING;
-    gst_message_parse_state_changed(const_cast<GstMessage *>(&gstMsg), &oldState, &newState, &pendingState);
+    gst_message_parse_state_changed(&gstMsg, &oldState, &newState, &pendingState);
     MEDIA_LOGI("%{public}s change state from %{public}s to %{public}s", ELEM_NAME(GST_MESSAGE_SRC(&gstMsg)),
         gst_element_state_get_name(oldState), gst_element_state_get_name(newState));
 
     innerMsg.type = INNER_MSG_STATE_CHANGED;
     innerMsg.detail1 = static_cast<int32_t>(oldState);
     innerMsg.detail2 = static_cast<int32_t>(newState);
-    innerMsg.extend = gstMsg.src;
+    if (GST_IS_PIPELINE(gstMsg.src)) {
+        GstPipeline *pipeline = GST_PIPELINE(GST_MESSAGE_SRC(&gstMsg));
+        innerMsg.extend = pipeline;
+    }
 
+    return MSERR_OK;
+}
+
+static int32_t ConvertAsyncDoneMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
+{
+    innerMsg.type = INNER_MSG_ASYNC_DONE;
+    if (GST_IS_PIPELINE(gstMsg.src)) {
+        GstPipeline *pipeline = GST_PIPELINE(GST_MESSAGE_SRC(&gstMsg));
+        innerMsg.extend = pipeline;
+    }
+
+    return MSERR_OK;
+}
+
+static int32_t ConvertResolutionChangedMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
+{
+    gint width = 0;
+    gint height = 0;
+    gst_message_parse_resulution_changed(&gstMsg, &width, &height);
+    MEDIA_LOGI("resolution changed to width:%{public}d height:%{public}d", width, height);
+
+    innerMsg.type = INNER_MSG_RESOLUTION_CHANGED;
+    innerMsg.detail1 = width;
+    innerMsg.detail2 = height;
+    return MSERR_OK;
+}
+
+static int32_t ConvertBufferingTimeMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
+{
+    gint64 bufferingTime;
+    guint mqNumId;
+    gst_message_parse_buffering_time (&gstMsg, &bufferingTime, &mqNumId);
+    MEDIA_LOGI("mqNumId = %{public}u, bufferingTime = %{public}" PRIi64 "", mqNumId, bufferingTime);
+
+    innerMsg.type = INNER_MSG_BUFFERING_TIME;
+    innerMsg.detail1 = static_cast<int32_t>(mqNumId);
+    innerMsg.extend = bufferingTime;
+    return MSERR_OK;
+}
+
+static int32_t ConvertUsedMqNumMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
+{
+    guint usedMqNum;
+    gst_message_parse_mq_num_use_buffering (&gstMsg, &usedMqNum);
+    MEDIA_LOGI("used multiqueue num for buffering is %{public}u", usedMqNum);
+
+    innerMsg.type = INNER_MSG_BUFFERING_USED_MQ_NUM;
+    innerMsg.detail1 = static_cast<int32_t>(usedMqNum);
+    return MSERR_OK;
+}
+
+static int32_t ConvertElementMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
+{
+    const GstStructure *s = gst_message_get_structure(&gstMsg);
+    if (gst_structure_has_name (s, "resolution-changed")) {
+        return ConvertResolutionChangedMessage(gstMsg, innerMsg);
+    } else if (gst_structure_has_name (s, "message-buffering-time")) {
+        return ConvertBufferingTimeMessage(gstMsg, innerMsg);
+    } else if (gst_structure_has_name (s, "message-mq-num-use-buffering")) {
+        return ConvertUsedMqNumMessage(gstMsg, innerMsg);
+    }
+
+    return MSERR_OK;
+}
+
+static int32_t ConvertBufferingMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
+{
+    if ((GST_MESSAGE_SRC(&gstMsg) != nullptr) &&
+        (strncmp(gst_element_get_name(GST_MESSAGE_SRC(&gstMsg)), "queue2", strlen("queue2")) == 0)) {
+        MEDIA_LOGD("buffering msg comes from queue2, do not handle it");
+        return MSERR_OK;
+    }
+
+    gint percent;
+    gst_message_parse_buffering (&gstMsg, &percent);
+    MEDIA_LOGI("multiqueue percent is %{public}d", percent);
+
+    innerMsg.type = INNER_MSG_BUFFERING;
+    innerMsg.detail1 = percent;
     return MSERR_OK;
 }
 
 static const std::unordered_map<GstMessageType, InnerMsgType> SIMPLE_MSG_TYPE_MAPPING = {
     { GST_MESSAGE_DURATION_CHANGED, INNER_MSG_DURATION_CHANGED },
     { GST_MESSAGE_EOS, INNER_MSG_EOS },
-    { GST_MESSAGE_ASYNC_DONE, INNER_MSG_ASYNC_DONE },
 };
 
 using MsgConvFunc = std::function<int32_t(GstMessage&, InnerMessage&)>;
@@ -110,6 +191,9 @@ static const std::unordered_map<GstMessageType, MsgConvFunc> MSG_CONV_FUNC_TABLE
     { GST_MESSAGE_WARNING, ConvertWarningMessage },
     { GST_MESSAGE_INFO, ConvertInfoMessage },
     { GST_MESSAGE_STATE_CHANGED, ConvertStateChangedMessage },
+    { GST_MESSAGE_ASYNC_DONE, ConvertAsyncDoneMessage },
+    { GST_MESSAGE_ELEMENT, ConvertElementMessage },
+    { GST_MESSAGE_BUFFERING, ConvertBufferingMessage },
 };
 
 int32_t GstMsgConverterDefault::ConvertToInnerMsg(GstMessage &gstMsg, InnerMessage &innerMsg) const
