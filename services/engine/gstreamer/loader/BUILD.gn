@@ -54,6 +54,7 @@ ohos_static_library("media_engine_gst_loader") {
 
   deps = [
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//third_party/glib:glib",
     "//third_party/glib:gobject",
     "//third_party/gstreamer/gstreamer:gstreamer",

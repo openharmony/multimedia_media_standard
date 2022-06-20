@@ -29,6 +29,7 @@ ohos_static_library("media_format") {
   configs = [ "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config" ]
 
   deps = [
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/libxml2:xml2",
   ]
