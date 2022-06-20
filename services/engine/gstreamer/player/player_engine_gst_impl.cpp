@@ -685,7 +685,7 @@ int32_t PlayerEngineGstImpl::SelectBitRate(uint32_t bitRate)
     return MSERR_INVALID_OPERATION;
 }
 
-int32_t SetVideoScaleType(VideoScaleType videoScaleType)
+int32_t PlayerEngineGstImpl::SetVideoScaleType(VideoScaleType videoScaleType)
 {
     (void)videoScaleType;
     return MSERR_OK;

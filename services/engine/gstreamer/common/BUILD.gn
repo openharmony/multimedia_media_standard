@@ -59,6 +59,7 @@ config("media_engine_gst_common_config") {
 
 ohos_static_library("media_engine_gst_common") {
   sources = [
+    "appsrc_wrap/gst_appsrc_wrap.cpp",
     "message/gst_msg_converter.cpp",
     "message/gst_msg_processor.cpp",
     "metadata/gst_meta_parser.cpp",
@@ -66,7 +67,6 @@ ohos_static_library("media_engine_gst_common") {
     "playbin_adapter/playbin_ctrler_base.cpp",
     "playbin_adapter/playbin_state.cpp",
     "state_machine/state_machine.cpp",
-    "appsrc_wrap/gst_appsrc_wrap.cpp"
   ]
 
   configs = [ ":media_engine_gst_common_config" ]
