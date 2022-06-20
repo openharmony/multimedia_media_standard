@@ -30,6 +30,13 @@
 
 namespace OHOS {
 namespace Media {
+enum GstPlayerStatus : int32_t {
+    GST_PLAYER_STATUS_IDLE = 0,
+    GST_PLAYER_STATUS_BUFFERING,
+    GST_PLAYER_STATUS_PAUSED,
+    GST_PLAYER_STATUS_PLAYING,
+};
+
 class PlayBinCtrlerBase
     : public IPlayBinCtrler,
       public StateMachine,

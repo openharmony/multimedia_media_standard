@@ -34,12 +34,6 @@ namespace {
     constexpr uint32_t HTTP_TIME_OUT_DEFAULT = 15; // 15s
     constexpr int32_t NANO_SEC_PER_USEC = 1000;
     constexpr double DEFAULT_RATE = 1.0;
-    typedef enum {
-        GST_PLAYER_STATUS_IDLE,
-        GST_PLAYER_STATUS_BUFFERING,
-        GST_PLAYER_STATUS_PAUSED,
-        GST_PLAYER_STATUS_PLAYING,
-    } GstPlayerStatus;
 }
 
 namespace OHOS {
@@ -522,11 +516,11 @@ void PlayBinCtrlerBase::ExitInitializedState()
 
     if (audioSink_ != nullptr) {
         gst_object_unref(audioSink_);
-		audioSink_ = nullptr;
+        audioSink_ = nullptr;
     }
     if (videoSink_ != nullptr) {
         gst_object_unref(videoSink_);
-		videoSink_ = nullptr;
+        videoSink_ = nullptr;
     }
 
     MEDIA_LOGD("unref playbin start");
@@ -808,7 +802,8 @@ void PlayBinCtrlerBase::OnSourceSetup(const GstElement *playbin, GstElement *src
     const gchar *eleTypeName = g_type_name(gst_element_factory_get_element_type(elementFac));
 
     std::unique_lock<std::mutex> appsrcLock(appsrcMutex_);
-    if ((eleTypeName != nullptr) && (strstr(eleTypeName, "GstAppSrc") != nullptr) && (playbinCtrl->appsrcWrap_ != nullptr)) {
+    if ((eleTypeName != nullptr) && (strstr(eleTypeName, "GstAppSrc") != nullptr) &&
+        (playbinCtrl->appsrcWrap_ != nullptr)) {
         (void)playbinCtrl->appsrcWrap_->SetAppsrc(src);
     }
 }

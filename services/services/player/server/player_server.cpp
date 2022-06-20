@@ -171,8 +171,8 @@ int32_t PlayerServer::InitPlayEngine(const std::string &url)
 int32_t PlayerServer::Prepare()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-	MEDIA_LOGW("KPI-TRACE: PlayerServer Prepare in");
-	MediaTrace trace("PlayerServer::Prepare");
+    MEDIA_LOGW("KPI-TRACE: PlayerServer Prepare in");
+    MediaTrace trace("PlayerServer::Prepare");
     int32_t ret = OnPrepare();
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 

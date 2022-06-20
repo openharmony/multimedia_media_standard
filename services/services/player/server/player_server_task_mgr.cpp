@@ -70,7 +70,7 @@ int32_t PlayerServerTaskMgr::LaunchTask(const std::shared_ptr<ITaskHandler> &tas
     }
 
     if (type == PlayerServerTaskType::STATE_CHANGE) {
-        pendingTwoPhaseTasks_.push_back({type, task});
+        pendingTwoPhaseTasks_.push_back({ type, task });
         return MSERR_OK;
     }
 
@@ -83,7 +83,7 @@ int32_t PlayerServerTaskMgr::LaunchTask(const std::shared_ptr<ITaskHandler> &tas
         }
     }
 
-    pendingTwoPhaseTasks_.push_back({type, task});
+    pendingTwoPhaseTasks_.push_back({ type, task });
     return MSERR_OK;
 }
 

@@ -343,7 +343,7 @@ void PlayerEngineGstImpl::HandleSubTypeMessage(const PlayBinMessage &msg)
             HandleVideoSizeChanged(msg);
             break;
         }
-        case PLAYBIN_SUB_MSG_BITRATE_COLLECT:{
+        case PLAYBIN_SUB_MSG_BITRATE_COLLECT: {
             HandleBitRateCollect(msg);
         }
         default: {
@@ -678,10 +678,10 @@ int32_t PlayerEngineGstImpl::SetVolume(float leftVolume, float rightVolume)
 int32_t PlayerEngineGstImpl::SelectBitRate(uint32_t bitRate)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-	if (playBinCtrler_ != nullptr) {
+    if (playBinCtrler_ != nullptr) {
         MEDIA_LOGD("SelectBitRate in");
         return playBinCtrler_->SelectBitRate(bitRate);
-	}
+    }
     return MSERR_INVALID_OPERATION;
 }
 
