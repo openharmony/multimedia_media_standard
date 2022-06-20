@@ -55,6 +55,34 @@ void DfxLogDump::DumpLog()
     cond_.notify_all();
 }
 
+static void AddNewLog(std::string &logStr)
+{
+    struct timeval time = {};
+    (void)gettimeofday(&time, nullptr);
+    int64_t second = time.tv_sec % 60;
+    int64_t allMinute = time.tv_sec / 60;
+    int64_t minute = allMinute % 60;
+    int64_t hour = allMinute / 60 % 24;
+    int64_t mSecond = time.tv_usec / 1000;
+
+    logStr += std::to_string(hour);
+    logStr += ":";
+    logStr += std::to_string(minute);
+    logStr += ":";
+    logStr += std::to_string(second);
+    logStr += ":";
+    logStr += std::to_string(mSecond);
+    logStr += " ";
+    logStr += level;
+    logStr += " pid:";
+    logStr += std::to_string(getpid());
+    logStr += " tid:";
+    logStr += std::to_string(gettid());
+    logStr += " ";
+    logStr += label.tag;
+    logStr += ":";
+}
+
 void DfxLogDump::SaveLog(const char *level, const OHOS::HiviewDFX::HiLogLabel &label, const char *fmt, ...)
 {
     std::unique_lock<std::mutex> lock(mutex_);
@@ -77,33 +105,15 @@ void DfxLogDump::SaveLog(const char *level, const OHOS::HiviewDFX::HiLogLabel &l
     va_start(ap, fmt);
     constexpr uint8_t maxLogLen = 255;
     char logBuf[maxLogLen];
-    (void)vsnprintf_s(logBuf, maxLogLen, maxLogLen - 1, temp.c_str(), ap);
+    auto ret = vsnprintf_s(logBuf, maxLogLen, maxLogLen - 1, temp.c_str(), ap);
     va_end(ap);
 
-    struct timeval time = {};
-    (void)gettimeofday(&time, nullptr);
-    int64_t second = time.tv_sec % 60;
-    int64_t allMinute = time.tv_sec / 60;
-    int64_t minute = allMinute % 60;
-    int64_t hour = allMinute / 60 % 24;
-    int64_t mSecond = time.tv_usec / 1000;
-    logString_ += std::to_string(hour);
-    logString_ += ":";
-    logString_ += std::to_string(minute);
-    logString_ += ":";
-    logString_ += std::to_string(second);
-    logString_ += ":";
-    logString_ += std::to_string(mSecond);
-    logString_ += " ";
-    logString_ += level;
-    logString_ += " pid:";
-    logString_ += std::to_string(getpid());    
-    logString_ += " tid:";
-    logString_ += std::to_string(gettid());
-    logString_ += " ";
-    logString_ += label.tag;
-    logString_ += ":";
-    logString_ += logBuf;
+    AddNewLog(logString_);
+    if (ret < 0) {
+        logString_ += "dump log error";
+    } else {
+        logString_ += logBuf;
+    }
     logString_ += "\n";
     lineCount_++;
     if (lineCount_ >= FILE_LINE_MAX) {
@@ -129,24 +139,24 @@ void DfxLogDump::TaskProcessor()
         int32_t lineCount = 0;
         {
             std::unique_lock<std::mutex> lock(mutex_);
+            if (isExit_) {
+                return;
+            }
             static constexpr int32_t timeout = 60; // every 1 minute have a log
             cond_.wait_for(lock, std::chrono::seconds(timeout),
                 [this] {
                     UpdateCheckEnable();
                     return isExit_ || isDump_ || lineCount_ >= FILE_LINE_MAX || !logString_.empty();
             });
-            if (isExit_) {
-                return;
-            }
             isDump_ = false;
             lineCount = lineCount_;
             lineCount_ = lineCount_ >= FILE_LINE_MAX ? 0 : lineCount_;
             swap(logString_, temp);
         }
 
-        std::string file = "/data/media/log";
+        std::string file = "/data/media/log/";
         file += std::to_string(getpid());
-        file += "hilog_media.log";
+        file += "_hilog_media.log";
         file += std::to_string(fileCount_);
         std::ofstream ofStream;
         if (isNewFile_) {

@@ -37,23 +37,23 @@ namespace OHOS {
 #ifdef OHOS_MEDIA_LOG_DFX
 #define __DUMP_LOG(level, fmt, args...)                                                       \
     do {                                                                                      \
-        (void)OHOS::Media::DfxLogDump::GetInstance().SaveLog(level, LABEL,                                 \
+        (void)OHOS::Media::DfxLogDump::GetInstance().SaveLog(level, LABEL,                    \
             "{%s():%d} " fmt, __FUNCTION__, __LINE__, ##args);                                \
     } while (0);
 #define MEDIA_LOGD(fmt, ...)                                                                  \
-    __DUMP_LOG(OHOS::Media::LOG_LEVEL_D, fmt, ##__VA_ARGS__)                                               \
+    __DUMP_LOG(OHOS::Media::LOG_LEVEL_D, fmt, ##__VA_ARGS__)                                  \
     __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Debug, fmt, ##__VA_ARGS__)
 #define MEDIA_LOGI(fmt, ...)                                                                  \
-    __DUMP_LOG(OHOS::Media::LOG_LEVEL_I, fmt, ##__VA_ARGS__)                                               \
+    __DUMP_LOG(OHOS::Media::LOG_LEVEL_I, fmt, ##__VA_ARGS__)                                  \
     __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Info, fmt, ##__VA_ARGS__)
 #define MEDIA_LOGW(fmt, ...)                                                                  \
-    __DUMP_LOG(OHOS::Media::LOG_LEVEL_W, fmt, ##__VA_ARGS__)                                               \
+    __DUMP_LOG(OHOS::Media::LOG_LEVEL_W, fmt, ##__VA_ARGS__)                                  \
     __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Warn, fmt, ##__VA_ARGS__)
 #define MEDIA_LOGE(fmt, ...)                                                                  \
-    __DUMP_LOG(OHOS::Media::LOG_LEVEL_E, fmt, ##__VA_ARGS__)                                               \
+    __DUMP_LOG(OHOS::Media::LOG_LEVEL_E, fmt, ##__VA_ARGS__)                                  \
     __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Error, fmt, ##__VA_ARGS__)
 #define MEDIA_LOGF(fmt, ...)                                                                  \
-    __DUMP_LOG(OHOS::Media::LOG_LEVEL_F, fmt, ##__VA_ARGS__)                                               \
+    __DUMP_LOG(OHOS::Media::LOG_LEVEL_F, fmt, ##__VA_ARGS__)                                  \
     __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Fatal, fmt, ##__VA_ARGS__)
 #else
 #define MEDIA_LOGD(fmt, ...) __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Debug, fmt, ##__VA_ARGS__)
