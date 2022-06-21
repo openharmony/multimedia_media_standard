@@ -32,13 +32,13 @@ public:
     SinkPtr CreateAudioSink() override;
     SinkPtr CreateVideoSink() override;
 
-    GstElement *DoCreateAudioSink(const GstCaps *caps, const gpointer userData);
-    GstElement *DoCreateVideoSink(const GstCaps *caps, const gpointer userData);
     void SetCapsForHardDecVideoSink() override;
     void SetAppInfo(int32_t uid, int32_t pid) override;
 
 private:
     const sptr<Surface> GetProducerSurface() const;
+    GstElement *DoCreateAudioSink(const GstCaps *caps, const gpointer userData);
+    GstElement *DoCreateVideoSink(const GstCaps *caps, const gpointer userData);
 
     GstElement *audioSink_ = nullptr;
     GstElement *videoSink_ = nullptr;
