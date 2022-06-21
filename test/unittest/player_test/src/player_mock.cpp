@@ -45,7 +45,7 @@ void PlayerCallbackTest::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
         case INFO_TYPE_STATE_CHANGE:
             state_ = static_cast<PlayerStates>(extra);
             test_->SetState(state_);  
-            notify(state_);
+            Notify(state_);
             break;
         case INFO_TYPE_POSITION_UPDATE:
             position_ = extra;
@@ -55,7 +55,7 @@ void PlayerCallbackTest::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
     }
 }
 
-void PlayerCallbackTest::notify(PlayerStates currentState)
+void PlayerCallbackTest::Notify(PlayerStates currentState)
 {
     if (currentState == PLAYER_PREPARED) {
         test_->condVarPrepare_.notify_all();
