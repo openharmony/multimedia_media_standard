@@ -23,26 +23,26 @@ ohos_unittest("player_unit_test") {
     "//foundation/multimedia/media_standard/frameworks/native/player",
     "//graphic/graphic_2d/interfaces/innerkits/surface",
     "//foundation/windowmanager/interfaces/innerkits/wm",
-    "//foundation/multimedia/media_standard/test/unittest/common/include"
+    "//foundation/multimedia/media_standard/test/unittest/common/include",
   ]
 
   cflags = [
     "-Wall",
     "-Werror",
   ]
-   
-  sources = [ 
-    "src/player_unit_test.cpp",
+
+  sources = [
+    "//foundation/multimedia/media_standard/test/unittest/common/src/TestParamsConfig.cpp",
     "src/player_mock.cpp",
-    "//foundation/multimedia/media_standard/test/unittest/common/src/TestParamsConfig.cpp" 
+    "src/player_unit_test.cpp",
   ]
 
-  deps = [ 
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
+  deps = [
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/windowmanager/wm:libwm"
+    "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
+    "//foundation/windowmanager/wm:libwm",
   ]
 
   resource_config_file = "//foundation/multimedia/media_standard/test/unittest/resources/ohos_test.xml"
