@@ -41,10 +41,8 @@ public:
     std::condition_variable condVarStop_;   
     std::condition_variable condVarReset_;
     std::condition_variable condVarSeek_;    
-    //std::unordered_multimap<PlayerStates, std::condition_variable> condVarMultiMap_;
     void SetState(PlayerStates state);
     void SetSeekResult(bool seekDoneFlag);
-    //explicit PlayerSignal(std::unordered_multimap condVarMultiMap);
 };
 
 class Player_mock : public NoCopyable{
