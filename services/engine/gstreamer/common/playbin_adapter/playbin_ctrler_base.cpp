@@ -462,14 +462,7 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
     CHECK_AND_RETURN_RET(playbin_ != nullptr, static_cast<int32_t>(MSERR_UNKNOWN));
 
-    ret = DoInitializeForDataSource();
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "DoInitializeForDataSource failed!");
-
     SetupCustomElement();
-    ret = SetupSignalMessage();
-    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
-
-    DoInitializeForHttp();
 
     uint32_t flags = 0;
     g_object_get(playbin_, "flags", &flags, nullptr);
@@ -489,6 +482,14 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
     if (!uri_.empty()) {
         g_object_set(playbin_, "uri", uri_.c_str(), nullptr);
     }
+
+    ret = SetupSignalMessage();
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
+
+    ret = DoInitializeForDataSource();
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "DoInitializeForDataSource failed!");
+
+    DoInitializeForHttp();
 
     isInitialized = true;
     ChangeState(initializedState_);
