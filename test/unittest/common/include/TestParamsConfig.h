@@ -23,7 +23,7 @@ namespace Media {
 namespace PlayerTestParam {
 const static int32_t SEEK_TIME_5_SEC = 5000;
 const static int32_t SEEK_TIME_2_SEC = 2000;
-const static int32_t WAITSECOND = 2;
+const static int32_t WAITSECOND = 3;
 const static int32_t DELTA_TIME = 1000;
 } // namespace PlayerTestParam   
 } // namespace Media
