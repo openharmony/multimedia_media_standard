@@ -129,7 +129,7 @@ static int32_t ConvertBufferingTimeMessage(GstMessage &gstMsg, InnerMessage &inn
 {
     gint64 bufferingTime;
     guint mqNumId;
-    gst_message_parse_buffering_time (&gstMsg, &bufferingTime, &mqNumId);
+    gst_message_parse_buffering_time(&gstMsg, &bufferingTime, &mqNumId);
     MEDIA_LOGI("mqNumId = %{public}u, bufferingTime = %{public}" PRIi64 "", mqNumId, bufferingTime);
 
     innerMsg.type = INNER_MSG_BUFFERING_TIME;
@@ -141,7 +141,7 @@ static int32_t ConvertBufferingTimeMessage(GstMessage &gstMsg, InnerMessage &inn
 static int32_t ConvertUsedMqNumMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
 {
     guint usedMqNum;
-    gst_message_parse_mq_num_use_buffering (&gstMsg, &usedMqNum);
+    gst_message_parse_mq_num_use_buffering(&gstMsg, &usedMqNum);
     MEDIA_LOGI("used multiqueue num for buffering is %{public}u", usedMqNum);
 
     innerMsg.type = INNER_MSG_BUFFERING_USED_MQ_NUM;
@@ -152,11 +152,11 @@ static int32_t ConvertUsedMqNumMessage(GstMessage &gstMsg, InnerMessage &innerMs
 static int32_t ConvertElementMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
 {
     const GstStructure *s = gst_message_get_structure(&gstMsg);
-    if (gst_structure_has_name (s, "resolution-changed")) {
+    if (gst_structure_has_name(s, "resolution-changed")) {
         return ConvertResolutionChangedMessage(gstMsg, innerMsg);
-    } else if (gst_structure_has_name (s, "message-buffering-time")) {
+    } else if (gst_structure_has_name(s, "message-buffering-time")) {
         return ConvertBufferingTimeMessage(gstMsg, innerMsg);
-    } else if (gst_structure_has_name (s, "message-mq-num-use-buffering")) {
+    } else if (gst_structure_has_name(s, "message-mq-num-use-buffering")) {
         return ConvertUsedMqNumMessage(gstMsg, innerMsg);
     }
 

@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 
-config("media_engine_playbin_player_config") {
+config("media_engine_gst_player_config") {
   visibility = [ ":*" ]
 
   cflags = [
@@ -66,7 +66,7 @@ config("media_engine_playbin_player_config") {
   ]
 }
 
-ohos_static_library("media_engine_playbin_player") {
+ohos_static_library("media_engine_gst_player") {
   sources = [
     "player_engine_gst_impl.cpp",
     "player_sinkprovider.cpp",
@@ -74,7 +74,7 @@ ohos_static_library("media_engine_playbin_player") {
   ]
 
   configs = [
-    ":media_engine_playbin_player_config",
+    ":media_engine_gst_player_config",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface_public_config",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils_public_config",
   ]
