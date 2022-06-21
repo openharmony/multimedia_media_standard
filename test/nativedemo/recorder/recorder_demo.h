@@ -39,6 +39,7 @@ struct VideoRecorderConfig {
     int32_t sampleRate = 48000;
     double captureFps = 30;
     std::string outPath = SAVE_PATH;
+    int32_t outputFd = 0;
     AudioCodecFormat audioFormat = AAC_LC;
     AudioSourceType aSource = AUDIO_MIC;
     OutputFormatType outPutFormat = FORMAT_MPEG_4;
@@ -70,6 +71,7 @@ public:
     int32_t CameraServicesForAudio() const;
     int32_t SetFormat(const std::string &type) const;
     int32_t GetStubFile();
+    void GetFileFd();
     uint64_t GetPts();
 
 private:
