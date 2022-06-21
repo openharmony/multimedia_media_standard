@@ -341,7 +341,6 @@ void PlayBinCtrlerBase::PlayingState::ProcessStateChange(const InnerMessage &msg
         GstState state = GST_STATE_NULL;
         GstStateChangeReturn stateRet = gst_element_get_state(GST_ELEMENT_CAST(ctrler_.playbin_), &state,
             nullptr, static_cast<GstClockTime>(0));
-        MEDIA_LOGI("zhangyue playing state = %{public}d, stateRet = %{public}d", state, stateRet);
 
         if ((stateRet == GST_STATE_CHANGE_SUCCESS) && (state == GST_STATE_PLAYING)) {
             if (ctrler_.isSeeking_) {
