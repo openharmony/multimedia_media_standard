@@ -21,7 +21,7 @@
 #include "window.h"
 
 namespace OHOS {
-namespace Media{ 
+namespace Media { 
 
 class PlayerSignal {
 public:
@@ -45,7 +45,7 @@ public:
     void SetSeekResult(bool seekDoneFlag);
 };
 
-class Player_mock : public NoCopyable{
+class Player_mock : public NoCopyable {
 public:
     std::shared_ptr<Player> player_ = nullptr;
     sptr<Rosen::Window> window_ = nullptr;
@@ -90,7 +90,6 @@ private:
     std::shared_ptr<PlayerSignal> test_;
     bool seekDoneFlag_ = false;
 };
-
 
 } // namespace Media
 } // namespace OHOS

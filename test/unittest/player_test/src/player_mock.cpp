@@ -22,21 +22,19 @@ using namespace OHOS::Media::PlayerTestParam;
 
 namespace OHOS {
 namespace Media {
-
 void PlayerSignal::SetState(PlayerStates state)
-{   
+{
     state_ = state;
 }
 
-void PlayerSignal::SetSeekResult(bool seekDoneFlag) 
+void PlayerSignal::SetSeekResult(bool seekDoneFlag)
 {   
     seekDoneFlag_ = seekDoneFlag;
 }
 
 void PlayerCallbackTest::OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
 {
-    switch (type)
-    {
+    switch (type) {
         case INFO_TYPE_SEEKDONE:
             seekDoneFlag_ = true;
             test_->SetSeekResult(true);
@@ -44,7 +42,7 @@ void PlayerCallbackTest::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
             break;
         case INFO_TYPE_STATE_CHANGE:
             state_ = static_cast<PlayerStates>(extra);
-            test_->SetState(state_);  
+            test_->SetState(state_);
             Notify(state_);
             break;
         case INFO_TYPE_POSITION_UPDATE:
@@ -65,7 +63,7 @@ void PlayerCallbackTest::Notify(PlayerStates currentState)
         test_->condVarPause_.notify_all();
     } else if (currentState == PLAYER_STOPPED) {
         test_->condVarStop_.notify_all();
-    } else if(currentState == PLAYER_IDLE) {
+    } else if (currentState == PLAYER_IDLE) {
         test_->condVarReset_.notify_all();
     }
 }
@@ -75,7 +73,7 @@ void PlayerCallbackTest::SeekNotify(int32_t extra, const Format &infoBody)
     if (test_->seekMode_ == PlayerSeekMode::SEEK_CLOSEST) {
         if (test_->seekPosition_ == extra) {
             test_->condVarSeek_.notify_all();
-        } 
+        }
     } else if (test_->seekMode_ == PlayerSeekMode::SEEK_PREVIOUS_SYNC) {
         if (test_->seekPosition_ - extra < DELTA_TIME && extra - test_->seekPosition_ >= 0) {
             test_->condVarSeek_.notify_all();
@@ -94,7 +92,7 @@ void PlayerCallbackTest::SeekNotify(int32_t extra, const Format &infoBody)
 sptr<Surface> Player_mock::GetVideoSurface()
 {
     sptr<Rosen::WindowOption> option = new Rosen::WindowOption();
-    option->SetWindowRect({0, 0, width, height});
+    option->SetWindowRect({ 0, 0, width, height});
     option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_LAUNCHING);
     option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
     previewWindow_ = Rosen::Window::Create("xcomponent_window_unittest", option);
@@ -105,11 +103,7 @@ sptr<Surface> Player_mock::GetVideoSurface()
     return previewWindow_->GetSurfaceNode()->GetSurface();
 }
 
-Player_mock::Player_mock(std::shared_ptr<PlayerSignal> test)
-    : test_(test)
-{
-
-}
+Player_mock::Player_mock(std::shared_ptr<PlayerSignal> test) : test_(test) {}
 
 Player_mock::~Player_mock()
 {
@@ -180,7 +174,7 @@ int32_t Player_mock::Pause()
             return -1;
         }
     }
-    return ret;    
+    return ret;
 }
 
 int32_t Player_mock::Stop()
@@ -198,7 +192,7 @@ int32_t Player_mock::Stop()
 
 int32_t Player_mock::Reset()
 {
-    int32_t ret = player_->Reset(); 
+    int32_t ret = player_->Reset();
     if (ret == MSERR_OK && test_->state_ != PLAYER_IDLE) {
         std::unique_lock<std::mutex> lockReset(test_->mutexReset_);
         test_->condVarReset_.wait_for(lockReset, std::chrono::seconds(WAITSECOND));
