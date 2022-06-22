@@ -58,7 +58,7 @@ HWTEST_F(PlayerUnitTest, Player_SetSource_002, TestSize.Level0)
 }
 
 HWTEST_F(PlayerUnitTest, Player_SetCallback_001, TestSize.Level1)
-{  
+{
     std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(testObj);
     int32_t ret = player_->SetPlayerCallback(player_CallbackTest);
     EXPECT_EQ(MSERR_OK, ret);
