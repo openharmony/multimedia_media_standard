@@ -21,8 +21,7 @@
 #include "window.h"
 
 namespace OHOS {
-namespace Media{
-
+namespace Media {
 class PlayerUnitTest : public testing::Test {
 public:
     // SetUpTestCase: Called before all test cases
@@ -36,7 +35,7 @@ public:
 protected:
     std::shared_ptr<Player_mock> player_ = nullptr;
     std::shared_ptr<PlayerSignal> testObj = nullptr;
-};    
+};
 } // namespace Media
 } // namespace OHOS
 
