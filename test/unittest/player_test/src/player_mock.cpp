@@ -92,7 +92,7 @@ void PlayerCallbackTest::SeekNotify(int32_t extra, const Format &infoBody)
 sptr<Surface> Player_mock::GetVideoSurface()
 {
     sptr<Rosen::WindowOption> option = new Rosen::WindowOption();
-    option->SetWindowRect({ 0, 0, width, height });
+    option->SetWindowRect({0, 0, width_, height_});
     option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_LAUNCHING);
     option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
     previewWindow_ = Rosen::Window::Create("xcomponent_window_unittest", option);
