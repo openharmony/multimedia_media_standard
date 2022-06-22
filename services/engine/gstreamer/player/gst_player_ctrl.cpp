@@ -197,6 +197,7 @@ int32_t GstPlayerCtrl::SetCallbacks(const std::weak_ptr<IPlayerEngineObs> &obs)
     signalIds_.push_back(g_signal_connect(gstPlayer_, "mq-num-use-buffering", G_CALLBACK(OnMqNumUseBufferingCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "resolution-changed", G_CALLBACK(OnResolutionChanegdCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "element-setup", G_CALLBACK(OnElementSetupCb), this));
+    signalIds_.push_back(g_signal_connect(gstPlayer_, "element-unsetup", G_CALLBACK(OnElementUnSetupCb), this));
     signalIds_.push_back(g_signal_connect(gstPlayer_, "bitrate-parse-complete",
         G_CALLBACK(OnBitRateParseCompleteCb), this));
 
@@ -249,6 +250,74 @@ GValueArray* GstPlayerCtrl::OnAutoplugSortCb(const GstElement *uriDecoder, GstPa
     return nullptr;
 }
 
+void GstPlayerCtrl::OnElementUnSetupCb(const GstPlayer *player, GstElement *src, GstPlayerCtrl *playerGst)
+{
+    CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
+    CHECK_AND_RETURN_LOG(playerGst != nullptr, "playerGst is null");
+    CHECK_AND_RETURN_LOG(src != nullptr, "src is null");
+
+    const gchar *metadata = gst_element_get_metadata(src, GST_ELEMENT_METADATA_KLASS);
+    if (metadata == nullptr) {
+        MEDIA_LOGE("gst_element_get_metadata return nullptr");
+        return;
+    }
+
+    MEDIA_LOGD("get element_name %{public}s, get metadata %{public}s", GST_ELEMENT_NAME(src), metadata);
+    std::string metaStr(metadata);
+    if (metaStr.find("Codec/Decoder/Video") == std::string::npos) {
+        return;
+    }
+
+    if (playerGst->codecTypeList_.empty()) {
+        MEDIA_LOGE("codec type list is empty");
+        return;
+    }
+    bool codecType = playerGst->codecTypeList_.front();
+    playerGst->codecTypeList_.pop_front();
+    if ((playerGst->codecTypeList_.empty()) || (codecType == playerGst->codecTypeList_.front())) {
+        MEDIA_LOGD("codec type is empty or the next is same");
+        return;
+    }
+
+    playerGst->GetVideoSink();
+    CHECK_AND_RETURN_LOG(playerGst->videoSink_ != nullptr, "videoSink is null");
+    GstCaps *caps = nullptr;
+    if (playerGst->codecTypeList_.front()) {
+        caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
+    } else {
+        caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGBA", nullptr);
+    }
+    g_object_set(G_OBJECT(playerGst->videoSink_), "caps", caps, nullptr);
+    gst_caps_unref(caps);
+}
+
+void GstPlayerCtrl::SetupCodecCb(GstElement *src, GstPlayerCtrl *playerGst, const std::string &metaStr)
+{
+    if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {
+        playerGst->isHardWare_ = true;
+        if (!playerGst->codecTypeList_.empty()) {
+            // For hls scene when change codec, the second codec should not go performance mode process.
+            playerGst->codecTypeList_.push_back(true);
+            return;
+        }
+        // For performance mode.
+        playerGst->codecTypeList_.push_back(true);
+        playerGst->GetVideoSink();
+        CHECK_AND_RETURN_LOG(playerGst->videoSink_ != nullptr, "videoSink is null");
+        g_object_set(G_OBJECT(src), "performance-mode", TRUE, nullptr);
+        g_object_set(G_OBJECT(playerGst->videoSink_), "performance-mode", TRUE, nullptr);
+        GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
+        g_object_set(G_OBJECT(playerGst->videoSink_), "caps", caps, nullptr);
+        g_object_set(G_OBJECT(src), "sink-caps", caps, nullptr);
+        gst_caps_unref(caps);
+        GstBufferPool *pool;
+        g_object_get(playerGst->videoSink_, "surface-pool", &pool, nullptr);
+        g_object_set(G_OBJECT(src), "surface-pool", pool, nullptr);
+    } else if (metaStr.find("Codec/Decoder/Video") != std::string::npos) {
+        playerGst->codecTypeList_.push_back(false);
+    }
+}
+
 void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, GstPlayerCtrl *playerGst)
 {
     CHECK_AND_RETURN_LOG(player != nullptr, "player is null");
@@ -278,27 +347,7 @@ void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, G
         g_signal_connect(src, "autoplug-sort", G_CALLBACK(OnAutoplugSortCb), playerGst);
     }
 
-    if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {
-        playerGst->isHardWare_ = true;
-        if (playerGst->decPluginRegister_) {
-            // For hls scene when change codec, the second codec should not go performance mode process.
-            return;
-        }
-        // For performance mode.
-        playerGst->decPluginRegister_ = true;
-        playerGst->GetVideoSink();
-        CHECK_AND_RETURN_LOG(playerGst->videoSink_ != nullptr, "videoSink is null");
-        g_object_set(G_OBJECT(src), "performance-mode", TRUE, nullptr);
-        g_object_set(G_OBJECT(playerGst->videoSink_), "performance-mode", TRUE, nullptr);
-        GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
-        g_object_set(G_OBJECT(playerGst->videoSink_), "caps", caps, nullptr);
-        g_object_set(G_OBJECT(src), "sink-caps", caps, nullptr);
-        gst_caps_unref(caps);
-        GstBufferPool *pool;
-        g_object_get(playerGst->videoSink_, "surface-pool", &pool, nullptr);
-        g_object_set(G_OBJECT(src), "surface-pool", pool, nullptr);
-        return;
-    }
+    playerGst->SetupCodecCb(src, playerGst, metaStr); 
 
     if (metaStr.find("Sink/Video") != std::string::npos) {
         if (!playerGst->isHardWare_) {
