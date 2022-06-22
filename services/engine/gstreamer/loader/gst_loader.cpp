@@ -35,6 +35,8 @@ namespace {
         {'T', GST_LEVEL_TRACE},
     };
     const std::string g_gstDftTag = "*";
+    const std::string g_gstVdecTag = "vdecbase";
+    const std::string g_gstVencTag = "vencbase";
     const std::vector<const gchar *> GST_ARGS = {
         "ohos_media_service",
         "--gst-disable-registry-fork",
@@ -58,6 +60,49 @@ struct GstLogPrintInfo {
     const char *modeName;
 };
 
+#ifdef OHOS_MEDIA_LOG_DFX
+static void GstLogPrint(const GstLogPrintInfo &info)
+{
+    const gchar *objName = GST_IS_OBJECT(info.object) ? GST_OBJECT_NAME(info.object) : " ";
+    objName = objName ? objName : " ";
+    OHOS::HiviewDFX::HiLogLabel gstLable = {LOG_CORE, LOG_DOMAIN, info.modeName};
+
+    switch (info.level) {
+        case GST_LEVEL_TRACE: // no break
+        case GST_LEVEL_LOG:   // no break
+        case GST_LEVEL_DEBUG:
+            DfxLogDump::GetInstance().SaveLog("LOGD", gstLable, "{%s():%d} [gst::%s:%" PRIXPTR "] %s",
+                info.function, info.line, objName, FAKE_POINTER(info.object), info.logMsg);
+            (void)::OHOS::HiviewDFX::HiLog::Debug(gstLable,
+                "{%{public}s():%{public}d} [gst::%{public}s:%{public}" PRIXPTR "] %{public}s",
+                info.function, info.line, objName, FAKE_POINTER(info.object), info.logMsg);
+            break;
+        case GST_LEVEL_INFO:
+            DfxLogDump::GetInstance().SaveLog("LOGI", gstLable, "{%s():%d} [gst::%s:%" PRIXPTR "] %s",
+                info.function, info.line, objName, FAKE_POINTER(info.object), info.logMsg);
+            (void)::OHOS::HiviewDFX::HiLog::Info(gstLable,
+                "{%{public}s():%{public}d} [gst::%{public}s:%{public}" PRIXPTR "] %{public}s",
+                info.function, info.line, objName, FAKE_POINTER(info.object), info.logMsg);
+            break;
+        case GST_LEVEL_WARNING:
+            DfxLogDump::GetInstance().SaveLog("LOGW", gstLable, "{%s():%d} [gst::%s:%" PRIXPTR "] %s",
+                info.function, info.line, objName, FAKE_POINTER(info.object), info.logMsg);
+            (void)::OHOS::HiviewDFX::HiLog::Warn(gstLable,
+                "{%{public}s():%{public}d} [gst::%{public}s:%{public}" PRIXPTR "] %{public}s",
+                info.function, info.line, objName, FAKE_POINTER(info.object), info.logMsg);
+            break;
+        case GST_LEVEL_ERROR:
+            DfxLogDump::GetInstance().SaveLog("LOGE", gstLable, "{%s():%d} [gst::%s:%" PRIXPTR "] %s",
+                info.function, info.line, objName, FAKE_POINTER(info.object), info.logMsg);
+            (void)::OHOS::HiviewDFX::HiLog::Error(gstLable,
+                "{%{public}s():%{public}d} [gst::%{public}s:%{public}" PRIXPTR "] %{public}s",
+                info.function, info.line, objName, FAKE_POINTER(info.object), info.logMsg);
+            break;
+        default:
+            break;
+    }
+}
+#else
 static void GstLogPrint(const GstLogPrintInfo &info)
 {
     const gchar *objName = GST_IS_OBJECT(info.object) ? GST_OBJECT_NAME(info.object) : " ";
@@ -91,6 +136,7 @@ static void GstLogPrint(const GstLogPrintInfo &info)
             break;
     }
 }
+#endif
 
 static void GstLogCallbackFunc(GstDebugCategory *category, GstDebugLevel level, const gchar *file,
     const gchar *function, gint line, GObject *object, GstDebugMessage *message, gpointer userData)
@@ -166,11 +212,12 @@ static void SetGstLogLevelFromSysPara()
     if (res != 0 || levelPara.empty()) {
         gst_debug_set_default_threshold(GST_LEVEL_WARNING);
         MEDIA_LOGD("sys.media.log.level not find");
-        return;
+    } else {
+        MEDIA_LOGD("sys.media.log.level=%{public}s", levelPara.c_str());
     }
-    MEDIA_LOGD("sys.media.log.level=%{public}s", levelPara.c_str());
 
-    static std::map<std::string, char> logTagLevelMap = { { g_gstDftTag, 'I' } };
+    static std::map<std::string, char> logTagLevelMap =
+        { { g_gstDftTag, 'W' }, {g_gstVdecTag, 'D'}, {g_gstVencTag, 'D'} };
     std::vector<std::string> tagLevelVec;
     SplitStr(levelPara, ",", tagLevelVec, false, true);
     for (auto &tagLevel : tagLevelVec) {

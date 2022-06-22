@@ -13,8 +13,20 @@
 
 import("//build/ohos.gni")
 
-config("media_engine_gst_loader_config") {
-  visibility = [ ":*" ]
+config("media_service_dfx_public_config") {
+  cflags = [ "-DOHOS_MEDIA_LOG_DFX" ]
+  include_dirs = [ "//foundation/multimedia/media_standard/services/dfx" ]
+}
+
+ohos_shared_library("media_service_dfx") {
+  install_enable = true
+
+  sources = [ "dfx_log_dump.cpp" ]
+
+  include_dirs = [
+    ".",
+    "//utils/native/base/include",
+  ]
 
   cflags = [
     "-std=c++17",
@@ -23,6 +35,7 @@ config("media_engine_gst_loader_config") {
     "-Wall",
     "-fno-common",
     "-fstack-protector-strong",
+    "-Wshadow",
     "-FPIC",
     "-FS",
     "-O2",
@@ -33,33 +46,7 @@ config("media_engine_gst_loader_config") {
     "-Wdate-time",
   ]
 
-  include_dirs = [
-    "//utils/native/base/include",
-    "//third_party/glib/glib",
-    "//third_party/glib",
-    "//third_party/gstreamer/gstreamer",
-    "//third_party/gstreamer/gstreamer/libs",
-    "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
-  ]
-}
-
-ohos_static_library("media_engine_gst_loader") {
-  sources = [ "gst_loader.cpp" ]
-
-  configs = [
-    ":media_engine_gst_loader_config",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
-  ]
-
-  deps = [
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
-    "//third_party/glib:glib",
-    "//third_party/glib:gobject",
-    "//third_party/gstreamer/gstreamer:gstreamer",
-    "//utils/native/base:utils",
-  ]
+  deps = [ "//utils/native/base:utils" ]
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 

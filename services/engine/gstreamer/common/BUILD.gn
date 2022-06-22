@@ -69,11 +69,15 @@ ohos_static_library("media_engine_gst_common") {
     "state_machine/state_machine.cpp",
   ]
 
-  configs = [ ":media_engine_gst_common_config" ]
+  configs = [
+    ":media_engine_gst_common_config",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+  ]
 
   deps = [
     ":media_gst_dfx",
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//foundation/multimedia/media_standard/services/utils:media_format",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
@@ -131,10 +135,14 @@ ohos_static_library("media_gst_dfx") {
     "utils/gst_utils.cpp",
   ]
 
-  configs = [ ":media_gst_dfx_config" ]
+  configs = [
+    ":media_gst_dfx_config",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+  ]
 
   deps = [
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//foundation/multimedia/media_standard/services/utils:media_format",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",

@@ -54,10 +54,12 @@ ohos_static_library("media_engine_common_avcodeclist") {
 
   configs = [
     ":media_engine_common_avcodeclist_config",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils_public_config",
   ]
 
   deps = [
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//foundation/multimedia/media_standard/services/utils:media_format",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/libxml2:xml2",

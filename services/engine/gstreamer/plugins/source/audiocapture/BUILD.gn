@@ -67,10 +67,14 @@ ohos_shared_library("gst_audio_capture_src") {
     "src/gst_audio_capture_src.cpp",
   ]
 
-  configs = [ ":gst_audio_capture_src_config" ]
+  configs = [
+    ":gst_audio_capture_src_config",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+  ]
 
   deps = [
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiocapturer:audio_capturer",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",
