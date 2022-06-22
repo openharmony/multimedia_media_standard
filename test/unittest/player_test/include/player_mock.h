@@ -21,8 +21,7 @@
 #include "window.h"
 
 namespace OHOS {
-namespace Media { 
-
+namespace Media {
 class PlayerSignal {
 public:
     PlayerStates state_ = PLAYER_IDLE;
@@ -37,10 +36,10 @@ public:
     std::mutex mutexSeek_;
     std::condition_variable condVarPrepare_;
     std::condition_variable condVarPlay_;
-    std::condition_variable condVarPause_;   
-    std::condition_variable condVarStop_;   
+    std::condition_variable condVarPause_;
+    std::condition_variable condVarStop_;
     std::condition_variable condVarReset_;
-    std::condition_variable condVarSeek_;    
+    std::condition_variable condVarSeek_;
     void SetState(PlayerStates state);
     void SetSeekResult(bool seekDoneFlag);
 };
@@ -74,7 +73,7 @@ private:
     std::shared_ptr<PlayerSignal> test_;
     int32_t height = 1080;
     int32_t width = 1920;
-};    
+};
 
 class PlayerCallbackTest : public PlayerCallback, public NoCopyable {
 public:
@@ -90,7 +89,6 @@ private:
     std::shared_ptr<PlayerSignal> test_;
     bool seekDoneFlag_ = false;
 };
-
 } // namespace Media
 } // namespace OHOS
 #endif
