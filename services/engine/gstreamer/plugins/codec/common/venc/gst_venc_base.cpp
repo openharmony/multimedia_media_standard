@@ -233,7 +233,7 @@ static void gst_venc_base_finalize(GObject *object)
     self->input.allocator = nullptr;
     gst_object_unref(self->output.allocator);
     self->output.allocator = nullptr;
-    gst_object_unref(self->input_state);
+    gst_video_codec_state_unref(self->input_state);
     self->input_state = nullptr;
     gst_object_unref(self->output_state);
     self->output_state = nullptr;
@@ -842,6 +842,9 @@ static gboolean gst_venc_base_set_format(GstVideoEncoder *encoder, GstVideoCodec
     g_return_val_if_fail(ret == GST_CODEC_OK, FALSE);
     ret = self->encoder->SetParameter(GST_STATIC_BITRATE, GST_ELEMENT(self));
     g_return_val_if_fail(ret == GST_CODEC_OK, FALSE);
+    if (self->input_state != nullptr) {
+        gst_video_codec_state_unref(self->input_state);
+    }
     self->input_state = gst_video_codec_state_ref(state);
     return gst_codec_return_is_ok(self, ret, "setparam", TRUE);
 }
