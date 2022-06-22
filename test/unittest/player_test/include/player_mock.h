@@ -17,7 +17,7 @@
 #define PLAYER_TEST_H
 
 #include "player.h"
-#include "TestParamsConfig.h"
+#include "test_params_config.h"
 #include "window.h"
 
 namespace OHOS {
