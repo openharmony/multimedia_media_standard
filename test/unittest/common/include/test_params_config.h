@@ -25,7 +25,7 @@ const static int32_t SEEK_TIME_5_SEC = 5000;
 const static int32_t SEEK_TIME_2_SEC = 2000;
 const static int32_t WAITSECOND = 3;
 const static int32_t DELTA_TIME = 1000;
-} // namespace PlayerTestParam   
+} // namespace PlayerTestParam
 } // namespace Media
 } // namespace OHOS
 
