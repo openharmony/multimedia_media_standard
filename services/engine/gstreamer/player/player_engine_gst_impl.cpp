@@ -19,6 +19,8 @@
 #include "media_log.h"
 #include "media_errors.h"
 #include "directory_ex.h"
+#include "audio_system_manager.h"
+#include "player_sinkprovider.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayerEngineGstImpl"};
@@ -33,7 +35,11 @@ constexpr float SPEED_1_25_X = 1.25;
 constexpr float SPEED_1_75_X = 1.75;
 constexpr float SPEED_2_00_X = 2.00;
 constexpr size_t MAX_URI_SIZE = 4096;
-constexpr uint64_t RING_BUFFER_MAX_SIZE = 5242880; // 5 * 1024 * 1024
+constexpr int32_t MSEC_PER_USEC = 1000;
+constexpr int32_t MSEC_PER_NSEC = 1000000;
+constexpr int32_t BUFFER_TIME_DEFAULT = 15000; // 15s
+constexpr int32_t BUFFER_HIGH_PERCENT_DEFAULT = 4;
+constexpr int32_t BUFFER_FULL_PERCENT_DEFAULT = 100;
 
 PlayerEngineGstImpl::PlayerEngineGstImpl(int32_t uid, int32_t pid)
     : appuid_(uid), apppid_(pid)
@@ -101,8 +107,8 @@ int32_t PlayerEngineGstImpl::SetSource(const std::shared_ptr<IMediaDataSource> &
 {
     std::unique_lock<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(dataSrc != nullptr, MSERR_INVALID_VAL, "input dataSrc is empty!");
-    appsrcWarp_ = GstAppsrcWarp::Create(dataSrc);
-    CHECK_AND_RETURN_RET_LOG(appsrcWarp_ != nullptr, MSERR_NO_MEMORY, "new appsrcwarp failed!");
+    appsrcWrap_ = GstAppsrcWrap::Create(dataSrc);
+    CHECK_AND_RETURN_RET_LOG(appsrcWrap_ != nullptr, MSERR_NO_MEMORY, "new appsrcwrap failed!");
     return MSERR_OK;
 }
 
@@ -127,17 +133,12 @@ int32_t PlayerEngineGstImpl::Prepare()
     std::unique_lock<std::mutex> lock(mutex_);
     MEDIA_LOGD("Prepare in");
 
-    int32_t ret = GstPlayerInit();
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "GstPlayerInit failed");
+    int32_t ret = PlayBinCtrlerInit();
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "PlayBinCtrlerInit failed");
 
-    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_VAL, "playerCtrl_ is nullptr");
-    playerCtrl_->Prepare();
-
-    if (playerCtrl_->GetState() != PLAYER_PREPARED) {
-        MEDIA_LOGE("gstplayer prepare failed");
-        GstPlayerDeInit();
-        return MSERR_INVALID_VAL;
-    }
+    CHECK_AND_RETURN_RET_LOG(playBinCtrler_ != nullptr, MSERR_INVALID_VAL, "playBinCtrler_ is nullptr");
+    ret = playBinCtrler_->Prepare();
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Prepare failed");
 
     // The duration of some resources without header information cannot be obtained.
     MEDIA_LOGD("Prepared ok out");
@@ -149,130 +150,339 @@ int32_t PlayerEngineGstImpl::PrepareAsync()
     std::unique_lock<std::mutex> lock(mutex_);
     MEDIA_LOGD("Prepare in");
 
-    int32_t ret = GstPlayerInit();
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "GstPlayerInit failed");
+    int32_t ret = PlayBinCtrlerInit();
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "PlayBinCtrlerInit failed");
 
-    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_VAL, "playerCtrl_ is nullptr");
-    playerCtrl_->PrepareAsync();
+    CHECK_AND_RETURN_RET_LOG(playBinCtrler_ != nullptr, MSERR_INVALID_VAL, "playBinCtrler_ is nullptr");
+    ret = playBinCtrler_->PrepareAsync();
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "PrepareAsync failed");
 
     // The duration of some resources without header information cannot be obtained.
     MEDIA_LOGD("Prepared ok out");
     return MSERR_OK;
 }
 
-void PlayerEngineGstImpl::PlayerLoop()
+void PlayerEngineGstImpl::HandleErrorMessage(const PlayBinMessage &msg)
 {
-    MEDIA_LOGD("PlayerLoop in");
-    playerBuild_ = std::make_unique<GstPlayerBuild>();
-    CHECK_AND_RETURN_LOG(playerBuild_ != nullptr, "playerBuild_ is nullptr");
+    MEDIA_LOGE("error happended, cancel inprocessing job");
 
-    rendererCtrl_ = playerBuild_->BuildRendererCtrl(producerSurface_);
-    CHECK_AND_RETURN_LOG(rendererCtrl_ != nullptr, "rendererCtrl_ is nullptr");
-    rendererCtrl_->SetAppInfo(appuid_, apppid_);
-
-    playerCtrl_ = playerBuild_->BuildPlayerCtrl();
-    CHECK_AND_RETURN_LOG(playerCtrl_ != nullptr, "playerCtrl_ is nullptr");
-
-    condVarSync_.notify_all();
-
-    MEDIA_LOGD("Start the player loop");
-    playerBuild_->CreateLoop();
-    MEDIA_LOGD("Stop the player loop");
+    PlayerErrorType errorType = PLAYER_ERROR_UNKNOWN;
+    int32_t errorCode = msg.code;
+    std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
+    if (notifyObs != nullptr) {
+        notifyObs->OnError(errorType, errorCode);
+    }
 }
 
-int32_t PlayerEngineGstImpl::GstPlayerInit()
+void PlayerEngineGstImpl::HandleInfoMessage(const PlayBinMessage &msg)
 {
-    if (gstPlayerInit_) {
-        return MSERR_OK;
+    MEDIA_LOGI("info msg type:%{public}d, value:%{public}d", msg.type, msg.code);
+
+    int32_t status = msg.code;
+    Format format;
+    std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
+    if (notifyObs != nullptr) {
+        notifyObs->OnInfo(static_cast<PlayerOnInfoType>(msg.type), status, format);
+    }
+}
+
+void PlayerEngineGstImpl::HandleSeekDoneMessage(const PlayBinMessage &msg)
+{
+    MEDIA_LOGI("seek done, seek position = %{public}dms", msg.code / MSEC_PER_USEC);
+
+    int32_t status = msg.code / MSEC_PER_USEC;
+    Format format;
+    std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
+    if (notifyObs != nullptr) {
+        notifyObs->OnInfo(INFO_TYPE_SEEKDONE, status, format);
+    }
+}
+
+void PlayerEngineGstImpl::HandleBufferingStart()
+{
+    percent_ = 0;
+    Format format;
+    (void)format.PutIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_START), 0);
+    std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
+    if (notifyObs != nullptr) {
+        notifyObs->OnInfo(INFO_TYPE_BUFFERING_UPDATE, 0, format);
+    }
+}
+
+void PlayerEngineGstImpl::HandleBufferingEnd()
+{
+    Format format;
+    (void)format.PutIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_END), 0);
+    std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
+    if (notifyObs != nullptr) {
+        notifyObs->OnInfo(INFO_TYPE_BUFFERING_UPDATE, 0, format);
+    }
+}
+
+void PlayerEngineGstImpl::HandleBufferingTime(const PlayBinMessage &msg)
+{
+    std::pair<uint32_t, int64_t> bufferingTimePair = std::any_cast<std::pair<uint32_t, int64_t>>(msg.extra);
+    uint32_t mqNumId = bufferingTimePair.first;
+    int64_t bufferingTime = bufferingTimePair.second / MSEC_PER_NSEC;
+
+    if (bufferingTime > BUFFER_TIME_DEFAULT) {
+        bufferingTime = BUFFER_TIME_DEFAULT;
     }
 
-    MEDIA_LOGD("GstPlayerInit in");
-    playerThread_.reset(new(std::nothrow) std::thread(&PlayerEngineGstImpl::PlayerLoop, this));
-    CHECK_AND_RETURN_RET_LOG(playerThread_ != nullptr, MSERR_NO_MEMORY, "new std::thread failed.");
+    mqBufferingTime_[mqNumId] = bufferingTime;
 
-    if (!playerCtrl_) {
-        MEDIA_LOGD("Player not yet initialized, wait for 1 second");
-        std::unique_lock<std::mutex> lockSync(mutexSync_);
-        (void)condVarSync_.wait_for(lockSync, std::chrono::seconds(1));
-        if (playerCtrl_ == nullptr) {
-            MEDIA_LOGE("gstplayer initialized failed");
-            GstPlayerDeInit();
-            return MSERR_INVALID_VAL;
+    MEDIA_LOGD("ProcessBufferingTime(%{public}" PRIu64 " ms), mqNumId = %{public}u, "
+        "mqNumUsedBuffering_ = %{public}u ms", bufferingTime, mqNumId, mqNumUsedBuffering_);
+
+    if (mqBufferingTime_.size() != mqNumUsedBuffering_) {
+        return;
+    }
+
+    uint64_t mqBufferingTime = BUFFER_TIME_DEFAULT;
+    for (auto iter = mqBufferingTime_.begin(); iter != mqBufferingTime_.end(); ++iter) {
+        if (iter->second < mqBufferingTime) {
+            mqBufferingTime = iter->second;
         }
     }
 
-    int ret = GstPlayerPrepare();
+    if (bufferingTime_ != mqBufferingTime) {
+        bufferingTime_ = mqBufferingTime;
+        std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
+        if (notifyObs != nullptr) {
+            Format format;
+            (void)format.PutIntValue(std::string(PlayerKeys::PLAYER_CACHED_DURATION),
+                                     static_cast<int32_t>(mqBufferingTime));
+            notifyObs->OnInfo(INFO_TYPE_BUFFERING_UPDATE, 0, format);
+        }
+    }
+}
+
+void PlayerEngineGstImpl::HandleBufferingPercent(const PlayBinMessage &msg)
+{
+    int32_t percent = msg.code;
+    int32_t lastPercent = percent_;
+    if (percent >= BUFFER_HIGH_PERCENT_DEFAULT) {
+        percent_ = BUFFER_FULL_PERCENT_DEFAULT;
+    } else {
+        int32_t per = percent * BUFFER_FULL_PERCENT_DEFAULT / BUFFER_HIGH_PERCENT_DEFAULT;
+        if (percent_ < per) {
+            percent_ = per;
+        }
+    }
+
+    if (lastPercent == percent_) {
+        return;
+    }
+
+    std::shared_ptr<IPlayerEngineObs> tempObs = obs_.lock();
+    if (tempObs != nullptr) {
+        Format format;
+        (void)format.PutIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_PERCENT), percent_);
+        MEDIA_LOGD("percent = (%{public}d), percent_ = %{public}d, 0x%{public}06" PRIXPTR "",
+            percent, percent_, FAKE_POINTER(this));
+        tempObs->OnInfo(INFO_TYPE_BUFFERING_UPDATE, 0, format);
+    }
+}
+
+void PlayerEngineGstImpl::HandleBufferingUsedMqNum(const PlayBinMessage &msg)
+{
+    mqNumUsedBuffering_ = std::any_cast<uint32_t>(msg.extra);
+}
+
+void PlayerEngineGstImpl::HandleVideoSizeChanged(const PlayBinMessage &msg)
+{
+    std::pair<int32_t, int32_t> resolution = std::any_cast<std::pair<int32_t, int32_t>>(msg.extra);
+    Format format;
+    (void)format.PutIntValue(std::string(PlayerKeys::PLAYER_WIDTH), resolution.first);
+    (void)format.PutIntValue(std::string(PlayerKeys::PLAYER_HEIGHT), resolution.second);
+    MEDIA_LOGD("video size changed, width = %{public}d, height = %{public}d", resolution.first, resolution.second);
+    std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
+    if (notifyObs != nullptr) {
+        notifyObs->OnInfo(INFO_TYPE_RESOLUTION_CHANGE, 0, format);
+    }
+    videoWidth_ = resolution.first;
+    videoHeight_ = resolution.second;
+}
+
+void PlayerEngineGstImpl::HandleBitRateCollect(const PlayBinMessage &msg)
+{
+    std::pair<uint32_t *, uint32_t> bitRatePair = std::any_cast<std::pair<uint32_t *, uint32_t>>(msg.extra);
+    Format format;
+    (void)format.PutBuffer(std::string(PlayerKeys::PLAYER_BITRATE),
+        static_cast<uint8_t *>(static_cast<void *>(bitRatePair.first)), bitRatePair.second * sizeof(uint32_t));
+    std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
+    if (notifyObs != nullptr) {
+        notifyObs->OnInfo(INFO_TYPE_BITRATE_COLLECT, 0, format);
+    }
+}
+
+void PlayerEngineGstImpl::HandleSubTypeMessage(const PlayBinMessage &msg)
+{
+    switch (msg.subType) {
+        case PLAYBIN_SUB_MSG_BUFFERING_START: {
+            HandleBufferingStart();
+            break;
+        }
+        case PLAYBIN_SUB_MSG_BUFFERING_END: {
+            HandleBufferingEnd();
+            break;
+        }
+        case PLAYBIN_SUB_MSG_BUFFERING_TIME: {
+            HandleBufferingTime(msg);
+            break;
+        }
+        case PLAYBIN_SUB_MSG_BUFFERING_PERCENT: {
+            HandleBufferingPercent(msg);
+            break;
+        }
+        case PLAYBIN_SUB_MSG_BUFFERING_USED_MQ_NUM: {
+            HandleBufferingUsedMqNum(msg);
+            break;
+        }
+        case PLAYBIN_SUB_MSG_VIDEO_SIZE_CHANGED: {
+            HandleVideoSizeChanged(msg);
+            break;
+        }
+        case PLAYBIN_SUB_MSG_BITRATE_COLLECT: {
+            HandleBitRateCollect(msg);
+        }
+        default: {
+            break;
+        }
+    }
+}
+
+void PlayerEngineGstImpl::HandleVolumeChangedMessage(const PlayBinMessage &msg)
+{
+    (void)msg;
+    MEDIA_LOGI("volume changed");
+
+    Format format;
+    std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
+    if (notifyObs != nullptr) {
+        notifyObs->OnInfo(INFO_TYPE_VOLUME_CHANGE, 0, format);
+    }
+}
+
+using MsgNotifyFunc = std::function<void(const PlayBinMessage&)>;
+
+void PlayerEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
+{
+    const std::unordered_map<int32_t, MsgNotifyFunc> MSG_NOTIFY_FUNC_TABLE = {
+        { PLAYBIN_MSG_ERROR, std::bind(&PlayerEngineGstImpl::HandleErrorMessage, this, std::placeholders::_1) },
+        { PLAYBIN_MSG_SEEKDONE, std::bind(&PlayerEngineGstImpl::HandleSeekDoneMessage, this, std::placeholders::_1) },
+        { PLAYBIN_MSG_SPEEDDONE, std::bind(&PlayerEngineGstImpl::HandleInfoMessage, this, std::placeholders::_1) },
+        { PLAYBIN_MSG_BITRATEDONE, std::bind(&PlayerEngineGstImpl::HandleInfoMessage, this, std::placeholders::_1)},
+        { PLAYBIN_MSG_EOS, std::bind(&PlayerEngineGstImpl::HandleInfoMessage, this, std::placeholders::_1) },
+        { PLAYBIN_MSG_STATE_CHANGE, std::bind(&PlayerEngineGstImpl::HandleInfoMessage, this, std::placeholders::_1) },
+        { PLAYBIN_MSG_SUBTYPE, std::bind(&PlayerEngineGstImpl::HandleSubTypeMessage, this, std::placeholders::_1) },
+        { PLAYBIN_MSG_VOLUME_CHANGE, std::bind(&PlayerEngineGstImpl::HandleVolumeChangedMessage, this,
+            std::placeholders::_1) },
+    };
+
+    if (MSG_NOTIFY_FUNC_TABLE.count(msg.type) != 0) {
+        MSG_NOTIFY_FUNC_TABLE.at(msg.type)(msg);
+    }
+}
+
+int32_t PlayerEngineGstImpl::PlayBinCtrlerInit()
+{
+    if (playBinCtrler_) {
+        return MSERR_OK;
+    }
+
+    MEDIA_LOGD("PlayBinCtrlerInit in");
+    int ret = PlayBinCtrlerPrepare();
     if (ret != MSERR_OK) {
-        MEDIA_LOGE("GstPlayerPrepare failed");
-        GstPlayerDeInit();
+        MEDIA_LOGE("PlayBinCtrlerPrepare failed");
+        PlayBinCtrlerDeInit();
         return MSERR_INVALID_VAL;
     }
 
-    playerBuild_->WaitMainLoopStart();
-
-    MEDIA_LOGD("GstPlayerInit out");
-    gstPlayerInit_ = true;
+    MEDIA_LOGD("PlayBinCtrlerInit out");
     return MSERR_OK;
 }
 
-void PlayerEngineGstImpl::GstPlayerDeInit()
+void PlayerEngineGstImpl::PlayBinCtrlerDeInit()
 {
-    if (playerBuild_ != nullptr) {
-        playerBuild_->DestroyLoop();
+    url_.clear();
+    appsrcWrap_ = nullptr;
+
+    if (playBinCtrler_ != nullptr) {
+        playBinCtrler_->SetElemSetupListener(nullptr);
+        playBinCtrler_ = nullptr;
     }
 
-    if (playerThread_ != nullptr && playerThread_->joinable()) {
-        playerThread_->join();
+    {
+        std::unique_lock<std::mutex> lk(trackParseMutex_);
+        trackParse_ = nullptr;
+        sinkProvider_ = nullptr;
+        isHardwareDec_ = false;
+        for (auto &[elem, signalId] : signalIds_) {
+            g_signal_handler_disconnect(elem, signalId);
+        }
+        signalIds_.clear();
     }
-
-    rendererCtrl_ = nullptr;
-    playerCtrl_ = nullptr;
-    playerBuild_ = nullptr;
-    gstPlayerInit_ = false;
-    appsrcWarp_ = nullptr;
 }
 
-int32_t PlayerEngineGstImpl::GstPlayerPrepare() const
+int32_t PlayerEngineGstImpl::PlayBinCtrlerPrepare()
 {
-    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_VAL, "playerCtrl_ is nullptr");
-    int32_t ret;
-    if (appsrcWarp_ == nullptr) {
-        ret = playerCtrl_->SetUrl(url_);
-        playerCtrl_->SetRingBufferMaxSize(RING_BUFFER_MAX_SIZE);
-        playerCtrl_->SetBufferingInfo();
-        playerCtrl_->SetHttpTimeOut();
-    } else {
-        ret = playerCtrl_->SetSource(appsrcWarp_);
-    }
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetUrl failed");
-
-    playerCtrl_->SetVideoScaleType(videoScaleType_);
-
-    ret = playerCtrl_->SetCallbacks(obs_);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetCallbacks failed");
-
+    uint8_t renderMode = IPlayBinCtrler::PlayBinRenderMode::DEFAULT_RENDER;
     if (producerSurface_ == nullptr) {
-        playerCtrl_->SetVideoTrack(false);
+        renderMode |= IPlayBinCtrler::PlayBinRenderMode::DISABLE_VIS;
     }
+    auto notifier = std::bind(&PlayerEngineGstImpl::OnNotifyMessage, this, std::placeholders::_1);
+
+    {
+        std::unique_lock<std::mutex> lk(trackParseMutex_);
+        sinkProvider_ = std::make_shared<PlayerSinkProvider>(producerSurface_);
+        sinkProvider_->SetAppInfo(appuid_, apppid_);
+    }
+
+    IPlayBinCtrler::PlayBinCreateParam createParam = {
+        static_cast<IPlayBinCtrler::PlayBinRenderMode>(renderMode), notifier, sinkProvider_
+    };
+    playBinCtrler_ = IPlayBinCtrler::Create(IPlayBinCtrler::PlayBinKind::PLAYBIN2, createParam);
+    CHECK_AND_RETURN_RET_LOG(playBinCtrler_ != nullptr, MSERR_INVALID_VAL, "playBinCtrler_ is nullptr");
+
+    int32_t ret;
+    if (appsrcWrap_ == nullptr) {
+        ret = playBinCtrler_->SetSource(url_);
+    } else {
+        ret = playBinCtrler_->SetSource(appsrcWrap_);
+    }
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetSource failed");
+
+    auto listener = std::bind(&PlayerEngineGstImpl::OnNotifyElemSetup, this, std::placeholders::_1);
+    playBinCtrler_->SetElemSetupListener(listener);
+
+    {
+        std::unique_lock<std::mutex> lk(trackParseMutex_);
+        trackParse_ = PlayerTrackParse::Create();
+        if (trackParse_ == nullptr) {
+            MEDIA_LOGE("creat track parse failed");
+        }
+    }
+
     return MSERR_OK;
 }
 
 int32_t PlayerEngineGstImpl::Play()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
+    CHECK_AND_RETURN_RET_LOG(playBinCtrler_ != nullptr, MSERR_INVALID_OPERATION, "playBinCtrler_ is nullptr");
 
     MEDIA_LOGD("Play in");
-    playerCtrl_->Play();
+    playBinCtrler_->Play();
     return MSERR_OK;
 }
 
 int32_t PlayerEngineGstImpl::Pause()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
+    CHECK_AND_RETURN_RET_LOG(playBinCtrler_ != nullptr, MSERR_INVALID_OPERATION, "playBinCtrler_ is nullptr");
 
-    playerCtrl_->Pause();
+    (void)playBinCtrler_->Pause();
     return MSERR_OK;
 }
 
@@ -281,10 +491,10 @@ int32_t PlayerEngineGstImpl::GetCurrentTime(int32_t &currentTime)
     std::unique_lock<std::mutex> lock(mutex_);
 
     currentTime = 0;
-    if (playerCtrl_ != nullptr) {
-        uint64_t tempTime = playerCtrl_->GetPosition();
-        currentTime = static_cast<int32_t>(tempTime);
-        MEDIA_LOGD("Time in milli seconds: %{public}d", currentTime);
+    if (playBinCtrler_ != nullptr) {
+        int64_t tempTime = playBinCtrler_->GetPosition();
+        currentTime = static_cast<int32_t>(tempTime / MSEC_PER_USEC);
+        MEDIA_LOGD("Time in milliseconds: %{public}d", currentTime);
     }
     return MSERR_OK;
 }
@@ -292,35 +502,29 @@ int32_t PlayerEngineGstImpl::GetCurrentTime(int32_t &currentTime)
 int32_t PlayerEngineGstImpl::GetVideoTrackInfo(std::vector<Format> &videoTrack)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
+    CHECK_AND_RETURN_RET_LOG(trackParse_ != nullptr, MSERR_INVALID_OPERATION, "trackParse_ is nullptr");
 
-    int32_t retVal = playerCtrl_->GetVideoTrackInfo(videoTrack);
-    return retVal;
+    return trackParse_->GetVideoTrackInfo(videoTrack);
 }
 
 int32_t PlayerEngineGstImpl::GetAudioTrackInfo(std::vector<Format> &audioTrack)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
+    CHECK_AND_RETURN_RET_LOG(trackParse_ != nullptr, MSERR_INVALID_OPERATION, "trackParse_ is nullptr");
 
-    int32_t retVal = playerCtrl_->GetAudioTrackInfo(audioTrack);
-    return retVal;
+    return trackParse_->GetAudioTrackInfo(audioTrack);
 }
 
 int32_t PlayerEngineGstImpl::GetVideoWidth()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
-
-    return playerCtrl_->GetVideoWidth();
+    return videoWidth_;
 }
 
 int32_t PlayerEngineGstImpl::GetVideoHeight()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
-
-    return playerCtrl_->GetVideoHeight();
+    return videoHeight_;
 }
 
 int32_t PlayerEngineGstImpl::GetDuration(int32_t &duration)
@@ -328,16 +532,10 @@ int32_t PlayerEngineGstImpl::GetDuration(int32_t &duration)
     std::unique_lock<std::mutex> lock(mutex_);
 
     duration = 0;
-    if (playerCtrl_ != nullptr) {
-        uint64_t tempDura = playerCtrl_->GetDuration();
-        if (tempDura != GST_CLOCK_TIME_NONE) {
-            duration = static_cast<int32_t>(tempDura);
-        } else {
-            duration = -1;
-            MEDIA_LOGD("it's live mode");
-        }
-
-        MEDIA_LOGD("Duration in milli seconds: %{public}d", duration);
+    if (playBinCtrler_ != nullptr) {
+        int64_t tempDura = playBinCtrler_->GetDuration();
+        duration = static_cast<int32_t>(tempDura / MSEC_PER_USEC);
+        MEDIA_LOGD("Duration in milliseconds: %{public}d", duration);
     }
     return MSERR_OK;
 }
@@ -388,9 +586,9 @@ PlaybackRateMode PlayerEngineGstImpl::ChangeSpeedToMode(double rate) const
 int32_t PlayerEngineGstImpl::SetPlaybackSpeed(PlaybackRateMode mode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (playerCtrl_ != nullptr) {
+    if (playBinCtrler_ != nullptr) {
         double rate = ChangeModeToSpeed(mode);
-        return playerCtrl_->SetRate(rate);
+        return playBinCtrler_->SetRate(rate);
     }
     return MSERR_OK;
 }
@@ -398,8 +596,8 @@ int32_t PlayerEngineGstImpl::SetPlaybackSpeed(PlaybackRateMode mode)
 int32_t PlayerEngineGstImpl::GetPlaybackSpeed(PlaybackRateMode &mode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (playerCtrl_ != nullptr) {
-        double rate = playerCtrl_->GetRate();
+    if (playBinCtrler_ != nullptr) {
+        double rate = playBinCtrler_->GetRate();
         mode = ChangeSpeedToMode(rate);
     }
     return MSERR_OK;
@@ -408,19 +606,32 @@ int32_t PlayerEngineGstImpl::GetPlaybackSpeed(PlaybackRateMode &mode)
 int32_t PlayerEngineGstImpl::SetLooping(bool loop)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (playerCtrl_ != nullptr) {
+    if (playBinCtrler_ != nullptr) {
         MEDIA_LOGD("SetLooping in");
-        return playerCtrl_->SetLoop(loop);
+        return playBinCtrler_->SetLoop(loop);
     }
     return MSERR_OK;
 }
 
 int32_t PlayerEngineGstImpl::SetParameter(const Format &param)
 {
-    if (param.ContainKey(PlayerKeys::VIDEO_SCALE_TYPE)) {
-        int32_t videoScaleType = 0;
-        param.GetIntValue(PlayerKeys::VIDEO_SCALE_TYPE, videoScaleType);
-        return SetVideoScaleType(VideoScaleType(videoScaleType));
+    std::unique_lock<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(playBinCtrler_ != nullptr, MSERR_INVALID_OPERATION, "playBinCtrler_ is nullptr");
+
+    int32_t contentType = 0;
+    int32_t streamUsage = 0;
+
+    if (param.GetIntValue(PlayerKeys::CONTENT_TYPE, contentType) &&
+        param.GetIntValue(PlayerKeys::STREAM_USAGE, streamUsage)) {
+        CHECK_AND_RETURN_RET(streamUsage >= 0 && contentType >= 0, MSERR_UNSUPPORT_AUD_PARAMS);
+
+        int32_t rendererInfo = 0;
+        rendererInfo |= (contentType | (static_cast<uint32_t>(streamUsage) <<
+            AudioStandard::RENDERER_STREAM_USAGE_SHIFT));
+        playBinCtrler_->SetAudioRendererInfo(rendererInfo);
+    } else {
+        MEDIA_LOGE("parameter doesn't contain content_type or stream_usage");
+        return MSERR_UNSUPPORT_AUD_PARAMS;
     }
 
     return MSERR_OK;
@@ -429,10 +640,10 @@ int32_t PlayerEngineGstImpl::SetParameter(const Format &param)
 int32_t PlayerEngineGstImpl::Stop()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
+    CHECK_AND_RETURN_RET_LOG(playBinCtrler_ != nullptr, MSERR_INVALID_OPERATION, "playBinCtrler_ is nullptr");
 
     MEDIA_LOGD("Stop in");
-    playerCtrl_->Stop();
+    playBinCtrler_->Stop();
     return MSERR_OK;
 }
 
@@ -440,30 +651,26 @@ int32_t PlayerEngineGstImpl::Reset()
 {
     std::unique_lock<std::mutex> lock(mutex_);
     MEDIA_LOGD("Reset in");
-    if (playerCtrl_ != nullptr) {
-        playerCtrl_->Stop();
-    }
-    GstPlayerDeInit();
+    PlayBinCtrlerDeInit();
     return MSERR_OK;
 }
 
 int32_t PlayerEngineGstImpl::Seek(int32_t mSeconds, PlayerSeekMode mode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playerCtrl_ != nullptr, MSERR_INVALID_OPERATION, "playerCtrl_ is nullptr");
-    CHECK_AND_RETURN_RET_LOG(mSeconds >= 0, MSERR_INVALID_OPERATION, "seek time must >= 0");
-    MEDIA_LOGD("Seek in %{public}d", mSeconds);
+    CHECK_AND_RETURN_RET_LOG(playBinCtrler_ != nullptr, MSERR_INVALID_OPERATION, "playBinCtrler_ is nullptr");
+    MEDIA_LOGI("Seek in %{public}dms", mSeconds);
 
-    uint64_t position = static_cast<uint64_t>(mSeconds);
-    return playerCtrl_->Seek(position, mode);
+    int64_t position = static_cast<int64_t>(mSeconds * MSEC_PER_USEC);
+    return playBinCtrler_->Seek(position, mode);
 }
 
 int32_t PlayerEngineGstImpl::SetVolume(float leftVolume, float rightVolume)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (playerCtrl_ != nullptr) {
+    if (playBinCtrler_ != nullptr) {
         MEDIA_LOGD("SetVolume in");
-        playerCtrl_->SetVolume(leftVolume, rightVolume);
+        playBinCtrler_->SetVolume(leftVolume, rightVolume);
     }
     return MSERR_OK;
 }
@@ -471,23 +678,53 @@ int32_t PlayerEngineGstImpl::SetVolume(float leftVolume, float rightVolume)
 int32_t PlayerEngineGstImpl::SelectBitRate(uint32_t bitRate)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (playerCtrl_ != nullptr) {
+    if (playBinCtrler_ != nullptr) {
         MEDIA_LOGD("SelectBitRate in");
-        playerCtrl_->SelectBitRate(bitRate);
+        return playBinCtrler_->SelectBitRate(bitRate);
     }
-    return MSERR_OK;
+    return MSERR_INVALID_OPERATION;
 }
 
 int32_t PlayerEngineGstImpl::SetVideoScaleType(VideoScaleType videoScaleType)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (playerCtrl_ != nullptr) {
-        MEDIA_LOGD("SetVideoScaleType in");
-        playerCtrl_->SetVideoScaleType(videoScaleType);
-    } else {
-        videoScaleType_ = videoScaleType;
-    }
+    (void)videoScaleType;
     return MSERR_OK;
+}
+
+void PlayerEngineGstImpl::OnNotifyElemSetup(GstElement &elem)
+{
+    std::unique_lock<std::mutex> lock(trackParseMutex_);
+    CHECK_AND_RETURN_LOG(trackParse_ != nullptr, "trackParse_ is null");
+
+    const gchar *metadata = gst_element_get_metadata(&elem, GST_ELEMENT_METADATA_KLASS);
+    if (metadata == nullptr) {
+        MEDIA_LOGE("gst_element_get_metadata return nullptr");
+        return;
+    }
+
+    MEDIA_LOGD("get element_name %{public}s, get metadata %{public}s", GST_ELEMENT_NAME(&elem), metadata);
+    std::string metaStr(metadata);
+
+    if (metaStr.find("Codec/Demuxer") != std::string::npos || metaStr.find("Codec/Parser") != std::string::npos) {
+        if (trackParse_->GetDemuxerElementFind() == false) {
+            gulong signalId = g_signal_connect(&elem, "pad-added",
+                G_CALLBACK(PlayerTrackParse::OnPadAddedCb), trackParse_.get());
+            CHECK_AND_RETURN_LOG(signalId != 0, "listen to pad-added failed");
+            (void)signalIds_.emplace(&elem, signalId);
+
+            trackParse_->SetDemuxerElementFind(true);
+        }
+    }
+
+    if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {
+        isHardwareDec_ = true;
+        return;
+    }
+
+    if (metaStr.find("Sink/Video") != std::string::npos && isHardwareDec_) {
+        sinkProvider_->SetCapsForHardDecVideoSink();
+        return;
+    }
 }
 } // namespace Media
 } // namespace OHOS

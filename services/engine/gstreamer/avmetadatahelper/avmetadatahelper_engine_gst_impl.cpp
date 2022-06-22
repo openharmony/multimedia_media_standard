@@ -36,7 +36,7 @@ namespace {
         {OHOS::Media::PLAYBIN_STATE_PLAYING, "playing"},
         {OHOS::Media::PLAYBIN_STATE_PAUSED, "paused"},
         {OHOS::Media::PLAYBIN_STATE_STOPPED, "stopped"},
-        {OHOS::Media::PLAYBIN_STATE_EOS, "eos"},
+        {OHOS::Media::PLAYBIN_STATE_PLAYBACK_COMPLETE, "playbackcomplete"},
     };
 }
 
@@ -231,9 +231,11 @@ int32_t AVMetadataHelperEngineGstImpl::PrepareInternel(bool async)
 {
     CHECK_AND_RETURN_RET_LOG(playBinCtrler_ != nullptr, MSERR_INVALID_OPERATION, "set source firstly");
 
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (status_ == PLAYBIN_STATE_PREPARED || status_ == PLAYBIN_STATE_PLAYING || status_ == PLAYBIN_STATE_PAUSED) {
-        return MSERR_OK;
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (status_ == PLAYBIN_STATE_PREPARED || status_ == PLAYBIN_STATE_PLAYING || status_ == PLAYBIN_STATE_PAUSED) {
+            return MSERR_OK;
+        }
     }
 
     int32_t ret = playBinCtrler_->PrepareAsync();
@@ -242,6 +244,7 @@ int32_t AVMetadataHelperEngineGstImpl::PrepareInternel(bool async)
     if (!async) {
         metaCollector_->Stop(true);
         static constexpr int32_t timeout = 5;
+        std::unique_lock<std::mutex> lock(mutex_);
         cond_.wait_for(lock, std::chrono::seconds(timeout), [this]() {
             return status_ == PLAYBIN_STATE_PREPARED || errHappened_;
         });
@@ -400,7 +403,7 @@ void AVMetadataHelperEngineGstImpl::OnNotifyElemSetup(GstElement &elem)
 const std::string &AVMetadataHelperEngineGstImpl::GetStatusDescription(OHOS::Media::PlayBinState status)
 {
     static const std::string ILLEGAL_STATE = "PLAYER_STATUS_ILLEGAL";
-    if (status < OHOS::Media::PLAYBIN_STATE_IDLE || status > OHOS::Media::PLAYBIN_STATE_EOS) {
+    if (status < OHOS::Media::PLAYBIN_STATE_IDLE || status > OHOS::Media::PLAYBIN_STATE_PLAYBACK_COMPLETE) {
         return ILLEGAL_STATE;
     }
 

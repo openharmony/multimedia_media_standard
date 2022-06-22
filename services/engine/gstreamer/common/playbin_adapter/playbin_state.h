@@ -31,13 +31,23 @@ public:
     virtual int32_t Play();
     virtual int32_t Pause();
     virtual int32_t Seek(int64_t timeUs, int32_t option);
+    virtual int32_t SetRate(double rate);
     virtual int32_t Stop();
 
 protected:
     void OnMessageReceived(const InnerMessage &msg) final;
-    virtual void ProcessMessage(const InnerMessage &msg) {}
+    virtual void ProcessStateChange(const InnerMessage &msg) {}
     void ReportInvalidOperation();
     int32_t ChangePlayBinState(GstState targetState);
+    void HandleStateChange(const InnerMessage &msg);
+    void HandleDurationChange();
+    void HandleResolutionChange(const InnerMessage &msg);
+    void HandleAsyncDone(const InnerMessage &msg);
+    void HandleError(const InnerMessage &msg);
+    void HandleEos();
+    void HandleBuffering(const InnerMessage &msg);
+    void HandleBufferingTime(const InnerMessage &msg);
+    void HandleUsedMqNum(const InnerMessage &msg);
 
     PlayBinCtrlerBase &ctrler_;
 };
@@ -67,9 +77,8 @@ public:
     int32_t Stop() override;
 
 protected:
-    void ProcessMessage(const InnerMessage &msg) override;
+    void ProcessStateChange(const InnerMessage &msg) override;
     void StateEnter() override;
-    void StateExit() override;
 
     bool stateChanged_ = false;
 };
@@ -83,9 +92,10 @@ public:
     int32_t Play() override;
     int32_t Seek(int64_t timeUs, int32_t option) override;
     int32_t Stop() override;
+    int32_t SetRate(double rate) override;
 
 protected:
-    void ProcessMessage(const InnerMessage &msg) override;
+    void ProcessStateChange(const InnerMessage &msg) override;
     void StateEnter() override;
 };
 
@@ -98,12 +108,11 @@ public:
     int32_t Pause() override;
     int32_t Seek(int64_t timeUs, int32_t option) override;
     int32_t Stop() override;
+    int32_t SetRate(double rate) override;
 
 protected:
-    void ProcessMessage(const InnerMessage &msg) override;
+    void ProcessStateChange(const InnerMessage &msg) override;
     void StateEnter() override;
-
-    bool seekPending_ = false;
 };
 
 class PlayBinCtrlerBase::PausedState : public PlayBinCtrlerBase::BaseState {
@@ -115,9 +124,10 @@ public:
     int32_t Pause() override;
     int32_t Seek(int64_t timeUs, int32_t option) override;
     int32_t Stop() override;
+    int32_t SetRate(double rate) override;
 
 protected:
-    void ProcessMessage(const InnerMessage &msg) override;
+    void ProcessStateChange(const InnerMessage &msg) override;
     void StateEnter() override;
 };
 
@@ -130,7 +140,22 @@ public:
     int32_t Stop() override;
 
 protected:
-    void ProcessMessage(const InnerMessage &msg) override;
+    void ProcessStateChange(const InnerMessage &msg) override;
+    void StateEnter() override;
+};
+
+class PlayBinCtrlerBase::PlaybackCompletedState : public PlayBinCtrlerBase::BaseState {
+public:
+    explicit PlaybackCompletedState(PlayBinCtrlerBase &ctrler) : BaseState(ctrler, "playbackCompleted_state") {}
+    ~PlaybackCompletedState() = default;
+
+    int32_t Play() override;
+    int32_t Stop() override;
+    int32_t Seek(int64_t timeUs, int32_t option) override;
+    int32_t SetRate(double rate) override;
+
+protected:
+    void ProcessStateChange(const InnerMessage &msg) override;
     void StateEnter() override;
 };
 } // namespace Media

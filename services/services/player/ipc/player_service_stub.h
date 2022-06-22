@@ -21,6 +21,7 @@
 #include "i_standard_player_listener.h"
 #include "media_death_recipient.h"
 #include "player_server.h"
+#include "player_server_hi.h"
 
 namespace OHOS {
 namespace Media {
