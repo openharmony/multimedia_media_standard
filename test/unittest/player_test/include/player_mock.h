@@ -71,8 +71,8 @@ public:
     sptr<Surface> GetVideoSurface();
 private:
     std::shared_ptr<PlayerSignal> test_;
-    int32_t height = 1080;
-    int32_t width = 1920;
+    int32_t height_ = 1080;
+    int32_t width_ = 1920;
 };
 
 class PlayerCallbackTest : public PlayerCallback, public NoCopyable {
