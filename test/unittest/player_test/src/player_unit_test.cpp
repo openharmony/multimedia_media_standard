@@ -51,23 +51,11 @@ HWTEST_F(PlayerUnitTest, Player_SetSource_001, TestSize.Level0)
     EXPECT_EQ(MSERR_OK, ret);
 }
 
-HWTEST_F(PlayerUnitTest, Player_SetSource_002, TestSize.Level0)
-{
-    int32_t ret = player_->SetSource(VIDEO_FILE2);
-    EXPECT_EQ(MSERR_INVALID_VAL, ret);
-}
-
 HWTEST_F(PlayerUnitTest, Player_SetCallback_001, TestSize.Level1)
 {
     std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(testObj);
     int32_t ret = player_->SetPlayerCallback(player_CallbackTest);
     EXPECT_EQ(MSERR_OK, ret);
-}
-
-HWTEST_F(PlayerUnitTest, Player_SetCallback_002, TestSize.Level1)
-{
-    int32_t ret = player_->SetPlayerCallback(nullptr);
-    EXPECT_EQ(MSERR_INVALID_VAL, ret);
 }
 
 HWTEST_F(PlayerUnitTest, Player_PrePare_001, TestSize.Level0)
