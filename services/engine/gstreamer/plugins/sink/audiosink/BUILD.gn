@@ -62,11 +62,15 @@ ohos_shared_library("gst_audio_server_sink") {
     "src/gst_audio_server_sink.cpp",
   ]
 
-  configs = [ ":gst_audio_server_sink_config" ]
+  configs = [
+    ":gst_audio_server_sink_config",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+  ]
 
   deps = [
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiomanager:audio_client",
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiorenderer:audio_renderer",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",

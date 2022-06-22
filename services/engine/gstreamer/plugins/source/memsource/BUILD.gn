@@ -66,11 +66,15 @@ ohos_shared_library("gst_mem_src") {
     "gst_surface_src.cpp",
   ]
 
-  configs = [ ":gst_mem_src_config" ]
+  configs = [
+    ":gst_mem_src_config",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+  ]
 
   deps = [
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_media_common",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",

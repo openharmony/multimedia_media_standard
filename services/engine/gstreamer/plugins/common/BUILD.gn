@@ -50,7 +50,10 @@ config("gst_plugins_common_config") {
 ohos_shared_library("gst_media_common") {
   install_enable = true
 
-  configs = [ ":gst_plugins_common_config" ]
+  configs = [
+    ":gst_plugins_common_config",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+  ]
 
   sources = [
     "buffer_type_meta.c",
@@ -59,6 +62,7 @@ ohos_shared_library("gst_media_common") {
   ]
 
   deps = [
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common:gst_codec_plugins_common",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/sink/memsink:gst_mem_sink_base",
     "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/source/memsource:gst_mem_src_base",

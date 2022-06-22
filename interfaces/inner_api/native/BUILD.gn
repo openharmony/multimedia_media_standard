@@ -123,6 +123,7 @@ ohos_shared_library("media_client") {
       ":media_client_local_config",
       ":media_client_public_config",
       "//foundation/graphic/graphic_2d/frameworks/surface:surface_public_config",
+      "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
     ]
 
     deps = [
@@ -130,6 +131,7 @@ ohos_shared_library("media_client") {
       "$MEDIA_ROOT_DIR/services/utils:media_service_utils",
       "//foundation/graphic/graphic_2d/frameworks/surface:surface",
       "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+      "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
       "//third_party/bounds_checking_function:libsec_static",
       "//utils/native/base:utils",
     ]
@@ -184,11 +186,13 @@ ohos_shared_library("media_client") {
       ":media_client_ipc_config",
       ":media_client_public_config",
       "//foundation/graphic/graphic_2d/frameworks/surface:surface_public_config",
+      "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
     ]
 
     deps = [
       "//foundation/graphic/graphic_2d/frameworks/surface:surface",
       "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+      "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
       "//foundation/multimedia/media_standard/services/utils:media_format",
       "//foundation/multimedia/media_standard/services/utils:media_service_utils",
       "//third_party/bounds_checking_function:libsec_static",
