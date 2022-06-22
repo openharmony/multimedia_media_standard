@@ -32,7 +32,7 @@ ohos_unittest("player_unit_test") {
   ]
 
   sources = [
-    "//foundation/multimedia/media_standard/test/unittest/common/src/TestParamsConfig.cpp",
+    "//foundation/multimedia/media_standard/test/unittest/common/src/test_params_config.cpp",
     "src/player_mock.cpp",
     "src/player_unit_test.cpp",
   ]
