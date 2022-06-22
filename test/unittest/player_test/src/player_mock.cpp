@@ -28,7 +28,7 @@ void PlayerSignal::SetState(PlayerStates state)
 }
 
 void PlayerSignal::SetSeekResult(bool seekDoneFlag)
-{   
+{
     seekDoneFlag_ = seekDoneFlag;
 }
 
@@ -272,10 +272,6 @@ int32_t Player_mock::SetVideoSurface(sptr<Surface> surface)
 }
 
 PlayerCallbackTest::PlayerCallbackTest(std::shared_ptr<PlayerSignal> test)
-    : test_(test)
-{
-
-}
-
+    : test_(test) {}
 } // namespace Media
 } // namespace OHOS

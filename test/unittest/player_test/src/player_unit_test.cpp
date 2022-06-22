@@ -156,6 +156,5 @@ HWTEST_F(PlayerUnitTest, Player_Seek_001, TestSize.Level0)
     EXPECT_EQ(MSERR_OK, player_->GetCurrentTime(time));
     EXPECT_NEAR(SEEK_TIME_2_SEC, time, DELTA_TIME);
 }
-
 } // namespace Media
 } // namespace OHOS
