@@ -22,6 +22,7 @@
 #include "nocopyable.h"
 #include "playbin_msg_define.h"
 #include "playbin_sink_provider.h"
+#include "gst_appsrc_wrap.h"
 
 namespace OHOS {
 namespace Media {
@@ -35,6 +36,7 @@ public:
         DEFAULT_RENDER = 0,
         NATIVE_STREAM = 1 << 0,
         DISABLE_TEXT = 1 << 1,
+        DISABLE_VIS = 1 << 2,
     };
 
     enum PlayBinSeekMode : uint8_t {
@@ -55,6 +57,7 @@ public:
     static std::shared_ptr<IPlayBinCtrler> Create(PlayBinKind kind, const PlayBinCreateParam &createParam);
 
     virtual int32_t SetSource(const std::string &url) = 0;
+    virtual int32_t SetSource(const std::shared_ptr<GstAppsrcWrap> &appsrcWrap) = 0;
     virtual int32_t Prepare() = 0; // sync
     virtual int32_t PrepareAsync() = 0; // async
     virtual int32_t Play() = 0; // async
@@ -62,6 +65,13 @@ public:
     virtual int32_t Seek(int64_t timeUs, int32_t seekOption) = 0; // async
     virtual int32_t Stop() = 0; // async
     virtual int64_t GetDuration() = 0; // usec
+    virtual int64_t GetPosition() = 0; // usec
+    virtual int32_t SetRate(double rate) = 0;
+    virtual double GetRate() = 0;
+    virtual int32_t SetLoop(bool loop) = 0;
+    virtual void SetVolume(const float &leftVolume, const float &rightVolume) = 0;
+    virtual void SetAudioRendererInfo(int32_t rendererInfo) = 0;
+    virtual int32_t SelectBitRate(uint32_t bitRate) = 0;
 
     using ElemSetupListener = std::function<void(GstElement &elem)>;
     virtual void SetElemSetupListener(ElemSetupListener listener) = 0;

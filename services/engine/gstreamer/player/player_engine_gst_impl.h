@@ -22,9 +22,9 @@
 #include <map>
 
 #include "i_player_engine.h"
-#include "gst_player_build.h"
-#include "gst_player_ctrl.h"
-#include "gst_appsrc_warp.h"
+#include "i_playbin_ctrler.h"
+#include "gst_appsrc_wrap.h"
+#include "player_track_parse.h"
 
 namespace OHOS {
 namespace Media {
@@ -59,29 +59,47 @@ public:
     int32_t SetVideoScaleType(VideoScaleType videoScaleType) override;
 
 private:
+    void OnNotifyMessage(const PlayBinMessage &msg);
+    void OnNotifyElemSetup(GstElement &elem);
     double ChangeModeToSpeed(const PlaybackRateMode &mode) const;
     PlaybackRateMode ChangeSpeedToMode(double rate) const;
-    int32_t GstPlayerInit();
-    int32_t GstPlayerPrepare() const;
-    void PlayerLoop();
-    void GstPlayerDeInit();
+    int32_t PlayBinCtrlerInit();
+    int32_t PlayBinCtrlerPrepare();
+    void PlayBinCtrlerDeInit();
     int32_t GetRealPath(const std::string &url, std::string &realUrlPath) const;
     bool IsFileUrl(const std::string &url) const;
+    void HandleErrorMessage(const PlayBinMessage &msg);
+    void HandleInfoMessage(const PlayBinMessage &msg);
+    void HandleSeekDoneMessage(const PlayBinMessage &msg);
+    void HandleSubTypeMessage(const PlayBinMessage &msg);
+    void HandleBufferingStart();
+    void HandleBufferingEnd();
+    void HandleBufferingTime(const PlayBinMessage &msg);
+    void HandleBufferingPercent(const PlayBinMessage &msg);
+    void HandleBufferingUsedMqNum(const PlayBinMessage &msg);
+    void HandleVideoSizeChanged(const PlayBinMessage &msg);
+    void HandleBitRateCollect(const PlayBinMessage &msg);
+    void HandleVolumeChangedMessage(const PlayBinMessage &msg);
+
     std::mutex mutex_;
-    std::mutex mutexSync_;
-    std::unique_ptr<GstPlayerBuild> playerBuild_ = nullptr;
-    std::shared_ptr<GstPlayerCtrl> playerCtrl_ = nullptr;
-    std::shared_ptr<GstPlayerVideoRendererCtrl> rendererCtrl_ = nullptr;
+    std::mutex trackParseMutex_;
+    std::shared_ptr<IPlayBinCtrler> playBinCtrler_ = nullptr;
+    std::shared_ptr<PlayBinSinkProvider> sinkProvider_;
     std::weak_ptr<IPlayerEngineObs> obs_;
     sptr<Surface> producerSurface_ = nullptr;
     std::string url_ = "";
-    VideoScaleType videoScaleType_ = VIDEO_SCALE_TYPE_FIT;
+    std::shared_ptr<GstAppsrcWrap> appsrcWrap_ = nullptr;
+    std::shared_ptr<PlayerTrackParse> trackParse_ = nullptr;
+    int32_t videoWidth_ = 0;
+    int32_t videoHeight_ = 0;
+    bool isHardwareDec_ = false;
+    int32_t percent_ = 0;
+    uint32_t mqNumUsedBuffering_ = 0;
+    uint64_t bufferingTime_ = 0;
     int32_t appuid_ = 0;
     int32_t apppid_ = 0;
-    std::condition_variable condVarSync_;
-    bool gstPlayerInit_ = false;
-    std::unique_ptr<std::thread> playerThread_;
-    std::shared_ptr<GstAppsrcWarp> appsrcWarp_ = nullptr;
+    std::map<uint32_t, uint64_t> mqBufferingTime_;
+    std::unordered_map<GstElement *, gulong> signalIds_;
 };
 } // namespace Media
 } // namespace OHOS
