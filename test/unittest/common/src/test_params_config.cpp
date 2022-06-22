@@ -13,4 +13,4 @@
  * limitations under the License.
  */
 
-#include "TestParamsConfig.h"
+#include "test_params_config.h"
