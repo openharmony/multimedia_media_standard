@@ -19,6 +19,7 @@ group("fuzztest") {
     # deps file
     "playerseek_fuzzer:PlayerSeekFuzzTest",
     "playersetvolume_fuzzer:PlayerSetVolumeFuzzTest",
+    "playerfile_fuzzer:PlayerFileFuzzTest",
   ]
 }
 ###############################################################################
