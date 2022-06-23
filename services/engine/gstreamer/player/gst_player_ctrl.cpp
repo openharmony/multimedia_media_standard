@@ -347,7 +347,7 @@ void GstPlayerCtrl::OnElementSetupCb(const GstPlayer *player, GstElement *src, G
         g_signal_connect(src, "autoplug-sort", G_CALLBACK(OnAutoplugSortCb), playerGst);
     }
 
-    playerGst->SetupCodecCb(src, playerGst, metaStr); 
+    playerGst->SetupCodecCb(src, playerGst, metaStr);
 
     if (metaStr.find("Sink/Video") != std::string::npos) {
         if (!playerGst->isHardWare_) {
