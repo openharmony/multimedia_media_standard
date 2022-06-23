@@ -56,8 +56,8 @@ static void gst_vdec_h264_init(GstVdecH264 *self)
 static GstBuffer *handle_slice_buffer(GstVdecBase *self, GstBuffer *buffer, bool &ready_push, bool is_finish)
 {
     GstVdecH264 *vdec_h264 = GST_VDEC_H264(self);
-    GstBuffer *buf;
-    if (is_finish == true) {
+    GstBuffer *buf = nullptr;
+    if (is_finish) {
         gst_buffer_set_size(vdec_h264->cache_slice_buffer, vdec_h264->cache_offset);
         vdec_h264->is_slice_buffer = false;
         ready_push = true;
@@ -116,7 +116,7 @@ static gboolean cat_slice_buffer(GstVdecBase *self, GstMapInfo *src_info)
     GstMapInfo cache_info = GST_MAP_INFO_INIT;
     g_return_val_if_fail(gst_buffer_map(vdec_h264->cache_slice_buffer, &cache_info, GST_MAP_READ), FALSE);
     errno_t ret = memcpy_s(cache_info.data + vdec_h264->cache_offset,
-                self->input.buffer_size - vdec_h264->cache_offset, src_info->data, src_info->size);
+        self->input.buffer_size - vdec_h264->cache_offset, src_info->data, src_info->size);
     if (ret != EOK) {
         GST_ERROR_OBJECT(self, "memcpy_s fail");
         gst_buffer_unmap(vdec_h264->cache_slice_buffer, &cache_info);
