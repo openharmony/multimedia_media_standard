@@ -62,6 +62,7 @@ enum {
     PROP_SURFACE_POOL,
     PROP_SINK_CAPS,
     PROP_PERFORMANCE_MODE,
+    PROP_ENABLE_SLICE_CAT,
 };
 
 G_DEFINE_ABSTRACT_TYPE(GstVdecBase, gst_vdec_base, GST_TYPE_VIDEO_DECODER);
@@ -107,6 +108,10 @@ static void gst_vdec_base_class_init(GstVdecBaseClass *klass)
         g_param_spec_boolean("performance-mode", "performance mode", "performance mode",
             FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
+    g_object_class_install_property(gobject_class, PROP_ENABLE_SLICE_CAT,
+        g_param_spec_boolean("enable-slice-cat", "enable slice cat", "enable slice cat",
+            FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
     const gchar *src_caps_string = GST_VIDEO_CAPS_MAKE(GST_VDEC_BASE_SUPPORTED_FORMATS);
     GST_DEBUG_OBJECT(klass, "Pad template caps %s", src_caps_string);
 
@@ -145,6 +150,9 @@ static void gst_vdec_base_set_property(GObject *object, guint prop_id, const GVa
         }
         case PROP_PERFORMANCE_MODE:
             self->performance_mode = g_value_get_boolean(value);
+            break;
+        case PROP_ENABLE_SLICE_CAT:
+            self->enable_slice_cat = g_value_get_boolean(value);
             break;
         default:
             break;
@@ -206,6 +214,7 @@ static void gst_vdec_base_init(GstVdecBase *self)
     self->out_buffer_max_cnt = DEFAULT_MAX_QUEUE_SIZE;
     self->pre_init_pool = FALSE;
     self->performance_mode = FALSE;
+    self->enable_slice_cat = FALSE;
 }
 
 static void gst_vdec_base_finalize(GObject *object)
@@ -841,7 +850,21 @@ static GstFlowReturn gst_vdec_base_push_input_buffer(GstVideoDecoder *decoder, G
     gst_vdec_debug_input_time(self);
     gst_vdec_base_dump_input_buffer(self, frame->input_buffer);
     gst_vdec_base_get_frame_pts(self, frame);
-    gint codec_ret = self->decoder->PushInputBuffer(frame->input_buffer);
+    GstVdecBaseClass *kclass = GST_VDEC_BASE_GET_CLASS(self);
+    GstBuffer *buf = nullptr;
+    if (kclass->handle_slice_buffer != nullptr && self->enable_slice_cat == true) {
+        bool ready_push_slice_buffer = false;
+        GstBuffer *cat_buffer = kclass->handle_slice_buffer(self, frame->input_buffer, ready_push_slice_buffer, false);
+        if (cat_buffer != nullptr && ready_push_slice_buffer == true) {
+            buf = cat_buffer;
+            gst_buffer_unref(cat_buffer);
+        }
+    } else {
+        buf = frame->input_buffer;
+    }
+
+    GST_VIDEO_DECODER_STREAM_UNLOCK(self);
+    gint codec_ret = self->decoder->PushInputBuffer(buf);
     GST_VIDEO_DECODER_STREAM_LOCK(self);
     GstFlowReturn ret = GST_FLOW_OK;
     switch (codec_ret) {
@@ -899,7 +922,7 @@ static GstFlowReturn gst_vdec_base_handle_frame(GstVideoDecoder *decoder, GstVid
         gst_pad_start_task(pad, (GstTaskFunction)gst_vdec_base_loop, decoder, nullptr) != TRUE) {
         return GST_FLOW_ERROR;
     }
-    GST_VIDEO_DECODER_STREAM_UNLOCK(self);
+
 
     GstFlowReturn ret = gst_vdec_base_push_input_buffer(decoder, frame);
     return ret;
@@ -1330,7 +1353,21 @@ static GstFlowReturn gst_vdec_base_finish(GstVideoDecoder *decoder)
         GST_DEBUG_OBJECT(self, "vdec not start yet");
         return GST_FLOW_OK;
     }
-    GST_VIDEO_DECODER_STREAM_UNLOCK(self);
+    GstVdecBaseClass *kclass = GST_VDEC_BASE_GET_CLASS(self);
+    bool ready_push_slice_buffer = false;
+    if (kclass->handle_slice_buffer != nullptr && self->enable_slice_cat == true) {
+        GstBuffer *cat_buffer = kclass->handle_slice_buffer(self, nullptr, ready_push_slice_buffer, true);
+        if (cat_buffer != nullptr && ready_push_slice_buffer == true) {
+            GST_VIDEO_DECODER_STREAM_UNLOCK(self);
+            if (self->decoder->PushInputBuffer(cat_buffer) != GST_CODEC_OK) {
+                GST_ERROR_OBJECT(self, "Failed to push the end of slice frame");
+            }
+            gst_buffer_unref(cat_buffer);
+        }
+    } else {
+        GST_VIDEO_DECODER_STREAM_UNLOCK(self);
+    }
+    
     g_mutex_lock(&self->drain_lock);
     self->draining = TRUE;
     gint ret = self->decoder->PushInputBuffer(nullptr);
