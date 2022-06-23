@@ -20,6 +20,7 @@ G_DEFINE_TYPE(GstVdecH264, gst_vdec_h264, GST_TYPE_VDEC_BASE);
 
 static GstBuffer *handle_slice_buffer(GstVdecBase *self, GstBuffer *buffer, bool &ready_push, bool is_finish);
 static gboolean cat_slice_buffer(GstVdecBase *self, GstMapInfo *src_info);
+static void flush_cache_slice_buffer(GstVdecBase *self);
 
 static void gst_vdec_h264_class_init(GstVdecH264Class *klass)
 {
@@ -27,6 +28,7 @@ static void gst_vdec_h264_class_init(GstVdecH264Class *klass)
     GstElementClass *element_class = GST_ELEMENT_CLASS(klass);
     GstVdecBaseClass *base_class = GST_VDEC_BASE_CLASS(klass);
     base_class->handle_slice_buffer = handle_slice_buffer;
+    base_class->flush_cache_slice_buffer = flush_cache_slice_buffer;
 
     gst_element_class_set_static_metadata(element_class,
         "Hardware Driver Interface H.264 Video Decoder",
@@ -125,4 +127,13 @@ static gboolean cat_slice_buffer(GstVdecBase *self, GstMapInfo *src_info)
     vdec_h264->cache_offset += src_info->size;
     gst_buffer_unmap(vdec_h264->cache_slice_buffer, &cache_info);
     return true;
+}
+
+static void flush_cache_slice_buffer(GstVdecBase *self)
+{
+    GstVdecH264 *vdec_h264 = GST_VDEC_H264(self);
+    if (vdec_h264 != nullptr) {
+        vdec_h264->cache_offset = 0;
+    }
+
 }

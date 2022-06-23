@@ -718,6 +718,7 @@ void PlayerEngineGstImpl::OnNotifyElemSetup(GstElement &elem)
 
     if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {
         isHardwareDec_ = true;
+        g_object_set(G_OBJECT(&elem), "enable-slice-cat", TRUE, nullptr);
         return;
     }
 
