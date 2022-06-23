@@ -766,6 +766,10 @@ int32_t PlayerServer::SetParameter(const Format &param)
     if (playerEngine_ != nullptr) {
         int32_t ret = playerEngine_->SetParameter(param);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetParameter Failed!");
+    } else (param.ContainKey(PlayerKeys::CONTENT_TYPE) && param.ContainKey(PlayerKeys::STREAM_USAGE)) {
+        param.GetIntValue(PlayerKeys::CONTENT_TYPE, contentType_);
+        param.GetIntValue(PlayerKeys::STREAM_USAGE, streamUsage_);
+        param.GetIntValue(PlayerKeys::RENDERER_FLAG, rendererFlag_);
     }
 
     return MSERR_OK;

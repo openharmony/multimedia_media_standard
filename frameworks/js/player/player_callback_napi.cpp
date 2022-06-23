@@ -30,6 +30,7 @@ const std::string TIME_UPDATE_CALLBACK_NAME = "timeUpdate";
 const std::string ERROR_CALLBACK_NAME = "error";
 const std::string VOL_CHANGE_CALLBACK_NAME = "volumeChange";
 const std::string BUFFERING_UPDATE_CALLBACK_NAME = "bufferingUpdate";
+const std::string AUDIO_INTERRUPT_CALLBACK_NAME = "audioInterrupt";
 }
 
 namespace OHOS {
@@ -73,6 +74,8 @@ void PlayerCallbackNapi::SaveCallbackReference(const std::string &callbackName, 
         volumeChangeCallback_ = cb;
     } else if (callbackName == BUFFERING_UPDATE_CALLBACK_NAME) {
         bufferingUpdateCallback_ = cb;
+    } else if (callbackName == AUDIO_INTERRUPT_CALLBACK_NAME) {
+        audioInterruptCallback_ = cb;
     } else {
         MEDIA_LOGW("Unknown callback type: %{public}s", callbackName.c_str());
     }
@@ -139,6 +142,9 @@ void PlayerCallbackNapi::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
             break;
         case INFO_TYPE_BUFFERING_UPDATE:
             OnBufferingUpdateCb(infoBody);
+            break;
+        case INFO_TYPE_INTERRUPT_EVENT:
+            OnAudioInterruptCb(infoBody);
             break;
         default:
             break;
@@ -264,6 +270,27 @@ void PlayerCallbackNapi::OnVolumeChangeCb()
     cb->callback = volumeChangeCallback_;
     cb->callbackName = VOL_CHANGE_CALLBACK_NAME;
     return OnJsCallBack(cb);
+}
+
+void PlayerCallbackNapi::OnAudioInterruptCb(const Format &infoBody) const
+{
+    CHECK_AND_RETURN_LOG(audioInterruptCallback_ != nullptr,
+        "Cannot find the reference of audio interrupt callback");
+
+    PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
+    CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
+    cb->callback = audioInterruptCallback_;
+    cb->callbackName = AUDIO_INTERRUPT_CALLBACK_NAME;
+    int32_t eventType = 0;
+    int32_t forceType = 0;
+    int32_t hintType = 0;
+    (void)infoBody.GetIntValue("eventType", eventType);
+    (void)infoBody.GetIntValue("forceType", forceType);
+    (void)infoBody.GetIntValue("hintType", hintType);
+    cb->interruptEvent.eventType = AudioStandard::InterruptType(eventType);
+    cb->interruptEvent.forceType = AudioStandard::InterruptForceType(forceType);
+    cb->interruptEvent.hintType = AudioStandard::InterruptHint(hintType);
+    return OnJsCallBackInterrupt(cb);
 }
 
 void PlayerCallbackNapi::OnJsCallBack(PlayerJsCallback *jsCb) const
@@ -524,6 +551,60 @@ void PlayerCallbackNapi::OnJsCallBackIntArray(PlayerJsCallback *jsCb) const
 
             napi_value result = nullptr;
             napi_value args[1] = {array};
+            nstatus = napi_call_function(env, nullptr, jsCallback, 1, args, &result);
+            CHECK_AND_BREAK_LOG(nstatus == napi_ok, "%{public}s fail to call callback", request.c_str());
+        } while (0);
+        delete event;
+        delete work;
+    });
+    if (ret != 0) {
+        MEDIA_LOGE("Failed to execute libuv work queue");
+        delete jsCb;
+        delete work;
+    }
+}
+
+void PlayerCallbackNapi::OnJsCallBackInterrupt(PlayerJsCallback *jsCb) const
+{
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(env_, &loop);
+    if (loop == nullptr) {
+        delete jsCb;
+        return;
+    }
+
+    uv_work_t *work = new(std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        MEDIA_LOGE("No memory");
+        delete jsCb;
+        return;
+    }
+    work->data = reinterpret_cast<void *>(jsCb);
+
+    int ret = uv_queue_work(loop, work, [] (uv_work_t *work) {}, [] (uv_work_t *work, int status) {
+        // Js Thread
+        CHECK_AND_RETURN_LOG(work != nullptr, "work is nullptr");
+        PlayerJsCallback *event = reinterpret_cast<PlayerJsCallback *>(work->data);
+        std::string request = event->callbackName;
+        napi_env env = event->callback->env_;
+        napi_ref callback = event->callback->cb_;
+        MEDIA_LOGD("JsCallBack %{public}s", request.c_str());
+
+        do {
+            CHECK_AND_BREAK_LOG(status != UV_ECANCELED, "%{public}s canceled", request.c_str());
+
+            napi_value jsCallback = nullptr;
+            napi_status nstatus = napi_get_reference_value(env, callback, &jsCallback);
+            CHECK_AND_BREAK_LOG(nstatus == napi_ok && jsCallback != nullptr,
+                "%{public}s failed call callback", request.c_str());
+            
+            napi_value args[1] = {nullptr};
+            napi_create_object(env, &args[0]);
+            CommonNapi::SetPropertyInt32(env, args[0], "eventType", static_cast<int32_t>(event->interruptEvent.eventType));
+            CommonNapi::SetPropertyInt32(env, args[0], "forceType", static_cast<int32_t>(event->interruptEvent.forceType));
+            CommonNapi::SetPropertyInt32(env, args[0], "hintType", static_cast<int32_t>(event->interruptEvent.hintType));
+
+            napi_value result = nullptr;
             nstatus = napi_call_function(env, nullptr, jsCallback, 1, args, &result);
             CHECK_AND_BREAK_LOG(nstatus == napi_ok, "%{public}s fail to call callback", request.c_str());
         } while (0);

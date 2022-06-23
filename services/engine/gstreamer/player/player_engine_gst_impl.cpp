@@ -345,6 +345,11 @@ void PlayerEngineGstImpl::HandleSubTypeMessage(const PlayBinMessage &msg)
         }
         case PLAYBIN_SUB_MSG_BITRATE_COLLECT: {
             HandleBitRateCollect(msg);
+            break;
+        }
+        case PLAYBIN_MSG_INTERRUPT_EVENT: {
+            HandleInterruptMessage(msg);
+            break;
         }
         default: {
             break;
@@ -361,6 +366,21 @@ void PlayerEngineGstImpl::HandleVolumeChangedMessage(const PlayBinMessage &msg)
     std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
     if (notifyObs != nullptr) {
         notifyObs->OnInfo(INFO_TYPE_VOLUME_CHANGE, 0, format);
+    }
+}
+
+void PlayerEngineGstImpl::HandleInterruptMessage(const PlayBinMessage &msg)
+{
+    (void)msg;
+    MEDIA_LOGI("interrupt event in");
+    AudioStandard::InterruptEvent interruptEvent = std::any_cast<AudioStandard::InterruptEvent>(msg.extra);
+    std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
+    if (notifyObs != nullptr) {
+        Format format;
+        (void)format.PutIntValue("eventType", static_cast<uint32_t>(interruptEvent.eventType));
+        (void)format.PutIntValue("forceType", static_cast<uint32_t>(interruptEvent.forceType));
+        (void)format.PutIntValue("hintType", static_cast<uint32_t>(interruptEvent.hintType));
+        notifyObs->OnInfo(INFO_TYPE_INTERRUPT_EVENT, 0, format);
     }
 }
 
@@ -452,6 +472,9 @@ int32_t PlayerEngineGstImpl::PlayBinCtrlerPrepare()
         ret = playBinCtrler_->SetSource(appsrcWrap_);
     }
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetSource failed");
+
+    ret = SetAudioRendererInfo(contentType_, streamUsage_, rendererFlag_);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetAudioRendererInfo failed");
 
     auto listener = std::bind(&PlayerEngineGstImpl::OnNotifyElemSetup, this, std::placeholders::_1);
     playBinCtrler_->SetElemSetupListener(listener);
@@ -615,25 +638,23 @@ int32_t PlayerEngineGstImpl::SetLooping(bool loop)
 
 int32_t PlayerEngineGstImpl::SetParameter(const Format &param)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_RET_LOG(playBinCtrler_ != nullptr, MSERR_INVALID_OPERATION, "playBinCtrler_ is nullptr");
-
-    int32_t contentType = 0;
-    int32_t streamUsage = 0;
-
-    if (param.GetIntValue(PlayerKeys::CONTENT_TYPE, contentType) &&
-        param.GetIntValue(PlayerKeys::STREAM_USAGE, streamUsage)) {
-        CHECK_AND_RETURN_RET(streamUsage >= 0 && contentType >= 0, MSERR_UNSUPPORT_AUD_PARAMS);
-
-        int32_t rendererInfo = 0;
-        rendererInfo |= (contentType | (static_cast<uint32_t>(streamUsage) <<
-            AudioStandard::RENDERER_STREAM_USAGE_SHIFT));
-        playBinCtrler_->SetAudioRendererInfo(rendererInfo);
-    } else {
-        MEDIA_LOGE("parameter doesn't contain content_type or stream_usage");
-        return MSERR_UNSUPPORT_AUD_PARAMS;
+    if (param.ContainKey(PlayerKeys::VIDEO_SCALE_TYPE)) {
+        int32_t videoScaleType = 0;
+        param.GetIntValue(PlayerKeys::VIDEO_SCALE_TYPE, videoScaleType);
+        return SetVideoScaleType(VideoScaleType(videoScaleType));
     }
+    if (param.ContainKey(PlayerKeys::CONTENT_TYPE) && param.ContainKey(PlayerKeys::STREAM_USAGE)) {
+        param.GetIntValue(PlayerKeys::CONTENT_TYPE, contentType_);
+        param.GetIntValue(PlayerKeys::STREAM_USAGE, streamUsage_);
+        param.GetIntValue(PlayerKeys::RENDERER_FLAG, rendererFlag_);
+        return SetAudioRendererInfo(contentType_, streamUsage_, rendererFlag_);
 
+    }
+    if (param.ContainKey(PlayerKeys::AUDIO_INTERRUPT_MODE)) {
+        int32_t interruptMode = 0;
+        param.GetIntValue(PlayerKeys::AUDIO_INTERRUPT_MODE, interruptMode);
+        return SetAudioInterruptMode(interruptMode);
+    }
     return MSERR_OK;
 }
 
@@ -688,6 +709,32 @@ int32_t PlayerEngineGstImpl::SelectBitRate(uint32_t bitRate)
 int32_t PlayerEngineGstImpl::SetVideoScaleType(VideoScaleType videoScaleType)
 {
     (void)videoScaleType;
+    return MSERR_OK;
+}
+
+int32_t PlayerEngineGstImpl::SetAudioRendererInfo(const int32_t contentType, const int32_t streamUsage, const int32_t rendererFlag)
+{
+    std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
+    contentType_ = contentType;
+    streamUsage_ = streamUsage;
+    rendererFlag_ = rendererFlag;
+    if (playBinCtrler_ != nullptr) {
+        MEDIA_LOGD("SetAudioRendererInfo in");
+        int32_t rendererInfo(0);
+        rendererInfo |= (contentType | (static_cast<uint32_t>(streamUsage) <<
+        AudioStandard::RENDERER_STREAM_USAGE_SHIFT));
+        playBinCtrler_->SetAudioRendererInfo(rendererInfo, rendererFlag);
+    }
+    return MSERR_OK;
+}
+
+int32_t PlayerEngineGstImpl::SetAudioInterruptMode(const int32_t interruptMode)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (playBinCtrler_ != nullptr) {
+        MEDIA_LOGD("SetAudioInterruptMode in");
+        playBinCtrler_->SetAudioInterruptMode(interruptMode);
+    }
     return MSERR_OK;
 }
 

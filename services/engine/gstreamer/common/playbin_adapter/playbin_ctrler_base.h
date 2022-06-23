@@ -60,7 +60,8 @@ public:
     double GetRate() override;
     int32_t SetLoop(bool loop) override;
     void SetVolume(const float &leftVolume, const float &rightVolume) override;
-    void SetAudioRendererInfo(int32_t rendererInfo) override;
+    void SetAudioInterruptMode(const int32_t interruptMode) override;
+    int32_t SetAudioRendererInfo(const int32_t rendererInfo, const int32_t rendererFlag) override;
     int32_t SelectBitRate(uint32_t bitRate) override;
 
     void SetElemSetupListener(ElemSetupListener listener) final;
@@ -99,7 +100,10 @@ private:
     static void OnVolumeChangedCb(const GstElement *playbin, GstElement *elem, gpointer userdata);
     static void OnBitRateParseCompleteCb(const GstElement *playbin, uint32_t *bitrateInfo,
         uint32_t bitrateNum, gpointer userdata);
+    static void OnInterruptEventCb(const GstElement *audioSink, const uint32_t eventType, const uint32_t forceType,
+        const uint32_t hintType, gpointer userdata);
     void SetupVolumeChangedCb();
+    void SetupInterruptEventCb();
     void OnElementSetup(GstElement &elem);
     void OnSourceSetup(const GstElement *playbin, GstElement *src,
         const std::shared_ptr<PlayBinCtrlerBase> &playbinCtrl);
@@ -144,7 +148,14 @@ private:
     bool isSeeking_ = false;
     bool isRating_ = false;
     bool isBuffering_ = false;
-
+    int32_t rendererInfo_ = 0;
+    int32_t rendererFlag_ = 0;
+    struct InterruptEvent {
+        int32_t eventType;
+        int32_t forceType;
+        int32_t hintType;
+    };
+    
     bool enableLooping_ = false;
     std::shared_ptr<GstAppsrcWrap> appsrcWrap_ = nullptr;
 
