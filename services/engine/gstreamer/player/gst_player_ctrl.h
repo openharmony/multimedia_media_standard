@@ -118,6 +118,7 @@ private:
     bool IsLiveMode() const;
     bool SetAudioRendererInfo(const Format &param);
     void SetBitRate(uint32_t bitRate);
+    void SetupCodecCb(GstElement *src, GstPlayerCtrl *playerGst, const std::string &metaStr);
     std::mutex mutex_;
     std::condition_variable condVarPlaySync_;
     std::condition_variable condVarPauseSync_;
