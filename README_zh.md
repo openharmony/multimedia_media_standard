@@ -61,5 +61,7 @@
 
 ## 相关仓<a name="section1533973044317"></a>
 
-媒体组件仓：multimedia\media_standard
+媒体组件仓
+
+**multimedia\media_standard**
 
