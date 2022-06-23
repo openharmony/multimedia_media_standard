@@ -401,8 +401,6 @@ static gboolean operate_element(GstCodecBin *bin)
     g_return_val_if_fail(bin->sink != nullptr, FALSE);
     g_object_set(bin->sink, "sync", FALSE, nullptr);
     if (bin->type == CODEC_BIN_TYPE_VIDEO_DECODER && bin->use_software == FALSE && bin->is_output_surface) {
-        g_object_set(bin->coder, "enable-slice-cat", TRUE, nullptr);
-        g_object_set(bin->sink, "enable-slice-cat", TRUE, nullptr);
         g_object_set(bin->coder, "performance-mode", TRUE, nullptr);
         g_object_set(bin->sink, "performance-mode", TRUE, nullptr);
         GstCaps *caps;

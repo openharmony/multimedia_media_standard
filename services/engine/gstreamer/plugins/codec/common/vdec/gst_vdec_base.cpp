@@ -857,14 +857,20 @@ static GstFlowReturn gst_vdec_base_push_input_buffer(GstVideoDecoder *decoder, G
         GstBuffer *cat_buffer = kclass->handle_slice_buffer(self, frame->input_buffer, ready_push_slice_buffer, false);
         if (cat_buffer != nullptr && ready_push_slice_buffer == true) {
             buf = cat_buffer;
-            gst_buffer_unref(cat_buffer);
         }
     } else {
         buf = frame->input_buffer;
+        gst_buffer_ref(buf);
     }
 
     GST_VIDEO_DECODER_STREAM_UNLOCK(self);
-    gint codec_ret = self->decoder->PushInputBuffer(buf);
+
+    gint codec_ret  = GST_FLOW_OK;
+    if (buf != nullptr) {
+        codec_ret = self->decoder->PushInputBuffer(buf);
+        gst_buffer_unref(buf);
+    }
+
     GST_VIDEO_DECODER_STREAM_LOCK(self);
     GstFlowReturn ret = GST_FLOW_OK;
     switch (codec_ret) {
@@ -1417,6 +1423,10 @@ static gboolean gst_vdec_base_event(GstVideoDecoder *decoder, GstEvent *event)
                     break;
                 }
                 GST_VIDEO_DECODER_STREAM_LOCK(self);
+                GstVdecBaseClass *kclass = GST_VDEC_BASE_GET_CLASS(self);
+                if (kclass->flush_cache_slice_buffer != nullptr) {
+                    (void)kclass->flush_cache_slice_buffer(self);
+                }
                 gst_vdec_base_set_flushing(self, TRUE);
                 self->decoder_start = FALSE;
                 if (self->decoder != nullptr) {
