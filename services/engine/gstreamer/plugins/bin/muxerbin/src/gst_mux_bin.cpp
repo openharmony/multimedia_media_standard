@@ -389,14 +389,14 @@ static bool gst_mux_bin_connect_element(GstMuxBin *mux_bin, OHOS::Media::MediaTy
         GST_ERROR_OBJECT(mux_bin, "Failed to check track type");
         return false;
     }
-    
+
     while (iter != nullptr) {
         GstPad *src_src_pad = gst_element_get_static_pad((reinterpret_cast<GstTrackInfo *>(iter->data))->src_, "src");
         GstPad *split_mux_sink_sink_pad = nullptr;
         if (type == OHOS::Media::MEDIA_TYPE_VID) {
-            split_mux_sink_sink_pad = gst_element_get_request_pad(mux_bin->split_mux_sink, "video");
+            split_mux_sink_sink_pad = gst_element_request_pad_simple(mux_bin->split_mux_sink, "video");
         } else if (type == OHOS::Media::MEDIA_TYPE_AUD) {
-            split_mux_sink_sink_pad = gst_element_get_request_pad(mux_bin->split_mux_sink, "audio_%u");
+            split_mux_sink_sink_pad = gst_element_request_pad_simple(mux_bin->split_mux_sink, "audio_%u");
         }
         if ((reinterpret_cast<GstTrackInfo *>(iter->data))->parse_ != nullptr) {
             if (!gst_mux_bin_connect_parse(mux_bin, (reinterpret_cast<GstTrackInfo *>(iter->data))->parse_,
@@ -418,7 +418,7 @@ static bool gst_mux_bin_connect_element(GstMuxBin *mux_bin, OHOS::Media::MediaTy
         gst_object_unref(src_src_pad);
         iter = iter->next;
     }
-    
+
     return true;
 }
 
