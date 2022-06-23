@@ -996,7 +996,7 @@ napi_value AudioPlayerNapi::SetAudioInterruptMode(napi_env env, napi_callback_in
 
     int32_t interruptMode = 0;
     status = napi_get_value_int32(env, args[0], &interruptMode);
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_get_value_bool error");
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_get_value_int32 error");
 
     if (interruptMode < AudioStandard::InterruptMode::SHARE_MODE ||
         interruptMode > AudioStandard::InterruptMode::INDEPENDENT_MODE) {
@@ -1040,7 +1040,7 @@ napi_value AudioPlayerNapi::GetAudioInterruptMode(napi_env env, napi_callback_in
     status = napi_create_object(env, &jsResult);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "create jsresult object error");
 
-    CHECK_AND_RETURN_RET_LOG(CommonNapi::AddNumberPropInt32(env, jsResult, "InterruptMode",
+    CHECK_AND_RETURN_RET(CommonNapi::AddNumberPropInt32(env, jsResult, "InterruptMode",
         player->interruptMode_) == true, nullptr);
     MEDIA_LOGD("GetAudioInterruptMode success");
     return jsResult;

@@ -70,14 +70,15 @@ public:
         (void)videoScaleType;
         return 0;
     }
-    virtual int32_t SetAudioRendererInfo(const int32_t contentType, const int32_t streamUsage, const int32_t rendererFlag)
+    virtual int32_t SetAudioRendererInfo(const int32_t contentType, const int32_t streamUsage,
+        const int32_t rendererFlag)
     {
         (void)contentType;
         (void)streamUsage;
         (void)rendererFlag;
         return 0;
     }
-    virtual int32_t SetInterruptMode(const int32_t interruptMode)
+    virtual int32_t SetAudioInterruptMode(const int32_t interruptMode)
     {
         (void)interruptMode;
         return 0;

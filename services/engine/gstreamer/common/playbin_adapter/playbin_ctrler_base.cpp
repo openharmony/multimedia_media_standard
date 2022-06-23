@@ -371,7 +371,7 @@ int32_t PlayBinCtrlerBase::SetAudioRendererInfo(const int32_t rendererInfo, cons
     return MSERR_OK;
 }
 
-void PlayBinCtrlerBase::SetAudioInterruptMode(int32_t interruptMode)
+void PlayBinCtrlerBase::SetAudioInterruptMode(const int32_t interruptMode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_LOG(audioSink_ != nullptr, "audioSink_ is nullptr");
@@ -879,8 +879,8 @@ void PlayBinCtrlerBase::OnVolumeChangedCb(const GstElement *playbin, GstElement 
     }
 }
 
-void PlayBinCtrlerBase::OnInterruptEventCb(const GstElement *audioSink, const uint32_t eventType, const uint32_t forceType,
-    const uint32_t hintType, gpointer userdata)
+void PlayBinCtrlerBase::OnInterruptEventCb(const GstElement *audioSink, const uint32_t eventType,
+    const uint32_t forceType, const uint32_t hintType, gpointer userdata)
 {
     (void)audioSink;
     if (userdata == nullptr) {
