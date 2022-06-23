@@ -37,6 +37,8 @@ G_BEGIN_DECLS
     (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_AUDIO_SERVER_SINK))
 #define GST_AUDIO_SERVER_SINK_CAST(obj) ((GstAudioServerSink *)(obj))
 
+static guint signal_interrupt_event = 0;
+
 struct _GstAudioServerSink {
     GstBaseSink parent;
 
@@ -59,6 +61,8 @@ struct _GstAudioServerSink {
     GMutex render_lock;
     std::mutex mutex_;
     GstBuffer *pause_cache_buffer;
+    guint desc;
+    guint flag;
 };
 
 struct _GstAudioServerSinkClass {

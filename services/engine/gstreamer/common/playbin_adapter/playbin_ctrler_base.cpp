@@ -360,13 +360,22 @@ void PlayBinCtrlerBase::SetVolume(const float &leftVolume, const float &rightVol
     }
 }
 
-void PlayBinCtrlerBase::SetAudioRendererInfo(int32_t rendererInfo)
+int32_t PlayBinCtrlerBase::SetAudioRendererInfo(const int32_t rendererInfo, const int32_t rendererFlag)
+{
+    std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
+    rendererInfo_ = rendererInfo;
+    rendererFlag_ = rendererFlag;
+    CHECK_AND_RETURN_RET_LOG(audioSink_ != nullptr, MSERR_INVALID_VAL, "audioSink_ is nullptr");
+    g_object_set(audioSink_, "audio-renderer-desc", rendererInfo, nullptr);
+    g_object_set(audioSink_, "audio-renderer-flag", rendererFlag, nullptr);
+    return MSERR_OK;
+}
+
+void PlayBinCtrlerBase::SetAudioInterruptMode(int32_t interruptMode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (audioSink_ != nullptr) {
-        MEDIA_LOGI("SetAudioRendererInfo(%{public}d) to audio sink", rendererInfo);
-        g_object_set(audioSink_, "audio-renderer-desc", rendererInfo, nullptr);
-    }
+    CHECK_AND_RETURN_LOG(audioSink_ != nullptr, "audioSink_ is nullptr");
+    g_object_set(audioSink_, "audio-interrupt-mode", interruptMode, nullptr);
 }
 
 int32_t PlayBinCtrlerBase::SelectBitRate(uint32_t bitRate)
@@ -468,7 +477,7 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
     SetupCustomElement();
     ret = SetupSignalMessage();
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
-
+    SetAudioRendererInfo(rendererInfo_, rendererFlag_);
     uint32_t flags = 0;
     g_object_get(playbin_, "flags", &flags, nullptr);
     if (renderMode_ & PlayBinRenderMode::NATIVE_STREAM) {
@@ -582,6 +591,15 @@ void PlayBinCtrlerBase::SetupVolumeChangedCb()
     CHECK_AND_RETURN_LOG(wrapper != nullptr, "can not create this wrapper");
     (void)signalIds_.emplace(audioSink_, g_signal_connect_data(audioSink_, "notify::volume",
         G_CALLBACK(&PlayBinCtrlerBase::OnVolumeChangedCb), wrapper,
+        (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory, static_cast<GConnectFlags>(0)));
+}
+
+void PlayBinCtrlerBase::SetupInterruptEventCb()
+{
+    PlayBinCtrlerWrapper *wrapper = new(std::nothrow) PlayBinCtrlerWrapper(shared_from_this());
+    CHECK_AND_RETURN_LOG(wrapper != nullptr, "can not create this wrapper");
+    (void)signalIds_.emplace(audioSink_, g_signal_connect_data(audioSink_, "interrupt-event",
+        G_CALLBACK(&PlayBinCtrlerBase::OnInterruptEventCb), wrapper,
         (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory, static_cast<GConnectFlags>(0)));
 }
 
@@ -861,6 +879,23 @@ void PlayBinCtrlerBase::OnVolumeChangedCb(const GstElement *playbin, GstElement 
     }
 }
 
+void PlayBinCtrlerBase::OnInterruptEventCb(const GstElement *audioSink, const uint32_t eventType, const uint32_t forceType,
+    const uint32_t hintType, gpointer userdata)
+{
+    (void)audioSink;
+    if (userdata == nullptr) {
+        return;
+    }
+    auto thizStrong = PlayBinCtrlerWrapper::TakeStrongThiz(userdata);
+    if (thizStrong != nullptr) {
+        InterruptEvent interruptEvent;
+        interruptEvent.eventType = eventType;
+        interruptEvent.forceType = forceType;
+        interruptEvent.hintType = hintType;
+        PlayBinMessage msg { PLAYBIN_MSG_SUBTYPE, PLAYBIN_MSG_INTERRUPT_EVENT, 0, interruptEvent };
+        thizStrong->ReportMessage(msg);
+    }
+}
 void PlayBinCtrlerBase::OnBitRateParseCompleteCb(const GstElement *playbin, uint32_t *bitrateInfo,
     uint32_t bitrateNum, gpointer userdata)
 {

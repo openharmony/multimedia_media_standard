@@ -70,9 +70,9 @@ public:
     virtual double GetRate() = 0;
     virtual int32_t SetLoop(bool loop) = 0;
     virtual void SetVolume(const float &leftVolume, const float &rightVolume) = 0;
-    virtual void SetAudioRendererInfo(int32_t rendererInfo) = 0;
     virtual int32_t SelectBitRate(uint32_t bitRate) = 0;
-
+    virtual void SetAudioInterruptMode(const int32_t interruptMode) = 0;
+    virtual int32_t SetAudioRendererInfo(const int32_t rendererInfo, const int32_t rendererFlag) = 0;
     using ElemSetupListener = std::function<void(GstElement &elem)>;
     virtual void SetElemSetupListener(ElemSetupListener listener) = 0;
 };

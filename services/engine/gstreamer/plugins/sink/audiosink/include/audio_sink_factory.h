@@ -19,6 +19,7 @@
 #include <memory>
 #include "audio_sink.h"
 #include "common_utils.h"
+#include <gst/base/gstbasesink.h>
 
 namespace OHOS {
 namespace Media {
@@ -26,7 +27,7 @@ class AudioSinkFactory {
 public:
     AudioSinkFactory() = delete;
     ~AudioSinkFactory() = delete;
-    static std::unique_ptr<AudioSink> CreateAudioSink();
+    static std::unique_ptr<AudioSink> CreateAudioSink(GstBaseSink *sink);
 };
 } // namespace Media
 } // namespace OHOS
