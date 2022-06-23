@@ -80,9 +80,9 @@ static void gst_audio_server_sink_class_init(GstAudioServerSinkClass *klass)
     gobject_class->get_property = gst_audio_server_sink_get_property;
 
     signal_interrupt_event =
-        g_signal_new("interrupt-event", G_TYPE_FROM_CLASS(klass), 
+    g_signal_new("interrupt-event", G_TYPE_FROM_CLASS(klass),
         static_cast<GSignalFlags>(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION), 0, NULL,
-        NULL, NULL, G_TYPE_NONE, 3, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT);
+        NULL, NULL, G_TYPE_NONE, 3, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT); // 3 parameters
 
     g_object_class_install_property(gobject_class, PROP_BITS_PER_SAMPLE,
         g_param_spec_uint("bps", "Bits Per Sample",
@@ -174,8 +174,8 @@ static void gst_audio_server_sink_init(GstAudioServerSink *sink)
     sink->cache_size = 0;
     sink->enable_cache = FALSE;
     sink->frame_after_segment = FALSE;
-    sink->desc = 0;
-    sink->flag = 0;
+    sink->renderer_desc = 0;
+    sink->renderer_flag = 0;
     g_mutex_init(&sink->render_lock);
 }
 
@@ -211,7 +211,8 @@ static gboolean gst_audio_server_sink_set_volume(GstAudioServerSink *sink, gfloa
     return ret;
 }
 
-static void gst_audio_server_sink_interrupt_callback(GstBaseSink *basesink, guint eventType, guint forceType, guint hintType)
+static void gst_audio_server_sink_interrupt_callback(GstBaseSink *basesink,
+    guint eventType, guint forceType, guint hintType)
 {
     GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(basesink);
     g_signal_emit_by_name(sink, "interrupt-event", eventType, forceType, hintType);
@@ -233,7 +234,7 @@ static void gst_audio_server_sink_set_property(GObject *object, guint prop_id,
             }
             break;
         case PROP_AUDIO_RENDERER_DESC:
-            sink->desc = g_value_get_int(value);
+            sink->renderer_desc = g_value_get_int(value);
             break;
         case PROP_APP_UID:
             sink->appuid = g_value_get_int(value);
@@ -246,7 +247,7 @@ static void gst_audio_server_sink_set_property(GObject *object, guint prop_id,
             g_object_notify(G_OBJECT(sink), "app-pid");
             break;
         case PROP_AUDIO_RENDERER_FLAG:
-            sink->flag = g_value_get_int(value);
+            sink->renderer_flag = g_value_get_int(value);
             break;
         case PROP_AUDIO_INTERRUPT_MODE:
             g_return_if_fail(sink->audio_sink != nullptr);
@@ -383,7 +384,8 @@ static gboolean gst_audio_server_sink_start(GstBaseSink *basesink)
     g_return_val_if_fail(sink != nullptr, FALSE);
     sink->audio_sink = OHOS::Media::AudioSinkFactory::CreateAudioSink(basesink);
     g_return_val_if_fail(sink->audio_sink != nullptr, FALSE);
-    g_return_val_if_fail(sink->audio_sink->SetRendererInfo(sink->desc, sink->flag) == MSERR_OK, FALSE);
+    g_return_val_if_fail(sink->audio_sink->SetRendererInfo(sink->renderer_desc,
+        sink->renderer_flag) == MSERR_OK, FALSE);
     g_return_val_if_fail(sink->audio_sink->Prepare(sink->appuid, sink->apppid) == MSERR_OK, FALSE);
     sink->audio_sink->SetAudioSinkInterruptCb(gst_audio_server_sink_interrupt_callback);
     g_return_val_if_fail(sink->audio_sink->GetMaxVolume(sink->max_volume) == MSERR_OK, FALSE);

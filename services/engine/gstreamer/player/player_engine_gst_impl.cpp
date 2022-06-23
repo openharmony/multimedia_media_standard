@@ -371,7 +371,6 @@ void PlayerEngineGstImpl::HandleVolumeChangedMessage(const PlayBinMessage &msg)
 
 void PlayerEngineGstImpl::HandleInterruptMessage(const PlayBinMessage &msg)
 {
-    (void)msg;
     MEDIA_LOGI("interrupt event in");
     AudioStandard::InterruptEvent interruptEvent = std::any_cast<AudioStandard::InterruptEvent>(msg.extra);
     std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
@@ -712,7 +711,8 @@ int32_t PlayerEngineGstImpl::SetVideoScaleType(VideoScaleType videoScaleType)
     return MSERR_OK;
 }
 
-int32_t PlayerEngineGstImpl::SetAudioRendererInfo(const int32_t contentType, const int32_t streamUsage, const int32_t rendererFlag)
+int32_t PlayerEngineGstImpl::SetAudioRendererInfo(const int32_t contentType,
+    const int32_t streamUsage, const int32_t rendererFlag)
 {
     std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
     contentType_ = contentType;

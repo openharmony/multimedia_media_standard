@@ -25,30 +25,29 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-
 AudioRendererMediaCallback::AudioRendererMediaCallback(GstBaseSink *audioSink)
 {
     audioSink_ = audioSink;
 }
 
-void SaveCallback(void (*interruptCb)(GstBaseSink *, guint, guint, guint))
+void AudioRendererMediaCallback::SaveCallback(void (*interruptCb)(GstBaseSink *, guint, guint, guint))
 {
     interruptCb_ = interruptCb;
 }
 
-void OnInterrupt(const AudioStandard::InterruptEvent &interruptEvent)
+void AudioRendererMediaCallback::OnInterrupt(const AudioStandard::InterruptEvent &interruptEvent)
 {
     if (interruptCb_ != nullptr) {
         interruptCb_(audioSink_, interruptEvent.eventType, interruptEvent.forceType, interruptEvent.hintType);
     }
 }
 
-void OnStateChange(const AudioStandard::RendererState state)
+void AudioRendererMediaCallback::OnStateChange(const AudioStandard::RendererState state)
 {
     MEDIA_LOGD("RenderState is %{public}d", static_cast<uint32_t>(state));
 }
 
-AudioSinkSvImpl::AudioSinkSvImpl(GstBaseSink *audioSink)
+AudioSinkSvImpl::AudioSinkSvImpl(GstBaseSink *sink)
     : audioRenderer_(nullptr)
 {
     audioRendererMediaCallback_ = std::make_shared<AudioRendererMediaCallback>(sink);

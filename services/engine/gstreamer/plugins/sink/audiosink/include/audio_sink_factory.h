@@ -19,7 +19,6 @@
 #include <memory>
 #include "audio_sink.h"
 #include "common_utils.h"
-#include <gst/base/gstbasesink.h>
 
 namespace OHOS {
 namespace Media {

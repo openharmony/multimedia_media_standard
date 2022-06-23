@@ -600,9 +600,12 @@ void PlayerCallbackNapi::OnJsCallBackInterrupt(PlayerJsCallback *jsCb) const
             
             napi_value args[1] = {nullptr};
             napi_create_object(env, &args[0]);
-            CommonNapi::SetPropertyInt32(env, args[0], "eventType", static_cast<int32_t>(event->interruptEvent.eventType));
-            CommonNapi::SetPropertyInt32(env, args[0], "forceType", static_cast<int32_t>(event->interruptEvent.forceType));
-            CommonNapi::SetPropertyInt32(env, args[0], "hintType", static_cast<int32_t>(event->interruptEvent.hintType));
+            CommonNapi::SetPropertyInt32(env, args[0], "eventType",
+                static_cast<int32_t>(event->interruptEvent.eventType));
+            CommonNapi::SetPropertyInt32(env, args[0], "forceType",
+                static_cast<int32_t>(event->interruptEvent.forceType));
+            CommonNapi::SetPropertyInt32(env, args[0], "hintType",
+                static_cast<int32_t>(event->interruptEvent.hintType));
 
             napi_value result = nullptr;
             nstatus = napi_call_function(env, nullptr, jsCallback, 1, args, &result);

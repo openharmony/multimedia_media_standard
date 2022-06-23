@@ -1463,7 +1463,7 @@ napi_value VideoPlayerNapi::GetAudioInterruptMode(napi_env env, napi_callback_in
     status = napi_create_object(env, &jsResult);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "create jsresult object error");
 
-    CHECK_AND_RETURN_RET_LOG(CommonNapi::AddNumberPropInt32(env, jsResult, "InterruptMode",
+    CHECK_AND_RETURN_RET(CommonNapi::AddNumberPropInt32(env, jsResult, "InterruptMode",
         player->interruptMode_) == true, nullptr);
     MEDIA_LOGD("GetAudioInterruptMode success");
     return jsResult;
