@@ -110,12 +110,15 @@ struct _GstVdecBase {
     DisplayRect rect;
     gboolean pre_init_pool;
     gboolean performance_mode;
+    gboolean enable_slice_cat;
     GstCaps *sink_caps;
 };
 
 struct _GstVdecBaseClass {
     GstVideoDecoderClass parentClass;
     std::shared_ptr<OHOS::Media::IGstCodec> (*create_codec)(GstElementClass *kclass);
+    GstBuffer *(*handle_slice_buffer)(GstVdecBase *self,
+        GstBuffer *buffer, bool &ready_push, bool is_finish);
 };
 
 GST_API_EXPORT GType gst_vdec_base_get_type(void);
