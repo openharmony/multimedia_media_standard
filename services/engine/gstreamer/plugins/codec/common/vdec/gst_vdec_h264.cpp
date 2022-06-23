@@ -135,5 +135,4 @@ static void flush_cache_slice_buffer(GstVdecBase *self)
     if (vdec_h264 != nullptr) {
         vdec_h264->cache_offset = 0;
     }
-
 }
