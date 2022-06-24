@@ -22,6 +22,7 @@
 #include "napi/native_node_api.h"
 #include "media_data_source_callback.h"
 #include "common_napi.h"
+#include "audio_info.h"
 
 namespace OHOS {
 namespace Media {
@@ -54,6 +55,8 @@ private:
     static napi_value GetDuration(napi_env env, napi_callback_info info);
     static napi_value GetState(napi_env env, napi_callback_info info);
     static napi_value GetTrackDescription(napi_env env, napi_callback_info info);
+    static napi_value GetAudioInterruptMode(napi_env env, napi_callback_info info);
+    static napi_value SetAudioInterruptMode(napi_env env, napi_callback_info info);
     static void AsyncGetTrackDescription(napi_env env, void *data);
     void ErrorCallback(MediaServiceExtErrCode errCode);
     AudioPlayerNapi();
@@ -68,6 +71,7 @@ private:
     std::string uri_ = "";
     std::vector<Format> audioTrackInfoVec_;
     AVFileDescriptor rawFd_;
+    OHOS::AudioStandard::InterruptMode interruptMode_;
 };
 } // namespace Media
 } // namespace OHOS

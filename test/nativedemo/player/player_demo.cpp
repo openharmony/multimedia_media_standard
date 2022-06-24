@@ -623,6 +623,39 @@ int32_t PlayerDemo::SelectBufferingOut()
     }
 }
 
+int32_t PlayerDemo::SelectRendererMode()
+{
+    cout << "Please select renderer mode (default no renderer)" << endl;
+    cout << "0:no renderer" << endl;
+    cout << "1:please set more details" << endl;
+    string mode;
+    (void)getline(cin, mode);
+    if (mode == "1") {
+        return SetRendererInfo();
+    } else {
+        return 0;
+    }
+}
+
+int32_t PlayerDemo::SetRendererInfo()
+{
+    cout << "Please enter contentType(int)" << endl;
+    int32_t contentType;
+    cin >> contentType;
+    cout << "Please enter streamUsage(int)" << endl;
+    int32_t streamUsage;
+    cin >> streamUsage;
+    cout << "Please enter rendererFlags(int)" << endl;
+    int32_t rendererFlags;
+    cin >> rendererFlags;
+    Format format;
+    (void)format.PutIntValue(PlayerKeys::CONTENT_TYPE, contentType);
+    (void)format.PutIntValue(PlayerKeys::STREAM_USAGE, streamUsage);
+    (void)format.PutIntValue(PlayerKeys::RENDERER_FLAG, rendererFlags);
+    return player_->SetParameter(format);
+}
+
+
 int32_t PlayerDemo::SetSurfaceSize()
 {
     int32_t ret = 0;
@@ -671,6 +704,9 @@ void PlayerDemo::RunCase(const string &path)
         }
     }
     SetVideoScaleType();
+    if (SelectRendererMode() != 0) {
+        cout << "set renderer info fail" << endl;
+    }
     ret = player_->PrepareAsync();
     if (ret !=  0) {
         cout << "PrepareAsync fail" << endl;
