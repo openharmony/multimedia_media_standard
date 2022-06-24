@@ -46,6 +46,7 @@ AVCodecAbilitySingleton::~AVCodecAbilitySingleton()
 
 bool AVCodecAbilitySingleton::ParseCodecXml()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (isParsered_) {
         return true;
     }
@@ -70,6 +71,7 @@ bool AVCodecAbilitySingleton::ParseCodecXml()
 
 bool AVCodecAbilitySingleton::RegisterCapability(const std::vector<CapabilityData> &registerCapabilityDataArray)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     capabilityDataArray_.insert(capabilityDataArray_.begin(), registerCapabilityDataArray.begin(),
         registerCapabilityDataArray.end());
     MEDIA_LOGD("RegisterCapability success");
