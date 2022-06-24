@@ -63,8 +63,12 @@ AudioRecorderNapi::~AudioRecorderNapi()
     if (taskQue_ != nullptr) {
         (void)taskQue_->Stop();
     }
-    callbackNapi_ = nullptr;
+    if (recorderImpl_ != nullptr) {
+        (void)recorderImpl_->SetRecorderCallback(nullptr);
+    }
+
     recorderImpl_ = nullptr;
+    callbackNapi_ = nullptr;
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy out ", FAKE_POINTER(this));
 }
 

@@ -43,9 +43,13 @@ AudioPlayerNapi::AudioPlayerNapi()
 
 AudioPlayerNapi::~AudioPlayerNapi()
 {
-    callbackNapi_ = nullptr;
+    if (nativePlayer_ != nullptr) {
+        (void)nativePlayer_->SetPlayerCallback(nullptr);
+    }
     nativePlayer_ = nullptr;
+    callbackNapi_ = nullptr;
     dataSrcCallBack_ = nullptr;
+
     if (wrapper_ != nullptr) {
         napi_delete_reference(env_, wrapper_);
     }
