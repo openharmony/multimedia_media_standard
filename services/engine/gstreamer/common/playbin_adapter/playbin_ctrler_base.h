@@ -150,11 +150,6 @@ private:
     bool isBuffering_ = false;
     int32_t rendererInfo_ = 0;
     int32_t rendererFlag_ = 0;
-    struct InterruptEvent {
-        int32_t eventType;
-        int32_t forceType;
-        int32_t hintType;
-    };
     
     bool enableLooping_ = false;
     std::shared_ptr<GstAppsrcWrap> appsrcWrap_ = nullptr;

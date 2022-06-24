@@ -40,6 +40,7 @@ constexpr int32_t MSEC_PER_NSEC = 1000000;
 constexpr int32_t BUFFER_TIME_DEFAULT = 15000; // 15s
 constexpr int32_t BUFFER_HIGH_PERCENT_DEFAULT = 4;
 constexpr int32_t BUFFER_FULL_PERCENT_DEFAULT = 100;
+constexpr uint32_t INTERRUPT_EVENT_SHIFT = 8;
 
 PlayerEngineGstImpl::PlayerEngineGstImpl(int32_t uid, int32_t pid)
     : appuid_(uid), apppid_(pid)
@@ -372,13 +373,16 @@ void PlayerEngineGstImpl::HandleVolumeChangedMessage(const PlayBinMessage &msg)
 void PlayerEngineGstImpl::HandleInterruptMessage(const PlayBinMessage &msg)
 {
     MEDIA_LOGI("interrupt event in");
-    AudioStandard::InterruptEvent interruptEvent = std::any_cast<AudioStandard::InterruptEvent>(msg.extra);
+    uint32_t value = std::any_cast<uint32_t>(msg.extra);
     std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
     if (notifyObs != nullptr) {
         Format format;
-        (void)format.PutIntValue("eventType", static_cast<uint32_t>(interruptEvent.eventType));
-        (void)format.PutIntValue("forceType", static_cast<uint32_t>(interruptEvent.forceType));
-        (void)format.PutIntValue("hintType", static_cast<uint32_t>(interruptEvent.hintType));
+        int32_t hintType = value & 0x000000FF;
+        int32_t forceType = (value >> INTERRUPT_EVENT_SHIFT) & 0x000000FF;
+        int32_t eventType = value >> (INTERRUPT_EVENT_SHIFT * 2);
+        (void)format.PutIntValue("eventType", eventType);
+        (void)format.PutIntValue("forceType", forceType);
+        (void)format.PutIntValue("hintType", hintType);
         notifyObs->OnInfo(INFO_TYPE_INTERRUPT_EVENT, 0, format);
     }
 }

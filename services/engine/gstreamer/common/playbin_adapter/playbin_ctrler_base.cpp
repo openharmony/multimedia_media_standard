@@ -34,6 +34,7 @@ namespace {
     constexpr uint32_t HTTP_TIME_OUT_DEFAULT = 15; // 15s
     constexpr int32_t NANO_SEC_PER_USEC = 1000;
     constexpr double DEFAULT_RATE = 1.0;
+    constexpr uint32_t INTERRUPT_EVENT_SHIFT = 8;
 }
 
 namespace OHOS {
@@ -888,11 +889,9 @@ void PlayBinCtrlerBase::OnInterruptEventCb(const GstElement *audioSink, const ui
     }
     auto thizStrong = PlayBinCtrlerWrapper::TakeStrongThiz(userdata);
     if (thizStrong != nullptr) {
-        InterruptEvent interruptEvent;
-        interruptEvent.eventType = eventType;
-        interruptEvent.forceType = forceType;
-        interruptEvent.hintType = hintType;
-        PlayBinMessage msg { PLAYBIN_MSG_SUBTYPE, PLAYBIN_MSG_INTERRUPT_EVENT, 0, interruptEvent };
+        uint32_t value = 0;
+        value = (((eventType << INTERRUPT_EVENT_SHIFT) | forceType) << INTERRUPT_EVENT_SHIFT) | hintType;
+        PlayBinMessage msg { PLAYBIN_MSG_SUBTYPE, PLAYBIN_MSG_INTERRUPT_EVENT, 0, value };
         thizStrong->ReportMessage(msg);
     }
 }
