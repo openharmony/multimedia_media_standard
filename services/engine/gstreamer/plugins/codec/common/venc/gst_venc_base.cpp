@@ -317,8 +317,8 @@ static void gst_venc_base_pool_unref(GstBufferPool *pool)
 static gboolean gst_venc_base_stop(GstVideoEncoder *encoder)
 {
     g_return_val_if_fail(encoder != nullptr, FALSE);
-    g_return_val_if_fail(self->encoder != nullptr, FALSE);
     GstVencBase *self = GST_VENC_BASE(encoder);
+    g_return_val_if_fail(self->encoder != nullptr, FALSE);
     GST_DEBUG_OBJECT(self, "Stop encoder start");
 
     g_mutex_lock(&self->drain_lock);
