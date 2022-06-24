@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef PLAYERFile_FUZZER_H
-#define PLAYERFile_FUZZER_H
+#ifndef PLAYERFILE_FUZZER_H
+#define PLAYERFILE_FUZZER_H
 
 #define FUZZ_PROJECT_NAME "playerfile_fuzzer"
 #include "test_player.h"
