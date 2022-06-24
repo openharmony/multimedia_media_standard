@@ -49,5 +49,6 @@ ohos_fuzztest("PlayerFileFuzzTest") {
     "multimedia_media_standard:media_client",
   ]
 }
+
 ###############################################################################
 
