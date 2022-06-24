@@ -87,18 +87,18 @@ bool PlayerFileFuzzer::FuzzFile(uint8_t* data, size_t size)
 
 int32_t OHOS::Media::WriteDataToFile(const string &path, const uint8_t* data, size_t size)
 {
-    FILE *pFile = nullptr;
-    pFile = fopen(path.c_str(), "w+");
-    if (pFile == nullptr) {
+    FILE *file = nullptr;
+    file = fopen(path.c_str(), "w+");
+    if (file == nullptr) {
         std::cout << "[fuzz] open file fstab.test failed";
         return -1;
     }
-    if (fwrite(data, 1, size, pFile) != size) {
+    if (fwrite(data, 1, size, file) != size) {
         std::cout << "[fuzz] write data failed";
-        (void)fclose(pFile);
+        (void)fclose(file);
         return -1;
     }
-    (void)fclose(pFile);
+    (void)fclose(file);
     return 0;
 }
 
