@@ -39,8 +39,11 @@ VideoEncoderNapi::VideoEncoderNapi()
 
 VideoEncoderNapi::~VideoEncoderNapi()
 {
-    callback_ = nullptr;
+    if (venc_ != nullptr) {
+        (void)venc_->SetCallback(nullptr);
+    }
     venc_ = nullptr;
+    callback_ = nullptr;
     if (wrap_ != nullptr) {
         napi_delete_reference(env_, wrap_);
     }
