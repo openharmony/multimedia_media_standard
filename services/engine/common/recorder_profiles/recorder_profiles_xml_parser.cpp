@@ -406,7 +406,7 @@ bool RecorderProfilesXmlParser::ParseRecorderProfilesSourceData(const std::strin
             uint32_t type = SOURCE_TYPE_MAP.at(sourceType);
             RecorderProfilesData capabilityData;
             // 8 : 8-15 bits indicates the type of source
-            capabilityData.sourceId = ((type & 0x000000ff) << 8) | (id & 0x000000ff);
+            capabilityData.sourceId = ((type & 0x000000ff) << 8) | (static_cast<uint32_t>(id) & 0x000000ff);
             bool ret = ParseRecorderProfileSettingsData(node, capabilityData);
             CHECK_AND_RETURN_RET_LOG(ret != false, false, "ParseRecorderProfileSettingsData failed");
         }

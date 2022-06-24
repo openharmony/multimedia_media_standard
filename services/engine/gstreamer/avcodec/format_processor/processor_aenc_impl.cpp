@@ -188,7 +188,7 @@ std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetOutputPortConfig()
     if (codecName_ == CODEC_MIMIE_TYPE_AUDIO_AAC) {
         config->needFilter_ = true;
         config->filterMode_ = BUFFER_FILTER_MODE_ADD_ADTS;
-        config->adtsHead_.channelConfig = channels_;
+        config->adtsHead_.channelConfig = static_cast<uint32_t>(channels_);
         config->adtsHead_.objectType = 2; // AAC_LC
         for (size_t i = 0; i < SAMPLING_ROW_COUNT; i++) {
             if (sampleRate_ >= MPEG4_SAMPLING_FREQUENCIES[i][0]) {
