@@ -41,7 +41,9 @@ public:
     static constexpr std::string_view PLAYER_CACHED_DURATION = "cached_duration";
     static constexpr std::string_view CONTENT_TYPE = "content_type";
     static constexpr std::string_view STREAM_USAGE = "stream_usage";
+    static constexpr std::string_view RENDERER_FLAG = "renderer_flag";
     static constexpr std::string_view VIDEO_SCALE_TYPE = "video_scale_type";
+    static constexpr std::string_view AUDIO_INTERRUPT_MODE = "audio_interrupt_mode";
 };
 
 enum BufferingInfoType : int32_t {
@@ -104,6 +106,8 @@ enum PlayerOnInfoType : int32_t {
        Bitrate is to convert data into uint8_t array storage,
        which needs to be forcibly converted to uint32_t through offset access. */
     INFO_TYPE_BITRATE_COLLECT,
+    /* return the message when audio focus changed. */
+    INFO_TYPE_INTERRUPT_EVENT,
     /* return the message with extra information in format. */
     INFO_TYPE_EXTRA_FORMAT
 };

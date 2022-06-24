@@ -57,6 +57,9 @@ public:
     int32_t SetLooping(bool loop) override;
     int32_t SelectBitRate(uint32_t bitRate) override;
     int32_t SetVideoScaleType(VideoScaleType videoScaleType) override;
+    int32_t SetAudioRendererInfo(const int32_t contentType, const int32_t streamUsage,
+        const int32_t rendererFlag) override;
+    int32_t SetAudioInterruptMode(const int32_t interruptMode) override;
 
 private:
     void OnNotifyMessage(const PlayBinMessage &msg);
@@ -80,6 +83,7 @@ private:
     void HandleVideoSizeChanged(const PlayBinMessage &msg);
     void HandleBitRateCollect(const PlayBinMessage &msg);
     void HandleVolumeChangedMessage(const PlayBinMessage &msg);
+    void HandleInterruptMessage(const PlayBinMessage &msg);
 
     std::mutex mutex_;
     std::mutex trackParseMutex_;
@@ -100,6 +104,9 @@ private:
     int32_t apppid_ = 0;
     std::map<uint32_t, uint64_t> mqBufferingTime_;
     std::unordered_map<GstElement *, gulong> signalIds_;
+    int32_t contentType_ = 0;
+    int32_t streamUsage_ = 0;
+    int32_t rendererFlag_ = 0;
 };
 } // namespace Media
 } // namespace OHOS
