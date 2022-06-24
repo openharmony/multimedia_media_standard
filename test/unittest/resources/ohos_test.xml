@@ -15,9 +15,9 @@
 -->
 <configuration ver="2.0">
     <target name="player_unit_test">
-        <depend resource="test_videofile/test_1920_1080_1.mp4" pushpath="/data/media" findpath="res" presetcmd=""/>
+        <depend resource="test_videofile/test_1920_1080_1.mp4" pushpath="/data/test" findpath="res" presetcmd=""/>
         <preparer>
-            <option name="push" value="test_videofile/test_1920_1080_1.mp4 -> /data/media" src="res"/>
+            <option name="push" value="test_videofile/test_1920_1080_1.mp4 -> /data/test" src="res"/>
         </preparer>
     </target>
 </configuration>
