@@ -56,8 +56,6 @@ enum {
 #define gst_audio_server_sink_parent_class parent_class
 G_DEFINE_TYPE(GstAudioServerSink, gst_audio_server_sink, GST_TYPE_BASE_SINK);
 
-static guint signal_interrupt_event = 0;
-
 static void gst_audio_server_sink_finalize(GObject *object);
 static void gst_audio_server_sink_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec);
 static void gst_audio_server_sink_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec);
@@ -81,7 +79,6 @@ static void gst_audio_server_sink_class_init(GstAudioServerSinkClass *klass)
     gobject_class->set_property = gst_audio_server_sink_set_property;
     gobject_class->get_property = gst_audio_server_sink_get_property;
 
-    signal_interrupt_event =
     g_signal_new("interrupt-event", G_TYPE_FROM_CLASS(klass),
         static_cast<GSignalFlags>(G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION), 0, NULL,
         NULL, NULL, G_TYPE_NONE, 3, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT); // 3 parameters
