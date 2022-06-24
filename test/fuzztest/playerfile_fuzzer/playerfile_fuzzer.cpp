@@ -15,7 +15,6 @@
 
 #include "playerfile_fuzzer.h"
 #include <iostream>
-#include <stdint.h>
 #include "string_ex.h"
 #include "media_errors.h"
 #include "directory_ex.h"
@@ -32,7 +31,6 @@ PlayerFileFuzzer::PlayerFileFuzzer()
 
 PlayerFileFuzzer::~PlayerFileFuzzer()
 {
-    
 }
 
 bool PlayerFileFuzzer::FuzzFile(uint8_t* data, size_t size)
@@ -75,7 +73,7 @@ bool PlayerFileFuzzer::FuzzFile(uint8_t* data, size_t size)
     if (ret != 0) {
         cout << "Play fail" << endl;
     }
-    ret = player_->Seek(3000, SEEK_NEXT_SYNC);
+    ret = player_->Seek(3000, SEEK_NEXT_SYNC); // seek 3000 ms
     if (ret != 0) {
         cout << "Seek fail" << endl;
     }
