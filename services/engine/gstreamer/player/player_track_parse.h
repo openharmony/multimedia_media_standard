@@ -36,11 +36,13 @@ public:
     ~PlayerTrackParse() {};
 
 private:
+    void ConvertToPlayerKeys(const Format &innerMeta, Format &outMeta) const;
     void AddProbeToPad(GstPad *pad);
     static GstPadProbeReturn ProbeCallback(GstPad *pad, GstPadProbeInfo *info, gpointer usrdata);
     bool demuxerElementFind_ = false;
     std::unordered_map<GstPad *, gulong> padProbes_;
     std::unordered_map<GstPad *, Format> trackInfos_;
+    int32_t trackcount_ = 0;
 };
 }
 }
