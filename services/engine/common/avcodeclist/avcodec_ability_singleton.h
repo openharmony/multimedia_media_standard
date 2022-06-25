@@ -27,8 +27,8 @@ public:
     static AVCodecAbilitySingleton& GetInstance();
     bool ParseCodecXml();
     bool RegisterCapability(const std::vector<CapabilityData> &registerCapabilityDataArray);
-    bool IsParsered() const;
-    std::vector<CapabilityData> GetCapabilityDataArray() const;
+    bool IsParsered();
+    std::vector<CapabilityData> GetCapabilityDataArray();
 
 private:
     bool isParsered_ = false;

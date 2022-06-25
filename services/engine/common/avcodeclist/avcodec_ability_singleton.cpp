@@ -78,13 +78,15 @@ bool AVCodecAbilitySingleton::RegisterCapability(const std::vector<CapabilityDat
     return true;
 }
 
-bool AVCodecAbilitySingleton::IsParsered() const
+bool AVCodecAbilitySingleton::IsParsered()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return isParsered_;
 }
 
-std::vector<CapabilityData> AVCodecAbilitySingleton::GetCapabilityDataArray() const
+std::vector<CapabilityData> AVCodecAbilitySingleton::GetCapabilityDataArray()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return capabilityDataArray_;
 }
 } // namespace Media
