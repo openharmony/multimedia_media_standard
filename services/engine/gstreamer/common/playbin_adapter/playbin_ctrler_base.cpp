@@ -505,7 +505,10 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
     SetupCustomElement();
     ret = SetupSignalMessage();
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
+    ret = SetupElementUnSetupSignal();
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
     SetAudioRendererInfo(rendererInfo_, rendererFlag_);
+
     uint32_t flags = 0;
     g_object_get(playbin_, "flags", &flags, nullptr);
     if (renderMode_ & PlayBinRenderMode::NATIVE_STREAM) {
@@ -688,6 +691,20 @@ int32_t PlayBinCtrlerBase::SetupSignalMessage()
     msgProcessor_->AddMsgFilter(ELEM_NAME(GST_ELEMENT_CAST(playbin_)));
 
     MEDIA_LOGD("SetupSignalMessage exit");
+    return MSERR_OK;
+}
+
+int32_t PlayBinCtrlerBase::SetupElementUnSetupSignal()
+{
+    MEDIA_LOGD("SetupElementUnSetupSignal enter");
+
+    PlayBinCtrlerWrapper *wrapper = new(std::nothrow) PlayBinCtrlerWrapper(shared_from_this());
+    CHECK_AND_RETURN_RET_LOG(wrapper != nullptr, MSERR_NO_MEMORY, "can not create this wrapper");
+
+    (void)signalIds_.emplace(GST_ELEMENT_CAST(playbin_), g_signal_connect_data(playbin_, "deep-element-removed",
+        G_CALLBACK(&PlayBinCtrlerBase::ElementUnSetup), wrapper, (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory,
+        static_cast<GConnectFlags>(0)));
+
     return MSERR_OK;
 }
 

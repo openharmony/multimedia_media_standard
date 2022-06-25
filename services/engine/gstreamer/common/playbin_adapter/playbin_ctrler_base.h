@@ -92,6 +92,7 @@ private:
     void SetupCustomElement();
     GstSeekFlags ChooseSetRateFlags(double rate);
     int32_t SetupSignalMessage();
+    int32_t SetupElementUnSetupSignal();
     void QueryDuration();
     int64_t QueryPosition();
     int64_t QueryPositionInternal(bool isSeekDone);
