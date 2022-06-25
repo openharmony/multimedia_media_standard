@@ -65,6 +65,7 @@ private:
     static napi_value On(napi_env env, napi_callback_info info);
     static napi_value GetState(napi_env env, napi_callback_info info);
     void ErrorCallback(MediaServiceExtErrCode errCode);
+    void SetCallbackReference(const std::string &callbackName, std::shared_ptr<AutoRef> ref);
     VideoRecorderNapi();
     ~VideoRecorderNapi();
 
@@ -104,6 +105,7 @@ private:
     napi_ref wrapper_ = nullptr;
     std::shared_ptr<Recorder> recorder_ = nullptr;
     std::shared_ptr<RecorderCallback> callbackNapi_ = nullptr;
+    std::map<std::string, std::shared_ptr<AutoRef>> refMap_;
     sptr<Surface> surface_;
     std::string currentStates_ = VideoRecorderState::STATE_IDLE;
     bool isPureVideo = false;
