@@ -62,6 +62,7 @@ public:
     void SetVolume(const float &leftVolume, const float &rightVolume) override;
     void SetAudioInterruptMode(const int32_t interruptMode) override;
     int32_t SetAudioRendererInfo(const int32_t rendererInfo, const int32_t rendererFlag) override;
+    void SetVideoScaleType(const uint32_t videoScaleType) override;
     int32_t SelectBitRate(uint32_t bitRate) override;
 
     void SetElemSetupListener(ElemSetupListener listener) final;
@@ -150,7 +151,7 @@ private:
     bool isBuffering_ = false;
     int32_t rendererInfo_ = 0;
     int32_t rendererFlag_ = 0;
-    
+    uint32_t videoScaleType_ = 0;
     bool enableLooping_ = false;
     std::shared_ptr<GstAppsrcWrap> appsrcWrap_ = nullptr;
 
