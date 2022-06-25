@@ -64,6 +64,7 @@ public:
 private:
     void OnNotifyMessage(const PlayBinMessage &msg);
     void OnNotifyElemSetup(GstElement &elem);
+    void OnNotifyElemUnSetup(GstElement &elem);
     double ChangeModeToSpeed(const PlaybackRateMode &mode) const;
     PlaybackRateMode ChangeSpeedToMode(double rate) const;
     int32_t PlayBinCtrlerInit();
@@ -80,10 +81,12 @@ private:
     void HandleBufferingTime(const PlayBinMessage &msg);
     void HandleBufferingPercent(const PlayBinMessage &msg);
     void HandleBufferingUsedMqNum(const PlayBinMessage &msg);
+    void HandleVideoRenderingStart();
     void HandleVideoSizeChanged(const PlayBinMessage &msg);
     void HandleBitRateCollect(const PlayBinMessage &msg);
     void HandleVolumeChangedMessage(const PlayBinMessage &msg);
     void HandleInterruptMessage(const PlayBinMessage &msg);
+    void SetupCodecCb(GstElement *src, const std::string &metaStr);
 
     std::mutex mutex_;
     std::mutex trackParseMutex_;
@@ -108,6 +111,7 @@ private:
     int32_t contentType_ = 0;
     int32_t streamUsage_ = 0;
     int32_t rendererFlag_ = 0;
+    std::list<bool> codecTypeList_;
 };
 } // namespace Media
 } // namespace OHOS
