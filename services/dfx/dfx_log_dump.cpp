@@ -127,6 +127,7 @@ void DfxLogDump::UpdateCheckEnable()
     std::ofstream ofStream(file);
     if (!ofStream.is_open()) {
         isEnable_ = false;
+        return;
     }
     ofStream.close();
     isEnable_ = true;
