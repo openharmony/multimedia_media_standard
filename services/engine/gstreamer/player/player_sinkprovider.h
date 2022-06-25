@@ -32,9 +32,16 @@ public:
     SinkPtr CreateAudioSink() override;
     SinkPtr CreateVideoSink() override;
 
-    void SetCapsForHardDecVideoSink() override;
+    void SetPerformanceMode(GstElement *src) override;
+    void SetFormatForElemUnSetup(bool codecType) override;
     void SetAppInfo(int32_t uid, int32_t pid) override;
     void SetVideoScaleType(const uint32_t videoScaleType) override;
+    void SetMsgNotifier(PlayBinMsgNotifier notifier) override;
+
+    void SetFirstRenderFrameFlag(bool firstRenderFrame);
+    bool GetFirstRenderFrameFlag();
+
+    PlayBinMsgNotifier notifier_;
 
 private:
     const sptr<Surface> GetProducerSurface() const;
@@ -51,6 +58,7 @@ private:
     int32_t uid_ = 0;
     int32_t pid_ = 0;
     uint32_t videoScaleType_ = 0;
+    bool firstRenderFrame_ = true;
 };
 }
 }

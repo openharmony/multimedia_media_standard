@@ -17,6 +17,7 @@
 #define PLAYBIN_SINK_PROVIDER_H
 
 #include <gst/gst.h>
+#include "playbin_msg_define.h"
 
 namespace OHOS {
 namespace Media {
@@ -27,9 +28,11 @@ public:
     using SinkPtr = GstElement *;
     virtual SinkPtr CreateVideoSink() = 0;
     virtual SinkPtr CreateAudioSink() = 0;
-    virtual void SetCapsForHardDecVideoSink() {};
+    virtual void SetPerformanceMode(GstElement *src) {};
+    virtual void SetFormatForElemUnSetup(bool codecType) {};
     virtual void SetAppInfo(int32_t uid, int32_t pid) {};
     virtual void SetVideoScaleType(const uint32_t videoScaleType) {};
+    virtual void SetMsgNotifier(PlayBinMsgNotifier notifier) {};
 };
 } // namespace Media
 } // namespace OHOS
