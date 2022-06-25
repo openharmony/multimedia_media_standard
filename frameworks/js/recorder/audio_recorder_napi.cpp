@@ -60,7 +60,6 @@ AudioRecorderNapi::~AudioRecorderNapi()
     if (taskQue_ != nullptr) {
         (void)taskQue_->Stop();
     }
-    (void)recorderImpl_->SetRecorderCallback(nullptr);
     callbackNapi_ = nullptr;
     recorderImpl_ = nullptr;
     if (wrapper_ != nullptr) {
