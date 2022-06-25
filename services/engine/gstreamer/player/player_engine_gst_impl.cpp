@@ -476,6 +476,9 @@ int32_t PlayerEngineGstImpl::PlayBinCtrlerPrepare()
     }
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetSource failed");
 
+    ret = SetVideoScaleType(videoScaleType_);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetVideoScaleType failed");
+
     ret = SetAudioRendererInfo(contentType_, streamUsage_, rendererFlag_);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetAudioRendererInfo failed");
 
@@ -711,7 +714,13 @@ int32_t PlayerEngineGstImpl::SelectBitRate(uint32_t bitRate)
 
 int32_t PlayerEngineGstImpl::SetVideoScaleType(VideoScaleType videoScaleType)
 {
-    (void)videoScaleType;
+    std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
+    if (playBinCtrler_ != nullptr) {
+        MEDIA_LOGD("SetVideoScaleType in");
+        playBinCtrler_->SetVideoScaleType(static_cast<uint32_t>(videoScaleType));
+    } else {
+        videoScaleType_ = videoScaleType;
+    }
     return MSERR_OK;
 }
 
