@@ -76,7 +76,6 @@ ohos_static_library("media_engine_gst_common") {
 
   deps = [
     ":media_gst_dfx",
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//foundation/multimedia/media_standard/services/utils:media_format",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
@@ -87,7 +86,10 @@ ohos_static_library("media_engine_gst_common") {
     "//utils/native/base:utils",
   ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "init:libbegetutil",
+  ]
 
   subsystem_name = "multimedia"
   part_name = "multimedia_media_standard"
@@ -141,7 +143,6 @@ ohos_static_library("media_gst_dfx") {
   ]
 
   deps = [
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//foundation/multimedia/media_standard/services/utils:media_format",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
@@ -151,7 +152,10 @@ ohos_static_library("media_gst_dfx") {
     "//utils/native/base:utils",
   ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "init:libbegetutil",
+  ]
 
   subsystem_name = "multimedia"
   part_name = "multimedia_media_standard"
