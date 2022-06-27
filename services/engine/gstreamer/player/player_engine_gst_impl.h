@@ -28,6 +28,20 @@
 
 namespace OHOS {
 namespace Media {
+class CodecChangedDetector {
+public:
+    CodecChangedDetector() = default;
+    ~CodecChangedDetector() = default;
+    void DetectCodecSetup(const std::string &metaStr, GstElement *src, GstElement *videoSink);
+    void DetectCodecUnSetup(GstElement *src, GstElement *videoSink);
+
+private:
+    void SetupCodecCb(const std::string &metaStr, GstElement *src, GstElement *videoSink);
+
+    bool isHardwareDec_ = false;
+    std::list<bool> codecTypeList_;
+};
+
 class PlayerEngineGstImpl : public IPlayerEngine, public NoCopyable {
 public:
     explicit PlayerEngineGstImpl(int32_t uid = 0, int32_t pid = 0);
@@ -86,7 +100,6 @@ private:
     void HandleBitRateCollect(const PlayBinMessage &msg);
     void HandleVolumeChangedMessage(const PlayBinMessage &msg);
     void HandleInterruptMessage(const PlayBinMessage &msg);
-    void SetupCodecCb(GstElement *src, const std::string &metaStr);
 
     std::mutex mutex_;
     std::mutex trackParseMutex_;
@@ -97,9 +110,9 @@ private:
     std::string url_ = "";
     std::shared_ptr<GstAppsrcWrap> appsrcWrap_ = nullptr;
     std::shared_ptr<PlayerTrackParse> trackParse_ = nullptr;
+    std::shared_ptr<CodecChangedDetector> codecChangedDetector_ = nullptr;
     int32_t videoWidth_ = 0;
     int32_t videoHeight_ = 0;
-    bool isHardwareDec_ = false;
     int32_t percent_ = 0;
     uint32_t mqNumUsedBuffering_ = 0;
     uint64_t bufferingTime_ = 0;
@@ -111,7 +124,6 @@ private:
     int32_t contentType_ = 0;
     int32_t streamUsage_ = 0;
     int32_t rendererFlag_ = 0;
-    std::list<bool> codecTypeList_;
 };
 } // namespace Media
 } // namespace OHOS

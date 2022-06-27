@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <memory>
 #include <gst/gst.h>
+#include "gst_mem_sink.h"
 #include "playbin_sink_provider.h"
 #include "i_player_engine.h"
 
@@ -31,15 +32,11 @@ public:
 
     SinkPtr CreateAudioSink() override;
     SinkPtr CreateVideoSink() override;
+    SinkPtr GetVideoSink() override;
 
-    void SetPerformanceMode(GstElement *src) override;
-    void SetFormatForElemUnSetup(bool codecType) override;
     void SetAppInfo(int32_t uid, int32_t pid) override;
     void SetVideoScaleType(const uint32_t videoScaleType) override;
     void SetMsgNotifier(PlayBinMsgNotifier notifier) override;
-
-    void SetFirstRenderFrameFlag(bool firstRenderFrame);
-    bool GetFirstRenderFrameFlag();
 
     PlayBinMsgNotifier notifier_;
 
@@ -48,6 +45,14 @@ private:
     GstElement *DoCreateAudioSink(const GstCaps *caps, const gpointer userData);
     GstElement *DoCreateVideoSink(const GstCaps *caps, const gpointer userData);
     bool EnableKpiAVSyncLog();
+    void SetFirstRenderFrameFlag(bool firstRenderFrame);
+    bool GetFirstRenderFrameFlag();
+
+    static GstPadProbeReturn SinkPadProbeCb(GstPad *pad, GstPadProbeInfo *info, gpointer userData);
+    static void EosCb(GstMemSink *memSink, gpointer userData);
+    static GstFlowReturn NewPrerollCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData);
+    static GstFlowReturn NewSampleCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData);
+    static void FirstRenderFrame(gpointer userData);
 
     GstElement *audioSink_ = nullptr;
     GstElement *videoSink_ = nullptr;

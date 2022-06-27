@@ -36,7 +36,6 @@ public:
         DEFAULT_RENDER = 0,
         NATIVE_STREAM = 1 << 0,
         DISABLE_TEXT = 1 << 1,
-        DISABLE_VIS = 1 << 2,
     };
 
     enum PlayBinSeekMode : uint8_t {
