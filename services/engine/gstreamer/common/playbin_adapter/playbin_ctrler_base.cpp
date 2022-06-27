@@ -379,16 +379,6 @@ void PlayBinCtrlerBase::SetAudioInterruptMode(const int32_t interruptMode)
     g_object_set(audioSink_, "audio-interrupt-mode", interruptMode, nullptr);
 }
 
-void PlayBinCtrlerBase::SetVideoScaleType(const uint32_t videoScaleType)
-{
-    std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
-    if (videoSink_ != nullptr) {
-        g_object_set(videoSink_, "video-scale-type", videoScaleType, nullptr);
-    } else {
-        videoScaleType_ = videoScaleType;
-    }
-}
-
 int32_t PlayBinCtrlerBase::SelectBitRate(uint32_t bitRate)
 {
     std::unique_lock<std::mutex> lock(mutex_);
@@ -489,7 +479,6 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
     ret = SetupSignalMessage();
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
     SetAudioRendererInfo(rendererInfo_, rendererFlag_);
-    SetVideoScaleType(videoScaleType_);
     uint32_t flags = 0;
     g_object_get(playbin_, "flags", &flags, nullptr);
     if (renderMode_ & PlayBinRenderMode::NATIVE_STREAM) {
