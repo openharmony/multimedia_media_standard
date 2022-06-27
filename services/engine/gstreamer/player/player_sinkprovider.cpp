@@ -112,6 +112,21 @@ GstElement *PlayerSinkProvider::DoCreateAudioSink(const GstCaps *caps, const gpo
     return sink;
 }
 
+bool PlayerSinkProvider::EnableKpiAVSyncLog()
+{
+    std::string enable;
+    int32_t res = OHOS::system::GetStringParameter("sys.media.kpi.avsync.log.enable", enable, "");
+    if (res != 0 || enable.empty()) {
+        return false;
+    }
+
+    MEDIA_LOGI("KPI-TRACE: sys.media.kpi.avsync.log.enable=%{public}s", enable.c_str());
+    if (enable != "true") {
+        return false;
+    }
+    return true;
+}
+
 PlayBinSinkProvider::SinkPtr PlayerSinkProvider::CreateVideoSink()
 {
     if (producerSurface_ == nullptr) {
@@ -125,6 +140,12 @@ PlayBinSinkProvider::SinkPtr PlayerSinkProvider::CreateVideoSink()
 
         videoSink_ = DoCreateVideoSink(videoCaps_, reinterpret_cast<gpointer>(this));
         CHECK_AND_RETURN_RET_LOG(videoSink_ != nullptr, nullptr, "CreateVideoSink failed..");
+    }
+
+    if (audioSink_ != nullptr) {
+        MEDIA_LOGI("KPI-TRACE: set audio sink to video sink");
+        gboolean enable = static_cast<gboolean>(EnableKpiAVSyncLog());
+        g_object_set(G_OBJECT(videoSink_), "audio-sink", audioSink_, "enable-kpi-avsync-log", enable, nullptr);
     }
 
     (void)producerSurface_->SetQueueSize(DEFAULT_BUFFER_NUM);
