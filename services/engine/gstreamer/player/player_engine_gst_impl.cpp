@@ -497,13 +497,11 @@ int32_t PlayerEngineGstImpl::PlayBinCtrlerPrepare()
     ret = SetAudioRendererInfo(contentType_, streamUsage_, rendererFlag_);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetAudioRendererInfo failed");
 
-    auto listener = std::bind(&PlayerEngineGstImpl::OnNotifyElemSetup, this, std::placeholders::_1);
-    playBinCtrler_->SetElemSetupListener(listener);
     auto setupListener = std::bind(&PlayerEngineGstImpl::OnNotifyElemSetup, this, std::placeholders::_1);
     playBinCtrler_->SetElemSetupListener(setupListener);
 
     auto unSetupListener = std::bind(&PlayerEngineGstImpl::OnNotifyElemUnSetup, this, std::placeholders::_1);
-    playBinCtrler_->SetElemSetupListener(unSetupListener);
+    playBinCtrler_->SetElemUnSetupListener(unSetupListener);
 
     {
         std::unique_lock<std::mutex> lk(trackParseMutex_);
