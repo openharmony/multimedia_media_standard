@@ -28,10 +28,13 @@ public:
     using SinkPtr = GstElement *;
     virtual SinkPtr CreateVideoSink() = 0;
     virtual SinkPtr CreateAudioSink() = 0;
-    virtual SinkPtr GetVideoSink() { return nullptr; }
     virtual void SetAppInfo(int32_t uid, int32_t pid) {};
     virtual void SetVideoScaleType(const uint32_t videoScaleType) {};
     virtual void SetMsgNotifier(PlayBinMsgNotifier notifier) {};
+    virtual SinkPtr GetVideoSink()
+    {
+        return nullptr;
+    }
 };
 } // namespace Media
 } // namespace OHOS
