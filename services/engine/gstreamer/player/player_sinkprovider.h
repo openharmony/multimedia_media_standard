@@ -34,6 +34,7 @@ public:
 
     void SetCapsForHardDecVideoSink() override;
     void SetAppInfo(int32_t uid, int32_t pid) override;
+    void SetVideoScaleType(const uint32_t videoScaleType) override;
 
 private:
     const sptr<Surface> GetProducerSurface() const;
@@ -48,6 +49,7 @@ private:
     uint32_t queueSize_ = 0;
     int32_t uid_ = 0;
     int32_t pid_ = 0;
+    uint32_t videoScaleType_ = 0;
 };
 }
 }
