@@ -446,6 +446,7 @@ void PlayerEngineGstImpl::PlayBinCtrlerDeInit()
 {
     url_.clear();
     appsrcWrap_ = nullptr;
+    codecChangedDetector_ = nullptr;
 
     if (playBinCtrler_ != nullptr) {
         playBinCtrler_->SetElemSetupListener(nullptr);
@@ -457,7 +458,6 @@ void PlayerEngineGstImpl::PlayBinCtrlerDeInit()
         std::unique_lock<std::mutex> lk(trackParseMutex_);
         trackParse_ = nullptr;
         sinkProvider_ = nullptr;
-        isHardwareDec_ = false;
         for (auto &[elem, signalId] : signalIds_) {
             g_signal_handler_disconnect(elem, signalId);
         }
@@ -467,10 +467,8 @@ void PlayerEngineGstImpl::PlayBinCtrlerDeInit()
 
 int32_t PlayerEngineGstImpl::PlayBinCtrlerPrepare()
 {
+    codecChangedDetector_ = std::make_shared<CodecChangedDetector>();
     uint8_t renderMode = IPlayBinCtrler::PlayBinRenderMode::DEFAULT_RENDER;
-    if (producerSurface_ == nullptr) {
-        renderMode |= IPlayBinCtrler::PlayBinRenderMode::DISABLE_VIS;
-    }
     auto notifier = std::bind(&PlayerEngineGstImpl::OnNotifyMessage, this, std::placeholders::_1);
 
     {
@@ -773,24 +771,6 @@ int32_t PlayerEngineGstImpl::SetAudioInterruptMode(const int32_t interruptMode)
     return MSERR_OK;
 }
 
-void PlayerEngineGstImpl::SetupCodecCb(GstElement *src, const std::string &metaStr)
-{
-    if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {
-        isHardwareDec_ = true;
-        if (codecTypeList_.empty()) {
-            // For hls scene when change codec, the second codec should not go performance mode process.
-            codecTypeList_.push_back(true);
-            return;
-        }
-        // For performance mode.
-        codecTypeList_.push_back(true);
-        CHECK_AND_RETURN_LOG(sinkProvider_ != nullptr, "sinkProvider_ is nullptr");
-        sinkProvider_->SetPerformanceMode(src);
-    } else if (metaStr.find("Codec/Decoder/Video") != std::string::npos) {
-        codecTypeList_.push_back(false);
-    }
-}
-
 void PlayerEngineGstImpl::OnNotifyElemSetup(GstElement &elem)
 {
     std::unique_lock<std::mutex> lock(trackParseMutex_);
@@ -813,20 +793,65 @@ void PlayerEngineGstImpl::OnNotifyElemSetup(GstElement &elem)
         }
     }
 
-    SetupCodecCb(&elem, metaStr);
-
-    if (metaStr.find("Sink/Video") != std::string::npos && !isHardwareDec_) {
-        g_object_set(G_OBJECT(&elem), "max-pool-capacity", MAX_SOFT_BUFFERS, nullptr);
-        g_object_set(G_OBJECT(&elem), "cache-buffers-num", DEFAULT_CACHE_BUFFERS, nullptr);
-    }
+    CHECK_AND_RETURN_LOG(sinkProvider_ != nullptr, "sinkProvider_ is nullptr");
+    GstElement *videoSink = sinkProvider_->GetVideoSink();
+    CHECK_AND_RETURN_LOG(videoSink != nullptr, "videoSink is nullptr");
+    codecChangedDetector_->DetectCodecSetup(metaStr, &elem, videoSink);
 }
 
 void PlayerEngineGstImpl::OnNotifyElemUnSetup(GstElement &elem)
 {
-    const gchar *metadata = gst_element_get_metadata(&elem, GST_ELEMENT_METADATA_KLASS);
+    CHECK_AND_RETURN_LOG(sinkProvider_ != nullptr, "sinkProvider_ is nullptr");
+    GstElement *videoSink = sinkProvider_->GetVideoSink();
+    CHECK_AND_RETURN_LOG(videoSink != nullptr, "videoSink is nullptr");
+
+    codecChangedDetector_->DetectCodecUnSetup(&elem, videoSink);
+}
+
+void CodecChangedDetector::SetupCodecCb(const std::string &metaStr, GstElement *src, GstElement *videoSink)
+{
+    if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {
+        isHardwareDec_ = true;
+        if (!codecTypeList_.empty()) {
+            // For hls scene when change codec, the second codec should not go performance mode process.
+            codecTypeList_.push_back(true);
+            return;
+        }
+        // For performance mode.
+        codecTypeList_.push_back(true);
+
+        g_object_set(G_OBJECT(src), "performance-mode", TRUE, nullptr);
+        g_object_set(G_OBJECT(videoSink), "performance-mode", TRUE, nullptr);
+
+        GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
+        g_object_set(G_OBJECT(videoSink), "caps", caps, nullptr);
+        g_object_set(G_OBJECT(src), "sink-caps", caps, nullptr);
+        gst_caps_unref(caps);
+
+        GstBufferPool *pool;
+        g_object_get(videoSink, "surface-pool", &pool, nullptr);
+        g_object_set(G_OBJECT(src), "surface-pool", pool, nullptr);
+    } else if (metaStr.find("Codec/Decoder/Video") != std::string::npos) {
+        codecTypeList_.push_back(false);
+    }
+}
+
+void CodecChangedDetector::DetectCodecSetup(const std::string &metaStr, GstElement *src, GstElement *videoSink)
+{
+    SetupCodecCb(metaStr, src, videoSink);
+
+    if (metaStr.find("Sink/Video") != std::string::npos && !isHardwareDec_) {
+        g_object_set(G_OBJECT(src), "max-pool-capacity", MAX_SOFT_BUFFERS, nullptr);
+        g_object_set(G_OBJECT(src), "cache-buffers-num", DEFAULT_CACHE_BUFFERS, nullptr);
+    }
+}
+
+void CodecChangedDetector::DetectCodecUnSetup(GstElement *src, GstElement *videoSink)
+{
+    const gchar *metadata = gst_element_get_metadata(src, GST_ELEMENT_METADATA_KLASS);
     CHECK_AND_RETURN_LOG(metadata != nullptr, "gst_element_get_metadata return nullptr");
 
-    MEDIA_LOGD("get element_name %{public}s, get metadata %{public}s", GST_ELEMENT_NAME(&elem), metadata);
+    MEDIA_LOGD("get element_name %{public}s, get metadata %{public}s", GST_ELEMENT_NAME(src), metadata);
     std::string metaStr(metadata);
     if (metaStr.find("Codec/Decoder/Video") == std::string::npos) {
         return;
@@ -844,8 +869,14 @@ void PlayerEngineGstImpl::OnNotifyElemUnSetup(GstElement &elem)
         return;
     }
 
-    CHECK_AND_RETURN_LOG(sinkProvider_ != nullptr, "sinkProvider_ is nullptr");
-    sinkProvider_->SetFormatForElemUnSetup(codecTypeList_.front());
+    GstCaps *caps = nullptr;
+    if (codecTypeList_.front()) {
+        caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
+    } else {
+        caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGBA", nullptr);
+    }
+    g_object_set(G_OBJECT(videoSink), "caps", caps, nullptr);
+    gst_caps_unref(caps);
 }
 } // namespace Media
 } // namespace OHOS

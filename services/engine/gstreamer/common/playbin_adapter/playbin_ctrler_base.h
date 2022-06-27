@@ -105,7 +105,7 @@ private:
         uint32_t bitrateNum, gpointer userdata);
     static void OnInterruptEventCb(const GstElement *audioSink, const uint32_t eventType, const uint32_t forceType,
         const uint32_t hintType, gpointer userdata);
-    static GValueArray *OnAutoplugSortCb(const GstElement *uriDecoder, GstPad *pad, GstCaps *caps,
+    static GValueArray *OnDecodeBinTryAddNewElem(const GstElement *uriDecoder, GstPad *pad, GstCaps *caps,
         GValueArray *factories, gpointer userdata);
     void SetupVolumeChangedCb();
     void SetupInterruptEventCb();

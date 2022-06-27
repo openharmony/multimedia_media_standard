@@ -19,7 +19,6 @@
 #include "display_type.h"
 #include "param_wrapper.h"
 #include "surface_buffer_impl.h"
-#include "gst_mem_sink.h"
 #include "gst/video/gstvideometa.h"
 #include "media_log.h"
 #include "media_errors.h"
@@ -31,17 +30,6 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-class PlayerVideoRenderCb {
-public:
-    PlayerVideoRenderCb() = delete;
-    ~PlayerVideoRenderCb() = delete;
-    static GstPadProbeReturn SinkPadProbeCb(GstPad *pad, GstPadProbeInfo *info, gpointer userData);
-    static void EosCb(GstMemSink *memSink, gpointer userData);
-    static GstFlowReturn NewPrerollCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData);
-    static GstFlowReturn NewSampleCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData);
-    static void FirstRenderFrame(gpointer userData);
-};
-
 PlayerSinkProvider::PlayerSinkProvider(const sptr<Surface> &surface)
     : producerSurface_(surface)
 {
@@ -109,7 +97,7 @@ GstElement *PlayerSinkProvider::DoCreateAudioSink(const GstCaps *caps, const gpo
     }
 
     (void)gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_QUERY_DOWNSTREAM,
-        PlayerVideoRenderCb::SinkPadProbeCb, userData, nullptr);
+        PlayerSinkProvider::SinkPadProbeCb, userData, nullptr);
     return sink;
 }
 
@@ -170,14 +158,20 @@ GstElement *PlayerSinkProvider::DoCreateVideoSink(const GstCaps *caps, const gpo
     g_object_set(G_OBJECT(sink), "surface", static_cast<gpointer>(sinkProvider->GetProducerSurface()), nullptr);
     g_object_set(G_OBJECT(sink), "video-scale-type", videoScaleType_, nullptr);
 
-    GstMemSinkCallbacks sinkCallbacks = { PlayerVideoRenderCb::EosCb, PlayerVideoRenderCb::NewPrerollCb,
-        PlayerVideoRenderCb::NewSampleCb };
+    GstMemSinkCallbacks sinkCallbacks = { PlayerSinkProvider::EosCb, PlayerSinkProvider::NewPrerollCb,
+        PlayerSinkProvider::NewSampleCb };
     gst_mem_sink_set_callback(GST_MEM_SINK(sink), &sinkCallbacks, userData, nullptr);
 
     return sink;
 }
 
-void PlayerVideoRenderCb::FirstRenderFrame(gpointer userData)
+PlayBinSinkProvider::SinkPtr PlayerSinkProvider::GetVideoSink()
+{
+    CHECK_AND_RETURN_RET_LOG(videoSink_ != nullptr, nullptr, "videoSink is nullptr");
+    return GST_ELEMENT_CAST(videoSink_);
+}
+
+void PlayerSinkProvider::FirstRenderFrame(gpointer userData)
 {
     CHECK_AND_RETURN_LOG(userData != nullptr, "input userData is nullptr..");
     PlayerSinkProvider *sinkProvider = reinterpret_cast<PlayerSinkProvider *>(userData);
@@ -190,14 +184,14 @@ void PlayerVideoRenderCb::FirstRenderFrame(gpointer userData)
     }
 }
 
-void PlayerVideoRenderCb::EosCb(GstMemSink *memSink, gpointer userData)
+void PlayerSinkProvider::EosCb(GstMemSink *memSink, gpointer userData)
 {
     (void)memSink;
     (void)userData;
     MEDIA_LOGI("EOS in");
 }
 
-GstFlowReturn PlayerVideoRenderCb::NewPrerollCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData)
+GstFlowReturn PlayerSinkProvider::NewPrerollCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData)
 {
     MEDIA_LOGI("NewPrerollCb in");
     CHECK_AND_RETURN_RET(gst_mem_sink_app_preroll_render(memSink, sample) == GST_FLOW_OK, GST_FLOW_ERROR);
@@ -206,7 +200,7 @@ GstFlowReturn PlayerVideoRenderCb::NewPrerollCb(GstMemSink *memSink, GstBuffer *
     return GST_FLOW_OK;
 }
 
-GstFlowReturn PlayerVideoRenderCb::NewSampleCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData)
+GstFlowReturn PlayerSinkProvider::NewSampleCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData)
 {
     MEDIA_LOGI("NewSampleCb in");
     CHECK_AND_RETURN_RET(gst_mem_sink_app_render(memSink, sample) == GST_FLOW_OK, GST_FLOW_ERROR);
@@ -215,7 +209,7 @@ GstFlowReturn PlayerVideoRenderCb::NewSampleCb(GstMemSink *memSink, GstBuffer *s
     return GST_FLOW_OK;
 }
 
-GstPadProbeReturn PlayerVideoRenderCb::SinkPadProbeCb(GstPad *pad, GstPadProbeInfo *info, gpointer userData)
+GstPadProbeReturn PlayerSinkProvider::SinkPadProbeCb(GstPad *pad, GstPadProbeInfo *info, gpointer userData)
 {
     (void)pad;
     (void)userData;
@@ -253,37 +247,6 @@ bool PlayerSinkProvider::GetFirstRenderFrameFlag()
 const sptr<Surface> PlayerSinkProvider::GetProducerSurface() const
 {
     return producerSurface_;
-}
-
-void PlayerSinkProvider::SetPerformanceMode(GstElement *src)
-{
-    CHECK_AND_RETURN_LOG(videoSink_ != nullptr, "videoSink is null");
-
-    // For performance mode.
-    g_object_set(G_OBJECT(src), "performance-mode", TRUE, nullptr);
-    g_object_set(G_OBJECT(videoSink_), "performance-mode", TRUE, nullptr);
-
-    GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
-    g_object_set(G_OBJECT(videoSink_), "caps", caps, nullptr);
-    g_object_set(G_OBJECT(src), "sink-caps", caps, nullptr);
-    gst_caps_unref(caps);
-
-    GstBufferPool *pool;
-    g_object_get(videoSink_, "surface-pool", &pool, nullptr);
-    g_object_set(G_OBJECT(src), "surface-pool", pool, nullptr);
-}
-
-void PlayerSinkProvider::SetFormatForElemUnSetup(bool codecType)
-{
-    CHECK_AND_RETURN_LOG(videoSink_ != nullptr, "videoSink is null");
-    GstCaps *caps = nullptr;
-    if (codecType) {
-        caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
-    } else {
-        caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGBA", nullptr);
-    }
-    g_object_set(G_OBJECT(videoSink_), "caps", caps, nullptr);
-    gst_caps_unref(caps);
 }
 
 void PlayerSinkProvider::SetVideoScaleType(const uint32_t videoScaleType)

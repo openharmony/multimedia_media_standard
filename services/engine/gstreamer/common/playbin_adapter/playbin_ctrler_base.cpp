@@ -511,15 +511,15 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
 
     uint32_t flags = 0;
     g_object_get(playbin_, "flags", &flags, nullptr);
+    if (renderMode_ & PlayBinRenderMode::DEFAULT_RENDER) {
+        flags &= ~GST_PLAY_FLAG_VIS;
+    }
     if (renderMode_ & PlayBinRenderMode::NATIVE_STREAM) {
         flags |= GST_PLAY_FLAG_NATIVE_VIDEO | GST_PLAY_FLAG_NATIVE_AUDIO;
         flags &= ~(GST_PLAY_FLAG_SOFT_COLORBALANCE | GST_PLAY_FLAG_SOFT_VOLUME);
     }
     if (renderMode_ & PlayBinRenderMode::DISABLE_TEXT) {
         flags &= ~GST_PLAY_FLAG_TEXT;
-    }
-    if (renderMode_ & PlayBinRenderMode::DISABLE_VIS) {
-        flags &= ~GST_PLAY_FLAG_VIS;
     }
     g_object_set(playbin_, "flags", flags, nullptr);
 
@@ -869,7 +869,7 @@ void PlayBinCtrlerBase::RemoveGstPlaySinkVideoConvertPlugin()
     g_object_set(playbin_, "flags", flags, nullptr);
 }
 
-GValueArray *PlayBinCtrlerBase::OnAutoplugSortCb(const GstElement *uriDecoder, GstPad *pad, GstCaps *caps,
+GValueArray *PlayBinCtrlerBase::OnDecodeBinTryAddNewElem(const GstElement *uriDecoder, GstPad *pad, GstCaps *caps,
     GValueArray *factories, gpointer userdata)
 {
     CHECK_AND_RETURN_RET_LOG(uriDecoder != nullptr, nullptr, "uriDecoder is null");
@@ -951,7 +951,7 @@ void PlayBinCtrlerBase::OnElementSetup(GstElement &elem)
         PlayBinCtrlerWrapper *wrapper = new(std::nothrow) PlayBinCtrlerWrapper(shared_from_this());
         CHECK_AND_RETURN_LOG(wrapper != nullptr, "can not create this wrapper");
         (void)signalIds_.emplace(&elem, g_signal_connect_data(&elem, "autoplug-sort",
-            G_CALLBACK(&PlayBinCtrlerBase::OnAutoplugSortCb), wrapper,
+            G_CALLBACK(&PlayBinCtrlerBase::OnDecodeBinTryAddNewElem), wrapper,
             (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory, static_cast<GConnectFlags>(0)));
     }
 
