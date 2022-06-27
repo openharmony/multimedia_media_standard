@@ -715,9 +715,9 @@ int32_t PlayerEngineGstImpl::SelectBitRate(uint32_t bitRate)
 int32_t PlayerEngineGstImpl::SetVideoScaleType(VideoScaleType videoScaleType)
 {
     std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
-    if (playBinCtrler_ != nullptr) {
+    if (sinkProvider_ != nullptr) {
         MEDIA_LOGD("SetVideoScaleType in");
-        playBinCtrler_->SetVideoScaleType(static_cast<uint32_t>(videoScaleType));
+        sinkProvider_->SetVideoScaleType(static_cast<uint32_t>(videoScaleType));
     } else {
         videoScaleType_ = videoScaleType;
     }

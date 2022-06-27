@@ -29,6 +29,7 @@ public:
     virtual SinkPtr CreateAudioSink() = 0;
     virtual void SetCapsForHardDecVideoSink() {};
     virtual void SetAppInfo(int32_t uid, int32_t pid) {};
+    virtual void SetVideoScaleType(const uint32_t videoScaleType) {};
 };
 } // namespace Media
 } // namespace OHOS

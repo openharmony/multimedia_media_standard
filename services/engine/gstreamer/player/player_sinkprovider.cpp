@@ -146,6 +146,7 @@ GstElement *PlayerSinkProvider::DoCreateVideoSink(const GstCaps *caps, const gpo
 
     g_object_set(G_OBJECT(sink), "caps", caps, nullptr);
     g_object_set(G_OBJECT(sink), "surface", static_cast<gpointer>(sinkProvider->GetProducerSurface()), nullptr);
+    g_object_set(G_OBJECT(sink), "video-scale-type", videoScaleType_, nullptr);
 
     GstMemSinkCallbacks sinkCallbacks = { PlayerVideoRenderCb::EosCb, PlayerVideoRenderCb::NewPrerollCb,
         PlayerVideoRenderCb::NewSampleCb };
@@ -206,6 +207,15 @@ void PlayerSinkProvider::SetCapsForHardDecVideoSink()
 {
     GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
     g_object_set(G_OBJECT(videoSink_), "caps", caps, nullptr);
+}
+
+void PlayerSinkProvider::SetVideoScaleType(const uint32_t videoScaleType)
+{
+    if (videoSink_ != nullptr) {
+        g_object_set(videoSink_, "video-scale-type", videoScaleType, nullptr);
+    } else {
+        videoScaleType_ = videoScaleType;
+    }
 }
 
 void PlayerSinkProvider::SetAppInfo(int32_t uid, int32_t pid)
