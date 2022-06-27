@@ -57,18 +57,14 @@ AudioRecorderNapi::AudioRecorderNapi()
 AudioRecorderNapi::~AudioRecorderNapi()
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy in ", FAKE_POINTER(this));
-    if (wrapper_ != nullptr) {
-        napi_delete_reference(env_, wrapper_);
-    }
     if (taskQue_ != nullptr) {
         (void)taskQue_->Stop();
     }
-    if (recorderImpl_ != nullptr) {
-        (void)recorderImpl_->SetRecorderCallback(nullptr);
-    }
-
-    recorderImpl_ = nullptr;
     callbackNapi_ = nullptr;
+    recorderImpl_ = nullptr;
+    if (wrapper_ != nullptr) {
+        napi_delete_reference(env_, wrapper_);
+    }
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy out ", FAKE_POINTER(this));
 }
 
@@ -617,9 +613,12 @@ napi_value AudioRecorderNapi::On(napi_env env, napi_callback_info info)
     std::string callbackName = CommonNapi::GetStringArgument(env, args[0]);
     MEDIA_LOGD("callbackName: %{public}s", callbackName.c_str());
 
-    CHECK_AND_RETURN_RET_LOG(recorderNapi->callbackNapi_ != nullptr, undefinedResult, "callbackNapi_ is nullptr");
-    auto cb = std::static_pointer_cast<RecorderCallbackNapi>(recorderNapi->callbackNapi_);
-    cb->SaveCallbackReference(callbackName, args[1]);
+    napi_ref ref = nullptr;
+    status = napi_create_reference(env, args[1], 1, &ref);
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && ref != nullptr, undefinedResult, "failed to create reference!");
+
+    std::shared_ptr<AutoRef> autoRef = std::make_shared<AutoRef>(env, ref);
+    recorderNapi->SetCallbackReference(callbackName, autoRef);
     return undefinedResult;
 }
 
@@ -673,6 +672,15 @@ void AudioRecorderNapi::StateCallback(const std::string &callbackName)
     if (callbackNapi_ != nullptr) {
         std::shared_ptr<RecorderCallbackNapi> napiCb = std::static_pointer_cast<RecorderCallbackNapi>(callbackNapi_);
         napiCb->SendStateCallback(callbackName);
+    }
+}
+
+void AudioRecorderNapi::SetCallbackReference(const std::string &callbackName, std::shared_ptr<AutoRef> ref)
+{
+    refMap_[callbackName] = ref;
+    if (callbackNapi_ != nullptr) {
+        std::shared_ptr<RecorderCallbackNapi> napiCb = std::static_pointer_cast<RecorderCallbackNapi>(callbackNapi_);
+        napiCb->SaveCallbackReference(callbackName, ref);
     }
 }
 } // namespace Media
