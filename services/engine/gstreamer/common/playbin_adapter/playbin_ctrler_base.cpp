@@ -405,6 +405,7 @@ void PlayBinCtrlerBase::Reset() noexcept
     uri_.clear();
     isErrorHappened_ = false;
     enableLooping_ = false;
+    disableNextSeekDoneCb_ = false;
     {
         std::unique_lock<std::mutex> appsrcLock(appsrcMutex_);
         appsrcWrap_ = nullptr;
@@ -712,7 +713,8 @@ void PlayBinCtrlerBase::ProcessEndOfStream()
         return;
     }
 
-    if (enableLooping_) {
+    if (enableLooping_ && !isSeeking_) {
+        disableNextSeekDoneCb_ = true;
         (void)SeekInternal(0, IPlayBinCtrler::PlayBinSeekMode::PREV_SYNC);
     } else {
         ChangeState(playbackCompletedState_);
@@ -757,7 +759,10 @@ void PlayBinCtrlerBase::HandleCacheCtrlWhenNoBuffering(int32_t percent)
 {
     if (percent < BUFFER_LOW_PERCENT_DEFAULT) {
         isBuffering_ = true;
-        g_object_set(playbin_, "state-change", GST_PLAYER_STATUS_BUFFERING, nullptr);
+        {
+            std::unique_lock<std::mutex> lock(mutex_);
+            g_object_set(playbin_, "state-change", GST_PLAYER_STATUS_BUFFERING, nullptr);
+        }
         if (GetCurrState() == playingState_) {
             GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(playbin_), GST_STATE_PAUSED);
             if (ret == GST_STATE_CHANGE_FAILURE) {
@@ -776,13 +781,17 @@ void PlayBinCtrlerBase::HandleCacheCtrlWhenBuffering(int32_t percent)
     if (percent > BUFFER_HIGH_PERCENT_DEFAULT) {
         isBuffering_ = false;
         if (GetCurrState() == playingState_) {
-            g_object_set(playbin_, "state-change", GST_PLAYER_STATUS_PLAYING, nullptr);
+            {
+                std::unique_lock<std::mutex> lock(mutex_);
+                g_object_set(playbin_, "state-change", GST_PLAYER_STATUS_PLAYING, nullptr);
+            }
             GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(playbin_), GST_STATE_PLAYING);
             if (ret == GST_STATE_CHANGE_FAILURE) {
                 MEDIA_LOGE("Failed to change playbin's state to GST_STATE_PLAYING");
                 return;
             }
         } else {
+            std::unique_lock<std::mutex> lock(mutex_);
             g_object_set(playbin_, "state-change", GST_PLAYER_STATUS_PAUSED, nullptr);
         }
 
