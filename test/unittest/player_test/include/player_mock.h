@@ -26,17 +26,12 @@ class PlayerSignal {
 public:
     void SetState(PlayerStates state);
     void SetSeekResult(bool seekDoneFlag);
-private:
+protected:
     PlayerStates state_ = PLAYER_IDLE;
     int32_t seekPosition_;
     bool seekDoneFlag_;
     PlayerSeekMode seekMode_ = PlayerSeekMode::SEEK_CLOSEST;
-    std::mutex mutexPrepare_;
-    std::mutex mutexPlay_;
-    std::mutex mutexPause_;
-    std::mutex mutexStop_;
-    std::mutex mutexReset_;
-    std::mutex mutexSeek_;
+    std::mutex mutexCond_;
     std::condition_variable condVarPrepare_;
     std::condition_variable condVarPlay_;
     std::condition_variable condVarPause_;
@@ -45,9 +40,29 @@ private:
     std::condition_variable condVarSeek_;
 };
 
+class PlayerCallbackTest : public PlayerCallback, public NoCopyable, public PlayerSignal {
+public:
+    ~PlayerCallbackTest() {}
+    void OnError(PlayerErrorType errorType, int32_t errorCode) override {}
+    void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody) override;
+    void SeekNotify(int32_t extra, const Format &infoBody);
+    void Notify(PlayerStates currentState);
+    void SetSeekDoneFlag(bool seekDoneFlag);
+    void SetSeekPosition(int32_t position);
+    int32_t PrepareSync();
+    int32_t PlaySync();
+    int32_t PauseSync();
+    int32_t StopSync();
+    int32_t ResetSync();
+    int32_t SeekSync();
+private:
+    int32_t position_ = 0;
+    bool seekDoneFlag_ = false;
+};
+
 class PlayerMock : public NoCopyable {
 public:
-    explicit PlayerMock(std::shared_ptr<PlayerSignal> test);
+    explicit PlayerMock(std::shared_ptr<PlayerCallbackTest> &callback);
     virtual ~PlayerMock();
     bool CreatePlayer();
     int32_t SetSource(const std::string url);
@@ -70,27 +85,12 @@ public:
 private:
     void SeekPrePare(int32_t &mseconds, PlayerSeekMode &mode);
     std::shared_ptr<Player> player_ = nullptr;
+    std::shared_ptr<PlayerCallbackTest> callback_;
     sptr<Rosen::Window> window_ = nullptr;
     sptr<Rosen::Window> previewWindow_ = nullptr;
-    std::shared_ptr<PlayerSignal> signal_;
     int32_t height_ = 1080;
     int32_t width_ = 1920;
     std::mutex mutex_;
-};
-
-class PlayerCallbackTest : public PlayerCallback, public NoCopyable {
-public:
-    explicit PlayerCallbackTest(std::shared_ptr<PlayerSignal> test);
-    ~PlayerCallbackTest() {}
-    void OnError(PlayerErrorType errorType, int32_t errorCode) override {}
-    void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody) override;
-    void SeekNotify(int32_t extra, const Format &infoBody);
-    void Notify(PlayerStates currentState);
-private:
-    int32_t position_ = 0;
-    PlayerStates state_ = PLAYER_STATE_ERROR;
-    std::shared_ptr<PlayerSignal> signal_;
-    bool seekDoneFlag_ = false;
 };
 } // namespace Media
 } // namespace OHOS
