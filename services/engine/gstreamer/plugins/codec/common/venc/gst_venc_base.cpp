@@ -675,13 +675,7 @@ static GstFlowReturn gst_venc_base_finish_output_buffer(GstVencBase *self, GstBu
     g_return_val_if_fail(buffer != nullptr, GST_FLOW_ERROR);
     GstFlowReturn flow_ret = GST_FLOW_OK;
     gst_venc_debug_output_time(self);
-    if (self->first_out_frame) {
-        GST_WARNING_OBJECT(self, "KPI-TRACE-VENC: first out frame");
-        self->first_out_frame = FALSE;
-        GST_BUFFER_PTS(buffer) = self->first_frame_pts;
-        flow_ret = gst_pad_push(GST_VIDEO_ENCODER_SRC_PAD(self), buffer);
-        return flow_ret;
-    }
+
     GstVideoCodecFrame *frame = gst_video_encoder_get_oldest_frame(GST_VIDEO_ENCODER(self));
     if (frame != nullptr) {
         frame->output_buffer = buffer;
