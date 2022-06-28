@@ -22,14 +22,29 @@ using namespace OHOS::Media::PlayerTestParam;
 
 namespace OHOS {
 namespace Media {
+<<<<<<< HEAD
 void PlayerUnitTest::SetUpTestCase(void) {}
 
+=======
+namespace {
+    const string MEDIA_ROOT = "file://data/media/";
+    const string VIDEO_FILE1 = MEDIA_ROOT + "test_1920_1080_1.mp4";
+    const string VIDEO_FILE2 = "";
+}
+
+void PlayerUnitTest::SetUpTestCase(void) {}
+>>>>>>> 6caf11e6965040c256681a262d9723296064ab23
 void PlayerUnitTest::TearDownTestCase(void) {}
 
 void PlayerUnitTest::SetUp(void)
 {
+<<<<<<< HEAD
     signal_ = std::make_shared<PlayerSignal>();
     player_ = std::make_shared<PlayerMock>(signal_);
+=======
+    testObj = std::make_shared<PlayerSignal>();
+    player_ = std::make_shared<Player_mock>(testObj);
+>>>>>>> 6caf11e6965040c256681a262d9723296064ab23
     ASSERT_NE(nullptr, player_);
     EXPECT_TRUE(player_->CreatePlayer());
 }
@@ -40,17 +55,21 @@ void PlayerUnitTest::TearDown(void)
     player_->Release();
 }
 
+<<<<<<< HEAD
 /**
 * @tc.name  : Test PlayerSetSource API
 * @tc.number: Player_SetSource_001
 * @tc.desc  : Test PlayerSetSource interface with valid parameters
 */
+=======
+>>>>>>> 6caf11e6965040c256681a262d9723296064ab23
 HWTEST_F(PlayerUnitTest, Player_SetSource_001, TestSize.Level0)
 {
     int32_t ret = player_->SetSource(VIDEO_FILE1);
     EXPECT_EQ(MSERR_OK, ret);
 }
 
+<<<<<<< HEAD
 /**
 * @tc.name  : Test PlayerSetCallback API
 * @tc.number: Player_SetCallback_001
@@ -59,10 +78,16 @@ HWTEST_F(PlayerUnitTest, Player_SetSource_001, TestSize.Level0)
 HWTEST_F(PlayerUnitTest, Player_SetCallback_001, TestSize.Level1)
 {
     std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(signal_);
+=======
+HWTEST_F(PlayerUnitTest, Player_SetCallback_001, TestSize.Level1)
+{
+    std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(testObj);
+>>>>>>> 6caf11e6965040c256681a262d9723296064ab23
     int32_t ret = player_->SetPlayerCallback(player_CallbackTest);
     EXPECT_EQ(MSERR_OK, ret);
 }
 
+<<<<<<< HEAD
 /**
 * @tc.name  : Test PlayerPrePare API
 * @tc.number: Player_PrePare_001
@@ -72,6 +97,12 @@ HWTEST_F(PlayerUnitTest, Player_PrePare_001, TestSize.Level0)
 {
     EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
     std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(signal_);
+=======
+HWTEST_F(PlayerUnitTest, Player_PrePare_001, TestSize.Level0)
+{
+    EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
+    std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(testObj);
+>>>>>>> 6caf11e6965040c256681a262d9723296064ab23
     EXPECT_EQ(MSERR_OK, player_->SetPlayerCallback(player_CallbackTest));
     sptr<Surface> videoSurface = player_->GetVideoSurface();
     ASSERT_NE(nullptr, videoSurface);
@@ -79,6 +110,7 @@ HWTEST_F(PlayerUnitTest, Player_PrePare_001, TestSize.Level0)
     EXPECT_EQ(MSERR_OK, player_->Prepare());
 }
 
+<<<<<<< HEAD
 /**
 * @tc.name  : Test PlayerPrePareAsync API
 * @tc.number: Player_PrePareAsync_001
@@ -88,6 +120,12 @@ HWTEST_F(PlayerUnitTest, Player_PrePareAsync_001, TestSize.Level0)
 {
     EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
     std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(signal_);
+=======
+HWTEST_F(PlayerUnitTest, Player_PrePareAsync_001, TestSize.Level0)
+{
+    EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
+    std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(testObj);
+>>>>>>> 6caf11e6965040c256681a262d9723296064ab23
     EXPECT_EQ(MSERR_OK, player_->SetPlayerCallback(player_CallbackTest));
     sptr<Surface> videoSurface = player_->GetVideoSurface();
     ASSERT_NE(nullptr, videoSurface);
@@ -95,17 +133,21 @@ HWTEST_F(PlayerUnitTest, Player_PrePareAsync_001, TestSize.Level0)
     EXPECT_EQ(MSERR_OK, player_->PrepareAsync());
 }
 
+<<<<<<< HEAD
 /**
 * @tc.name  : Test PlayerSetVideoSurface API
 * @tc.number: Player_SetVideoSurface_001
 * @tc.desc  : Test PlayerSetVideoSurface interface
 */
+=======
+>>>>>>> 6caf11e6965040c256681a262d9723296064ab23
 HWTEST_F(PlayerUnitTest, Player_SetVideoSurface_001, TestSize.Level0)
 {
     EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
     EXPECT_EQ(MSERR_OK, player_->SetVideoSurface(player_->GetVideoSurface()));
 }
 
+<<<<<<< HEAD
 /**
 * @tc.name  : Test PlayerPlay API
 * @tc.number: Player_Play_001
@@ -115,6 +157,12 @@ HWTEST_F(PlayerUnitTest, Player_Play_001, TestSize.Level0)
 {
     EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
     std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(signal_);
+=======
+HWTEST_F(PlayerUnitTest, Player_Play_001, TestSize.Level0)
+{
+    EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
+    std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(testObj);
+>>>>>>> 6caf11e6965040c256681a262d9723296064ab23
     EXPECT_EQ(MSERR_OK, player_->SetPlayerCallback(player_CallbackTest));
     sptr<Surface> videoSurface = player_->GetVideoSurface();
     ASSERT_NE(nullptr, videoSurface);
@@ -124,6 +172,7 @@ HWTEST_F(PlayerUnitTest, Player_Play_001, TestSize.Level0)
     EXPECT_TRUE(player_->IsPlaying());
 }
 
+<<<<<<< HEAD
 /**
 * @tc.name  : Test PlayerStop API
 * @tc.number: Player_PreStop_001
@@ -133,6 +182,12 @@ HWTEST_F(PlayerUnitTest, Player_Stop_001, TestSize.Level0)
 {
     EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
     std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(signal_);
+=======
+HWTEST_F(PlayerUnitTest, Player_Stop_001, TestSize.Level0)
+{
+    EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
+    std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(testObj);
+>>>>>>> 6caf11e6965040c256681a262d9723296064ab23
     EXPECT_EQ(MSERR_OK, player_->SetPlayerCallback(player_CallbackTest));
     sptr<Surface> videoSurface = player_->GetVideoSurface();
     ASSERT_NE(nullptr, videoSurface);
@@ -143,6 +198,7 @@ HWTEST_F(PlayerUnitTest, Player_Stop_001, TestSize.Level0)
     EXPECT_EQ(MSERR_OK, player_->Stop());
 }
 
+<<<<<<< HEAD
 /**
 * @tc.name  : Test PlayerPause API
 * @tc.number: Player_Pause_001
@@ -152,6 +208,12 @@ HWTEST_F(PlayerUnitTest, Player_Pause_001, TestSize.Level0)
 {
     EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
     std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(signal_);
+=======
+HWTEST_F(PlayerUnitTest, Player_Pause_001, TestSize.Level0)
+{
+    EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
+    std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(testObj);
+>>>>>>> 6caf11e6965040c256681a262d9723296064ab23
     EXPECT_EQ(MSERR_OK, player_->SetPlayerCallback(player_CallbackTest));
     sptr<Surface> videoSurface = player_->GetVideoSurface();
     ASSERT_NE(nullptr, videoSurface);
@@ -163,6 +225,7 @@ HWTEST_F(PlayerUnitTest, Player_Pause_001, TestSize.Level0)
     EXPECT_FALSE(player_->IsPlaying());
 }
 
+<<<<<<< HEAD
 /**
 * @tc.name  : Test PlayerSeek API
 * @tc.number: Player_Seek_001
@@ -172,6 +235,12 @@ HWTEST_F(PlayerUnitTest, Player_Seek_001, TestSize.Level0)
 {
     EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
     std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(signal_);
+=======
+HWTEST_F(PlayerUnitTest, Player_Seek_001, TestSize.Level0)
+{
+    EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
+    std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(testObj);
+>>>>>>> 6caf11e6965040c256681a262d9723296064ab23
     EXPECT_EQ(MSERR_OK, player_->SetPlayerCallback(player_CallbackTest));
     sptr<Surface> videoSurface = player_->GetVideoSurface();
     ASSERT_NE(nullptr, videoSurface);
