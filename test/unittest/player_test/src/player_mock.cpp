@@ -37,20 +37,12 @@ void PlayerCallbackTest::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
     switch (type) {
         case INFO_TYPE_SEEKDONE:
             seekDoneFlag_ = true;
-<<<<<<< HEAD
             signal_->SetSeekResult(true);
-=======
-            test_->SetSeekResult(true);
->>>>>>> 6caf11e6965040c256681a262d9723296064ab23
             SeekNotify(extra, infoBody);
             break;
         case INFO_TYPE_STATE_CHANGE:
             state_ = static_cast<PlayerStates>(extra);
-<<<<<<< HEAD
             signal_->SetState(state_);
-=======
-            test_->SetState(state_);
->>>>>>> 6caf11e6965040c256681a262d9723296064ab23
             Notify(state_);
             break;
         case INFO_TYPE_POSITION_UPDATE:
@@ -64,7 +56,6 @@ void PlayerCallbackTest::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
 void PlayerCallbackTest::Notify(PlayerStates currentState)
 {
     if (currentState == PLAYER_PREPARED) {
-<<<<<<< HEAD
         signal_->condVarPrepare_.notify_all();
     } else if (currentState == PLAYER_STARTED) {
         signal_->condVarPlay_.notify_all();
@@ -74,17 +65,6 @@ void PlayerCallbackTest::Notify(PlayerStates currentState)
         signal_->condVarStop_.notify_all();
     } else if (currentState == PLAYER_IDLE) {
         signal_->condVarReset_.notify_all();
-=======
-        test_->condVarPrepare_.notify_all();
-    } else if (currentState == PLAYER_STARTED) {
-        test_->condVarPlay_.notify_all();
-    } else if (currentState == PLAYER_PAUSED) {
-        test_->condVarPause_.notify_all();
-    } else if (currentState == PLAYER_STOPPED) {
-        test_->condVarStop_.notify_all();
-    } else if (currentState == PLAYER_IDLE) {
-        test_->condVarReset_.notify_all();
->>>>>>> 6caf11e6965040c256681a262d9723296064ab23
     }
 }
 
