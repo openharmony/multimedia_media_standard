@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef PLAYER_TEST_H
-#define PLAYER_TEST_H
+#ifndef PLAYER_MOCK_H
+#define PLAYER_MOCK_H
 
 #include "player.h"
 #include "test_params_config.h"
@@ -44,13 +44,10 @@ public:
     void SetSeekResult(bool seekDoneFlag);
 };
 
-class Player_mock : public NoCopyable {
+class PlayerMock : public NoCopyable {
 public:
-    std::shared_ptr<Player> player_ = nullptr;
-    sptr<Rosen::Window> window_ = nullptr;
-    sptr<Rosen::Window> previewWindow_ = nullptr;
-    explicit Player_mock(std::shared_ptr<PlayerSignal> test);
-    virtual ~Player_mock();
+    explicit PlayerMock(std::shared_ptr<PlayerSignal> test);
+    virtual ~PlayerMock();
     bool CreatePlayer();
     int32_t SetSource(const std::string url);
     int32_t Prepare();
@@ -70,15 +67,18 @@ public:
     int32_t SetVideoSurface(sptr<Surface> surface);
     sptr<Surface> GetVideoSurface();
 private:
-    std::shared_ptr<PlayerSignal> test_;
+    void SeekPrePare(int32_t &mseconds, PlayerSeekMode &mode);
+    std::shared_ptr<Player> player_ = nullptr;
+    sptr<Rosen::Window> window_ = nullptr;
+    sptr<Rosen::Window> previewWindow_ = nullptr;
+    std::shared_ptr<PlayerSignal> signal_;
     int32_t height_ = 1080;
     int32_t width_ = 1920;
+    std::mutex mutex_;
 };
 
 class PlayerCallbackTest : public PlayerCallback, public NoCopyable {
 public:
-    int32_t position_ = 0;
-    PlayerStates state_ = PLAYER_STATE_ERROR;
     explicit PlayerCallbackTest(std::shared_ptr<PlayerSignal> test);
     ~PlayerCallbackTest() {}
     void OnError(PlayerErrorType errorType, int32_t errorCode) override {}
@@ -86,7 +86,9 @@ public:
     void SeekNotify(int32_t extra, const Format &infoBody);
     void Notify(PlayerStates currentState);
 private:
-    std::shared_ptr<PlayerSignal> test_;
+    int32_t position_ = 0;
+    PlayerStates state_ = PLAYER_STATE_ERROR;
+    std::shared_ptr<PlayerSignal> signal_;
     bool seekDoneFlag_ = false;
 };
 } // namespace Media
