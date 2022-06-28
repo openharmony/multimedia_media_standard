@@ -24,6 +24,9 @@ namespace OHOS {
 namespace Media {
 class PlayerSignal {
 public:
+    void SetState(PlayerStates state);
+    void SetSeekResult(bool seekDoneFlag);
+private:
     PlayerStates state_ = PLAYER_IDLE;
     int32_t seekPosition_;
     bool seekDoneFlag_;
@@ -40,8 +43,6 @@ public:
     std::condition_variable condVarStop_;
     std::condition_variable condVarReset_;
     std::condition_variable condVarSeek_;
-    void SetState(PlayerStates state);
-    void SetSeekResult(bool seekDoneFlag);
 };
 
 class PlayerMock : public NoCopyable {
