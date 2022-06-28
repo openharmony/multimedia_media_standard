@@ -17,25 +17,17 @@
 #define TEST_PARAM_COMMON_H
 
 #include <cstdint>
-<<<<<<< HEAD
 #include "string"
-=======
->>>>>>> 6caf11e6965040c256681a262d9723296064ab23
 
 namespace OHOS {
 namespace Media {
 namespace PlayerTestParam {
 const static int32_t SEEK_TIME_5_SEC = 5000;
 const static int32_t SEEK_TIME_2_SEC = 2000;
-<<<<<<< HEAD
 const static int32_t WAITSECOND = 6;
 const static int32_t DELTA_TIME = 1000;
 const std::string MEDIA_ROOT = "file://data/media/";
 const std::string VIDEO_FILE1 = MEDIA_ROOT + "test_1920_1080_1.mp4";
-=======
-const static int32_t WAITSECOND = 3;
-const static int32_t DELTA_TIME = 1000;
->>>>>>> 6caf11e6965040c256681a262d9723296064ab23
 } // namespace PlayerTestParam
 } // namespace Media
 } // namespace OHOS
