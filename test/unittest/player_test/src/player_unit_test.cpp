@@ -28,10 +28,12 @@ void PlayerUnitTest::TearDownTestCase(void) {}
 
 void PlayerUnitTest::SetUp(void)
 {
-    signal_ = std::make_shared<PlayerSignal>();
-    player_ = std::make_shared<PlayerMock>(signal_);
+    callback_ = std::make_shared<PlayerCallbackTest>();
+    ASSERT_NE(nullptr, callback_);
+    player_ = std::make_shared<PlayerMock>(callback_);
     ASSERT_NE(nullptr, player_);
     EXPECT_TRUE(player_->CreatePlayer());
+    EXPECT_EQ(MSERR_OK, player_->SetPlayerCallback(callback_));
 }
 
 void PlayerUnitTest::TearDown(void)
@@ -52,18 +54,6 @@ HWTEST_F(PlayerUnitTest, Player_SetSource_001, TestSize.Level0)
 }
 
 /**
-* @tc.name  : Test PlayerSetCallback API
-* @tc.number: Player_SetCallback_001
-* @tc.desc  : Test PlayerSetCallback interface with valid parameters
-*/
-HWTEST_F(PlayerUnitTest, Player_SetCallback_001, TestSize.Level1)
-{
-    std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(signal_);
-    int32_t ret = player_->SetPlayerCallback(player_CallbackTest);
-    EXPECT_EQ(MSERR_OK, ret);
-}
-
-/**
 * @tc.name  : Test PlayerPrePare API
 * @tc.number: Player_PrePare_001
 * @tc.desc  : Test PlayerPrePare interface
@@ -71,8 +61,6 @@ HWTEST_F(PlayerUnitTest, Player_SetCallback_001, TestSize.Level1)
 HWTEST_F(PlayerUnitTest, Player_PrePare_001, TestSize.Level0)
 {
     EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
-    std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(signal_);
-    EXPECT_EQ(MSERR_OK, player_->SetPlayerCallback(player_CallbackTest));
     sptr<Surface> videoSurface = player_->GetVideoSurface();
     ASSERT_NE(nullptr, videoSurface);
     EXPECT_EQ(MSERR_OK, player_->SetVideoSurface(videoSurface));
@@ -87,8 +75,6 @@ HWTEST_F(PlayerUnitTest, Player_PrePare_001, TestSize.Level0)
 HWTEST_F(PlayerUnitTest, Player_PrePareAsync_001, TestSize.Level0)
 {
     EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
-    std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(signal_);
-    EXPECT_EQ(MSERR_OK, player_->SetPlayerCallback(player_CallbackTest));
     sptr<Surface> videoSurface = player_->GetVideoSurface();
     ASSERT_NE(nullptr, videoSurface);
     EXPECT_EQ(MSERR_OK, player_->SetVideoSurface(videoSurface));
@@ -114,8 +100,6 @@ HWTEST_F(PlayerUnitTest, Player_SetVideoSurface_001, TestSize.Level0)
 HWTEST_F(PlayerUnitTest, Player_Play_001, TestSize.Level0)
 {
     EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
-    std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(signal_);
-    EXPECT_EQ(MSERR_OK, player_->SetPlayerCallback(player_CallbackTest));
     sptr<Surface> videoSurface = player_->GetVideoSurface();
     ASSERT_NE(nullptr, videoSurface);
     EXPECT_EQ(MSERR_OK, player_->SetVideoSurface(videoSurface));
@@ -132,8 +116,6 @@ HWTEST_F(PlayerUnitTest, Player_Play_001, TestSize.Level0)
 HWTEST_F(PlayerUnitTest, Player_Stop_001, TestSize.Level0)
 {
     EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
-    std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(signal_);
-    EXPECT_EQ(MSERR_OK, player_->SetPlayerCallback(player_CallbackTest));
     sptr<Surface> videoSurface = player_->GetVideoSurface();
     ASSERT_NE(nullptr, videoSurface);
     EXPECT_EQ(MSERR_OK, player_->SetVideoSurface(videoSurface));
@@ -151,8 +133,6 @@ HWTEST_F(PlayerUnitTest, Player_Stop_001, TestSize.Level0)
 HWTEST_F(PlayerUnitTest, Player_Pause_001, TestSize.Level0)
 {
     EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
-    std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(signal_);
-    EXPECT_EQ(MSERR_OK, player_->SetPlayerCallback(player_CallbackTest));
     sptr<Surface> videoSurface = player_->GetVideoSurface();
     ASSERT_NE(nullptr, videoSurface);
     EXPECT_EQ(MSERR_OK, player_->SetVideoSurface(videoSurface));
@@ -171,8 +151,6 @@ HWTEST_F(PlayerUnitTest, Player_Pause_001, TestSize.Level0)
 HWTEST_F(PlayerUnitTest, Player_Seek_001, TestSize.Level0)
 {
     EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
-    std::shared_ptr<PlayerCallbackTest> player_CallbackTest = std::make_shared<PlayerCallbackTest>(signal_);
-    EXPECT_EQ(MSERR_OK, player_->SetPlayerCallback(player_CallbackTest));
     sptr<Surface> videoSurface = player_->GetVideoSurface();
     ASSERT_NE(nullptr, videoSurface);
     EXPECT_EQ(MSERR_OK, player_->SetVideoSurface(videoSurface));

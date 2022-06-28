@@ -34,7 +34,7 @@ public:
     void TearDown(void);
 protected:
     std::shared_ptr<PlayerMock> player_ = nullptr;
-    std::shared_ptr<PlayerSignal> signal_ = nullptr;
+    std::shared_ptr<PlayerCallbackTest> callback_ = nullptr;
 };
 } // namespace Media
 } // namespace OHOS
