@@ -67,6 +67,8 @@ private:
     int32_t SelectSource(const std::string &path);
     int32_t SetSurfaceSize();
     int32_t SelectBufferingOut();
+    int32_t SelectRendererMode();
+    int32_t SetRendererInfo();
     int32_t ChangeModeToSpeed(const PlaybackRateMode &mode, double &rate) const;
     int32_t ChangeSpeedToMode(const double &rate, PlaybackRateMode &mode) const;
     void SetVideoScaleType();

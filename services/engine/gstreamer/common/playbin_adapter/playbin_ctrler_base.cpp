@@ -34,6 +34,7 @@ namespace {
     constexpr uint32_t HTTP_TIME_OUT_DEFAULT = 15; // 15s
     constexpr int32_t NANO_SEC_PER_USEC = 1000;
     constexpr double DEFAULT_RATE = 1.0;
+    constexpr uint32_t INTERRUPT_EVENT_SHIFT = 8;
 }
 
 namespace OHOS {
@@ -69,6 +70,21 @@ void PlayBinCtrlerBase::ElementSetup(const GstElement *playbin, GstElement *elem
     auto thizStrong = PlayBinCtrlerWrapper::TakeStrongThiz(userdata);
     if (thizStrong != nullptr) {
         return thizStrong->OnElementSetup(*elem);
+    }
+}
+
+void PlayBinCtrlerBase::ElementUnSetup(const GstElement *playbin, GstElement *subbin,
+    GstElement *child, gpointer userdata)
+{
+    (void)playbin;
+    (void)subbin;
+    if (child == nullptr || userdata == nullptr) {
+        return;
+    }
+
+    auto thizStrong = PlayBinCtrlerWrapper::TakeStrongThiz(userdata);
+    if (thizStrong != nullptr) {
+        return thizStrong->OnElementUnSetup(*child);
     }
 }
 
@@ -136,6 +152,9 @@ int32_t PlayBinCtrlerBase::SetSource(const std::string &url)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     uri_ = url;
+    if (url.find("http") == 0 || url.find("https") == 0) {
+        isNetWorkPlay_ = true;
+    }
 
     MEDIA_LOGI("Set source: %{public}s", url.c_str());
     return MSERR_OK;
@@ -360,13 +379,22 @@ void PlayBinCtrlerBase::SetVolume(const float &leftVolume, const float &rightVol
     }
 }
 
-void PlayBinCtrlerBase::SetAudioRendererInfo(int32_t rendererInfo)
+int32_t PlayBinCtrlerBase::SetAudioRendererInfo(const int32_t rendererInfo, const int32_t rendererFlag)
+{
+    std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
+    rendererInfo_ = rendererInfo;
+    rendererFlag_ = rendererFlag;
+    CHECK_AND_RETURN_RET_LOG(audioSink_ != nullptr, MSERR_INVALID_VAL, "audioSink_ is nullptr");
+    g_object_set(audioSink_, "audio-renderer-desc", rendererInfo, nullptr);
+    g_object_set(audioSink_, "audio-renderer-flag", rendererFlag, nullptr);
+    return MSERR_OK;
+}
+
+void PlayBinCtrlerBase::SetAudioInterruptMode(const int32_t interruptMode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (audioSink_ != nullptr) {
-        MEDIA_LOGI("SetAudioRendererInfo(%{public}d) to audio sink", rendererInfo);
-        g_object_set(audioSink_, "audio-renderer-desc", rendererInfo, nullptr);
-    }
+    CHECK_AND_RETURN_LOG(audioSink_ != nullptr, "audioSink_ is nullptr");
+    g_object_set(audioSink_, "audio-interrupt-mode", interruptMode, nullptr);
 }
 
 int32_t PlayBinCtrlerBase::SelectBitRate(uint32_t bitRate)
@@ -378,6 +406,7 @@ int32_t PlayBinCtrlerBase::SelectBitRate(uint32_t bitRate)
     }
 
     g_object_set(playbin_, "bitrate-parse-complete", static_cast<uint64_t>(bitRate), nullptr);
+    g_object_set(playbin_, "connection-speed", static_cast<uint64_t>(bitRate), nullptr);
 
     PlayBinMessage msg = { PLAYBIN_MSG_BITRATEDONE, 0, static_cast<int32_t>(bitRate) };
     ReportMessage(msg);
@@ -393,6 +422,7 @@ void PlayBinCtrlerBase::Reset() noexcept
     {
         std::unique_lock<std::mutex> lk(listenerMutex_);
         elemSetupListener_ = nullptr;
+        elemUnSetupListener_ = nullptr;
     }
     (void)StopInternal();
 
@@ -426,6 +456,13 @@ void PlayBinCtrlerBase::SetElemSetupListener(ElemSetupListener listener)
     std::unique_lock<std::mutex> lock(mutex_);
     std::unique_lock<std::mutex> lk(listenerMutex_);
     elemSetupListener_ = listener;
+}
+
+void PlayBinCtrlerBase::SetElemUnSetupListener(ElemSetupListener listener)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<std::mutex> lk(listenerMutex_);
+    elemUnSetupListener_ = listener;
 }
 
 void PlayBinCtrlerBase::DoInitializeForHttp()
@@ -469,18 +506,21 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
     SetupCustomElement();
     ret = SetupSignalMessage();
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
+    ret = SetupElementUnSetupSignal();
+    CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
+    SetAudioRendererInfo(rendererInfo_, rendererFlag_);
 
     uint32_t flags = 0;
     g_object_get(playbin_, "flags", &flags, nullptr);
+    if (renderMode_ & PlayBinRenderMode::DEFAULT_RENDER) {
+        flags &= ~GST_PLAY_FLAG_VIS;
+    }
     if (renderMode_ & PlayBinRenderMode::NATIVE_STREAM) {
         flags |= GST_PLAY_FLAG_NATIVE_VIDEO | GST_PLAY_FLAG_NATIVE_AUDIO;
         flags &= ~(GST_PLAY_FLAG_SOFT_COLORBALANCE | GST_PLAY_FLAG_SOFT_VOLUME);
     }
     if (renderMode_ & PlayBinRenderMode::DISABLE_TEXT) {
         flags &= ~GST_PLAY_FLAG_TEXT;
-    }
-    if (renderMode_ & PlayBinRenderMode::DISABLE_VIS) {
-        flags &= ~GST_PLAY_FLAG_VIS;
     }
     g_object_set(playbin_, "flags", flags, nullptr);
 
@@ -586,6 +626,15 @@ void PlayBinCtrlerBase::SetupVolumeChangedCb()
         (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory, static_cast<GConnectFlags>(0)));
 }
 
+void PlayBinCtrlerBase::SetupInterruptEventCb()
+{
+    PlayBinCtrlerWrapper *wrapper = new(std::nothrow) PlayBinCtrlerWrapper(shared_from_this());
+    CHECK_AND_RETURN_LOG(wrapper != nullptr, "can not create this wrapper");
+    (void)signalIds_.emplace(audioSink_, g_signal_connect_data(audioSink_, "interrupt-event",
+        G_CALLBACK(&PlayBinCtrlerBase::OnInterruptEventCb), wrapper,
+        (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory, static_cast<GConnectFlags>(0)));
+}
+
 void PlayBinCtrlerBase::SetupCustomElement()
 {
     // There may be a risk of data competition, but the sinkProvider is unlikely to be reconfigured.
@@ -600,6 +649,8 @@ void PlayBinCtrlerBase::SetupCustomElement()
         } else if (audioSink_ != nullptr) {
             g_object_set(playbin_, "video-sink", audioSink_, nullptr);
         }
+        auto msgNotifier = std::bind(&PlayBinCtrlerBase::OnSinkMessageReceived, this, std::placeholders::_1);
+        sinkProvider_->SetMsgNotifier(msgNotifier);
     } else {
         MEDIA_LOGD("no sinkprovider, delay the sink selection until the playbin enters pause state.");
     }
@@ -641,6 +692,20 @@ int32_t PlayBinCtrlerBase::SetupSignalMessage()
     msgProcessor_->AddMsgFilter(ELEM_NAME(GST_ELEMENT_CAST(playbin_)));
 
     MEDIA_LOGD("SetupSignalMessage exit");
+    return MSERR_OK;
+}
+
+int32_t PlayBinCtrlerBase::SetupElementUnSetupSignal()
+{
+    MEDIA_LOGD("SetupElementUnSetupSignal enter");
+
+    PlayBinCtrlerWrapper *wrapper = new(std::nothrow) PlayBinCtrlerWrapper(shared_from_this());
+    CHECK_AND_RETURN_RET_LOG(wrapper != nullptr, MSERR_NO_MEMORY, "can not create this wrapper");
+
+    (void)signalIds_.emplace(GST_ELEMENT_CAST(playbin_), g_signal_connect_data(playbin_, "deep-element-removed",
+        G_CALLBACK(&PlayBinCtrlerBase::ElementUnSetup), wrapper, (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory,
+        static_cast<GConnectFlags>(0)));
+
     return MSERR_OK;
 }
 
@@ -800,6 +865,48 @@ void PlayBinCtrlerBase::HandleCacheCtrlWhenBuffering(int32_t percent)
     }
 }
 
+void PlayBinCtrlerBase::RemoveGstPlaySinkVideoConvertPlugin()
+{
+    uint32_t flags = 0;
+
+    CHECK_AND_RETURN_LOG(playbin_ != nullptr, "playbin_ is nullptr");
+    g_object_get(playbin_, "flags", &flags, nullptr);
+    flags |= (GST_PLAY_FLAG_NATIVE_VIDEO | GST_PLAY_FLAG_HARDWARE_VIDEO);
+    flags &= ~GST_PLAY_FLAG_SOFT_COLORBALANCE;
+    MEDIA_LOGD("set gstplaysink flags %{public}d", flags);
+    // set playsink remove GstPlaySinkVideoConvert, for first-frame performance optimization
+    g_object_set(playbin_, "flags", flags, nullptr);
+}
+
+GValueArray *PlayBinCtrlerBase::OnDecodeBinTryAddNewElem(const GstElement *uriDecoder, GstPad *pad, GstCaps *caps,
+    GValueArray *factories, gpointer userdata)
+{
+    CHECK_AND_RETURN_RET_LOG(uriDecoder != nullptr, nullptr, "uriDecoder is null");
+    CHECK_AND_RETURN_RET_LOG(pad != nullptr, nullptr, "pad is null");
+    CHECK_AND_RETURN_RET_LOG(caps != nullptr, nullptr, "caps is null");
+    CHECK_AND_RETURN_RET_LOG(factories != nullptr, nullptr, "factories is null");
+
+    auto thizStrong = PlayBinCtrlerWrapper::TakeStrongThiz(userdata);
+    CHECK_AND_RETURN_RET_LOG(thizStrong != nullptr, nullptr, "thizStrong is null");
+
+    if (thizStrong->isPlaySinkFlagsSet_) {
+        return nullptr;
+    }
+
+    for (uint32_t i = 0; i < factories->n_values; i++) {
+        GstElementFactory *factory =
+            static_cast<GstElementFactory *>(g_value_get_object(g_value_array_get_nth(factories, i)));
+        if (strstr(gst_element_factory_get_metadata(factory, GST_ELEMENT_METADATA_KLASS),
+            "Codec/Decoder/Video/Hardware")) {
+            MEDIA_LOGD("set remove GstPlaySinkVideoConvert plugins from pipeline");
+            thizStrong->RemoveGstPlaySinkVideoConvertPlugin();
+            thizStrong->isPlaySinkFlagsSet_ = true;
+            break;
+        }
+    }
+    return nullptr;
+}
+
 void PlayBinCtrlerBase::OnSourceSetup(const GstElement *playbin, GstElement *src,
     const std::shared_ptr<PlayBinCtrlerBase> &playbinCtrl)
 {
@@ -809,11 +916,14 @@ void PlayBinCtrlerBase::OnSourceSetup(const GstElement *playbin, GstElement *src
 
     GstElementFactory *elementFac = gst_element_get_factory(src);
     const gchar *eleTypeName = g_type_name(gst_element_factory_get_element_type(elementFac));
+    CHECK_AND_RETURN_LOG(eleTypeName != nullptr, "eleTypeName is nullptr");
 
     std::unique_lock<std::mutex> appsrcLock(appsrcMutex_);
-    if ((eleTypeName != nullptr) && (strstr(eleTypeName, "GstAppSrc") != nullptr) &&
-        (playbinCtrl->appsrcWrap_ != nullptr)) {
+    if ((strstr(eleTypeName, "GstAppSrc") != nullptr) && (playbinCtrl->appsrcWrap_ != nullptr)) {
         (void)playbinCtrl->appsrcWrap_->SetAppsrc(src);
+    } else if (strstr(eleTypeName, "GstCurlHttpSrc") != nullptr) {
+        g_object_set(src, "ssl-ca-file", "/etc/ssl/certs/cacert.pem", nullptr);
+        MEDIA_LOGI("setup curl_http ca_file done");
     }
 }
 
@@ -845,10 +955,34 @@ void PlayBinCtrlerBase::OnElementSetup(GstElement &elem)
         msgProcessor_->AddMsgFilter(ELEM_NAME(&elem));
     }
 
+    std::string elementName(GST_ELEMENT_NAME(&elem));
+    if (isNetWorkPlay_ == false && elementName.find("uridecodebin") != std::string::npos) {
+        PlayBinCtrlerWrapper *wrapper = new(std::nothrow) PlayBinCtrlerWrapper(shared_from_this());
+        CHECK_AND_RETURN_LOG(wrapper != nullptr, "can not create this wrapper");
+        (void)signalIds_.emplace(&elem, g_signal_connect_data(&elem, "autoplug-sort",
+            G_CALLBACK(&PlayBinCtrlerBase::OnDecodeBinTryAddNewElem), wrapper,
+            (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory, static_cast<GConnectFlags>(0)));
+    }
+
     decltype(elemSetupListener_) listener = nullptr;
     {
         std::unique_lock<std::mutex> lock(listenerMutex_);
         listener = elemSetupListener_;
+    }
+
+    if (listener != nullptr) {
+        listener(elem);
+    }
+}
+
+void PlayBinCtrlerBase::OnElementUnSetup(GstElement &elem)
+{
+    MEDIA_LOGD("element unsetup: %{public}s", ELEM_NAME(&elem));
+
+    decltype(elemUnSetupListener_) listener = nullptr;
+    {
+        std::unique_lock<std::mutex> lock(listenerMutex_);
+        listener = elemUnSetupListener_;
     }
 
     if (listener != nullptr) {
@@ -870,6 +1004,21 @@ void PlayBinCtrlerBase::OnVolumeChangedCb(const GstElement *playbin, GstElement 
     }
 }
 
+void PlayBinCtrlerBase::OnInterruptEventCb(const GstElement *audioSink, const uint32_t eventType,
+    const uint32_t forceType, const uint32_t hintType, gpointer userdata)
+{
+    (void)audioSink;
+    if (userdata == nullptr) {
+        return;
+    }
+    auto thizStrong = PlayBinCtrlerWrapper::TakeStrongThiz(userdata);
+    if (thizStrong != nullptr) {
+        uint32_t value = 0;
+        value = (((eventType << INTERRUPT_EVENT_SHIFT) | forceType) << INTERRUPT_EVENT_SHIFT) | hintType;
+        PlayBinMessage msg { PLAYBIN_MSG_SUBTYPE, PLAYBIN_MSG_INTERRUPT_EVENT, 0, value };
+        thizStrong->ReportMessage(msg);
+    }
+}
 void PlayBinCtrlerBase::OnBitRateParseCompleteCb(const GstElement *playbin, uint32_t *bitrateInfo,
     uint32_t bitrateNum, gpointer userdata)
 {
@@ -898,6 +1047,11 @@ void PlayBinCtrlerBase::OnAppsrcErrorMessageReceived(int32_t errorCode)
 void PlayBinCtrlerBase::OnMessageReceived(const InnerMessage &msg)
 {
     HandleMessage(msg);
+}
+
+void PlayBinCtrlerBase::OnSinkMessageReceived(const PlayBinMessage &msg)
+{
+    ReportMessage(msg);
 }
 
 void PlayBinCtrlerBase::ReportMessage(const PlayBinMessage &msg)

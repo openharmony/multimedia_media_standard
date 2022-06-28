@@ -19,6 +19,7 @@
 #include "av_common.h"
 #include "gst_utils.h"
 #include "gst_meta_parser.h"
+#include "player.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayerTrackParse"};
@@ -26,6 +27,19 @@ namespace {
 
 namespace OHOS {
 namespace Media {
+static const std::unordered_map<std::string_view, std::string_view> INNER_KEY_TO_PLAYER_KEY = {
+    { INNER_META_KEY_BITRATE, PlayerKeys::PLAYER_BITRATE },
+    { INNER_META_KEY_CHANNEL_COUNT, PlayerKeys::PLAYER_CHANNELS },
+    { INNER_META_KEY_FRAMERATE, PlayerKeys::PLAYER_FRAMERATE },
+    { INNER_META_KEY_VIDEO_HEIGHT, PlayerKeys::PLAYER_HEIGHT },
+    { INNER_META_KEY_LANGUAGE, PlayerKeys::PLAYER_LANGUGAE },
+    { INNER_META_KEY_MIME_TYPE, PlayerKeys::PLAYER_MIME },
+    { INNER_META_KEY_SAMPLE_RATE, PlayerKeys::PLAYER_SAMPLE_RATE },
+    { INNER_META_KEY_TRACK_INDEX, PlayerKeys::PLAYER_TRACK_INDEX },
+    { INNER_META_KEY_TRACK_TYPE, PlayerKeys::PLAYER_TRACK_TYPE },
+    { INNER_META_KEY_VIDEO_WIDTH, PlayerKeys::PLAYER_WIDTH },
+};
+
 std::shared_ptr<PlayerTrackParse> PlayerTrackParse::Create()
 {
     std::shared_ptr<PlayerTrackParse> trackInfo = std::make_shared<PlayerTrackParse>();
@@ -37,7 +51,9 @@ int32_t PlayerTrackParse::GetVideoTrackInfo(std::vector<Format> &videoTrack)
     int32_t trackType;
     for (auto &[pad, innerMeta] : trackInfos_) {
         if (innerMeta.GetIntValue(INNER_META_KEY_TRACK_TYPE, trackType) && trackType == MediaType::MEDIA_TYPE_VID) {
-            videoTrack.emplace_back(innerMeta);
+            Format outMeta;
+            ConvertToPlayerKeys(innerMeta, outMeta);
+            videoTrack.emplace_back(outMeta);
         }
     }
     return MSERR_OK;
@@ -48,10 +64,37 @@ int32_t PlayerTrackParse::GetAudioTrackInfo(std::vector<Format> &audioTrack)
     int32_t trackType;
     for (auto &[pad, innerMeta] : trackInfos_) {
         if (innerMeta.GetIntValue(INNER_META_KEY_TRACK_TYPE, trackType) && trackType == MediaType::MEDIA_TYPE_AUD) {
-            audioTrack.emplace_back(innerMeta);
+            Format outMeta;
+            ConvertToPlayerKeys(innerMeta, outMeta);
+            audioTrack.emplace_back(outMeta);
         }
     }
     return MSERR_OK;
+}
+
+void PlayerTrackParse::ConvertToPlayerKeys(const Format &innerMeta, Format &outMeta) const
+{
+    for (const auto &[innerKey, playerKey] : INNER_KEY_TO_PLAYER_KEY) {
+        if (!innerMeta.ContainKey(innerKey)) {
+            continue;
+        }
+
+        std::string strVal;
+        int32_t intVal;
+        FormatDataType type = innerMeta.GetValueType(innerKey);
+        switch (type) {
+            case FORMAT_TYPE_STRING:
+                innerMeta.GetStringValue(innerKey, strVal);
+                outMeta.PutStringValue(std::string(playerKey), strVal);
+                break;
+            case FORMAT_TYPE_INT32:
+                innerMeta.GetIntValue(innerKey, intVal);
+                outMeta.PutIntValue(std::string(playerKey), intVal);
+                break;
+            default:
+                break;
+        }
+    }
 }
 
 GstPadProbeReturn PlayerTrackParse::ProbeCallback(GstPad *pad, GstPadProbeInfo *info, gpointer userdata)
@@ -82,6 +125,8 @@ GstPadProbeReturn PlayerTrackParse::ProbeCallback(GstPad *pad, GstPadProbeInfo *
             CHECK_AND_RETURN_RET_LOG(caps != nullptr, GST_PAD_PROBE_OK, "caps is nullptr")
             MEDIA_LOGI("catch caps at pad %{public}s", PAD_NAME(&pad));
             GstMetaParser::ParseStreamCaps(*caps, it->second);
+            it->second.PutIntValue(INNER_META_KEY_TRACK_INDEX, playerTrackParse->trackcount_);
+            playerTrackParse->trackcount_++;
         }
     }
 
