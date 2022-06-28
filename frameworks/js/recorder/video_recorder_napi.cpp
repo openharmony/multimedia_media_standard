@@ -42,8 +42,11 @@ VideoRecorderNapi::~VideoRecorderNapi()
     if (wrapper_ != nullptr) {
         napi_delete_reference(env_, wrapper_);
     }
-    callbackNapi_ = nullptr;
+    if (recorder_ != nullptr) {
+        (void)recorder_->SetRecorderCallback(nullptr);
+    }
     recorder_ = nullptr;
+    callbackNapi_ = nullptr;
     MEDIA_LOGD("0x%{public}06" PRIXPTR "Instances destroy", FAKE_POINTER(this));
 }
 

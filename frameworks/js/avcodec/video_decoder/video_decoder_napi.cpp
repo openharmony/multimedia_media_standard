@@ -39,8 +39,11 @@ VideoDecoderNapi::VideoDecoderNapi()
 
 VideoDecoderNapi::~VideoDecoderNapi()
 {
-    callback_ = nullptr;
+    if (vdec_ != nullptr) {
+        (void)vdec_->SetCallback(nullptr);
+    }
     vdec_ = nullptr;
+    callback_ = nullptr;
     if (wrap_ != nullptr) {
         napi_delete_reference(env_, wrap_);
     }

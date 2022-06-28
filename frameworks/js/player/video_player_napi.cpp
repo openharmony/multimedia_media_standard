@@ -47,8 +47,11 @@ VideoPlayerNapi::VideoPlayerNapi()
 
 VideoPlayerNapi::~VideoPlayerNapi()
 {
-    jsCallback_ = nullptr;
+    if (nativePlayer_ != nullptr) {
+        (void)nativePlayer_->SetPlayerCallback(nullptr);
+    }
     nativePlayer_ = nullptr;
+    jsCallback_ = nullptr;
     dataSrcCallBack_ = nullptr;
     if (wrapper_ != nullptr) {
         napi_delete_reference(env_, wrapper_);
