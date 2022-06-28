@@ -33,8 +33,13 @@ public:
     // TearDown: Called after each test cases
     void TearDown(void);
 protected:
+<<<<<<< HEAD
     std::shared_ptr<PlayerMock> player_ = nullptr;
     std::shared_ptr<PlayerSignal> signal_ = nullptr;
+=======
+    std::shared_ptr<Player_mock> player_ = nullptr;
+    std::shared_ptr<PlayerSignal> testObj = nullptr;
+>>>>>>> 6caf11e6965040c256681a262d9723296064ab23
 };
 } // namespace Media
 } // namespace OHOS
