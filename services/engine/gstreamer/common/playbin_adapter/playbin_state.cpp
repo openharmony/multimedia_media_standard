@@ -257,6 +257,7 @@ void PlayBinCtrlerBase::PreparedState::StateEnter()
     ctrler_.ReportMessage(msg);
 
     ctrler_.SetupVolumeChangedCb();
+    ctrler_.SetupInterruptEventCb();
     ctrler_.QueryDuration();
 }
 

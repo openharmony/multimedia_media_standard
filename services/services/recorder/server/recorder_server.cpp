@@ -39,6 +39,7 @@ namespace OHOS {
 namespace Media {
 const std::string START_TAG = "RecorderCreate->Start";
 const std::string STOP_TAG = "RecorderStop->Destroy";
+const int32_t ROOT_UID = 0;
 #define CHECK_STATUS_FAILED_AND_LOGE_RET(statusFailed, ret) \
     do { \
         if (statusFailed) { \
@@ -86,6 +87,14 @@ int32_t RecorderServer::Init()
 
 bool RecorderServer::CheckPermission()
 {
+    auto callerUid = IPCSkeleton::GetCallingUid();
+
+    // Root users should be whitelisted
+    if (callerUid == ROOT_UID) {
+        MEDIA_LOGI("Root user. Permission Granted");
+        return true;
+    }
+
     Security::AccessToken::AccessTokenID tokenCaller = IPCSkeleton::GetCallingTokenID();
     int result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(tokenCaller, "ohos.permission.MICROPHONE");
     if (result == Security::AccessToken::PERMISSION_GRANTED) {

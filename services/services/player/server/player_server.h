@@ -149,6 +149,9 @@ private:
         PlaybackRateMode speedMode = SPEED_FORWARD_1_00_X;
         std::string url;
     } config_;
+    int32_t contentType_ = 0;
+    int32_t streamUsage_ = 0;
+    int32_t rendererFlag_ = 0;
     std::string lastErrMsg_;
 
     std::mutex condMutex_;
