@@ -16,7 +16,6 @@
 #ifndef TEST_PARAM_COMMON_H
 #define TEST_PARAM_COMMON_H
 
-#include <cstdint>
 #include "string"
 
 namespace OHOS {
