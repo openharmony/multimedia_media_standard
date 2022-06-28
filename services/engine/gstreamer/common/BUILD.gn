@@ -31,7 +31,9 @@ config("media_engine_gst_common_config") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Wno-deprecated-declarations",
     "-DOHOS_EXT_FUNC",
+    "-DOHOS_OPT_COMPAT",
   ]
 
   include_dirs = [

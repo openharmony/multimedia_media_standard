@@ -41,6 +41,8 @@ constexpr int32_t BUFFER_TIME_DEFAULT = 15000; // 15s
 constexpr int32_t BUFFER_HIGH_PERCENT_DEFAULT = 4;
 constexpr int32_t BUFFER_FULL_PERCENT_DEFAULT = 100;
 constexpr uint32_t INTERRUPT_EVENT_SHIFT = 8;
+constexpr uint32_t MAX_SOFT_BUFFERS = 10;
+constexpr uint32_t DEFAULT_CACHE_BUFFERS = 1;
 
 PlayerEngineGstImpl::PlayerEngineGstImpl(int32_t uid, int32_t pid)
     : appuid_(uid), apppid_(pid)
@@ -290,6 +292,16 @@ void PlayerEngineGstImpl::HandleBufferingUsedMqNum(const PlayBinMessage &msg)
     mqNumUsedBuffering_ = std::any_cast<uint32_t>(msg.extra);
 }
 
+void PlayerEngineGstImpl::HandleVideoRenderingStart()
+{
+    Format format;
+    MEDIA_LOGD("video rendering start");
+    std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
+    if (notifyObs != nullptr) {
+        notifyObs->OnInfo(INFO_TYPE_MESSAGE, PlayerMessageType::PLAYER_INFO_VIDEO_RENDERING_START, format);
+    }
+}
+
 void PlayerEngineGstImpl::HandleVideoSizeChanged(const PlayBinMessage &msg)
 {
     std::pair<int32_t, int32_t> resolution = std::any_cast<std::pair<int32_t, int32_t>>(msg.extra);
@@ -338,6 +350,10 @@ void PlayerEngineGstImpl::HandleSubTypeMessage(const PlayBinMessage &msg)
         }
         case PLAYBIN_SUB_MSG_BUFFERING_USED_MQ_NUM: {
             HandleBufferingUsedMqNum(msg);
+            break;
+        }
+        case PLAYBIN_SUB_MSG_VIDEO_RENDERING_START: {
+            HandleVideoRenderingStart();
             break;
         }
         case PLAYBIN_SUB_MSG_VIDEO_SIZE_CHANGED: {
@@ -430,9 +446,11 @@ void PlayerEngineGstImpl::PlayBinCtrlerDeInit()
 {
     url_.clear();
     appsrcWrap_ = nullptr;
+    codecChangedDetector_ = nullptr;
 
     if (playBinCtrler_ != nullptr) {
         playBinCtrler_->SetElemSetupListener(nullptr);
+        playBinCtrler_->SetElemUnSetupListener(nullptr);
         playBinCtrler_ = nullptr;
     }
 
@@ -440,7 +458,6 @@ void PlayerEngineGstImpl::PlayBinCtrlerDeInit()
         std::unique_lock<std::mutex> lk(trackParseMutex_);
         trackParse_ = nullptr;
         sinkProvider_ = nullptr;
-        isHardwareDec_ = false;
         for (auto &[elem, signalId] : signalIds_) {
             g_signal_handler_disconnect(elem, signalId);
         }
@@ -450,10 +467,8 @@ void PlayerEngineGstImpl::PlayBinCtrlerDeInit()
 
 int32_t PlayerEngineGstImpl::PlayBinCtrlerPrepare()
 {
+    codecChangedDetector_ = std::make_shared<CodecChangedDetector>();
     uint8_t renderMode = IPlayBinCtrler::PlayBinRenderMode::DEFAULT_RENDER;
-    if (producerSurface_ == nullptr) {
-        renderMode |= IPlayBinCtrler::PlayBinRenderMode::DISABLE_VIS;
-    }
     auto notifier = std::bind(&PlayerEngineGstImpl::OnNotifyMessage, this, std::placeholders::_1);
 
     {
@@ -482,8 +497,11 @@ int32_t PlayerEngineGstImpl::PlayBinCtrlerPrepare()
     ret = SetAudioRendererInfo(contentType_, streamUsage_, rendererFlag_);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "SetAudioRendererInfo failed");
 
-    auto listener = std::bind(&PlayerEngineGstImpl::OnNotifyElemSetup, this, std::placeholders::_1);
-    playBinCtrler_->SetElemSetupListener(listener);
+    auto setupListener = std::bind(&PlayerEngineGstImpl::OnNotifyElemSetup, this, std::placeholders::_1);
+    playBinCtrler_->SetElemSetupListener(setupListener);
+
+    auto unSetupListener = std::bind(&PlayerEngineGstImpl::OnNotifyElemUnSetup, this, std::placeholders::_1);
+    playBinCtrler_->SetElemUnSetupListener(unSetupListener);
 
     {
         std::unique_lock<std::mutex> lk(trackParseMutex_);
@@ -757,10 +775,7 @@ void PlayerEngineGstImpl::OnNotifyElemSetup(GstElement &elem)
     CHECK_AND_RETURN_LOG(trackParse_ != nullptr, "trackParse_ is null");
 
     const gchar *metadata = gst_element_get_metadata(&elem, GST_ELEMENT_METADATA_KLASS);
-    if (metadata == nullptr) {
-        MEDIA_LOGE("gst_element_get_metadata return nullptr");
-        return;
-    }
+    CHECK_AND_RETURN_LOG(metadata != nullptr, "gst_element_get_metadata return nullptr");
 
     MEDIA_LOGD("get element_name %{public}s, get metadata %{public}s", GST_ELEMENT_NAME(&elem), metadata);
     std::string metaStr(metadata);
@@ -776,15 +791,90 @@ void PlayerEngineGstImpl::OnNotifyElemSetup(GstElement &elem)
         }
     }
 
+    CHECK_AND_RETURN_LOG(sinkProvider_ != nullptr, "sinkProvider_ is nullptr");
+    GstElement *videoSink = sinkProvider_->GetVideoSink();
+    CHECK_AND_RETURN_LOG(videoSink != nullptr, "videoSink is nullptr");
+    codecChangedDetector_->DetectCodecSetup(metaStr, &elem, videoSink);
+}
+
+void PlayerEngineGstImpl::OnNotifyElemUnSetup(GstElement &elem)
+{
+    CHECK_AND_RETURN_LOG(sinkProvider_ != nullptr, "sinkProvider_ is nullptr");
+    GstElement *videoSink = sinkProvider_->GetVideoSink();
+    CHECK_AND_RETURN_LOG(videoSink != nullptr, "videoSink is nullptr");
+
+    codecChangedDetector_->DetectCodecUnSetup(&elem, videoSink);
+}
+
+void CodecChangedDetector::SetupCodecCb(const std::string &metaStr, GstElement *src, GstElement *videoSink)
+{
     if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {
         isHardwareDec_ = true;
+        if (!codecTypeList_.empty()) {
+            // For hls scene when change codec, the second codec should not go performance mode process.
+            codecTypeList_.push_back(true);
+            return;
+        }
+        // For performance mode.
+        codecTypeList_.push_back(true);
+
+        g_object_set(G_OBJECT(src), "performance-mode", TRUE, nullptr);
+        g_object_set(G_OBJECT(videoSink), "performance-mode", TRUE, nullptr);
+
+        GstCaps *caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
+        g_object_set(G_OBJECT(videoSink), "caps", caps, nullptr);
+        g_object_set(G_OBJECT(src), "sink-caps", caps, nullptr);
+        gst_caps_unref(caps);
+
+        GstBufferPool *pool;
+        g_object_get(videoSink, "surface-pool", &pool, nullptr);
+        g_object_set(G_OBJECT(src), "surface-pool", pool, nullptr);
+    } else if (metaStr.find("Codec/Decoder/Video") != std::string::npos) {
+        codecTypeList_.push_back(false);
+    }
+}
+
+void CodecChangedDetector::DetectCodecSetup(const std::string &metaStr, GstElement *src, GstElement *videoSink)
+{
+    SetupCodecCb(metaStr, src, videoSink);
+
+    if (metaStr.find("Sink/Video") != std::string::npos && !isHardwareDec_) {
+        g_object_set(G_OBJECT(src), "max-pool-capacity", MAX_SOFT_BUFFERS, nullptr);
+        g_object_set(G_OBJECT(src), "cache-buffers-num", DEFAULT_CACHE_BUFFERS, nullptr);
+    }
+}
+
+void CodecChangedDetector::DetectCodecUnSetup(GstElement *src, GstElement *videoSink)
+{
+    const gchar *metadata = gst_element_get_metadata(src, GST_ELEMENT_METADATA_KLASS);
+    CHECK_AND_RETURN_LOG(metadata != nullptr, "gst_element_get_metadata return nullptr");
+
+    MEDIA_LOGD("get element_name %{public}s, get metadata %{public}s", GST_ELEMENT_NAME(src), metadata);
+    std::string metaStr(metadata);
+    if (metaStr.find("Codec/Decoder/Video") == std::string::npos) {
         return;
     }
 
-    if (metaStr.find("Sink/Video") != std::string::npos && isHardwareDec_) {
-        sinkProvider_->SetCapsForHardDecVideoSink();
+    if (codecTypeList_.empty()) {
+        MEDIA_LOGE("codec type list is empty");
         return;
     }
+
+    bool codecType = codecTypeList_.front();
+    codecTypeList_.pop_front();
+    if ((codecTypeList_.empty()) || (codecType == codecTypeList_.front())) {
+        MEDIA_LOGD("codec type is empty or the next is same");
+        return;
+    }
+
+    GstCaps *caps = nullptr;
+    if (codecTypeList_.front()) {
+        caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "NV12", nullptr);
+    } else {
+        caps = gst_caps_new_simple("video/x-raw", "format", G_TYPE_STRING, "RGBA", nullptr);
+    }
+    g_object_set(G_OBJECT(videoSink), "caps", caps, nullptr);
+    gst_caps_unref(caps);
 }
 } // namespace Media
 } // namespace OHOS
