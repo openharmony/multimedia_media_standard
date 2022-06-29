@@ -83,7 +83,7 @@ public:
     int32_t SetVideoSurface(sptr<Surface> surface);
     sptr<Surface> GetVideoSurface();
 private:
-    void SeekPrePare(int32_t &mseconds, PlayerSeekMode &mode);
+    void SeekPrepare(int32_t &mseconds, PlayerSeekMode &mode);
     std::shared_ptr<Player> player_ = nullptr;
     std::shared_ptr<PlayerCallbackTest> callback_;
     sptr<Rosen::Window> window_ = nullptr;

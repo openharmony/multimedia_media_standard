@@ -261,7 +261,7 @@ int32_t PlayerMock::Stop()
     return ret;
 }
 
-void PlayerMock::SeekPrePare(int32_t &mseconds, PlayerSeekMode &mode)
+void PlayerMock::SeekPrepare(int32_t &mseconds, PlayerSeekMode &mode)
 {
     int32_t duration = 0;
     int32_t seekPosition = 0;
