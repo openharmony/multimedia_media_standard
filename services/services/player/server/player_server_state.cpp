@@ -78,16 +78,26 @@ int32_t PlayerServer::BaseState::SetPlaybackSpeed(PlaybackRateMode mode)
     return MSERR_INVALID_STATE;
 }
 
-void PlayerServer::BaseState::OnMessageReceived(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
+int32_t PlayerServer::BaseState::OnMessageReceived(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
 {
     MEDIA_LOGD("message received, type = %{public}d, extra = %{public}d", type, extra);
     (void)infoBody;
     if (type == INFO_TYPE_SEEKDONE || type == INFO_TYPE_SPEEDDONE) {
+        (void)server_.taskMgr_.MarkTaskDone();
         if (type == INFO_TYPE_SEEKDONE) {
             MediaTrace::TraceEnd("Player::Seek", SEEK_TASK_ID);
+            if (disableNextSeekDone_ && extra == 0) {
+                disableNextSeekDone_ = false;
+                return MSERR_UNSUPPORT;
+            }
         }
-        (void)server_.taskMgr_.MarkTaskDone();
-        return;
+        return MSERR_OK;
+    }
+
+    if (type == INFO_TYPE_EOS) {
+        disableNextSeekDone_ = true;
+        HandleEos();
+        return MSERR_OK;
     }
 
     if (type == INFO_TYPE_STATE_CHANGE) {
@@ -100,6 +110,7 @@ void PlayerServer::BaseState::OnMessageReceived(PlayerOnInfoType type, int32_t e
                 server_.GetStatusDescription(extra).c_str());
         }
     }
+    return MSERR_OK;
 }
 
 void PlayerServer::IdleState::StateEnter()
@@ -216,6 +227,11 @@ void PlayerServer::PlayingState::HandlePlaybackComplete(int32_t extra)
 {
     server_.lastOpStatus_ = static_cast<PlayerStates>(extra);
     server_.ChangeState(server_.playbackCompletedState_);
+}
+
+void PlayerServer::PlayingState::HandleEos()
+{
+    server_.HandleEos();
 }
 
 int32_t PlayerServer::PausedState::Play()
