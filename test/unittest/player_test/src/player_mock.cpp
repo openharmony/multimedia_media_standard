@@ -280,7 +280,7 @@ void PlayerMock::SeekPrepare(int32_t &mseconds, PlayerSeekMode &mode)
 int32_t PlayerMock::Seek(int32_t mseconds, PlayerSeekMode mode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    SeekPrePare(mseconds, mode);
+    SeekPrepare(mseconds, mode);
     int32_t ret = player_->Seek(mseconds, mode);
     if (ret == MSERR_OK) {
         return callback_->SeekSync();
