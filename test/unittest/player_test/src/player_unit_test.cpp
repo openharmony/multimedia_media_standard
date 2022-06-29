@@ -54,11 +54,11 @@ HWTEST_F(PlayerUnitTest, Player_SetSource_001, TestSize.Level0)
 }
 
 /**
-* @tc.name  : Test PlayerPrePare API
-* @tc.number: Player_PrePare_001
-* @tc.desc  : Test PlayerPrePare interface
+* @tc.name  : Test PlayerPrepare API
+* @tc.number: Player_Prepare_001
+* @tc.desc  : Test PlayerPrepare interface
 */
-HWTEST_F(PlayerUnitTest, Player_PrePare_001, TestSize.Level0)
+HWTEST_F(PlayerUnitTest, Player_Prepare_001, TestSize.Level0)
 {
     EXPECT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
     sptr<Surface> videoSurface = player_->GetVideoSurface();
