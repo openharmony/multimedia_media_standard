@@ -165,9 +165,10 @@ static int32_t ConvertElementMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
 
 static int32_t ConvertBufferingMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
 {
-    if ((GST_MESSAGE_SRC(&gstMsg) != nullptr) &&
-        (strncmp(gst_element_get_name(GST_MESSAGE_SRC(&gstMsg)), "queue2", strlen("queue2")) == 0)) {
+    gchar *eleName = gst_element_get_name(GST_MESSAGE_SRC(&gstMsg));
+    if ((GST_MESSAGE_SRC(&gstMsg) != nullptr) && (strncmp(eleName, "queue2", strlen("queue2")) == 0)) {
         MEDIA_LOGD("buffering msg comes from queue2, do not handle it");
+        g_free(eleName);
         return MSERR_OK;
     }
 
@@ -177,6 +178,7 @@ static int32_t ConvertBufferingMessage(GstMessage &gstMsg, InnerMessage &innerMs
 
     innerMsg.type = INNER_MSG_BUFFERING;
     innerMsg.detail1 = percent;
+    g_free(eleName);
     return MSERR_OK;
 }
 
