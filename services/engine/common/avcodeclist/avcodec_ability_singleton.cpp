@@ -46,6 +46,7 @@ AVCodecAbilitySingleton::~AVCodecAbilitySingleton()
 
 bool AVCodecAbilitySingleton::ParseCodecXml()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (isParsered_) {
         return true;
     }
@@ -70,19 +71,22 @@ bool AVCodecAbilitySingleton::ParseCodecXml()
 
 bool AVCodecAbilitySingleton::RegisterCapability(const std::vector<CapabilityData> &registerCapabilityDataArray)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     capabilityDataArray_.insert(capabilityDataArray_.begin(), registerCapabilityDataArray.begin(),
         registerCapabilityDataArray.end());
     MEDIA_LOGD("RegisterCapability success");
     return true;
 }
 
-bool AVCodecAbilitySingleton::IsParsered() const
+bool AVCodecAbilitySingleton::IsParsered()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return isParsered_;
 }
 
-std::vector<CapabilityData> AVCodecAbilitySingleton::GetCapabilityDataArray() const
+std::vector<CapabilityData> AVCodecAbilitySingleton::GetCapabilityDataArray()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return capabilityDataArray_;
 }
 } // namespace Media

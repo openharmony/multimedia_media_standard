@@ -47,12 +47,14 @@ protected:
         std::string errorMsg = "unknown";
         MediaServiceExtErrCode errorCode = MSERR_EXT_UNKNOWN;
         std::vector<int32_t> valueVec;
+        OHOS::AudioStandard::InterruptEvent interruptEvent;
     };
     void OnJsCallBack(PlayerJsCallback *jsCb) const;
     void OnJsCallBackError(PlayerJsCallback *jsCb) const;
     void OnJsCallBackInt(PlayerJsCallback *jsCb) const;
     void OnJsCallBackIntVec(PlayerJsCallback *jsCb) const;
     void OnJsCallBackIntArray(PlayerJsCallback *jsCb) const;
+    void OnJsCallBackInterrupt(PlayerJsCallback *jsCb) const;
 
 private:
     void OnSeekDoneCb(int32_t currentPositon) const;
@@ -62,6 +64,7 @@ private:
     void OnMessageCb(int32_t type) const;
     void OnVolumeChangeCb();
     void OnBufferingUpdateCb(const Format &infoBody) const;
+    void OnAudioInterruptCb(const Format &infoBody) const;
     std::mutex mutex_;
     napi_env env_ = nullptr;
     PlayerStates currentState_ = PLAYER_IDLE;
@@ -75,6 +78,7 @@ private:
     std::shared_ptr<AutoRef> timeUpdateCallback_ = nullptr; // seekdone
     std::shared_ptr<AutoRef> volumeChangeCallback_ = nullptr; // volumedone
     std::shared_ptr<AutoRef> bufferingUpdateCallback_ = nullptr; // buffering update
+    std::shared_ptr<AutoRef> audioInterruptCallback_ = nullptr; // audio interrupt
 };
 } // namespace Media
 } // namespace OHOS
