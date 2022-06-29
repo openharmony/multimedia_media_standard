@@ -54,7 +54,7 @@ public:
     explicit VideoCallbackNapi(napi_env env);
     ~VideoCallbackNapi() override;
 
-    void SaveCallbackReference(const std::string &callbackName, napi_value callback) override;
+    // void SaveCallbackReference(const std::string &callbackName, napi_value callback) override;
     void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody) override;
     PlayerStates GetCurrentState() const override;
     int32_t GetVideoWidth() const
@@ -90,10 +90,10 @@ private:
     std::queue<VideoPlayerAsyncContext *> contextSpeedQue_;
     std::queue<VideoPlayerAsyncContext *> contextVolumeQue_;
     std::queue<VideoPlayerAsyncContext *> contextBitRateQue_;
-    std::shared_ptr<AutoRef> startRenderFrameCallback_ = nullptr;
-    std::shared_ptr<AutoRef> videoSizeChangedCallback_ = nullptr;
-    std::shared_ptr<AutoRef> playbackCompletedCallback_ = nullptr;
-    std::shared_ptr<AutoRef> bitrateColledtedCallback_ = nullptr;
+    // std::shared_ptr<AutoRef> startRenderFrameCallback_ = nullptr;
+    // std::shared_ptr<AutoRef> videoSizeChangedCallback_ = nullptr;
+    // std::shared_ptr<AutoRef> playbackCompletedCallback_ = nullptr;
+    // std::shared_ptr<AutoRef> bitrateColledtedCallback_ = nullptr;
     int32_t width_ = 0;
     int32_t height_ = 0;
 };
