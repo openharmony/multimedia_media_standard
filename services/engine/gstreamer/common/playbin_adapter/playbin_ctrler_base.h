@@ -146,7 +146,6 @@ private:
     bool isBuffering_ = false;
 
     bool enableLooping_ = false;
-    bool disableNextSeekDoneCb_ = false;
     std::shared_ptr<GstAppsrcWrap> appsrcWrap_ = nullptr;
 
     std::shared_ptr<IdleState> idleState_;

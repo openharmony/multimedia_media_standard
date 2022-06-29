@@ -665,6 +665,19 @@ int32_t PlayerServer::HandleSetPlaybackSpeed(PlaybackRateMode mode)
     return MSERR_OK;
 }
 
+void PlayerServer::HandleEos()
+{
+    if (config_.looping.load()) {
+        auto seekTask = std::make_shared<TaskHandler<void>>([this]() {
+            auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
+            (void)currState->Seek(0, SEEK_PREVIOUS_SYNC);
+        });
+
+        int ret = taskMgr_.LaunchTask(seekTask, PlayerServerTaskType::SEEKING);
+        CHECK_AND_RETURN_LOG(ret == MSERR_OK, "Seek failed");
+    }
+}
+
 int32_t PlayerServer::GetPlaybackSpeed(PlaybackRateMode &mode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -848,9 +861,9 @@ void PlayerServer::OnInfo(PlayerOnInfoType type, int32_t extra, const Format &in
 {
     std::lock_guard<std::mutex> lockCb(mutexCb_);
 
-    HandleMessage(type, extra, infoBody);
+    int32_t ret = HandleMessage(type, extra, infoBody);
 
-    if (playerCb_ != nullptr) {
+    if (playerCb_ != nullptr && ret == MSERR_OK) {
         playerCb_->OnInfo(type, extra, infoBody);
     }
 }
@@ -870,11 +883,12 @@ std::string PlayerServerState::GetStateName() const
     return name_;
 }
 
-void PlayerServerStateMachine::HandleMessage(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
+int32_t PlayerServerStateMachine::HandleMessage(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
 {
     if (currState_ != nullptr) {
-        currState_->OnMessageReceived(type, extra, infoBody);
+        return currState_->OnMessageReceived(type, extra, infoBody);
     }
+    return MSERR_INVALID_STATE;
 }
 
 void PlayerServerStateMachine::ChangeState(const std::shared_ptr<PlayerServerState> &state)

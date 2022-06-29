@@ -37,7 +37,7 @@ public:
 protected:
     virtual void StateEnter() {}
     virtual void StateExit() {}
-    virtual void OnMessageReceived(PlayerOnInfoType type, int32_t extra, const Format &infoBody) = 0;
+    virtual int32_t OnMessageReceived(PlayerOnInfoType type, int32_t extra, const Format &infoBody) = 0;
 
     friend class PlayerServerStateMachine;
 
@@ -53,7 +53,7 @@ public:
     DISALLOW_COPY_AND_MOVE(PlayerServerStateMachine);
 
 protected:
-    void HandleMessage(PlayerOnInfoType type, int32_t extra, const Format &infoBody);
+    int32_t HandleMessage(PlayerOnInfoType type, int32_t extra, const Format &infoBody);
     void ChangeState(const std::shared_ptr<PlayerServerState> &state);
     std::shared_ptr<PlayerServerState> GetCurrState();
 
@@ -128,6 +128,7 @@ private:
     int32_t HandleReset();
     int32_t HandleSeek(int32_t mSeconds, PlayerSeekMode mode);
     int32_t HandleSetPlaybackSpeed(PlaybackRateMode mode);
+    void HandleEos();
     void FormatToString(std::string &dumpString, std::vector<Format> &videoTrack);
     const std::string &GetStatusDescription(int32_t status);
 
@@ -143,7 +144,7 @@ private:
     std::shared_ptr<IMediaDataSource> dataSrc_ = nullptr;
     std::unique_ptr<UriHelper> uriHelper_;
     struct ConfigInfo {
-        bool looping = false;
+        std::atomic<bool> looping = false;
         float leftVolume = 1.0f; // audiotrack volume range [0, 1]
         float rightVolume = 1.0f; // audiotrack volume range [0, 1]
         PlaybackRateMode speedMode = SPEED_FORWARD_1_00_X;
