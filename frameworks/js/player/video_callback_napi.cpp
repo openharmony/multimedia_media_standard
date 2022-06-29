@@ -38,34 +38,34 @@ VideoCallbackNapi::~VideoCallbackNapi()
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-void VideoCallbackNapi::SaveCallbackReference(const std::string &callbackName, napi_value args)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    // only video ref callback
-    if ((callbackName == START_RENDER_FRAME_CALLBACK_NAME) ||
-        (callbackName == VIDEO_SIZE_CHANGED_CALLBACK_NAME) ||
-        (callbackName == PLAYBACK_COMPLETED_CALLBACK_NAME) ||
-        (callbackName == BITRATE_COLLECTED_CALLBACK_NAME)) {
-        napi_ref callback = nullptr;
-        napi_status status = napi_create_reference(env_, args, 1, &callback);
-        CHECK_AND_RETURN_LOG(status == napi_ok && callback != nullptr, "creating reference for callback fail");
-        std::shared_ptr<AutoRef> cb = std::make_shared<AutoRef>(env_, callback);
-        if (callbackName == START_RENDER_FRAME_CALLBACK_NAME) {
-            startRenderFrameCallback_ = cb;
-        } else if (callbackName == VIDEO_SIZE_CHANGED_CALLBACK_NAME) {
-            videoSizeChangedCallback_ = cb;
-        } else if (callbackName == PLAYBACK_COMPLETED_CALLBACK_NAME) {
-            playbackCompletedCallback_= cb;
-        } else if (callbackName == BITRATE_COLLECTED_CALLBACK_NAME) {
-            bitrateColledtedCallback_ = cb;
-        } else {
-            MEDIA_LOGW("Unknown callback type: %{public}s", callbackName.c_str());
-        }
-    } else {
-        // video + audio ref callback
-        PlayerCallbackNapi::SaveCallbackReference(callbackName, args);
-    }
-}
+// void VideoCallbackNapi::SaveCallbackReference(const std::string &callbackName, napi_value args)
+// {
+//     std::lock_guard<std::mutex> lock(mutex_);
+//     // only video ref callback
+//     if ((callbackName == START_RENDER_FRAME_CALLBACK_NAME) ||
+//         (callbackName == VIDEO_SIZE_CHANGED_CALLBACK_NAME) ||
+//         (callbackName == PLAYBACK_COMPLETED_CALLBACK_NAME) ||
+//         (callbackName == BITRATE_COLLECTED_CALLBACK_NAME)) {
+//         napi_ref callback = nullptr;
+//         napi_status status = napi_create_reference(env_, args, 1, &callback);
+//         CHECK_AND_RETURN_LOG(status == napi_ok && callback != nullptr, "creating reference for callback fail");
+//         std::shared_ptr<AutoRef> cb = std::make_shared<AutoRef>(env_, callback);
+//         if (callbackName == START_RENDER_FRAME_CALLBACK_NAME) {
+//             startRenderFrameCallback_ = cb;
+//         } else if (callbackName == VIDEO_SIZE_CHANGED_CALLBACK_NAME) {
+//             videoSizeChangedCallback_ = cb;
+//         } else if (callbackName == PLAYBACK_COMPLETED_CALLBACK_NAME) {
+//             playbackCompletedCallback_= cb;
+//         } else if (callbackName == BITRATE_COLLECTED_CALLBACK_NAME) {
+//             bitrateColledtedCallback_ = cb;
+//         } else {
+//             MEDIA_LOGW("Unknown callback type: %{public}s", callbackName.c_str());
+//         }
+//     } else {
+//         // video + audio ref callback
+//         PlayerCallbackNapi::SaveCallbackReference(callbackName, args);
+//     }
+// }
 
 void VideoCallbackNapi::QueueAsyncWork(VideoPlayerAsyncContext *context)
 {
@@ -240,12 +240,13 @@ void VideoCallbackNapi::OnVolumeDoneCb()
 void VideoCallbackNapi::OnStartRenderFrameCb() const
 {
     MEDIA_LOGD("OnStartRenderFrameCb is called");
-    CHECK_AND_RETURN_LOG(startRenderFrameCallback_ != nullptr,
-        "Cannot find the reference of startRenderFrame callback");
-
+    if (refMap_.find(START_RENDER_FRAME_CALLBACK_NAME) == refMap_.end()) {
+        MEDIA_LOGW("can not find start render frame callback!");
+        return;
+    }
     PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
     CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
-    cb->callback = startRenderFrameCallback_;
+    cb->callback = refMap_.at(START_RENDER_FRAME_CALLBACK_NAME);
     cb->callbackName = START_RENDER_FRAME_CALLBACK_NAME;
     return PlayerCallbackNapi::OnJsCallBack(cb);
 }
@@ -255,11 +256,13 @@ void VideoCallbackNapi::OnVideoSizeChangedCb(const Format &infoBody)
     (void)infoBody.GetIntValue(PlayerKeys::PLAYER_WIDTH, width_);
     (void)infoBody.GetIntValue(PlayerKeys::PLAYER_HEIGHT, height_);
     MEDIA_LOGD("OnVideoSizeChangedCb is called, width = %{public}d, height = %{public}d", width_, height_);
-    CHECK_AND_RETURN_LOG(videoSizeChangedCallback_ != nullptr,
-        "Cannot find the reference of videoSizeChanged callback");
+    if (refMap_.find(VIDEO_SIZE_CHANGED_CALLBACK_NAME) == refMap_.end()) {
+        MEDIA_LOGW("can not find video size changed callback!");
+        return;
+    }
     PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
     CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
-    cb->callback = videoSizeChangedCallback_;
+    cb->callback = refMap_.at(VIDEO_SIZE_CHANGED_CALLBACK_NAME);
     cb->callbackName = VIDEO_SIZE_CHANGED_CALLBACK_NAME;
     cb->valueVec.push_back(width_);
     cb->valueVec.push_back(height_);
@@ -269,12 +272,14 @@ void VideoCallbackNapi::OnVideoSizeChangedCb(const Format &infoBody)
 void VideoCallbackNapi::OnPlaybackCompleteCb() const
 {
     MEDIA_LOGD("OnPlaybackCompleteCb is called");
-    CHECK_AND_RETURN_LOG(playbackCompletedCallback_ != nullptr,
-        "Cannot find the reference of startRenderFrame callback");
+    if (refMap_.find(PLAYBACK_COMPLETED_CALLBACK_NAME) == refMap_.end()) {
+        MEDIA_LOGW("can not find completed callback!");
+        return;
+    }
 
     PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
     CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
-    cb->callback = playbackCompletedCallback_;
+    cb->callback = refMap_.at(PLAYBACK_COMPLETED_CALLBACK_NAME);
     cb->callbackName = PLAYBACK_COMPLETED_CALLBACK_NAME;
     return PlayerCallbackNapi::OnJsCallBack(cb);
 }
@@ -345,11 +350,14 @@ void VideoCallbackNapi::OnStateChangeCb(PlayerStates state)
 
 void VideoCallbackNapi::OnBitRateCollectedCb(const Format &infoBody) const
 {
-    CHECK_AND_RETURN_LOG(bitrateColledtedCallback_ != nullptr, "Cannot find the reference of bitrate callback");
+    if (refMap_.find(BITRATE_COLLECTED_CALLBACK_NAME) == refMap_.end()) {
+        MEDIA_LOGW("can not find bitrate collected callback!");
+        return;
+    }
 
     PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
     CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
-    cb->callback = bitrateColledtedCallback_;
+    cb->callback = refMap_.at(BITRATE_COLLECTED_CALLBACK_NAME);
     cb->callbackName = BITRATE_COLLECTED_CALLBACK_NAME;
 
     uint8_t *addr = nullptr;

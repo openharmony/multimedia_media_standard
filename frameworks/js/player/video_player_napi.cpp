@@ -1063,9 +1063,12 @@ napi_value VideoPlayerNapi::On(napi_env env, napi_callback_info info)
     std::string callbackName = CommonNapi::GetStringArgument(env, args[0]);
     MEDIA_LOGD("callbackName: %{public}s", callbackName.c_str());
 
-    CHECK_AND_RETURN_RET_LOG(jsPlayer->jsCallback_ != nullptr, undefinedResult, "jsCallback_ is nullptr");
-    auto cb = std::static_pointer_cast<VideoCallbackNapi>(jsPlayer->jsCallback_);
-    cb->SaveCallbackReference(callbackName, args[1]);
+    napi_ref ref = nullptr;
+    status = napi_create_reference(env, args[1], 1, &ref);
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && ref != nullptr, undefinedResult, "failed to create reference!");
+
+    std::shared_ptr<AutoRef> autoRef = std::make_shared<AutoRef>(env, ref);
+    jsPlayer->SetCallbackReference(callbackName, autoRef);
     return undefinedResult;
 }
 
@@ -1470,6 +1473,15 @@ napi_value VideoPlayerNapi::GetAudioInterruptMode(napi_env env, napi_callback_in
         player->interruptMode_) == true, nullptr);
     MEDIA_LOGD("GetAudioInterruptMode success");
     return jsResult;
+}
+
+void VideoPlayerNapi::SetCallbackReference(const std::string &callbackName, std::shared_ptr<AutoRef> ref)
+{
+    refMap_[callbackName] = ref;
+    if (jsCallback_ != nullptr) {
+        std::shared_ptr<PlayerCallbackNapi> napiCb = std::static_pointer_cast<PlayerCallbackNapi>(jsCallback_);
+        napiCb->SaveCallbackReference(callbackName, ref);
+    }
 }
 } // namespace Media
 } // namespace OHOS

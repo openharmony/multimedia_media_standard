@@ -59,6 +59,7 @@ private:
     static napi_value SetAudioInterruptMode(napi_env env, napi_callback_info info);
     static void AsyncGetTrackDescription(napi_env env, void *data);
     void ErrorCallback(MediaServiceExtErrCode errCode);
+    void SetCallbackReference(const std::string &callbackName, std::shared_ptr<AutoRef> ref);
     AudioPlayerNapi();
     ~AudioPlayerNapi();
 
@@ -72,6 +73,7 @@ private:
     std::vector<Format> audioTrackInfoVec_;
     AVFileDescriptor rawFd_;
     OHOS::AudioStandard::InterruptMode interruptMode_;
+    std::map<std::string, std::shared_ptr<AutoRef>> refMap_;
 };
 } // namespace Media
 } // namespace OHOS
