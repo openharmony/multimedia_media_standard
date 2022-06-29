@@ -38,35 +38,6 @@ VideoCallbackNapi::~VideoCallbackNapi()
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-// void VideoCallbackNapi::SaveCallbackReference(const std::string &callbackName, napi_value args)
-// {
-//     std::lock_guard<std::mutex> lock(mutex_);
-//     // only video ref callback
-//     if ((callbackName == START_RENDER_FRAME_CALLBACK_NAME) ||
-//         (callbackName == VIDEO_SIZE_CHANGED_CALLBACK_NAME) ||
-//         (callbackName == PLAYBACK_COMPLETED_CALLBACK_NAME) ||
-//         (callbackName == BITRATE_COLLECTED_CALLBACK_NAME)) {
-//         napi_ref callback = nullptr;
-//         napi_status status = napi_create_reference(env_, args, 1, &callback);
-//         CHECK_AND_RETURN_LOG(status == napi_ok && callback != nullptr, "creating reference for callback fail");
-//         std::shared_ptr<AutoRef> cb = std::make_shared<AutoRef>(env_, callback);
-//         if (callbackName == START_RENDER_FRAME_CALLBACK_NAME) {
-//             startRenderFrameCallback_ = cb;
-//         } else if (callbackName == VIDEO_SIZE_CHANGED_CALLBACK_NAME) {
-//             videoSizeChangedCallback_ = cb;
-//         } else if (callbackName == PLAYBACK_COMPLETED_CALLBACK_NAME) {
-//             playbackCompletedCallback_= cb;
-//         } else if (callbackName == BITRATE_COLLECTED_CALLBACK_NAME) {
-//             bitrateColledtedCallback_ = cb;
-//         } else {
-//             MEDIA_LOGW("Unknown callback type: %{public}s", callbackName.c_str());
-//         }
-//     } else {
-//         // video + audio ref callback
-//         PlayerCallbackNapi::SaveCallbackReference(callbackName, args);
-//     }
-// }
-
 void VideoCallbackNapi::QueueAsyncWork(VideoPlayerAsyncContext *context)
 {
     std::lock_guard<std::mutex> lock(mutex_);

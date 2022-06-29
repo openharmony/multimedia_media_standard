@@ -70,17 +70,6 @@ private:
     std::mutex mutex_;
     napi_env env_ = nullptr;
     PlayerStates currentState_ = PLAYER_IDLE;
-    // std::shared_ptr<AutoRef> errorCallback_ = nullptr; // error
-    // std::shared_ptr<AutoRef> playCallback_ = nullptr; // started
-    // std::shared_ptr<AutoRef> pauseCallback_ = nullptr; // paused
-    // std::shared_ptr<AutoRef> stopCallback_ = nullptr; // stopped
-    // std::shared_ptr<AutoRef> resetCallback_ = nullptr; // idle
-    // std::shared_ptr<AutoRef> dataLoadCallback_ = nullptr; // prepared
-    // std::shared_ptr<AutoRef> finishCallback_ = nullptr; // endofstream
-    // std::shared_ptr<AutoRef> timeUpdateCallback_ = nullptr; // seekdone
-    // std::shared_ptr<AutoRef> volumeChangeCallback_ = nullptr; // volumedone
-    // std::shared_ptr<AutoRef> bufferingUpdateCallback_ = nullptr; // buffering update
-    // std::shared_ptr<AutoRef> audioInterruptCallback_ = nullptr; // audio interrupt
 };
 } // namespace Media
 } // namespace OHOS
