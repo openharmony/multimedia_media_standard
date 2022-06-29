@@ -659,6 +659,7 @@ void PlayBinCtrlerBase::SetupCustomElement()
         GstElement *audioFilter = gst_element_factory_make("scaletempo", "scaletempo");
         if (audioFilter != nullptr) {
             g_object_set(playbin_, "audio-filter", audioFilter, nullptr);
+            gst_object_unref(audioFilter);
         } else {
             MEDIA_LOGD("can not create scaletempo, the audio playback speed can not be adjusted");
         }
