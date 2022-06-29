@@ -46,41 +46,6 @@ PlayerCallbackNapi::~PlayerCallbackNapi()
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-// void PlayerCallbackNapi::SaveCallbackReference(const std::string &callbackName, napi_value args)
-// {
-//     std::lock_guard<std::mutex> lock(mutex_);
-//     napi_ref callback = nullptr;
-//     napi_status status = napi_create_reference(env_, args, 1, &callback);
-//     CHECK_AND_RETURN_LOG(status == napi_ok && callback != nullptr, "creating reference for callback fail");
-
-//     std::shared_ptr<AutoRef> cb = std::make_shared<AutoRef>(env_, callback);
-//     if (callbackName == PLAY_CALLBACK_NAME) {
-//         playCallback_ = cb;
-//     } else if (callbackName == PAUSE_CALLBACK_NAME) {
-//         pauseCallback_ = cb;
-//     } else if (callbackName == STOP_CALLBACK_NAME) {
-//         stopCallback_ = cb;
-//     } else if (callbackName == RESET_CALLBACK_NAME) {
-//         resetCallback_ = cb;
-//     } else if (callbackName == DATA_LOAD_CALLBACK_NAME) {
-//         dataLoadCallback_ = cb;
-//     } else if (callbackName == FINISH_CALLBACK_NAME) {
-//         finishCallback_ = cb;
-//     } else if (callbackName == TIME_UPDATE_CALLBACK_NAME) {
-//         timeUpdateCallback_ = cb;
-//     } else if (callbackName == ERROR_CALLBACK_NAME) {
-//         errorCallback_ = cb;
-//     } else if (callbackName == VOL_CHANGE_CALLBACK_NAME) {
-//         volumeChangeCallback_ = cb;
-//     } else if (callbackName == BUFFERING_UPDATE_CALLBACK_NAME) {
-//         bufferingUpdateCallback_ = cb;
-//     } else if (callbackName == AUDIO_INTERRUPT_CALLBACK_NAME) {
-//         audioInterruptCallback_ = cb;
-//     } else {
-//         MEDIA_LOGW("Unknown callback type: %{public}s", callbackName.c_str());
-//     }
-// }
-
 void PlayerCallbackNapi::SaveCallbackReference(const std::string &name, std::weak_ptr<AutoRef> ref)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -115,14 +80,7 @@ void PlayerCallbackNapi::OnError(PlayerErrorType errorType, int32_t errorCode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGD("OnError is called, name: %{public}d, message: %{public}d", errorType, errorCode);
-    // CHECK_AND_RETURN_LOG(errorCallback_ != nullptr, "Cannot find the reference of error callback");
 
-    // PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
-    // CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
-    // cb->callback = errorCallback_;
-    // cb->callbackName = ERROR_CALLBACK_NAME;
-    // cb->errorMsg = MSErrorToExtErrorString(static_cast<MediaServiceErrCode>(errorCode));
-    // cb->errorCode = MSErrorToExtError(static_cast<MediaServiceErrCode>(errorCode));
     MediaServiceExtErrCode err = MSErrorToExtError(static_cast<MediaServiceErrCode>(errorCode));
     return SendErrorCallback(err);
 }
