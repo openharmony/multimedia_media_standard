@@ -37,7 +37,7 @@ public:
     explicit RecorderCallbackNapi(napi_env env);
     virtual ~RecorderCallbackNapi();
 
-    void SaveCallbackReference(const std::string &callbackName, napi_value callback);
+    void SaveCallbackReference(const std::string &name, std::weak_ptr<AutoRef> ref);
     void SendErrorCallback(MediaServiceExtErrCode errCode);
     void SendStateCallback(const std::string &callbackName);
 
@@ -47,25 +47,16 @@ protected:
 
 private:
     struct RecordJsCallback {
-        std::shared_ptr<AutoRef> callback = nullptr;
+        std::weak_ptr<AutoRef> autoRef;
         std::string callbackName = "unknown";
         std::string errorMsg = "unknown";
         MediaServiceExtErrCode errorCode = MSERR_EXT_UNKNOWN;
     };
     void OnJsErrorCallBack(RecordJsCallback *jsCb) const;
     void OnJsStateCallBack(RecordJsCallback *jsCb) const;
-    std::shared_ptr<AutoRef> StateCallbackSelect(const std::string &callbackName) const;
     napi_env env_ = nullptr;
     std::mutex mutex_;
-
-    std::shared_ptr<AutoRef> errorCallback_ = nullptr;
-    std::shared_ptr<AutoRef> prepareCallback_ = nullptr;
-    std::shared_ptr<AutoRef> startCallback_ = nullptr;
-    std::shared_ptr<AutoRef> pauseCallback_ = nullptr;
-    std::shared_ptr<AutoRef> resumeCallback_ = nullptr;
-    std::shared_ptr<AutoRef> stopCallback_ = nullptr;
-    std::shared_ptr<AutoRef> resetCallback_ = nullptr;
-    std::shared_ptr<AutoRef> releaseCallback_ = nullptr;
+    std::map<std::string, std::weak_ptr<AutoRef>> refMap_;
 };
 } // namespace Media
 } // namespace OHOS
