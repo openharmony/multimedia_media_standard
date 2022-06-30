@@ -71,6 +71,13 @@ PlayerServer::~PlayerServer()
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
+void PlayerServer::ResetProcessor()
+{
+    resetRet_ = playerEngine_->Reset();
+    playerEngine_ = nullptr;
+    surface_ = nullptr
+}
+
 int32_t PlayerServer::Init()
 {
     MediaTrace trace("PlayerServer::Init");
@@ -412,9 +419,11 @@ int32_t PlayerServer::OnReset()
 
 int32_t PlayerServer::HandleReset()
 {
-    int32_t ret = playerEngine_->Reset();
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine Reset Failed!");
-    playerEngine_ = nullptr;
+    std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&PlayerServer::ResetProcessor, this);
+    if (thread != nullptr && thread->joinable()) {
+        thread->join();
+    }
+    CHECK_AND_RETURN_RET_LOG(resetRet_ == MSERR_OK, MSERR_INVALID_OPERATION, "Engine Reset Failed!");
     dataSrc_ = nullptr;
     config_.looping = false;
     uriHelper_ = nullptr;
