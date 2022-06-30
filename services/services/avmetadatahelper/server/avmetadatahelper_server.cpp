@@ -42,16 +42,8 @@ AVMetadataHelperServer::~AVMetadataHelperServer()
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
     std::lock_guard<std::mutex> lock(mutex_);
-    std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&AVMetadataHelperServer::ExitProcessor, this);
-    if (thread != nullptr && thread->joinable()) {
-        thread->join();
-    }
-    uriHelper_ = nullptr;
-}
-
-void AVMetadataHelperServer::ExitProcessor()
-{
     avMetadataHelperEngine_ = nullptr;
+    uriHelper_ = nullptr;
 }
 
 int32_t AVMetadataHelperServer::SetSource(const std::string &uri, int32_t usage)
@@ -142,10 +134,7 @@ void AVMetadataHelperServer::Release()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MediaTrace trace("AVMetadataHelperServer::Release");
-    std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&AVMetadataHelperServer::ExitProcessor, this);
-    if (thread != nullptr && thread->joinable()) {
-        thread->join();
-    }
+    avMetadataHelperEngine_ = nullptr;
     uriHelper_ = nullptr;
 }
 } // namespace Media
