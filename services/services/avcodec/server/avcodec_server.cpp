@@ -53,7 +53,16 @@ AVCodecServer::AVCodecServer()
 
 AVCodecServer::~AVCodecServer()
 {
+    std::uniqueue_ptr<std::thread> thread = std::make_unique<std::thread>(&AVCodecServer::TaskProcessor, this);
+    if (thread != nullptr && thread->joinable()) {
+        thread->join();
+    }
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
+}
+
+void AVCodecServer::TaskProcessor()
+{
+    codecEngine_ = nullptr;
 }
 
 int32_t AVCodecServer::Init()
