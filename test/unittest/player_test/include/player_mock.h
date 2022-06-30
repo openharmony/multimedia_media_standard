@@ -80,8 +80,7 @@ public:
 private:
     void SeekPrepare(int32_t &mseconds, PlayerSeekMode &mode);
     std::shared_ptr<Player> player_ = nullptr;
-    std::shared_ptr<PlayerCallbackTest> callback_;
-    sptr<Rosen::Window> window_ = nullptr;
+    std::shared_ptr<PlayerCallbackTest> callback_ = nullptr;
     sptr<Rosen::Window> previewWindow_ = nullptr;
     int32_t height_ = 1080;
     int32_t width_ = 1920;
