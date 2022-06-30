@@ -40,7 +40,6 @@ protected:
     virtual void HandleEos() {}
 
     PlayerServer &server_;
-    bool disableNextSeekDone_ = false;
 };
 
 class PlayerServer::IdleState : public PlayerServer::BaseState {
