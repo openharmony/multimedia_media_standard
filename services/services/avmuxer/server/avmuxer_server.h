@@ -52,7 +52,6 @@ private:
     std::shared_ptr<IAVMuxerEngine> avmuxerEngine_ = nullptr;
     AVMuxerStates curState_ = AVMUXER_IDEL;
     uint32_t trackNum_ = 0;
-    void ExitProcessor();
 };
 }  // namespace Media
 }  // namespace OHOS
