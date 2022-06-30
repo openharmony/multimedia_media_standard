@@ -672,7 +672,7 @@ void PlayerServer::HandleEos()
             auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
             (void)currState->Seek(0, SEEK_PREVIOUS_SYNC);
         });
-
+        disableNextSeekDone_ = true;
         int ret = taskMgr_.LaunchTask(seekTask, PlayerServerTaskType::SEEKING);
         CHECK_AND_RETURN_LOG(ret == MSERR_OK, "Seek failed");
     }
@@ -894,7 +894,7 @@ int32_t PlayerServerStateMachine::HandleMessage(PlayerOnInfoType type, int32_t e
     if (currState_ != nullptr) {
         return currState_->OnMessageReceived(type, extra, infoBody);
     }
-    return MSERR_INVALID_STATE;
+    return MSERR_OK;
 }
 
 void PlayerServerStateMachine::ChangeState(const std::shared_ptr<PlayerServerState> &state)

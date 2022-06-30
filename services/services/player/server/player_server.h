@@ -150,6 +150,7 @@ private:
         PlaybackRateMode speedMode = SPEED_FORWARD_1_00_X;
         std::string url;
     } config_;
+    bool disableNextSeekDone_ = false;
     int32_t contentType_ = 0;
     int32_t streamUsage_ = 0;
     int32_t rendererFlag_ = 0;
