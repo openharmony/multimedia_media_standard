@@ -34,7 +34,6 @@ class PlayerCallbackNapi : public PlayerCallback {
 public:
     explicit PlayerCallbackNapi(napi_env env);
     virtual ~PlayerCallbackNapi();
-    // virtual void SaveCallbackReference(const std::string &callbackName, napi_value args);
     void SaveCallbackReference(const std::string &name, std::weak_ptr<AutoRef> ref);
     void SendErrorCallback(MediaServiceExtErrCode errCode, const std::string &info = "error");
     virtual PlayerStates GetCurrentState() const;
