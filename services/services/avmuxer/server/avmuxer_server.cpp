@@ -44,6 +44,14 @@ AVMuxerServer::~AVMuxerServer()
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
     std::lock_guard<std::mutex> lock(mutex_);
+    std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&AVMuxerServer::ExitProcessor, this);
+    if (thread != nullptr && thread->joinable()) {
+        thread->join();
+    }
+}
+
+void AVMuxerServer::ExitProcessor()
+{
     avmuxerEngine_ = nullptr;
 }
 
@@ -179,7 +187,10 @@ void AVMuxerServer::Release()
         Stop();
         mutex_.lock();
     }
-    avmuxerEngine_ = nullptr;
+    std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&AVMuxerServer::ExitProcessor, this);
+    if (thread != nullptr && thread->joinable()) {
+        thread->join();
+    }
 }
 }  // namespace Media
 }  // namespace OHOS

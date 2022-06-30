@@ -42,6 +42,7 @@ private:
     std::shared_ptr<IAVMetadataHelperEngine> avMetadataHelperEngine_ = nullptr;
     std::mutex mutex_;
     std::unique_ptr<UriHelper> uriHelper_;
+    void ExitProcessor();
 };
 } // namespace Media
 } // namespace OHOS

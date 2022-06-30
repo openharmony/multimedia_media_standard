@@ -53,14 +53,14 @@ AVCodecServer::AVCodecServer()
 
 AVCodecServer::~AVCodecServer()
 {
-    std::uniqueue_ptr<std::thread> thread = std::make_unique<std::thread>(&AVCodecServer::TaskProcessor, this);
+    std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&AVCodecServer::ExitProcessor, this);
     if (thread != nullptr && thread->joinable()) {
         thread->join();
     }
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-void AVCodecServer::TaskProcessor()
+void AVCodecServer::ExitProcessor()
 {
     codecEngine_ = nullptr;
 }
@@ -163,7 +163,7 @@ int32_t AVCodecServer::Reset()
 int32_t AVCodecServer::Release()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    std::uniqueue_ptr<std::thread> thread = std::make_unique<std::thread>(&AVCodecServer::TaskProcessor, this);
+    std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&AVCodecServer::ExitProcessor, this);
     if (thread != nullptr && thread->joinable()) {
         thread->join();
     }
