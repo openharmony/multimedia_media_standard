@@ -75,7 +75,7 @@ void PlayerServer::ResetProcessor()
 {
     resetRet_ = playerEngine_->Reset();
     playerEngine_ = nullptr;
-    surface_ = nullptr
+    surface_ = nullptr;
 }
 
 int32_t PlayerServer::Init()

@@ -72,7 +72,7 @@ void PlayerServerHi::ResetProcessor()
 {
     resetRet_ = playerEngine_->Reset();
     playerEngine_ = nullptr;
-    surface_ = nullptr
+    surface_ = nullptr;
 }
 
 int32_t PlayerServerHi::Init()
