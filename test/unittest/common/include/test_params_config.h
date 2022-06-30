@@ -25,8 +25,8 @@ inline constexpr int32_t SEEK_TIME_5_SEC = 5000;
 inline constexpr int32_t SEEK_TIME_2_SEC = 2000;
 inline constexpr int32_t WAITSECOND = 6;
 inline constexpr int32_t DELTA_TIME = 1000;
-inline constexpr std::string MEDIA_ROOT = "file://data/media/";
-inline constexpr std::string VIDEO_FILE1 = MEDIA_ROOT + "test_1920_1080_1.mp4";
+const std::string MEDIA_ROOT = "file://data/media/";
+const std::string VIDEO_FILE1 = MEDIA_ROOT + "test_1920_1080_1.mp4";
 } // namespace PlayerTestParam
 } // namespace Media
 } // namespace OHOS
