@@ -163,7 +163,10 @@ int32_t AVCodecServer::Reset()
 int32_t AVCodecServer::Release()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    codecEngine_ = nullptr;
+    std::uniqueue_ptr<std::thread> thread = std::make_unique<std::thread>(&AVCodecServer::TaskProcessor, this);
+    if (thread != nullptr && thread->joinable()) {
+        thread->join();
+    }
     return MSERR_OK;
 }
 
