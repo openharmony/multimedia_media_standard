@@ -317,7 +317,7 @@ int32_t PlayerServerHi::OnReset()
     }
 
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
-    std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&PlayerServer::ResetProcessor, this);
+    std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&PlayerServerHi::ResetProcessor, this);
     if (thread != nullptr && thread->joinable()) {
         thread->join();
     }
