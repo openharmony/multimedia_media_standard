@@ -90,7 +90,8 @@
           }
         ],
         "test": [
-            "//foundation/multimedia/media_standard/test/fuzztest:fuzztest"
+            "//foundation/multimedia/media_standard/test/fuzztest:fuzztest",
+            "//foundation/multimedia/media_standard/test:media_unit_test"
         ]
       }
     }
