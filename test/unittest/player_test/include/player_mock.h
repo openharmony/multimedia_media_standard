@@ -23,9 +23,6 @@
 namespace OHOS {
 namespace Media {
 class PlayerSignal {
-public:
-    void SetState(PlayerStates state);
-    void SetSeekResult(bool seekDoneFlag);
 protected:
     PlayerStates state_ = PLAYER_IDLE;
     int32_t seekPosition_;
@@ -48,16 +45,14 @@ public:
     void SeekNotify(int32_t extra, const Format &infoBody);
     void Notify(PlayerStates currentState);
     void SetSeekDoneFlag(bool seekDoneFlag);
-    void SetSeekPosition(int32_t position);
+    void SetSeekPosition(int32_t seekPosition);
+    void SetState(PlayerStates state);
     int32_t PrepareSync();
     int32_t PlaySync();
     int32_t PauseSync();
     int32_t StopSync();
     int32_t ResetSync();
     int32_t SeekSync();
-private:
-    int32_t position_ = 0;
-    bool seekDoneFlag_ = false;
 };
 
 class PlayerMock : public NoCopyable {

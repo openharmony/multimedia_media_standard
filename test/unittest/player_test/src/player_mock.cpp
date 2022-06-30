@@ -22,14 +22,9 @@ using namespace OHOS::Media::PlayerTestParam;
 
 namespace OHOS {
 namespace Media {
-void PlayerSignal::SetState(PlayerStates state)
+void PlayerCallbackTest::SetState(PlayerStates state)
 {
     state_ = state;
-}
-
-void PlayerSignal::SetSeekResult(bool seekDoneFlag)
-{
-    seekDoneFlag_ = seekDoneFlag;
 }
 
 void PlayerCallbackTest::SetSeekDoneFlag(bool seekDoneFlag)
@@ -37,9 +32,9 @@ void PlayerCallbackTest::SetSeekDoneFlag(bool seekDoneFlag)
     seekDoneFlag_ = seekDoneFlag;
 }
 
-void PlayerCallbackTest::SetSeekPosition(int32_t position)
+void PlayerCallbackTest::SetSeekPosition(int32_t seekPosition)
 {
-    seekPosition_ = position;
+    seekPosition_ = seekPosition;
 }
 
 int32_t PlayerCallbackTest::PrepareSync()
@@ -118,8 +113,7 @@ void PlayerCallbackTest::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
 {
     switch (type) {
         case INFO_TYPE_SEEKDONE:
-            seekDoneFlag_ = true;
-            SetSeekResult(true);
+            SetSeekDoneFlag(true);
             SeekNotify(extra, infoBody);
             break;
         case INFO_TYPE_STATE_CHANGE:
@@ -128,7 +122,7 @@ void PlayerCallbackTest::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
             Notify(state_);
             break;
         case INFO_TYPE_POSITION_UPDATE:
-            position_ = extra;
+            seekPosition_ = extra;
             break;
         default:
             break;
@@ -167,7 +161,7 @@ void PlayerCallbackTest::SeekNotify(int32_t extra, const Format &infoBody)
     } else if (abs(seekPosition_ - extra) <= DELTA_TIME) {
         condVarSeek_.notify_all();
     } else {
-        SetSeekResult(false);
+        SetSeekDoneFlag(false);
     }
 }
 
