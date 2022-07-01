@@ -38,8 +38,6 @@ constexpr size_t MAX_URI_SIZE = 4096;
 constexpr int32_t MSEC_PER_USEC = 1000;
 constexpr int32_t MSEC_PER_NSEC = 1000000;
 constexpr int32_t BUFFER_TIME_DEFAULT = 15000; // 15s
-constexpr int32_t BUFFER_HIGH_PERCENT_DEFAULT = 4;
-constexpr int32_t BUFFER_FULL_PERCENT_DEFAULT = 100;
 constexpr uint32_t INTERRUPT_EVENT_SHIFT = 8;
 constexpr uint32_t MAX_SOFT_BUFFERS = 10;
 constexpr uint32_t DEFAULT_CACHE_BUFFERS = 1;
@@ -262,16 +260,8 @@ void PlayerEngineGstImpl::HandleBufferingTime(const PlayBinMessage &msg)
 
 void PlayerEngineGstImpl::HandleBufferingPercent(const PlayBinMessage &msg)
 {
-    int32_t percent = msg.code;
     int32_t lastPercent = percent_;
-    if (percent >= BUFFER_HIGH_PERCENT_DEFAULT) {
-        percent_ = BUFFER_FULL_PERCENT_DEFAULT;
-    } else {
-        int32_t per = percent * BUFFER_FULL_PERCENT_DEFAULT / BUFFER_HIGH_PERCENT_DEFAULT;
-        if (percent_ < per) {
-            percent_ = per;
-        }
-    }
+    percent_ =  msg.code;
 
     if (lastPercent == percent_) {
         return;
@@ -282,7 +272,7 @@ void PlayerEngineGstImpl::HandleBufferingPercent(const PlayBinMessage &msg)
         Format format;
         (void)format.PutIntValue(std::string(PlayerKeys::PLAYER_BUFFERING_PERCENT), percent_);
         MEDIA_LOGD("percent = (%{public}d), percent_ = %{public}d, 0x%{public}06" PRIXPTR "",
-            percent, percent_, FAKE_POINTER(this));
+            lastPercent, percent_, FAKE_POINTER(this));
         tempObs->OnInfo(INFO_TYPE_BUFFERING_UPDATE, 0, format);
     }
 }
