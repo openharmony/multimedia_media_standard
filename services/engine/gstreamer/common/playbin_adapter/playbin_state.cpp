@@ -22,6 +22,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayBinState"};
+    constexpr int32_t USEC_PER_MSEC = 1000;
 }
 
 namespace OHOS {
@@ -77,6 +78,13 @@ int32_t PlayBinCtrlerBase::BaseState::SetRate(double rate)
 
 int32_t PlayBinCtrlerBase::BaseState::ChangePlayBinState(GstState targetState)
 {
+    if (targetState < GST_STATE_PLAYING) {
+        int64_t position = ctrler_.QueryPositionInternal(false) / USEC_PER_MSEC;
+        PlayBinMessage posUpdateMsg { PLAYBIN_MSG_POSITION_UPDATE, 0, static_cast<int32_t>(position), {} };
+        ctrler_.ReportMessage(posUpdateMsg);
+        ctrler_.msgProcessor_->RemoveTickSource();
+    }
+
     GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(ctrler_.playbin_), targetState);
     if (ret == GST_STATE_CHANGE_FAILURE) {
         MEDIA_LOGE("Failed to change playbin's state to %{public}s", gst_element_state_get_name(targetState));
@@ -88,9 +96,21 @@ int32_t PlayBinCtrlerBase::BaseState::ChangePlayBinState(GstState targetState)
 
 void PlayBinCtrlerBase::BaseState::HandleStateChange(const InnerMessage &msg)
 {
+    GstState targetState = static_cast<GstState>(msg.detail2);
     MEDIA_LOGI("state changed from %{public}s to %{public}s",
         gst_element_state_get_name(static_cast<GstState>(msg.detail1)),
-        gst_element_state_get_name(static_cast<GstState>(msg.detail2)));
+        gst_element_state_get_name(targetState));
+
+    if (targetState == GST_STATE_PLAYING) {
+        ctrler_.msgProcessor_->AddTickSource();
+    } else if (targetState == GST_STATE_PAUSED) {
+        ctrler_.msgProcessor_->RemoveTickSource();
+        if (!ctrler_.isSeeking_ && !ctrler_.isRating_) {
+            int64_t position = ctrler_.QueryPositionInternal(false) / USEC_PER_MSEC;
+            PlayBinMessage posUpdateMsg { PLAYBIN_MSG_POSITION_UPDATE, 0, static_cast<int32_t>(position), {} };
+            ctrler_.ReportMessage(posUpdateMsg);
+        }
+    }
 
     Dumper::DumpDotGraph(*ctrler_.playbin_, msg.detail1, msg.detail2);
     if (msg.extend.has_value() && std::any_cast<GstPipeline *>(msg.extend) == ctrler_.playbin_) {
@@ -127,11 +147,19 @@ void PlayBinCtrlerBase::BaseState::HandleAsyncDone(const InnerMessage &msg)
                 PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, position };
                 ctrler_.ReportMessage(playBinMsg);
                 ctrler_.isSeeking_ = false;
+
+                position = position / USEC_PER_MSEC;
+                PlayBinMessage posUpdateMsg { PLAYBIN_MSG_POSITION_UPDATE, 0, static_cast<int32_t>(position), {} };
+                ctrler_.ReportMessage(posUpdateMsg);
             } else if (ctrler_.isRating_) {
                 MEDIA_LOGI("asyncdone after setRate done, rate = %{public}lf", ctrler_.rate_);
                 PlayBinMessage playBinMsg { PLAYBIN_MSG_SPEEDDONE, 0, ctrler_.rate_ };
                 ctrler_.ReportMessage(playBinMsg);
                 ctrler_.isRating_ = false;
+
+                int64_t position = ctrler_.QueryPositionInternal(false) / USEC_PER_MSEC;
+                PlayBinMessage posUpdateMsg { PLAYBIN_MSG_POSITION_UPDATE, 0, static_cast<int32_t>(position), {} };
+                ctrler_.ReportMessage(posUpdateMsg);
             } else {
                 MEDIA_LOGD("Async done, not seeking or rating!");
             }
@@ -147,6 +175,11 @@ void PlayBinCtrlerBase::BaseState::HandleError(const InnerMessage &msg)
 
 void PlayBinCtrlerBase::BaseState::HandleEos()
 {
+    int64_t position = ctrler_.QueryPositionInternal(false) / USEC_PER_MSEC;
+    PlayBinMessage posUpdateMsg { PLAYBIN_MSG_POSITION_UPDATE, 0, static_cast<int32_t>(position), {} };
+    ctrler_.ReportMessage(posUpdateMsg);
+    ctrler_.msgProcessor_->RemoveTickSource();
+
     PlayBinMessage playBinMsg = { PLAYBIN_MSG_EOS, 0, static_cast<int32_t>(ctrler_.enableLooping_), {} };
     ctrler_.ReportMessage(playBinMsg);
 }
@@ -201,6 +234,9 @@ void PlayBinCtrlerBase::BaseState::OnMessageReceived(const InnerMessage &msg)
             break;
         case INNER_MSG_BUFFERING_USED_MQ_NUM:
             HandleUsedMqNum(msg);
+            break;
+        case INNER_MSG_POSITION_UPDATE:
+            HandlePositionUpdate();
             break;
         default:
             break;
@@ -350,16 +386,31 @@ void PlayBinCtrlerBase::PlayingState::ProcessStateChange(const InnerMessage &msg
                 PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, position };
                 ctrler_.ReportMessage(playBinMsg);
                 ctrler_.isSeeking_ = false;
+
+                position = position / USEC_PER_MSEC;
+                PlayBinMessage posUpdateMsg { PLAYBIN_MSG_POSITION_UPDATE, 0, static_cast<int32_t>(position), {} };
+                ctrler_.ReportMessage(posUpdateMsg);
             } else if (ctrler_.isRating_) {
                 MEDIA_LOGI("playing after setRate done, rate = %{public}lf", ctrler_.rate_);
                 PlayBinMessage playBinMsg { PLAYBIN_MSG_SPEEDDONE, 0, ctrler_.rate_ };
                 ctrler_.ReportMessage(playBinMsg);
                 ctrler_.isRating_ = false;
+
+                int64_t position = ctrler_.QueryPositionInternal(false) / USEC_PER_MSEC;
+                PlayBinMessage posUpdateMsg { PLAYBIN_MSG_POSITION_UPDATE, 0, static_cast<int32_t>(position), {} };
+                ctrler_.ReportMessage(posUpdateMsg);
             } else {
                 MEDIA_LOGD("playing, not seeking or rating!");
             }
         }
     }
+}
+
+void PlayBinCtrlerBase::PlayingState::HandlePositionUpdate()
+{
+    int64_t position = ctrler_.QueryPositionInternal(false) / USEC_PER_MSEC;
+    PlayBinMessage posUpdateMsg { PLAYBIN_MSG_POSITION_UPDATE, 0, static_cast<int32_t>(position), {} };
+    ctrler_.ReportMessage(posUpdateMsg);
 }
 
 void PlayBinCtrlerBase::PausedState::StateEnter()

@@ -21,6 +21,7 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "GstMsgProc"};
+    constexpr uint32_t DEFAULT_POSITION_UPDATE_INTERVAL_MS = 100; // 100 ms
 }
 
 namespace OHOS {
@@ -104,6 +105,8 @@ int32_t GstMsgProcessor::DoInit()
     ret = g_source_attach(busSource_, context_);
     CHECK_AND_RETURN_RET_LOG(ret > 0, MSERR_INVALID_OPERATION, "add bus source failed");
 
+    AddTickSource();
+
     auto mainLoopRun = std::make_shared<TaskHandler<void>>([this] {
         MEDIA_LOGI("start msg main loop...");
         g_main_loop_run(mainLoop_);
@@ -129,6 +132,31 @@ gboolean GstMsgProcessor::MainLoopRunDone(GstMsgProcessor *thiz)
     thiz->cond_.notify_one();
 
     return G_SOURCE_REMOVE;
+}
+
+void GstMsgProcessor::AddTickSource()
+{
+    if (tickSource_) {
+        return;
+    }
+
+    guint interval = DEFAULT_POSITION_UPDATE_INTERVAL_MS;
+    tickSource_ = g_timeout_source_new(interval);
+    CHECK_AND_RETURN_LOG(tickSource_ != nullptr, "add tick source failed");
+    g_source_set_callback(tickSource_, (GSourceFunc)&GstMsgProcessor::TickCallback, this, nullptr);
+    guint ret = g_source_attach(tickSource_, context_);
+    CHECK_AND_RETURN_LOG(ret > 0, "add tick source failed");
+}
+
+void GstMsgProcessor::RemoveTickSource()
+{
+    if (!tickSource_) {
+        return;
+    }
+
+    g_source_destroy(tickSource_);
+    g_source_unref(tickSource_);
+    tickSource_ = nullptr;
 }
 
 void GstMsgProcessor::AddMsgFilter(const std::string &filter)
@@ -162,6 +190,8 @@ void GstMsgProcessor::DoReset()
         busSource_ = nullptr;
     }
 
+    RemoveTickSource();
+
     if (mainLoop_ != nullptr) {
         g_main_loop_unref(mainLoop_);
         mainLoop_ = nullptr;
@@ -190,6 +220,19 @@ void GstMsgProcessor::Reset() noexcept
     cond_.notify_all();
     (void)guardTask_.Stop();
     msgConverter_ = nullptr;
+}
+
+gboolean GstMsgProcessor::TickCallback(GstMsgProcessor *thiz)
+{
+    if (thiz == nullptr) {
+        MEDIA_LOGE("processor is nullptr");
+        return FALSE;
+    }
+
+    InnerMessage innerMsg {};
+    innerMsg.type = InnerMsgType::INNER_MSG_POSITION_UPDATE;
+    thiz->notifier_(innerMsg);
+    return TRUE;
 }
 
 gboolean GstMsgProcessor::BusCallback(const GstBus *bus, GstMessage *msg, GstMsgProcessor *thiz)
