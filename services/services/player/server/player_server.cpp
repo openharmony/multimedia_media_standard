@@ -497,6 +497,13 @@ int32_t PlayerServer::Seek(int32_t mSeconds, PlayerSeekMode mode)
         return MSERR_INVALID_VAL;
     }
 
+    int32_t currentTime = 0;
+    if (mSeconds == 0 && playerEngine_->GetCurrentTime(currentTime) == MSERR_OK && currentTime == mSeconds) {
+        MEDIA_LOGW("Seek to the inner position");
+        Format format;
+        OnInfo(INFO_TYPE_SEEKDONE, 0, format);
+        return MSERR_OK;
+    }
     MEDIA_LOGD("seek position %{public}d, seek mode is %{public}d", mSeconds, mode);
     mSeconds = std::max(0, mSeconds);
 
