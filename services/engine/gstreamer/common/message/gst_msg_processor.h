@@ -45,10 +45,13 @@ public:
     void FlushBegin();
     void FlushEnd();
     void Reset() noexcept;
+    void AddTickSource();
+    void RemoveTickSource();
 
 private:
     int32_t DoInit();
     static gboolean MainLoopRunDone(GstMsgProcessor *thiz);
+    static gboolean TickCallback(GstMsgProcessor *thiz);
     static gboolean BusCallback(const GstBus *bus, GstMessage *msg, GstMsgProcessor *thiz);
     void ProcessGstMessage(GstMessage &msg);
     void DoReset();
@@ -56,6 +59,7 @@ private:
     GstBus *gstBus_ = nullptr;
     GMainLoop *mainLoop_ = nullptr;
     GMainContext *context_ = nullptr;
+    GSource *tickSource_ = 0;
     GSource *busSource_ = 0;
     InnerMsgNotifier notifier_;
     TaskQueue guardTask_;
