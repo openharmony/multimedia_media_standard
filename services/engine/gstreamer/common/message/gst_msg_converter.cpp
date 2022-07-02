@@ -26,6 +26,68 @@ namespace {
 
 namespace OHOS {
 namespace Media {
+using StreamToServiceErrFunc = std::function<int32_t(const gchar*)>;
+static const std::unordered_map<int32_t, StreamToServiceErrFunc> STREAM_TO_SERVICE_ERR_FUNC_TABLE = {
+    { GST_STREAM_ERROR_DECODE, StreamDecErrorParse },
+};
+static const std::unordered_map<int32_t, MediaServiceErrCode> STREAM_TO_SERVICE_ERR_TABLE = {
+    { GST_STREAM_ERROR_FORMAT, MSERR_UNSUPPORT_CONTAINER_TYPE },
+    { GST_STREAM_ERROR_TYPE_NOT_FOUND, MSERR_NOT_FIND_CONTAINER },
+    /* Currently, audio decoding and video decoding cannot be distinguished which is not supported by msg.
+    * By default, we set video decoding is not supported.
+    * The identification method must be added when the new demux pulgin in is use.
+    */
+    { GST_STREAM_ERROR_CODEC_NOT_FOUND, MSERR_UNSUPPORT_VID_DEC_TYPE },
+    { GST_STREAM_ERROR_DEMUX, MSERR_DEMUXER_FAILED },
+};
+static const std::unordered_map<int32_t, MediaServiceErrCode> RESOURCE_TO_SERVICE_ERR_TABLE = {
+    { GST_RESOURCE_ERROR_NOT_FOUND, MSERR_OPEN_FILE_FAILED },
+    { GST_RESOURCE_ERROR_OPEN_READ, MSERR_OPEN_FILE_FAILED },
+    { GST_RESOURCE_ERROR_READ, MSERR_FILE_ACCESS_FAILED },
+    { GST_RESOURCE_ERROR_NOT_AUTHORIZED, MSERR_FILE_ACCESS_FAILED },
+    { GST_RESOURCE_ERROR_TIME_OUT, MSERR_NETWORK_TIMEOUT },
+};
+
+static int32_t StreamDecErrorParse(const gchar *name)
+{
+    if (strstr(name, "aac") != nullptr) {
+        MEDIA_LOGE("tag: MSERR_AUD_DEC_FAILED");
+        return MSERR_AUD_DEC_FAILED;
+    } else if (strstr(name, "h264") != nullptr || strstr(name, "h265") != nullptr) {
+        MEDIA_LOGE("tag: MSERR_VID_DEC_FAILED");
+        return MSERR_VID_DEC_FAILED;
+    } else {
+        MEDIA_LOGE("tag: MSERR_UNKNOWN");
+        return MSERR_UNKNOWN;
+    }
+}
+
+static void StreamErrorParse(const gchar *name, const GError *error)
+{
+    CHECK_AND_RETURN_RET_LOG(name != nullptr, MSERR_UNKNOWN, "name is nullptr");
+    MEDIA_LOGE("domain: GST_STREAM_ERROR");
+    auto streamIter = STREAM_TO_SERVICE_ERR_TABLE.find(error->code);
+    if (streamIter != STREAM_TO_SERVICE_ERR_TABLE.end()) {
+        return streamIter->second;
+    }
+    auto streamFuncIter = STREAM_TO_SERVICE_ERR_FUNC_TABLE.find(error->code);
+    if (streamFuncIter != STREAM_TO_SERVICE_ERR_FUNC_TABLE.end()) {
+        return streamFuncIter->second(name);
+    }
+
+    return MSERR_UNKNOWN;
+}
+
+static int32_t ResourceErrorParse(const GError *error)
+{
+    MEDIA_LOGE("domain:GST_RESOURCE_ERROR");
+    auto resIter = RESOURCE_TO_SERVICE_ERR_TABLE.find(error->code);
+    if (resIter == RESOURCE_TO_SERVICE_ERR_TABLE.end()) {
+        return MSERR_UNKNOWN;
+    }
+    return resIter->second;
+}
+
 static int32_t ConvertErrorMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
 {
     GError *error = nullptr;
@@ -36,12 +98,19 @@ static int32_t ConvertErrorMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
     }
     MEDIA_LOGE("[ERROR] %{public}s, %{public}s", error->message, debug);
 
+    gchar *name = gst_object_get_path_string(gstMsg.src);
     innerMsg.type = INNER_MSG_ERROR;
-    innerMsg.detail1 = MSERR_UNKNOWN;
+    if (error->domain == GST_STREAM_ERROR) {
+        innerMsg.detail1 = StreamErrorParse(name, error);
+    } else if (err->domain == GST_RESOURCE_ERROR) {
+        innerMsg.detail1 = ResourceErrorParse(error);
+    } else {
+        innerMsg.detail1 = MSERR_UNKNOWN;
+    }
 
-    // need to add more detail error msg convert
     g_error_free(error);
     g_free(debug);
+    g_free(name);
     return MSERR_OK;
 }
 
