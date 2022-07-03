@@ -130,6 +130,7 @@ private:
     int32_t HandleSetPlaybackSpeed(PlaybackRateMode mode);
     void FormatToString(std::string &dumpString, std::vector<Format> &videoTrack);
     const std::string &GetStatusDescription(int32_t status);
+    void ResetProcessor();
 
     std::unique_ptr<IPlayerEngine> playerEngine_ = nullptr;
     std::shared_ptr<PlayerCallback> playerCb_ = nullptr;
@@ -153,6 +154,7 @@ private:
     int32_t streamUsage_ = 0;
     int32_t rendererFlag_ = 0;
     std::string lastErrMsg_;
+    int32_t resetRet_ = 0;
 
     std::mutex condMutex_;
     std::condition_variable stateCond_;
