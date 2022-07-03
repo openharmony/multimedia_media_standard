@@ -98,6 +98,7 @@ GstElement *PlayerSinkProvider::DoCreateAudioSink(const GstCaps *caps, const gpo
 
     (void)gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_QUERY_DOWNSTREAM,
         PlayerSinkProvider::SinkPadProbeCb, userData, nullptr);
+    gst_object_unref(pad);
     return sink;
 }
 
