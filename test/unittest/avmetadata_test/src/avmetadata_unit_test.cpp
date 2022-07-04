@@ -25,22 +25,6 @@ using namespace testing::ext;
 using namespace AVMetadataUnitBasic;
 
 /**
-    * @tc.number    : ResolveMetadata_FUNCTION
-    * @tc.name      : 001.avmetadatahelper
-    * @tc.desc      : metadata, check basic info
-*/
-HWTEST_F(AVMetadataUnitTest, ResolveMetadata_FUNCTION, Function | MediumTest | Level0)
-{
-    std::shared_ptr<AVMetadataMock> avMetadataHelper = std::make_shared<AVMetadataMock>();
-    ASSERT_NE(nullptr, avMetadataHelper);
-    ASSERT_EQ(true, avMetadataHelper->CreateAVMetadataHelper());
-    std::string uri = TestParamsConfig::GetInstance().GetUri();
-    ASSERT_EQ(MSERR_OK, avMetadataHelper->SetSource(uri, AVMetadataUsage::AV_META_USAGE_META_ONLY));
-
-    avMetadataHelper->PrintMetadata();
-}
-
-/**
     Function: compare metadata
     Description: test for metadata
     Input: uri, expected MetaData
@@ -66,7 +50,7 @@ void AVMetadataUnitTest::CheckMeta(std::string uri, std::unordered_map<int32_t, 
     * @tc.name      : 01.MP4 format Get MetaData (H264+AAC)
     * @tc.desc      : test ResolveMetadata
 */
-HWTEST_F(AVMetadataUnitTest, ResolveMetadata_Format_MP4_0100, Function | MediumTest | Level0)
+HWTEST_F(AVMetadataUnitTest, ResolveMetadata_Format_MP4_0100, TestSize.Level0)
 {
     std::unordered_map<int32_t, std::string> expectMeta = {
         {AV_KEY_ALBUM, "media"},
@@ -134,7 +118,7 @@ void AVMetadataUnitTest::GetThumbnail(const std::string uri)
     * @tc.name      : Resolution 480x320
     * @tc.desc      : Get THUMBNAIL
 */
-HWTEST_F(AVMetadataUnitTest, FetchFrameAtTime_Resolution_2800, Function | MediumTest | Level0)
+HWTEST_F(AVMetadataUnitTest, FetchFrameAtTime_Resolution_2800, TestSize.Level0)
 {
     std::string uri = TestParamsConfig::GetInstance().GetMountPath() +
     std::string("/out_480_320.mp4");
