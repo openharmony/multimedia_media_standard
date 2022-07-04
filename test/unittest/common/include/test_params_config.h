@@ -16,8 +16,9 @@
 #ifndef TEST_PARAM_COMMON_H
 #define TEST_PARAM_COMMON_H
 
-#include "string"
-
+#include <cstdint>
+#include <string>
+#include "recorder.h"
 namespace OHOS {
 namespace Media {
 namespace PlayerTestParam {
@@ -28,6 +29,9 @@ inline constexpr int32_t DELTA_TIME = 1000;
 const std::string MEDIA_ROOT = "file://data/media/";
 const std::string VIDEO_FILE1 = MEDIA_ROOT + "test_1920_1080_1.mp4";
 } // namespace PlayerTestParam
+namespace AVMetadataTestParam{
+    inline constexpr int32_t PARA_MAX_LEN = 256;
+}
 } // namespace Media
 } // namespace OHOS
 
