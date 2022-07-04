@@ -362,14 +362,14 @@ void VideoCallbackNapi::OnBitRateCollectedCb(const Format &infoBody) const
             return;
         }
 
-        MEDIA_LOGD("bitrate size = %{public}zu", size);
+        MEDIA_LOGD("bitrate size = %{public}zu", size / sizeof(uint32_t));
         while (size > 0) {
             if ((size - sizeof(uint32_t)) < 0) {
                 break;
             }
 
             bitrate = *(static_cast<uint32_t *>(static_cast<void *>(addr)));
-            MEDIA_LOGD("bitrate size = %{public}u", bitrate);
+            MEDIA_LOGD("bitrate = %{public}u", bitrate);
             addr += sizeof(uint32_t);
             size -= sizeof(uint32_t);
             cb->valueVec.push_back(static_cast<int32_t>(bitrate));
