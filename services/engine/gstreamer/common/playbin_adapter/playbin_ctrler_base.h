@@ -162,7 +162,6 @@ private:
     int32_t rendererFlag_ = 0;
 
     bool enableLooping_ = false;
-    bool disableNextSeekDoneCb_ = false;
     bool isPlaySinkFlagsSet_ = false;
     std::shared_ptr<GstAppsrcWrap> appsrcWrap_ = nullptr;
 
