@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef AVMETADATAHELPER_UNIT_TEST_H
-#define AVMETADATAHELPER_UNIT_TEST_H
+#ifndef AVMETADATA_UNIT_TEST_H
+#define AVMETADATA_UNIT_TEST_H
 
 #include "gtest/gtest.h"
 #include "avmetadata_mock.h"
