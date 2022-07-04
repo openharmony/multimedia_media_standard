@@ -100,6 +100,27 @@ public:
 };
 
 __attribute__((visibility("default"))) std::string AVCodecErrorTypeToString(AVCodecErrorType type);
+
+/**
+ * Key for timeStamp in surface's extraData, value type is int64
+ */
+static constexpr std::string_view ED_KEY_TIME_STAMP = "timeStamp";
+
+/**
+ * Key for endOfStream in surface's extraData, value type is bool
+ */
+static constexpr std::string_view ED_KEY_END_OF_STREAM = "endOfStream";
+
+/**
+ * Key for dataSize in surface's extraData, value type is int32
+ */
+static constexpr std::string_view ED_KEY_DATA_SIZE = "dataSize";
+
+/**
+ * Key for isKeyFrame in surface's extraData, value type is bool
+ */
+static constexpr std::string_view ED_KEY_IS_KEY_FRAME = "isKeyFrame";
+
 } // namespace Media
 } // namespace OHOS
 #endif // AVCODEC_COMMOM_H

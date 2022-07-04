@@ -545,7 +545,7 @@ static GstFlowReturn gst_producer_surface_pool_alloc_buffer(GstBufferPool *pool,
     GstVideoInfo *info = &spool->info;
 
     if (buf->GetFormat() == PIXEL_FMT_RGBA_8888) {
-        for (int plane = 0; plane < info->finfo->n_planes; ++plane) {
+        for (guint plane = 0; plane < info->finfo->n_planes; ++plane) {
             info->stride[plane] = stride;
             GST_DEBUG_OBJECT(spool, "new stride %d", stride);
         }

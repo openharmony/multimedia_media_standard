@@ -231,7 +231,7 @@ int32_t SinkBytebufferImpl::AddAdtsHead(std::shared_ptr<AVSharedMemory> mem, uin
     CHECK_AND_RETURN_RET(mem != nullptr && mem->GetBase() != nullptr && rawFrameSize > 0, MSERR_UNKNOWN);
 
     uint32_t adtsFrameSize = rawFrameSize + ADTS_HEAD_SIZE;
-    CHECK_AND_RETURN_RET(mem->GetSize() >= adtsFrameSize, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(static_cast<uint32_t>(mem->GetSize()) >= adtsFrameSize, MSERR_UNKNOWN);
 
     uint8_t *base = mem->GetBase();
     CHECK_AND_RETURN_RET(memmove_s(base + ADTS_HEAD_SIZE, mem->GetSize() - ADTS_HEAD_SIZE, base, rawFrameSize) == EOK,
