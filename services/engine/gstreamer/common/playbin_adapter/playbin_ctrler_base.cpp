@@ -555,10 +555,6 @@ void PlayBinCtrlerBase::ExitInitializedState()
     }
     signalIds_.clear();
 
-    if (audioSink_ != nullptr) {
-        gst_object_unref(audioSink_);
-        audioSink_ = nullptr;
-    }
     if (videoSink_ != nullptr) {
         gst_object_unref(videoSink_);
         videoSink_ = nullptr;
