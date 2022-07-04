@@ -29,7 +29,7 @@ inline constexpr int32_t DELTA_TIME = 1000;
 const std::string MEDIA_ROOT = "file://data/media/";
 const std::string VIDEO_FILE1 = MEDIA_ROOT + "test_1920_1080_1.mp4";
 } // namespace PlayerTestParam
-namespace AVMetadataTestParam{
+namespace AVMetadataTestParam {
     inline constexpr int32_t PARA_MAX_LEN = 256;
 }
 } // namespace Media

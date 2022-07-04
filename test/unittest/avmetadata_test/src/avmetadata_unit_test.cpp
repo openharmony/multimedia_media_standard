@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#include "avmetadata_unit_test.h"
-#include "securec.h"
 #include "gtest/gtest.h"
+#include "securec.h"
 #include "media_errors.h"
+#include "avmetadata_unit_test.h"
 
 using namespace std;
 using namespace OHOS;
@@ -110,7 +110,7 @@ void AVMetadataUnitTest::GetThumbnail(const std::string uri)
     ASSERT_NE(nullptr, frame);
     helper->FrameToFile(frame, testInfo_->name(), timeUs, queryOption);
     helper->FrameToJpeg(frame, testInfo_->name(), timeUs, queryOption);
-    timeUs = 5000000;
+    timeUs = 5000000;  // 5000000us
     frame = helper->FetchFrameAtTime(timeUs, queryOption, param);
     ASSERT_NE(nullptr, frame);
     helper->FrameToFile(frame, testInfo_->name(), timeUs, queryOption);
@@ -132,7 +132,7 @@ void AVMetadataUnitTest::GetThumbnail(const std::string uri)
 /**
     * @tc.number    : FetchFrameAtTime_Resolution_2800
     * @tc.name      : Resolution 480x320
-    * @tc.desc      : Get THUMBNAIL 
+    * @tc.desc      : Get THUMBNAIL
 */
 HWTEST_F(AVMetadataUnitTest, FetchFrameAtTime_Resolution_2800, Function | MediumTest | Level0)
 {

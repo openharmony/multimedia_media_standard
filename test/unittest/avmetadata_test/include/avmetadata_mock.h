@@ -67,7 +67,7 @@ static const unsigned char R_INDEX = 2;
 static const unsigned char G_INDEX = 1;
 static const unsigned char B_INDEX = 0;
 
-class AVMetadataMock : public NoCopyable{
+class AVMetadataMock : public NoCopyable {
 public:
     std::shared_ptr<OHOS::Media::AVMetadataHelper> avMetadataHelper_ = nullptr;
     AVMetadataMock();
