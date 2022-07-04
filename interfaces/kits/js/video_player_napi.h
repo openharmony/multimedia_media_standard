@@ -168,6 +168,7 @@ private:
     static int32_t ProcessWork(napi_env env, napi_status status, void *data);
     void OnErrorCallback(MediaServiceExtErrCode errCode);
     void ReleaseDataSource(std::shared_ptr<MediaDataSourceCallback> dataSourceCb);
+    void SetCallbackReference(const std::string &callbackName, std::shared_ptr<AutoRef> ref);
     VideoPlayerNapi();
     ~VideoPlayerNapi();
 
@@ -182,6 +183,7 @@ private:
     std::vector<Format> videoTrackInfoVec_;
     AVFileDescriptor rawFd_;
     OHOS::AudioStandard::InterruptMode interruptMode_;
+    std::map<std::string, std::shared_ptr<AutoRef>> refMap_;
 };
 } // namespace Media
 } // namespace OHOS
