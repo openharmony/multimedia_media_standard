@@ -378,7 +378,7 @@ void AVMetadataMock::SurfaceToFile(std::shared_ptr<AVSharedMemory> frame,
     const uint8_t MAX_FILE_PATH_LENGTH = 255;
     char filePath[MAX_FILE_PATH_LENGTH];
     if (access("/data/media/SurfaceBak", 0) != F_OK) {
-        mkdir("/data/media/SurfaceBak", 0777); // permission
+        mkdir("/data/media/SurfaceBak", 0777); // permission 777
     }
     auto ret = sprintf_s(filePath, MAX_FILE_PATH_LENGTH, "/data/media/SurfaceBak/%s.pixel", fileName);
     if (ret <= 0) {
@@ -389,7 +389,7 @@ void AVMetadataMock::SurfaceToFile(std::shared_ptr<AVSharedMemory> frame,
     ASSERT_NE(desFile, nullptr);
     int64_t dstBufferSize = fwrite(data, bufferSize, 1, desFile);
     EXPECT_EQ(dstBufferSize, 1);
-    fclose(desFile);
+    (void)fclose(desFile);
 }
 
 void AVMetadataMock::FrameToJpeg(std::shared_ptr<PixelMap> frame,
@@ -398,7 +398,7 @@ void AVMetadataMock::FrameToJpeg(std::shared_ptr<PixelMap> frame,
     const uint8_t MAX_FILE_PATH_LENGTH = 255;
     char filePath[MAX_FILE_PATH_LENGTH];
     if (access("/data/media/ThumbnailBak", 0) != F_OK) {
-        mkdir("/data/media/ThumbnailBak", 0777); // permission
+        mkdir("/data/media/ThumbnailBak", 0777); // permission 777
     }
     auto ret = sprintf_s(filePath, MAX_FILE_PATH_LENGTH,
         "/data/media/ThumbnailBak/%s_time_%" PRIi64 "_option_%d_width_%d_height_%d_color_%d.jpg",
