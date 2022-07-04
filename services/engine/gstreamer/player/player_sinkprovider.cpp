@@ -63,6 +63,11 @@ PlayBinSinkProvider::SinkPtr PlayerSinkProvider::CreateAudioSink()
 {
     constexpr gint rate = 44100;
     constexpr gint channels = 2;
+
+    if (audioSink_ != nullptr) {
+        gst_object_unref(audioSink_);
+        audioSink_ = nullptr;
+    }
     if (audioCaps_ == nullptr) {
         audioCaps_ = gst_caps_new_simple("audio/x-raw",
                                          "format", G_TYPE_STRING, "S16LE",
@@ -74,7 +79,7 @@ PlayBinSinkProvider::SinkPtr PlayerSinkProvider::CreateAudioSink()
         CHECK_AND_RETURN_RET_LOG(audioSink_ != nullptr, nullptr, "CreateAudioSink failed..");
     }
 
-    return GST_ELEMENT_CAST(gst_object_ref(audioSink_));
+    return audioSink_;
 }
 
 GstElement *PlayerSinkProvider::DoCreateAudioSink(const GstCaps *caps, const gpointer userData)
@@ -83,7 +88,7 @@ GstElement *PlayerSinkProvider::DoCreateAudioSink(const GstCaps *caps, const gpo
     MEDIA_LOGI("CreateAudioSink in.");
     CHECK_AND_RETURN_RET_LOG(userData != nullptr, nullptr, "input userData is nullptr..");
 
-    auto sink = gst_element_factory_make("audioserversink", nullptr);
+    auto sink = GST_ELEMENT_CAST(gst_object_ref_sink(gst_element_factory_make("audioserversink", nullptr)));
     CHECK_AND_RETURN_RET_LOG(sink != nullptr, nullptr, "gst_element_factory_make failed..");
 
     g_object_set(G_OBJECT(sink), "app-uid", uid_, nullptr);
