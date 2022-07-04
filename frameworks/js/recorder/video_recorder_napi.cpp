@@ -42,8 +42,11 @@ VideoRecorderNapi::~VideoRecorderNapi()
     if (wrapper_ != nullptr) {
         napi_delete_reference(env_, wrapper_);
     }
-    callbackNapi_ = nullptr;
+    if (recorder_ != nullptr) {
+        (void)recorder_->SetRecorderCallback(nullptr);
+    }
     recorder_ = nullptr;
+    callbackNapi_ = nullptr;
     MEDIA_LOGD("0x%{public}06" PRIXPTR "Instances destroy", FAKE_POINTER(this));
 }
 
@@ -104,9 +107,7 @@ napi_value VideoRecorderNapi::Constructor(napi_env env, napi_callback_info info)
 
     recorderNapi->env_ = env;
     recorderNapi->recorder_ = RecorderFactory::CreateRecorder();
-    if (recorderNapi->recorder_ == nullptr) {
-        MEDIA_LOGE("failed to CreateRecorder");
-    }
+    CHECK_AND_RETURN_RET_LOG(recorderNapi->recorder_ != nullptr, result, "failed to CreateRecorder");
 
     if (recorderNapi->callbackNapi_ == nullptr && recorderNapi->recorder_ != nullptr) {
         recorderNapi->callbackNapi_ = std::make_shared<RecorderCallbackNapi>(env);
@@ -161,6 +162,7 @@ napi_value VideoRecorderNapi::CreateVideoRecorder(napi_env env, napi_callback_in
     asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
     asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
     asyncCtx->JsResult = std::make_unique<MediaJsResultInstance>(constructor_);
+    asyncCtx->ctorFlag = true;
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "createVideoRecorder", NAPI_AUTO_LENGTH, &resource);
@@ -585,9 +587,12 @@ napi_value VideoRecorderNapi::On(napi_env env, napi_callback_info info)
     std::string callbackName = CommonNapi::GetStringArgument(env, args[0]);
     MEDIA_LOGD("callbackName: %{public}s", callbackName.c_str());
 
-    CHECK_AND_RETURN_RET_LOG(recorderNapi->callbackNapi_ != nullptr, result, "callbackNapi_ is nullptr");
-    auto cb = std::static_pointer_cast<RecorderCallbackNapi>(recorderNapi->callbackNapi_);
-    cb->SaveCallbackReference(callbackName, args[1]);
+    napi_ref ref = nullptr;
+    status = napi_create_reference(env, args[1], 1, &ref);
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && ref != nullptr, result, "failed to create reference!");
+
+    std::shared_ptr<AutoRef> autoRef = std::make_shared<AutoRef>(env, ref);
+    recorderNapi->SetCallbackReference(callbackName, autoRef);
     return result;
 }
 
@@ -761,6 +766,15 @@ void VideoRecorderNapi::ErrorCallback(MediaServiceExtErrCode errCode)
     if (callbackNapi_ != nullptr) {
         auto napiCb = std::static_pointer_cast<RecorderCallbackNapi>(callbackNapi_);
         napiCb->SendErrorCallback(errCode);
+    }
+}
+
+void VideoRecorderNapi::SetCallbackReference(const std::string &callbackName, std::shared_ptr<AutoRef> ref)
+{
+    refMap_[callbackName] = ref;
+    if (callbackNapi_ != nullptr) {
+        auto napiCb = std::static_pointer_cast<RecorderCallbackNapi>(callbackNapi_);
+        napiCb->SaveCallbackReference(callbackName, ref);
     }
 }
 } // namespace Media

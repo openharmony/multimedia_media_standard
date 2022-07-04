@@ -38,8 +38,11 @@ AudioDecoderNapi::AudioDecoderNapi()
 
 AudioDecoderNapi::~AudioDecoderNapi()
 {
-    callback_ = nullptr;
+    if (adec_ != nullptr) {
+        (void)adec_->SetCallback(nullptr);
+    }
     adec_ = nullptr;
+    callback_ = nullptr;
     if (wrap_ != nullptr) {
         napi_delete_reference(env_, wrap_);
     }

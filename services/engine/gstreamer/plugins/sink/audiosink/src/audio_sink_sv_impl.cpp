@@ -25,9 +25,32 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-AudioSinkSvImpl::AudioSinkSvImpl()
+AudioRendererMediaCallback::AudioRendererMediaCallback(GstBaseSink *audioSink)
+{
+    audioSink_ = audioSink;
+}
+
+void AudioRendererMediaCallback::SaveCallback(void (*interruptCb)(GstBaseSink *, guint, guint, guint))
+{
+    interruptCb_ = interruptCb;
+}
+
+void AudioRendererMediaCallback::OnInterrupt(const AudioStandard::InterruptEvent &interruptEvent)
+{
+    if (interruptCb_ != nullptr) {
+        interruptCb_(audioSink_, interruptEvent.eventType, interruptEvent.forceType, interruptEvent.hintType);
+    }
+}
+
+void AudioRendererMediaCallback::OnStateChange(const AudioStandard::RendererState state)
+{
+    MEDIA_LOGD("RenderState is %{public}d", static_cast<uint32_t>(state));
+}
+
+AudioSinkSvImpl::AudioSinkSvImpl(GstBaseSink *sink)
     : audioRenderer_(nullptr)
 {
+    audioRendererMediaCallback_ = std::make_shared<AudioRendererMediaCallback>(sink);
 }
 
 AudioSinkSvImpl::~AudioSinkSvImpl()
@@ -93,20 +116,13 @@ int32_t AudioSinkSvImpl::SetVolume(float volume)
     return MSERR_OK;
 }
 
-int32_t AudioSinkSvImpl::SetParameter(int32_t &param)
+int32_t AudioSinkSvImpl::SetRendererInfo(int32_t desc, int32_t rendererFlags)
 {
-    int32_t contentType = (static_cast<uint32_t>(param) & 0x0000FFFF);
-    int32_t streamUsage = static_cast<uint32_t>(param) >> AudioStandard::RENDERER_STREAM_USAGE_SHIFT;
-
-    CHECK_AND_RETURN_RET_LOG(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION, "audioRenderer_ is nullptr");
-
-    AudioStandard::AudioRendererDesc audioRendererDesc;
-    audioRendererDesc.contentType = static_cast<AudioStandard::ContentType>(contentType);
-    audioRendererDesc.streamUsage = static_cast<AudioStandard::StreamUsage>(streamUsage);
-
-    int32_t ret = audioRenderer_->SetAudioRendererDesc(audioRendererDesc);
-    CHECK_AND_RETURN_RET_LOG(ret == AudioStandard::SUCCESS, MSERR_UNKNOWN, "audio server SetParameter failed!");
-
+    int32_t contentType = (static_cast<uint32_t>(desc) & 0x0000FFFF);
+    int32_t streamUsage = static_cast<uint32_t>(desc) >> AudioStandard::RENDERER_STREAM_USAGE_SHIFT;
+    rendererOptions_.rendererInfo.contentType = static_cast<AudioStandard::ContentType>(contentType);
+    rendererOptions_.rendererInfo.streamUsage = static_cast<AudioStandard::StreamUsage>(streamUsage);
+    rendererOptions_.rendererInfo.rendererFlags = rendererFlags;
     return MSERR_OK;
 }
 
@@ -138,7 +154,11 @@ int32_t AudioSinkSvImpl::Prepare(int32_t appUid, int32_t appPid)
     AudioStandard::AppInfo appInfo = {};
     appInfo.appUid = appUid;
     appInfo.appPid = appPid;
-    audioRenderer_ = AudioStandard::AudioRenderer::Create(AudioStandard::AudioStreamType::STREAM_MUSIC, appInfo);
+    rendererOptions_.streamInfo.samplingRate = AudioStandard::SAMPLE_RATE_8000;
+    rendererOptions_.streamInfo.encoding = AudioStandard::ENCODING_PCM;
+    rendererOptions_.streamInfo.format = AudioStandard::SAMPLE_S16LE;
+    rendererOptions_.streamInfo.channels = AudioStandard::MONO;
+    audioRenderer_ = AudioStandard::AudioRenderer::Create(rendererOptions_, appInfo);
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
     MEDIA_LOGD("audioRenderer Prepare Out");
     return MSERR_OK;
@@ -314,6 +334,19 @@ int32_t AudioSinkSvImpl::GetLatency(uint64_t &latency) const
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(audioRenderer_->GetLatency(latency) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
     return MSERR_OK;
+}
+
+void AudioSinkSvImpl::SetAudioSinkInterruptCb(void (*interruptCb)(GstBaseSink *, guint, guint, guint))
+{
+    CHECK_AND_RETURN(audioRendererMediaCallback_ != nullptr);
+    audioRendererMediaCallback_->SaveCallback(interruptCb);
+    audioRenderer_->SetRendererCallback(audioRendererMediaCallback_);
+}
+
+void AudioSinkSvImpl::SetAudioInterruptMode(int32_t interruptMode)
+{
+    CHECK_AND_RETURN(audioRendererMediaCallback_ != nullptr);
+    audioRenderer_->SetInterruptMode(static_cast<AudioStandard::InterruptMode>(interruptMode));
 }
 } // namespace Media
 } // namespace OHOS

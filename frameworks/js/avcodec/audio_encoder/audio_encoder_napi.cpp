@@ -38,8 +38,11 @@ AudioEncoderNapi::AudioEncoderNapi()
 
 AudioEncoderNapi::~AudioEncoderNapi()
 {
-    callback_ = nullptr;
+    if (aenc_ != nullptr) {
+        (void)aenc_->SetCallback(nullptr);
+    }
     aenc_ = nullptr;
+    callback_ = nullptr;
     if (wrap_ != nullptr) {
         napi_delete_reference(env_, wrap_);
     }

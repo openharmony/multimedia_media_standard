@@ -22,6 +22,7 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "task_queue.h"
+#include "common_napi.h"
 
 namespace OHOS {
 namespace Media {
@@ -55,6 +56,7 @@ private:
     static napi_value On(napi_env env, napi_callback_info info);
     void ErrorCallback(MediaServiceExtErrCode errCode);
     void StateCallback(const std::string &callbackName);
+    void SetCallbackReference(const std::string &callbackName, std::shared_ptr<AutoRef> ref);
 
     struct AudioRecorderProperties {
         AudioRecorderProperties();
@@ -82,6 +84,7 @@ private:
     std::shared_ptr<Recorder> recorderImpl_ = nullptr;
     std::shared_ptr<RecorderCallback> callbackNapi_ = nullptr;
     std::unique_ptr<TaskQueue> taskQue_;
+    std::map<std::string, std::shared_ptr<AutoRef>> refMap_;
 };
 } // namespace Media
 } // namespace OHOS

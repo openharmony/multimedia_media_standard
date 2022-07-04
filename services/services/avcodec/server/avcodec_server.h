@@ -68,6 +68,7 @@ public:
 
 private:
     int32_t Init();
+    void ExitProcessor();
     const std::string &GetStatusDescription(OHOS::Media::AVCodecServer::AVCodecStatus status);
 
     AVCodecStatus status_ = AVCODEC_UNINITIALIZED;
