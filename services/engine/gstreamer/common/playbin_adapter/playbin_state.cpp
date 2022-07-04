@@ -115,31 +115,26 @@ void PlayBinCtrlerBase::BaseState::HandleResolutionChange(const InnerMessage &ms
 
 void PlayBinCtrlerBase::BaseState::HandleAsyncDone(const InnerMessage &msg)
 {
-    if (std::any_cast<GstPipeline *>(msg.extend) != ctrler_.playbin_) {
-        return;
-    }
+    if (std::any_cast<GstPipeline *>(msg.extend) == ctrler_.playbin_) {
+        GstState state = GST_STATE_NULL;
+        GstStateChangeReturn stateRet = gst_element_get_state(GST_ELEMENT_CAST(ctrler_.playbin_), &state,
+            nullptr, static_cast<GstClockTime>(0));
 
-    GstState state = GST_STATE_NULL;
-    GstStateChangeReturn stateRet = gst_element_get_state(GST_ELEMENT_CAST(ctrler_.playbin_), &state,
-        nullptr, static_cast<GstClockTime>(0));
-
-    if ((stateRet == GST_STATE_CHANGE_SUCCESS) && (state >= GST_STATE_PAUSED)) {
-        if (ctrler_.isSeeking_) {
-            int64_t position = ctrler_.seekPos_;
-            MEDIA_LOGI("asyncdone after seek done, pos = %{public}" PRIi64 "us", position);
-            if (!(ctrler_.disableNextSeekDoneCb_ && position == 0)) {
+        if ((stateRet == GST_STATE_CHANGE_SUCCESS) && (state >= GST_STATE_PAUSED)) {
+            if (ctrler_.isSeeking_) {
+                int64_t position = ctrler_.seekPos_;
+                MEDIA_LOGI("asyncdone after seek done, pos = %{public}" PRIi64 "us", position);
                 PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, position };
                 ctrler_.ReportMessage(playBinMsg);
+                ctrler_.isSeeking_ = false;
+            } else if (ctrler_.isRating_) {
+                MEDIA_LOGI("asyncdone after setRate done, rate = %{public}lf", ctrler_.rate_);
+                PlayBinMessage playBinMsg { PLAYBIN_MSG_SPEEDDONE, 0, ctrler_.rate_ };
+                ctrler_.ReportMessage(playBinMsg);
+                ctrler_.isRating_ = false;
+            } else {
+                MEDIA_LOGD("Async done, not seeking or rating!");
             }
-            ctrler_.disableNextSeekDoneCb_ = false;
-            ctrler_.isSeeking_ = false;
-        } else if (ctrler_.isRating_) {
-            MEDIA_LOGI("asyncdone after setRate done, rate = %{public}lf", ctrler_.rate_);
-            PlayBinMessage playBinMsg { PLAYBIN_MSG_SPEEDDONE, 0, ctrler_.rate_ };
-            ctrler_.ReportMessage(playBinMsg);
-            ctrler_.isRating_ = false;
-        } else {
-            MEDIA_LOGD("Async done, not seeking or rating!");
         }
     }
 }
@@ -342,31 +337,27 @@ void PlayBinCtrlerBase::PlayingState::ProcessStateChange(const InnerMessage &msg
         ctrler_.ChangeState(ctrler_.pausedState_);
         return;
     }
-    if (msg.detail2 != GST_STATE_PLAYING) {
-        return;
-    }
 
-    GstState state = GST_STATE_NULL;
-    GstStateChangeReturn stateRet = gst_element_get_state(GST_ELEMENT_CAST(ctrler_.playbin_), &state,
-        nullptr, static_cast<GstClockTime>(0));
+    if (msg.detail2 == GST_STATE_PLAYING) {
+        GstState state = GST_STATE_NULL;
+        GstStateChangeReturn stateRet = gst_element_get_state(GST_ELEMENT_CAST(ctrler_.playbin_), &state,
+            nullptr, static_cast<GstClockTime>(0));
 
-    if ((stateRet == GST_STATE_CHANGE_SUCCESS) && (state == GST_STATE_PLAYING)) {
-        if (ctrler_.isSeeking_) {
-            int64_t position = ctrler_.seekPos_;
-            MEDIA_LOGI("playing after seek done, pos = %{public}" PRIi64 "us", position);
-            if (!(ctrler_.disableNextSeekDoneCb_ && position == 0)) {
+        if ((stateRet == GST_STATE_CHANGE_SUCCESS) && (state == GST_STATE_PLAYING)) {
+            if (ctrler_.isSeeking_) {
+                int64_t position = ctrler_.seekPos_;
+                MEDIA_LOGI("playing after seek done, pos = %{public}" PRIi64 "us", position);
                 PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, position };
                 ctrler_.ReportMessage(playBinMsg);
+                ctrler_.isSeeking_ = false;
+            } else if (ctrler_.isRating_) {
+                MEDIA_LOGI("playing after setRate done, rate = %{public}lf", ctrler_.rate_);
+                PlayBinMessage playBinMsg { PLAYBIN_MSG_SPEEDDONE, 0, ctrler_.rate_ };
+                ctrler_.ReportMessage(playBinMsg);
+                ctrler_.isRating_ = false;
+            } else {
+                MEDIA_LOGD("playing, not seeking or rating!");
             }
-            ctrler_.disableNextSeekDoneCb_ = false;
-            ctrler_.isSeeking_ = false;
-        } else if (ctrler_.isRating_) {
-            MEDIA_LOGI("playing after setRate done, rate = %{public}lf", ctrler_.rate_);
-            PlayBinMessage playBinMsg { PLAYBIN_MSG_SPEEDDONE, 0, ctrler_.rate_ };
-            ctrler_.ReportMessage(playBinMsg);
-            ctrler_.isRating_ = false;
-        } else {
-            MEDIA_LOGD("playing, not seeking or rating!");
         }
     }
 }
