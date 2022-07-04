@@ -34,15 +34,15 @@ class PlayerCallbackNapi : public PlayerCallback {
 public:
     explicit PlayerCallbackNapi(napi_env env);
     virtual ~PlayerCallbackNapi();
-    virtual void SaveCallbackReference(const std::string &callbackName, napi_value args);
-    void SendErrorCallback(MediaServiceExtErrCode errCode, const std::string &info = "unknown");
+    void SaveCallbackReference(const std::string &name, std::weak_ptr<AutoRef> ref);
+    void SendErrorCallback(MediaServiceExtErrCode errCode, const std::string &info = "error");
     virtual PlayerStates GetCurrentState() const;
     void OnError(PlayerErrorType errName, int32_t errMsg) override;
     void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody) override;
 
 protected:
     struct PlayerJsCallback {
-        std::shared_ptr<AutoRef> callback = nullptr;
+        std::weak_ptr<AutoRef> callback;
         std::string callbackName = "unknown";
         std::string errorMsg = "unknown";
         MediaServiceExtErrCode errorCode = MSERR_EXT_UNKNOWN;
@@ -55,6 +55,7 @@ protected:
     void OnJsCallBackIntVec(PlayerJsCallback *jsCb) const;
     void OnJsCallBackIntArray(PlayerJsCallback *jsCb) const;
     void OnJsCallBackInterrupt(PlayerJsCallback *jsCb) const;
+    std::map<std::string, std::weak_ptr<AutoRef>> refMap_;
 
 private:
     void OnSeekDoneCb(int32_t currentPositon) const;
@@ -68,17 +69,6 @@ private:
     std::mutex mutex_;
     napi_env env_ = nullptr;
     PlayerStates currentState_ = PLAYER_IDLE;
-    std::shared_ptr<AutoRef> errorCallback_ = nullptr; // error
-    std::shared_ptr<AutoRef> playCallback_ = nullptr; // started
-    std::shared_ptr<AutoRef> pauseCallback_ = nullptr; // paused
-    std::shared_ptr<AutoRef> stopCallback_ = nullptr; // stopped
-    std::shared_ptr<AutoRef> resetCallback_ = nullptr; // idle
-    std::shared_ptr<AutoRef> dataLoadCallback_ = nullptr; // prepared
-    std::shared_ptr<AutoRef> finishCallback_ = nullptr; // endofstream
-    std::shared_ptr<AutoRef> timeUpdateCallback_ = nullptr; // seekdone
-    std::shared_ptr<AutoRef> volumeChangeCallback_ = nullptr; // volumedone
-    std::shared_ptr<AutoRef> bufferingUpdateCallback_ = nullptr; // buffering update
-    std::shared_ptr<AutoRef> audioInterruptCallback_ = nullptr; // audio interrupt
 };
 } // namespace Media
 } // namespace OHOS
