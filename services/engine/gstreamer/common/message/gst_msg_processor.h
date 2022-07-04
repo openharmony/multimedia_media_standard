@@ -20,6 +20,7 @@
 #include <condition_variable>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include <gst/gst.h>
 #include "inner_msg_define.h"
 #include "task_queue.h"
@@ -45,13 +46,14 @@ public:
     void FlushBegin();
     void FlushEnd();
     void Reset() noexcept;
-    void AddTickSource();
-    void RemoveTickSource();
+    void AddTickSource(int32_t type, uint32_t interval);
+    void RemoveTickSource(int32_t type);
 
 private:
     int32_t DoInit();
     static gboolean MainLoopRunDone(GstMsgProcessor *thiz);
-    static gboolean TickCallback(GstMsgProcessor *thiz);
+    static gboolean TickCallback(int32_t *type);
+    static void FreeTickType(int32_t *type);
     static gboolean BusCallback(const GstBus *bus, GstMessage *msg, GstMsgProcessor *thiz);
     void ProcessGstMessage(GstMessage &msg);
     void DoReset();
@@ -59,7 +61,6 @@ private:
     GstBus *gstBus_ = nullptr;
     GMainLoop *mainLoop_ = nullptr;
     GMainContext *context_ = nullptr;
-    GSource *tickSource_ = 0;
     GSource *busSource_ = 0;
     InnerMsgNotifier notifier_;
     TaskQueue guardTask_;
@@ -68,6 +69,7 @@ private:
     bool needWaiting_ = true;
     std::shared_ptr<IGstMsgConverter> msgConverter_;
     std::vector<std::string> filters_;
+    std::unordered_map<int32_t, GSource *> tickSource_;
 };
 } // namespace Media
 } // namespace OHOS

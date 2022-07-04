@@ -14,7 +14,6 @@
  */
 
 #include "gst_msg_processor.h"
-#include <unordered_map>
 #include "media_errors.h"
 #include "media_log.h"
 #include "scope_guard.h"
@@ -105,7 +104,9 @@ int32_t GstMsgProcessor::DoInit()
     ret = g_source_attach(busSource_, context_);
     CHECK_AND_RETURN_RET_LOG(ret > 0, MSERR_INVALID_OPERATION, "add bus source failed");
 
-    AddTickSource();
+    int32_t tickType = InnerMsgType::INNER_MSG_POSITION_UPDATE;
+    uint32_t interval = DEFAULT_POSITION_UPDATE_INTERVAL_MS;
+    AddTickSource(tickType, interval);
 
     auto mainLoopRun = std::make_shared<TaskHandler<void>>([this] {
         MEDIA_LOGI("start msg main loop...");
@@ -134,35 +135,46 @@ gboolean GstMsgProcessor::MainLoopRunDone(GstMsgProcessor *thiz)
     return G_SOURCE_REMOVE;
 }
 
-void GstMsgProcessor::AddTickSource()
+void GstMsgProcessor::AddTickSource(int32_t type, uint32_t interval)
 {
-    if (tickSource_) {
+    auto iter = tickSource_.find(type);
+    if (iter != tickSource_.end()) {
         return;
     }
 
-    guint interval = DEFAULT_POSITION_UPDATE_INTERVAL_MS;
-    tickSource_ = g_timeout_source_new(interval);
-    CHECK_AND_RETURN_LOG(tickSource_ != nullptr, "add tick source failed");
-    g_source_set_callback(tickSource_, (GSourceFunc)&GstMsgProcessor::TickCallback, this, nullptr);
-    guint ret = g_source_attach(tickSource_, context_);
+    GSource *source = g_timeout_source_new(interval);
+    CHECK_AND_RETURN_LOG(source != nullptr, "add tick source failed");
+    int32_t *tickType = static_cast<int32_t *>(g_malloc0((gsize)sizeof(int32_t)));
+    g_source_set_callback(source, (GSourceFunc)&GstMsgProcessor::TickCallback, tickType,
+        (GDestroyNotify)&GstMsgProcessor::FreeTickType);
+    guint ret = g_source_attach(source, context_);
     CHECK_AND_RETURN_LOG(ret > 0, "add tick source failed");
+    (void)tickSource_.emplace(type, source);
 }
 
-void GstMsgProcessor::RemoveTickSource()
+void GstMsgProcessor::RemoveTickSource(int32_t type)
 {
-    if (!tickSource_) {
+    auto iter = tickSource_.find(type);
+    if (iter == tickSource_.end()) {
         return;
     }
 
-    g_source_destroy(tickSource_);
-    g_source_unref(tickSource_);
-    tickSource_ = nullptr;
+    GSource *source = iter->second;
+    g_source_destroy(source);
+    g_source_unref(source);
+    source = nullptr;
+    tickSource_.erase(iter);
+}
+
+void GstMsgProcessor::FreeTickType(int32_t *type)
+{
+    g_free(type);
 }
 
 void GstMsgProcessor::AddMsgFilter(const std::string &filter)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    for (auto &elem :  filters_)  {
+    for (auto &elem : filters_)  {
         if (elem == filter) {
             return;
         }
@@ -190,7 +202,10 @@ void GstMsgProcessor::DoReset()
         busSource_ = nullptr;
     }
 
-    RemoveTickSource();
+    for (auto &[tickType, source] : tickSource_) {
+        RemoveTickSource(tickType);
+    }
+    tickSource_.clear();
 
     if (mainLoop_ != nullptr) {
         g_main_loop_unref(mainLoop_);
@@ -222,15 +237,15 @@ void GstMsgProcessor::Reset() noexcept
     msgConverter_ = nullptr;
 }
 
-gboolean GstMsgProcessor::TickCallback(GstMsgProcessor *thiz)
+gboolean GstMsgProcessor::TickCallback(int32_t *type)
 {
-    if (thiz == nullptr) {
+    if (type == nullptr) {
         MEDIA_LOGE("processor is nullptr");
         return FALSE;
     }
 
     InnerMessage innerMsg {};
-    innerMsg.type = InnerMsgType::INNER_MSG_POSITION_UPDATE;
+    innerMsg.type = type;
     thiz->notifier_(innerMsg);
     return TRUE;
 }

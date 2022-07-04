@@ -23,6 +23,7 @@
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayBinState"};
     constexpr int32_t USEC_PER_MSEC = 1000;
+    constexpr uint32_t DEFAULT_POSITION_UPDATE_INTERVAL_MS = 100; // 100 ms
 }
 
 namespace OHOS {
@@ -82,7 +83,8 @@ int32_t PlayBinCtrlerBase::BaseState::ChangePlayBinState(GstState targetState)
         int64_t position = ctrler_.QueryPositionInternal(false) / USEC_PER_MSEC;
         PlayBinMessage posUpdateMsg { PLAYBIN_MSG_POSITION_UPDATE, 0, static_cast<int32_t>(position), {} };
         ctrler_.ReportMessage(posUpdateMsg);
-        ctrler_.msgProcessor_->RemoveTickSource();
+        int32_t tickType = INNER_MSG_POSITION_UPDATE;
+        ctrler_.msgProcessor_->RemoveTickSource(tickType);
     }
 
     GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(ctrler_.playbin_), targetState);
@@ -102,9 +104,12 @@ void PlayBinCtrlerBase::BaseState::HandleStateChange(const InnerMessage &msg)
         gst_element_state_get_name(targetState));
 
     if (targetState == GST_STATE_PLAYING) {
-        ctrler_.msgProcessor_->AddTickSource();
+        int32_t tickType = INNER_MSG_POSITION_UPDATE;
+        uint32_t interval = DEFAULT_POSITION_UPDATE_INTERVAL_MS;
+        ctrler_.msgProcessor_->AddTickSource(tickType, interval);
     } else if (targetState == GST_STATE_PAUSED) {
-        ctrler_.msgProcessor_->RemoveTickSource();
+        int32_t tickType = INNER_MSG_POSITION_UPDATE;
+        ctrler_.msgProcessor_->RemoveTickSource(tickType);
         if (!ctrler_.isSeeking_ && !ctrler_.isRating_) {
             int64_t position = ctrler_.QueryPositionInternal(false) / USEC_PER_MSEC;
             PlayBinMessage posUpdateMsg { PLAYBIN_MSG_POSITION_UPDATE, 0, static_cast<int32_t>(position), {} };
@@ -178,7 +183,9 @@ void PlayBinCtrlerBase::BaseState::HandleEos()
     int64_t position = ctrler_.QueryPositionInternal(false) / USEC_PER_MSEC;
     PlayBinMessage posUpdateMsg { PLAYBIN_MSG_POSITION_UPDATE, 0, static_cast<int32_t>(position), {} };
     ctrler_.ReportMessage(posUpdateMsg);
-    ctrler_.msgProcessor_->RemoveTickSource();
+
+    int32_t tickType = INNER_MSG_POSITION_UPDATE;
+    ctrler_.msgProcessor_->RemoveTickSource(tickType);
 
     PlayBinMessage playBinMsg = { PLAYBIN_MSG_EOS, 0, static_cast<int32_t>(ctrler_.enableLooping_), {} };
     ctrler_.ReportMessage(playBinMsg);
