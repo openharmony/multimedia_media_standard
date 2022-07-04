@@ -22,6 +22,7 @@
 #include "napi/native_node_api.h"
 #include "media_data_source_callback.h"
 #include "common_napi.h"
+#include "audio_info.h"
 
 namespace OHOS {
 namespace Media {
@@ -122,6 +123,12 @@ private:
      */
     static napi_value SetVideoScaleType(napi_env env, napi_callback_info info);
     static napi_value GetVideoScaleType(napi_env env, napi_callback_info info);
+
+    /**
+     * audioInterruptMode?: audio.AudioInterruptMode
+     */
+    static napi_value GetAudioInterruptMode(napi_env env, napi_callback_info info);
+    static napi_value SetAudioInterruptMode(napi_env env, napi_callback_info info);
     /**
      * readonly currentTime: number
      */
@@ -161,6 +168,7 @@ private:
     static int32_t ProcessWork(napi_env env, napi_status status, void *data);
     void OnErrorCallback(MediaServiceExtErrCode errCode);
     void ReleaseDataSource(std::shared_ptr<MediaDataSourceCallback> dataSourceCb);
+    void SetCallbackReference(const std::string &callbackName, std::shared_ptr<AutoRef> ref);
     VideoPlayerNapi();
     ~VideoPlayerNapi();
 
@@ -174,6 +182,8 @@ private:
     int32_t videoScaleType_ = 0;
     std::vector<Format> videoTrackInfoVec_;
     AVFileDescriptor rawFd_;
+    OHOS::AudioStandard::InterruptMode interruptMode_;
+    std::map<std::string, std::shared_ptr<AutoRef>> refMap_;
 };
 } // namespace Media
 } // namespace OHOS

@@ -26,7 +26,7 @@ class AudioSinkFactory {
 public:
     AudioSinkFactory() = delete;
     ~AudioSinkFactory() = delete;
-    static std::unique_ptr<AudioSink> CreateAudioSink();
+    static std::unique_ptr<AudioSink> CreateAudioSink(GstBaseSink *sink);
 };
 } // namespace Media
 } // namespace OHOS

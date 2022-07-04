@@ -28,6 +28,7 @@ namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "GstMetaParser"};
     static GType GST_SAMPLE_TYPE = gst_sample_get_type();
     static GType GST_DATE_TIME_TYPE = gst_date_time_get_type();
+    static GType GST_FRACTION_TYPE = gst_fraction_get_type();
     constexpr size_t FORMATTED_TIME_NUM_SIZE = 2;
 }
 
@@ -67,12 +68,12 @@ static const std::unordered_map<std::string_view, MetaParseItem> GST_CAPS_PARSE_
     { "width", { INNER_META_KEY_VIDEO_WIDTH, G_TYPE_INT, nullptr } },
     { "height", { INNER_META_KEY_VIDEO_HEIGHT, G_TYPE_INT } },
     { "rate", { INNER_META_KEY_SAMPLE_RATE, G_TYPE_INT } },
-    { "framerate", { INNER_META_KEY_FRAMERATE, GST_TYPE_FRACTION, FractionMetaSetter } },
+    { "framerate", { INNER_META_KEY_FRAMERATE, GST_FRACTION_TYPE, FractionMetaSetter } },
     { "channels", { INNER_META_KEY_CHANNEL_COUNT, G_TYPE_INT } },
 };
 
 static const std::unordered_map<std::string_view, std::vector<std::string_view>> STREAM_CAPS_FIELDS = {
-    { "video", { "width", "height", "framrate", "format" } },
+    { "video", { "width", "height", "framerate", "format" } },
     { "audio", { "rate", "channels" } },
     { "text", { "format" } },
 };

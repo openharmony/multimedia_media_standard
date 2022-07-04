@@ -233,7 +233,7 @@ static void gst_venc_base_finalize(GObject *object)
     self->input.allocator = nullptr;
     gst_object_unref(self->output.allocator);
     self->output.allocator = nullptr;
-    gst_object_unref(self->input_state);
+    gst_video_codec_state_unref(self->input_state);
     self->input_state = nullptr;
     gst_object_unref(self->output_state);
     self->output_state = nullptr;
@@ -253,6 +253,7 @@ static gboolean gst_venc_base_open(GstVideoEncoder *encoder)
     GstVencBaseClass *base_class = GST_VENC_BASE_GET_CLASS(self);
     g_return_val_if_fail(base_class != nullptr && base_class->create_codec != nullptr, FALSE);
     self->encoder = base_class->create_codec(reinterpret_cast<GstElementClass*>(base_class));
+    g_return_val_if_fail(self->encoder != nullptr, FALSE);
     return TRUE;
 }
 
@@ -317,6 +318,7 @@ static gboolean gst_venc_base_stop(GstVideoEncoder *encoder)
 {
     g_return_val_if_fail(encoder != nullptr, FALSE);
     GstVencBase *self = GST_VENC_BASE(encoder);
+    g_return_val_if_fail(self->encoder != nullptr, FALSE);
     GST_DEBUG_OBJECT(self, "Stop encoder start");
 
     g_mutex_lock(&self->drain_lock);
@@ -842,6 +844,9 @@ static gboolean gst_venc_base_set_format(GstVideoEncoder *encoder, GstVideoCodec
     g_return_val_if_fail(ret == GST_CODEC_OK, FALSE);
     ret = self->encoder->SetParameter(GST_STATIC_BITRATE, GST_ELEMENT(self));
     g_return_val_if_fail(ret == GST_CODEC_OK, FALSE);
+    if (self->input_state != nullptr) {
+        gst_video_codec_state_unref(self->input_state);
+    }
     self->input_state = gst_video_codec_state_ref(state);
     return gst_codec_return_is_ok(self, ret, "setparam", TRUE);
 }

@@ -265,6 +265,7 @@ static gboolean gst_vdec_base_open(GstVideoDecoder *decoder)
     GstVdecBaseClass *base_class = GST_VDEC_BASE_GET_CLASS(self);
     g_return_val_if_fail(base_class != nullptr && base_class->create_codec != nullptr, FALSE);
     self->decoder = base_class->create_codec(reinterpret_cast<GstElementClass*>(base_class));
+    g_return_val_if_fail(self->decoder != nullptr, FALSE);
     return TRUE;
 }
 

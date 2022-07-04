@@ -19,9 +19,9 @@
 
 namespace OHOS {
 namespace Media {
-std::unique_ptr<AudioSink> AudioSinkFactory::CreateAudioSink()
+std::unique_ptr<AudioSink> AudioSinkFactory::CreateAudioSink(GstBaseSink *sink)
 {
-    return std::make_unique<AudioSinkSvImpl>();
+    return std::make_unique<AudioSinkSvImpl>(sink);
 }
 } // namespace Media
 } // namespace OHOS

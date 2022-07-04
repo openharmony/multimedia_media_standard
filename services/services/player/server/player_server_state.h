@@ -33,10 +33,11 @@ public:
     virtual int32_t Stop();
 
 protected:
-    void OnMessageReceived(PlayerOnInfoType type, int32_t extra, const Format &infoBody) final;
+    int32_t OnMessageReceived(PlayerOnInfoType type, int32_t extra, const Format &infoBody) final;
     virtual void HandleStateChange(int32_t newState) {}
     virtual void HandlePlaybackComplete(int32_t extra) {}
     void ReportInvalidOperation();
+    virtual void HandleEos() {}
 
     PlayerServer &server_;
 };
@@ -99,6 +100,7 @@ public:
 protected:
     void HandleStateChange(int32_t newState) override;
     void HandlePlaybackComplete(int32_t extra) override;
+    void HandleEos() override;
 };
 
 class PlayerServer::PausedState : public PlayerServer::BaseState {
