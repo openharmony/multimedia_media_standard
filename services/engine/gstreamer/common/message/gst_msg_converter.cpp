@@ -26,6 +26,20 @@ namespace {
 
 namespace OHOS {
 namespace Media {
+static int32_t StreamDecErrorParse(const gchar *name)
+{
+    if (strstr(name, "aac") != nullptr) {
+        MEDIA_LOGE("tag: MSERR_AUD_DEC_FAILED");
+        return MSERR_AUD_DEC_FAILED;
+    } else if (strstr(name, "h264") != nullptr || strstr(name, "h265") != nullptr) {
+        MEDIA_LOGE("tag: MSERR_VID_DEC_FAILED");
+        return MSERR_VID_DEC_FAILED;
+    } else {
+        MEDIA_LOGE("tag: MSERR_UNKNOWN");
+        return MSERR_UNKNOWN;
+    }
+}
+
 using StreamToServiceErrFunc = std::function<int32_t(const gchar*)>;
 static const std::unordered_map<int32_t, StreamToServiceErrFunc> STREAM_TO_SERVICE_ERR_FUNC_TABLE = {
     { GST_STREAM_ERROR_DECODE, StreamDecErrorParse },
@@ -48,21 +62,7 @@ static const std::unordered_map<int32_t, MediaServiceErrCode> RESOURCE_TO_SERVIC
     { GST_RESOURCE_ERROR_TIME_OUT, MSERR_NETWORK_TIMEOUT },
 };
 
-static int32_t StreamDecErrorParse(const gchar *name)
-{
-    if (strstr(name, "aac") != nullptr) {
-        MEDIA_LOGE("tag: MSERR_AUD_DEC_FAILED");
-        return MSERR_AUD_DEC_FAILED;
-    } else if (strstr(name, "h264") != nullptr || strstr(name, "h265") != nullptr) {
-        MEDIA_LOGE("tag: MSERR_VID_DEC_FAILED");
-        return MSERR_VID_DEC_FAILED;
-    } else {
-        MEDIA_LOGE("tag: MSERR_UNKNOWN");
-        return MSERR_UNKNOWN;
-    }
-}
-
-static void StreamErrorParse(const gchar *name, const GError *error)
+static int32_t StreamErrorParse(const gchar *name, const GError *error)
 {
     CHECK_AND_RETURN_RET_LOG(name != nullptr, MSERR_UNKNOWN, "name is nullptr");
     MEDIA_LOGE("domain: GST_STREAM_ERROR");
@@ -80,7 +80,7 @@ static void StreamErrorParse(const gchar *name, const GError *error)
 
 static int32_t ResourceErrorParse(const GError *error)
 {
-    MEDIA_LOGE("domain:GST_RESOURCE_ERROR");
+    MEDIA_LOGE("domain: GST_RESOURCE_ERROR");
     auto resIter = RESOURCE_TO_SERVICE_ERR_TABLE.find(error->code);
     if (resIter == RESOURCE_TO_SERVICE_ERR_TABLE.end()) {
         return MSERR_UNKNOWN;
@@ -102,7 +102,7 @@ static int32_t ConvertErrorMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
     innerMsg.type = INNER_MSG_ERROR;
     if (error->domain == GST_STREAM_ERROR) {
         innerMsg.detail1 = StreamErrorParse(name, error);
-    } else if (err->domain == GST_RESOURCE_ERROR) {
+    } else if (error->domain == GST_RESOURCE_ERROR) {
         innerMsg.detail1 = ResourceErrorParse(error);
     } else {
         innerMsg.detail1 = MSERR_UNKNOWN;
