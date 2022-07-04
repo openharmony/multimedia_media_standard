@@ -319,13 +319,9 @@ void PlayerEngineGstImpl::HandleVideoSizeChanged(const PlayBinMessage &msg)
 
 void PlayerEngineGstImpl::HandleBitRateCollect(const PlayBinMessage &msg)
 {
-    std::pair<uint32_t *, uint32_t> bitRatePair = std::any_cast<std::pair<uint32_t *, uint32_t>>(msg.extra);
-    Format format;
-    (void)format.PutBuffer(std::string(PlayerKeys::PLAYER_BITRATE),
-        static_cast<uint8_t *>(static_cast<void *>(bitRatePair.first)), bitRatePair.second * sizeof(uint32_t));
     std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
     if (notifyObs != nullptr) {
-        notifyObs->OnInfo(INFO_TYPE_BITRATE_COLLECT, 0, format);
+        notifyObs->OnInfo(INFO_TYPE_BITRATE_COLLECT, 0, std::any_cast<Format>(msg.extra));
     }
 }
 

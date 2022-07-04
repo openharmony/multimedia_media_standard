@@ -19,6 +19,8 @@
 #include "string_ex.h"
 #include "media_errors.h"
 #include "media_log.h"
+#include "player.h"
+#include "format.h"
 #include "uri_helper.h"
 #include "scope_guard.h"
 #include "playbin_state.h"
@@ -405,7 +407,6 @@ int32_t PlayBinCtrlerBase::SelectBitRate(uint32_t bitRate)
         return MSERR_INVALID_OPERATION;
     }
 
-    g_object_set(playbin_, "bitrate-parse-complete", static_cast<uint64_t>(bitRate), nullptr);
     g_object_set(playbin_, "connection-speed", static_cast<uint64_t>(bitRate), nullptr);
 
     PlayBinMessage msg = { PLAYBIN_MSG_BITRATEDONE, 0, static_cast<int32_t>(bitRate) };
@@ -678,7 +679,13 @@ int32_t PlayBinCtrlerBase::SetupSignalMessage()
     GstBus *bus = gst_pipeline_get_bus(playbin_);
     CHECK_AND_RETURN_RET_LOG(bus != nullptr, MSERR_UNKNOWN, "can not get bus");
 
-    auto msgNotifier = std::bind(&PlayBinCtrlerBase::OnMessageReceived, this, std::placeholders::_1);
+    std::weak_ptr<PlayBinCtrlerBase> weakThiz = shared_from_this();
+    auto msgNotifier = [weakThiz](const InnerMessage &msg) {
+        std::shared_ptr<PlayBinCtrlerBase> ctrler = weakThiz.lock();
+        if (ctrler != nullptr) {
+            ctrler->OnMessageReceived(msg);
+        }
+    };
     msgProcessor_ = std::make_unique<GstMsgProcessor>(*bus, msgNotifier);
 
     gst_object_unref(bus);
@@ -1026,10 +1033,10 @@ void PlayBinCtrlerBase::OnBitRateParseCompleteCb(const GstElement *playbin, uint
             MEDIA_LOGD("bitrate = %{public}u", bitrateInfo[i]);
             thizStrong->bitRateVec_.push_back(bitrateInfo[i]);
         }
-        std::pair<uint32_t *, uint32_t> bitRatePair;
-        bitRatePair.first = bitrateInfo;
-        bitRatePair.second = bitrateNum;
-        PlayBinMessage msg = { PLAYBIN_MSG_SUBTYPE, PLAYBIN_SUB_MSG_BITRATE_COLLECT, 0, bitRatePair };
+        Format format;
+        (void)format.PutBuffer(std::string(PlayerKeys::PLAYER_BITRATE),
+            static_cast<uint8_t *>(static_cast<void *>(bitrateInfo)), bitrateNum * sizeof(uint32_t));
+        PlayBinMessage msg = { PLAYBIN_MSG_SUBTYPE, PLAYBIN_SUB_MSG_BITRATE_COLLECT, 0, format };
         thizStrong->ReportMessage(msg);
     }
 }

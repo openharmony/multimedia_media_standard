@@ -226,7 +226,9 @@ void GstMsgProcessor::ProcessGstMessage(GstMessage &msg)
             return;
         }
         std::unique_lock<std::mutex> lock(mutex_);
-        for (auto &filter : filters_) {
+        std::vector<std::string> filtersTmp = filters_;
+        mutex_.unlock();
+        for (auto &filter : filtersTmp) {
             if (filter.compare(srcName) == 0) {
                 notifier_(innerMsg);
                 return;
