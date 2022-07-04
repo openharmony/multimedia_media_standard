@@ -120,7 +120,6 @@ static constexpr std::string_view ED_KEY_DATA_SIZE = "dataSize";
  * Key for isKeyFrame in surface's extraData, value type is bool
  */
 static constexpr std::string_view ED_KEY_IS_KEY_FRAME = "isKeyFrame";
-
 } // namespace Media
 } // namespace OHOS
 #endif // AVCODEC_COMMOM_H
