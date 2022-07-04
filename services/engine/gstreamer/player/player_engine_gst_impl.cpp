@@ -662,7 +662,6 @@ int32_t PlayerEngineGstImpl::SetParameter(const Format &param)
         param.GetIntValue(PlayerKeys::STREAM_USAGE, streamUsage_);
         param.GetIntValue(PlayerKeys::RENDERER_FLAG, rendererFlag_);
         return SetAudioRendererInfo(contentType_, streamUsage_, rendererFlag_);
-
     }
     if (param.ContainKey(PlayerKeys::AUDIO_INTERRUPT_MODE)) {
         int32_t interruptMode = 0;

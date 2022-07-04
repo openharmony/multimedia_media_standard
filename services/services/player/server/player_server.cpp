@@ -215,7 +215,7 @@ int32_t PlayerServer::OnPrepare()
 
     if (lastOpStatus_ == PLAYER_PREPARED) {
         Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
+        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
 
@@ -275,7 +275,7 @@ int32_t PlayerServer::Play()
 
     if (lastOpStatus_ == PLAYER_STARTED) {
         Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
+        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
 
@@ -313,7 +313,7 @@ int32_t PlayerServer::Pause()
 
     if (lastOpStatus_ == PLAYER_PAUSED) {
         Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
+        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
 
@@ -355,7 +355,7 @@ int32_t PlayerServer::Stop()
 
     if (lastOpStatus_ == PLAYER_STOPPED) {
         Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
+        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
 
@@ -401,7 +401,7 @@ int32_t PlayerServer::OnReset()
 {
     if (lastOpStatus_ == PLAYER_IDLE) {
         Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
+        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
 
@@ -886,6 +886,15 @@ void PlayerServer::OnInfo(PlayerOnInfoType type, int32_t extra, const Format &in
     int32_t ret = HandleMessage(type, extra, infoBody);
 
     if (playerCb_ != nullptr && ret == MSERR_OK) {
+        playerCb_->OnInfo(type, extra, infoBody);
+    }
+}
+
+void PlayerServer::OnInfoNoChangeStatus(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
+{
+    std::lock_guard<std::mutex> lockCb(mutexCb_);
+
+    if (playerCb_ != nullptr) {
         playerCb_->OnInfo(type, extra, infoBody);
     }
 }
