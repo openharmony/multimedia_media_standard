@@ -93,6 +93,9 @@ bool TestParamsConfig::StrToInt64(const std::string &str, int64_t &value)
     errno = 0;
     auto addr = str.c_str();
     auto result = strtoll(addr, &end, 10); /* 10 means decimal */
+    if (result == 0) {
+        return false;
+    }
     if ((end == addr) || (end[0] != '\0') || (errno == ERANGE)) {
         UNITTEST_INFO_LOG("call StrToInt func false,  input str is: %s!", str.c_str());
         return false;
@@ -129,12 +132,12 @@ bool TestParamsConfig::CompareMetadata(int32_t key, const std::string &result, c
     } while (0);
 
     UNITTEST_INFO_LOG(">>>>>>>>>>>>>>>>>>>>>>>>>>[resolve failed] key = %s, result = %s, expected = %s",
-         keyStr.c_str(), result.c_str(), expected.c_str());
+        keyStr.c_str(), result.c_str(), expected.c_str());
     return false;
 }
 
 bool TestParamsConfig::CompareMetadata(const std::unordered_map<int32_t, std::string> &result,
-                     const std::unordered_map<int32_t, std::string> &expected)
+    const std::unordered_map<int32_t, std::string> &expected)
 {
     std::string resultValue;
     bool success = true;
@@ -165,10 +168,10 @@ std::string TestParamsConfig::GetPrettyDuration(int64_t duration) // ms
 
     std::ostringstream oss;
     oss << std::setfill('0')
-        << std::setw(2) << hour << ":"
-        << std::setw(2) << min << ":"
-        << std::setw(2) << sec << "."
-        << std::setw(3) << milliSec;
+        << std::setw(2) << hour << ":" // Convert to standard time format
+        << std::setw(2) << min << ":"  // Convert to standard time format
+        << std::setw(2) << sec << "."  // Convert to standard time format
+        << std::setw(3) << milliSec;   // Convert to standard time format
 
     return oss.str();
 }
@@ -334,7 +337,7 @@ int32_t AVMetadataMock::Rgb888ToJpeg(const std::string_view &filename,
         jpeg_write_scanlines(&jpeg, row_pointer, 1);
     }
     jpeg_finish_compress(&jpeg);
-    fclose(pFile);
+    (void)fclose(pFile);
     pFile = NULL;
 
     jpeg_destroy_compress(&jpeg);
@@ -350,7 +353,7 @@ void AVMetadataMock::FrameToFile(std::shared_ptr<PixelMap> frame,
     const uint8_t MAX_FILE_PATH_LENGTH = 255;
     char filePath[MAX_FILE_PATH_LENGTH];
     if (access("/data/media/ThumbnailBak", 0) != F_OK) {
-        mkdir("/data/media/ThumbnailBak", 0777);
+        mkdir("/data/media/ThumbnailBak", 0777);  // permission
     }
     auto ret = sprintf_s(filePath, MAX_FILE_PATH_LENGTH,
         "/data/media/ThumbnailBak/%s_time_%" PRIi64 "_option_%d_width_%d_height_%d_color_%d.pixel",
@@ -363,19 +366,19 @@ void AVMetadataMock::FrameToFile(std::shared_ptr<PixelMap> frame,
     ASSERT_NE(desFile, nullptr);
     int64_t dstBufferSize = fwrite(data, bufferSize, 1, desFile);
     EXPECT_EQ(dstBufferSize, 1);
-    fclose(desFile);
+    (void)fclose(desFile);
 }
 
 void AVMetadataMock::SurfaceToFile(std::shared_ptr<AVSharedMemory> frame,
     const char *fileName)
-{   
+{
     const uint8_t *data = frame->GetBase();
     EXPECT_NE(data, nullptr);
     int32_t bufferSize = frame->GetSize();
     const uint8_t MAX_FILE_PATH_LENGTH = 255;
     char filePath[MAX_FILE_PATH_LENGTH];
     if (access("/data/media/SurfaceBak", 0) != F_OK) {
-        mkdir("/data/media/SurfaceBak", 0777);
+        mkdir("/data/media/SurfaceBak", 0777); // permission
     }
     auto ret = sprintf_s(filePath, MAX_FILE_PATH_LENGTH, "/data/media/SurfaceBak/%s.pixel", fileName);
     if (ret <= 0) {
@@ -395,7 +398,7 @@ void AVMetadataMock::FrameToJpeg(std::shared_ptr<PixelMap> frame,
     const uint8_t MAX_FILE_PATH_LENGTH = 255;
     char filePath[MAX_FILE_PATH_LENGTH];
     if (access("/data/media/ThumbnailBak", 0) != F_OK) {
-        mkdir("/data/media/ThumbnailBak", 0777);
+        mkdir("/data/media/ThumbnailBak", 0777); // permission
     }
     auto ret = sprintf_s(filePath, MAX_FILE_PATH_LENGTH,
         "/data/media/ThumbnailBak/%s_time_%" PRIi64 "_option_%d_width_%d_height_%d_color_%d.jpg",
