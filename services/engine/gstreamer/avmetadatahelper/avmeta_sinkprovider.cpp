@@ -44,15 +44,18 @@ AVMetaSinkProvider::~AVMetaSinkProvider()
 
 PlayBinSinkProvider::SinkPtr AVMetaSinkProvider::CreateAudioSink()
 {
-    if (audSink_ == nullptr) {
-        audSink_ = gst_element_factory_make("fakesink", "avmeta_aud_sink");
+    if (audSink_ != nullptr) {
+        gst_object_unref(audSink_);
+        audSink_ = nullptr;
     }
 
+    audSink_ = GST_ELEMENT_CAST(gst_object_ref_sink(gst_element_factory_make("fakesink", "avmeta_aud_sink")));
     if (audSink_ == nullptr) {
         MEDIA_LOGE("audsink is nullptr");
+        return nullptr;
     }
 
-    return GST_ELEMENT_CAST(gst_object_ref(audSink_));
+    return audSink_;
 }
 
 PlayBinSinkProvider::SinkPtr AVMetaSinkProvider::CreateVideoSink()
