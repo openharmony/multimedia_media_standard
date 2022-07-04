@@ -144,8 +144,10 @@ void GstMsgProcessor::AddTickSource(int32_t type, uint32_t interval)
 
     GSource *source = g_timeout_source_new(interval);
     CHECK_AND_RETURN_LOG(source != nullptr, "add tick source failed");
-    int32_t *tickType = static_cast<int32_t *>(g_malloc0((gsize)sizeof(int32_t)));
-    g_source_set_callback(source, (GSourceFunc)&GstMsgProcessor::TickCallback, tickType,
+    TickCallbackInfo *tickCbInfo = static_cast<TickCallbackInfo *>(g_malloc0((gsize)sizeof(TickCallbackInfo)));
+    tickCbInfo->type = type;
+    tickCbInfo->msgProcessor = this;
+    g_source_set_callback(source, (GSourceFunc)&GstMsgProcessor::TickCallback, tickCbInfo,
         (GDestroyNotify)&GstMsgProcessor::FreeTickType);
     guint ret = g_source_attach(source, context_);
     CHECK_AND_RETURN_LOG(ret > 0, "add tick source failed");
@@ -163,12 +165,12 @@ void GstMsgProcessor::RemoveTickSource(int32_t type)
     g_source_destroy(source);
     g_source_unref(source);
     source = nullptr;
-    tickSource_.erase(iter);
+    (void)tickSource_.erase(iter);
 }
 
-void GstMsgProcessor::FreeTickType(int32_t *type)
+void GstMsgProcessor::FreeTickType(TickCallbackInfo *tickCbInfo)
 {
-    g_free(type);
+    g_free(tickCbInfo);
 }
 
 void GstMsgProcessor::AddMsgFilter(const std::string &filter)
@@ -237,16 +239,16 @@ void GstMsgProcessor::Reset() noexcept
     msgConverter_ = nullptr;
 }
 
-gboolean GstMsgProcessor::TickCallback(int32_t *type)
+gboolean GstMsgProcessor::TickCallback(TickCallbackInfo *tickCbInfo)
 {
-    if (type == nullptr) {
-        MEDIA_LOGE("processor is nullptr");
+    if (tickCbInfo == nullptr || tickCbInfo->msgProcessor == nullptr) {
+        MEDIA_LOGE("tickCbInfo or msgProcessor is nullptr");
         return FALSE;
     }
 
     InnerMessage innerMsg {};
-    innerMsg.type = type;
-    thiz->notifier_(innerMsg);
+    innerMsg.type = tickCbInfo->type;
+    tickCbInfo->msgProcessor->notifier_(innerMsg);
     return TRUE;
 }
 
