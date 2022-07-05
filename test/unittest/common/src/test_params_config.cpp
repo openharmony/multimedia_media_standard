@@ -14,10 +14,10 @@
  */
 
 #include "test_params_config.h"
-#include "unittest_log.h"
-#include "securec.h"
 #include <iomanip>
 #include <sstream>
+#include "unittest_log.h"
+#include "securec.h"
 namespace OHOS {
 namespace Media {
 namespace PlayerTestParam {
