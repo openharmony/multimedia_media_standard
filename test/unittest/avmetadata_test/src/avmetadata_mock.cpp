@@ -14,168 +14,12 @@
  */
 
 #include "avmetadata_mock.h"
-#include <iostream>
-#include <string_view>
-#include <sstream>
-#include <iomanip>
-#include <cstdlib>
-#include <cstdio>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <dirent.h>
 #include "gtest/gtest.h"
-#include "parameter.h"
 #include "media_errors.h"
-#include "uri_helper.h"
 
 using namespace OHOS;
 using namespace OHOS::Media;
-using namespace AVMetadataUnitBasic;
 using namespace AVMetadataTestParam;
-
-namespace AVMetadataUnitBasic {
-#define AVMETA_KEY_TO_STRING_MAP_ITEM(key) { key, #key }
-static const std::unordered_map<int32_t, std::string_view> AVMETA_KEY_TO_STRING_MAP = {
-    AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_ALBUM),
-    AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_ALBUM_ARTIST),
-    AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_DATE_TIME),
-    AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_ARTIST),
-    AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_AUTHOR),
-    AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_COMPOSER),
-    AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_DURATION),
-    AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_GENRE),
-    AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_HAS_AUDIO),
-    AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_HAS_VIDEO),
-    AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_MIME_TYPE),
-    AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_NUM_TRACKS),
-    AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_SAMPLE_RATE),
-    AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_TITLE),
-    AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_VIDEO_HEIGHT),
-    AVMETA_KEY_TO_STRING_MAP_ITEM(AV_KEY_VIDEO_WIDTH),
-};
-
-TestParamsConfig::TestParamsConfig()
-{
-}
-
-TestParamsConfig::~TestParamsConfig()
-{
-}
-
-std::string TestParamsConfig::GetUri()
-{
-    char path[PARA_MAX_LEN] = "file:///data/media/H264_AAC.mp4";
-    GetParameter("sys.media.test.stream.path", "file:///data/media/H264_AAC.mp4",
-        &path[0], PARA_MAX_LEN);
-    UNITTEST_INFO_LOG("PATH : %s", path);
-    return path;
-}
-
-void TestParamsConfig::InitMountPath()
-{
-    UNITTEST_INFO_LOG("%s", __FUNCTION__);
-    char mountPath[PARA_MAX_LEN] = "null";
-    GetParameter("sys.media.test.mount.path", "null", &mountPath[0], PARA_MAX_LEN);
-    if (strcmp(mountPath, "null") != 0) {
-        AVMetadataUnitBasic::TestParamsConfig::GetInstance().SetMountPath(mountPath);
-    } else {
-        AVMetadataUnitBasic::TestParamsConfig::GetInstance().SetMountPath("file:///data/media");
-    }
-}
-
-bool TestParamsConfig::StrToInt64(const std::string &str, int64_t &value)
-{
-    if (str.empty() || (!isdigit(str.front()) && (str.front() != '-'))) {
-        return false;
-    }
-
-    char *end = nullptr;
-    errno = 0;
-    auto addr = str.c_str();
-    auto result = strtoll(addr, &end, 10); /* 10 means decimal */
-    if (result == 0) {
-        return false;
-    }
-    if ((end == addr) || (end[0] != '\0') || (errno == ERANGE)) {
-        UNITTEST_INFO_LOG("call StrToInt func false,  input str is: %s!", str.c_str());
-        return false;
-    }
-
-    value = result;
-    return true;
-}
-
-bool TestParamsConfig::CompareMetadata(int32_t key, const std::string &result, const std::string &expected)
-{
-    std::string keyStr = (AVMETA_KEY_TO_STRING_MAP.count(key) == 0) ?
-        std::string(AVMETA_KEY_TO_STRING_MAP.at(key)) : std::to_string(key);
-
-    do {
-        if (key == AV_KEY_DURATION) {
-            int64_t resultDuration = 0;
-            int64_t expectedDuration = 0;
-            if (result.compare(expected) == 0) {
-                return true;
-            }
-            if (!StrToInt64(result, resultDuration) || !StrToInt64(expected, expectedDuration)) {
-                break;
-            }
-            if (std::abs(resultDuration - expectedDuration) > 100) { // max allowed time margin is 100ms
-                break;
-            }
-        } else {
-            if (result.compare(expected) != 0) {
-                break;
-            }
-        }
-        return true;
-    } while (0);
-
-    UNITTEST_INFO_LOG(">>>>>>>>>>>>>>>>>>>>>>>>>>[resolve failed] key = %s, result = %s, expected = %s",
-        keyStr.c_str(), result.c_str(), expected.c_str());
-    return false;
-}
-
-bool TestParamsConfig::CompareMetadata(const std::unordered_map<int32_t, std::string> &result,
-    const std::unordered_map<int32_t, std::string> &expected)
-{
-    std::string resultValue;
-    bool success = true;
-
-    for (const auto &[key, expectedValue] : expected) {
-        if (result.count(key) == 0) {
-            resultValue = "";
-        } else {
-            resultValue = result.at(key);
-        }
-
-        success = success && CompareMetadata(key, resultValue, expectedValue);
-    }
-
-    return success;
-}
-
-std::string TestParamsConfig::GetPrettyDuration(int64_t duration) // ms
-{
-    static const int32_t msPerSec = 1000;
-    static const int32_t msPerMin = 60 * msPerSec;
-    static const int32_t msPerHour = 60 * msPerMin;
-
-    int64_t hour = duration / msPerHour;
-    int64_t min = (duration % msPerHour) / msPerMin;
-    int64_t sec = (duration % msPerMin) / msPerSec;
-    int64_t milliSec = duration % msPerSec;
-
-    std::ostringstream oss;
-    oss << std::setfill('0')
-        << std::setw(2) << hour << ":" // Convert to standard time format
-        << std::setw(2) << min << ":"  // Convert to standard time format
-        << std::setw(2) << sec << "."  // Convert to standard time format
-        << std::setw(3) << milliSec;   // Convert to standard time format
-
-    return oss.str();
-}
-}
 
 AVMetadataMock::AVMetadataMock()
 {
@@ -239,8 +83,8 @@ void AVMetadataMock::PrintMetadata()
         std::string prettyValue = value;
         if (key == AV_KEY_DURATION) {
             int64_t resultDuration = 0;
-            TestParamsConfig::GetInstance().StrToInt64(value, resultDuration);
-            prettyValue = TestParamsConfig::GetInstance().GetPrettyDuration(resultDuration);
+            AVMetadataTestBase::GetInstance().StrToInt64(value, resultDuration);
+            prettyValue = AVMetadataTestBase::GetInstance().GetPrettyDuration(resultDuration);
         }
         if (AVMETA_KEY_TO_STRING_MAP.count(key) != 0) {
             UNITTEST_INFO_LOG("key %s: value %s", AVMETA_KEY_TO_STRING_MAP.at(key).data(), prettyValue.c_str());
@@ -353,7 +197,7 @@ void AVMetadataMock::FrameToFile(std::shared_ptr<PixelMap> frame,
     const uint8_t MAX_FILE_PATH_LENGTH = 255;
     char filePath[MAX_FILE_PATH_LENGTH];
     if (access("/data/media/ThumbnailBak", 0) != F_OK) {
-        mkdir("/data/media/ThumbnailBak", 0777);  // permission
+        mkdir("/data/media/ThumbnailBak", 0777);  // permission 777
     }
     auto ret = sprintf_s(filePath, MAX_FILE_PATH_LENGTH,
         "/data/media/ThumbnailBak/%s_time_%" PRIi64 "_option_%d_width_%d_height_%d_color_%d.pixel",

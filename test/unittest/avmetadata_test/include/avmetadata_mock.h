@@ -17,40 +17,9 @@
 #define AVMETADATA_MOCK_H
 
 #include "securec.h"
-#include "avmetadatahelper.h"
 #include "jpeglib.h"
 #include "test_params_config.h"
 #include "unittest_log.h"
-
-namespace AVMetadataUnitBasic {
-class TestParamsConfig {
-public:
-    static TestParamsConfig &GetInstance()
-    {
-        static TestParamsConfig config;
-        return config;
-    }
-    std::string GetMountPath() const
-    {
-        return mountPath_;
-    }
-    void SetMountPath(std::string mountPath)
-    {
-        mountPath_ = mountPath;
-    }
-    void InitMountPath();
-    std::string GetUri();
-    bool StrToInt64(const std::string &str, int64_t &value);
-    std::string GetPrettyDuration(int64_t duration);
-    bool CompareMetadata(int32_t key, const std::string &result, const std::string &expected);
-    bool CompareMetadata(const std::unordered_map<int32_t, std::string> &result,
-                         const std::unordered_map<int32_t, std::string> &expected);
-private:
-    TestParamsConfig();
-    ~TestParamsConfig();
-    std::string mountPath_ = "";
-};
-}
 
 namespace OHOS {
 namespace Media {
@@ -88,8 +57,8 @@ public:
 private:
     int32_t RGB565ToRGB888(const unsigned short *rgb565Buf, int rgb565Size, unsigned char *rgb888Buf, int rgb888Size);
     int32_t Rgb888ToJpeg(const std::string_view &filename, const uint8_t *rgbData, int width, int height);
-    struct jpeg_compress_struct jpeg;
-    struct jpeg_error_mgr jerr;
+    struct jpeg_compress_struct jpeg {};
+    struct jpeg_error_mgr jerr {};
 };
 }
 }
