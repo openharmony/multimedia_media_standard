@@ -101,25 +101,32 @@ public:
 
 __attribute__((visibility("default"))) std::string AVCodecErrorTypeToString(AVCodecErrorType type);
 
-/**
- * Key for timeStamp in surface's extraData, value type is int64
- */
-static constexpr std::string_view ED_KEY_TIME_STAMP = "timeStamp";
+class SurfaceBufferExtratDataKey {
+public:
+    /**
+     * Key for timeStamp in surface's extraData, value type is int64
+     */
+    static constexpr std::string_view ED_KEY_TIME_STAMP = "timeStamp";
 
-/**
- * Key for endOfStream in surface's extraData, value type is bool
- */
-static constexpr std::string_view ED_KEY_END_OF_STREAM = "endOfStream";
+    /**
+     * Key for endOfStream in surface's extraData, value type is bool
+     */
+    static constexpr std::string_view ED_KEY_END_OF_STREAM = "endOfStream";
 
-/**
- * Key for dataSize in surface's extraData, value type is int32
- */
-static constexpr std::string_view ED_KEY_DATA_SIZE = "dataSize";
+    /**
+     * Key for dataSize in surface's extraData, value type is int32
+     */
+    static constexpr std::string_view ED_KEY_DATA_SIZE = "dataSize";
 
-/**
- * Key for isKeyFrame in surface's extraData, value type is bool
- */
-static constexpr std::string_view ED_KEY_IS_KEY_FRAME = "isKeyFrame";
+    /**
+     * Key for isKeyFrame in surface's extraData, value type is bool
+     */
+    static constexpr std::string_view ED_KEY_IS_KEY_FRAME = "isKeyFrame";
+
+private:
+    SurfaceBufferExtratDataKey() = delete;
+    ~SurfaceBufferExtratDataKey() = delete;
+}
 } // namespace Media
 } // namespace OHOS
 #endif // AVCODEC_COMMOM_H
