@@ -46,36 +46,6 @@ void AVMetadataUnitTest::CheckMeta(std::string uri, std::unordered_map<int32_t, 
 }
 
 /**
-    * @tc.number    : ResolveMetadata_Format_MP4_0100
-    * @tc.name      : 01.MP4 format Get MetaData (H264+AAC)
-    * @tc.desc      : test ResolveMetadata
-*/
-HWTEST_F(AVMetadataUnitTest, ResolveMetadata_Format_MP4_0100, TestSize.Level0)
-{
-    std::unordered_map<int32_t, std::string> expectMeta = {
-        {AV_KEY_ALBUM, "media"},
-        {AV_KEY_ALBUM_ARTIST, "media_test"},
-        {AV_KEY_ARTIST, "元数据测试"},
-        {AV_KEY_AUTHOR, ""},
-        {AV_KEY_COMPOSER, "测试"},
-        {AV_KEY_DURATION, "10030"},
-        {AV_KEY_GENRE, "Lyrical"},
-        {AV_KEY_HAS_AUDIO, "yes"},
-        {AV_KEY_HAS_VIDEO, "yes"},
-        {AV_KEY_MIME_TYPE, "video/mp4"},
-        {AV_KEY_NUM_TRACKS, "2"},
-        {AV_KEY_SAMPLE_RATE, "44100"},
-        {AV_KEY_TITLE, "test"},
-        {AV_KEY_VIDEO_HEIGHT, "480"},
-        {AV_KEY_VIDEO_WIDTH, "720"},
-        {AV_KEY_DATE_TIME, "2022-05-29 22:10:43"},
-    };
-    std::string uri = TestParamsConfig::GetInstance().GetMountPath() +
-    std::string("/H264_AAC.mp4");
-    CheckMeta(uri, expectMeta);
-}
-
-/**
     * @tc.number    : GetThumbnail
     * @tc.name      : Get Thumbnail
     * @tc.desc      : Get THUMBNAIL Function case
@@ -111,6 +81,36 @@ void AVMetadataUnitTest::GetThumbnail(const std::string uri)
     helper->FrameToFile(frame, testInfo_->name(), timeUs, queryOption);
     helper->FrameToJpeg(frame, testInfo_->name(), timeUs, queryOption);
     helper->Release();
+}
+
+/**
+    * @tc.number    : ResolveMetadata_Format_MP4_0100
+    * @tc.name      : 01.MP4 format Get MetaData (H264+AAC)
+    * @tc.desc      : test ResolveMetadata
+*/
+HWTEST_F(AVMetadataUnitTest, ResolveMetadata_Format_MP4_0100, TestSize.Level0)
+{
+    std::unordered_map<int32_t, std::string> expectMeta = {
+        {AV_KEY_ALBUM, "media"},
+        {AV_KEY_ALBUM_ARTIST, "media_test"},
+        {AV_KEY_ARTIST, "元数据测试"},
+        {AV_KEY_AUTHOR, ""},
+        {AV_KEY_COMPOSER, "测试"},
+        {AV_KEY_DURATION, "10030"},
+        {AV_KEY_GENRE, "Lyrical"},
+        {AV_KEY_HAS_AUDIO, "yes"},
+        {AV_KEY_HAS_VIDEO, "yes"},
+        {AV_KEY_MIME_TYPE, "video/mp4"},
+        {AV_KEY_NUM_TRACKS, "2"},
+        {AV_KEY_SAMPLE_RATE, "44100"},
+        {AV_KEY_TITLE, "test"},
+        {AV_KEY_VIDEO_HEIGHT, "480"},
+        {AV_KEY_VIDEO_WIDTH, "720"},
+        {AV_KEY_DATE_TIME, "2022-05-29 22:10:43"},
+    };
+    std::string uri = TestParamsConfig::GetInstance().GetMountPath() +
+    std::string("/H264_AAC.mp4");
+    CheckMeta(uri, expectMeta);
 }
 
 /**
