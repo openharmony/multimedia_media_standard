@@ -393,6 +393,18 @@ void PlayerEngineGstImpl::HandleInterruptMessage(const PlayBinMessage &msg)
     }
 }
 
+void PlayerEngineGstImpl::HandlePositionUpdateMessage(const PlayBinMessage &msg)
+{
+    int32_t position = msg.code;
+    MEDIA_LOGD("position update to %{public}d ms", position);
+
+    Format format;
+    std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
+    if (notifyObs != nullptr) {
+        notifyObs->OnInfo(INFO_TYPE_POSITION_UPDATE, position, format);
+    }
+}
+
 using MsgNotifyFunc = std::function<void(const PlayBinMessage&)>;
 
 void PlayerEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
@@ -406,6 +418,8 @@ void PlayerEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
         { PLAYBIN_MSG_STATE_CHANGE, std::bind(&PlayerEngineGstImpl::HandleInfoMessage, this, std::placeholders::_1) },
         { PLAYBIN_MSG_SUBTYPE, std::bind(&PlayerEngineGstImpl::HandleSubTypeMessage, this, std::placeholders::_1) },
         { PLAYBIN_MSG_VOLUME_CHANGE, std::bind(&PlayerEngineGstImpl::HandleVolumeChangedMessage, this,
+            std::placeholders::_1) },
+        { PLAYBIN_MSG_POSITION_UPDATE, std::bind(&PlayerEngineGstImpl::HandlePositionUpdateMessage, this,
             std::placeholders::_1) },
     };
 

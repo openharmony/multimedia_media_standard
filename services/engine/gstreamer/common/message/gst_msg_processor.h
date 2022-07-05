@@ -20,6 +20,7 @@
 #include <condition_variable>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include <gst/gst.h>
 #include "inner_msg_define.h"
 #include "task_queue.h"
@@ -28,6 +29,8 @@
 
 namespace OHOS {
 namespace Media {
+struct TickCallbackInfo;
+
 class GstMsgProcessor : public NoCopyable {
 public:
     GstMsgProcessor(GstBus &gstBus, const InnerMsgNotifier &notifier,
@@ -45,10 +48,14 @@ public:
     void FlushBegin();
     void FlushEnd();
     void Reset() noexcept;
+    void AddTickSource(int32_t type, uint32_t interval);
+    void RemoveTickSource(int32_t type);
 
 private:
     int32_t DoInit();
     static gboolean MainLoopRunDone(GstMsgProcessor *thiz);
+    static gboolean TickCallback(TickCallbackInfo *tickCbInfo);
+    static void FreeTickType(TickCallbackInfo *tickCbInfo);
     static gboolean BusCallback(const GstBus *bus, GstMessage *msg, GstMsgProcessor *thiz);
     void ProcessGstMessage(GstMessage &msg);
     void DoReset();
@@ -64,6 +71,12 @@ private:
     bool needWaiting_ = true;
     std::shared_ptr<IGstMsgConverter> msgConverter_;
     std::vector<std::string> filters_;
+    std::unordered_map<int32_t, GSource *> tickSource_;
+};
+
+struct TickCallbackInfo {
+    int32_t type;
+    GstMsgProcessor *msgProcessor;
 };
 } // namespace Media
 } // namespace OHOS
