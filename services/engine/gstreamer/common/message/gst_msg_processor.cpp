@@ -20,7 +20,6 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "GstMsgProc"};
-    constexpr uint32_t DEFAULT_POSITION_UPDATE_INTERVAL_MS = 100; // 100 ms
 }
 
 namespace OHOS {
@@ -103,10 +102,6 @@ int32_t GstMsgProcessor::DoInit()
     g_source_set_callback(busSource_, (GSourceFunc)&GstMsgProcessor::BusCallback, this, nullptr);
     ret = g_source_attach(busSource_, context_);
     CHECK_AND_RETURN_RET_LOG(ret > 0, MSERR_INVALID_OPERATION, "add bus source failed");
-
-    int32_t tickType = InnerMsgType::INNER_MSG_POSITION_UPDATE;
-    uint32_t interval = DEFAULT_POSITION_UPDATE_INTERVAL_MS;
-    AddTickSource(tickType, interval);
 
     auto mainLoopRun = std::make_shared<TaskHandler<void>>([this] {
         MEDIA_LOGI("start msg main loop...");
