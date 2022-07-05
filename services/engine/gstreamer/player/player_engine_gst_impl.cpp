@@ -706,7 +706,7 @@ int32_t PlayerEngineGstImpl::Seek(int32_t mSeconds, PlayerSeekMode mode)
     CHECK_AND_RETURN_RET_LOG(playBinCtrler_ != nullptr, MSERR_INVALID_OPERATION, "playBinCtrler_ is nullptr");
     MEDIA_LOGI("Seek in %{public}dms", mSeconds);
 
-    int64_t position = static_cast<int64_t>(mSeconds * MSEC_PER_USEC);
+    int64_t position = static_cast<int64_t>(mSeconds) * MSEC_PER_USEC;
     return playBinCtrler_->Seek(position, mode);
 }
 
