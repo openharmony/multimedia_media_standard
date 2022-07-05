@@ -61,7 +61,6 @@ config("media_engine_gst_player_config") {
     "//third_party/glib/glib",
     "//third_party/glib",
     "//third_party/glib/gmodule",
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara/include",
     "//utils/native/base/include",
   ]
 }
@@ -80,7 +79,6 @@ ohos_static_library("media_engine_gst_player") {
   ]
 
   deps = [
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiomanager:audio_client",
@@ -93,6 +91,7 @@ ohos_static_library("media_engine_gst_player") {
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
+    "init:libbegetutil",
     "ipc:ipc_core",
   ]
 
