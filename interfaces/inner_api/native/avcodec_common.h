@@ -126,7 +126,7 @@ public:
 private:
     SurfaceBufferExtratDataKey() = delete;
     ~SurfaceBufferExtratDataKey() = delete;
-}
+};
 } // namespace Media
 } // namespace OHOS
 #endif // AVCODEC_COMMOM_H
