@@ -38,8 +38,8 @@ ohos_unittest("avmetadata_unit_test") {
   ]
 
   sources = [
-    "./../common/src/test_params_config.cpp",
     "./../common/src/avmetadatatestbase.cpp",
+    "./../common/src/test_params_config.cpp",
     "src/avmetadata_mock.cpp",
     "src/avmetadata_unit_test.cpp",
   ]
