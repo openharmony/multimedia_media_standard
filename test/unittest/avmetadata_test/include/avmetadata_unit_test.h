@@ -26,7 +26,6 @@ public:
     static void SetUpTestCase(void)
     {
         UNITTEST_INFO_LOG("AVMetadataUnitTest::SetUpTestCase");
-        AVMetadataUnitBasic::TestParamsConfig::GetInstance().InitMountPath();
     };
     // TearDownTestCase: after all testcase
     static void TearDownTestCase(void)

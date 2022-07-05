@@ -22,8 +22,8 @@
     </target>
     <target name="avmetadata_unit_test">
         <preparer>
-            <option name="push" value="res_avmetadata/H264_AAC.mp4 -> /data/media" src="res"/>
-	    <option name="push" value="res_avmetadata/out_480_320.mp4 -> /data/media" src="res"/>
+            <option name="push" value="test_videofile/H264_AAC.mp4 -> /data/media" src="res"/>
+	    <option name="push" value="test_videofile/out_480_320.mp4 -> /data/media" src="res"/>
         </preparer>
     </target>
 </configuration>

@@ -14,7 +14,6 @@
  */
 
 #include "gtest/gtest.h"
-#include "securec.h"
 #include "media_errors.h"
 #include "avmetadata_unit_test.h"
 
@@ -22,7 +21,7 @@ using namespace std;
 using namespace OHOS;
 using namespace OHOS::Media;
 using namespace testing::ext;
-using namespace AVMetadataUnitBasic;
+using namespace AVMetadataTestParam;
 
 /**
     Function: compare metadata
@@ -38,10 +37,10 @@ void AVMetadataUnitTest::CheckMeta(std::string uri, std::unordered_map<int32_t, 
     ASSERT_EQ(MSERR_OK, helper->SetSource(uri, 0, 0, AVMetadataUsage::AV_META_USAGE_META_ONLY));
     for (auto &item : expectMeta) {
         std::string value = helper->ResolveMetadata(item.first);
-        EXPECT_EQ(TestParamsConfig::GetInstance().CompareMetadata(item.first, value, item.second), true);
+        EXPECT_EQ(AVMetadataTestBase::GetInstance().CompareMetadata(item.first, value, item.second), true);
     }
     auto resultMetas = helper->ResolveMetadata();
-    EXPECT_EQ(TestParamsConfig::GetInstance().CompareMetadata(resultMetas, expectMeta), true);
+    EXPECT_EQ(AVMetadataTestBase::GetInstance().CompareMetadata(resultMetas, expectMeta), true);
     helper->Release();
 }
 
@@ -108,7 +107,7 @@ HWTEST_F(AVMetadataUnitTest, ResolveMetadata_Format_MP4_0100, TestSize.Level0)
         {AV_KEY_VIDEO_WIDTH, "720"},
         {AV_KEY_DATE_TIME, "2022-05-29 22:10:43"},
     };
-    std::string uri = TestParamsConfig::GetInstance().GetMountPath() +
+    std::string uri = AVMetadataTestBase::GetInstance().GetMountPath() +
     std::string("/H264_AAC.mp4");
     CheckMeta(uri, expectMeta);
 }
@@ -120,7 +119,7 @@ HWTEST_F(AVMetadataUnitTest, ResolveMetadata_Format_MP4_0100, TestSize.Level0)
 */
 HWTEST_F(AVMetadataUnitTest, FetchFrameAtTime_Resolution_2800, TestSize.Level0)
 {
-    std::string uri = TestParamsConfig::GetInstance().GetMountPath() +
+    std::string uri = AVMetadataTestBase::GetInstance().GetMountPath() +
     std::string("/out_480_320.mp4");
     GetThumbnail(uri);
 }
