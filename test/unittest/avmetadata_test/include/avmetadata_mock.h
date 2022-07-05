@@ -60,6 +60,31 @@ private:
     struct jpeg_compress_struct jpeg {};
     struct jpeg_error_mgr jerr {};
 };
+class AVMetadataTestBase {
+public:
+    static AVMetadataTestBase &GetInstance()
+    {
+        static AVMetadataTestBase config;
+        return config;
+    }
+    std::string GetMountPath() const
+    {
+        return mountPath_;
+    }
+    void SetMountPath(std::string mountPath)
+    {
+        mountPath_ = mountPath;
+    }
+    bool StrToInt64(const std::string &str, int64_t &value);
+    std::string GetPrettyDuration(int64_t duration);
+    bool CompareMetadata(int32_t key, const std::string &result, const std::string &expected);
+    bool CompareMetadata(const std::unordered_map<int32_t, std::string> &result,
+                         const std::unordered_map<int32_t, std::string> &expected);
+private:
+    AVMetadataTestBase();
+    ~AVMetadataTestBase();
+    std::string mountPath_ = "file:///data/media/";
+};
 }
 }
 #endif
