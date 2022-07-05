@@ -100,6 +100,7 @@ private:
     void HandleBitRateCollect(const PlayBinMessage &msg);
     void HandleVolumeChangedMessage(const PlayBinMessage &msg);
     void HandleInterruptMessage(const PlayBinMessage &msg);
+    void HandlePositionUpdateMessage(const PlayBinMessage &msg);
 
     std::mutex mutex_;
     std::mutex trackParseMutex_;

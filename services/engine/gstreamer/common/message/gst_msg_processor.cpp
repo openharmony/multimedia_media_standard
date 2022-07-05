@@ -14,7 +14,6 @@
  */
 
 #include "gst_msg_processor.h"
-#include <unordered_map>
 #include "media_errors.h"
 #include "media_log.h"
 #include "scope_guard.h"
@@ -131,10 +130,48 @@ gboolean GstMsgProcessor::MainLoopRunDone(GstMsgProcessor *thiz)
     return G_SOURCE_REMOVE;
 }
 
+void GstMsgProcessor::AddTickSource(int32_t type, uint32_t interval)
+{
+    auto iter = tickSource_.find(type);
+    if (iter != tickSource_.end()) {
+        return;
+    }
+
+    GSource *source = g_timeout_source_new(interval);
+    CHECK_AND_RETURN_LOG(source != nullptr, "add tick source failed");
+    TickCallbackInfo *tickCbInfo = static_cast<TickCallbackInfo *>(g_malloc0((gsize)sizeof(TickCallbackInfo)));
+    tickCbInfo->type = type;
+    tickCbInfo->msgProcessor = this;
+    g_source_set_callback(source, (GSourceFunc)&GstMsgProcessor::TickCallback, tickCbInfo,
+        (GDestroyNotify)&GstMsgProcessor::FreeTickType);
+    guint ret = g_source_attach(source, context_);
+    CHECK_AND_RETURN_LOG(ret > 0, "add tick source failed");
+    (void)tickSource_.emplace(type, source);
+}
+
+void GstMsgProcessor::RemoveTickSource(int32_t type)
+{
+    auto iter = tickSource_.find(type);
+    if (iter == tickSource_.end()) {
+        return;
+    }
+
+    GSource *source = iter->second;
+    g_source_destroy(source);
+    g_source_unref(source);
+    source = nullptr;
+    (void)tickSource_.erase(iter);
+}
+
+void GstMsgProcessor::FreeTickType(TickCallbackInfo *tickCbInfo)
+{
+    g_free(tickCbInfo);
+}
+
 void GstMsgProcessor::AddMsgFilter(const std::string &filter)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    for (auto &elem :  filters_)  {
+    for (auto &elem : filters_)  {
         if (elem == filter) {
             return;
         }
@@ -161,6 +198,11 @@ void GstMsgProcessor::DoReset()
         g_source_unref(busSource_);
         busSource_ = nullptr;
     }
+
+    for (auto &[tickType, source] : tickSource_) {
+        RemoveTickSource(tickType);
+    }
+    tickSource_.clear();
 
     if (mainLoop_ != nullptr) {
         g_main_loop_unref(mainLoop_);
@@ -190,6 +232,19 @@ void GstMsgProcessor::Reset() noexcept
     cond_.notify_all();
     (void)guardTask_.Stop();
     msgConverter_ = nullptr;
+}
+
+gboolean GstMsgProcessor::TickCallback(TickCallbackInfo *tickCbInfo)
+{
+    if (tickCbInfo == nullptr || tickCbInfo->msgProcessor == nullptr) {
+        MEDIA_LOGE("tickCbInfo or msgProcessor is nullptr");
+        return FALSE;
+    }
+
+    InnerMessage innerMsg {};
+    innerMsg.type = tickCbInfo->type;
+    tickCbInfo->msgProcessor->notifier_(innerMsg);
+    return TRUE;
 }
 
 gboolean GstMsgProcessor::BusCallback(const GstBus *bus, GstMessage *msg, GstMsgProcessor *thiz)
