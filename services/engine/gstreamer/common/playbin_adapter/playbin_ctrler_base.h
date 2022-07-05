@@ -65,6 +65,7 @@ public:
     int32_t SelectBitRate(uint32_t bitRate) override;
 
     void SetElemSetupListener(ElemSetupListener listener) final;
+    void SetElemUnSetupListener(ElemSetupListener listener) final;
 
 protected:
     virtual int32_t OnInit() = 0;
@@ -91,25 +92,31 @@ private:
     void SetupCustomElement();
     GstSeekFlags ChooseSetRateFlags(double rate);
     int32_t SetupSignalMessage();
+    int32_t SetupElementUnSetupSignal();
     void QueryDuration();
     int64_t QueryPosition();
     int64_t QueryPositionInternal(bool isSeekDone);
     void ProcessEndOfStream();
     static void ElementSetup(const GstElement *playbin, GstElement *elem, gpointer userdata);
+    static void ElementUnSetup(const GstElement *playbin, GstElement *subbin, GstElement *child, gpointer userdata);
     static void SourceSetup(const GstElement *playbin, GstElement *elem, gpointer userdata);
     static void OnVolumeChangedCb(const GstElement *playbin, GstElement *elem, gpointer userdata);
     static void OnBitRateParseCompleteCb(const GstElement *playbin, uint32_t *bitrateInfo,
         uint32_t bitrateNum, gpointer userdata);
     static void OnInterruptEventCb(const GstElement *audioSink, const uint32_t eventType, const uint32_t forceType,
         const uint32_t hintType, gpointer userdata);
+    static GValueArray *OnDecodeBinTryAddNewElem(const GstElement *uriDecoder, GstPad *pad, GstCaps *caps,
+        GValueArray *factories, gpointer userdata);
     void SetupVolumeChangedCb();
     void SetupInterruptEventCb();
     void OnElementSetup(GstElement &elem);
+    void OnElementUnSetup(GstElement &elem);
     void OnSourceSetup(const GstElement *playbin, GstElement *src,
         const std::shared_ptr<PlayBinCtrlerBase> &playbinCtrl);
     bool OnVideoDecoderSetup(GstElement &elem);
     void OnAppsrcErrorMessageReceived(int32_t errorCode);
     void OnMessageReceived(const InnerMessage &msg);
+    void OnSinkMessageReceived(const PlayBinMessage &msg);
     void ReportMessage(const PlayBinMessage &msg);
     void Reset() noexcept;
     bool IsLiveSource();
@@ -118,6 +125,7 @@ private:
     void HandleCacheCtrl(const InnerMessage &msg);
     void HandleCacheCtrlWhenNoBuffering(int32_t percent);
     void HandleCacheCtrlWhenBuffering(int32_t percent);
+    void RemoveGstPlaySinkVideoConvertPlugin();
 
     std::mutex mutex_;
     std::mutex listenerMutex_;
@@ -126,6 +134,7 @@ private:
     PlayBinRenderMode renderMode_ = PlayBinRenderMode::DEFAULT_RENDER;
     PlayBinMsgNotifier notifier_;
     ElemSetupListener elemSetupListener_;
+    ElemSetupListener elemUnSetupListener_;
     std::shared_ptr<PlayBinSinkProvider> sinkProvider_;
     std::unique_ptr<GstMsgProcessor> msgProcessor_;
     std::string uri_;
@@ -148,10 +157,12 @@ private:
     bool isSeeking_ = false;
     bool isRating_ = false;
     bool isBuffering_ = false;
+    bool isNetWorkPlay_ = false;
     int32_t rendererInfo_ = 0;
     int32_t rendererFlag_ = 0;
-    uint32_t videoScaleType_ = 0;
+
     bool enableLooping_ = false;
+    bool isPlaySinkFlagsSet_ = false;
     std::shared_ptr<GstAppsrcWrap> appsrcWrap_ = nullptr;
 
     std::shared_ptr<IdleState> idleState_;
