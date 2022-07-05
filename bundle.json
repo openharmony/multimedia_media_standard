@@ -31,17 +31,25 @@
       ],
       "deps": {
         "components": [
-          "ace_napi",
-          "ipc_core",
-          "libhilog",
-          "samgr_proxy",
-          "system_ability_fwk",
-          "libaccesstoken_sdk",
-          "bytrace_core",
-          "surface",
-          "sync_fence",
-          "image_native",
-          "audio_client"
+          "safwk",
+          "hiviewdfx_hilog_native",
+          "window_manager",
+          "napi",
+          "startup_l2",
+          "samgr_standard",
+          "libxml2",
+          "thirdparty_bounds_checking_function",
+          "hitrace_native",
+          "multimedia_audio_framework",
+          "ipc",
+          "graphic_standard",
+          "hisysevent_native",
+          "utils_base",
+          "hilog_native",
+          "zlib",
+          "access_token",
+          "multimedia_image_standard",
+          "common"
         ],
         "third_party": [
           "glib",
@@ -90,7 +98,8 @@
           }
         ],
         "test": [
-            "//foundation/multimedia/media_standard/test/fuzztest:fuzztest"
+            "//foundation/multimedia/media_standard/test/fuzztest:fuzztest",
+            "//foundation/multimedia/media_standard/test:media_unit_test"
         ]
       }
     }

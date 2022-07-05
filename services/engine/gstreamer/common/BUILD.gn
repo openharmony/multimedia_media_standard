@@ -31,7 +31,9 @@ config("media_engine_gst_common_config") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Wno-deprecated-declarations",
     "-DOHOS_EXT_FUNC",
+    "-DOHOS_OPT_COMPAT",
   ]
 
   include_dirs = [
@@ -72,10 +74,12 @@ ohos_static_library("media_engine_gst_common") {
   configs = [
     ":media_engine_gst_common_config",
     "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface_public_config",
   ]
 
   deps = [
     ":media_gst_dfx",
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//foundation/multimedia/media_standard/services/utils:media_format",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",

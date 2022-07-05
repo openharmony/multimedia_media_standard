@@ -36,7 +36,6 @@ public:
         DEFAULT_RENDER = 0,
         NATIVE_STREAM = 1 << 0,
         DISABLE_TEXT = 1 << 1,
-        DISABLE_VIS = 1 << 2,
     };
 
     enum PlayBinSeekMode : uint8_t {
@@ -75,6 +74,7 @@ public:
     virtual int32_t SetAudioRendererInfo(const int32_t rendererInfo, const int32_t rendererFlag) = 0;
     using ElemSetupListener = std::function<void(GstElement &elem)>;
     virtual void SetElemSetupListener(ElemSetupListener listener) = 0;
+    virtual void SetElemUnSetupListener(ElemSetupListener listener) = 0;
 };
 } // namespace Media
 } // namespace OHOS

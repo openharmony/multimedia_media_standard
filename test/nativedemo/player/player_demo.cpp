@@ -20,6 +20,7 @@
 #include "string_ex.h"
 #include "media_errors.h"
 #include "directory_ex.h"
+#include "transaction/rs_transaction.h"
 #include "ui/rs_surface_node.h"
 #include "window_option.h"
 
@@ -194,7 +195,10 @@ sptr<Surface> PlayerDemo::GetSubWindowSurface()
     }
 
     previewWindow_->Show();
-    return previewWindow_->GetSurfaceNode()->GetSurface();
+    auto surfaceNode = previewWindow_->GetSurfaceNode();
+    surfaceNode->SetFrameGravity(Rosen::Gravity::RESIZE);
+    Rosen::RSTransaction::FlushImplicitTransaction();
+    return surfaceNode->GetSurface();
 }
 
 sptr<Surface> PlayerDemo::GetVideoSurface()

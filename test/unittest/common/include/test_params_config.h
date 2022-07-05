@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,29 +13,22 @@
  * limitations under the License.
  */
 
-#ifndef PLAYBIN_SINK_PROVIDER_H
-#define PLAYBIN_SINK_PROVIDER_H
+#ifndef TEST_PARAM_COMMON_H
+#define TEST_PARAM_COMMON_H
 
-#include <gst/gst.h>
-#include "playbin_msg_define.h"
+#include "string"
 
 namespace OHOS {
 namespace Media {
-class PlayBinSinkProvider {
-public:
-    virtual ~PlayBinSinkProvider() = default;
-
-    using SinkPtr = GstElement *;
-    virtual SinkPtr CreateVideoSink() = 0;
-    virtual SinkPtr CreateAudioSink() = 0;
-    virtual void SetAppInfo(int32_t uid, int32_t pid) {};
-    virtual void SetVideoScaleType(const uint32_t videoScaleType) {};
-    virtual void SetMsgNotifier(PlayBinMsgNotifier notifier) {};
-    virtual SinkPtr GetVideoSink()
-    {
-        return nullptr;
-    }
-};
+namespace PlayerTestParam {
+inline constexpr int32_t SEEK_TIME_5_SEC = 5000;
+inline constexpr int32_t SEEK_TIME_2_SEC = 2000;
+inline constexpr int32_t WAITSECOND = 6;
+inline constexpr int32_t DELTA_TIME = 1000;
+const std::string MEDIA_ROOT = "file://data/media/";
+const std::string VIDEO_FILE1 = MEDIA_ROOT + "test_1920_1080_1.mp4";
+} // namespace PlayerTestParam
 } // namespace Media
 } // namespace OHOS
+
 #endif

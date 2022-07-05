@@ -28,6 +28,20 @@
 
 namespace OHOS {
 namespace Media {
+class CodecChangedDetector {
+public:
+    CodecChangedDetector() = default;
+    ~CodecChangedDetector() = default;
+    void DetectCodecSetup(const std::string &metaStr, GstElement *src, GstElement *videoSink);
+    void DetectCodecUnSetup(GstElement *src, GstElement *videoSink);
+
+private:
+    void SetupCodecCb(const std::string &metaStr, GstElement *src, GstElement *videoSink);
+
+    bool isHardwareDec_ = false;
+    std::list<bool> codecTypeList_;
+};
+
 class PlayerEngineGstImpl : public IPlayerEngine, public NoCopyable {
 public:
     explicit PlayerEngineGstImpl(int32_t uid = 0, int32_t pid = 0);
@@ -64,6 +78,7 @@ public:
 private:
     void OnNotifyMessage(const PlayBinMessage &msg);
     void OnNotifyElemSetup(GstElement &elem);
+    void OnNotifyElemUnSetup(GstElement &elem);
     double ChangeModeToSpeed(const PlaybackRateMode &mode) const;
     PlaybackRateMode ChangeSpeedToMode(double rate) const;
     int32_t PlayBinCtrlerInit();
@@ -80,10 +95,12 @@ private:
     void HandleBufferingTime(const PlayBinMessage &msg);
     void HandleBufferingPercent(const PlayBinMessage &msg);
     void HandleBufferingUsedMqNum(const PlayBinMessage &msg);
+    void HandleVideoRenderingStart();
     void HandleVideoSizeChanged(const PlayBinMessage &msg);
     void HandleBitRateCollect(const PlayBinMessage &msg);
     void HandleVolumeChangedMessage(const PlayBinMessage &msg);
     void HandleInterruptMessage(const PlayBinMessage &msg);
+    void HandlePositionUpdateMessage(const PlayBinMessage &msg);
 
     std::mutex mutex_;
     std::mutex trackParseMutex_;
@@ -94,9 +111,9 @@ private:
     std::string url_ = "";
     std::shared_ptr<GstAppsrcWrap> appsrcWrap_ = nullptr;
     std::shared_ptr<PlayerTrackParse> trackParse_ = nullptr;
+    std::shared_ptr<CodecChangedDetector> codecChangedDetector_ = nullptr;
     int32_t videoWidth_ = 0;
     int32_t videoHeight_ = 0;
-    bool isHardwareDec_ = false;
     int32_t percent_ = 0;
     uint32_t mqNumUsedBuffering_ = 0;
     uint64_t bufferingTime_ = 0;
