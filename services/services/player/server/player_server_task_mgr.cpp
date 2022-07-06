@@ -53,6 +53,7 @@ int32_t PlayerServerTaskMgr::Init()
 int32_t PlayerServerTaskMgr::LaunchTask(const std::shared_ptr<ITaskHandler> &task,
     PlayerServerTaskType type, uint64_t delayUs)
 {
+    (void)delayUs;
     if (type >= PlayerServerTaskType::BUTT) {
         MEDIA_LOGE("invalid task type");
         return MSERR_INVALID_VAL;
