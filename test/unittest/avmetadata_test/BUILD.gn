@@ -1,4 +1,4 @@
-# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2022 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -11,20 +11,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
+import("//build/test.gni")
 
-ohos_executable("media_demo") {
+module_output_path = "multimedia_media_standard/avmetadata"
+
+ohos_unittest("avmetadata_unit_test") {
+  module_out_path = module_output_path
   include_dirs = [
     "./include",
-    "./player",
-    "./player/data_source",
-    "./recorder",
-    "./avmetadatahelper",
-    "./avcodeclist",
-    "./recorder_profiles",
-    "./avcodecvenc",
-    "./avcodecvdec",
-    "./avmuxer",
+    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara/include",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//graphic/graphic_2d/interfaces/innerkits/surface",
@@ -33,61 +28,34 @@ ohos_executable("media_demo") {
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
     "//foundation/windowmanager/interfaces/innerkits/wm",
     "//third_party/libjpeg",
+    "//foundation/multimedia/media_standard/frameworks/native/player",
+    "//foundation/multimedia/media_standard/test/unittest/common/include",
   ]
 
   cflags = [
     "-Wall",
     "-Werror",
-    "-std=c++17",
-    "-fno-rtti",
-    "-fno-exceptions",
-    "-fno-common",
-    "-fstack-protector-strong",
-    "-Wshadow",
-    "-FPIC",
-    "-FS",
-    "-O2",
-    "-D_FORTIFY_SOURCE=2",
-    "-fvisibility=hidden",
-    "-Wformat=2",
-    "-Wdate-time",
   ]
 
   sources = [
-    "./avcodeclist/avcodeclist_demo.cpp",
-    "./avcodecvdec/avcodec_vdec_demo.cpp",
-    "./avcodecvenc/avcodec_venc_demo.cpp",
-    "./avmetadatahelper/avmetadatahelper_demo.cpp",
-    "./avmuxer/avmuxer_demo.cpp",
-    "./media_demo.cpp",
-    "./player/data_source/media_data_source_demo_noseek.cpp",
-    "./player/data_source/media_data_source_demo_seekable.cpp",
-    "./player/player_demo.cpp",
-    "./recorder/recorder_demo.cpp",
-    "./recorder_profiles/recorder_profiles_demo.cpp",
+    "./../common/src/test_params_config.cpp",
+    "src/avmetadata_mock.cpp",
+    "src/avmetadata_unit_test.cpp",
   ]
 
-  configs = [ "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config" ]
-
   deps = [
+    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
+    "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//foundation/windowmanager/wm:libwm",
     "//third_party/libjpeg:libjpeg_static",
     "//utils/native/base:utils",
   ]
 
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
-    "multimedia_media_standard:media_client",
-  ]
-
-  part_name = "multimedia_media_standard"
-  subsystem_name = "multimedia"
+  resource_config_file = "//foundation/multimedia/media_standard/test/unittest/resources/ohos_test.xml"
 }
