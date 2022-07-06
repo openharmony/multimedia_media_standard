@@ -735,9 +735,8 @@ int32_t PlayerEngineGstImpl::SetVideoScaleType(VideoScaleType videoScaleType)
     if (sinkProvider_ != nullptr) {
         MEDIA_LOGD("SetVideoScaleType in");
         sinkProvider_->SetVideoScaleType(static_cast<uint32_t>(videoScaleType));
-    } else {
-        videoScaleType_ = videoScaleType;
     }
+    videoScaleType_ = videoScaleType;
     return MSERR_OK;
 }
 
