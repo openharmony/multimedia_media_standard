@@ -20,6 +20,7 @@ config("gst_mem_src_config") {
     "-fno-rtti",
     "-fno-exceptions",
     "-Wall",
+    "-Werror=sign-compare",
     "-fno-common",
     "-fstack-protector-strong",
     "-Wshadow",
