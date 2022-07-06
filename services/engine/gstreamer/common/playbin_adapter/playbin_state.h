@@ -48,6 +48,7 @@ protected:
     void HandleBuffering(const InnerMessage &msg);
     void HandleBufferingTime(const InnerMessage &msg);
     void HandleUsedMqNum(const InnerMessage &msg);
+    virtual void HandlePositionUpdate() {}
 
     PlayBinCtrlerBase &ctrler_;
 };
@@ -109,6 +110,7 @@ public:
     int32_t Seek(int64_t timeUs, int32_t option) override;
     int32_t Stop() override;
     int32_t SetRate(double rate) override;
+    void HandlePositionUpdate() override;
 
 protected:
     void ProcessStateChange(const InnerMessage &msg) override;
