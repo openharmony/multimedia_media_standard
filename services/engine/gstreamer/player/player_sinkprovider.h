@@ -44,9 +44,9 @@ private:
     const sptr<Surface> GetProducerSurface() const;
     GstElement *DoCreateAudioSink(const GstCaps *caps, const gpointer userData);
     GstElement *DoCreateVideoSink(const GstCaps *caps, const gpointer userData);
-    bool EnableKpiAVSyncLog();
+    bool EnableKpiAVSyncLog() const;
     void SetFirstRenderFrameFlag(bool firstRenderFrame);
-    bool GetFirstRenderFrameFlag();
+    bool GetFirstRenderFrameFlag() const;
 
     static GstPadProbeReturn SinkPadProbeCb(GstPad *pad, GstPadProbeInfo *info, gpointer userData);
     static void EosCb(GstMemSink *memSink, gpointer userData);

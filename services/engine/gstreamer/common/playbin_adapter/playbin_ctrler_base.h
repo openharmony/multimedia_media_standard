@@ -119,7 +119,7 @@ private:
     void OnSinkMessageReceived(const PlayBinMessage &msg);
     void ReportMessage(const PlayBinMessage &msg);
     void Reset() noexcept;
-    bool IsLiveSource();
+    bool IsLiveSource() const;
     int32_t DoInitializeForDataSource();
     void DoInitializeForHttp();
     void HandleCacheCtrl(const InnerMessage &msg);

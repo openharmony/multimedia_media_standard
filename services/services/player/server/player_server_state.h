@@ -36,7 +36,7 @@ protected:
     int32_t OnMessageReceived(PlayerOnInfoType type, int32_t extra, const Format &infoBody) final;
     virtual void HandleStateChange(int32_t newState) {}
     virtual void HandlePlaybackComplete(int32_t extra) {}
-    void ReportInvalidOperation();
+    void ReportInvalidOperation() const;
     virtual void HandleEos() {}
 
     PlayerServer &server_;
