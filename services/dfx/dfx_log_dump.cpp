@@ -96,7 +96,7 @@ void DfxLogDump::SaveLog(const char *level, const OHOS::HiviewDFX::HiLogLabel &l
     const int32_t pubLen = 8;
     while (dtsPos != std::string::npos) {
         temp += fmtStr.substr(srcPos, dtsPos - srcPos);
-        srcPos = dtsPos + pubLen;
+        srcPos = static_cast<int32_t>(dtsPos) + pubLen;
         dtsPos = fmtStr.find("{public}", srcPos);
     }
     temp += fmtStr.substr(srcPos);

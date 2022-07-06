@@ -381,7 +381,7 @@ void PlayBinCtrlerBase::SetVolume(const float &leftVolume, const float &rightVol
     }
 }
 
-int32_t PlayBinCtrlerBase::SetAudioRendererInfo(const int32_t rendererInfo, const int32_t rendererFlag)
+int32_t PlayBinCtrlerBase::SetAudioRendererInfo(const uint32_t rendererInfo, const int32_t rendererFlag)
 {
     std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
     rendererInfo_ = rendererInfo;
