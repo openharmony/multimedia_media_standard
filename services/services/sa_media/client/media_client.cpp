@@ -44,6 +44,13 @@ MediaClient::MediaClient()
 
 MediaClient::~MediaClient()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (mediaProxy_ != nullptr && deathRecipient_ != nullptr) {
+        (void)mediaProxy_->AsObject()->RemoveDeathRecipient(deathRecipient_);
+        deathRecipient_->SetNotifyCb(nullptr);
+        mediaProxy_ = nullptr;
+        deathRecipient_ = nullptr;
+    }
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
