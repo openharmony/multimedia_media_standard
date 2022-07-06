@@ -71,7 +71,7 @@ private:
     std::string uri_ = "";
     std::vector<Format> audioTrackInfoVec_;
     AVFileDescriptor rawFd_;
-    OHOS::AudioStandard::InterruptMode interruptMode_;
+    OHOS::AudioStandard::InterruptMode interruptMode_ = AudioStandard::InterruptMode::SHARE_MODE;
 };
 } // namespace Media
 } // namespace OHOS
