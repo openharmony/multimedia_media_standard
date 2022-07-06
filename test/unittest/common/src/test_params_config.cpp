@@ -14,11 +14,12 @@
  */
 
 #include "test_params_config.h"
-#include "string"
 
 namespace OHOS {
 namespace Media {
 namespace PlayerTestParam {
 } // namespace PlayerTestParam
+namespace AVMetadataTestParam {
+} // namespace AVMetadataTestParam
 } // namespace Media
 } // namespace OHOS

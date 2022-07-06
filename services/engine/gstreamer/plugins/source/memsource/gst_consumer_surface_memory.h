@@ -27,11 +27,9 @@ struct _GstConsumerSurfaceMemory {
     intptr_t buffer_handle;
     gint32 fencefd;
     gint64 timestamp;
-    gint32 is_key_frame;
     OHOS::Rect damage;
     gboolean is_eos_frame;
     gint32 data_size;
-    gint32 is_codec_frame;
     gint32 pixel_format;
 };
 
