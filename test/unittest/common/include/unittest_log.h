@@ -56,7 +56,7 @@ namespace OHOS {
             (void)sprintf_s(ch, LOG_MAX_SIZE, fmt, ##__VA_ARGS__);         \
             (void)printf("%s", ch);                                        \
             (void)printf("\n");                                            \
-            __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Info, "%{public}s", ch); \
+            MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Info, "%{public}s", ch); \
         } while (0)
 }
 
