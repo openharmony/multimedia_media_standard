@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RECORDER_ENGINE_GST_IMPL
-#define RECORDER_ENGINE_GST_IMPL
+#ifndef RECORDER_ENGINE_GST_IMPL_H
+#define RECORDER_ENGINE_GST_IMPL_H
 
 #include <map>
 #include <vector>

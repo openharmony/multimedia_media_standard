@@ -205,9 +205,9 @@ int32_t MuxSinkBin::ConfigureGeoLocation(const RecorderParam &recParam)
     bool setLocationToMux = true;
     if (param.latitude < MIN_LATITUDE || param.latitude > MAX_LATITUDE || param.longitude < MIN_LONGITUDE
         || param.longitude > MAX_LONGITUDE) {
-            setLocationToMux = false;
-            MEDIA_LOGE("Invalid GeoLocation!");
-        }
+        setLocationToMux = false;
+        MEDIA_LOGE("Invalid GeoLocation!");
+    }
 
     MarkParameter(recParam.type);
     int32_t latitudex10000 = param.latitude * MULTIPLY10000;
@@ -224,9 +224,9 @@ int32_t MuxSinkBin::ConfigureRotationAngle(const RecorderParam &recParam)
     const RotationAngle &param = static_cast<const RotationAngle &>(recParam);
     bool setRotationToMux = true;
     if (param.rotation != ROTATION_90 && param.rotation != ROTATION_180 && param.rotation != ROTATION_270) {
-            setRotationToMux = false;
-            MEDIA_LOGE("Invalid rotation: %{public}d, keep default 0", param.rotation);
-        }
+        setRotationToMux = false;
+        MEDIA_LOGE("Invalid rotation: %{public}d, keep default 0", param.rotation);
+    }
 
     MarkParameter(recParam.type);
     if (setRotationToMux) {
