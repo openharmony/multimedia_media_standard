@@ -142,7 +142,7 @@ int32_t PlayBinCtrlerBase::Init()
     return ret;
 }
 
-bool PlayBinCtrlerBase::IsLiveSource()
+bool PlayBinCtrlerBase::IsLiveSource() const
 {
     if (appsrcWrap_ != nullptr && appsrcWrap_->IsLiveMode()) {
         return true;
@@ -512,14 +512,14 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
 
     uint32_t flags = 0;
     g_object_get(playbin_, "flags", &flags, nullptr);
-    if (renderMode_ & PlayBinRenderMode::DEFAULT_RENDER) {
+    if ((renderMode_ & PlayBinRenderMode::DEFAULT_RENDER) != 0) {
         flags &= ~GST_PLAY_FLAG_VIS;
     }
-    if (renderMode_ & PlayBinRenderMode::NATIVE_STREAM) {
+    if ((renderMode_ & PlayBinRenderMode::NATIVE_STREAM) != 0) {
         flags |= GST_PLAY_FLAG_NATIVE_VIDEO | GST_PLAY_FLAG_NATIVE_AUDIO;
         flags &= ~(GST_PLAY_FLAG_SOFT_COLORBALANCE | GST_PLAY_FLAG_SOFT_VOLUME);
     }
-    if (renderMode_ & PlayBinRenderMode::DISABLE_TEXT) {
+    if ((renderMode_ & PlayBinRenderMode::DISABLE_TEXT) != 0) {
         flags &= ~GST_PLAY_FLAG_TEXT;
     }
     g_object_set(playbin_, "flags", flags, nullptr);

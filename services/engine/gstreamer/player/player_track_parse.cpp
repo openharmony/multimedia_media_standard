@@ -163,7 +163,7 @@ void PlayerTrackParse::SetDemuxerElementFind(bool isFind)
     demuxerElementFind_ = isFind;
 }
 
-bool PlayerTrackParse::GetDemuxerElementFind()
+bool PlayerTrackParse::GetDemuxerElementFind() const
 {
     return demuxerElementFind_;
 }
