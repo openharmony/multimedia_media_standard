@@ -506,7 +506,8 @@ int32_t PlayBinCtrlerBase::PlaybackCompletedState::Stop()
 int32_t PlayBinCtrlerBase::PlaybackCompletedState::Seek(int64_t timeUs, int32_t option)
 {
     (void)option;
-    PlayBinMessage msg = { PLAYBIN_MSG_SEEKDONE, 0, timeUs };
+    int64_t position = timeUs / USEC_PER_MSEC;
+    PlayBinMessage msg = { PLAYBIN_MSG_SEEKDONE, 0, static_cast<int32_t>(position) };
     ctrler_.ReportMessage(msg);
     return MSERR_OK;
 }
