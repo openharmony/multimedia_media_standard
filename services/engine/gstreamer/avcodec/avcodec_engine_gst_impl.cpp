@@ -44,7 +44,7 @@ int32_t AVCodecEngineGstImpl::Init(AVCodecType type, bool isMimeType, const std:
     std::unique_lock<std::mutex> lock(mutex_);
     type_ = type;
 
-    InnerCodecMimeType codecName = CODEC_MIMIE_TYPE_DEFAULT;
+    InnerCodecMimeType codecName = CODEC_MIME_TYPE_DEFAULT;
     if (!isMimeType) {
         std::string mimeType = FindMimeTypeByName(type, name);
         CHECK_AND_RETURN_RET(MapCodecMime(mimeType, codecName) == MSERR_OK, MSERR_UNKNOWN);
