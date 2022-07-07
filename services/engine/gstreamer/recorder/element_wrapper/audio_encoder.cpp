@@ -44,7 +44,7 @@ int32_t AudioEncoder::Configure(const RecorderParam &recParam)
     if (recParam.type == RecorderPublicParamType::AUD_ENC_FMT) {
         const AudEnc &param = static_cast<const AudEnc &>(recParam);
         encoderFormat_ = param.encFmt;
-        if (encoderFormat_ == AudioCodecFormat::AUDIO_DEFAULT)  {
+        if (encoderFormat_ == AudioCodecFormat::AUDIO_DEFAULT) {
             encoderFormat_ = AudioCodecFormat::AAC_LC;
         }
         if (encoderFormat_ != AudioCodecFormat::AAC_LC) {
@@ -100,7 +100,7 @@ RecorderMsgProcResult AudioEncoder::DoProcessMessage(GstMessage &rawMsg, Recorde
         }
     }
     if (parser.GetErr()->domain == GST_STREAM_ERROR) {
-        if (parser.GetErr()->code == GST_STREAM_ERROR_ENCODE)  {
+        if (parser.GetErr()->code == GST_STREAM_ERROR_ENCODE) {
             MEDIA_LOGE("encode error");
             ret = RecorderMsgProcResult::REC_MSG_PROC_OK;
         }

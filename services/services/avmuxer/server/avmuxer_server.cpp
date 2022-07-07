@@ -174,10 +174,10 @@ int32_t AVMuxerServer::Stop()
 void AVMuxerServer::Release()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_LOG(avmuxerEngine_ != nullptr, "AVMuxer engine does not exist");
     if (curState_ != AVMUXER_IDEL) {
-        mutex_.unlock();
-        Stop();
-        mutex_.lock();
+        (void)avmuxerEngine_->Stop();
+        curState_ = AVMUXER_IDEL;
     }
     avmuxerEngine_ = nullptr;
 }
