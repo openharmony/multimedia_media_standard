@@ -97,7 +97,7 @@ private:
         int32_t height;
         int32_t frameRate;
         int32_t bitRate;
-        double caputreRate;
+        double captureRate;
         int32_t audioSampleRate;
         int32_t audioChannel;
         int32_t audioBitRate;

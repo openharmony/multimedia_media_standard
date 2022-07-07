@@ -68,7 +68,7 @@ static void gst_video_capture_src_set_caps(GstVideoCaptureSrc *src, int32_t pixe
 static void gst_video_capture_src_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec);
 static void gst_video_capture_src_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec);
 static GstStateChangeReturn gst_video_capture_src_change_state(GstElement *element, GstStateChange transition);
-static void gst_video_caputre_deal_with_pts(GstVideoCaptureSrc *src, GstBuffer *buf);
+static void gst_video_capture_deal_with_pts(GstVideoCaptureSrc *src, GstBuffer *buf);
 static GstFlowReturn gst_video_capture_src_fill(GstBaseSrc *src, guint64 offset, guint size, GstBuffer *buf);
 static GstBufferPool *gst_video_capture_create_pool();
 static void gst_video_capture_src_start(GstVideoCaptureSrc *src);
@@ -300,7 +300,7 @@ static GstBufferPool *gst_video_capture_create_pool()
     return gst_video_capture_pool_new();
 }
 
-static void gst_video_caputre_deal_with_pts(GstVideoCaptureSrc *src, GstBuffer *buf)
+static void gst_video_capture_deal_with_pts(GstVideoCaptureSrc *src, GstBuffer *buf)
 {
     g_return_if_fail(buf != nullptr);
 
@@ -332,7 +332,7 @@ static void gst_video_caputre_deal_with_pts(GstVideoCaptureSrc *src, GstBuffer *
     }
 
     src->last_timestamp = timestamp; // updata last_timestamp
-    GST_BUFFER_PTS (buf) = timestamp - src->total_pause_time; // running state timestamp to encoder is upwith pause
+    GST_BUFFER_PTS (buf) = timestamp - src->total_pause_time; // running state timestamp to encoder is up with pause
 }
 
 static GstFlowReturn gst_video_capture_src_fill(GstBaseSrc *src, guint64 offset, guint size, GstBuffer *buf)
@@ -358,7 +358,7 @@ static GstFlowReturn gst_video_capture_src_fill(GstBaseSrc *src, guint64 offset,
     }
 
     // do with pts
-    gst_video_caputre_deal_with_pts(capturesrc, buf);
+    gst_video_capture_deal_with_pts(capturesrc, buf);
 
     return GST_FLOW_OK;
 }
