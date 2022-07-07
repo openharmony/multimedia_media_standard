@@ -43,9 +43,9 @@ void PlayerUnitTest::TearDown(void)
 }
 
 /**
-* @tc.name  : Test PlayerSetSource API
-* @tc.number: Player_SetSource_001
-* @tc.desc  : Test PlayerSetSource interface with valid parameters
+ * @tc.name  : Test PlayerSetSource API
+ * @tc.number: Player_SetSource_001
+ * @tc.desc  : Test PlayerSetSource interface with valid parameters
 */
 HWTEST_F(PlayerUnitTest, Player_SetSource_001, TestSize.Level0)
 {
@@ -54,9 +54,9 @@ HWTEST_F(PlayerUnitTest, Player_SetSource_001, TestSize.Level0)
 }
 
 /**
-* @tc.name  : Test PlayerPrepare API
-* @tc.number: Player_Prepare_001
-* @tc.desc  : Test PlayerPrepare interface
+ * @tc.name  : Test PlayerPrepare API
+ * @tc.number: Player_Prepare_001
+ * @tc.desc  : Test PlayerPrepare interface
 */
 HWTEST_F(PlayerUnitTest, Player_Prepare_001, TestSize.Level0)
 {
@@ -68,9 +68,9 @@ HWTEST_F(PlayerUnitTest, Player_Prepare_001, TestSize.Level0)
 }
 
 /**
-* @tc.name  : Test PlayerPrepareAsync API
-* @tc.number: Player_PrepareAsync_001
-* @tc.desc  : Test PlayerPrepareAsync interface
+ * @tc.name  : Test PlayerPrepareAsync API
+ * @tc.number: Player_PrepareAsync_001
+ * @tc.desc  : Test PlayerPrepareAsync interface
 */
 HWTEST_F(PlayerUnitTest, Player_PrepareAsync_001, TestSize.Level0)
 {
@@ -82,9 +82,9 @@ HWTEST_F(PlayerUnitTest, Player_PrepareAsync_001, TestSize.Level0)
 }
 
 /**
-* @tc.name  : Test PlayerSetVideoSurface API
-* @tc.number: Player_SetVideoSurface_001
-* @tc.desc  : Test PlayerSetVideoSurface interface
+ * @tc.name  : Test PlayerSetVideoSurface API
+ * @tc.number: Player_SetVideoSurface_001
+ * @tc.desc  : Test PlayerSetVideoSurface interface
 */
 HWTEST_F(PlayerUnitTest, Player_SetVideoSurface_001, TestSize.Level0)
 {
@@ -93,9 +93,9 @@ HWTEST_F(PlayerUnitTest, Player_SetVideoSurface_001, TestSize.Level0)
 }
 
 /**
-* @tc.name  : Test PlayerPlay API
-* @tc.number: Player_Play_001
-* @tc.desc  : Test PlayerPlay interface
+ * @tc.name  : Test PlayerPlay API
+ * @tc.number: Player_Play_001
+ * @tc.desc  : Test PlayerPlay interface
 */
 HWTEST_F(PlayerUnitTest, Player_Play_001, TestSize.Level0)
 {
@@ -109,9 +109,9 @@ HWTEST_F(PlayerUnitTest, Player_Play_001, TestSize.Level0)
 }
 
 /**
-* @tc.name  : Test PlayerStop API
-* @tc.number: Player_PreStop_001
-* @tc.desc  : Test PlayerStop interface
+ * @tc.name  : Test PlayerStop API
+ * @tc.number: Player_PreStop_001
+ * @tc.desc  : Test PlayerStop interface
 */
 HWTEST_F(PlayerUnitTest, Player_Stop_001, TestSize.Level0)
 {
@@ -126,9 +126,9 @@ HWTEST_F(PlayerUnitTest, Player_Stop_001, TestSize.Level0)
 }
 
 /**
-* @tc.name  : Test PlayerPause API
-* @tc.number: Player_Pause_001
-* @tc.desc  : Test PlayerPause interface
+ * @tc.name  : Test PlayerPause API
+ * @tc.number: Player_Pause_001
+ * @tc.desc  : Test PlayerPause interface
 */
 HWTEST_F(PlayerUnitTest, Player_Pause_001, TestSize.Level0)
 {
@@ -144,9 +144,9 @@ HWTEST_F(PlayerUnitTest, Player_Pause_001, TestSize.Level0)
 }
 
 /**
-* @tc.name  : Test PlayerSeek API
-* @tc.number: Player_Seek_001
-* @tc.desc  : Test PlayerSeek interface with valid parameters
+ * @tc.name  : Test PlayerSeek API
+ * @tc.number: Player_Seek_001
+ * @tc.desc  : Test PlayerSeek interface with valid parameters
 */
 HWTEST_F(PlayerUnitTest, Player_Seek_001, TestSize.Level0)
 {
