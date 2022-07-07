@@ -97,7 +97,6 @@ int32_t RecorderServer::Init()
 bool RecorderServer::CheckPermission()
 {
     auto callerUid = IPCSkeleton::GetCallingUid();
-
     // Root users should be whitelisted
     if (callerUid == ROOT_UID) {
         MEDIA_LOGI("Root user. Permission Granted");
