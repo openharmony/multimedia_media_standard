@@ -217,7 +217,7 @@ static void SetGstLogLevelFromSysPara()
     }
 
     static std::map<std::string, char> logTagLevelMap =
-        { { g_gstDftTag, 'W' }, {g_gstVdecTag, 'D'}, {g_gstVencTag, 'D'} };
+        { {g_gstDftTag, 'W' }, {g_gstVdecTag, 'D'}, {g_gstVencTag, 'D'} };
     std::vector<std::string> tagLevelVec;
     SplitStr(levelPara, ",", tagLevelVec, false, true);
     for (auto &tagLevel : tagLevelVec) {

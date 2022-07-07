@@ -44,7 +44,6 @@ int32_t AudioCaptureAsImpl::SetCaptureParameter(uint32_t bitrate, uint32_t chann
     const AppInfo &appInfo)
 {
     (void)bitrate;
-    MEDIA_LOGD("SetCaptureParameter in, channels:%{public}u, sampleRate:%{public}u", channels, sampleRate);
     if (audioCapturer_ == nullptr) {
         AudioStandard::AppInfo audioAppInfo = {};
         audioAppInfo.appUid = appInfo.appUid;
