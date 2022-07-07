@@ -83,7 +83,7 @@ public:
 private:
     AVMetadataTestBase();
     ~AVMetadataTestBase();
-    std::string mountPath_ = "file:///data/media/";
+    std::string mountPath_ = "file:///data/test/";
 };
 }
 }
