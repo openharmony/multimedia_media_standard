@@ -418,7 +418,6 @@ void PlayerEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
         { PLAYBIN_MSG_POSITION_UPDATE, std::bind(&PlayerEngineGstImpl::HandlePositionUpdateMessage, this,
             std::placeholders::_1) },
     };
-
     if (MSG_NOTIFY_FUNC_TABLE.count(msg.type) != 0) {
         MSG_NOTIFY_FUNC_TABLE.at(msg.type)(msg);
     }
