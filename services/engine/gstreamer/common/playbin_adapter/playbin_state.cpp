@@ -146,13 +146,12 @@ void PlayBinCtrlerBase::BaseState::HandleAsyncDone(const InnerMessage &msg)
             nullptr, static_cast<GstClockTime>(0));
         if ((stateRet == GST_STATE_CHANGE_SUCCESS) && (state >= GST_STATE_PAUSED)) {
             if (ctrler_.isSeeking_) {
-                int64_t position = ctrler_.seekPos_;
-                MEDIA_LOGI("asyncdone after seek done, pos = %{public}" PRIi64 "us", position);
-                PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, position };
+                int64_t position = ctrler_.seekPos_ / USEC_PER_MSEC;
+                MEDIA_LOGI("asyncdone after seek done, pos = %{public}" PRIi64 "ms", position);
+                PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, static_cast<int32_t>(position) };
                 ctrler_.ReportMessage(playBinMsg);
                 ctrler_.isSeeking_ = false;
 
-                position = position / USEC_PER_MSEC;
                 PlayBinMessage posUpdateMsg { PLAYBIN_MSG_POSITION_UPDATE, 0, static_cast<int32_t>(position), {} };
                 ctrler_.ReportMessage(posUpdateMsg);
             } else if (ctrler_.isRating_) {
@@ -386,13 +385,12 @@ void PlayBinCtrlerBase::PlayingState::ProcessStateChange(const InnerMessage &msg
             nullptr, static_cast<GstClockTime>(0));
         if ((stateRet == GST_STATE_CHANGE_SUCCESS) && (state == GST_STATE_PLAYING)) {
             if (ctrler_.isSeeking_) {
-                int64_t position = ctrler_.seekPos_;
-                MEDIA_LOGI("playing after seek done, pos = %{public}" PRIi64 "us", position);
-                PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, position };
+                int64_t position = ctrler_.seekPos_ / USEC_PER_MSEC;
+                MEDIA_LOGI("playing after seek done, pos = %{public}" PRIi64 "ms", position);
+                PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, static_cast<int32_t>(position) };
                 ctrler_.ReportMessage(playBinMsg);
                 ctrler_.isSeeking_ = false;
 
-                position = position / USEC_PER_MSEC;
                 PlayBinMessage posUpdateMsg { PLAYBIN_MSG_POSITION_UPDATE, 0, static_cast<int32_t>(position), {} };
                 ctrler_.ReportMessage(posUpdateMsg);
             } else if (ctrler_.isRating_) {
@@ -506,7 +504,8 @@ int32_t PlayBinCtrlerBase::PlaybackCompletedState::Stop()
 int32_t PlayBinCtrlerBase::PlaybackCompletedState::Seek(int64_t timeUs, int32_t option)
 {
     (void)option;
-    PlayBinMessage msg = { PLAYBIN_MSG_SEEKDONE, 0, timeUs };
+    int64_t position = timeUs / USEC_PER_MSEC;
+    PlayBinMessage msg = { PLAYBIN_MSG_SEEKDONE, 0, static_cast<int32_t>(position) };
     ctrler_.ReportMessage(msg);
     return MSERR_OK;
 }

@@ -189,9 +189,9 @@ void PlayerEngineGstImpl::HandleInfoMessage(const PlayBinMessage &msg)
 
 void PlayerEngineGstImpl::HandleSeekDoneMessage(const PlayBinMessage &msg)
 {
-    MEDIA_LOGI("seek done, seek position = %{public}dms", msg.code / MSEC_PER_USEC);
+    MEDIA_LOGI("seek done, seek position = %{public}dms", msg.code);
 
-    int32_t status = msg.code / MSEC_PER_USEC;
+    int32_t status = msg.code;
     Format format;
     std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
     if (notifyObs != nullptr) {
