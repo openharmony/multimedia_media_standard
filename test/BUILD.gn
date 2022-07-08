@@ -19,5 +19,6 @@ group("media_unit_test") {
   deps = [
     "unittest/avmetadata_test:avmetadata_unit_test",
     "unittest/player_test:player_unit_test",
+    "unittest/recorder_test:recorder_unit_test",
   ]
 }
