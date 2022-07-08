@@ -166,7 +166,7 @@ void DfxLogDump::TaskProcessor()
             ofStream.open(file, std::ios::out | std::ios::app);
         }
         if (!ofStream.is_open()) {
-            return;
+            continue;
         }
         isNewFile_ = false;
         if (lineCount >= FILE_LINE_MAX) {
