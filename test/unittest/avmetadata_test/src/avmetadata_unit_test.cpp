@@ -83,10 +83,10 @@ void AVMetadataUnitTest::GetThumbnail(const std::string uri)
 }
 
 /**
-    * @tc.number    : ResolveMetadata_Format_MP4_0100
-    * @tc.name      : 01.MP4 format Get MetaData (H264+AAC)
-    * @tc.desc      : test ResolveMetadata
-*/
+ * @tc.number    : ResolveMetadata_Format_MP4_0100
+ * @tc.name      : 01.MP4 format Get MetaData (H264+AAC)
+ * @tc.desc      : test ResolveMetadata
+ */
 HWTEST_F(AVMetadataUnitTest, ResolveMetadata_Format_MP4_0100, TestSize.Level0)
 {
     std::unordered_map<int32_t, std::string> expectMeta = {
@@ -113,10 +113,10 @@ HWTEST_F(AVMetadataUnitTest, ResolveMetadata_Format_MP4_0100, TestSize.Level0)
 }
 
 /**
-    * @tc.number    : FetchFrameAtTime_Resolution_2800
-    * @tc.name      : Resolution 480x320
-    * @tc.desc      : Get THUMBNAIL
-*/
+ * @tc.number    : FetchFrameAtTime_Resolution_2800
+ * @tc.name      : Resolution 480x320
+ * @tc.desc      : Get THUMBNAIL
+ */
 HWTEST_F(AVMetadataUnitTest, FetchFrameAtTime_Resolution_2800, TestSize.Level0)
 {
     std::string uri = AVMetadataTestBase::GetInstance().GetMountPath() +

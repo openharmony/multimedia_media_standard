@@ -15,7 +15,6 @@
 
 #include "recorder_mock.h"
 #include <sync_fence.h>
-#include "display_type.h"
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -25,6 +24,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include "display_type.h"
 
 using namespace std;
 using namespace OHOS::Media;
@@ -372,7 +372,7 @@ void RecorderMock::HDICreateYUVBuffer()
         char *tempBuffer = (char *)(buffer->GetVirAddr());
         (void)memset_s(tempBuffer, YUV_BUFFER_SIZE, color_, YUV_BUFFER_SIZE);
 
-        srand((int)time(0));
+        (void)srand((int)time(0));
         for (uint32_t i = 0; i < YUV_BUFFER_SIZE - 1; i += (YUV_BUFFER_SIZE - 1)) {  // 100 is the steps between noise
             if (i >= YUV_BUFFER_SIZE - 1) {
                 break;
