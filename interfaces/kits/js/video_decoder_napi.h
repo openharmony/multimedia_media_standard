@@ -52,6 +52,7 @@ private:
     static napi_value On(napi_env env, napi_callback_info info);
 
     void ErrorCallback(MediaServiceExtErrCode errCode);
+    void SetCallbackReference(const std::string &callbackName, std::shared_ptr<AutoRef> ref);
 
     VideoDecoderNapi();
     ~VideoDecoderNapi();
@@ -63,6 +64,7 @@ private:
     std::shared_ptr<AVCodecCallback> callback_ = nullptr;
     bool isSurfaceMode_ = false;
     std::shared_ptr<AVCodecNapiHelper> codecHelper_ = nullptr;
+    std::map<std::string, std::shared_ptr<AutoRef>> refMap_;
 };
 
 struct VideoDecoderAsyncContext : public MediaAsyncContext {
