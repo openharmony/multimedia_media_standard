@@ -427,6 +427,8 @@ void PlayBinCtrlerBase::Reset() noexcept
     }
     (void)StopInternal();
 
+    // Do it here before the ChangeState to IdleState, for avoding the deadlock when msg handler
+    // try to call the ChangeState.
     ExitInitializedState();
     ChangeState(idleState_);
 
