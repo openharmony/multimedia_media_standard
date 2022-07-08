@@ -108,7 +108,7 @@ HWTEST_F(AVMetadataUnitTest, ResolveMetadata_Format_MP4_0100, TestSize.Level0)
         {AV_KEY_DATE_TIME, "2022-05-29 22:10:43"},
     };
     std::string uri = AVMetadataTestBase::GetInstance().GetMountPath() +
-    std::string("/H264_AAC.mp4");
+    std::string("H264_AAC.mp4");
     CheckMeta(uri, expectMeta);
 }
 
@@ -120,6 +120,6 @@ HWTEST_F(AVMetadataUnitTest, ResolveMetadata_Format_MP4_0100, TestSize.Level0)
 HWTEST_F(AVMetadataUnitTest, FetchFrameAtTime_Resolution_2800, TestSize.Level0)
 {
     std::string uri = AVMetadataTestBase::GetInstance().GetMountPath() +
-    std::string("/out_480_320.mp4");
+    std::string("out_480_320.mp4");
     GetThumbnail(uri);
 }
