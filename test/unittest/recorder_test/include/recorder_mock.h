@@ -15,14 +15,14 @@
 #ifndef RECORDER_MOCK_H
 #define RECORDER_MOCK_H
 
-
-#include "gtest/gtest.h"
-#include "media_errors.h"
-#include "test_params_config.h"
 #include "unittest_log.h"
 #include <atomic>
 #include <thread>
 #include <string>
+#include "gtest/gtest.h"
+#include "media_errors.h"
+#include "test_params_config.h"
+#include "unittest_log.h"
 #include "recorder.h"
 #include "surface.h"
 #include "securec.h"
@@ -79,8 +79,8 @@ private:
     OHOS::sptr<OHOS::Surface> producerSurface_ = nullptr;
     std::shared_ptr<std::ifstream> file_ = nullptr;
     std::unique_ptr<std::thread> camereHDIThread_;
-    std::atomic<bool> isExit_{ false };
-    std::atomic<bool> isStart_{ true };
+    std::atomic<bool> isExit_ { false };
+    std::atomic<bool> isStart_ { true };
     int64_t pts_ = 0;
     int32_t isKeyFrame_ = 1;
     uint32_t count_ = 0;
@@ -95,7 +95,7 @@ public:
     void OnError(RecorderErrorType errorType, int32_t errorCode) override;
     void OnInfo(int32_t type, int32_t extra) override;
     int32_t GetErrorCode();
-    private:
+private:
     int32_t errorCode_ = 0;
 };
 }
