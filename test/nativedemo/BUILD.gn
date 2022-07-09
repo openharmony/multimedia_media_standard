@@ -31,7 +31,7 @@ ohos_executable("media_demo") {
     "//foundation/graphic/graphic_2d/utils/sync_fence/export",
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
-    "//foundation/windowmanager/interfaces/innerkits/wm",
+    "//foundation/window/window_manager/interfaces/innerkits/wm",
     "//third_party/libjpeg",
   ]
 
@@ -77,7 +77,7 @@ ohos_executable("media_demo") {
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
     "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
-    "//foundation/windowmanager/wm:libwm",
+    "//foundation/window/window_manager/wm:libwm",
     "//third_party/libjpeg:libjpeg_static",
     "//utils/native/base:utils",
   ]

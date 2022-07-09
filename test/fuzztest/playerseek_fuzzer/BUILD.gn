@@ -26,7 +26,7 @@ ohos_fuzztest("PlayerSeekFuzzTest") {
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/utils/include",
     "//graphic/graphic_2d/interfaces/innerkits/surface",
-    "//foundation/windowmanager/interfaces/innerkits/wm",
+    "//foundation/window/window_manager/interfaces/innerkits/wm",
     "//foundation/multimedia/media_standard/test/fuzztest/",
   ]
   cflags = [
@@ -43,7 +43,7 @@ ohos_fuzztest("PlayerSeekFuzzTest") {
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/windowmanager/wm:libwm",
+    "//foundation/window/window_manager/wm:libwm",
   ]
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
