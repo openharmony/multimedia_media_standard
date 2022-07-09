@@ -15,7 +15,6 @@
 #ifndef RECORDER_MOCK_H
 #define RECORDER_MOCK_H
 
-#include "unittest_log.h"
 #include <atomic>
 #include <thread>
 #include <string>
@@ -27,6 +26,7 @@
 #include "surface.h"
 #include "securec.h"
 #include "nocopyable.h"
+
 namespace OHOS {
 namespace Media {
 class RecorderMock {
