@@ -19,6 +19,7 @@
 #include "media_errors.h"
 #include "media_log.h"
 #include "uri_helper.h"
+#include "scope_guard.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVMuxerEngineGstImpl"};
@@ -75,6 +76,10 @@ AVMuxerEngineGstImpl::~AVMuxerEngineGstImpl()
     if (muxBin_ != nullptr) {
         gst_object_unref(muxBin_);
         muxBin_ = nullptr;
+    }
+    if (allocator_ != nullptr) {
+        gst_object_unref(allocator_);
+        allocator_ = nullptr;
     }
 }
 
@@ -178,7 +183,7 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
     CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindMediaType(mimeType, mediaType), MSERR_INVALID_VAL, "Illegal mimeType");
     if (mediaType == MEDIA_TYPE_VID) {
         CHECK_AND_RETURN_RET_LOG(videoTrackNum_ < MAX_VIDEO_TRACK_NUM, MSERR_INVALID_OPERATION,
-            "Only 1 video Tracks can be added");
+            "Only 1 video Track can be added");
         trackNum = &videoTrackNum_;
     } else if (mediaType == MEDIA_TYPE_AUD) {
         CHECK_AND_RETURN_RET_LOG(audioTrackNum_ < MAX_AUDIO_TRACK_NUM, MSERR_INVALID_OPERATION,
@@ -189,7 +194,7 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
         return MSERR_INVALID_VAL;
     }
 
-    if (AVMuxerUtil::SetCaps(trackDesc, mimeType, &srcCaps) != MSERR_OK) {
+    if (!AVMuxerUtil::SetCaps(trackDesc, mimeType, &srcCaps)) {
         MEDIA_LOGE("Failed to call SetCaps");
         trackInfo_.erase(trackId);
         return MSERR_INVALID_VAL;
@@ -243,8 +248,13 @@ int32_t AVMuxerEngineGstImpl::WriteData(std::shared_ptr<AVSharedMemory> sampleDa
     
     GstMemory *mem = gst_shmem_wrap(GST_ALLOCATOR_CAST(allocator_), sampleData);
     CHECK_AND_RETURN_RET_LOG(mem != nullptr, MSERR_NO_MEMORY, "Failed to call gst_shmem_wrap");
+    ON_SCOPE_EXIT(0) { gst_object_unref(mem); };
+
     GstBuffer *buffer = gst_buffer_new();
     CHECK_AND_RETURN_RET_LOG(buffer != nullptr, MSERR_NO_MEMORY, "Failed to call gst_buffer_new");
+    ON_SCOPE_EXIT(1) { gst_object_unref(buffer); };
+    CANCEL_SCOPE_EXIT_GUARD(0);
+
     gst_buffer_append_memory(buffer, mem);
 
     GST_BUFFER_DTS(buffer) = static_cast<uint64_t>(sampleInfo.timeUs * US_TO_NS);
