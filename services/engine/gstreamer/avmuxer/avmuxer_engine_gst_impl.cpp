@@ -328,13 +328,8 @@ int32_t AVMuxerEngineGstImpl::SetupMsgProcessor()
     GstBus *bus = gst_pipeline_get_bus(GST_PIPELINE_CAST(muxBin_));
     CHECK_AND_RETURN_RET_LOG(bus != nullptr, MSERR_INVALID_OPERATION, "Failed to create GstBus");
 
-    std::weak_ptr<AVMuxerEngineGstImpl> weakThiz = shared_from_this();
-    msgProcessor_ = std::make_unique<GstMsgProcessor>(*bus, [weakThiz](const InnerMessage &msg) {
-        std::shared_ptr<AVMuxerEngineGstImpl> sharedThiz = weakThiz.lock();
-        if (sharedThiz != nullptr) {
-            sharedThiz->OnNotifyMessage(msg);
-        }
-    });
+    auto msgNotifier = std::bind(&AVMuxerEngineGstImpl::OnNotifyMessage, this, std::placeholders::_1);
+    msgProcessor_ = std::make_unique<GstMsgProcessor>(*bus, msgNotifier);
     gst_object_unref(bus);
     bus = nullptr;
 
@@ -389,7 +384,10 @@ void AVMuxerEngineGstImpl::Clear()
     endFlag_ = false;
     errHappened_ = false;
     isPlay_ = false;
+
+    mutex_.unlock();
     msgProcessor_->Reset();
+    mutex_.lock();
 }
 }  // namespace Media
 }  // namespace OHOS
