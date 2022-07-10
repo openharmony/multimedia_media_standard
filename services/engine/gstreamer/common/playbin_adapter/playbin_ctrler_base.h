@@ -140,7 +140,7 @@ private:
     std::string uri_;
     std::unordered_map<GstElement *, gulong> signalIds_;
     std::vector<uint32_t> bitRateVec_;
-    bool isInitialized = false;
+    bool isInitialized_ = false;
 
     bool isErrorHappened_ = false;
     std::mutex condMutex_;

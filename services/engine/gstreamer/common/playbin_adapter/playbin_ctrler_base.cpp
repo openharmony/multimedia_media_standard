@@ -427,6 +427,9 @@ void PlayBinCtrlerBase::Reset() noexcept
     }
     (void)StopInternal();
 
+    // Do it here before the ChangeState to IdleState, for avoding the deadlock when msg handler
+    // try to call the ChangeState.
+    ExitInitializedState();
     ChangeState(idleState_);
 
     if (msgQueue_ != nullptr) {
@@ -483,7 +486,7 @@ void PlayBinCtrlerBase::DoInitializeForHttp()
 
 int32_t PlayBinCtrlerBase::EnterInitializedState()
 {
-    if (isInitialized) {
+    if (isInitialized_) {
         return MSERR_OK;
     }
 
@@ -531,7 +534,7 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
 
     DoInitializeForHttp();
 
-    isInitialized = true;
+    isInitialized_ = true;
     ChangeState(initializedState_);
 
     CANCEL_SCOPE_EXIT_GUARD(0);
@@ -543,12 +546,17 @@ void PlayBinCtrlerBase::ExitInitializedState()
 {
     MEDIA_LOGD("ExitInitializedState enter");
 
-    isInitialized = false;
+    if (!isInitialized_) {
+        return;
+    }
+    isInitialized_ = false;
 
+    mutex_.unlock();
     if (msgProcessor_ != nullptr) {
         msgProcessor_->Reset();
         msgProcessor_ = nullptr;
     }
+    mutex_.lock();
 
     for (auto &[elem, signalId] : signalIds_) {
         g_signal_handler_disconnect(elem, signalId);
