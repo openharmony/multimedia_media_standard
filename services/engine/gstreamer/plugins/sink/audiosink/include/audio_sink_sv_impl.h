@@ -23,9 +23,22 @@
 
 namespace OHOS {
 namespace Media {
+class AudioRendererMediaCallback : public AudioStandard::AudioRendererCallback {
+public:
+    AudioRendererMediaCallback(GstBaseSink *audioSink);
+    ~AudioRendererMediaCallback() = default;
+    void SaveCallback(void (*interruptCb)(GstBaseSink *, guint, guint, guint));
+    void OnInterrupt(const AudioStandard::InterruptEvent &interruptEvent) override;
+    void OnStateChange(const AudioStandard::RendererState state) override;
+private:
+    GstBaseSink *audioSink_ = nullptr;
+    void (*interruptCb_)(GstBaseSink *, guint, guint, guint);
+};
+
+
 class AudioSinkSvImpl : public AudioSink {
 public:
-    AudioSinkSvImpl();
+    AudioSinkSvImpl(GstBaseSink *audioSink);
     virtual ~AudioSinkSvImpl();
 
     GstCaps *GetCaps() override;
@@ -47,13 +60,17 @@ public:
     int32_t Write(uint8_t *buffer, size_t size) override;
     int32_t GetAudioTime(uint64_t &time) override;
     int32_t GetLatency(uint64_t &latency) const override;
-    int32_t SetParameter(int32_t &param) override;
+    int32_t SetRendererInfo(int32_t desc, int32_t rendererFlags) override;
+    void SetAudioInterruptMode(int32_t interruptMode) override;
+    void SetAudioSinkInterruptCb(void (*interruptCb)(GstBaseSink *, guint, guint, guint)) override;
     bool Writeable() const override;
 
 private:
     std::unique_ptr<OHOS::AudioStandard::AudioRenderer> audioRenderer_;
+    AudioStandard::AudioRendererOptions rendererOptions_ = {};
     void InitChannelRange(GstCaps *caps) const;
     void InitRateRange(GstCaps *caps) const;
+    std::shared_ptr<AudioRendererMediaCallback> audioRendererMediaCallback_ = nullptr;
 };
 } // namespace Media
 } // namespace OHOS

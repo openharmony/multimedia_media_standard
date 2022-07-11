@@ -21,6 +21,7 @@ config("media_engine_gst_common_config") {
     "-fno-rtti",
     "-fno-exceptions",
     "-Wall",
+    "-Werror=sign-compare",
     "-fno-common",
     "-fstack-protector-strong",
     "-FPIC",
@@ -31,7 +32,9 @@ config("media_engine_gst_common_config") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Wno-deprecated-declarations",
     "-DOHOS_EXT_FUNC",
+    "-DOHOS_OPT_COMPAT",
   ]
 
   include_dirs = [
@@ -72,11 +75,12 @@ ohos_static_library("media_engine_gst_common") {
   configs = [
     ":media_engine_gst_common_config",
     "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface_public_config",
   ]
 
   deps = [
     ":media_gst_dfx",
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//foundation/multimedia/media_standard/services/utils:media_format",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
@@ -87,7 +91,10 @@ ohos_static_library("media_engine_gst_common") {
     "//utils/native/base:utils",
   ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "init:libbegetutil",
+  ]
 
   subsystem_name = "multimedia"
   part_name = "multimedia_media_standard"
@@ -101,6 +108,7 @@ config("media_gst_dfx_config") {
     "-fno-rtti",
     "-fno-exceptions",
     "-Wall",
+    "-Werror=sign-compare",
     "-fno-common",
     "-fstack-protector-strong",
     "-FPIC",
@@ -141,7 +149,6 @@ ohos_static_library("media_gst_dfx") {
   ]
 
   deps = [
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//foundation/multimedia/media_standard/services/utils:media_format",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
@@ -151,7 +158,10 @@ ohos_static_library("media_gst_dfx") {
     "//utils/native/base:utils",
   ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "init:libbegetutil",
+  ]
 
   subsystem_name = "multimedia"
   part_name = "multimedia_media_standard"
