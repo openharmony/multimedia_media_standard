@@ -16,6 +16,7 @@
 #ifndef AVCODEABILITY_SINGLETON_H
 #define AVCODEABILITY_SINGLETON_H
 
+#include <mutex>
 #include "format.h"
 #include "avcodec_info.h"
 namespace OHOS {
@@ -26,13 +27,14 @@ public:
     static AVCodecAbilitySingleton& GetInstance();
     bool ParseCodecXml();
     bool RegisterCapability(const std::vector<CapabilityData> &registerCapabilityDataArray);
-    bool IsParsered() const;
-    std::vector<CapabilityData> GetCapabilityDataArray() const;
+    bool IsParsered();
+    std::vector<CapabilityData> GetCapabilityDataArray();
 
 private:
     bool isParsered_ = false;
     AVCodecAbilitySingleton();
     std::vector<CapabilityData> capabilityDataArray_;
+    std::mutex mutex_;
 };
 } // namespace Media
 } // namespace OHOS

@@ -71,6 +71,7 @@ private:
     int32_t OnPrepare(bool async);
     void FormatToString(std::string &dumpString, std::vector<Format> &videoTrack);
     const std::string &GetStatusDescription(int32_t status);
+    void ResetProcessor();
 
     std::unique_ptr<IPlayerEngine> playerEngine_ = nullptr;
     std::shared_ptr<PlayerCallback> playerCb_ = nullptr;
@@ -90,6 +91,7 @@ private:
         std::string url;
     } config_;
     std::string lastErrMsg_;
+    int32_t resetRet_ = 0;
 };
 } // namespace Media
 } // namespace OHOS

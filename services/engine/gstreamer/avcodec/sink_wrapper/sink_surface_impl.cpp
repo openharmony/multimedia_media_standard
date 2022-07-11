@@ -91,6 +91,7 @@ int32_t SinkSurfaceImpl::SetCacheBuffersCount(uint32_t cacheBuffers)
 
 int32_t SinkSurfaceImpl::SetParameter(const Format &format)
 {
+    (void)format;
     return MSERR_OK;
 }
 

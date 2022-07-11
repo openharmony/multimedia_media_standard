@@ -45,7 +45,7 @@ bool PlayerSetVolumeFuzzer::FuzzSetVolume(uint8_t* data, size_t size)
     if (ret != 0) {
         cout << "SetPlayerCallback fail" << endl;
     }
-    const string path = "/data/media/H264_AAC.mp4";
+    const string path = "/data/test/resource/H264_AAC.mp4";
     ret = SetFdSource(path);
     if (ret != 0) {
         cout << "SetFdSource fail" << endl;

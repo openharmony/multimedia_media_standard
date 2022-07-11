@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RECORDER_PIPELINE_BUILDER
-#define RECORDER_PIPELINE_BUILDER
+#ifndef RECORDER_PIPELINE_BUILDER_H
+#define RECORDER_PIPELINE_BUILDER_H
 
 #include <memory>
 #include "nocopyable.h"

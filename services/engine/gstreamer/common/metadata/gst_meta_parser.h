@@ -42,6 +42,7 @@ inline constexpr std::string_view INNER_META_KEY_VIDEO_ORIENTATION = "image-orie
 inline constexpr std::string_view INNER_META_KEY_MIME_TYPE = "mime";
 inline constexpr std::string_view INNER_META_KEY_SAMPLE_RATE = "samplerate";
 inline constexpr std::string_view INNER_META_KEY_TITLE = "title";
+inline constexpr std::string_view INNER_META_KEY_TRACK_INDEX = "track-index";
 inline constexpr std::string_view INNER_META_KEY_TRACK_TYPE = "track-type";
 inline constexpr std::string_view INNER_META_KEY_VIDEO_WIDTH = "width";
 

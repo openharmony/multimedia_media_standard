@@ -20,6 +20,7 @@ config("gst_codec_bin_config") {
     "-fno-rtti",
     "-fno-exceptions",
     "-Wall",
+    "-Werror=sign-compare",
     "-fno-common",
     "-fstack-protector-strong",
     "-FPIC",

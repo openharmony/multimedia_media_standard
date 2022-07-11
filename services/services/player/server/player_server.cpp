@@ -71,6 +71,13 @@ PlayerServer::~PlayerServer()
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
+void PlayerServer::ResetProcessor()
+{
+    resetRet_ = playerEngine_->Reset();
+    playerEngine_ = nullptr;
+    surface_ = nullptr;
+}
+
 int32_t PlayerServer::Init()
 {
     MediaTrace trace("PlayerServer::Init");
@@ -208,7 +215,7 @@ int32_t PlayerServer::OnPrepare()
 
     if (lastOpStatus_ == PLAYER_PREPARED) {
         Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
+        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
 
@@ -268,7 +275,7 @@ int32_t PlayerServer::Play()
 
     if (lastOpStatus_ == PLAYER_STARTED) {
         Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
+        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
 
@@ -306,7 +313,7 @@ int32_t PlayerServer::Pause()
 
     if (lastOpStatus_ == PLAYER_PAUSED) {
         Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
+        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
 
@@ -348,7 +355,7 @@ int32_t PlayerServer::Stop()
 
     if (lastOpStatus_ == PLAYER_STOPPED) {
         Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
+        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
 
@@ -394,7 +401,7 @@ int32_t PlayerServer::OnReset()
 {
     if (lastOpStatus_ == PLAYER_IDLE) {
         Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
+        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
 
@@ -412,9 +419,11 @@ int32_t PlayerServer::OnReset()
 
 int32_t PlayerServer::HandleReset()
 {
-    int32_t ret = playerEngine_->Reset();
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine Reset Failed!");
-    playerEngine_ = nullptr;
+    std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&PlayerServer::ResetProcessor, this);
+    if (thread != nullptr && thread->joinable()) {
+        thread->join();
+    }
+    CHECK_AND_RETURN_RET_LOG(resetRet_ == MSERR_OK, MSERR_INVALID_OPERATION, "Engine Reset Failed!");
     dataSrc_ = nullptr;
     config_.looping = false;
     uriHelper_ = nullptr;
@@ -497,6 +506,13 @@ int32_t PlayerServer::Seek(int32_t mSeconds, PlayerSeekMode mode)
         return MSERR_INVALID_VAL;
     }
 
+    int32_t currentTime = 0;
+    if (mSeconds == 0 && playerEngine_->GetCurrentTime(currentTime) == MSERR_OK && currentTime == mSeconds) {
+        MEDIA_LOGW("Seek to the inner position");
+        Format format;
+        OnInfo(INFO_TYPE_SEEKDONE, 0, format);
+        return MSERR_OK;
+    }
     MEDIA_LOGD("seek position %{public}d, seek mode is %{public}d", mSeconds, mode);
     mSeconds = std::max(0, mSeconds);
 
@@ -665,6 +681,19 @@ int32_t PlayerServer::HandleSetPlaybackSpeed(PlaybackRateMode mode)
     return MSERR_OK;
 }
 
+void PlayerServer::HandleEos()
+{
+    if (config_.looping.load()) {
+        auto seekTask = std::make_shared<TaskHandler<void>>([this]() {
+            auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
+            (void)currState->Seek(0, SEEK_PREVIOUS_SYNC);
+        });
+        disableNextSeekDone_ = true;
+        int ret = taskMgr_.LaunchTask(seekTask, PlayerServerTaskType::SEEKING);
+        CHECK_AND_RETURN_LOG(ret == MSERR_OK, "Seek failed");
+    }
+}
+
 int32_t PlayerServer::GetPlaybackSpeed(PlaybackRateMode &mode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -766,6 +795,12 @@ int32_t PlayerServer::SetParameter(const Format &param)
     if (playerEngine_ != nullptr) {
         int32_t ret = playerEngine_->SetParameter(param);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetParameter Failed!");
+    } else {
+        if (param.ContainKey(PlayerKeys::CONTENT_TYPE) && param.ContainKey(PlayerKeys::STREAM_USAGE)) {
+            param.GetIntValue(PlayerKeys::CONTENT_TYPE, contentType_);
+            param.GetIntValue(PlayerKeys::STREAM_USAGE, streamUsage_);
+            param.GetIntValue(PlayerKeys::RENDERER_FLAG, rendererFlag_);
+        }
     }
 
     return MSERR_OK;
@@ -848,7 +883,15 @@ void PlayerServer::OnInfo(PlayerOnInfoType type, int32_t extra, const Format &in
 {
     std::lock_guard<std::mutex> lockCb(mutexCb_);
 
-    HandleMessage(type, extra, infoBody);
+    int32_t ret = HandleMessage(type, extra, infoBody);
+    if (playerCb_ != nullptr && ret == MSERR_OK) {
+        playerCb_->OnInfo(type, extra, infoBody);
+    }
+}
+
+void PlayerServer::OnInfoNoChangeStatus(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
+{
+    std::lock_guard<std::mutex> lockCb(mutexCb_);
 
     if (playerCb_ != nullptr) {
         playerCb_->OnInfo(type, extra, infoBody);
@@ -870,11 +913,12 @@ std::string PlayerServerState::GetStateName() const
     return name_;
 }
 
-void PlayerServerStateMachine::HandleMessage(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
+int32_t PlayerServerStateMachine::HandleMessage(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
 {
     if (currState_ != nullptr) {
-        currState_->OnMessageReceived(type, extra, infoBody);
+        return currState_->OnMessageReceived(type, extra, infoBody);
     }
+    return MSERR_OK;
 }
 
 void PlayerServerStateMachine::ChangeState(const std::shared_ptr<PlayerServerState> &state)
