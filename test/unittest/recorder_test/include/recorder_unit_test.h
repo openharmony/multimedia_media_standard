@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RECODER_VIDEO_TEST_H
-#define RECODER_VIDEO_TEST_H
+#ifndef RECORDER_UNIT_TEST_H
+#define RECORDER_UNIT_TEST_H
 
 #include "gtest/gtest.h"
 #include "recorder_mock.h"

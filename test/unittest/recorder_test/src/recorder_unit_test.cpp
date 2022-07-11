@@ -28,7 +28,7 @@ static VideoRecorderConfig g_videoRecorderConfig;
 void RecorderUnitTest::SetUpTestCase(void) {}
 void RecorderUnitTest::TearDownTestCase(void) {}
 
-void RecorderUnitTest::SetUp(void) 
+void RecorderUnitTest::SetUp(void)
 {
     recorder_ = std::make_shared<RecorderMock>();
     ASSERT_NE(nullptr, recorder_);
