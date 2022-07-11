@@ -172,8 +172,8 @@ static void gst_vdec_base_init(GstVdecBase *self)
     self->height = DEFAULT_HEIGHT;
     self->frame_rate = 0;
     self->memtype = GST_MEMTYPE_INVALID;
-    self->input = { 0 };
-    self->output = { 0 };
+    (void)memset_s(&self->input, sizeof(GstVdecBasePort), 0, sizeof(GstVdecBasePort));
+    (void)memset_s(&self->output, sizeof(GstVdecBasePort), 0, sizeof(GstVdecBasePort));
     self->input.allocator = gst_shmem_allocator_new();
     self->output.allocator = gst_shmem_allocator_new();
     self->coding_outbuf_cnt = 0;
@@ -198,7 +198,7 @@ static void gst_vdec_base_init(GstVdecBase *self)
     self->stride_height = 0;
     self->real_stride = 0;
     self->real_stride_height = 0;
-    self->rect = {0};
+    (void)memset_s(&self->rect, sizeof(DisplayRect), 0, sizeof(DisplayRect));
     self->inpool = nullptr;
     self->outpool = nullptr;
     self->input.first_frame = TRUE;
@@ -475,8 +475,8 @@ static gboolean update_caps_format(GstVdecBase *self, GstCaps *caps)
     GST_DEBUG_OBJECT(self, "update_caps_format");
 
     g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "flush", FALSE), FALSE);
-    GValue value_list = { 0 };
-    GValue value = { 0 };
+    GValue value_list = G_VALUE_INIT;
+    GValue value = G_VALUE_INIT;
 
     if (!self->formats.empty()) {
         g_value_init(&value_list, GST_TYPE_LIST);

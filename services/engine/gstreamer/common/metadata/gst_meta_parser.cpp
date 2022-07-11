@@ -49,27 +49,27 @@ static bool DateTimeMetaSetter(const GValue &gval, const std::string_view &key, 
 static bool OrientationMetaSetter(const GValue &gval, const std::string_view &key, Format &metadata);
 
 static const std::unordered_map<std::string_view, MetaParseItem> GST_TAG_PARSE_ITEMS = {
-    { GST_TAG_ALBUM, { INNER_META_KEY_ALBUM, G_TYPE_STRING } },
-    { GST_TAG_ALBUM_ARTIST, { INNER_META_KEY_ALBUM_ARTIST, G_TYPE_STRING } },
-    { GST_TAG_ARTIST, { INNER_META_KEY_ARTIST, G_TYPE_STRING } },
-    { GST_TAG_COMPOSER, { INNER_META_KEY_COMPOSER, G_TYPE_STRING } },
+    { GST_TAG_ALBUM, { INNER_META_KEY_ALBUM, G_TYPE_STRING, nullptr } },
+    { GST_TAG_ALBUM_ARTIST, { INNER_META_KEY_ALBUM_ARTIST, G_TYPE_STRING, nullptr } },
+    { GST_TAG_ARTIST, { INNER_META_KEY_ARTIST, G_TYPE_STRING, nullptr } },
+    { GST_TAG_COMPOSER, { INNER_META_KEY_COMPOSER, G_TYPE_STRING, nullptr } },
     { GST_TAG_DATE_TIME, { INNER_META_KEY_DATE_TIME, GST_DATE_TIME_TYPE, DateTimeMetaSetter } },
-    { GST_TAG_GENRE, { INNER_META_KEY_GENRE, G_TYPE_STRING } },
-    { GST_TAG_TITLE, { INNER_META_KEY_TITLE, G_TYPE_STRING } },
-    { GST_TAG_AUTHOR, { INNER_META_KEY_AUTHOR, G_TYPE_STRING } },
-    { GST_TAG_DURATION, { INNER_META_KEY_DURATION, G_TYPE_UINT64 } },
-    { GST_TAG_BITRATE, { INNER_META_KEY_BITRATE, G_TYPE_UINT } },
+    { GST_TAG_GENRE, { INNER_META_KEY_GENRE, G_TYPE_STRING, nullptr } },
+    { GST_TAG_TITLE, { INNER_META_KEY_TITLE, G_TYPE_STRING, nullptr } },
+    { GST_TAG_AUTHOR, { INNER_META_KEY_AUTHOR, G_TYPE_STRING, nullptr } },
+    { GST_TAG_DURATION, { INNER_META_KEY_DURATION, G_TYPE_UINT64, nullptr } },
+    { GST_TAG_BITRATE, { INNER_META_KEY_BITRATE, G_TYPE_UINT, nullptr } },
     { GST_TAG_IMAGE, { INNER_META_KEY_IMAGE, GST_SAMPLE_TYPE, ImageMetaSetter } },
-    { GST_TAG_LANGUAGE_CODE, { INNER_META_KEY_LANGUAGE, G_TYPE_STRING } },
+    { GST_TAG_LANGUAGE_CODE, { INNER_META_KEY_LANGUAGE, G_TYPE_STRING, nullptr } },
     { GST_TAG_IMAGE_ORIENTATION, { INNER_META_KEY_VIDEO_ORIENTATION, G_TYPE_STRING, OrientationMetaSetter } },
 };
 
 static const std::unordered_map<std::string_view, MetaParseItem> GST_CAPS_PARSE_ITEMS = {
     { "width", { INNER_META_KEY_VIDEO_WIDTH, G_TYPE_INT, nullptr } },
-    { "height", { INNER_META_KEY_VIDEO_HEIGHT, G_TYPE_INT } },
-    { "rate", { INNER_META_KEY_SAMPLE_RATE, G_TYPE_INT } },
+    { "height", { INNER_META_KEY_VIDEO_HEIGHT, G_TYPE_INT, nullptr } },
+    { "rate", { INNER_META_KEY_SAMPLE_RATE, G_TYPE_INT, nullptr } },
     { "framerate", { INNER_META_KEY_FRAMERATE, GST_FRACTION_TYPE, FractionMetaSetter } },
-    { "channels", { INNER_META_KEY_CHANNEL_COUNT, G_TYPE_INT } },
+    { "channels", { INNER_META_KEY_CHANNEL_COUNT, G_TYPE_INT, nullptr } },
 };
 
 static const std::unordered_map<std::string_view, std::vector<std::string_view>> STREAM_CAPS_FIELDS = {
@@ -310,7 +310,7 @@ static bool ImageMetaSetter(const GValue &gval, const std::string_view &key, For
     GstBuffer *imageBuf = gst_sample_get_buffer(sample);
     CHECK_AND_RETURN_RET(imageBuf != nullptr, false);
 
-    GstMapInfo mapInfo = { 0 };
+    GstMapInfo mapInfo = GST_MAP_INFO_INIT;
     if (!gst_buffer_map(imageBuf, &mapInfo, GST_MAP_READ)) {
         MEDIA_LOGE("get buffer data failed");
         return false;
@@ -376,7 +376,7 @@ static bool DateTimeMetaSetter(const GValue &gval, const std::string_view &key, 
         std::string second = std::to_string(gst_date_time_get_second(dateTime));
         time << ":" << std::setfill('0') << std::setw(FORMATTED_TIME_NUM_SIZE) << second;
     }
-    std::string_view str = time.str();
+    std::string str = time.str();
 
     gst_date_time_unref(dateTime);
     dateTime = nullptr;
