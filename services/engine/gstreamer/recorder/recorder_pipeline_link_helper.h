@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RECORDER_PIPELINE_LINK_HELPER
-#define RECORDER_PIPELINE_LINK_HELPER
+#ifndef RECORDER_PIPELINE_LINK_HELPER_H
+#define RECORDER_PIPELINE_LINK_HELPER_H
 
 #include <gst/gstelement.h>
 #include <gst/gstpad.h>

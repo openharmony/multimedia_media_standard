@@ -80,8 +80,8 @@ int32_t ProcessorVencImpl::ProcessOptional(const Format &format)
 
 std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetInputPortConfig()
 {
-    CHECK_AND_RETURN_RET(width_ > 0 && width_ < MAX_WIDTH, nullptr);
-    CHECK_AND_RETURN_RET(height_ > 0 && height_ < MAX_HEIGHT, nullptr);
+    CHECK_AND_RETURN_RET(width_ > 0 && static_cast<uint32_t>(width_) < MAX_WIDTH, nullptr);
+    CHECK_AND_RETURN_RET(height_ > 0 && static_cast<uint32_t>(height_) < MAX_HEIGHT, nullptr);
 
     GstCaps *caps = gst_caps_new_simple("video/x-raw",
         "width", G_TYPE_INT, width_,
@@ -106,8 +106,8 @@ std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetInputPortConfig()
 
 std::shared_ptr<ProcessorConfig> ProcessorVencImpl::GetOutputPortConfig()
 {
-    CHECK_AND_RETURN_RET(width_ > 0 && width_ < MAX_WIDTH, nullptr);
-    CHECK_AND_RETURN_RET(height_ > 0 && height_ < MAX_HEIGHT, nullptr);
+    CHECK_AND_RETURN_RET(width_ > 0 && static_cast<uint32_t>(width_) < MAX_WIDTH, nullptr);
+    CHECK_AND_RETURN_RET(height_ > 0 && static_cast<uint32_t>(height_) < MAX_HEIGHT, nullptr);
 
     GstCaps *caps = nullptr;
     switch (codecName_) {

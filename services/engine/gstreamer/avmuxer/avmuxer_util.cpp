@@ -177,7 +177,7 @@ bool AVMuxerUtil::SetCaps(const MediaDescription &trackDesc, const std::string &
     CHECK_AND_RETURN_RET_LOG(src_caps != nullptr, false, "src_caps is nullptr");
     FormatParam param;
     bool ret = parseParam(param, trackDesc, mimeType);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "Failed to call parseParam");
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, false, "Failed to call parseParam");
     *src_caps = CreateCaps(param, mimeType);
 
     return true;
