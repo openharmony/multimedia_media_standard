@@ -22,6 +22,8 @@ ohos_fuzztest("PlayerSeekFuzzTest") {
   fuzz_config_file =
       "//foundation//multimedia/media_standard/test/fuzztest/playerseek_fuzzer"
 
+  resource_config_file = "//foundation/multimedia/media_standard/test/fuzztest/resource/ohos_test.xml"
+
   include_dirs = [
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/services/utils/include",

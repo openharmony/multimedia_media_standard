@@ -150,9 +150,11 @@ static void gst_producer_surface_pool_finalize(GObject *obj)
 {
     g_return_if_fail(obj != nullptr);
     GstSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(obj);
+    GstBufferPool *pool = GST_BUFFER_POOL(obj);
     g_return_if_fail(spool != nullptr);
 
     clear_preallocated_buffer(spool);
+    (void)gst_buffer_pool_set_active(pool, FALSE);
 
     spool->surface = nullptr;
     gst_object_unref(spool->allocator);
@@ -545,7 +547,7 @@ static GstFlowReturn gst_producer_surface_pool_alloc_buffer(GstBufferPool *pool,
     GstVideoInfo *info = &spool->info;
 
     if (buf->GetFormat() == PIXEL_FMT_RGBA_8888) {
-        for (int plane = 0; plane < info->finfo->n_planes; ++plane) {
+        for (guint plane = 0; plane < info->finfo->n_planes; ++plane) {
             info->stride[plane] = stride;
             GST_DEBUG_OBJECT(spool, "new stride %d", stride);
         }

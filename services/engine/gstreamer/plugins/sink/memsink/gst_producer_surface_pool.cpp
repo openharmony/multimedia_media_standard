@@ -150,9 +150,11 @@ static void gst_producer_surface_pool_finalize(GObject *obj)
 {
     g_return_if_fail(obj != nullptr);
     GstSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(obj);
+    GstBufferPool *pool = GST_BUFFER_POOL(obj);
     g_return_if_fail(spool != nullptr);
 
     clear_preallocated_buffer(spool);
+    (void)gst_buffer_pool_set_active(pool, FALSE);
 
     spool->surface = nullptr;
     gst_object_unref(spool->allocator);

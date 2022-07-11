@@ -39,6 +39,7 @@ namespace OHOS {
 namespace Media {
 const std::string START_TAG = "RecorderCreate->Start";
 const std::string STOP_TAG = "RecorderStop->Destroy";
+const int32_t ROOT_UID = 0;
 #define CHECK_STATUS_FAILED_AND_LOGE_RET(statusFailed, ret) \
     do { \
         if (statusFailed) { \
@@ -67,7 +68,16 @@ RecorderServer::RecorderServer()
 
 RecorderServer::~RecorderServer()
 {
+    std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&RecorderServer::ExitProcessor, this);
+    if (thread != nullptr && thread->joinable()) {
+        thread->join();
+    }
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
+}
+
+void RecorderServer::ExitProcessor()
+{
+    recorderEngine_ = nullptr;
 }
 
 int32_t RecorderServer::Init()
@@ -86,6 +96,13 @@ int32_t RecorderServer::Init()
 
 bool RecorderServer::CheckPermission()
 {
+    auto callerUid = IPCSkeleton::GetCallingUid();
+    // Root users should be whitelisted
+    if (callerUid == ROOT_UID) {
+        MEDIA_LOGI("Root user. Permission Granted");
+        return true;
+    }
+
     Security::AccessToken::AccessTokenID tokenCaller = IPCSkeleton::GetCallingTokenID();
     int result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(tokenCaller, "ohos.permission.MICROPHONE");
     if (result == Security::AccessToken::PERMISSION_GRANTED) {
@@ -441,7 +458,10 @@ int32_t RecorderServer::Reset()
 int32_t RecorderServer::Release()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    recorderEngine_ = nullptr;
+    std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&RecorderServer::ExitProcessor, this);
+    if (thread != nullptr && thread->joinable()) {
+        thread->join();
+    }
     return MSERR_OK;
 }
 

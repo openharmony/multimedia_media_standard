@@ -18,7 +18,6 @@
 #include "av_common.h"
 #include "gstbasesink.h"
 #include "gstbaseparse.h"
-#include "scope_guard.h"
 
 enum {
     PROP_0,
@@ -124,14 +123,26 @@ static void gst_mux_bin_init(GstMuxBin *mux_bin)
     mux_bin->longitude = 0;
 }
 
-static void gst_mux_bin_free_list_string(GSList *list)
+static void gst_mux_bin_free_list(GSList *list)
 {
     GSList *iter = list;
     while (iter != nullptr && iter->data != nullptr) {
-        g_free(((GstTrackInfo *)(iter->data))->srcName_);
-        g_free(((GstTrackInfo *)(iter->data))->parseName_);
-        ((GstTrackInfo *)(iter->data))->srcName_ = nullptr;
-        ((GstTrackInfo *)(iter->data))->parseName_ = nullptr;
+        if ((reinterpret_cast<GstTrackInfo *>(iter->data))->srcName_ != nullptr) {
+            g_free((reinterpret_cast<GstTrackInfo *>(iter->data))->srcName_);
+            (reinterpret_cast<GstTrackInfo *>(iter->data))->srcName_ = nullptr;
+        }
+        if ((reinterpret_cast<GstTrackInfo *>(iter->data))->parseName_ != nullptr) {
+            g_free((reinterpret_cast<GstTrackInfo *>(iter->data))->parseName_);
+            (reinterpret_cast<GstTrackInfo *>(iter->data))->parseName_ = nullptr;
+        }
+        if ((reinterpret_cast<GstTrackInfo *>(iter->data))->src_ != nullptr) {
+            gst_object_unref((reinterpret_cast<GstTrackInfo *>(iter->data))->src_);
+            (reinterpret_cast<GstTrackInfo *>(iter->data))->src_ = nullptr;
+        }
+        if ((reinterpret_cast<GstTrackInfo *>(iter->data))->parse_ != nullptr) {
+            gst_object_unref((reinterpret_cast<GstTrackInfo *>(iter->data))->parse_);
+            (reinterpret_cast<GstTrackInfo *>(iter->data))->parse_ = nullptr;
+        }
         g_free(iter->data);
         iter->data = nullptr;
         iter = iter->next;
@@ -149,11 +160,16 @@ static void gst_mux_bin_finalize(GObject *object)
         mux_bin->mux = nullptr;
     }
 
-    gst_mux_bin_free_list_string(mux_bin->video_src_list);
+    if (mux_bin->split_mux_sink != nullptr) {
+        gst_object_unref(mux_bin->split_mux_sink);
+        mux_bin->split_mux_sink = nullptr;
+    }
+
+    gst_mux_bin_free_list(mux_bin->video_src_list);
     g_slist_free(mux_bin->video_src_list);
     mux_bin->video_src_list = nullptr;
 
-    gst_mux_bin_free_list_string(mux_bin->audio_src_list);
+    gst_mux_bin_free_list(mux_bin->audio_src_list);
     g_slist_free(mux_bin->audio_src_list);
     mux_bin->audio_src_list = nullptr;
 
@@ -196,13 +212,12 @@ static bool gst_mux_bin_create_splitmuxsink(GstMuxBin *mux_bin)
     g_return_val_if_fail(mux_bin->mux != nullptr, false);
     GST_INFO_OBJECT(mux_bin, "gst_mux_bin_create_splitmuxsink");
 
-    mux_bin->split_mux_sink = gst_element_factory_make("splitmuxsink", "splitmuxsink");
+    mux_bin->split_mux_sink = GST_ELEMENT(gst_object_ref_sink(
+        gst_element_factory_make("splitmuxsink", "splitmuxsink")));
     g_return_val_if_fail(mux_bin->split_mux_sink != nullptr, false);
-    ON_SCOPE_EXIT(0) { gst_object_unref(mux_bin->split_mux_sink); };
 
     GstElement *fdsink = gst_element_factory_make("fdsink", "fdsink");
     g_return_val_if_fail(fdsink != nullptr, false);
-    ON_SCOPE_EXIT(1) { gst_object_unref(fdsink); };
 
     g_object_set(fdsink, "fd", mux_bin->out_fd, nullptr);
     gst_base_sink_set_async_enabled(GST_BASE_SINK(fdsink), FALSE);
@@ -214,9 +229,6 @@ static bool gst_mux_bin_create_splitmuxsink(GstMuxBin *mux_bin)
         "set-longitude", mux_bin->longitude, nullptr);
     g_object_set(mux_bin->split_mux_sink, "muxer", qtmux, nullptr);
 
-    CANCEL_SCOPE_EXIT_GUARD(0);
-    CANCEL_SCOPE_EXIT_GUARD(1);
-
     return true;
 }
 
@@ -227,14 +239,14 @@ static GstElement *gst_mux_bin_create_parse(GstMuxBin *mux_bin, const char* pars
 
     GstElement *parse = nullptr;
     if (strncmp(parse_name, "h264parse", strlen("h264parse")) == 0) {
-        parse = gst_element_factory_make("h264parse", parse_name);
+        parse = GST_ELEMENT(gst_object_ref_sink(gst_element_factory_make("h264parse", parse_name)));
         g_return_val_if_fail(parse != nullptr, nullptr);
     } else if (strncmp(parse_name, "mpeg4videoparse", strlen("mpeg4videoparse")) == 0) {
-        parse = gst_element_factory_make("mpeg4videoparse", parse_name);
+        parse = GST_ELEMENT(gst_object_ref_sink(gst_element_factory_make("mpeg4videoparse", parse_name)));
         g_return_val_if_fail(parse != nullptr, nullptr);
         g_object_set(parse, "config-interval", -1, "drop", false, nullptr);
     } else if (strncmp(parse_name, "aacparse", strlen("aacparse")) == 0) {
-        parse = gst_element_factory_make("aacparse", parse_name);
+        parse = GST_ELEMENT(gst_object_ref_sink(gst_element_factory_make("aacparse", parse_name)));
         g_return_val_if_fail(parse != nullptr, nullptr);
     } else {
         GST_ERROR_OBJECT(mux_bin, "Invalid videoParse");
@@ -260,48 +272,23 @@ static bool gst_mux_bin_create_src(GstMuxBin *mux_bin, OHOS::Media::MediaType tr
             break;
     }
     while (iter != nullptr) {
-        GstElement *appSrc = gst_element_factory_make("appsrc", ((GstTrackInfo *)(iter->data))->srcName_);
-        g_return_val_if_fail(appSrc != nullptr, false);
-        g_object_set(appSrc, "is-live", true, "format", GST_FORMAT_TIME, nullptr);
-        ((GstTrackInfo *)(iter->data))->src_ = appSrc;
-        if (strstr(((GstTrackInfo *)(iter->data))->parseName_, "parse")) {
-            GstElement *parse = gst_mux_bin_create_parse(mux_bin, ((GstTrackInfo *)(iter->data))->parseName_);
+        GstElement *app_src = GST_ELEMENT(gst_object_ref_sink(gst_element_factory_make(
+            "appsrc", (reinterpret_cast<GstTrackInfo *>(iter->data))->srcName_)));
+        g_return_val_if_fail(app_src != nullptr, false);
+        g_object_set(app_src, "is-live", true, "format", GST_FORMAT_TIME, nullptr);
+        (reinterpret_cast<GstTrackInfo *>(iter->data))->src_ = app_src;
+        if (strstr((reinterpret_cast<GstTrackInfo *>(iter->data))->parseName_, "parse")) {
+            GstElement *parse = gst_mux_bin_create_parse(mux_bin,
+                (reinterpret_cast<GstTrackInfo *>(iter->data))->parseName_);
             g_return_val_if_fail(parse != nullptr, false);
-            ((GstTrackInfo *)(iter->data))->parse_ = parse;
+            (reinterpret_cast<GstTrackInfo *>(iter->data))->parse_ = parse;
         } else {
-            ((GstTrackInfo *)(iter->data))->parse_ = nullptr;
+            (reinterpret_cast<GstTrackInfo *>(iter->data))->parse_ = nullptr;
         }
         iter = iter->next;
     }
 
     return true;
-}
-
-static void gst_mux_bin_free_list_element(GSList *list, bool only_free_parse) {
-    GSList *iter = list;
-    while (iter != nullptr && iter->data != nullptr) {
-        if (!only_free_parse) {
-            gst_object_unref(((GstTrackInfo *)(iter->data))->src_);
-            ((GstTrackInfo *)(iter->data))->src_ = nullptr;
-        }
-        gst_object_unref(((GstTrackInfo *)(iter->data))->parse_);
-        ((GstTrackInfo *)(iter->data))->parse_ = nullptr;
-        only_free_parse = false;
-        iter = iter->next;
-    }
-}
-
-static void gst_mux_bin_free_element(GstMuxBin *mux_bin)
-{
-    g_return_if_fail(mux_bin != nullptr);
-    GST_ERROR_OBJECT(mux_bin, "Failed to create element, now begin free element");
-
-    if (mux_bin->split_mux_sink) {
-        gst_object_unref(mux_bin->split_mux_sink);
-    }
-
-    gst_mux_bin_free_list_element(mux_bin->video_src_list, false);
-    gst_mux_bin_free_list_element(mux_bin->audio_src_list, false);
 }
 
 static bool gst_mux_bin_create_element(GstMuxBin *mux_bin)
@@ -333,47 +320,35 @@ static bool gst_mux_bin_add_element_to_bin(GstMuxBin *mux_bin)
     g_return_val_if_fail(mux_bin->split_mux_sink != nullptr, false);
     GST_INFO_OBJECT(mux_bin, "gst_mux_bin_add_element_to_bin");
 
-    GSList *iter_video = mux_bin->video_src_list;
-    bool only_free_parse_video = false;
-    while (iter_video != nullptr) {
-        if (!gst_bin_add(GST_BIN(mux_bin), ((GstTrackInfo *)(iter_video->data))->src_)) {
-            break;
+    bool ret;
+    GSList *iter = mux_bin->video_src_list;
+    while (iter != nullptr) {
+        ret = gst_bin_add(GST_BIN(mux_bin), (reinterpret_cast<GstTrackInfo *>(iter->data))->src_);
+        g_return_val_if_fail(ret == TRUE, false);
+        if ((reinterpret_cast<GstTrackInfo *>(iter->data))->parse_ != nullptr) {
+            ret = gst_bin_add(GST_BIN(mux_bin), (reinterpret_cast<GstTrackInfo *>(iter->data))->parse_);
+            g_return_val_if_fail(ret == TRUE, false);
         }
-        if (((GstTrackInfo *)(iter_video->data))->parse_ != nullptr &&
-            !gst_bin_add(GST_BIN(mux_bin), ((GstTrackInfo *)(iter_video->data))->parse_)) {
-            only_free_parse_video = true;
-            break;
-        }
-        iter_video = iter_video->next;
+        iter = iter->next;
     }
-    GSList *iter_audio = mux_bin->audio_src_list;
-    bool only_free_parse_audio = false;
-    while (iter_video == nullptr && iter_audio != nullptr) {
-        if (!gst_bin_add(GST_BIN(mux_bin), ((GstTrackInfo *)(iter_audio->data))->src_)) {
-            break;
+    iter = mux_bin->audio_src_list;
+    while (iter != nullptr) {
+        ret = gst_bin_add(GST_BIN(mux_bin), (reinterpret_cast<GstTrackInfo *>(iter->data))->src_);
+        g_return_val_if_fail(ret == TRUE, false);
+        if ((reinterpret_cast<GstTrackInfo *>(iter->data))->parse_ != nullptr) {
+            ret = gst_bin_add(GST_BIN(mux_bin), (reinterpret_cast<GstTrackInfo *>(iter->data))->parse_);
+            g_return_val_if_fail(ret == TRUE, false);
         }
-        if (((GstTrackInfo *)(iter_audio->data))->parse_ != nullptr &&
-            !gst_bin_add(GST_BIN(mux_bin), ((GstTrackInfo *)(iter_audio->data))->parse_)) {
-            only_free_parse_audio = true;
-            break;
-        }
-        iter_audio = iter_audio->next;
+        iter = iter->next;
     }
+    ret = gst_bin_add(GST_BIN(mux_bin), mux_bin->split_mux_sink);
+    g_return_val_if_fail(ret == TRUE, false);
 
-    if (iter_video == nullptr && iter_audio == nullptr) {
-        if (!gst_bin_add(GST_BIN(mux_bin), mux_bin->split_mux_sink)) {
-            gst_object_unref(mux_bin->split_mux_sink);
-        } else {
-            return true;;
-        }
-    }
-    gst_mux_bin_free_list_element(iter_video, only_free_parse_video);
-    gst_mux_bin_free_list_element(iter_audio, only_free_parse_audio);
-
-    return false;
+    return true;
 }
 
-static bool gst_mux_bin_connect_parse(GstMuxBin *mux_bin, GstElement *parse, GstPad *upstream_pad, GstPad *downstream_pad)
+static bool gst_mux_bin_connect_parse(
+    GstMuxBin *mux_bin, GstElement *parse, GstPad *upstream_pad, GstPad *downstream_pad)
 {
     g_return_val_if_fail(mux_bin != nullptr, false);
     g_return_val_if_fail(parse != nullptr, false);
@@ -383,17 +358,19 @@ static bool gst_mux_bin_connect_parse(GstMuxBin *mux_bin, GstElement *parse, Gst
 
     GstPad *parse_sink_pad = gst_element_get_static_pad(parse, "sink");
     if (gst_pad_link(upstream_pad, parse_sink_pad) != GST_PAD_LINK_OK) {
+        gst_object_unref(parse_sink_pad);
         GST_ERROR_OBJECT(mux_bin, "Failed to link src_src_pad and parse_sink_pad");
         return false;
     }
+    gst_object_unref(parse_sink_pad);
     GstPad *parse_src_pad = gst_element_get_static_pad(parse, "src");
     if (gst_pad_link(parse_src_pad, downstream_pad) != GST_PAD_LINK_OK) {
+        gst_object_unref(parse_src_pad);
         GST_ERROR_OBJECT(mux_bin, "Failed to link parse_src_pad and split_mux_sink_sink_pad");
         return false;
     }
-    
-    gst_object_unref(parse_sink_pad);
     gst_object_unref(parse_src_pad);
+    
     return true;
 }
 
@@ -414,26 +391,31 @@ static bool gst_mux_bin_connect_element(GstMuxBin *mux_bin, OHOS::Media::MediaTy
     }
     
     while (iter != nullptr) {
-        GstPad *src_src_pad = gst_element_get_static_pad(((GstTrackInfo *)(iter->data))->src_, "src");
-        ON_SCOPE_EXIT(0) { gst_object_unref(src_src_pad); };
+        GstPad *src_src_pad = gst_element_get_static_pad((reinterpret_cast<GstTrackInfo *>(iter->data))->src_, "src");
         GstPad *split_mux_sink_sink_pad = nullptr;
         if (type == OHOS::Media::MEDIA_TYPE_VID) {
             split_mux_sink_sink_pad = gst_element_get_request_pad(mux_bin->split_mux_sink, "video");
         } else if (type == OHOS::Media::MEDIA_TYPE_AUD) {
             split_mux_sink_sink_pad = gst_element_get_request_pad(mux_bin->split_mux_sink, "audio_%u");
         }
-        ON_SCOPE_EXIT(1) { gst_object_unref(split_mux_sink_sink_pad); };
-        if (((GstTrackInfo *)(iter->data))->parse_ != nullptr) {
-            if (!gst_mux_bin_connect_parse(mux_bin, ((GstTrackInfo *)(iter->data))->parse_, src_src_pad, split_mux_sink_sink_pad)) {
-                GST_ERROR_OBJECT(mux_bin, "Failed to call gst_mux_bin_connect_parse");
+        if ((reinterpret_cast<GstTrackInfo *>(iter->data))->parse_ != nullptr) {
+            if (!gst_mux_bin_connect_parse(mux_bin, (reinterpret_cast<GstTrackInfo *>(iter->data))->parse_,
+                src_src_pad, split_mux_sink_sink_pad)) {
+                gst_object_unref(split_mux_sink_sink_pad);
+                gst_object_unref(src_src_pad);
+                GST_ERROR_OBJECT(mux_bin, "Failed to call connect_parse");
                 return false;
             }
         } else {
             if (gst_pad_link(src_src_pad, split_mux_sink_sink_pad) != GST_PAD_LINK_OK) {
+                gst_object_unref(split_mux_sink_sink_pad);
+                gst_object_unref(src_src_pad);
                 GST_ERROR_OBJECT(mux_bin, "Failed to link src_src_pad and split_mux_sink_sink_pad");
                 return false;
             }
         }
+        gst_object_unref(split_mux_sink_sink_pad);
+        gst_object_unref(src_src_pad);
         iter = iter->next;
     }
     
@@ -447,10 +429,9 @@ static GstStateChangeReturn gst_mux_bin_change_state(GstElement *element, GstSta
     GST_INFO_OBJECT(mux_bin, "gst_mux_bin_change_state");
 
     switch (transition) {
-        case GST_STATE_CHANGE_NULL_TO_READY:
+        case GST_STATE_CHANGE_NULL_TO_READY: {
             if (!gst_mux_bin_create_element(mux_bin)) {
                 GST_ERROR_OBJECT(mux_bin, "Failed to create element");
-                gst_mux_bin_free_element(mux_bin);
                 return GST_STATE_CHANGE_FAILURE;
             }
             if (!gst_mux_bin_add_element_to_bin(mux_bin)) {
@@ -458,7 +439,8 @@ static GstStateChangeReturn gst_mux_bin_change_state(GstElement *element, GstSta
                 return GST_STATE_CHANGE_FAILURE;
             }
             break;
-        case GST_STATE_CHANGE_READY_TO_PAUSED:
+        }
+        case GST_STATE_CHANGE_READY_TO_PAUSED: {
             if (!gst_mux_bin_connect_element(mux_bin, OHOS::Media::MEDIA_TYPE_VID)) {
                 GST_ERROR_OBJECT(mux_bin, "Failed to connect element");
                 return GST_STATE_CHANGE_FAILURE;
@@ -468,6 +450,7 @@ static GstStateChangeReturn gst_mux_bin_change_state(GstElement *element, GstSta
                 return GST_STATE_CHANGE_FAILURE;
             }
             break;
+        }
         default:
             break;
     }

@@ -100,6 +100,23 @@ public:
 };
 
 __attribute__((visibility("default"))) std::string AVCodecErrorTypeToString(AVCodecErrorType type);
+
+class SurfaceBufferExtratDataKey {
+public:
+    /**
+     * Key for timeStamp in surface's extraData, value type is int64
+     */
+    static constexpr std::string_view ED_KEY_TIME_STAMP = "timeStamp";
+
+    /**
+     * Key for endOfStream in surface's extraData, value type is bool
+     */
+    static constexpr std::string_view ED_KEY_END_OF_STREAM = "endOfStream";
+
+private:
+    SurfaceBufferExtratDataKey() = delete;
+    ~SurfaceBufferExtratDataKey() = delete;
+};
 } // namespace Media
 } // namespace OHOS
 #endif // AVCODEC_COMMOM_H

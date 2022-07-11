@@ -21,6 +21,7 @@ config("media_engine_common_avcodeclist_config") {
     "-fno-rtti",
     "-fno-exceptions",
     "-Wall",
+    "-Werror=sign-compare",
     "-fno-common",
     "-fstack-protector-strong",
     "-Wshadow",
