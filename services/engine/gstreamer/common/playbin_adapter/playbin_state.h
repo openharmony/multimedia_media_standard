@@ -36,7 +36,10 @@ public:
 
 protected:
     void OnMessageReceived(const InnerMessage &msg) final;
-    virtual void ProcessStateChange(const InnerMessage &msg) {}
+    virtual void ProcessStateChange(const InnerMessage &msg)
+    {
+        (void)msg;
+    }
     void ReportInvalidOperation();
     int32_t ChangePlayBinState(GstState targetState);
     void HandleStateChange(const InnerMessage &msg);
