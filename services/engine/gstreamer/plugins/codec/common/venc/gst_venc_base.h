@@ -71,7 +71,6 @@ struct _GstVencBase {
     gboolean useBuffers;
     GstVideoCodecState *input_state;
     GstVideoCodecState *output_state;
-    std::vector<GstVideoFormat> formats;
     GstVideoFormat format;
     OHOS::Media::GstCompressionFormat compress_format;
     gboolean is_codec_outbuffer;
