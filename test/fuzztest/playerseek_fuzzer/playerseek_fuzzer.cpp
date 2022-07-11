@@ -76,8 +76,7 @@ bool PlayerSeekFuzzer::FuzzSeek(uint8_t* data, size_t size)
         if (ret != 0) {
             cout << "seek fail" << endl;
             return false;
-        } else
-        {
+        } else {
             sleep(1);
         }
     }
