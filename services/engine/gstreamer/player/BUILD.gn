@@ -76,6 +76,7 @@ ohos_static_library("media_engine_gst_player") {
   configs = [
     ":media_engine_gst_player_config",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface_public_config",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils_public_config",
   ]
 
@@ -83,6 +84,7 @@ ohos_static_library("media_engine_gst_player") {
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiomanager:audio_client",
+    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gobject",
