@@ -348,14 +348,18 @@ static bool connect_parse(GstMuxBin *mux_bin, GstElement *parse, GstPad *upstrea
 
     GstPad *parse_sink_pad = gst_element_get_static_pad(parse, "sink");
     if (gst_pad_link(upstream_pad, parse_sink_pad) != GST_PAD_LINK_OK) {
+        gst_object_unref(parse_sink_pad);
         GST_ERROR_OBJECT(mux_bin, "Failed to link src_src_pad and parse_sink_pad");
         return false;
     }
+    gst_object_unref(parse_sink_pad);
     GstPad *parse_src_pad = gst_element_get_static_pad(parse, "src");
     if (gst_pad_link(parse_src_pad, downstream_pad) != GST_PAD_LINK_OK) {
+        gst_object_unref(parse_src_pad);
         GST_ERROR_OBJECT(mux_bin, "Failed to link parse_src_pad and split_mux_sink_sink_pad");
         return false;
     }
+    gst_object_unref(parse_src_pad);
     
     return true;
 }
@@ -386,15 +390,21 @@ static bool connect_element(GstMuxBin *mux_bin, OHOS::Media::MediaType type)
         }
         if (((GstTrackInfo *)(iter->data))->parse_ != nullptr) {
             if (!connect_parse(mux_bin, ((GstTrackInfo *)(iter->data))->parse_, src_src_pad, split_mux_sink_sink_pad)) {
+                gst_object_unref(split_mux_sink_sink_pad);
+                gst_object_unref(src_src_pad);
                 GST_ERROR_OBJECT(mux_bin, "Failed to call connect_parse");
                 return false;
             }
         } else {
             if (gst_pad_link(src_src_pad, split_mux_sink_sink_pad) != GST_PAD_LINK_OK) {
+                gst_object_unref(split_mux_sink_sink_pad);
+                gst_object_unref(src_src_pad);
                 GST_ERROR_OBJECT(mux_bin, "Failed to link src_src_pad and split_mux_sink_sink_pad");
                 return false;
             }
         }
+        gst_object_unref(split_mux_sink_sink_pad);
+        gst_object_unref(src_src_pad);
         iter = iter->next;
     }
     
