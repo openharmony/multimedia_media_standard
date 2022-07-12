@@ -40,7 +40,7 @@ public:
     virtual int32_t Flush() = 0;
     virtual int32_t Reset() = 0;
     virtual int32_t Release() = 0;
-    virtual int32_t NotifyEos() override;
+    virtual int32_t NotifyEos() = 0;
     virtual sptr<OHOS::Surface> CreateInputSurface() = 0;
     virtual int32_t SetOutputSurface(sptr<OHOS::Surface> surface) = 0;
     virtual std::shared_ptr<AVSharedMemory> GetInputBuffer(uint32_t index) = 0;
