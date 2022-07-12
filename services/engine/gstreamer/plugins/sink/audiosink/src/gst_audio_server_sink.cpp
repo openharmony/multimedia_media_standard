@@ -36,6 +36,7 @@ namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "audio_server_sink"};
     constexpr float DEFAULT_VOLUME = 1.0f;
     constexpr uint32_t DEFAULT_BITS_PER_SAMPLE = 16;
+    constexpr uint64_t DEFAULT_AUDIO_RENDER_DELAY = 270000; // unit us, empirical value
 }
 
 enum {
@@ -583,6 +584,10 @@ static GstFlowReturn gst_audio_server_sink_render(GstBaseSink *basesink, GstBuff
         } else {
             GST_INFO_OBJECT(basesink, "frame render latency is (%" PRIu64 ")", latency);
         }
+        /* the latency provided by GetLatency() is not accurate.
+         * so we set DEFAULT_AUDIO_RENDER_DELAY to basesink.
+         */
+        gst_base_sink_set_render_delay(basesink, DEFAULT_AUDIO_RENDER_DELAY * GST_USECOND);
     }
     if (GST_CLOCK_TIME_IS_VALID(GST_BUFFER_PTS(buffer))) {
         sink->last_render_pts = GST_BUFFER_PTS(buffer);
