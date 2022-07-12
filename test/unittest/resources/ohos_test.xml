@@ -22,7 +22,6 @@
     </target>
     <target name="recorder_unit_test">
         <preparer>
-            <option name="push" value="res_recorder/h264_1280_720.h264 -> /data/test" src="res"/>
             <option name="push" value="res_recorder/recorder_video_pause_resume.mp4 -> /data/test" src="res"/>
             <option name="push" value="res_recorder/recorder_video_es.mp4 -> /data/test" src="res"/>
             <option name="push" value="res_recorder/recorder_video_yuv_mpeg4.mp4 -> /data/test" src="res"/>
