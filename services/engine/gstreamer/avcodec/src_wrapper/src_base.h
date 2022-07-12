@@ -60,6 +60,11 @@ public:
         return MSERR_OK;
     }
 
+    virtual int32_t NotifyEos()
+    {
+        return MSERR_INVALID_OPERATION;
+    }
+
     virtual bool Needflush()
     {
         return true;
