@@ -672,7 +672,7 @@ static gboolean gst_vdec_base_allocate_out_buffers(GstVdecBase *self)
     std::vector<GstBuffer*> buffers;
     self->coding_outbuf_cnt = self->out_buffer_cnt;
     for (guint i = 0; i < self->out_buffer_cnt; ++i) {
-        GST_DEBUG_OBJECT(self, "Allocate output buffer %d", i);
+        GST_DEBUG_OBJECT(self, "Allocate output buffer %u", i);
         GstBuffer *buffer = gst_video_decoder_allocate_output_buffer(GST_VIDEO_DECODER(self));
         if (buffer == nullptr) {
             GST_WARNING_OBJECT(self, "Allocate buffer is nullptr");
@@ -1046,14 +1046,14 @@ static gboolean gst_vdec_check_out_format_change(GstVdecBase *self)
 static gboolean gst_vdec_check_out_buffer_cnt(GstVdecBase *self)
 {
     if (self->output.min_buffer_cnt > self->out_buffer_max_cnt) {
-        GST_ERROR_OBJECT(self, "min buffer %d > max buffer %d", self->output.min_buffer_cnt, self->out_buffer_max_cnt);
+        GST_ERROR_OBJECT(self, "min buffer %u > max buffer %u", self->output.min_buffer_cnt, self->out_buffer_max_cnt);
         return FALSE;
     }
     if (self->output.buffer_cnt > self->out_buffer_max_cnt) {
         self->output.buffer_cnt = self->out_buffer_max_cnt;
     }
     gboolean is_buffer_cnt_change = self->out_buffer_cnt != self->output.buffer_cnt;
-    GST_INFO_OBJECT(self, "Format change buffer %d to %d", self->out_buffer_cnt, self->output.buffer_cnt);
+    GST_INFO_OBJECT(self, "Format change buffer %u to %u", self->out_buffer_cnt, self->output.buffer_cnt);
     self->out_buffer_cnt = self->output.buffer_cnt;
     return is_buffer_cnt_change;
 }
@@ -1307,7 +1307,7 @@ static gboolean gst_vdec_base_set_format(GstVideoDecoder *decoder, GstVideoCodec
         GST_DEBUG_OBJECT(self, "width: %d, height: %d, frame_rate: %d", self->width, self->height, self->frame_rate);
     }
 
-    GST_DEBUG_OBJECT(self, "Setting inport definition");
+    GST_DEBUG_OBJECT(self, "Setting input port definition");
     ret = self->decoder->SetParameter(GST_VIDEO_INPUT_COMMON, GST_ELEMENT(self));
     g_return_val_if_fail(ret == GST_CODEC_OK, FALSE);
     ret = self->decoder->GetParameter(GST_VIDEO_INPUT_COMMON, GST_ELEMENT(self));

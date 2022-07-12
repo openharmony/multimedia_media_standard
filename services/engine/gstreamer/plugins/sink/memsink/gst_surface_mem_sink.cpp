@@ -25,7 +25,7 @@
 using namespace OHOS;
 struct _GstSurfaceMemSinkPrivate {
     OHOS::sptr<OHOS::Surface> surface;
-    GstSurfacePool *pool;
+    GstProducerSurfacePool *pool;
 };
 
 enum {
@@ -352,7 +352,7 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     }
     GST_DEBUG("maxBuffers is: %u", maxBuffers);
 
-    GstSurfacePool *pool = surface_sink->priv->pool;
+    GstProducerSurfacePool *pool = surface_sink->priv->pool;
     g_return_val_if_fail(pool != nullptr, FALSE);
     g_return_val_if_fail(gst_buffer_pool_set_active(GST_BUFFER_POOL(pool), FALSE), FALSE);
 
