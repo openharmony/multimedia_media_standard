@@ -49,7 +49,7 @@ enum {
 #define GST_BUFFER_POOL_NOTIFY(pool) (g_cond_signal(&(pool)->cond))
 
 #define gst_producer_surface_pool_parent_class parent_class
-G_DEFINE_TYPE(GstSurfacePool, gst_producer_surface_pool, GST_TYPE_BUFFER_POOL);
+G_DEFINE_TYPE(GstProducerSurfacePool, gst_producer_surface_pool, GST_TYPE_BUFFER_POOL);
 
 GST_DEBUG_CATEGORY_STATIC(gst_producer_surface_pool_debug_category);
 #define GST_CAT_DEFAULT gst_producer_surface_pool_debug_category
@@ -70,7 +70,7 @@ static void gst_producer_surface_pool_set_property(GObject *object, guint prop_i
     const GValue *value, GParamSpec *pspec);
 static void gst_producer_surface_pool_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec);
 
-static void clear_preallocated_buffer(GstSurfacePool *spool)
+static void clear_preallocated_buffer(GstProducerSurfacePool *spool)
 {
     for (GList *node = g_list_first(spool->preAllocated); node != nullptr; node = g_list_next(node)) {
         GstBuffer *buffer = GST_BUFFER_CAST(node->data);
@@ -83,7 +83,7 @@ static void clear_preallocated_buffer(GstSurfacePool *spool)
     spool->preAllocated = nullptr;
 }
 
-static void gst_producer_surface_pool_class_init(GstSurfacePoolClass *klass)
+static void gst_producer_surface_pool_class_init(GstProducerSurfacePoolClass *klass)
 {
     g_return_if_fail(klass != nullptr);
     GstBufferPoolClass *poolClass = GST_BUFFER_POOL_CLASS (klass);
@@ -119,7 +119,7 @@ static void gst_producer_surface_pool_class_init(GstSurfacePoolClass *klass)
     poolClass->flush_start = gst_producer_surface_pool_flush_start;
 }
 
-static void gst_producer_surface_pool_init(GstSurfacePool *pool)
+static void gst_producer_surface_pool_init(GstProducerSurfacePool *pool)
 {
     g_return_if_fail(pool != nullptr);
 
@@ -150,7 +150,7 @@ static void gst_producer_surface_pool_init(GstSurfacePool *pool)
 static void gst_producer_surface_pool_finalize(GObject *obj)
 {
     g_return_if_fail(obj != nullptr);
-    GstSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(obj);
+    GstProducerSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(obj);
     GstBufferPool *pool = GST_BUFFER_POOL(obj);
     g_return_if_fail(spool != nullptr);
 
@@ -177,7 +177,7 @@ static void gst_producer_surface_pool_set_property(GObject *object, guint prop_i
     g_return_if_fail(object != nullptr);
     g_return_if_fail(value != nullptr);
     g_return_if_fail(pspec != nullptr);
-    GstSurfacePool *spool = GST_PRODUCER_SURFACE_POOL(object);
+    GstProducerSurfacePool *spool = GST_PRODUCER_SURFACE_POOL(object);
 
     switch (prop_id) {
         case PROP_DYNAMIC_BUFFER_NUM: {
@@ -226,7 +226,7 @@ static void gst_producer_surface_pool_get_property(GObject *object, guint prop_i
     g_return_if_fail(object != nullptr);
     g_return_if_fail(value != nullptr);
     g_return_if_fail(pspec != nullptr);
-    GstSurfacePool *spool = GST_PRODUCER_SURFACE_POOL(object);
+    GstProducerSurfacePool *spool = GST_PRODUCER_SURFACE_POOL(object);
 
     switch (prop_id) {
         case PROP_DYNAMIC_BUFFER_NUM: {
@@ -241,10 +241,10 @@ static void gst_producer_surface_pool_get_property(GObject *object, guint prop_i
     }
 }
 
-GstSurfacePool *gst_producer_surface_pool_new()
+GstProducerSurfacePool *gst_producer_surface_pool_new()
 {
-    GstSurfacePool *pool = GST_PRODUCER_SURFACE_POOL_CAST(g_object_new(
-        GST_TYPE_SURFACE_POOL, "name", "SurfacePool", nullptr));
+    GstProducerSurfacePool *pool = GST_PRODUCER_SURFACE_POOL_CAST(g_object_new(
+        GST_TYPE_PRODUCER_SURFACE_POOL, "name", "SurfacePool", nullptr));
     (void)gst_object_ref_sink(pool);
 
     return pool;
@@ -275,7 +275,7 @@ static gboolean parse_caps_info(GstCaps *caps, GstVideoInfo *info, PixelFormat *
     return TRUE;
 }
 
-static gboolean parse_config_usage(GstSurfacePool *spool, GstStructure *config)
+static gboolean parse_config_usage(GstProducerSurfacePool *spool, GstStructure *config)
 {
     g_return_val_if_fail(spool != nullptr, FALSE);
     g_return_val_if_fail(config != nullptr, FALSE);
@@ -288,7 +288,7 @@ static gboolean parse_config_usage(GstSurfacePool *spool, GstStructure *config)
 
 static gboolean gst_producer_surface_pool_set_config(GstBufferPool *pool, GstStructure *config)
 {
-    GstSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(pool);
+    GstProducerSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(pool);
     g_return_val_if_fail(spool != nullptr, FALSE);
     g_return_val_if_fail(config != nullptr, FALSE);
 
@@ -337,7 +337,7 @@ static gboolean gst_producer_surface_pool_set_config(GstBufferPool *pool, GstStr
     return TRUE;
 }
 
-gboolean gst_producer_surface_pool_set_surface(GstSurfacePool *pool, OHOS::sptr<OHOS::Surface> surface)
+gboolean gst_producer_surface_pool_set_surface(GstProducerSurfacePool *pool, OHOS::sptr<OHOS::Surface> surface)
 {
     g_return_val_if_fail(surface != nullptr, FALSE);
     g_return_val_if_fail(pool != nullptr, FALSE);
@@ -362,7 +362,7 @@ gboolean gst_producer_surface_pool_set_surface(GstSurfacePool *pool, OHOS::sptr<
     return TRUE;
 }
 
-static void gst_producer_surface_pool_request_loop(GstSurfacePool *spool)
+static void gst_producer_surface_pool_request_loop(GstProducerSurfacePool *spool)
 {
     g_return_if_fail(spool != nullptr);
     GstBufferPool *pool = GST_BUFFER_POOL_CAST(spool);
@@ -424,7 +424,7 @@ static void gst_producer_surface_pool_request_loop(GstSurfacePool *spool)
 static gboolean gst_producer_surface_pool_start(GstBufferPool *pool)
 {
     g_return_val_if_fail(pool != nullptr, FALSE);
-    GstSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(pool);
+    GstProducerSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(pool);
     g_return_val_if_fail(spool != nullptr, FALSE);
 
     GST_DEBUG_OBJECT(spool, "pool start");
@@ -470,7 +470,7 @@ static gboolean gst_producer_surface_pool_start(GstBufferPool *pool)
 static gboolean gst_producer_surface_pool_stop(GstBufferPool *pool)
 {
     g_return_val_if_fail(pool != nullptr, FALSE);
-    GstSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(pool);
+    GstProducerSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(pool);
     g_return_val_if_fail(spool != nullptr, FALSE);
 
     GST_DEBUG_OBJECT(spool, "pool stop");
@@ -500,7 +500,7 @@ static gboolean gst_producer_surface_pool_stop(GstBufferPool *pool)
     return ret;
 }
 
-static GstFlowReturn do_alloc_memory_locked(GstSurfacePool *spool,
+static GstFlowReturn do_alloc_memory_locked(GstProducerSurfacePool *spool,
     GstBufferPoolAcquireParams *params, GstSurfaceMemory **memory)
 {
     GstVideoInfo *info = &spool->info;
@@ -522,7 +522,7 @@ static GstFlowReturn gst_producer_surface_pool_alloc_buffer(GstBufferPool *pool,
     GstBuffer **buffer, GstBufferPoolAcquireParams *params)
 {
     g_return_val_if_fail(pool != nullptr && buffer != nullptr, GST_FLOW_ERROR);
-    GstSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(pool);
+    GstProducerSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(pool);
     g_return_val_if_fail(spool != nullptr, GST_FLOW_ERROR);
 
     GST_DEBUG_OBJECT(spool, "alloc surface buffer");
@@ -573,7 +573,7 @@ static GstFlowReturn gst_producer_surface_pool_acquire_buffer(GstBufferPool *poo
     GstBuffer **buffer, GstBufferPoolAcquireParams *params)
 {
     g_return_val_if_fail(pool != nullptr && buffer != nullptr, GST_FLOW_ERROR);
-    GstSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(pool);
+    GstProducerSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(pool);
     g_return_val_if_fail(spool != nullptr, GST_FLOW_ERROR);
     GstFlowReturn ret = GST_FLOW_OK;
 
@@ -629,7 +629,7 @@ static void gst_producer_surface_pool_release_buffer(GstBufferPool *pool, GstBuf
 {
     // The GstBufferPool has already cleared the GstBuffer's pool ref to this pool.
 
-    GstSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(pool);
+    GstProducerSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(pool);
     g_return_if_fail(spool != nullptr);
     GST_DEBUG_OBJECT(spool, "release buffer 0x%06" PRIXPTR "", FAKE_POINTER(buffer));
 
@@ -648,7 +648,7 @@ static void gst_producer_surface_pool_release_buffer(GstBufferPool *pool, GstBuf
 
 static void gst_producer_surface_pool_flush_start(GstBufferPool *pool)
 {
-    GstSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(pool);
+    GstProducerSurfacePool *spool = GST_PRODUCER_SURFACE_POOL_CAST(pool);
     g_return_if_fail(spool != nullptr);
 
     GST_BUFFER_POOL_LOCK(spool);
