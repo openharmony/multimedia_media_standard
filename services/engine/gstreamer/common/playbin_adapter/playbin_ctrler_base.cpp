@@ -683,13 +683,7 @@ int32_t PlayBinCtrlerBase::SetupSignalMessage()
     GstBus *bus = gst_pipeline_get_bus(playbin_);
     CHECK_AND_RETURN_RET_LOG(bus != nullptr, MSERR_UNKNOWN, "can not get bus");
 
-    std::weak_ptr<PlayBinCtrlerBase> weakThiz = shared_from_this();
-    auto msgNotifier = [weakThiz](const InnerMessage &msg) {
-        std::shared_ptr<PlayBinCtrlerBase> ctrler = weakThiz.lock();
-        if (ctrler != nullptr) {
-            ctrler->OnMessageReceived(msg);
-        }
-    };
+    auto msgNotifier = std::bind(&PlayBinCtrlerBase::OnMessageReceived, this, std::placeholders::_1);
     msgProcessor_ = std::make_unique<GstMsgProcessor>(*bus, msgNotifier);
 
     gst_object_unref(bus);
