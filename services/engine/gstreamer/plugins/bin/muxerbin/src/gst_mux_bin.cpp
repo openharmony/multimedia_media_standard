@@ -400,6 +400,11 @@ static bool gst_mux_bin_connect_element(GstMuxBin *mux_bin, OHOS::Media::MediaTy
         }
         if ((reinterpret_cast<GstTrackInfo *>(iter->data))->parse_ != nullptr) {
             if (!gst_mux_bin_connect_parse(mux_bin, (reinterpret_cast<GstTrackInfo *>(iter->data))->parse_,
+                src_src_pad, split_mux_sink_sink_pad)) {
+                gst_object_unref(split_mux_sink_sink_pad);
+                gst_object_unref(src_src_pad);
+                GST_ERROR_OBJECT(mux_bin, "Failed to call connect_parse");
+                return false;
             }
         } else {
             if (gst_pad_link(src_src_pad, split_mux_sink_sink_pad) != GST_PAD_LINK_OK) {
