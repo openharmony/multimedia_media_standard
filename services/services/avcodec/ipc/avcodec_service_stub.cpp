@@ -368,6 +368,7 @@ int32_t AVCodecServiceStub::Release(MessageParcel &data, MessageParcel &reply)
 
 int32_t AVCodecServiceStub::CreateInputSurface(MessageParcel &data, MessageParcel &reply)
 {
+    (void)data;
     sptr<OHOS::Surface> surface = CreateInputSurface();
     if (surface != nullptr && surface->GetProducer() != nullptr) {
         sptr<IRemoteObject> object = surface->GetProducer()->AsObject();

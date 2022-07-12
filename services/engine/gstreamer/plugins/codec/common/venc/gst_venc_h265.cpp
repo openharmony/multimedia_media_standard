@@ -52,6 +52,7 @@ static void gst_venc_h265_init(GstVencH265 *self)
 
 static GstCaps *gst_venc_h265_get_caps(GstVencBase *self, GstVideoCodecState *state)
 {
+    (void)state;
     GstCaps *caps = gst_caps_new_simple("video/x-h265",
         "stream-format", G_TYPE_STRING, "byte-stream",
         "width", G_TYPE_INT, self->width,

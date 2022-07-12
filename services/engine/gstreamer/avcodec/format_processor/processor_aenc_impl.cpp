@@ -20,7 +20,7 @@
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "ProcessorAencImpl"};
     constexpr uint32_t DEFAULT_BUFFER_SIZE = 50000;
-    constexpr uint32_t MAX_CHANNELS = 6;
+    constexpr int32_t MAX_CHANNELS = 6;
     static const GstAudioChannelPosition CHANNEL_POSITION[6][6] = {
         {
             GST_AUDIO_CHANNEL_POSITION_MONO
@@ -127,8 +127,7 @@ int32_t ProcessorAencImpl::ProcessOptional(const Format &format)
 
 std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetInputPortConfig()
 {
-    CHECK_AND_RETURN_RET(channels_ > 0 && sampleRate_ > 0 &&
-                         static_cast<uint32_t>(channels_) <= MAX_CHANNELS, nullptr);
+    CHECK_AND_RETURN_RET(channels_ > 0 && sampleRate_ > 0 && channels_ <= MAX_CHANNELS, nullptr);
 
     guint64 channelMask = 0;
     if (!gst_audio_channel_positions_to_mask(CHANNEL_POSITION[channels_ - 1], channels_, FALSE, &channelMask)) {
@@ -158,12 +157,11 @@ std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetInputPortConfig()
 
 std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetOutputPortConfig()
 {
-    CHECK_AND_RETURN_RET(channels_ > 0 && sampleRate_ > 0 &&
-                         static_cast<uint32_t>(channels_) <= MAX_CHANNELS, nullptr);
+    CHECK_AND_RETURN_RET(channels_ > 0 && sampleRate_ > 0 && channels_ <= MAX_CHANNELS, nullptr);
 
     GstCaps *caps = nullptr;
     switch (codecName_) {
-        case CODEC_MIMIE_TYPE_AUDIO_AAC:
+        case CODEC_MIME_TYPE_AUDIO_AAC:
             caps = gst_caps_new_simple("audio/mpeg",
                 "rate", G_TYPE_INT, sampleRate_,
                 "channels", G_TYPE_INT, channels_,
@@ -171,7 +169,7 @@ std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetOutputPortConfig()
                 "stream-format", G_TYPE_STRING, "raw",
                 "base-profile", G_TYPE_STRING, "lc", nullptr);
             break;
-        case CODEC_MIMIE_TYPE_AUDIO_OPUS:
+        case CODEC_MIME_TYPE_AUDIO_OPUS:
             caps = gst_caps_new_simple("audio/x-opus",
                 "rate", G_TYPE_INT, sampleRate_, "channels", G_TYPE_INT, channels_, nullptr);
             break;
@@ -188,7 +186,7 @@ std::shared_ptr<ProcessorConfig> ProcessorAencImpl::GetOutputPortConfig()
     }
 
     config->bufferSize_ = DEFAULT_BUFFER_SIZE;
-    if (codecName_ == CODEC_MIMIE_TYPE_AUDIO_AAC) {
+    if (codecName_ == CODEC_MIME_TYPE_AUDIO_AAC) {
         config->needFilter_ = true;
         config->filterMode_ = BUFFER_FILTER_MODE_ADD_ADTS;
         config->adtsHead_.channelConfig = static_cast<uint32_t>(channels_);

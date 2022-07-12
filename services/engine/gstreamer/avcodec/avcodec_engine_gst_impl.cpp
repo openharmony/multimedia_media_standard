@@ -44,7 +44,7 @@ int32_t AVCodecEngineGstImpl::Init(AVCodecType type, bool isMimeType, const std:
     std::unique_lock<std::mutex> lock(mutex_);
     type_ = type;
 
-    InnerCodecMimeType codecName = CODEC_MIMIE_TYPE_DEFAULT;
+    InnerCodecMimeType codecName = CODEC_MIME_TYPE_DEFAULT;
     if (!isMimeType) {
         std::string mimeType = FindMimeTypeByName(type, name);
         CHECK_AND_RETURN_RET(MapCodecMime(mimeType, codecName) == MSERR_OK, MSERR_UNKNOWN);
@@ -248,20 +248,25 @@ int32_t AVCodecEngineGstImpl::SetObs(const std::weak_ptr<IAVCodecEngineObs> &obs
 
 std::string AVCodecEngineGstImpl::FindMimeTypeByName(AVCodecType type, const std::string &name)
 {
+    (void)type;
     std::string mimeType = "error";
     auto codecList = std::make_unique<AVCodecListEngineGstImpl>();
     CHECK_AND_RETURN_RET(codecList != nullptr, mimeType);
 
     std::vector<CapabilityData> data = codecList->GetCodecCapabilityInfos();
-    bool ret = false;
+    bool invalid = true;
 
     for (auto it = data.begin(); it != data.end(); it++) {
         if ((*it).codecName == name) {
             mimeType = (*it).mimeType;
-            ret = true;
+            invalid = false;
+            break;
         }
     }
-    CHECK_AND_RETURN_RET(ret == true, mimeType);
+
+    if (invalid) {
+        MEDIA_LOGW("invalid avcodec mimetype name:%{public}s", name.c_str());
+    }
 
     return mimeType;
 }

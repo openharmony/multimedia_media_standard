@@ -42,21 +42,25 @@ public:
 
     virtual int32_t SetOutputSurface(sptr<Surface> surface)
     {
+        (void)surface;
         return MSERR_INVALID_OPERATION;
     }
 
     virtual int32_t SetOutputBuffersCount(uint32_t maxBuffers)
     {
+        (void)maxBuffers;
         return MSERR_INVALID_OPERATION;
     }
 
     virtual int32_t SetCacheBuffersCount(uint32_t cacheBuffers)
     {
+        (void)cacheBuffers;
         return MSERR_INVALID_OPERATION;
     }
 
     virtual std::shared_ptr<AVSharedMemory> GetOutputBuffer(uint32_t index)
     {
+        (void)index;
         return nullptr;
     }
 
@@ -69,6 +73,7 @@ public:
 
     virtual int32_t SetParameter(const Format &format)
     {
+        (void)format;
         return MSERR_OK;
     }
 
