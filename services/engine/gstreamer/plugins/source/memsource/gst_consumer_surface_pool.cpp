@@ -140,7 +140,7 @@ static void gst_consumer_surface_pool_class_init(GstConsumerSurfacePoolClass *kl
         g_param_spec_uint("max-framerate", "Max frame rate", "Max frame rate",
             0, G_MAXUINT32, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
-    g_object_class_install_property(gobject_class, PROP_NOTIFY_EOS,
+    g_object_class_install_property(gobjectClass, PROP_NOTIFY_EOS,
         g_param_spec_boolean("notify-eos", "notify eos", "Need notify eos",
             FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
@@ -179,7 +179,7 @@ static void gst_consumer_surface_pool_set_property(GObject *object, guint id, co
             priv->max_frame_rate = g_value_get_uint(value);
             break;
         case PROP_NOTIFY_EOS:
-            priv->need_eos_buffer = g_value_get_gboolean(value);
+            priv->need_eos_buffer = g_value_get_boolean(value);
             g_cond_signal(&priv->buffer_available_con);
         default:
             break;
@@ -265,7 +265,7 @@ static void gst_consumer_surface_pool_release_buffer(GstBufferPool *pool, GstBuf
     gst_buffer_unref(buffer);
 }
 
-static GstFlowReturn gst_consumer_surface_pool_get_eos_buffer(GstBufferPool *pool, GstBuffer **buffer)
+static GstFlowReturn gst_consumer_surface_pool_get_eos_buffer(GstConsumerSurfacePool *surfacepool, GstBuffer **buffer)
 {
     g_return_val_if_fail(surfacepool != nullptr && surfacepool->priv != nullptr, GST_FLOW_ERROR);
     g_return_val_if_fail(buffer != nullptr, GST_FLOW_ERROR);
@@ -273,7 +273,7 @@ static GstFlowReturn gst_consumer_surface_pool_get_eos_buffer(GstBufferPool *poo
     g_return_val_if_fail(*buffer != nullptr, GST_FLOW_ERROR);
     uint32_t bufferFlag = BUFFER_FLAG_EOS;
     GstBufferHandleConfig config = { -1, bufferFlag, 0, 0 };
-    gst_buffer_add_buffer_handle_meta(buffer, nullptr, config);
+    gst_buffer_add_buffer_handle_meta(*buffer, 0, config);
 
     surfacepool->priv->need_eos_buffer = FALSE;
     return GST_FLOW_OK;
@@ -305,7 +305,7 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
             return GST_FLOW_FLUSHING;
         }
         if (priv->available_buf_count == 0 && priv->need_eos_buffer) {
-            return gst_consumer_surface_pool_get_eos_buffer(pool, buffer);
+            return gst_consumer_surface_pool_get_eos_buffer(surfacepool, buffer);
         }
 
         if (repeat && priv->cache_buffer != nullptr) {

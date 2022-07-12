@@ -92,6 +92,7 @@ int32_t SrcSurfaceImpl::NotifyEos()
 {
     gboolean value = TRUE;
     g_object_set(src_, "notify-eos", value, nullptr);
+    return MSERR_OK;
 }
 } // namespace Media
 } // namespace OHOS
