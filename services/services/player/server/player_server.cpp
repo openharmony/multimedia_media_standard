@@ -221,6 +221,7 @@ int32_t PlayerServer::OnPrepare()
 
     if (lastOpStatus_ == PLAYER_PREPARED) {
         Format format;
+        MediaTrace::TraceEnd("PlayerServer::PrepareAsync", PREPARE_TASK_ID);
         OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
@@ -281,6 +282,7 @@ int32_t PlayerServer::Play()
 
     if (lastOpStatus_ == PLAYER_STARTED) {
         Format format;
+        MediaTrace::TraceEnd("PlayerServer::Play", PLAY_TASK_ID);
         OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
@@ -319,6 +321,7 @@ int32_t PlayerServer::Pause()
 
     if (lastOpStatus_ == PLAYER_PAUSED) {
         Format format;
+        MediaTrace::TraceEnd("PlayerServer::Pause", PAUSE_TASK_ID);
         OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
@@ -361,6 +364,7 @@ int32_t PlayerServer::Stop()
 
     if (lastOpStatus_ == PLAYER_STOPPED) {
         Format format;
+        MediaTrace::TraceEnd("PlayerServer::Stop", STOP_TASK_ID);
         OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
@@ -520,7 +524,8 @@ int32_t PlayerServer::Seek(int32_t mSeconds, PlayerSeekMode mode)
     if (mSeconds == 0 && playerEngine_->GetCurrentTime(currentTime) == MSERR_OK && currentTime == mSeconds) {
         MEDIA_LOGW("Seek to the inner position");
         Format format;
-        OnInfo(INFO_TYPE_SEEKDONE, 0, format);
+        MediaTrace::TraceEnd("Player::Seek", SEEK_TASK_ID);
+        OnInfoNoChangeStatus(INFO_TYPE_SEEKDONE, 0, format);
         return MSERR_OK;
     }
     MEDIA_LOGD("seek position %{public}d, seek mode is %{public}d", mSeconds, mode);
@@ -666,7 +671,7 @@ int32_t PlayerServer::SetPlaybackSpeed(PlaybackRateMode mode)
     if (config_.speedMode == mode) {
         MEDIA_LOGD("The speed mode is same, mode = %{public}d", mode);
         Format format;
-        OnInfo(INFO_TYPE_SPEEDDONE, 0, format);
+        OnInfoNoChangeStatus(INFO_TYPE_SPEEDDONE, 0, format);
         return MSERR_OK;
     }
 
