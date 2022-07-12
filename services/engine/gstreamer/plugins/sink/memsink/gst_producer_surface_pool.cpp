@@ -23,6 +23,7 @@
 #include "gst_surface_allocator.h"
 #include "gst/video/gstvideometa.h"
 #include "media_dfx.h"
+#include "securec.h"
 
 namespace {
     const std::unordered_map<GstVideoFormat, PixelFormat> FORMAT_MAPPING = {
@@ -138,8 +139,8 @@ static void gst_producer_surface_pool_init(GstSurfacePool *pool)
     gst_allocation_params_init(&pool->params);
     pool->task = nullptr;
     g_rec_mutex_init(&pool->taskLock);
-    pool->beginTime = {0};
-    pool->endTime = {0};
+    (void)memset_s(&pool->beginTime, sizeof(timeval), 0, sizeof(timeval));
+    (void)memset_s(&pool->endTime, sizeof(timeval), 0, sizeof(timeval));
     pool->callCnt = 0;
     pool->isDynamicCached = FALSE;
     pool->cachedBuffers = 0;
@@ -252,6 +253,7 @@ GstSurfacePool *gst_producer_surface_pool_new()
 static const gchar **gst_producer_surface_pool_get_options(GstBufferPool *pool)
 {
     // add buffer type meta option at here
+    (void)pool;
     static const gchar *options[] = { GST_BUFFER_POOL_OPTION_VIDEO_META, GST_BUFFER_POOL_OPTION_VIDEO_ALIGNMENT,
         nullptr };
     return options;
