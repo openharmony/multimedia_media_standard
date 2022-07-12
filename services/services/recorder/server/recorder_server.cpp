@@ -370,7 +370,7 @@ int32_t RecorderServer::Prepare()
     std::lock_guard<std::mutex> lock(mutex_);
     MediaTrace trace("RecorderServer::Prepare");
     if (status_ == REC_PREPARED) {
-        MEDIA_LOGW("Can not Prepare");
+        MEDIA_LOGE("Can not repeat Prepare");
         return MSERR_INVALID_OPERATION;
     }
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_CONFIGURED, MSERR_INVALID_OPERATION);
@@ -386,7 +386,7 @@ int32_t RecorderServer::Start()
     std::lock_guard<std::mutex> lock(mutex_);
     MediaTrace trace("RecorderServer::Start");
     if (status_ == REC_RECORDING) {
-        MEDIA_LOGW("Can not Start");
+        MEDIA_LOGE("Can not repeat Start");
         return MSERR_INVALID_OPERATION;
     }
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_PREPARED, MSERR_INVALID_OPERATION);
@@ -405,7 +405,7 @@ int32_t RecorderServer::Pause()
     std::lock_guard<std::mutex> lock(mutex_);
     MediaTrace trace("RecorderServer::Pause");
     if (status_ == REC_PAUSED) {
-        MEDIA_LOGW("Can not Pause");
+        MEDIA_LOGE("Can not repeat Pause");
         return MSERR_INVALID_OPERATION;
     }
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_RECORDING, MSERR_INVALID_OPERATION);
@@ -421,7 +421,7 @@ int32_t RecorderServer::Resume()
     std::lock_guard<std::mutex> lock(mutex_);
     MediaTrace trace("RecorderServer::Resume");
     if (status_ == REC_RECORDING) {
-        MEDIA_LOGW("Can not Pause");
+        MEDIA_LOGE("Can not repeat Resume");
         return MSERR_INVALID_OPERATION;
     }
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_RECORDING && status_ != REC_PAUSED, MSERR_INVALID_OPERATION);
