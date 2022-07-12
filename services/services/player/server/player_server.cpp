@@ -294,7 +294,7 @@ int32_t PlayerServer::Pause()
     MediaTrace::TraceBegin("PlayerServer::Pause", PAUSE_TASK_ID);
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
 
-    if (lastOpStatus_ == PLAYER_STATE_ERROR || lastOpStatus_ == PLAYER_PAUSED) {
+    if (lastOpStatus_ != PLAYER_STARTED) {
         MEDIA_LOGE("Can not Pause, currentState is %{public}s", GetStatusDescription(lastOpStatus_).c_str());
         return MSERR_INVALID_OPERATION;
     }
