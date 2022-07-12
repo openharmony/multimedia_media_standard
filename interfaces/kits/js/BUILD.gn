@@ -91,11 +91,14 @@ ohos_shared_library("media") {
     "-O2",
     "-D_FORTIFY_SOURCE=2",
     "-fvisibility=hidden",
-    "-Werror",
-    "-Wextra",
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
   ]
 
   deps = [

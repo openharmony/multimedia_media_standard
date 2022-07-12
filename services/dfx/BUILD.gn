@@ -33,7 +33,6 @@ ohos_shared_library("media_service_dfx") {
     "-fno-rtti",
     "-fno-exceptions",
     "-Wall",
-    "-Werror=sign-compare",
     "-fno-common",
     "-fstack-protector-strong",
     "-Wshadow",
@@ -45,6 +44,11 @@ ohos_shared_library("media_service_dfx") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
   ]
 
   deps = [ "//utils/native/base:utils" ]

@@ -45,11 +45,14 @@ ohos_shared_library("mediademo") {
     "-O2",
     "-D_FORTIFY_SOURCE=2",
     "-fvisibility=hidden",
-    "-Werror",
-    "-Wextra",
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
   ]
 
   configs = [ "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config" ]

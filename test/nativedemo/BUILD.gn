@@ -37,7 +37,6 @@ ohos_executable("media_demo") {
 
   cflags = [
     "-Wall",
-    "-Werror",
     "-std=c++17",
     "-fno-rtti",
     "-fno-exceptions",
@@ -51,6 +50,11 @@ ohos_executable("media_demo") {
     "-fvisibility=hidden",
     "-Wformat=2",
     "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
   ]
 
   sources = [

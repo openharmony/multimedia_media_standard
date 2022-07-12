@@ -200,8 +200,8 @@ static void gst_venc_base_init(GstVencBase *self)
     self->width = 0;
     self->height = 0;
     self->frame_rate = 0;
-    self->input = { 0 };
-    self->output = { 0 };
+    (void)memset_s(&self->input, sizeof(GstVencBasePort), 0, sizeof(GstVencBasePort));
+    (void)memset_s(&self->output, sizeof(GstVencBasePort), 0, sizeof(GstVencBasePort));
     self->memtype = GST_MEMTYPE_INVALID;
     self->bitrate = 0;
     self->input.frame_cnt = 0;
