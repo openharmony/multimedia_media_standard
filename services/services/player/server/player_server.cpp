@@ -75,7 +75,13 @@ void PlayerServer::ResetProcessor()
 {
     resetRet_ = playerEngine_->Reset();
     playerEngine_ = nullptr;
-    surface_ = nullptr;
+}
+
+void PlayerServer::ReleaseProcessor()
+{
+    if (surface_ != nullptr) {
+        surface_ = nullptr;
+    }
 }
 
 int32_t PlayerServer::Init()
@@ -442,6 +448,10 @@ int32_t PlayerServer::Release()
         playerCb_ = nullptr;
     }
     (void)OnReset();
+    std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&PlayerServer::ReleaseProcessor, this);
+    if (thread != nullptr && thread->joinable()) {
+        thread->join();
+    }
     return MSERR_OK;
 }
 
