@@ -51,6 +51,7 @@ enum {
     PROP_SUSPEND,
     PROP_REPEAT,
     PROP_MAX_FRAME_RATE,
+    PROP_NOTIFY_EOS,
 };
 
 G_DEFINE_TYPE(GstSurfaceSrc, gst_surface_src, GST_TYPE_MEM_SRC);
@@ -99,6 +100,10 @@ static void gst_surface_src_class_init(GstSurfaceSrcClass *klass)
     g_object_class_install_property(gobject_class, PROP_MAX_FRAME_RATE,
         g_param_spec_uint("max-framerate", "Max frame rate", "Max frame rate",
             0, G_MAXUINT32, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_NOTIFY_EOS,
+        g_param_spec_boolean("notify-eos", "notify eos", "Need notify eos",
+            FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
     gstelement_class->change_state = gst_surface_src_change_state;
     gstelement_class->send_event = gst_surface_src_send_event;
@@ -162,6 +167,10 @@ static void gst_surface_src_set_property(GObject *object, guint prop_id, const G
         case PROP_MAX_FRAME_RATE:
             g_return_if_fail(src->pool != nullptr);
             g_object_set(src->pool, "max-framerate", g_value_get_uint(value), nullptr);
+            break;
+        case PROP_NOTIFY_EOS:
+            g_return_if_fail(src->pool != nullptr);
+            g_object_set(src->pool, "notify-eos", g_value_get_boolean(value), nullptr);
             break;
         default:
             break;
