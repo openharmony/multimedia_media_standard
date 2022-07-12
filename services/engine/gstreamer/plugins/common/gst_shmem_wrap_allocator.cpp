@@ -14,7 +14,6 @@
  */
 
 #include "gst_shmem_wrap_allocator.h"
-#include "gstmemory.h"
 #include "media_log.h"
 
 #define gst_shmem_wrap_allocator_parent_class parent_class
