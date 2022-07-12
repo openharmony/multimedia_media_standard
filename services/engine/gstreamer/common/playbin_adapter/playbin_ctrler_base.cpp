@@ -409,7 +409,7 @@ int32_t PlayBinCtrlerBase::SelectBitRate(uint32_t bitRate)
 
     g_object_set(playbin_, "connection-speed", static_cast<uint64_t>(bitRate), nullptr);
 
-    PlayBinMessage msg = { PLAYBIN_MSG_BITRATEDONE, 0, static_cast<int32_t>(bitRate) };
+    PlayBinMessage msg = { PLAYBIN_MSG_BITRATEDONE, 0, static_cast<int32_t>(bitRate), {} };
     ReportMessage(msg);
 
     return MSERR_OK;
@@ -494,7 +494,7 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
 
     ON_SCOPE_EXIT(0) {
         ExitInitializedState();
-        PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_ERROR, 0, MSERR_UNKNOWN };
+        PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_ERROR, 0, MSERR_UNKNOWN, {} };
         ReportMessage(msg);
         MEDIA_LOGE("enter initialized state failed");
     };
@@ -609,7 +609,6 @@ int32_t PlayBinCtrlerBase::SeekInternal(int64_t timeUs, int32_t seekOption)
     constexpr int32_t usecToNanoSec = 1000;
     int64_t timeNs = timeUs * usecToNanoSec;
     seekPos_ = timeUs;
-
     isSeeking_ = true;
     GstEvent *event = gst_event_new_seek(1.0, GST_FORMAT_TIME, static_cast<GstSeekFlags>(seekFlags),
         GST_SEEK_TYPE_SET, timeNs, GST_SEEK_TYPE_SET, GST_CLOCK_TIME_NONE);
@@ -1006,7 +1005,7 @@ void PlayBinCtrlerBase::OnVolumeChangedCb(const GstElement *playbin, GstElement 
 
     auto thizStrong = PlayBinCtrlerWrapper::TakeStrongThiz(userdata);
     if (thizStrong != nullptr) {
-        PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_VOLUME_CHANGE, 0, 0 };
+        PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_VOLUME_CHANGE, 0, 0, {} };
         thizStrong->ReportMessage(msg);
     }
 }
@@ -1047,7 +1046,7 @@ void PlayBinCtrlerBase::OnBitRateParseCompleteCb(const GstElement *playbin, uint
 
 void PlayBinCtrlerBase::OnAppsrcErrorMessageReceived(int32_t errorCode)
 {
-    PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_ERROR, 0, errorCode };
+    PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_ERROR, 0, errorCode, {} };
     ReportMessage(msg);
 }
 

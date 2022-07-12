@@ -19,9 +19,9 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "ProcessorVdecImpl"};
-    constexpr uint32_t MAX_SIZE = 3150000; // 3MB
-    constexpr uint32_t MAX_WIDTH = 8000;
-    constexpr uint32_t MAX_HEIGHT = 5000;
+    constexpr int32_t MAX_SIZE = 3150000; // 3MB
+    constexpr int32_t MAX_WIDTH = 8000;
+    constexpr int32_t MAX_HEIGHT = 5000;
 }
 
 namespace OHOS {
@@ -59,34 +59,34 @@ int32_t ProcessorVdecImpl::ProcessOptional(const Format &format)
 
 std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetInputPortConfig()
 {
-    CHECK_AND_RETURN_RET(width_ > 0 && static_cast<uint32_t>(width_) < MAX_WIDTH, nullptr);
-    CHECK_AND_RETURN_RET(height_ > 0 && static_cast<uint32_t>(height_) < MAX_HEIGHT, nullptr);
+    CHECK_AND_RETURN_RET(width_ > 0 && width_ < MAX_WIDTH, nullptr);
+    CHECK_AND_RETURN_RET(height_ > 0 && height_ < MAX_HEIGHT, nullptr);
 
     GstCaps *caps = nullptr;
     switch (codecName_) {
-        case CODEC_MIMIE_TYPE_VIDEO_MPEG2:
+        case CODEC_MIME_TYPE_VIDEO_MPEG2:
             caps = gst_caps_new_simple("video/mpeg",
                 "width", G_TYPE_INT, width_, "height", G_TYPE_INT, height_,
                 "mpegversion", G_TYPE_INT, 2, "systemstream", G_TYPE_BOOLEAN, FALSE, nullptr);
             break;
-        case CODEC_MIMIE_TYPE_VIDEO_MPEG4:
+        case CODEC_MIME_TYPE_VIDEO_MPEG4:
             caps = gst_caps_new_simple("video/mpeg",
                 "width", G_TYPE_INT, width_, "height", G_TYPE_INT, height_,
                 "mpegversion", G_TYPE_INT, 4, "systemstream", G_TYPE_BOOLEAN, FALSE, nullptr);
             break;
-        case CODEC_MIMIE_TYPE_VIDEO_H263:
+        case CODEC_MIME_TYPE_VIDEO_H263:
             caps = gst_caps_new_simple("video/x-h263",
                 "width", G_TYPE_INT, width_, "height", G_TYPE_INT, height_,
                 "variant", G_TYPE_STRING, "itu", nullptr);
             break;
-        case CODEC_MIMIE_TYPE_VIDEO_AVC:
+        case CODEC_MIME_TYPE_VIDEO_AVC:
             caps = gst_caps_new_simple("video/x-h264",
                 "width", G_TYPE_INT, width_, "height", G_TYPE_INT, height_,
                 "framerate", GST_TYPE_FRACTION, frameRate_, 1,
                 "alignment", G_TYPE_STRING, "nal", "stream-format", G_TYPE_STRING, "byte-stream",
                 "systemstream", G_TYPE_BOOLEAN, FALSE, nullptr);
             break;
-        case CODEC_MIMIE_TYPE_VIDEO_HEVC:
+        case CODEC_MIME_TYPE_VIDEO_HEVC:
             caps = gst_caps_new_simple("video/x-h265",
                 "width", G_TYPE_INT, width_, "height", G_TYPE_INT, height_,
                 "alignment", G_TYPE_STRING, "nal", "stream-format", G_TYPE_STRING, "byte-stream",
@@ -103,10 +103,9 @@ std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetInputPortConfig()
         return nullptr;
     }
 
-    config->needCodecData_ = (codecName_ == CODEC_MIMIE_TYPE_VIDEO_AVC && isSoftWare_);
+    config->needCodecData_ = (codecName_ == CODEC_MIME_TYPE_VIDEO_AVC && isSoftWare_);
     if (maxInputSize_ > 0) {
-        config->bufferSize_ = (static_cast<uint32_t>(maxInputSize_) > MAX_SIZE) ?
-                              MAX_SIZE : static_cast<uint32_t>(maxInputSize_);
+        config->bufferSize_ = (maxInputSize_ > MAX_SIZE) ? MAX_SIZE : maxInputSize_;
     } else {
         // Memory is aligned to 16 bytes
         constexpr uint32_t alignment = 16;
@@ -118,8 +117,8 @@ std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetInputPortConfig()
 
 std::shared_ptr<ProcessorConfig> ProcessorVdecImpl::GetOutputPortConfig()
 {
-    CHECK_AND_RETURN_RET(width_ > 0 && static_cast<uint32_t>(width_) < MAX_WIDTH, nullptr);
-    CHECK_AND_RETURN_RET(height_ > 0 && static_cast<uint32_t>(height_) < MAX_HEIGHT, nullptr);
+    CHECK_AND_RETURN_RET(width_ > 0 && width_ < MAX_WIDTH, nullptr);
+    CHECK_AND_RETURN_RET(height_ > 0 && height_ < MAX_HEIGHT, nullptr);
 
     GstCaps *caps = gst_caps_new_simple("video/x-raw",
         "format", G_TYPE_STRING, gstPixelFormat_.c_str(), nullptr);

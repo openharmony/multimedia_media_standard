@@ -34,8 +34,14 @@ public:
 
 protected:
     int32_t OnMessageReceived(PlayerOnInfoType type, int32_t extra, const Format &infoBody) final;
-    virtual void HandleStateChange(int32_t newState) {}
-    virtual void HandlePlaybackComplete(int32_t extra) {}
+    virtual void HandleStateChange(int32_t newState)
+    {
+        (void)newState;
+    }
+    virtual void HandlePlaybackComplete(int32_t extra)
+    {
+        (void)extra;
+    }
     void ReportInvalidOperation() const;
     virtual void HandleEos() {}
 

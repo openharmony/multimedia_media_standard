@@ -152,6 +152,7 @@ void AVMuxerServiceStub::Release()
 
 int32_t AVMuxerServiceStub::GetAVMuxerFormatList(MessageParcel &data, MessageParcel &reply)
 {
+    (void)data;
     CHECK_AND_RETURN_RET(reply.WriteStringVector(GetAVMuxerFormatList()), MSERR_UNKNOWN);
     return MSERR_OK;
 }
@@ -192,6 +193,7 @@ int32_t AVMuxerServiceStub::AddTrack(MessageParcel &data, MessageParcel &reply)
 
 int32_t AVMuxerServiceStub::Start(MessageParcel &data, MessageParcel &reply)
 {
+    (void)data;
     CHECK_AND_RETURN_RET(reply.WriteInt32(Start()), MSERR_UNKNOWN);
     return MSERR_OK;
 }
@@ -208,18 +210,22 @@ int32_t AVMuxerServiceStub::WriteTrackSample(MessageParcel &data, MessageParcel 
 
 int32_t AVMuxerServiceStub::Stop(MessageParcel &data, MessageParcel &reply)
 {
+    (void)data;
     CHECK_AND_RETURN_RET(reply.WriteInt32(Stop()), MSERR_UNKNOWN);
     return MSERR_OK;
 }
 
 int32_t AVMuxerServiceStub::Release(MessageParcel &data, MessageParcel &reply)
 {
+    (void)data;
+    (void)reply;
     Release();
     return MSERR_OK;
 }
 
 int32_t AVMuxerServiceStub::DestroyStub(MessageParcel &data, MessageParcel &reply)
 {
+    (void)data;
     CHECK_AND_RETURN_RET(reply.WriteInt32(DestroyStub()), MSERR_UNKNOWN);
     return MSERR_OK;
 }

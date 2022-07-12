@@ -33,6 +33,9 @@ config("media_engine_gst_avmuxer_config") {
     "-Wfloat-equal",
     "-Wdate-time",
     "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
     "-Wunused-parameter",
   ]
 
