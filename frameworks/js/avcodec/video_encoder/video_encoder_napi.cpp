@@ -67,7 +67,7 @@ napi_value VideoEncoderNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getOutputMediaDescription", GetOutputMediaDescription),
         DECLARE_NAPI_FUNCTION("getVideoEncoderCaps", GetVideoEncoderCaps),
         DECLARE_NAPI_FUNCTION("on", On),
-        DECLARE_NAPI_FUNCTION("notifyEos", NotifyEos),
+        DECLARE_NAPI_FUNCTION("notifyEndOfStream", NotifyEos),
     };
     napi_property_descriptor staticProperty[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createVideoEncoderByMime", CreateVideoEncoderByMime),
