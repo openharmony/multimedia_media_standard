@@ -34,6 +34,8 @@ struct _GstMemSinkPrivate {
     GstMemSinkCallbacks callbacks;
     gpointer userdata;
     GDestroyNotify notify;
+    GstElement *audio_sink;
+    gboolean enable_kpi_avsync_log;
 };
 
 enum {
@@ -41,6 +43,8 @@ enum {
     PROP_CAPS,
     PROP_MAX_POOL_CAPACITY,
     PROP_WAIT_TIME,
+    PROP_AUDIO_SINK,
+    PROP_ENABLE_KPI_AVSYNC_LOG,
 };
 
 static GstStaticPadTemplate g_sinktemplate = GST_STATIC_PAD_TEMPLATE("sink",
@@ -107,6 +111,14 @@ static void gst_mem_sink_class_init(GstMemSinkClass *klass)
             0, G_MAXUINT, DEFAULT_PROP_MAX_POOL_CAPACITY,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
+    g_object_class_install_property(gobject_class, PROP_AUDIO_SINK,
+        g_param_spec_pointer("audio-sink", "audio sink", "audio sink",
+            (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_ENABLE_KPI_AVSYNC_LOG,
+        g_param_spec_boolean("enable-kpi-avsync-log", "Enable KPI AV sync log", "Enable KPI AV sync log", FALSE,
+            (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
     base_sink_class->start = gst_mem_sink_start;
     base_sink_class->stop = gst_mem_sink_stop;
     base_sink_class->preroll = gst_mem_sink_preroll;
@@ -139,6 +151,8 @@ static void gst_mem_sink_init(GstMemSink *mem_sink)
     priv->callbacks.new_sample = nullptr;
     priv->userdata = nullptr;
     priv->notify = nullptr;
+    priv->audio_sink = nullptr;
+    priv->enable_kpi_avsync_log = FALSE;
 }
 
 static void gst_mem_sink_dispose(GObject *obj)
@@ -161,6 +175,13 @@ static void gst_mem_sink_dispose(GObject *obj)
     }
     GST_OBJECT_UNLOCK(mem_sink);
 
+    g_mutex_lock(&priv->mutex);
+    if (priv->audio_sink != nullptr) {
+        gst_object_unref(priv->audio_sink);
+        priv->audio_sink = nullptr;
+    }
+    g_mutex_unlock(&priv->mutex);
+
     G_OBJECT_CLASS(parent_class)->dispose(obj);
 }
 
@@ -175,6 +196,21 @@ static void gst_mem_sink_finalize(GObject *obj)
     g_mutex_clear(&priv->mutex);
 
     G_OBJECT_CLASS(parent_class)->finalize(obj);
+}
+
+static void gst_mem_sink_set_audio_sink(GstMemSink *mem_sink, gpointer audio_sink)
+{
+    g_return_if_fail(audio_sink != nullptr);
+
+    GstMemSinkPrivate *priv = mem_sink->priv;
+    g_mutex_lock(&priv->mutex);
+    if (priv->audio_sink != nullptr) {
+        GST_INFO_OBJECT(mem_sink, "has audio sink: %s, unref it", GST_ELEMENT_NAME(priv->audio_sink));
+        gst_object_unref(priv->audio_sink);
+    }
+    priv->audio_sink = GST_ELEMENT_CAST(gst_object_ref(audio_sink));
+    GST_INFO_OBJECT(mem_sink, "get audio sink: %s", GST_ELEMENT_NAME(priv->audio_sink));
+    g_mutex_unlock(&priv->mutex);
 }
 
 static void gst_mem_sink_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
@@ -208,6 +244,14 @@ static void gst_mem_sink_set_property(GObject *object, guint prop_id, const GVal
             GST_OBJECT_UNLOCK(mem_sink);
             break;
         }
+        case PROP_AUDIO_SINK:
+            gst_mem_sink_set_audio_sink(mem_sink, g_value_get_pointer(value));
+            break;
+        case PROP_ENABLE_KPI_AVSYNC_LOG:
+            g_mutex_lock(&priv->mutex);
+            priv->enable_kpi_avsync_log = g_value_get_boolean(value);
+            g_mutex_unlock(&priv->mutex);
+            break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
             break;
@@ -463,6 +507,23 @@ static GstFlowReturn gst_mem_sink_preroll(GstBaseSink *bsink, GstBuffer *buffer)
     return ret;
 }
 
+static void kpi_log_avsync_diff(GstMemSink *mem_sink, guint64 last_render_pts)
+{
+    GstMemSinkPrivate *priv = mem_sink->priv;
+    guint64 audio_last_render_pts = 0;
+
+    // get av sync diff time
+    g_mutex_lock(&priv->mutex);
+    if (priv->enable_kpi_avsync_log && priv->audio_sink != nullptr) {
+    g_object_get(priv->audio_sink, "last-render-pts", &audio_last_render_pts, nullptr);
+    GST_WARNING_OBJECT(mem_sink, "KPI-TRACE: audio_last_render_pts=%" G_GUINT64_FORMAT
+        ", video_last_render_pts=%" G_GUINT64_FORMAT ", diff=%" G_GINT64_FORMAT " ms",
+        audio_last_render_pts, last_render_pts,
+        ((gint64)audio_last_render_pts - (gint64)last_render_pts) / GST_MSECOND);
+    }
+    g_mutex_unlock(&priv->mutex);
+}
+
 static GstFlowReturn gst_mem_sink_stream_render(GstBaseSink *bsink, GstBuffer *buffer)
 {
     GstMemSink *mem_sink = GST_MEM_SINK_CAST(bsink);
@@ -491,6 +552,7 @@ static GstFlowReturn gst_mem_sink_stream_render(GstBaseSink *bsink, GstBuffer *b
     if (priv->callbacks.new_sample != nullptr) {
         ret = priv->callbacks.new_sample(mem_sink, buffer, priv->userdata);
     }
+    kpi_log_avsync_diff(mem_sink, GST_BUFFER_PTS(buffer));
 
     // the basesink will unref the buffer.
     return ret;
