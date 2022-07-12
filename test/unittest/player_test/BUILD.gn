@@ -22,7 +22,7 @@ ohos_unittest("player_unit_test") {
     "//foundation/multimedia/media_standard/interfaces/inner_api/native",
     "//foundation/multimedia/media_standard/frameworks/native/player",
     "//graphic/graphic_2d/interfaces/innerkits/surface",
-    "//foundation/windowmanager/interfaces/innerkits/wm",
+    "//foundation/window/window_manager/interfaces/innerkits/wm",
     "//foundation/multimedia/media_standard/test/unittest/common/include",
   ]
 
@@ -42,7 +42,7 @@ ohos_unittest("player_unit_test") {
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
-    "//foundation/windowmanager/wm:libwm",
+    "//foundation/window/window_manager/wm:libwm",
   ]
 
   resource_config_file = "//foundation/multimedia/media_standard/test/unittest/resources/ohos_test.xml"
