@@ -208,35 +208,29 @@ int32_t PlayerServer::PrepareAsync()
 
 int32_t PlayerServer::OnPrepare()
 {
-    if (lastOpStatus_ != PLAYER_INITIALIZED && lastOpStatus_ != PLAYER_STOPPED && lastOpStatus_ != PLAYER_PREPARED) {
+    if (lastOpStatus_ == PLAYER_INITIALIZED || lastOpStatus_ == PLAYER_STOPPED) {
+        CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
+        int32_t ret = MSERR_OK;
+        if (surface_ != nullptr) {
+            ret = playerEngine_->SetVideoSurface(surface_);
+            CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine SetVideoSurface Failed!");
+        }
+
+        lastOpStatus_ = PLAYER_PREPARED;
+
+        auto preparedTask = std::make_shared<TaskHandler<int32_t>>([this]() {
+            auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
+            return currState->Prepare();
+        });
+
+        ret = taskMgr_.LaunchTask(preparedTask, PlayerServerTaskType::STATE_CHANGE);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Prepare launch task failed");
+
+        return MSERR_OK;
+    } else {
         MEDIA_LOGE("Can not Prepare, currentState is %{public}s", GetStatusDescription(lastOpStatus_).c_str());
         return MSERR_INVALID_OPERATION;
     }
-
-    if (lastOpStatus_ == PLAYER_PREPARED) {
-        Format format;
-        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
-        return MSERR_OK;
-    }
-
-    CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
-    int32_t ret = MSERR_OK;
-    if (surface_ != nullptr) {
-        ret = playerEngine_->SetVideoSurface(surface_);
-        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine SetVideoSurface Failed!");
-    }
-
-    lastOpStatus_ = PLAYER_PREPARED;
-
-    auto preparedTask = std::make_shared<TaskHandler<int32_t>>([this]() {
-        auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
-        return currState->Prepare();
-    });
-
-    ret = taskMgr_.LaunchTask(preparedTask, PlayerServerTaskType::STATE_CHANGE);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Prepare launch task failed");
-
-    return MSERR_OK;
 }
 
 int32_t PlayerServer::HandlePrepare()
@@ -258,38 +252,32 @@ int32_t PlayerServer::Play()
     MediaTrace::TraceBegin("PlayerServer::Play", PLAY_TASK_ID);
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
     MEDIA_LOGW("KPI-TRACE: PlayerServer Play in");
-    if (lastOpStatus_ != PLAYER_PREPARED && lastOpStatus_ != PLAYER_PLAYBACK_COMPLETE &&
-        lastOpStatus_ != PLAYER_PAUSED && lastOpStatus_ != PLAYER_STARTED) {
+    if (lastOpStatus_ == PLAYER_PREPARED || lastOpStatus_ == PLAYER_PLAYBACK_COMPLETE ||
+        lastOpStatus_ == PLAYER_PAUSED) {
+        if (lastOpStatus_ == PLAYER_PLAYBACK_COMPLETE && dataSrc_ != nullptr) {
+            int64_t size = 0;
+            (void)dataSrc_->GetSize(size);
+            if (size == -1) {
+                MEDIA_LOGE("Can not play in complete status, it is live-stream");
+                return MSERR_INVALID_OPERATION;
+            }
+        }
+
+        auto playingTask = std::make_shared<TaskHandler<void>>([this]() {
+            auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
+            (void)currState->Play();
+        });
+
+        int ret = taskMgr_.LaunchTask(playingTask, PlayerServerTaskType::STATE_CHANGE);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Play failed");
+
+        startTimeMonitor_.FinishTime();
+        lastOpStatus_ = PLAYER_STARTED;
+        return MSERR_OK;
+    } else {
         MEDIA_LOGE("Can not Play, currentState is %{public}s", GetStatusDescription(lastOpStatus_).c_str());
         return MSERR_INVALID_OPERATION;
     }
-
-    if (lastOpStatus_ == PLAYER_PLAYBACK_COMPLETE && dataSrc_ != nullptr) {
-        int64_t size = 0;
-        (void)dataSrc_->GetSize(size);
-        if (size == -1) {
-            MEDIA_LOGE("Can not play in complete status, it is live-stream");
-            return MSERR_INVALID_OPERATION;
-        }
-    }
-
-    if (lastOpStatus_ == PLAYER_STARTED) {
-        Format format;
-        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
-        return MSERR_OK;
-    }
-
-    auto playingTask = std::make_shared<TaskHandler<void>>([this]() {
-        auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
-        (void)currState->Play();
-    });
-
-    int ret = taskMgr_.LaunchTask(playingTask, PlayerServerTaskType::STATE_CHANGE);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Play failed");
-
-    startTimeMonitor_.FinishTime();
-    lastOpStatus_ = PLAYER_STARTED;
-    return MSERR_OK;
 }
 
 int32_t PlayerServer::HandlePlay()
@@ -306,19 +294,8 @@ int32_t PlayerServer::Pause()
     MediaTrace::TraceBegin("PlayerServer::Pause", PAUSE_TASK_ID);
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
 
-    if (lastOpStatus_ == PLAYER_STATE_ERROR) {
-        MEDIA_LOGE("Can not Pause, currentState is PLAYER_STATE_ERROR");
-        return MSERR_INVALID_OPERATION;
-    }
-
-    if (lastOpStatus_ == PLAYER_PAUSED) {
-        Format format;
-        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
-        return MSERR_OK;
-    }
-
-    if (lastOpStatus_ != PLAYER_STARTED) {
-        MEDIA_LOGE("Can not Pause, lastOpStatus_ is %{public}s", GetStatusDescription(lastOpStatus_).c_str());
+    if (lastOpStatus_ == PLAYER_STATE_ERROR || lastOpStatus_ == PLAYER_PAUSED) {
+        MEDIA_LOGE("Can not Pause, currentState is %{public}s", GetStatusDescription(lastOpStatus_).c_str());
         return MSERR_INVALID_OPERATION;
     }
 
@@ -348,35 +325,25 @@ int32_t PlayerServer::Stop()
     MediaTrace::TraceBegin("PlayerServer::Stop", STOP_TASK_ID);
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
     MEDIA_LOGW("KPI-TRACE: PlayerServer Stop in");
-    if (lastOpStatus_ == PLAYER_STATE_ERROR) {
-        MEDIA_LOGE("Can not Stop, currentState is PLAYER_STATE_ERROR");
-        return MSERR_INVALID_OPERATION;
-    }
 
-    if (lastOpStatus_ == PLAYER_STOPPED) {
-        Format format;
-        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
+    if (lastOpStatus_ == PLAYER_PREPARED || lastOpStatus_ == PLAYER_STARTED ||
+        lastOpStatus_ == PLAYER_PLAYBACK_COMPLETE || lastOpStatus_ == PLAYER_PAUSED) {
+        taskMgr_.ClearAllTask();
+
+        auto stopTask = std::make_shared<TaskHandler<void>>([this]() {
+            auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
+            (void)currState->Stop();
+        });
+
+        int ret = taskMgr_.LaunchTask(stopTask, PlayerServerTaskType::STATE_CHANGE);
+        CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Stop failed");
+
+        lastOpStatus_ = PLAYER_STOPPED;
         return MSERR_OK;
-    }
-
-    if ((lastOpStatus_ != PLAYER_PREPARED) && (lastOpStatus_ != PLAYER_STARTED) &&
-        (lastOpStatus_ != PLAYER_PLAYBACK_COMPLETE) && (lastOpStatus_ != PLAYER_PAUSED)) {
-        MEDIA_LOGE("current state: %{public}s, can not stop", GetStatusDescription(lastOpStatus_).c_str());
+    } else {
+        MEDIA_LOGE("Can not Stop, currentState is %{public}s", GetStatusDescription(lastOpStatus_).c_str());
         return MSERR_INVALID_OPERATION;
     }
-
-    taskMgr_.ClearAllTask();
-
-    auto stopTask = std::make_shared<TaskHandler<void>>([this]() {
-        auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
-        (void)currState->Stop();
-    });
-
-    int ret = taskMgr_.LaunchTask(stopTask, PlayerServerTaskType::STATE_CHANGE);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Stop failed");
-
-    lastOpStatus_ = PLAYER_STOPPED;
-    return MSERR_OK;
 }
 
 int32_t PlayerServer::HandleStop()
@@ -400,11 +367,9 @@ int32_t PlayerServer::Reset()
 int32_t PlayerServer::OnReset()
 {
     if (lastOpStatus_ == PLAYER_IDLE) {
-        Format format;
-        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
-        return MSERR_OK;
+        MEDIA_LOGE("Can not Reset, currentState is %{public}s", GetStatusDescription(lastOpStatus_).c_str());
+        return MSERR_INVALID_OPERATION;
     }
-
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
 
     taskMgr_.ClearAllTask();
