@@ -302,7 +302,7 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
 
         if (needFlush) {
             OHOS::BufferFlushConfig flushConfig = {
-                { 0, 0, surface_mem->buf->GetWidth(), surface_mem->buf->GetHeight() },
+                { 0, 0, surface_mem->buf->GetWidth(), surface_mem->buf->GetHeight()}, 0
             };
             gst_surface_mem_sink_dump_buffer(surface_sink, buffer);
             OHOS::SurfaceError ret = priv->surface->FlushBuffer(surface_mem->buf, surface_mem->fence, flushConfig);

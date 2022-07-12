@@ -42,6 +42,7 @@ public:
 
     virtual sptr<Surface> CreateInputSurface(const std::shared_ptr<ProcessorConfig> &inputConfig)
     {
+        (void)inputConfig;
         return nullptr;
     }
 

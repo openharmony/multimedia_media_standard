@@ -80,6 +80,7 @@ void ConsumerListenerProxy::OnBufferAvailable()
 
 static const gchar **gst_consumer_surface_pool_get_options(GstBufferPool *pool)
 {
+    (void)pool;
     static const gchar *options[] = { GST_BUFFER_POOL_OPTION_VIDEO_META, nullptr };
     return options;
 }
