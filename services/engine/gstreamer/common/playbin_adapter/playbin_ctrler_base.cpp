@@ -427,6 +427,9 @@ void PlayBinCtrlerBase::Reset() noexcept
     }
     (void)StopInternal();
 
+    // Do it here before the ChangeState to IdleState, for avoding the deadlock when msg handler
+    // try to call the ChangeState.
+    ExitInitializedState();
     ChangeState(idleState_);
 
     if (msgQueue_ != nullptr) {
@@ -483,7 +486,7 @@ void PlayBinCtrlerBase::DoInitializeForHttp()
 
 int32_t PlayBinCtrlerBase::EnterInitializedState()
 {
-    if (isInitialized) {
+    if (isInitialized_) {
         return MSERR_OK;
     }
 
@@ -531,7 +534,7 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
 
     DoInitializeForHttp();
 
-    isInitialized = true;
+    isInitialized_ = true;
     ChangeState(initializedState_);
 
     CANCEL_SCOPE_EXIT_GUARD(0);
@@ -543,12 +546,17 @@ void PlayBinCtrlerBase::ExitInitializedState()
 {
     MEDIA_LOGD("ExitInitializedState enter");
 
-    isInitialized = false;
+    if (!isInitialized_) {
+        return;
+    }
+    isInitialized_ = false;
 
+    mutex_.unlock();
     if (msgProcessor_ != nullptr) {
         msgProcessor_->Reset();
         msgProcessor_ = nullptr;
     }
+    mutex_.lock();
 
     for (auto &[elem, signalId] : signalIds_) {
         g_signal_handler_disconnect(elem, signalId);
@@ -601,7 +609,6 @@ int32_t PlayBinCtrlerBase::SeekInternal(int64_t timeUs, int32_t seekOption)
     constexpr int32_t usecToNanoSec = 1000;
     int64_t timeNs = timeUs * usecToNanoSec;
     seekPos_ = timeUs;
-
     isSeeking_ = true;
     GstEvent *event = gst_event_new_seek(1.0, GST_FORMAT_TIME, static_cast<GstSeekFlags>(seekFlags),
         GST_SEEK_TYPE_SET, timeNs, GST_SEEK_TYPE_SET, GST_CLOCK_TIME_NONE);
@@ -675,13 +682,7 @@ int32_t PlayBinCtrlerBase::SetupSignalMessage()
     GstBus *bus = gst_pipeline_get_bus(playbin_);
     CHECK_AND_RETURN_RET_LOG(bus != nullptr, MSERR_UNKNOWN, "can not get bus");
 
-    std::weak_ptr<PlayBinCtrlerBase> weakThiz = shared_from_this();
-    auto msgNotifier = [weakThiz](const InnerMessage &msg) {
-        std::shared_ptr<PlayBinCtrlerBase> ctrler = weakThiz.lock();
-        if (ctrler != nullptr) {
-            ctrler->OnMessageReceived(msg);
-        }
-    };
+    auto msgNotifier = std::bind(&PlayBinCtrlerBase::OnMessageReceived, this, std::placeholders::_1);
     msgProcessor_ = std::make_unique<GstMsgProcessor>(*bus, msgNotifier);
 
     gst_object_unref(bus);

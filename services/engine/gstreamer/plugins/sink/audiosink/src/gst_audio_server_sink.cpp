@@ -36,6 +36,7 @@ namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "audio_server_sink"};
     constexpr float DEFAULT_VOLUME = 1.0f;
     constexpr uint32_t DEFAULT_BITS_PER_SAMPLE = 16;
+    constexpr uint64_t DEFAULT_AUDIO_RENDER_DELAY = 270000; // unit us, empirical value
 }
 
 enum {
@@ -50,7 +51,8 @@ enum {
     PROP_MIN_VOLUME,
     PROP_AUDIO_RENDERER_DESC,
     PROP_AUDIO_RENDERER_FLAG,
-    PROP_AUDIO_INTERRUPT_MODE
+    PROP_AUDIO_INTERRUPT_MODE,
+    PROP_LAST_RENDER_PTS,
 };
 
 #define gst_audio_server_sink_parent_class parent_class
@@ -138,6 +140,10 @@ static void gst_audio_server_sink_class_init(GstAudioServerSinkClass *klass)
             "Audio Interrupt Mode", 0, G_MAXINT32, 0,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
+    g_object_class_install_property(gobject_class, PROP_LAST_RENDER_PTS,
+        g_param_spec_uint64("last-render-pts", "last-render-pts", "last render pts", 0, G_MAXUINT64,
+            0, (GParamFlags)(G_PARAM_READABLE | G_PARAM_STATIC_STRINGS)));
+
     gst_element_class_set_static_metadata(gstelement_class,
         "Audio server sink", "Sink/Audio",
         "Push pcm data to Audio server", "OpenHarmony");
@@ -176,6 +182,7 @@ static void gst_audio_server_sink_init(GstAudioServerSink *sink)
     sink->renderer_desc = 0;
     sink->renderer_flag = 0;
     g_mutex_init(&sink->render_lock);
+    sink->last_render_pts = 0;
 }
 
 static void gst_audio_server_sink_finalize(GObject *object)
@@ -285,6 +292,11 @@ static void gst_audio_server_sink_get_property(GObject *object, guint prop_id, G
             break;
         case PROP_MIN_VOLUME:
             g_value_set_float(value, sink->min_volume);
+            break;
+        case PROP_LAST_RENDER_PTS:
+            g_mutex_lock(&sink->render_lock);
+            g_value_set_uint64(value, static_cast<guint64>(sink->last_render_pts));
+            g_mutex_unlock(&sink->render_lock);
             break;
         default:
             break;
@@ -512,6 +524,9 @@ static GstStateChangeReturn gst_audio_server_sink_change_state(GstElement *eleme
         case GST_STATE_CHANGE_PAUSED_TO_READY:
             MEDIA_LOGD("GST_STATE_CHANGE_PAUSED_TO_READY");
             gst_audio_server_sink_clear_cache_buffer(sink);
+            g_mutex_lock(&sink->render_lock);
+            sink->last_render_pts = 0;
+            g_mutex_unlock(&sink->render_lock);
             break;
         default:
             break;
@@ -569,6 +584,13 @@ static GstFlowReturn gst_audio_server_sink_render(GstBaseSink *basesink, GstBuff
         } else {
             GST_INFO_OBJECT(basesink, "frame render latency is (%" PRIu64 ")", latency);
         }
+        /* the latency provided by GetLatency() is not accurate.
+         * so we set DEFAULT_AUDIO_RENDER_DELAY to basesink.
+         */
+        gst_base_sink_set_render_delay(basesink, DEFAULT_AUDIO_RENDER_DELAY * GST_USECOND);
+    }
+    if (GST_CLOCK_TIME_IS_VALID(GST_BUFFER_PTS(buffer))) {
+        sink->last_render_pts = GST_BUFFER_PTS(buffer);
     }
     g_mutex_unlock(&sink->render_lock);
 

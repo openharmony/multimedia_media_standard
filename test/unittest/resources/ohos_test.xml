@@ -20,6 +20,13 @@
             <option name="push" value="test_videofile/H264_AAC.mp4 -> /data/test" src="res"/>
         </preparer>
     </target>
+    <target name="recorder_unit_test">
+        <preparer>
+            <option name="push" value="res_recorder/recorder_video_pause_resume.mp4 -> /data/test" src="res"/>
+            <option name="push" value="res_recorder/recorder_video_es.mp4 -> /data/test" src="res"/>
+            <option name="push" value="res_recorder/recorder_video_yuv_mpeg4.mp4 -> /data/test" src="res"/>
+        </preparer>
+    </target>
     <target name="avmetadata_unit_test">
         <preparer>
             <option name="push" value="test_videofile/H264_AAC.mp4 -> /data/test" src="res"/>

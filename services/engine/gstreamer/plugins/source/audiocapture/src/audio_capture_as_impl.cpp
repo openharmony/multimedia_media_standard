@@ -238,8 +238,8 @@ std::shared_ptr<AudioBuffer> AudioCaptureAsImpl::GetBuffer()
         MEDIA_LOGD("audio has %{public}d times pause, total PauseTime: %{public}" PRIu64 "",
             audioCacheCtrl_->pausedCount_, audioCacheCtrl_->totalPauseTime_);
     }
-    bufferOut->timestamp = bufferOut->timestamp - audioCacheCtrl_->totalPauseTime_;
-    audioCacheCtrl_->lastTimeStamp_ = bufferOut->timestamp + audioCacheCtrl_->totalPauseTime_;
+    audioCacheCtrl_->lastTimeStamp_ = bufferOut->timestamp;
+    bufferOut->timestamp -= audioCacheCtrl_->totalPauseTime_;
     return bufferOut;
 }
 

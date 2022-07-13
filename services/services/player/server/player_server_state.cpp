@@ -84,13 +84,14 @@ int32_t PlayerServer::BaseState::OnMessageReceived(PlayerOnInfoType type, int32_
     (void)infoBody;
 
     if (type == INFO_TYPE_SEEKDONE) {
+        int32_t ret = MSERR_OK;
         (void)server_.taskMgr_.MarkTaskDone();
         MediaTrace::TraceEnd("Player::Seek", SEEK_TASK_ID);
-        if (server_.disableNextSeekDone_) {
-            server_.disableNextSeekDone_ = false;
-            return MSERR_UNSUPPORT;
+        if (server_.disableNextSeekDone_ && extra == 0) {
+            ret = MSERR_UNSUPPORT;
         }
-        return MSERR_OK;
+        server_.disableNextSeekDone_ = false;
+        return ret;
     }
         
     if (type == INFO_TYPE_SPEEDDONE) {

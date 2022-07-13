@@ -26,7 +26,7 @@ ohos_unittest("avmetadata_unit_test") {
     "//foundation/graphic/graphic_2d/utils/sync_fence/export",
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
-    "//foundation/windowmanager/interfaces/innerkits/wm",
+    "//foundation/window/window_manager/interfaces/innerkits/wm",
     "//third_party/libjpeg",
     "//foundation/multimedia/media_standard/frameworks/native/player",
     "//foundation/multimedia/media_standard/test/unittest/common/include",
@@ -52,7 +52,7 @@ ohos_unittest("avmetadata_unit_test") {
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
     "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
-    "//foundation/windowmanager/wm:libwm",
+    "//foundation/window/window_manager/wm:libwm",
     "//third_party/libjpeg:libjpeg_static",
     "//utils/native/base:utils",
   ]

@@ -165,7 +165,7 @@ void AudioEncoderCallbackNapi::OnOutputBufferAvailable(uint32_t index, AVCodecBu
     }
 
     // cache this buffer for this index to make sure that this buffer is valid until the buffer of this index
-    // obtained to response to OnInputBufferAvailable at next time.
+    // obtained to response to OnOutputBufferAvailable at next time.
     auto iter = outputBufferCaches_.find(index);
     if (iter == outputBufferCaches_.end()) {
         outputBufferCaches_.emplace(index, buffer);

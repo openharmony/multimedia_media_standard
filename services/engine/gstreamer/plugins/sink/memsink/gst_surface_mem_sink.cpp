@@ -25,7 +25,7 @@
 using namespace OHOS;
 struct _GstSurfaceMemSinkPrivate {
     OHOS::sptr<OHOS::Surface> surface;
-    GstSurfacePool *pool;
+    GstProducerSurfacePool *pool;
 };
 
 enum {
@@ -301,8 +301,10 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
         }
 
         if (needFlush) {
+            // surface do not support timestamp is 0.
+            GST_BUFFER_PTS(buffer) = GST_BUFFER_PTS(buffer) == 0 ? 1 : GST_BUFFER_PTS(buffer);
             OHOS::BufferFlushConfig flushConfig = {
-                { 0, 0, surface_mem->buf->GetWidth(), surface_mem->buf->GetHeight()}, 0
+                { 0, 0, surface_mem->buf->GetWidth(), surface_mem->buf->GetHeight() }, GST_BUFFER_PTS(buffer)
             };
             gst_surface_mem_sink_dump_buffer(surface_sink, buffer);
             OHOS::SurfaceError ret = priv->surface->FlushBuffer(surface_mem->buf, surface_mem->fence, flushConfig);
@@ -352,7 +354,7 @@ static gboolean gst_surface_mem_sink_do_propose_allocation(GstMemSink *memsink, 
     }
     GST_DEBUG("maxBuffers is: %u", maxBuffers);
 
-    GstSurfacePool *pool = surface_sink->priv->pool;
+    GstProducerSurfacePool *pool = surface_sink->priv->pool;
     g_return_val_if_fail(pool != nullptr, FALSE);
     g_return_val_if_fail(gst_buffer_pool_set_active(GST_BUFFER_POOL(pool), FALSE), FALSE);
 
