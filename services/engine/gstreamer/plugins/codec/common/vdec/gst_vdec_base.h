@@ -111,6 +111,7 @@ struct _GstVdecBase {
     DisplayRect rect;
     gboolean pre_init_pool;
     gboolean performance_mode;
+    gboolean resolution_changed;
     GstCaps *sink_caps;
 };
 
