@@ -181,6 +181,7 @@ static void gst_consumer_surface_pool_set_property(GObject *object, guint id, co
         case PROP_NOTIFY_EOS:
             priv->need_eos_buffer = g_value_get_boolean(value);
             g_cond_signal(&priv->buffer_available_con);
+            break;
         default:
             break;
     }
