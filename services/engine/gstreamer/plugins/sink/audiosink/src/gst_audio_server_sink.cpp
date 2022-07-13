@@ -535,6 +535,29 @@ static GstStateChangeReturn gst_audio_server_sink_change_state(GstElement *eleme
     return ret;
 }
 
+static void gst_audio_server_sink_get_latency(GstAudioServerSink *sink, GstBuffer *buffer)
+{
+    g_mutex_lock(&sink->render_lock);
+    if (sink->frame_after_segment) {
+        sink->frame_after_segment = FALSE;
+        uint64_t latency = 0;
+        GST_INFO_OBJECT(sink, "the first audio frame after segment has been sent to audio server");
+        if (sink->audio_sink->GetLatency(latency) != MSERR_OK) {
+            GST_INFO_OBJECT(sink, "fail to get latency");
+        } else {
+            GST_INFO_OBJECT(sink, "frame render latency is (%" PRIu64 ")", latency);
+        }
+        /* the latency provided by GetLatency() is not accurate.
+         * so we set DEFAULT_AUDIO_RENDER_DELAY to basesink.
+         */
+        gst_base_sink_set_render_delay(GST_BASE_SINK(sink), DEFAULT_AUDIO_RENDER_DELAY * GST_USECOND);
+    }
+    if (GST_CLOCK_TIME_IS_VALID(GST_BUFFER_PTS(buffer))) {
+        sink->last_render_pts = GST_BUFFER_PTS(buffer);
+    }
+    g_mutex_unlock(&sink->render_lock);
+}
+
 static GstFlowReturn gst_audio_server_sink_render(GstBaseSink *basesink, GstBuffer *buffer)
 {
     g_return_val_if_fail(basesink != nullptr, GST_FLOW_ERROR);
@@ -574,26 +597,7 @@ static GstFlowReturn gst_audio_server_sink_render(GstBaseSink *basesink, GstBuff
         gst_buffer_unmap(buffer, &map);
     }
 
-    g_mutex_lock(&sink->render_lock);
-    if (sink->frame_after_segment) {
-        sink->frame_after_segment = FALSE;
-        uint64_t latency = 0;
-        GST_INFO_OBJECT(basesink, "the first audio frame after segment has been sent to audio server");
-        if (sink->audio_sink->GetLatency(latency) != MSERR_OK) {
-            GST_INFO_OBJECT(basesink, "fail to get latency");
-        } else {
-            GST_INFO_OBJECT(basesink, "frame render latency is (%" PRIu64 ")", latency);
-        }
-        /* the latency provided by GetLatency() is not accurate.
-         * so we set DEFAULT_AUDIO_RENDER_DELAY to basesink.
-         */
-        gst_base_sink_set_render_delay(basesink, DEFAULT_AUDIO_RENDER_DELAY * GST_USECOND);
-    }
-    if (GST_CLOCK_TIME_IS_VALID(GST_BUFFER_PTS(buffer))) {
-        sink->last_render_pts = GST_BUFFER_PTS(buffer);
-    }
-    g_mutex_unlock(&sink->render_lock);
-
+    gst_audio_server_sink_get_latency(sink, buffer);
     return GST_FLOW_OK;
 }
 
