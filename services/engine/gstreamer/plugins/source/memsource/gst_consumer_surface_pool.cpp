@@ -280,6 +280,15 @@ static GstFlowReturn gst_consumer_surface_pool_get_eos_buffer(GstConsumerSurface
     return GST_FLOW_OK;
 }
 
+static void gst_consumer_surface_pool_get_repeat_buffer(GstConsumerSurfacePool *surfacepool, GstBuffer **buffer)
+{
+    auto priv = surfacepool->priv;
+    *buffer = priv->cache_buffer;
+    gst_buffer_ref(priv->cache_buffer);
+    GST_BUFFER_PTS(*buffer) = priv->pre_timestamp + priv->repeat_interval;
+    priv->pre_timestamp = GST_BUFFER_PTS(*buffer);
+}
+
 static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *pool, GstBuffer **buffer,
     GstBufferPoolAcquireParams *params)
 {
@@ -310,10 +319,7 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
         }
 
         if (repeat && priv->cache_buffer != nullptr) {
-            *buffer = priv->cache_buffer;
-            gst_buffer_ref(priv->cache_buffer);
-            GST_BUFFER_PTS(*buffer) = priv->pre_timestamp + priv->repeat_interval;
-            priv->pre_timestamp = GST_BUFFER_PTS(*buffer);
+            gst_consumer_surface_pool_get_repeat_buffer(surfacepool, buffer);
             break;
         }
 
