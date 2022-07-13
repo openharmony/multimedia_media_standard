@@ -24,6 +24,7 @@ ohos_unittest("player_unit_test") {
     "//graphic/graphic_2d/interfaces/innerkits/surface",
     "//foundation/window/window_manager/interfaces/innerkits/wm",
     "//foundation/multimedia/media_standard/test/unittest/common/include",
+    "src/data_source",
   ]
 
   cflags = [
@@ -33,6 +34,8 @@ ohos_unittest("player_unit_test") {
 
   sources = [
     "//foundation/multimedia/media_standard/test/unittest/common/src/test_params_config.cpp",
+    "src/data_source/media_data_source_test_noseek.cpp",
+    "src/data_source/media_data_source_test_seekable.cpp",
     "src/player_mock.cpp",
     "src/player_unit_test.cpp",
   ]
