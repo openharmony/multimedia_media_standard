@@ -45,21 +45,18 @@ bool PlayerSeekFuzzer::FuzzSeek(uint8_t* data, size_t size)
     if (ret != 0) {
         cout << "SetPlayerCallback fail" << endl;
     }
-    const string path = "/data/media/H264_AAC.mp4";
-    ret = SetFdSource(path);
-    if (ret != 0) {
+    const string path = "/data/test/resource/H264_AAC.mp4";
+    if ((SetFdSource(path)) != 0) {
         cout << "SetFdSource fail" << endl;
         return false;
     }
     sptr<Surface> producerSurface = nullptr;
     producerSurface = GetVideoSurface();
-    ret = player_->SetVideoSurface(producerSurface);
-    if (ret != 0) {
+    if ((player_->SetVideoSurface(producerSurface)) != 0) {
         cout << "SetVideoSurface fail" << endl;
     }
 
-    ret = player_->PrepareAsync();
-    if (ret != 0) {
+    if ((player_->PrepareAsync()) != 0) {
         cout << "PrepareAsync fail" << endl;
         return false;
     }
@@ -70,10 +67,17 @@ bool PlayerSeekFuzzer::FuzzSeek(uint8_t* data, size_t size)
         return false;
     }
     if (size >= sizeof(int32_t)) {
-        ret = player_->Seek(*reinterpret_cast<int32_t *>(data), SEEK_NEXT_SYNC);
-        sleep(1);
+        int32_t data_ = *reinterpret_cast<int32_t *>(data);
+        cout << "seek to " << data_ << endl;
+        ret = player_->Seek(data_, SEEK_NEXT_SYNC);
+        if (ret != 0) {
+            cout << "seek fail" << endl;
+            return false;
+        } else {
+            sleep(1);
+        }
     }
-
+        
     ret = player_->Release();
     if (ret != 0) {
         cout << "Release fail" << endl;

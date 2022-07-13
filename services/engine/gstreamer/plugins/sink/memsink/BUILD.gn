@@ -57,6 +57,10 @@ config("gst_mem_sink_config") {
   ]
 }
 
+declare_args() {
+  multimedia_media_standard_no_stride = true
+}
+
 ohos_shared_library("gst_mem_sink") {
   install_enable = true
 
@@ -67,7 +71,7 @@ ohos_shared_library("gst_mem_sink") {
     "gst_surface_mem_sink.cpp",
   ]
 
-  if ("${product_name}" == "m40") {
+  if (!multimedia_media_standard_no_stride) {
     sources += [ "gst_producer_surface_pool.cpp" ]
   } else {
     sources += [ "gst_producer_surface_pool_no_stride.cpp" ]

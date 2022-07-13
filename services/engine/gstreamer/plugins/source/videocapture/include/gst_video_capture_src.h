@@ -40,7 +40,7 @@ typedef enum {
     RECORDER_PAUSED,
     RECORDER_RESUME,
     RECORDER_STOP,
-}VideoRecorderState;
+} VideoRecorderState;
 
 struct _GstVideoCaptureSrc {
     GstSurfaceSrc element;
