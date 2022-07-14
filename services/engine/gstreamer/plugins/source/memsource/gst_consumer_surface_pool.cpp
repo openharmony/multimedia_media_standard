@@ -274,7 +274,7 @@ static GstFlowReturn gst_consumer_surface_pool_get_eos_buffer(GstConsumerSurface
     *buffer = gst_buffer_new();
     g_return_val_if_fail(*buffer != nullptr, GST_FLOW_ERROR);
     uint32_t bufferFlag = BUFFER_FLAG_EOS;
-    GstBufferHandleConfig config = { -1, bufferFlag, 0, 0 };
+    GstBufferHandleConfig config = { 0, -1, bufferFlag, 0, 0 };
     gst_buffer_add_buffer_handle_meta(*buffer, 0, config);
 
     surfacepool->priv->need_eos_buffer = FALSE;
@@ -419,7 +419,8 @@ static void add_buffer_info(GstConsumerSurfacePool *pool, GstConsumerSurfaceMemo
     if (mem->is_eos_frame) {
         bufferFlag = BUFFER_FLAG_EOS;
     }
-    GstBufferHandleConfig config = { mem->fencefd, bufferFlag, mem->data_size, mem->pixel_format };
+    GstBufferHandleConfig config = { sizeof(mem->buffer_handle), mem->fencefd,
+        bufferFlag, mem->data_size, mem->pixel_format };
     gst_buffer_add_buffer_handle_meta(buffer, mem->buffer_handle, config);
 
     if (mem->timestamp < 0) {

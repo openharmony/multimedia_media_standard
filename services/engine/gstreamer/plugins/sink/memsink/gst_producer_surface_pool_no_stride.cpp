@@ -563,8 +563,7 @@ static GstFlowReturn gst_producer_surface_pool_alloc_buffer(GstBufferPool *pool,
         gst_buffer_add_video_meta(*buffer, GST_VIDEO_FRAME_FLAG_NONE, GST_VIDEO_INFO_FORMAT(info),
             GST_VIDEO_INFO_WIDTH(info), GST_VIDEO_INFO_HEIGHT(info));
     }
-
-    GstBufferHandleConfig config = { memory->fence, 0, 0, 0 };
+    GstBufferHandleConfig config = { sizeof(buffer_handle), memory->fence, 0, 0, 0 };
     gst_buffer_add_buffer_handle_meta(*buffer, reinterpret_cast<intptr_t>(buffer_handle), config);
     return GST_FLOW_OK;
 }
