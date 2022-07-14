@@ -50,6 +50,7 @@ private:
     bool IsSurfaceIdValid(uint64_t surfaceId);
 
     void ErrorCallback(MediaServiceExtErrCode errCode);
+    void SetCallbackReference(const std::string &callbackName, std::shared_ptr<AutoRef> ref);
 
     VideoEncoderNapi();
     ~VideoEncoderNapi();
@@ -61,6 +62,7 @@ private:
     std::shared_ptr<AVCodecVideoEncoder> venc_ = nullptr;
     std::shared_ptr<AVCodecCallback> callback_ = nullptr;
     bool isSurfaceMode_ = false;
+    std::map<std::string, std::shared_ptr<AutoRef>> refMap_;
 };
 
 struct VideoEncoderAsyncContext : public MediaAsyncContext {
