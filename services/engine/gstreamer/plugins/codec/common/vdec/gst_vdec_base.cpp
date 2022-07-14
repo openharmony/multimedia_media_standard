@@ -168,6 +168,15 @@ static void gst_vdec_base_set_property(GObject *object, guint prop_id, const GVa
     }
 }
 
+static void gst_vdec_base_check_input_need_copy(GstVdecBase *self)
+{
+    GstVdecBaseClass *base_class = GST_VDEC_BASE_GET_CLASS(self);
+    g_return_if_fail(base_class != nullptr);
+    if (base_class->input_need_copy != nullptr) {
+        self->input_need_ashmem = base_class->input_need_copy();
+    }
+}
+
 static void gst_vdec_base_property_init(GstVdecBase *self)
 {
     g_mutex_init(&self->lock);
@@ -200,6 +209,7 @@ static void gst_vdec_base_property_init(GstVdecBase *self)
     self->pre_init_pool = FALSE;
     self->performance_mode = FALSE;
     self->resolution_changed = FALSE;
+    self->input_need_ashmem = FALSE;
 }
 
 static void gst_vdec_base_init(GstVdecBase *self)
@@ -280,6 +290,7 @@ static gboolean gst_vdec_base_open(GstVideoDecoder *decoder)
     g_return_val_if_fail(base_class != nullptr && base_class->create_codec != nullptr, FALSE);
     self->decoder = base_class->create_codec(reinterpret_cast<GstElementClass*>(base_class));
     g_return_val_if_fail(self->decoder != nullptr, FALSE);
+    gst_vdec_base_check_input_need_copy(self);
     return TRUE;
 }
 
@@ -653,6 +664,7 @@ static gboolean gst_vdec_base_allocate_in_buffers(GstVdecBase *self)
         buffers.push_back(buffer);
     }
     GST_DEBUG_OBJECT(self, "Use input buffers start");
+    // no give ref to decoder
     gint ret = self->decoder->UseInputBuffers(buffers);
     // Return buffers to pool
     for (auto buffer : buffers) {
@@ -704,6 +716,7 @@ static gboolean gst_vdec_base_allocate_out_buffers(GstVdecBase *self)
         }
         buffers.push_back(buffer);
     }
+    // give buffer ref to decoder
     gint ret = self->decoder->UseOutputBuffers(buffers);
     g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "usebuffer", TRUE), FALSE);
     return TRUE;
@@ -823,6 +836,8 @@ static void gst_vdec_base_dump_output_buffer(GstVdecBase *self, GstBuffer *buffe
     g_return_if_fail(gst_buffer_map(buffer, &info, GST_MAP_READ));
     guint stride = (guint)(self->real_stride == 0 ? self->stride : self->real_stride);
     guint stride_height = (guint)(self->real_stride_height == 0 ? self->stride_height : self->real_stride_height);
+    stride = stride == 0 ? self->width : stride;
+    stride_height = stride_height == 0 ? self->height : stride_height;
     // yuv size
     guint size = stride * stride_height * 3 / 2;
     if (size > info.size) {
@@ -860,13 +875,62 @@ static void gst_vdec_base_input_frame_pts_to_list(GstVdecBase *self, GstVideoCod
     g_mutex_unlock(&self->lock);
 }
 
+static int32_t gst_vdec_base_push_input_buffer_with_copy(GstVdecBase *self, GstBuffer *src_buffer)
+{
+    GstBuffer* dts_buffer;
+    GstBufferPool *pool = reinterpret_cast<GstBufferPool *>(gst_object_ref(self->inpool));
+    ON_SCOPE_EXIT(0) { gst_object_unref(pool); };
+    GstFlowReturn flow_ret = gst_buffer_pool_acquire_buffer(pool, &dts_buffer, nullptr);
+    ON_SCOPE_EXIT(1) { gst_buffer_unref(dts_buffer); };
+    if (flow_ret != GST_FLOW_OK || dts_buffer == nullptr) {
+        GST_ERROR_OBJECT(self, "Acquire buffer is nullptr");
+        return GST_CODEC_FLUSH;
+    }
+    GstMapInfo dts_map = GST_MAP_INFO_INIT;
+    if (gst_buffer_map(dts_buffer, &dts_map, GST_MAP_WRITE) != TRUE) {
+        return GST_CODEC_ERROR;
+    }
+    ON_SCOPE_EXIT(2) { gst_buffer_unmap(dts_buffer, &dts_map); };
+    GstMapInfo src_map = GST_MAP_INFO_INIT;
+    if (gst_buffer_map(src_buffer, &src_map, GST_MAP_READ) != TRUE) {
+        return GST_CODEC_ERROR;
+    }
+    ON_SCOPE_EXIT(3) { gst_buffer_unmap(src_buffer, &src_map); };
+
+    auto ret = memcpy_s(dts_map.data, dts_map.size, src_map.data, src_map.size);
+    g_return_val_if_fail(ret == EOK, GST_CODEC_ERROR);
+    GstBufferTypeMeta *meta = gst_buffer_get_buffer_type_meta(dts_buffer);
+    g_return_val_if_fail(meta != nullptr, GST_CODEC_ERROR);
+    meta->length = src_map.size;
+    CANCEL_SCOPE_EXIT_GUARD(2);
+    CANCEL_SCOPE_EXIT_GUARD(3);
+    gst_buffer_unmap(dts_buffer, &dts_map);
+    gst_buffer_unmap(src_buffer, &src_map);
+    gst_buffer_set_size(dts_buffer, meta->length);
+    gst_vdec_base_dump_input_buffer(self, dts_buffer);
+    gint codec_ret = self->decoder->PushInputBuffer(dts_buffer);
+    return codec_ret;
+}
+
+static gboolean gst_vdec_check_ashmem_buffer(GstBuffer *buffer)
+{
+    g_return_val_if_fail(buffer != nullptr, FALSE);
+    GstMemory *memory = gst_buffer_peek_memory(buffer, 0);
+    return gst_is_shmem_memory(memory);
+}
+
 static GstFlowReturn gst_vdec_base_push_input_buffer(GstVideoDecoder *decoder, GstVideoCodecFrame *frame)
 {
     GstVdecBase *self = GST_VDEC_BASE(decoder);
     gst_vdec_debug_input_time(self);
-    gst_vdec_base_dump_input_buffer(self, frame->input_buffer);
     gst_vdec_base_input_frame_pts_to_list(self, frame);
-    gint codec_ret = self->decoder->PushInputBuffer(frame->input_buffer);
+    gint codec_ret = GST_CODEC_OK;
+    if (!gst_vdec_check_ashmem_buffer(frame->input_buffer) && self->input_need_ashmem) {
+        codec_ret = gst_vdec_base_push_input_buffer_with_copy(self, frame->input_buffer);
+    } else {
+        gst_vdec_base_dump_input_buffer(self, frame->input_buffer);
+        codec_ret = self->decoder->PushInputBuffer(frame->input_buffer);
+    }
     GST_VIDEO_DECODER_STREAM_LOCK(self);
     GstFlowReturn ret = GST_FLOW_OK;
     switch (codec_ret) {
@@ -1119,9 +1183,9 @@ static GstFlowReturn gst_vdec_base_format_change(GstVdecBase *self)
         g_object_set(self->outpool, "dynamic-buffer-num", self->out_buffer_cnt, nullptr);
     }
 
-    g_return_val_if_fail(gst_vdec_base_allocate_out_buffers(self), GST_FLOW_ERROR);
     ret = self->decoder->ActiveBufferMgr(GST_CODEC_OUTPUT, true);
     g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "ActiveBufferMgr", TRUE), GST_FLOW_ERROR);
+    g_return_val_if_fail(gst_vdec_base_allocate_out_buffers(self), GST_FLOW_ERROR);
     ret = self->decoder->Start();
     g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "Start", TRUE), GST_FLOW_ERROR);
     GST_WARNING_OBJECT(self, "KPI-TRACE-VDEC: format change end");
@@ -1184,6 +1248,7 @@ static gboolean gst_vdec_base_push_out_buffers(GstVdecBase *self)
         flow = gst_buffer_pool_acquire_buffer(pool, &buffer, &params);
         if (flow == GST_FLOW_OK) {
             g_return_val_if_fail(buffer != nullptr, FALSE);
+            // the buffer ref give to decoder
             codec_ret = self->decoder->PushOutputBuffer(buffer);
             g_return_val_if_fail(gst_codec_return_is_ok(self, codec_ret, "push buffer", TRUE), FALSE);
             self->coding_outbuf_cnt++;

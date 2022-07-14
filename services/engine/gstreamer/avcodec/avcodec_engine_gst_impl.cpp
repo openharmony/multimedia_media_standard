@@ -93,6 +93,7 @@ int32_t AVCodecEngineGstImpl::Configure(const Format &format)
 
     CHECK_AND_RETURN_RET(processor_ != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(processor_->DoProcess(format_) == MSERR_OK, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(ctrl_->SetConfigParameter(format) == MSERR_OK, MSERR_UNKNOWN);
 
     MEDIA_LOGD("Configure success");
 

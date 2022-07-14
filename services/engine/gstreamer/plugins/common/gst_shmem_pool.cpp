@@ -325,7 +325,7 @@ static GstFlowReturn add_meta_to_buffer(GstShMemPool *spool, GstBuffer *buffer, 
         flag = FLAGS_READ_ONLY;
     }
 
-    GstBufferFdConfig config = { 0, mem->GetSize(), mem->GetSize(), flag, 0 };
+    GstBufferFdConfig config = { sizeof(mem->GetFd()), 0, mem->GetSize(), mem->GetSize(), flag, 0 };
     gst_buffer_add_buffer_fd_meta(buffer, mem->GetFd(), config);
 
     return GST_FLOW_OK;
