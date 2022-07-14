@@ -185,6 +185,12 @@ int32_t AVCodecEngineCtrl::Flush()
     return MSERR_OK;
 }
 
+int32_t AVCodecEngineCtrl::NotifyEos()
+{
+    CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
+    return src_->NotifyEos();
+}
+
 int32_t AVCodecEngineCtrl::Release()
 {
     if (gstPipeline_ != nullptr) {

@@ -98,6 +98,12 @@ int32_t AVCodecVideoEncoderImpl::Flush()
     return codecService_->Flush();
 }
 
+int32_t AVCodecVideoEncoderImpl::NotifyEos()
+{
+    CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");
+    return codecService_->NotifyEos();
+}
+
 int32_t AVCodecVideoEncoderImpl::Reset()
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");

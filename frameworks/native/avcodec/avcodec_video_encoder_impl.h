@@ -33,6 +33,7 @@ public:
     int32_t Flush() override;
     int32_t Reset() override;
     int32_t Release() override;
+    int32_t NotifyEos() override;
     sptr<Surface> CreateInputSurface() override;
     std::shared_ptr<AVSharedMemory> GetInputBuffer(uint32_t index) override;
     int32_t QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag) override;

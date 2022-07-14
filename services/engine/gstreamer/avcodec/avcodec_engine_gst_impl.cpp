@@ -159,6 +159,15 @@ int32_t AVCodecEngineGstImpl::Reset()
     return MSERR_OK;
 }
 
+int32_t AVCodecEngineGstImpl::NotifyEos()
+{
+    MEDIA_LOGD("Enter NotifyEos");
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_UNKNOWN);
+    return ctrl_->NotifyEos();
+}
+
 sptr<Surface> AVCodecEngineGstImpl::CreateInputSurface()
 {
     MEDIA_LOGD("Enter CreateInputSurface");

@@ -35,6 +35,7 @@ public:
     int32_t Flush() override;
     int32_t Reset() override;
     int32_t Release() override;
+    int32_t NotifyEos() override;
     sptr<OHOS::Surface> CreateInputSurface() override;
     int32_t SetOutputSurface(sptr<OHOS::Surface> surface) override;
     std::shared_ptr<AVSharedMemory> GetInputBuffer(uint32_t index) override;
