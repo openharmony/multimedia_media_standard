@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 
 config("media_service_dfx_public_config") {
   cflags = [ "-DOHOS_MEDIA_LOG_DFX" ]
-  include_dirs = [ "//foundation/multimedia/media_standard/services/dfx" ]
+  include_dirs = [ "//foundation/multimedia/player_framework/services/dfx" ]
 }
 
 ohos_shared_library("media_service_dfx") {
@@ -56,5 +56,5 @@ ohos_shared_library("media_service_dfx") {
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }

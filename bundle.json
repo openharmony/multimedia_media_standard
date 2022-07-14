@@ -1,16 +1,16 @@
 {
-    "name": "@ohos/media_standard",
+    "name": "@ohos/player_framework",
     "description": "Media standard provides atomic capabilities",
     "version": "3.1",
     "license": "Apache License 2.0",
     "publishAs": "code-segment",
     "segment": {
-      "destPath": "foundation/multimedia/media_standard"
+      "destPath": "foundation/multimedia/player_framework"
     },
     "dirs": {},
     "scripts": {},
     "component": {
-      "name": "multimedia_media_standard",
+      "name": "multimedia_player_framework",
       "subsystem": "multimedia",
       "syscap": [
         "SystemCapability.Multimedia.Media.Core",
@@ -27,7 +27,7 @@
       "rom": "10000KB",
       "ram": "10000KB",
       "hisysevent_config": [
-        "//foundation/multimedia/media_standard/hisysevent.yaml"
+        "//foundation/multimedia/player_framework/hisysevent.yaml"
       ],
       "deps": {
         "components": [
@@ -63,19 +63,19 @@
       },
       "build": {
         "sub_component": [
-          "//foundation/multimedia/media_standard/services:media_services_package",
-          "//foundation/multimedia/media_standard/sa_profile:media_service_sa_profile",
-          "//foundation/multimedia/media_standard/interfaces/kits/js:media",
-          "//foundation/multimedia/media_standard/interfaces/kits/js:media_js",
-          "//foundation/multimedia/media_standard/frameworks/videodisplaymanager:videodisplaymanager",
-          "//foundation/multimedia/media_standard/test/nativedemo:media_demo",
-          "//foundation/multimedia/media_standard/test/jsdemo:media_demo_js",
-          "//foundation/multimedia/media_standard/test/jsdemo:mediademo"
+          "//foundation/multimedia/player_framework/services:media_services_package",
+          "//foundation/multimedia/player_framework/sa_profile:media_service_sa_profile",
+          "//foundation/multimedia/player_framework/interfaces/kits/js:media",
+          "//foundation/multimedia/player_framework/interfaces/kits/js:media_js",
+          "//foundation/multimedia/player_framework/frameworks/videodisplaymanager:videodisplaymanager",
+          "//foundation/multimedia/player_framework/test/nativedemo:media_demo",
+          "//foundation/multimedia/player_framework/test/jsdemo:media_demo_js",
+          "//foundation/multimedia/player_framework/test/jsdemo:mediademo"
         ],
         "inner_kits": [
           {
             "type": "none",
-            "name": "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
+            "name": "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
             "header": {
               "header_files": [
                   "player.h",
@@ -83,23 +83,23 @@
                   "avcodec_list.h",
                   "recorder_profiles.h"
               ],
-              "header_base": "//foundation/multimedia/media_standard/interfaces/inner_api/native"
+              "header_base": "//foundation/multimedia/player_framework/interfaces/inner_api/native"
             }
           },
           {
             "type": "none",
-            "name": "//foundation/multimedia/media_standard/interfaces/kits/js:media",
+            "name": "//foundation/multimedia/player_framework/interfaces/kits/js:media",
             "header": {
               "header_files": [
                     "native_module_ohos_media.h"
               ],
-              "header_base": "//foundation/multimedia/media_standard/interfaces/kits/js"
+              "header_base": "//foundation/multimedia/player_framework/interfaces/kits/js"
             }
           }
         ],
         "test": [
-            "//foundation/multimedia/media_standard/test/fuzztest:fuzztest",
-            "//foundation/multimedia/media_standard/test:media_unit_test"
+            "//foundation/multimedia/player_framework/test/fuzztest:fuzztest",
+            "//foundation/multimedia/player_framework/test:media_unit_test"
         ]
       }
     }

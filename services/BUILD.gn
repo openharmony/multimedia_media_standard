@@ -28,12 +28,12 @@ ohos_prebuilt_etc("codec_caps") {
 
   subsystem_name = "multimedia"
   module_install_dir = "etc/codec"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }
 ohos_prebuilt_etc("recorder_configs") {
   source = "etc/recorder_configs.xml"
 
   subsystem_name = "multimedia"
   module_install_dir = "etc/recorder"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }
