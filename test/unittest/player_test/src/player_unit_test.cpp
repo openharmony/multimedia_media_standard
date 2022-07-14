@@ -352,5 +352,21 @@ HWTEST_F(PlayerUnitTest, Player_SetDataSource_001, TestSize.Level0)
     EXPECT_EQ(MSERR_OK, player_->Play());
     EXPECT_EQ(MSERR_OK, player_->Seek(SEEK_TIME_2_SEC, SEEK_NEXT_SYNC));
 }
+
+/**
+ * @tc.name  : Test SetDataSource API
+ * @tc.number: Player_SetDataSource_002
+ * @tc.desc  : Test Player SetDataSource
+ */
+HWTEST_F(PlayerUnitTest, Player_SetDataSource_002, TestSize.Level0)
+{
+    ASSERT_EQ(MSERR_OK, player_->SetDataSrc("/data/test/H264_AAC.mp4", -1, false));
+    sptr<Surface> videoSurface = player_->GetVideoSurface();
+    ASSERT_NE(nullptr, videoSurface);
+    EXPECT_EQ(MSERR_OK, player_->SetVideoSurface(videoSurface));
+    EXPECT_EQ(MSERR_OK, player_->Prepare());
+    EXPECT_EQ(MSERR_OK, player_->Play());
+    EXPECT_NE(MSERR_OK, player_->Seek(SEEK_TIME_2_SEC, SEEK_NEXT_SYNC));
+}
 } // namespace Media
 } // namespace OHOS
