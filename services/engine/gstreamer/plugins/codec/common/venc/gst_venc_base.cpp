@@ -242,6 +242,8 @@ static void gst_venc_base_finalize(GObject *object)
     g_mutex_clear(&self->lock);
     self->input.av_shmem_pool = nullptr;
     self->output.av_shmem_pool = nullptr;
+    std::vector<GstVideoFormat> tempVec;
+    tempVec.swap(self->formats);
     G_OBJECT_CLASS(parent_class)->finalize(object);
 }
 
