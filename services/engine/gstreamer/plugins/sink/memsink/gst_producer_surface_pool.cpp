@@ -241,7 +241,7 @@ static void gst_producer_surface_pool_get_property(GObject *object, guint prop_i
     }
 }
 
-GstProducerSurfacePool *gst_producer_surface_pool_new()
+GstProducerSurfacePool *gst_producer_surface_pool_new(void)
 {
     GstProducerSurfacePool *pool = GST_PRODUCER_SURFACE_POOL_CAST(g_object_new(
         GST_TYPE_PRODUCER_SURFACE_POOL, "name", "SurfacePool", nullptr));
@@ -362,14 +362,8 @@ gboolean gst_producer_surface_pool_set_surface(GstProducerSurfacePool *pool, OHO
     return TRUE;
 }
 
-static void gst_producer_surface_pool_request_loop(GstProducerSurfacePool *spool)
+static void gst_producer_surface_pool_statistics(GstProducerSurfacePool *spool)
 {
-    g_return_if_fail(spool != nullptr);
-    GstBufferPool *pool = GST_BUFFER_POOL_CAST(spool);
-    GST_DEBUG_OBJECT(spool, "Loop In");
-
-    GST_BUFFER_POOL_LOCK(spool);
-
     if (spool->callCnt == 0) {
         gettimeofday(&(spool->beginTime), nullptr);
     }
@@ -386,6 +380,16 @@ static void gst_producer_surface_pool_request_loop(GstProducerSurfacePool *spool
             GST_ERROR_OBJECT(pool, "Failed to call CreateMsg");
         }
     }
+}
+
+static void gst_producer_surface_pool_request_loop(GstProducerSurfacePool *spool)
+{
+    g_return_if_fail(spool != nullptr);
+    GstBufferPool *pool = GST_BUFFER_POOL_CAST(spool);
+    GST_DEBUG_OBJECT(spool, "Loop In");
+
+    GST_BUFFER_POOL_LOCK(spool);
+    gst_producer_surface_pool_statistics(spool);
 
     while (spool->isDynamicCached && g_list_length(spool->preAllocated) >= spool->cachedBuffers && spool->started) {
         GST_BUFFER_POOL_WAIT(spool);
