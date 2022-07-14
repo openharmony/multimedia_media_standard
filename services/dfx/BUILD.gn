@@ -44,6 +44,11 @@ ohos_shared_library("media_service_dfx") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
   ]
 
   deps = [ "//utils/native/base:utils" ]

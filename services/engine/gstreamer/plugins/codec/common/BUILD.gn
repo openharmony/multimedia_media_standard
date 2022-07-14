@@ -30,6 +30,11 @@ config("gst_codec_plugins_common_config") {
     "-Wfloat-equal",
     "-Wdate-time",
     "-DOHOS_EXT_FUNC",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
   ]
   cflags_cc = [ "-frtti" ]
 
@@ -69,7 +74,6 @@ ohos_static_library("gst_codec_plugins_common") {
   configs = [ ":gst_codec_plugins_common_config" ]
 
   deps = [
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/multimedia/media_standard/services/utils:media_service_utils",
     "//third_party/glib:glib",
@@ -82,6 +86,7 @@ ohos_static_library("gst_codec_plugins_common") {
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
+    "init:libbegetutil",
     "ipc:ipc_core",
   ]
 

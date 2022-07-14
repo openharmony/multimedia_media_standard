@@ -44,7 +44,6 @@ int32_t AudioCaptureAsImpl::SetCaptureParameter(uint32_t bitrate, uint32_t chann
     const AppInfo &appInfo)
 {
     (void)bitrate;
-    MEDIA_LOGD("SetCaptureParameter in, channels:%{public}u, sampleRate:%{public}u", channels, sampleRate);
     if (audioCapturer_ == nullptr) {
         AudioStandard::AppInfo audioAppInfo = {};
         audioAppInfo.appUid = appInfo.appUid;
@@ -239,8 +238,8 @@ std::shared_ptr<AudioBuffer> AudioCaptureAsImpl::GetBuffer()
         MEDIA_LOGD("audio has %{public}d times pause, total PauseTime: %{public}" PRIu64 "",
             audioCacheCtrl_->pausedCount_, audioCacheCtrl_->totalPauseTime_);
     }
-    bufferOut->timestamp = bufferOut->timestamp - audioCacheCtrl_->totalPauseTime_;
-    audioCacheCtrl_->lastTimeStamp_ = bufferOut->timestamp + audioCacheCtrl_->totalPauseTime_;
+    audioCacheCtrl_->lastTimeStamp_ = bufferOut->timestamp;
+    bufferOut->timestamp -= audioCacheCtrl_->totalPauseTime_;
     return bufferOut;
 }
 

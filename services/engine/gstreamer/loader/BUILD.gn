@@ -31,6 +31,11 @@ config("media_engine_gst_loader_config") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
   ]
 
   include_dirs = [
@@ -53,7 +58,6 @@ ohos_static_library("media_engine_gst_loader") {
   ]
 
   deps = [
-    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
     "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
     "//third_party/glib:glib",
     "//third_party/glib:gobject",
@@ -61,7 +65,10 @@ ohos_static_library("media_engine_gst_loader") {
     "//utils/native/base:utils",
   ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "init:libbegetutil",
+  ]
 
   subsystem_name = "multimedia"
   part_name = "multimedia_media_standard"

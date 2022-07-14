@@ -40,37 +40,23 @@ AudioDecoderCallbackNapi::~AudioDecoderCallbackNapi()
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-void AudioDecoderCallbackNapi::SaveCallbackReference(const std::string &callbackName, napi_value args)
+void AudioDecoderCallbackNapi::SaveCallbackReference(const std::string &name, std::weak_ptr<AutoRef> ref)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-
-    napi_ref callback = nullptr;
-    napi_status status = napi_create_reference(env_, args, 1, &callback);
-    CHECK_AND_RETURN_LOG(status == napi_ok && callback != nullptr, "Failed to create callback reference");
-
-    std::shared_ptr<AutoRef> cb = std::make_shared<AutoRef>(env_, callback);
-    if (callbackName == ERROR_CALLBACK_NAME) {
-        errorCallback_ = cb;
-    } else if (callbackName == FORMAT_CHANGED_CALLBACK_NAME) {
-        formatChangedCallback_ = cb;
-    } else if (callbackName == INPUT_CALLBACK_NAME) {
-        inputCallback_ = cb;
-    } else if (callbackName == OUTPUT_CALLBACK_NAME) {
-        outputCallback_ = cb;
-    } else {
-        MEDIA_LOGW("Unknown callback type: %{public}s", callbackName.c_str());
-        return;
-    }
+    refMap_[name] = ref;
 }
 
 void AudioDecoderCallbackNapi::SendErrorCallback(MediaServiceExtErrCode errCode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN(errorCallback_ != nullptr);
+    if (refMap_.find(ERROR_CALLBACK_NAME) == refMap_.end()) {
+        MEDIA_LOGW("can not find error callback!");
+        return;
+    }
 
     AudioDecoderJsCallback *cb = new(std::nothrow) AudioDecoderJsCallback();
     CHECK_AND_RETURN(cb != nullptr);
-    cb->callback = errorCallback_;
+    cb->callback = refMap_.at(ERROR_CALLBACK_NAME);
     cb->callbackName = ERROR_CALLBACK_NAME;
     cb->errorMsg = MSExtErrorToString(errCode);
     cb->errorCode = errCode;
@@ -81,26 +67,23 @@ void AudioDecoderCallbackNapi::OnError(AVCodecErrorType errorType, int32_t errCo
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGD("OnError is called, name: %{public}d, error message: %{public}d", errorType, errCode);
-    CHECK_AND_RETURN(errorCallback_ != nullptr);
 
-    AudioDecoderJsCallback *cb = new(std::nothrow) AudioDecoderJsCallback();
-    CHECK_AND_RETURN(cb != nullptr);
-    cb->callback = errorCallback_;
-    cb->callbackName = ERROR_CALLBACK_NAME;
-    cb->errorMsg = MSErrorToExtErrorString(static_cast<MediaServiceErrCode>(errCode));
-    cb->errorCode = MSErrorToExtError(static_cast<MediaServiceErrCode>(errCode));
-    return OnJsErrorCallBack(cb);
+    MediaServiceExtErrCode err = MSErrorToExtError(static_cast<MediaServiceErrCode>(errCode));
+    return SendErrorCallback(err);
 }
 
 void AudioDecoderCallbackNapi::OnOutputFormatChanged(const Format &format)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGD("OnOutputFormatChanged is called");
-    CHECK_AND_RETURN(formatChangedCallback_ != nullptr);
+    if (refMap_.find(FORMAT_CHANGED_CALLBACK_NAME) == refMap_.end()) {
+        MEDIA_LOGW("can not find output format changed callback!");
+        return;
+    }
 
     AudioDecoderJsCallback *cb = new(std::nothrow) AudioDecoderJsCallback();
     CHECK_AND_RETURN(cb != nullptr);
-    cb->callback = formatChangedCallback_;
+    cb->callback = refMap_.at(FORMAT_CHANGED_CALLBACK_NAME);
     cb->callbackName = FORMAT_CHANGED_CALLBACK_NAME;
     cb->format = format;
     return OnJsFormatCallBack(cb);
@@ -109,7 +92,10 @@ void AudioDecoderCallbackNapi::OnOutputFormatChanged(const Format &format)
 void AudioDecoderCallbackNapi::OnInputBufferAvailable(uint32_t index)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN(inputCallback_ != nullptr);
+    if (refMap_.find(INPUT_CALLBACK_NAME) == refMap_.end()) {
+        MEDIA_LOGW("can not find inputbuffer callback!");
+        return;
+    }
 
     auto adec = adec_.lock();
     CHECK_AND_RETURN(adec != nullptr);
@@ -134,7 +120,7 @@ void AudioDecoderCallbackNapi::OnInputBufferAvailable(uint32_t index)
     AudioDecoderJsCallback *cb = new(std::nothrow) AudioDecoderJsCallback();
     CHECK_AND_RETURN(cb != nullptr);
 
-    cb->callback = inputCallback_;
+    cb->callback = refMap_.at(INPUT_CALLBACK_NAME);
     cb->callbackName = INPUT_CALLBACK_NAME;
     cb->index = index;
     cb->memory = buffer;
@@ -144,7 +130,10 @@ void AudioDecoderCallbackNapi::OnInputBufferAvailable(uint32_t index)
 void AudioDecoderCallbackNapi::OnOutputBufferAvailable(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN(outputCallback_ != nullptr);
+    if (refMap_.find(OUTPUT_CALLBACK_NAME) == refMap_.end()) {
+        MEDIA_LOGW("can not find outputbuffer callback!");
+        return;
+    }
 
     auto adec = adec_.lock();
     CHECK_AND_RETURN(adec != nullptr);
@@ -176,7 +165,7 @@ void AudioDecoderCallbackNapi::OnOutputBufferAvailable(uint32_t index, AVCodecBu
     AudioDecoderJsCallback *cb = new(std::nothrow) AudioDecoderJsCallback();
     CHECK_AND_RETURN(cb != nullptr);
 
-    cb->callback = outputCallback_;
+    cb->callback = refMap_.at(OUTPUT_CALLBACK_NAME);
     cb->callbackName = OUTPUT_CALLBACK_NAME;
     cb->memory = buffer;
     cb->index = index;
@@ -208,28 +197,29 @@ void AudioDecoderCallbackNapi::OnJsErrorCallBack(AudioDecoderJsCallback *jsCb) c
         // Js Thread
         CHECK_AND_RETURN_LOG(work != nullptr, "Work thread is nullptr");
         AudioDecoderJsCallback *event = reinterpret_cast<AudioDecoderJsCallback *>(work->data);
-        napi_env env = event->callback->env_;
-        napi_ref callback = event->callback->cb_;
         MEDIA_LOGD("JsCallBack %{public}s, uv_queue_work start", event->callbackName.c_str());
         do {
             CHECK_AND_BREAK(status != UV_ECANCELED);
+            std::shared_ptr<AutoRef> ref = event->callback.lock();
+            CHECK_AND_BREAK_LOG(ref != nullptr, "%{public}s AutoRef is nullptr", event->callbackName.c_str());
+
             napi_value jsCallback = nullptr;
-            napi_status nstatus = napi_get_reference_value(env, callback, &jsCallback);
+            napi_status nstatus = napi_get_reference_value(ref->env_, ref->cb_, &jsCallback);
             CHECK_AND_BREAK(nstatus == napi_ok && jsCallback != nullptr);
 
             napi_value msgValStr = nullptr;
-            nstatus = napi_create_string_utf8(env, event->errorMsg.c_str(), NAPI_AUTO_LENGTH, &msgValStr);
+            nstatus = napi_create_string_utf8(ref->env_, event->errorMsg.c_str(), NAPI_AUTO_LENGTH, &msgValStr);
             CHECK_AND_BREAK(nstatus == napi_ok && msgValStr != nullptr);
 
             napi_value args[1] = { nullptr };
-            nstatus = napi_create_error(env, nullptr, msgValStr, &args[0]);
+            nstatus = napi_create_error(ref->env_, nullptr, msgValStr, &args[0]);
             CHECK_AND_BREAK(nstatus == napi_ok && args[0] != nullptr);
 
-            nstatus = CommonNapi::FillErrorArgs(env, static_cast<int32_t>(event->errorCode), args[0]);
+            nstatus = CommonNapi::FillErrorArgs(ref->env_, static_cast<int32_t>(event->errorCode), args[0]);
             CHECK_AND_RETURN(nstatus == napi_ok);
 
             napi_value result = nullptr;
-            nstatus = napi_call_function(env, nullptr, jsCallback, 1, args, &result);
+            nstatus = napi_call_function(ref->env_, nullptr, jsCallback, 1, args, &result);
             CHECK_AND_BREAK(nstatus == napi_ok);
         } while (0);
         delete event;
@@ -262,26 +252,28 @@ void AudioDecoderCallbackNapi::OnJsBufferCallBack(AudioDecoderJsCallback *jsCb, 
         // Js Thread
         CHECK_AND_RETURN_LOG(work != nullptr, "Work thread is nullptr");
         AudioDecoderJsCallback *event = reinterpret_cast<AudioDecoderJsCallback *>(work->data);
-        napi_env env = event->callback->env_;
         MEDIA_LOGD("JsCallBack %{public}s, uv_queue_work start, index: %{public}u",
             event->callbackName.c_str(), event->index);
         do {
             CHECK_AND_BREAK(!event->cancelled && status != UV_ECANCELED);
+            std::shared_ptr<AutoRef> ref = event->callback.lock();
+            CHECK_AND_BREAK_LOG(ref != nullptr, "%{public}s AutoRef is nullptr", event->callbackName.c_str());
+
             napi_value jsCallback = nullptr;
-            napi_status nstatus = napi_get_reference_value(env, event->callback->cb_, &jsCallback);
+            napi_status nstatus = napi_get_reference_value(ref->env_, ref->cb_, &jsCallback);
             CHECK_AND_BREAK(nstatus == napi_ok && jsCallback != nullptr);
 
             napi_value args[1] = { nullptr };
             if (event->isInput) {
-                args[0] = AVCodecNapiUtil::CreateInputCodecBuffer(env, event->index, event->memory);
+                args[0] = AVCodecNapiUtil::CreateInputCodecBuffer(ref->env_, event->index, event->memory);
             } else {
-                args[0] = AVCodecNapiUtil::CreateOutputCodecBuffer(env, event->index,
+                args[0] = AVCodecNapiUtil::CreateOutputCodecBuffer(ref->env_, event->index,
                     event->memory, event->info, event->flag);
             }
             CHECK_AND_BREAK(args[0] != nullptr);
 
             napi_value result = nullptr;
-            nstatus = napi_call_function(env, nullptr, jsCallback, 1, args, &result);
+            nstatus = napi_call_function(ref->env_, nullptr, jsCallback, 1, args, &result);
             CHECK_AND_BREAK(nstatus == napi_ok);
         } while (0);
         auto codecHelper = event->codecHelper.lock();
@@ -323,20 +315,22 @@ void AudioDecoderCallbackNapi::OnJsFormatCallBack(AudioDecoderJsCallback *jsCb) 
         // Js Thread
         CHECK_AND_RETURN_LOG(work != nullptr, "Work thread is nullptr");
         AudioDecoderJsCallback *event = reinterpret_cast<AudioDecoderJsCallback *>(work->data);
-        napi_env env = event->callback->env_;
         MEDIA_LOGD("JsCallBack %{public}s, uv_queue_work start", event->callbackName.c_str());
         do {
             CHECK_AND_BREAK(status != UV_ECANCELED);
+            std::shared_ptr<AutoRef> ref = event->callback.lock();
+            CHECK_AND_BREAK_LOG(ref != nullptr, "%{public}s AutoRef is nullptr", event->callbackName.c_str());
+
             napi_value jsCallback = nullptr;
-            napi_status nstatus = napi_get_reference_value(env, event->callback->cb_, &jsCallback);
+            napi_status nstatus = napi_get_reference_value(ref->env_, ref->cb_, &jsCallback);
             CHECK_AND_BREAK(nstatus == napi_ok && jsCallback != nullptr);
 
             napi_value args[1] = { nullptr };
-            args[0] = CommonNapi::CreateFormatBuffer(env, event->format);
+            args[0] = CommonNapi::CreateFormatBuffer(ref->env_, event->format);
             CHECK_AND_BREAK(args[0] != nullptr);
 
             napi_value result = nullptr;
-            nstatus = napi_call_function(env, nullptr, jsCallback, 1, args, &result);
+            nstatus = napi_call_function(ref->env_, nullptr, jsCallback, 1, args, &result);
             CHECK_AND_BREAK(nstatus == napi_ok);
         } while (0);
         delete event;

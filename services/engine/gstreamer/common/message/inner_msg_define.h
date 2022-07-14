@@ -35,6 +35,7 @@ enum InnerMsgType : int32_t {
     INNER_MSG_BUFFERING,
     INNER_MSG_BUFFERING_TIME,
     INNER_MSG_BUFFERING_USED_MQ_NUM,
+    INNER_MSG_POSITION_UPDATE,
 };
 
 struct InnerMessage {

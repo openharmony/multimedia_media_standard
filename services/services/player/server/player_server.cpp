@@ -75,7 +75,13 @@ void PlayerServer::ResetProcessor()
 {
     resetRet_ = playerEngine_->Reset();
     playerEngine_ = nullptr;
-    surface_ = nullptr;
+}
+
+void PlayerServer::ReleaseProcessor()
+{
+    if (surface_ != nullptr) {
+        surface_ = nullptr;
+    }
 }
 
 int32_t PlayerServer::Init()
@@ -215,7 +221,8 @@ int32_t PlayerServer::OnPrepare()
 
     if (lastOpStatus_ == PLAYER_PREPARED) {
         Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
+        MediaTrace::TraceEnd("PlayerServer::PrepareAsync", PREPARE_TASK_ID);
+        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
 
@@ -275,7 +282,8 @@ int32_t PlayerServer::Play()
 
     if (lastOpStatus_ == PLAYER_STARTED) {
         Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
+        MediaTrace::TraceEnd("PlayerServer::Play", PLAY_TASK_ID);
+        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
 
@@ -313,7 +321,8 @@ int32_t PlayerServer::Pause()
 
     if (lastOpStatus_ == PLAYER_PAUSED) {
         Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
+        MediaTrace::TraceEnd("PlayerServer::Pause", PAUSE_TASK_ID);
+        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
 
@@ -355,7 +364,8 @@ int32_t PlayerServer::Stop()
 
     if (lastOpStatus_ == PLAYER_STOPPED) {
         Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
+        MediaTrace::TraceEnd("PlayerServer::Stop", STOP_TASK_ID);
+        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
 
@@ -401,7 +411,7 @@ int32_t PlayerServer::OnReset()
 {
     if (lastOpStatus_ == PLAYER_IDLE) {
         Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
+        OnInfoNoChangeStatus(INFO_TYPE_STATE_CHANGE, lastOpStatus_, format);
         return MSERR_OK;
     }
 
@@ -442,6 +452,10 @@ int32_t PlayerServer::Release()
         playerCb_ = nullptr;
     }
     (void)OnReset();
+    std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&PlayerServer::ReleaseProcessor, this);
+    if (thread != nullptr && thread->joinable()) {
+        thread->join();
+    }
     return MSERR_OK;
 }
 
@@ -510,7 +524,8 @@ int32_t PlayerServer::Seek(int32_t mSeconds, PlayerSeekMode mode)
     if (mSeconds == 0 && playerEngine_->GetCurrentTime(currentTime) == MSERR_OK && currentTime == mSeconds) {
         MEDIA_LOGW("Seek to the inner position");
         Format format;
-        OnInfo(INFO_TYPE_SEEKDONE, 0, format);
+        MediaTrace::TraceEnd("Player::Seek", SEEK_TASK_ID);
+        OnInfoNoChangeStatus(INFO_TYPE_SEEKDONE, 0, format);
         return MSERR_OK;
     }
     MEDIA_LOGD("seek position %{public}d, seek mode is %{public}d", mSeconds, mode);
@@ -656,7 +671,7 @@ int32_t PlayerServer::SetPlaybackSpeed(PlaybackRateMode mode)
     if (config_.speedMode == mode) {
         MEDIA_LOGD("The speed mode is same, mode = %{public}d", mode);
         Format format;
-        OnInfo(INFO_TYPE_SPEEDDONE, 0, format);
+        OnInfoNoChangeStatus(INFO_TYPE_SPEEDDONE, 0, format);
         return MSERR_OK;
     }
 
@@ -884,8 +899,16 @@ void PlayerServer::OnInfo(PlayerOnInfoType type, int32_t extra, const Format &in
     std::lock_guard<std::mutex> lockCb(mutexCb_);
 
     int32_t ret = HandleMessage(type, extra, infoBody);
-
     if (playerCb_ != nullptr && ret == MSERR_OK) {
+        playerCb_->OnInfo(type, extra, infoBody);
+    }
+}
+
+void PlayerServer::OnInfoNoChangeStatus(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
+{
+    std::lock_guard<std::mutex> lockCb(mutexCb_);
+
+    if (playerCb_ != nullptr) {
         playerCb_->OnInfo(type, extra, infoBody);
     }
 }

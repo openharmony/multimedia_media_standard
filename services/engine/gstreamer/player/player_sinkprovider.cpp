@@ -107,7 +107,7 @@ GstElement *PlayerSinkProvider::DoCreateAudioSink(const GstCaps *caps, const gpo
     return sink;
 }
 
-bool PlayerSinkProvider::EnableKpiAVSyncLog()
+bool PlayerSinkProvider::EnableKpiAVSyncLog() const
 {
     std::string enable;
     int32_t res = OHOS::system::GetStringParameter("sys.media.kpi.avsync.log.enable", enable, "");
@@ -245,7 +245,7 @@ void PlayerSinkProvider::SetFirstRenderFrameFlag(bool firstRenderFrame)
     firstRenderFrame_ = firstRenderFrame;
 }
 
-bool PlayerSinkProvider::GetFirstRenderFrameFlag()
+bool PlayerSinkProvider::GetFirstRenderFrameFlag() const
 {
     return firstRenderFrame_;
 }

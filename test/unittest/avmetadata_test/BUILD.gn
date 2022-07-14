@@ -1,0 +1,61 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+
+module_output_path = "multimedia_media_standard/avmetadata"
+
+ohos_unittest("avmetadata_unit_test") {
+  module_out_path = module_output_path
+  include_dirs = [
+    "./include",
+    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara/include",
+    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
+    "//foundation/multimedia/media_standard/services/utils/include",
+    "//graphic/graphic_2d/interfaces/innerkits/surface",
+    "//foundation/graphic/graphic_2d/utils/sync_fence/export",
+    "//drivers/peripheral/display/interfaces/include",
+    "//foundation/multimedia/image_standard/interfaces/innerkits/include",
+    "//foundation/window/window_manager/interfaces/innerkits/wm",
+    "//third_party/libjpeg",
+    "//foundation/multimedia/media_standard/frameworks/native/player",
+    "//foundation/multimedia/media_standard/test/unittest/common/include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+  ]
+
+  sources = [
+    "./../common/src/test_params_config.cpp",
+    "src/avmetadata_mock.cpp",
+    "src/avmetadata_unit_test.cpp",
+  ]
+
+  deps = [
+    "//base/startup/syspara_lite/interfaces/innerkits/native/syspara:syspara",
+    "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d/utils:sync_fence",
+    "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
+    "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
+    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//foundation/window/window_manager/wm:libwm",
+    "//third_party/libjpeg:libjpeg_static",
+    "//utils/native/base:utils",
+  ]
+
+  resource_config_file = "//foundation/multimedia/media_standard/test/unittest/resources/ohos_test.xml"
+}

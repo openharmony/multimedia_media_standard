@@ -71,6 +71,7 @@ static gboolean gst_buffer_type_meta_transform(GstBuffer *dest, GstMeta *meta,
             dMeta->fenceFd = sMeta->fenceFd;
             dMeta->memFlag = sMeta->memFlag;
             dMeta->bufferFlag = sMeta->bufferFlag;
+            dMeta->pixelFormat = sMeta->pixelFormat;
         }
     } else {
         return FALSE;

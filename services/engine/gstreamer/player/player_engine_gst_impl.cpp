@@ -189,9 +189,14 @@ void PlayerEngineGstImpl::HandleInfoMessage(const PlayBinMessage &msg)
 
 void PlayerEngineGstImpl::HandleSeekDoneMessage(const PlayBinMessage &msg)
 {
-    MEDIA_LOGI("seek done, seek position = %{public}dms", msg.code / MSEC_PER_USEC);
+    MEDIA_LOGI("seek done, seek position = %{public}dms", msg.code);
 
-    int32_t status = msg.code / MSEC_PER_USEC;
+    GstElement *decoder = codecChangedDetector_->GetDecoder();
+    if (codecChangedDetector_->isHardwareDec() && decoder != nullptr) {
+        g_object_set(decoder, "seeking", false, nullptr);
+    }
+
+    int32_t status = msg.code;
     Format format;
     std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
     if (notifyObs != nullptr) {
@@ -224,7 +229,7 @@ void PlayerEngineGstImpl::HandleBufferingTime(const PlayBinMessage &msg)
 {
     std::pair<uint32_t, int64_t> bufferingTimePair = std::any_cast<std::pair<uint32_t, int64_t>>(msg.extra);
     uint32_t mqNumId = bufferingTimePair.first;
-    int64_t bufferingTime = bufferingTimePair.second / MSEC_PER_NSEC;
+    uint64_t bufferingTime = bufferingTimePair.second / MSEC_PER_NSEC;
 
     if (bufferingTime > BUFFER_TIME_DEFAULT) {
         bufferingTime = BUFFER_TIME_DEFAULT;
@@ -309,13 +314,9 @@ void PlayerEngineGstImpl::HandleVideoSizeChanged(const PlayBinMessage &msg)
 
 void PlayerEngineGstImpl::HandleBitRateCollect(const PlayBinMessage &msg)
 {
-    std::pair<uint32_t *, uint32_t> bitRatePair = std::any_cast<std::pair<uint32_t *, uint32_t>>(msg.extra);
-    Format format;
-    (void)format.PutBuffer(std::string(PlayerKeys::PLAYER_BITRATE),
-        static_cast<uint8_t *>(static_cast<void *>(bitRatePair.first)), bitRatePair.second * sizeof(uint32_t));
     std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
     if (notifyObs != nullptr) {
-        notifyObs->OnInfo(INFO_TYPE_BITRATE_COLLECT, 0, format);
+        notifyObs->OnInfo(INFO_TYPE_BITRATE_COLLECT, 0, std::any_cast<Format>(msg.extra));
     }
 }
 
@@ -393,6 +394,18 @@ void PlayerEngineGstImpl::HandleInterruptMessage(const PlayBinMessage &msg)
     }
 }
 
+void PlayerEngineGstImpl::HandlePositionUpdateMessage(const PlayBinMessage &msg)
+{
+    int32_t position = msg.code;
+    MEDIA_LOGD("position update to %{public}d ms", position);
+
+    Format format;
+    std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
+    if (notifyObs != nullptr) {
+        notifyObs->OnInfo(INFO_TYPE_POSITION_UPDATE, position, format);
+    }
+}
+
 using MsgNotifyFunc = std::function<void(const PlayBinMessage&)>;
 
 void PlayerEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
@@ -407,8 +420,9 @@ void PlayerEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
         { PLAYBIN_MSG_SUBTYPE, std::bind(&PlayerEngineGstImpl::HandleSubTypeMessage, this, std::placeholders::_1) },
         { PLAYBIN_MSG_VOLUME_CHANGE, std::bind(&PlayerEngineGstImpl::HandleVolumeChangedMessage, this,
             std::placeholders::_1) },
+        { PLAYBIN_MSG_POSITION_UPDATE, std::bind(&PlayerEngineGstImpl::HandlePositionUpdateMessage, this,
+            std::placeholders::_1) },
     };
-
     if (MSG_NOTIFY_FUNC_TABLE.count(msg.type) != 0) {
         MSG_NOTIFY_FUNC_TABLE.at(msg.type)(msg);
     }
@@ -695,7 +709,12 @@ int32_t PlayerEngineGstImpl::Seek(int32_t mSeconds, PlayerSeekMode mode)
     CHECK_AND_RETURN_RET_LOG(playBinCtrler_ != nullptr, MSERR_INVALID_OPERATION, "playBinCtrler_ is nullptr");
     MEDIA_LOGI("Seek in %{public}dms", mSeconds);
 
-    int64_t position = static_cast<int64_t>(mSeconds * MSEC_PER_USEC);
+    GstElement *decoder = codecChangedDetector_->GetDecoder();
+    if (codecChangedDetector_->isHardwareDec() && decoder != nullptr) {
+        g_object_set(decoder, "seeking", true, nullptr);
+    }
+
+    int64_t position = static_cast<int64_t>(mSeconds) * MSEC_PER_USEC;
     return playBinCtrler_->Seek(position, mode);
 }
 
@@ -725,9 +744,8 @@ int32_t PlayerEngineGstImpl::SetVideoScaleType(VideoScaleType videoScaleType)
     if (sinkProvider_ != nullptr) {
         MEDIA_LOGD("SetVideoScaleType in");
         sinkProvider_->SetVideoScaleType(static_cast<uint32_t>(videoScaleType));
-    } else {
-        videoScaleType_ = videoScaleType;
     }
+    videoScaleType_ = videoScaleType;
     return MSERR_OK;
 }
 
@@ -740,7 +758,7 @@ int32_t PlayerEngineGstImpl::SetAudioRendererInfo(const int32_t contentType,
     rendererFlag_ = rendererFlag;
     if (playBinCtrler_ != nullptr) {
         MEDIA_LOGD("SetAudioRendererInfo in");
-        int32_t rendererInfo(0);
+        uint32_t rendererInfo(0);
         rendererInfo |= (contentType | (static_cast<uint32_t>(streamUsage) <<
         AudioStandard::RENDERER_STREAM_USAGE_SHIFT));
         playBinCtrler_->SetAudioRendererInfo(rendererInfo, rendererFlag);
@@ -795,11 +813,24 @@ void PlayerEngineGstImpl::OnNotifyElemUnSetup(GstElement &elem)
     codecChangedDetector_->DetectCodecUnSetup(&elem, videoSink);
 }
 
+CodecChangedDetector::~CodecChangedDetector()
+{
+    if (decoder_ != nullptr) {
+        gst_object_unref(decoder_);
+        decoder_ = nullptr;
+    }
+}
+
 void CodecChangedDetector::SetupCodecCb(const std::string &metaStr, GstElement *src, GstElement *videoSink)
 {
     if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {
         isHardwareDec_ = true;
         g_object_set(G_OBJECT(&elem), "enable-slice-cat", TRUE, nullptr);
+        if (decoder_ != nullptr) {
+            gst_object_unref(decoder_);
+            decoder_ = nullptr;
+        }
+        decoder_ = GST_ELEMENT_CAST(gst_object_ref(src));
         if (!codecTypeList_.empty()) {
             // For hls scene when change codec, the second codec should not go performance mode process.
             codecTypeList_.push_back(true);
@@ -865,6 +896,16 @@ void CodecChangedDetector::DetectCodecUnSetup(GstElement *src, GstElement *video
     }
     g_object_set(G_OBJECT(videoSink), "caps", caps, nullptr);
     gst_caps_unref(caps);
+}
+
+GstElement *CodecChangedDetector::GetDecoder()
+{
+    return decoder_;
+}
+
+bool CodecChangedDetector::isHardwareDec()
+{
+    return isHardwareDec_;
 }
 } // namespace Media
 } // namespace OHOS

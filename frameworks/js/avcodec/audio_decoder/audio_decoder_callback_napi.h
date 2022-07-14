@@ -37,7 +37,7 @@ public:
         const std::shared_ptr<AVCodecNapiHelper>& codecHelper);
     virtual ~AudioDecoderCallbackNapi();
 
-    void SaveCallbackReference(const std::string &callbackName, napi_value callback);
+    void SaveCallbackReference(const std::string &name, std::weak_ptr<AutoRef> ref);
     void SendErrorCallback(MediaServiceExtErrCode errCode);
 
 protected:
@@ -48,7 +48,7 @@ protected:
 
 private:
     struct AudioDecoderJsCallback : public AVCodecJSCallback  {
-        std::shared_ptr<AutoRef> callback = nullptr;
+        std::weak_ptr<AutoRef> callback;
         std::string callbackName = "unknown";
         std::string errorMsg = "unknown";
         MediaServiceExtErrCode errorCode = MSERR_EXT_UNKNOWN;
@@ -67,10 +67,7 @@ private:
     std::mutex mutex_;
     napi_env env_ = nullptr;
     std::weak_ptr<AVCodecAudioDecoder> adec_;
-    std::shared_ptr<AutoRef> errorCallback_ = nullptr;
-    std::shared_ptr<AutoRef> formatChangedCallback_ = nullptr;
-    std::shared_ptr<AutoRef> inputCallback_ = nullptr;
-    std::shared_ptr<AutoRef> outputCallback_ = nullptr;
+    std::map<std::string, std::weak_ptr<AutoRef>> refMap_;
     std::shared_ptr<AVCodecNapiHelper> codecHelper_ = nullptr;
     std::unordered_map<uint32_t, std::shared_ptr<AVSharedMemory>> inputBufferCaches_;
     std::unordered_map<uint32_t, std::shared_ptr<AVSharedMemory>> outputBufferCaches_;

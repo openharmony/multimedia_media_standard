@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef GST_APPSRC_WRAP_H_
-#define GST_APPSRC_WRAP_H_
+#ifndef GST_APPSRC_WRAP_H
+#define GST_APPSRC_WRAP_H
 
 #include <gst/gst.h>
 #include <queue>
@@ -97,4 +97,4 @@ private:
 };
 } // namespace Media
 } // namespace OHOS
-#endif /* GST_APPSRC_WRAP_H_ */
+#endif /* GST_APPSRC_WRAP_H */

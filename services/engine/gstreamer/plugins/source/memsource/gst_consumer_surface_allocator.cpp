@@ -63,9 +63,7 @@ static GstMemory *gst_consumer_surface_allocator_alloc(GstAllocator *allocator, 
     gint32 fencefd = -1;
     gint64 timestamp = 0;
     gint32 data_size = 0;
-    gint32 is_codec_frame = 0;
     gboolean end_of_stream = false;
-    gboolean is_key_frame = FALSE;
     int32_t pixel_format = 0;
     Rect damage = {0, 0, 0, 0};
     if (surface->AcquireBuffer(surface_buffer, fencefd, timestamp, damage) != SURFACE_ERROR_OK) {
@@ -80,7 +78,6 @@ static GstMemory *gst_consumer_surface_allocator_alloc(GstAllocator *allocator, 
         (void)extraData->ExtraGet("timeStamp", timestamp);
         (void)extraData->ExtraGet("endOfStream", end_of_stream);
         (void)extraData->ExtraGet("dataSize", data_size);
-        (void)extraData->ExtraGet("isKeyFrame", is_codec_frame);
     }
 
     pixel_format = surface_buffer->GetFormat();
@@ -91,8 +88,6 @@ static GstMemory *gst_consumer_surface_allocator_alloc(GstAllocator *allocator, 
     mem->fencefd = fencefd;
     mem->timestamp = timestamp;
     mem->data_size = data_size;
-    mem->is_key_frame = is_key_frame;
-    mem->is_codec_frame = is_codec_frame;
     mem->pixel_format = pixel_format;
     mem->damage = damage;
     mem->is_eos_frame = end_of_stream;
@@ -120,6 +115,7 @@ static void gst_consumer_surface_allocator_free(GstAllocator *allocator, GstMemo
 
 static gpointer gst_consumer_surface_allocator_mem_map(GstMemory *mem, gsize maxsize, GstMapFlags flags)
 {
+    (void)maxsize;
     (void)flags;
     g_return_val_if_fail(mem != nullptr, nullptr);
     g_return_val_if_fail(gst_is_consumer_surface_memory(mem), nullptr);

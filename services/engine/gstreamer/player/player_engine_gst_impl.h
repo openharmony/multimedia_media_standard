@@ -31,14 +31,17 @@ namespace Media {
 class CodecChangedDetector {
 public:
     CodecChangedDetector() = default;
-    ~CodecChangedDetector() = default;
+    ~CodecChangedDetector();
     void DetectCodecSetup(const std::string &metaStr, GstElement *src, GstElement *videoSink);
     void DetectCodecUnSetup(GstElement *src, GstElement *videoSink);
+    GstElement *GetDecoder();
+    bool isHardwareDec();
 
 private:
     void SetupCodecCb(const std::string &metaStr, GstElement *src, GstElement *videoSink);
 
     bool isHardwareDec_ = false;
+    GstElement *decoder_ = nullptr;
     std::list<bool> codecTypeList_;
 };
 
@@ -100,6 +103,7 @@ private:
     void HandleBitRateCollect(const PlayBinMessage &msg);
     void HandleVolumeChangedMessage(const PlayBinMessage &msg);
     void HandleInterruptMessage(const PlayBinMessage &msg);
+    void HandlePositionUpdateMessage(const PlayBinMessage &msg);
 
     std::mutex mutex_;
     std::mutex trackParseMutex_;
