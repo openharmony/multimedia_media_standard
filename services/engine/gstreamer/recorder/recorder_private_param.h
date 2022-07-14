@@ -27,6 +27,7 @@ enum RecorderPrivateParamType : uint32_t {
     PRIVATE_PARAM_TYPE_BEGIN = PRIVATE_PARAM_SECTION_START,
     SURFACE,
     OUTPUT_FORMAT,
+    APP_INFO,
 };
 
 struct SurfaceParam : public RecorderParam {
@@ -39,6 +40,19 @@ struct OutputFormat : public RecorderParam {
     explicit OutputFormat(int32_t format) : RecorderParam(RecorderPrivateParamType::OUTPUT_FORMAT), format_(format) {}
     ~OutputFormat() = default;
     int32_t format_;
+};
+
+struct AppInfo : public RecorderParam {
+    AppInfo(int32_t appUid, int32_t appPid, uint32_t appTokenId)
+        : RecorderParam(RecorderPrivateParamType::APP_INFO),
+          appUid_(appUid),
+          appPid_(appPid),
+          appTokenId_(appTokenId)
+    {}
+    ~AppInfo() = default;
+    int32_t appUid_;
+    int32_t appPid_;
+    uint32_t appTokenId_;
 };
 } // namespace Media
 } // namespace OHOS
