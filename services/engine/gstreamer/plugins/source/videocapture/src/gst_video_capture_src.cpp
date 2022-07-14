@@ -306,10 +306,10 @@ static void gst_video_capture_deal_with_pts(GstVideoCaptureSrc *src, GstBuffer *
 
     guint64 timestamp = GST_BUFFER_PTS (buf);
     g_return_if_fail(timestamp <= G_MAXINT64);
-    GST_DEBUG_OBJECT(src, "video capture buffer size is: %" G_GSIZE_FORMAT ", pts: % " G_GUINT64_FORMAT "",
+    GST_DEBUG_OBJECT(src, "video capture buffer size is: %" G_GSIZE_FORMAT ", pts: % " G_GUINT64_FORMAT,
         gst_buffer_get_size(buf), timestamp);
     g_return_if_fail(src->last_timestamp >= 0 && timestamp >= static_cast<guint64>(src->last_timestamp));
-    GST_INFO_OBJECT(src, "videoCapturer timestamp has increased: % " G_GUINT64_FORMAT "",
+    GST_INFO_OBJECT(src, "videoCapturer timestamp has increased: % " G_GUINT64_FORMAT,
         timestamp - src->last_timestamp);
 
     if (src->cur_state == RECORDER_RESUME && src->paused_time == -1) {
