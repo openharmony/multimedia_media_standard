@@ -14,10 +14,10 @@
  */
 
 #include "player_mock.h"
+#include <sys/stat.h>
 #include "media_errors.h"
 #include "ui/rs_surface_node.h"
 #include "window_option.h"
-#include <sys/stat.h>
 using namespace OHOS::Media::PlayerTestParam;
 
 namespace OHOS {
