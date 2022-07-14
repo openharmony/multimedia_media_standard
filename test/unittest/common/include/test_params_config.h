@@ -119,6 +119,7 @@ namespace RecorderTestParam {
         VideoCodecFormat videoFormat = MPEG4;
     };
     struct AudioRecorderConfig {
+        int32_t outputFd = 0;
         int32_t audioSourceId = 0;
         int32_t audioEncodingBitRate = 48000;
         int32_t channelCount = 2;
