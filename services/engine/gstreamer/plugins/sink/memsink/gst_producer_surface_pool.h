@@ -69,7 +69,7 @@ struct _GstProducerSurfacePoolClass {
 
 GType gst_producer_surface_pool_get_type(void);
 
-GstProducerSurfacePool *gst_producer_surface_pool_new();
+GstProducerSurfacePool *gst_producer_surface_pool_new(void);
 
 GST_API gboolean gst_producer_surface_pool_set_surface(GstProducerSurfacePool *pool,
     OHOS::sptr<OHOS::Surface> surface);
