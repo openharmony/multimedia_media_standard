@@ -22,6 +22,7 @@
     </target>
     <target name="recorder_unit_test">
         <preparer>
+            <option name="push" value="res_recorder/out_320_240_10s.h264 -> /data/test" src="res"/>
             <option name="push" value="res_recorder/recorder_video_pause_resume.mp4 -> /data/test" src="res"/>
             <option name="push" value="res_recorder/recorder_video_es.mp4 -> /data/test" src="res"/>
             <option name="push" value="res_recorder/recorder_audio_es.m4a -> /data/test" src="res"/>
@@ -29,12 +30,16 @@
             <option name="push" value="res_recorder/recorder_video_yuv_mpeg4.mp4 -> /data/test" src="res"/>
             <option name="push" value="res_recorder/recorder_video_SetOrientationHint_001.mp4 -> /data/test" src="res"/>
             <option name="push" value="res_recorder/recorder_video_SetMaxFileSize_001.mp4 -> /data/test" src="res"/>
+            <option name="push" value="res_recorder/recorder_video_SetParameter_001.mp4 -> /data/test" src="res"/>
+            <option name="push" value="res_recorder/recorder_SetDataSource_001.mp4 -> /data/test" src="res"/>
         </preparer>
     </target>
     <target name="avmetadata_unit_test">
         <preparer>
             <option name="push" value="test_videofile/H264_AAC.mp4 -> /data/test" src="res"/>
             <option name="push" value="test_videofile/out_480_320.mp4 -> /data/test" src="res"/>
+            <option name="push" value="test_videofile/out_170_170.mp4 -> /data/test" src="res"/>
+            <option name="push" value="res_avmetadata/MP3_SURFACE.mp3 -> /data/test" src="res"/>
         </preparer>
     </target>
 </configuration>
