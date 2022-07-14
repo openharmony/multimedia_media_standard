@@ -167,6 +167,7 @@ int32_t AVMetadataHelperServiceStub::ResolveMetadata(MessageParcel &data, Messag
 
 int32_t AVMetadataHelperServiceStub::ResolveMetadataMap(MessageParcel &data, MessageParcel &reply)
 {
+    (void)data;
     std::unordered_map<int32_t, std::string> metadata = ResolveMetadataMap();
     CHECK_AND_RETURN_RET_LOG(metadata.size() != 0, MSERR_INVALID_VAL, "No metadata");
 
@@ -184,6 +185,7 @@ int32_t AVMetadataHelperServiceStub::ResolveMetadataMap(MessageParcel &data, Mes
 
 int32_t AVMetadataHelperServiceStub::FetchArtPicture(MessageParcel &data, MessageParcel &reply)
 {
+    (void)data;
     auto result = FetchArtPicture();
     if (result == nullptr) {
         return MSERR_INVALID_OPERATION;
@@ -204,12 +206,15 @@ int32_t AVMetadataHelperServiceStub::FetchFrameAtTime(MessageParcel &data, Messa
 
 int32_t AVMetadataHelperServiceStub::Release(MessageParcel &data, MessageParcel &reply)
 {
+    (void)data;
+    (void)reply;
     Release();
     return MSERR_OK;
 }
 
 int32_t AVMetadataHelperServiceStub::DestroyStub(MessageParcel &data, MessageParcel &reply)
 {
+    (void)data;
     reply.WriteInt32(DestroyStub());
     return MSERR_OK;
 }

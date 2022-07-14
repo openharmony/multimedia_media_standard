@@ -49,7 +49,7 @@ public:
     AVMuxerUtil() = delete;
     ~AVMuxerUtil() = delete;
 
-    static int32_t SetCaps(const MediaDescription &trackDesc, const std::string &mimeType,
+    static bool SetCaps(const MediaDescription &trackDesc, const std::string &mimeType,
         GstCaps **src_caps);
     static std::vector<std::string> FindFormat();
     static bool FindMux(const std::string &format, std::string &mux);

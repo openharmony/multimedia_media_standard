@@ -97,7 +97,6 @@ int32_t RecorderServer::Init()
 bool RecorderServer::CheckPermission()
 {
     auto callerUid = IPCSkeleton::GetCallingUid();
-
     // Root users should be whitelisted
     if (callerUid == ROOT_UID) {
         MEDIA_LOGI("Root user. Permission Granted");
@@ -200,7 +199,7 @@ int32_t RecorderServer::SetCaptureRate(int32_t sourceId, double fps)
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_CONFIGURED, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
-    config_.caputreRate = fps;
+    config_.captureRate = fps;
     CaptureRate captureRate(fps);
     return recorderEngine_->Configure(sourceId, captureRate);
 }
@@ -500,7 +499,7 @@ int32_t RecorderServer::DumpInfo(int32_t fd)
     dumpString += "RecorderServer height is: " + std::to_string(config_.height) + "\n";
     dumpString += "RecorderServer frameRate is: " + std::to_string(config_.frameRate) + "\n";
     dumpString += "RecorderServer bitRate is: " + std::to_string(config_.bitRate) + "\n";
-    dumpString += "RecorderServer caputreRate is: " + std::to_string(config_.caputreRate) + "\n";
+    dumpString += "RecorderServer captureRate is: " + std::to_string(config_.captureRate) + "\n";
     dumpString += "RecorderServer audioSampleRate is: " + std::to_string(config_.audioSampleRate) + "\n";
     dumpString += "RecorderServer audioChannel is: " + std::to_string(config_.audioChannel) + "\n";
     dumpString += "RecorderServer audioBitRate is: " + std::to_string(config_.audioBitRate) + "\n";

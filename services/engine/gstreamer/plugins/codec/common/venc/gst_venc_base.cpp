@@ -200,8 +200,8 @@ static void gst_venc_base_init(GstVencBase *self)
     self->width = 0;
     self->height = 0;
     self->frame_rate = 0;
-    self->input = { 0 };
-    self->output = { 0 };
+    (void)memset_s(&self->input, sizeof(GstVencBasePort), 0, sizeof(GstVencBasePort));
+    (void)memset_s(&self->output, sizeof(GstVencBasePort), 0, sizeof(GstVencBasePort));
     self->memtype = GST_MEMTYPE_INVALID;
     self->bitrate = 0;
     self->input.frame_cnt = 0;
@@ -242,6 +242,8 @@ static void gst_venc_base_finalize(GObject *object)
     g_mutex_clear(&self->lock);
     self->input.av_shmem_pool = nullptr;
     self->output.av_shmem_pool = nullptr;
+    std::vector<GstVideoFormat> tempVec;
+    tempVec.swap(self->formats);
     G_OBJECT_CLASS(parent_class)->finalize(object);
 }
 
@@ -426,7 +428,7 @@ static gboolean gst_venc_base_set_outstate(GstVencBase *self)
     GstVideoEncoder *encoder = GST_VIDEO_ENCODER(self);
     GstVencBaseClass *klass = GST_VENC_BASE_GET_CLASS(self);
 
-    GST_DEBUG_OBJECT(self, "Setting output state: format %s, width %u, height %u",
+    GST_DEBUG_OBJECT(self, "Setting output state: format %s, width %d, height %d",
         gst_video_format_to_string(self->format), self->width, self->height);
     GstCaps *caps = klass->get_caps(self, self->input_state);
     GstVideoCodecState *out_state = gst_video_encoder_set_output_state(encoder, caps, self->input_state);
@@ -833,7 +835,7 @@ static gboolean gst_venc_base_set_format(GstVideoEncoder *encoder, GstVideoCodec
         self->nslice_height = self->height;
         self->nstride = info->stride[0];
         self->input.buffer_size = info->size;
-        GST_DEBUG_OBJECT(self, "width %d height %d frame_rate %d nslice_height %d nstride %d buffer_size %d",
+        GST_DEBUG_OBJECT(self, "width %d height %d frame_rate %d nslice_height %d nstride %d buffer_size %u",
             self->width, self->height, self->frame_rate, self->nslice_height, self->nstride, self->input.buffer_size);
     }
 

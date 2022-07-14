@@ -30,6 +30,11 @@ config("gst_plugins_common_config") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
   ]
 
   include_dirs = [
@@ -59,6 +64,7 @@ ohos_shared_library("gst_media_common") {
     "buffer_type_meta.c",
     "gst_shmem_allocator.cpp",
     "gst_shmem_pool.cpp",
+    "gst_shmem_wrap_allocator.cpp",
   ]
 
   deps = [

@@ -354,12 +354,14 @@ int32_t PlayerServiceStub::SetFdSource(MessageParcel &data, MessageParcel &reply
 
 int32_t PlayerServiceStub::Play(MessageParcel &data, MessageParcel &reply)
 {
+    (void)data;
     reply.WriteInt32(Play());
     return MSERR_OK;
 }
 
 int32_t PlayerServiceStub::Prepare(MessageParcel &data, MessageParcel &reply)
 {
+    (void)data;
     reply.WriteInt32(Prepare());
     return MSERR_OK;
 }

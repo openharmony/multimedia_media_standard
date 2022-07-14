@@ -61,7 +61,7 @@ public:
     int32_t SetLoop(bool loop) override;
     void SetVolume(const float &leftVolume, const float &rightVolume) override;
     void SetAudioInterruptMode(const int32_t interruptMode) override;
-    int32_t SetAudioRendererInfo(const int32_t rendererInfo, const int32_t rendererFlag) override;
+    int32_t SetAudioRendererInfo(const uint32_t rendererInfo, const int32_t rendererFlag) override;
     int32_t SelectBitRate(uint32_t bitRate) override;
 
     void SetElemSetupListener(ElemSetupListener listener) final;
@@ -119,7 +119,7 @@ private:
     void OnSinkMessageReceived(const PlayBinMessage &msg);
     void ReportMessage(const PlayBinMessage &msg);
     void Reset() noexcept;
-    bool IsLiveSource();
+    bool IsLiveSource() const;
     int32_t DoInitializeForDataSource();
     void DoInitializeForHttp();
     void HandleCacheCtrl(const InnerMessage &msg);
@@ -140,7 +140,7 @@ private:
     std::string uri_;
     std::unordered_map<GstElement *, gulong> signalIds_;
     std::vector<uint32_t> bitRateVec_;
-    bool isInitialized = false;
+    bool isInitialized_ = false;
 
     bool isErrorHappened_ = false;
     std::mutex condMutex_;
@@ -150,7 +150,7 @@ private:
     PlayBinSinkProvider::SinkPtr videoSink_ = nullptr;
 
     int64_t duration_ = 0;
-    double rate_;
+    double rate_ = 0;
     int64_t seekPos_ = 0;
     int64_t lastTime_ = 0;
 
@@ -158,7 +158,7 @@ private:
     bool isRating_ = false;
     bool isBuffering_ = false;
     bool isNetWorkPlay_ = false;
-    int32_t rendererInfo_ = 0;
+    uint32_t rendererInfo_ = 0;
     int32_t rendererFlag_ = 0;
 
     bool enableLooping_ = false;

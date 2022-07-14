@@ -185,6 +185,12 @@ int32_t AVCodecEngineCtrl::Flush()
     return MSERR_OK;
 }
 
+int32_t AVCodecEngineCtrl::NotifyEos()
+{
+    CHECK_AND_RETURN_RET(src_ != nullptr, MSERR_UNKNOWN);
+    return src_->NotifyEos();
+}
+
 int32_t AVCodecEngineCtrl::Release()
 {
     if (gstPipeline_ != nullptr) {
@@ -336,6 +342,7 @@ int32_t AVCodecEngineCtrl::SetParameter(const Format &format)
 
 GstBusSyncReply AVCodecEngineCtrl::BusSyncHandler(GstBus *bus, GstMessage *message, gpointer userData)
 {
+    (void)bus;
     CHECK_AND_RETURN_RET(message != nullptr, GST_BUS_DROP);
     CHECK_AND_RETURN_RET(userData != nullptr, GST_BUS_DROP);
 

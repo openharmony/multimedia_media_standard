@@ -149,7 +149,7 @@ void CallbackWarp::GetResult(napi_value &result)
 
 std::string CallbackWarp::GetName() const
 {
-    CHECK_AND_RETURN_RET_LOG(jsCb_ != nullptr, "unknow", "jscallback is nullptr");
+    CHECK_AND_RETURN_RET_LOG(jsCb_ != nullptr, "unknown", "jscallback is nullptr");
     return jsCb_->GetName();
 }
 

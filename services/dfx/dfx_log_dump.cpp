@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -96,7 +96,7 @@ void DfxLogDump::SaveLog(const char *level, const OHOS::HiviewDFX::HiLogLabel &l
     const int32_t pubLen = 8;
     while (dtsPos != std::string::npos) {
         temp += fmtStr.substr(srcPos, dtsPos - srcPos);
-        srcPos = dtsPos + pubLen;
+        srcPos = static_cast<int32_t>(dtsPos) + pubLen;
         dtsPos = fmtStr.find("{public}", srcPos);
     }
     temp += fmtStr.substr(srcPos);
@@ -166,7 +166,7 @@ void DfxLogDump::TaskProcessor()
             ofStream.open(file, std::ios::out | std::ios::app);
         }
         if (!ofStream.is_open()) {
-            return;
+            continue;
         }
         isNewFile_ = false;
         if (lineCount >= FILE_LINE_MAX) {

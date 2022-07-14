@@ -38,6 +38,7 @@ struct _GstConsumerSurfacePoolPrivate {
     guint32 max_frame_rate;
     guint64 pre_timestamp;
     GstBuffer *cache_buffer;
+    gboolean need_eos_buffer;
 };
 
 enum {
@@ -45,6 +46,7 @@ enum {
     PROP_SUSPEND,
     PROP_REPEAT,
     PROP_MAX_FRAME_RATE,
+    PROP_NOTIFY_EOS,
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE(GstConsumerSurfacePool, gst_consumer_surface_pool, GST_TYPE_VIDEO_BUFFER_POOL);
@@ -80,6 +82,7 @@ void ConsumerListenerProxy::OnBufferAvailable()
 
 static const gchar **gst_consumer_surface_pool_get_options(GstBufferPool *pool)
 {
+    (void)pool;
     static const gchar *options[] = { GST_BUFFER_POOL_OPTION_VIDEO_META, nullptr };
     return options;
 }
@@ -138,6 +141,10 @@ static void gst_consumer_surface_pool_class_init(GstConsumerSurfacePoolClass *kl
         g_param_spec_uint("max-framerate", "Max frame rate", "Max frame rate",
             0, G_MAXUINT32, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
+    g_object_class_install_property(gobjectClass, PROP_NOTIFY_EOS,
+        g_param_spec_boolean("notify-eos", "notify eos", "Need notify eos",
+            FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
     poolClass->get_options = gst_consumer_surface_pool_get_options;
     poolClass->set_config = gst_consumer_surface_pool_set_config;
     poolClass->release_buffer = gst_consumer_surface_pool_release_buffer;
@@ -171,6 +178,10 @@ static void gst_consumer_surface_pool_set_property(GObject *object, guint id, co
             break;
         case PROP_MAX_FRAME_RATE:
             priv->max_frame_rate = g_value_get_uint(value);
+            break;
+        case PROP_NOTIFY_EOS:
+            priv->need_eos_buffer = g_value_get_boolean(value);
+            g_cond_signal(&priv->buffer_available_con);
             break;
         default:
             break;
@@ -256,6 +267,29 @@ static void gst_consumer_surface_pool_release_buffer(GstBufferPool *pool, GstBuf
     gst_buffer_unref(buffer);
 }
 
+static GstFlowReturn gst_consumer_surface_pool_get_eos_buffer(GstConsumerSurfacePool *surfacepool, GstBuffer **buffer)
+{
+    g_return_val_if_fail(surfacepool != nullptr && surfacepool->priv != nullptr, GST_FLOW_ERROR);
+    g_return_val_if_fail(buffer != nullptr, GST_FLOW_ERROR);
+    *buffer = gst_buffer_new();
+    g_return_val_if_fail(*buffer != nullptr, GST_FLOW_ERROR);
+    uint32_t bufferFlag = BUFFER_FLAG_EOS;
+    GstBufferHandleConfig config = { -1, bufferFlag, 0, 0 };
+    gst_buffer_add_buffer_handle_meta(*buffer, 0, config);
+
+    surfacepool->priv->need_eos_buffer = FALSE;
+    return GST_FLOW_OK;
+}
+
+static void gst_consumer_surface_pool_get_repeat_buffer(GstConsumerSurfacePool *surfacepool, GstBuffer **buffer)
+{
+    auto priv = surfacepool->priv;
+    *buffer = priv->cache_buffer;
+    gst_buffer_ref(priv->cache_buffer);
+    GST_BUFFER_PTS(*buffer) = priv->pre_timestamp + priv->repeat_interval;
+    priv->pre_timestamp = GST_BUFFER_PTS(*buffer);
+}
+
 static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *pool, GstBuffer **buffer,
     GstBufferPoolAcquireParams *params)
 {
@@ -270,7 +304,7 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
 
     while (true) {
         gboolean repeat = FALSE;
-        while (priv->available_buf_count == 0 && !priv->flushing && priv->start) {
+        while (priv->available_buf_count == 0 && !priv->flushing && priv->start && !priv->need_eos_buffer) {
             if (priv->repeat_interval == 0 || priv->cache_buffer == nullptr) {
                 g_cond_wait(&priv->buffer_available_con, &priv->pool_lock);
             } else if (g_cond_wait_until(&priv->buffer_available_con, &priv->pool_lock, priv->repeat_interval)) {
@@ -281,12 +315,12 @@ static GstFlowReturn gst_consumer_surface_pool_acquire_buffer(GstBufferPool *poo
         if (priv->flushing || !priv->start) {
             return GST_FLOW_FLUSHING;
         }
+        if (priv->available_buf_count == 0 && priv->need_eos_buffer) {
+            return gst_consumer_surface_pool_get_eos_buffer(surfacepool, buffer);
+        }
 
         if (repeat && priv->cache_buffer != nullptr) {
-            *buffer = priv->cache_buffer;
-            gst_buffer_ref(priv->cache_buffer);
-            GST_BUFFER_PTS(*buffer) = priv->pre_timestamp + priv->repeat_interval;
-            priv->pre_timestamp = GST_BUFFER_PTS(*buffer);
+            gst_consumer_surface_pool_get_repeat_buffer(surfacepool, buffer);
             break;
         }
 
@@ -333,6 +367,7 @@ static void gst_consumer_surface_pool_init(GstConsumerSurfacePool *pool)
     priv->max_frame_rate = 0;
     priv->pre_timestamp = 0;
     priv->cache_buffer = nullptr;
+    priv->need_eos_buffer = FALSE;
     g_mutex_init(&priv->pool_lock);
     g_cond_init(&priv->buffer_available_con);
 }

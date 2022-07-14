@@ -90,6 +90,7 @@ struct _GstVdecBase {
     GstVdecBasePort input;
     GstVdecBasePort output;
     gint frame_rate;
+    gint seek_frame_rate;
     gint width;
     gint height;
     gint memtype;
