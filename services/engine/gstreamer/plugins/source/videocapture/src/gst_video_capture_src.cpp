@@ -304,7 +304,7 @@ static void gst_video_capture_deal_with_pts(GstVideoCaptureSrc *src, GstBuffer *
 {
     g_return_if_fail(buf != nullptr);
 
-    guint64 timestamp = GST_BUFFER_PTS (buf);
+    guint64 timestamp = GST_BUFFER_PTS(buf);
     g_return_if_fail(timestamp <= G_MAXINT64);
     GST_DEBUG_OBJECT(src, "video capture buffer size is: %" G_GSIZE_FORMAT ", pts: %" G_GUINT64_FORMAT,
         gst_buffer_get_size(buf), timestamp);
@@ -335,7 +335,7 @@ static void gst_video_capture_deal_with_pts(GstVideoCaptureSrc *src, GstBuffer *
 
     src->last_timestamp = static_cast<gint64>(timestamp); // updata last_timestamp
     g_return_if_fail(src->total_pause_time >= 0 && timestamp >= static_cast<guint64>(src->last_timestamp));
-    GST_BUFFER_PTS (buf) = timestamp - src->total_pause_time; // running state timestamp to encoder is up with pause
+    GST_BUFFER_PTS(buf) = timestamp - src->total_pause_time; // running state timestamp to encoder is up with pause
 }
 
 static GstFlowReturn gst_video_capture_src_fill(GstBaseSrc *src, guint64 offset, guint size, GstBuffer *buf)
