@@ -377,7 +377,7 @@ static void gst_producer_surface_pool_statistics(GstProducerSurfacePool *spool)
             event.EventWrite("PLAYER_STATISTICS", OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "PLAYER");
             spool->callCnt = 0;
         } else {
-            GST_ERROR_OBJECT(pool, "Failed to call CreateMsg");
+            GST_ERROR_OBJECT(spool, "Failed to call CreateMsg");
         }
     }
 }
