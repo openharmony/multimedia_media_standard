@@ -24,7 +24,8 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-RecorderEngineGstImpl::RecorderEngineGstImpl()
+RecorderEngineGstImpl::RecorderEngineGstImpl(int32_t appUid, int32_t appPid, uint32_t appTokenId)
+    : appUid_(appUid), appPid_(appPid), appTokenId_(appTokenId)
 {
     MEDIA_LOGD("enter, ctor");
     sourceCount_.resize(RECORDER_SOURCE_KIND_MAX);
@@ -44,7 +45,7 @@ int32_t RecorderEngineGstImpl::Init()
     CHECK_AND_RETURN_RET(ret == MSERR_OK, MSERR_INVALID_OPERATION);
 
     ctrler_ = ctrler;
-    builder_ = std::make_unique<RecorderPipelineBuilder>();
+    builder_ = std::make_unique<RecorderPipelineBuilder>(appUid_, appPid_, appTokenId_);
 
     return MSERR_OK;
 }

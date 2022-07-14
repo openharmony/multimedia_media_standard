@@ -36,6 +36,7 @@ private:
     int32_t ConfigAudioSampleRate(const RecorderParam &recParam);
     int32_t ConfigAudioChannels(const RecorderParam &recParam);
     int32_t ConfigAudioBitRate(const RecorderParam &recParam);
+    int32_t ConfigAppInfo(const RecorderParam &recParam);
 
     int32_t sampleRate_;
     int32_t channels_;
