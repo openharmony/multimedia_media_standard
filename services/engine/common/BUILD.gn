@@ -17,5 +17,5 @@ ohos_shared_library("media_engine_common") {
   deps = [ "avcodeclist:media_engine_common_avcodeclist" ]
 
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }

@@ -41,9 +41,9 @@ config("gst_audio_capture_src_config") {
   include_dirs = [
     "include",
     "//utils/native/base/include",
-    "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
+    "//foundation/multimedia/player_framework/services/utils/include",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common",
     "//foundation/multimedia/audio_framework/frameworks/innerkitsimpl/common/include",
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiocommon/include",
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiomanager/include",
@@ -74,12 +74,12 @@ ohos_shared_library("gst_audio_capture_src") {
 
   configs = [
     ":gst_audio_capture_src_config",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config",
   ]
 
   deps = [
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiocapturer:audio_capturer",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",
@@ -93,5 +93,5 @@ ohos_shared_library("gst_audio_capture_src") {
 
   relative_install_dir = "media/plugins"
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }
