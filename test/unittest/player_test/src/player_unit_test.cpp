@@ -368,5 +368,21 @@ HWTEST_F(PlayerUnitTest, Player_SetDataSource_002, TestSize.Level0)
     EXPECT_EQ(MSERR_OK, player_->Play());
     EXPECT_NE(MSERR_OK, player_->Seek(SEEK_TIME_2_SEC, SEEK_NEXT_SYNC));
 }
+
+/**
+ * @tc.name  : Test Player SelectBitRate API
+ * @tc.number: Player_SelectBitRate_001
+ * @tc.desc  : Test Player SelectBitRate interface
+ */
+HWTEST_F(PlayerUnitTest, Player_SelectBitRate_001, TestSize.Level0)
+{
+    ASSERT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
+    sptr<Surface> videoSurface = player_->GetVideoSurface();
+    ASSERT_NE(nullptr, videoSurface);
+    EXPECT_EQ(MSERR_OK, player_->SetVideoSurface(videoSurface));
+    EXPECT_EQ(MSERR_OK, player_->PrepareAsync());
+    EXPECT_EQ(MSERR_OK, player_->Play());
+    EXPECT_NE(MSERR_OK, player_->SelectBitRate(0));
+}
 } // namespace Media
 } // namespace OHOS
