@@ -79,6 +79,15 @@ public:
     virtual int32_t Flush() = 0;
 
     /**
+     * @brief Notify eos of the encoder.
+     *
+     * @return Returns {@link MSERR_OK} if success; returns an error code otherwise.
+     * @since 3.1
+     * @version 3.1
+     */
+    virtual int32_t NotifyEos() = 0;
+
+    /**
      * @brief Restores the encoder to the initial state.
      *
      * @return Returns {@link MSERR_OK} if success; returns an error code otherwise.
