@@ -41,15 +41,15 @@ config("media_engine_gst_player_config") {
   ]
 
   include_dirs = [
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/sink/memsink",
-    "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
-    "//foundation/multimedia/media_standard/services/services/engine_intf",
-    "//foundation/multimedia/media_standard/services/common",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/playbin_adapter",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/appsrc_wrap",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/metadata",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/sink/memsink",
+    "//foundation/multimedia/player_framework/services/utils/include",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/services/services/engine_intf",
+    "//foundation/multimedia/player_framework/services/common",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common/playbin_adapter",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common/appsrc_wrap",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common/metadata",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common/utils",
     "//foundation/multimedia/audio_framework/frameworks/innerkitsimpl/common/include",
     "//foundation/multimedia/audio_framework/interfaces/innerkits/native/audiocommon/include",
     "//foundation/multimedia/audio_framework/interfaces/innerkits/native/audiomanager/include",
@@ -80,16 +80,16 @@ ohos_static_library("media_engine_gst_player") {
   configs = [
     ":media_engine_gst_player_config",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface_public_config",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils_public_config",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils_public_config",
   ]
 
   deps = [
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiomanager:audio_client",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gobject",
     "//third_party/gstreamer/gstplugins_base:gstvideo",
@@ -103,5 +103,5 @@ ohos_static_library("media_engine_gst_player") {
   ]
 
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }

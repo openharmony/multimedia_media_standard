@@ -31,7 +31,7 @@ ohos_shared_library("media_engine_gst") {
     "player:media_engine_gst_player",
     "plugins:media_engine_gst_plugins_common",
     "recorder:media_engine_gst_recorder",
-    "//foundation/multimedia/media_standard/services/engine/common:media_engine_common",
+    "//foundation/multimedia/player_framework/services/engine/common:media_engine_common",
     "//third_party/glib:glib_packages",
     "//third_party/gstreamer/gst_libav:gst_libav_packages",
     "//third_party/gstreamer/gstplugins_bad:gstplugins_bad_packages",
@@ -43,5 +43,5 @@ ohos_shared_library("media_engine_gst") {
 
   relative_install_dir = "media"
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }
