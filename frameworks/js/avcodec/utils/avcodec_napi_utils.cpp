@@ -37,7 +37,7 @@ namespace {
         {"capture_rate", OHOS::Media::FORMAT_TYPE_INT32},
         {"i_frame_interval", OHOS::Media::FORMAT_TYPE_INT32},
         {"req_i_frame", OHOS::Media::FORMAT_TYPE_INT32},
-        {"repeate_frame_after", OHOS::Media::FORMAT_TYPE_INT32},
+        {"repeat_frame_after", OHOS::Media::FORMAT_TYPE_INT32},
         {"suspend_input_surface", OHOS::Media::FORMAT_TYPE_INT32},
         {"video_encode_bitrate_mode", OHOS::Media::FORMAT_TYPE_INT32},
         {"codec_profile", OHOS::Media::FORMAT_TYPE_INT32},

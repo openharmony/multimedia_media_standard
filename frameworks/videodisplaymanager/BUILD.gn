@@ -14,7 +14,7 @@
 import("//build/ohos.gni")
 
 config("videodisplaymanager_public_config") {
-  include_dirs = [ "//foundation/multimedia/media_standard/frameworks/videodisplaymanager/include" ]
+  include_dirs = [ "//foundation/multimedia/player_framework/frameworks/videodisplaymanager/include" ]
 }
 
 ohos_shared_library("videodisplaymanager") {
@@ -40,6 +40,6 @@ ohos_shared_library("videodisplaymanager") {
 
   cflags = [ "-DVIDEO_DISPLAY_DEBUG" ]
 
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
   subsystem_name = "multimedia"
 }

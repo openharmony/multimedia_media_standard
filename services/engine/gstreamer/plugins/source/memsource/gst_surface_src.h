@@ -43,6 +43,7 @@ struct _GstSurfaceSrc {
     guint stride;
     gboolean need_flush;
     gboolean flushing;
+    gboolean flush_at_start;
 };
 
 struct _GstSurfaceSrcClass {

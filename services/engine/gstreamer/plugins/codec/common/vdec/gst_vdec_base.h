@@ -115,6 +115,7 @@ struct _GstVdecBase {
     gboolean enable_slice_cat;
     gboolean resolution_changed;
     GstCaps *sink_caps;
+    gboolean input_need_ashmem;
 };
 
 struct _GstVdecBaseClass {
@@ -123,6 +124,7 @@ struct _GstVdecBaseClass {
     GstBuffer *(*handle_slice_buffer)(GstVdecBase *self,
         GstBuffer *buffer, bool &ready_push, bool is_finish);
     void (*flush_cache_slice_buffer)(GstVdecBase *self);
+    gboolean (*input_need_copy)();
 };
 
 GST_API_EXPORT GType gst_vdec_base_get_type(void);
