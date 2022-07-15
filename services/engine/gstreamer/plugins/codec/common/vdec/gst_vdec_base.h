@@ -75,6 +75,7 @@ struct _DisplayRect {
 struct _GstVdecBase {
     GstVideoDecoder parent;
     std::shared_ptr<OHOS::Media::IGstCodec> decoder;
+    GMutex cat_lock;
     GMutex drain_lock;
     GCond drain_cond;
     gboolean draining;

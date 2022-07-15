@@ -112,6 +112,8 @@ static void gst_vdec_base_class_init(GstVdecBaseClass *klass)
 
     g_object_class_install_property(gobject_class, PROP_ENABLE_SLICE_CAT,
         g_param_spec_boolean("enable-slice-cat", "enable slice cat", "enable slice cat",
+            FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
     g_object_class_install_property(gobject_class, PROP_SEEK,
         g_param_spec_boolean("seeking", "Seeking", "Whether the decoder is in seek",
             FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
@@ -158,6 +160,7 @@ static void gst_vdec_base_set_property(GObject *object, guint prop_id, const GVa
             break;
         case PROP_ENABLE_SLICE_CAT:
             self->enable_slice_cat = g_value_get_boolean(value);
+            break;
         case PROP_SEEK:
             GST_OBJECT_LOCK(self);
             if (self->decoder != nullptr) {
@@ -184,6 +187,7 @@ static void gst_vdec_base_init(GstVdecBase *self)
     GST_PAD_SET_ACCEPT_TEMPLATE(GST_VIDEO_DECODER_SINK_PAD(self));
 
     g_mutex_init(&self->lock);
+    g_mutex_init(&self->cat_lock);
     g_mutex_init(&self->drain_lock);
     g_cond_init(&self->drain_cond);
     self->draining = FALSE;
@@ -236,6 +240,7 @@ static void gst_vdec_base_finalize(GObject *object)
     GST_DEBUG_OBJECT(object, "Finalize");
     g_return_if_fail(object != nullptr);
     GstVdecBase *self = GST_VDEC_BASE(object);
+    g_mutex_clear(&self->cat_lock);
     g_mutex_clear(&self->drain_lock);
     g_cond_clear(&self->drain_cond);
     g_mutex_clear(&self->lock);
