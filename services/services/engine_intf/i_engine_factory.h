@@ -53,8 +53,11 @@ public:
         return nullptr;
     }
 
-    virtual std::unique_ptr<IRecorderEngine> CreateRecorderEngine()
+    virtual std::unique_ptr<IRecorderEngine> CreateRecorderEngine(int32_t appUid, int32_t appPid, uint32_t appTokenId)
     {
+        (void)appUid;
+        (void)appPid;
+        (void)appTokenId;
         return nullptr;
     }
 
@@ -72,7 +75,7 @@ public:
     {
         return nullptr;
     }
-    
+
     virtual std::unique_ptr<IAVMuxerEngine> CreateAVMuxerEngine()
     {
         return nullptr;

@@ -84,9 +84,13 @@ int32_t RecorderServer::Init()
 {
     startTimeMonitor_.StartTime();
 
+    uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
+    int32_t appUid = IPCSkeleton::GetCallingUid();
+    int32_t appPid = IPCSkeleton::GetCallingPid();
+
     auto engineFactory = EngineFactoryRepo::Instance().GetEngineFactory(IEngineFactory::Scene::SCENE_RECORDER);
     CHECK_AND_RETURN_RET_LOG(engineFactory != nullptr, MSERR_CREATE_REC_ENGINE_FAILED, "failed to get factory");
-    recorderEngine_ = engineFactory->CreateRecorderEngine();
+    recorderEngine_ = engineFactory->CreateRecorderEngine(appUid, appPid, tokenId);
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_CREATE_REC_ENGINE_FAILED,
         "failed to create recorder engine");
     status_ = REC_INITIALIZED;
