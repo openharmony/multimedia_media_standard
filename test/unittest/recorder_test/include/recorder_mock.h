@@ -64,7 +64,7 @@ public:
     int32_t Release();
     int32_t SetFileSplitDuration(FileSplitType type, int64_t timestamp, uint32_t duration);
     int32_t SetParameter(int32_t sourceId, const Format &format);
-    int32_t RequesetBuffer(const std::string & recorderType, RecorderTestParam::VideoRecorderConfig &recorderConfig);
+    int32_t RequesetBuffer(const std::string &recorderType, RecorderTestParam::VideoRecorderConfig &recorderConfig);
     void StopBuffer(const std::string &recorderType);
     void HDICreateESBuffer();
     void HDICreateYUVBuffer();

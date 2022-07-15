@@ -183,6 +183,16 @@ int32_t RecorderMock::SetNextOutputFile(int32_t fd)
     return recorder_->SetNextOutputFile(fd);
 }
 
+void RecorderMock::SetLocation(float latitude, float longitude)
+{
+    return recorder_->SetLocation(latitude, longitude);
+}
+
+void RecorderMock::SetOrientationHint(int32_t rotation)
+{
+    return recorder_->SetOrientationHint(rotation);
+}
+
 int32_t RecorderMock::SetRecorderCallback(const std::shared_ptr<RecorderCallback> &callback)
 {
     return recorder_->SetRecorderCallback(callback);
@@ -248,7 +258,7 @@ int32_t RecorderMock::SetParameter(int32_t sourceId, const Format &format)
     return recorder_->SetParameter(sourceId, format);
 }
 
-int32_t RecorderMock::RequesetBuffer(const std::string & recorderType, VideoRecorderConfig &recorderConfig)
+int32_t RecorderMock::RequesetBuffer(const std::string &recorderType, VideoRecorderConfig &recorderConfig)
 {
     if (recorderType != PURE_AUDIO) {
         producerSurface_ = recorder_->GetSurface(recorderConfig.videoSourceId);
@@ -280,7 +290,7 @@ int32_t RecorderMock::GetStubFile()
         return -1;
     }
     UNITTEST_CHECK_AND_RETURN_RET_LOG(file_ != nullptr, MSERR_INVALID_OPERATION, "create file failed");
-    const std::string filePath = "/data/test/h264_1280_720.h264";
+    const std::string filePath = "/data/test/out_320_240_10s.h264";
     file_->open(filePath, std::ios::in | std::ios::binary);
     UNITTEST_CHECK_AND_RETURN_RET_LOG(file_->is_open(), MSERR_INVALID_OPERATION, "open file failed");
     if (!(file_->is_open())) {
