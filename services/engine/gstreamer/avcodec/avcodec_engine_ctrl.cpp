@@ -119,6 +119,7 @@ int32_t AVCodecEngineCtrl::Start()
 
     CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);
     if (flushAtStart_ || sink_->IsEos()) {
+        g_object_set(codecBin_, "flush-at-start", TRUE, nullptr);
         CHECK_AND_RETURN_RET(Flush() == MSERR_OK, MSERR_INVALID_OPERATION);
         flushAtStart_ = false;
     }
@@ -139,6 +140,7 @@ int32_t AVCodecEngineCtrl::Start()
 
 int32_t AVCodecEngineCtrl::Stop()
 {
+    MEDIA_LOGD("Stop in");
     if (!isStart_) {
         return MSERR_OK;
     }
@@ -296,6 +298,36 @@ int32_t AVCodecEngineCtrl::ReleaseOutputBuffer(uint32_t index, bool render)
 {
     CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);
     return sink_->ReleaseOutputBuffer(index, render);
+}
+
+int32_t AVCodecEngineCtrl::SetConfigParameter(const Format &format)
+{
+    CHECK_AND_RETURN_RET(codecBin_ != nullptr, MSERR_UNKNOWN);
+    int32_t value = 0;
+    if (format.GetValueType(std::string_view("video_encode_bitrate_mode")) == FORMAT_TYPE_INT32) {
+        if (format.GetIntValue("video_encode_bitrate_mode", value) && value >= 0) {
+            g_object_set(codecBin_, "bitrate-mode", value, nullptr);
+        }
+    }
+
+    if (format.GetValueType(std::string_view("codec_quality")) == FORMAT_TYPE_INT32) {
+        if (format.GetIntValue("codec_quality", value) && value >= 0) {
+            g_object_set(codecBin_, "codec-quality", value, nullptr);
+        }
+    }
+
+    if (format.GetValueType(std::string_view("i_frame_interval")) == FORMAT_TYPE_INT32) {
+        if (format.GetIntValue("i_frame_interval", value) && value >= 0) {
+            g_object_set(codecBin_, "i-frame-interval", value, nullptr);
+        }
+    }
+
+    if (format.GetValueType(std::string_view("codec_profile")) == FORMAT_TYPE_INT32) {
+        if (format.GetIntValue("codec_profile", value) && value >= 0) {
+            g_object_set(codecBin_, "codec-profile", value, nullptr);
+        }
+    }
+    return MSERR_OK;
 }
 
 int32_t AVCodecEngineCtrl::SetParameter(const Format &format)

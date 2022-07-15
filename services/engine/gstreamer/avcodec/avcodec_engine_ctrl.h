@@ -45,6 +45,7 @@ public:
     std::shared_ptr<AVSharedMemory> GetOutputBuffer(uint32_t index);
     int32_t ReleaseOutputBuffer(uint32_t index, bool render);
     int32_t SetParameter(const Format &format);
+    int32_t SetConfigParameter(const Format &format);
 
 private:
     static GstBusSyncReply BusSyncHandler(GstBus *bus, GstMessage *message, gpointer userData);
