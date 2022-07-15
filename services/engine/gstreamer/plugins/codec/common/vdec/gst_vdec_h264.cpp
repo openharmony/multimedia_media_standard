@@ -16,11 +16,13 @@
 #include "gst_vdec_h264.h"
 #include "securec.h"
 
+#define gst_vdec_h264_parent_class parent_class
 G_DEFINE_TYPE(GstVdecH264, gst_vdec_h264, GST_TYPE_VDEC_BASE);
 
 static GstBuffer *handle_slice_buffer(GstVdecBase *self, GstBuffer *buffer, bool &ready_push, bool is_finish);
 static gboolean cat_slice_buffer(GstVdecBase *self, GstMapInfo *src_info);
 static void flush_cache_slice_buffer(GstVdecBase *self);
+static GstStateChangeReturn gst_vdec_h264_change_state(GstElement *element, GstStateChange transition);
 
 static void gst_vdec_h264_class_init(GstVdecH264Class *klass)
 {
@@ -29,6 +31,7 @@ static void gst_vdec_h264_class_init(GstVdecH264Class *klass)
     GstVdecBaseClass *base_class = GST_VDEC_BASE_CLASS(klass);
     base_class->handle_slice_buffer = handle_slice_buffer;
     base_class->flush_cache_slice_buffer = flush_cache_slice_buffer;
+    element_class->change_state = gst_vdec_h264_change_state;
 
     gst_element_class_set_static_metadata(element_class,
         "Hardware Driver Interface H.264 Video Decoder",
@@ -145,4 +148,23 @@ static void flush_cache_slice_buffer(GstVdecBase *self)
         vdec_h264->is_slice_buffer = false;
         g_mutex_unlock(&self->cat_lock);
     }
+}
+
+static GstStateChangeReturn gst_vdec_h264_change_state(GstElement *element, GstStateChange transition)
+{
+    g_return_val_if_fail(element != nullptr, GST_STATE_CHANGE_FAILURE);
+    GstVdecBase *vdec_base = GST_VDEC_BASE(element);
+    GstVdecH264 *vdec_h264 = GST_VDEC_H264(vdec_base);
+    GstStateChangeReturn ret = GST_ELEMENT_CLASS(parent_class)->change_state(element, transition);
+    switch (transition) {
+        case GST_STATE_CHANGE_PAUSED_TO_READY:
+            if (vdec_h264->cache_slice_buffer != nullptr) {
+                gst_buffer_unref(vdec_h264->cache_slice_buffer);
+                vdec_h264->cache_slice_buffer = nullptr;
+            }
+            break;
+        default:
+            break;
+    }
+    return ret;
 }
