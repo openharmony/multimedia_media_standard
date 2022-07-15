@@ -13,17 +13,17 @@
 
 import("//build/test.gni")
 
-module_output_path = "multimedia_media_standard/player"
+module_output_path = "multimedia_player_framework/player"
 
 ohos_unittest("player_unit_test") {
   module_out_path = module_output_path
   include_dirs = [
     "./include",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
-    "//foundation/multimedia/media_standard/frameworks/native/player",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/frameworks/native/player",
     "//graphic/graphic_2d/interfaces/innerkits/surface",
     "//foundation/window/window_manager/interfaces/innerkits/wm",
-    "//foundation/multimedia/media_standard/test/unittest/common/include",
+    "//foundation/multimedia/player_framework/test/unittest/common/include",
     "src/data_source",
   ]
 
@@ -33,7 +33,7 @@ ohos_unittest("player_unit_test") {
   ]
 
   sources = [
-    "//foundation/multimedia/media_standard/test/unittest/common/src/test_params_config.cpp",
+    "//foundation/multimedia/player_framework/test/unittest/common/src/test_params_config.cpp",
     "src/data_source/media_data_source_test_noseek.cpp",
     "src/data_source/media_data_source_test_seekable.cpp",
     "src/player_mock.cpp",
@@ -44,9 +44,9 @@ ohos_unittest("player_unit_test") {
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
     "//foundation/window/window_manager/wm:libwm",
   ]
 
-  resource_config_file = "//foundation/multimedia/media_standard/test/unittest/resources/ohos_test.xml"
+  resource_config_file = "//foundation/multimedia/player_framework/test/unittest/resources/ohos_test.xml"
 }

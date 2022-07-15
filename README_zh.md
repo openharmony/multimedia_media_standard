@@ -13,7 +13,7 @@
 -   音频播放和录制。
 -   视频播放和录制。
 
-**图 1**  媒体组件架构图<a name="fig99659301300"></a>  
+**图 1**  媒体组件架构图<a name="fig99659301300"></a>
 
 
 ![](figures/zh-cn_image_0000001105973932.png)
@@ -23,7 +23,7 @@
 仓目录结构如下：
 
 ```
-/foundation/multimedia/media_standard    # 媒体组件业务代码
+/foundation/multimedia/player_framework    # 媒体组件业务代码
 ├── interfaces                           # 外部接口层
 │   ├── kits                             # 应用接口
 │   └── innerkits                        # 系统内部件接口
@@ -63,5 +63,5 @@
 
 媒体组件仓
 
-**multimedia\media_standard**
+**multimedia\player_framework**
 

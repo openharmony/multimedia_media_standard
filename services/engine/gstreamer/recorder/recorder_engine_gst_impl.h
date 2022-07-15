@@ -31,7 +31,7 @@ namespace OHOS {
 namespace Media {
 class RecorderEngineGstImpl : public IRecorderEngine, public NoCopyable {
 public:
-    RecorderEngineGstImpl();
+    RecorderEngineGstImpl(int32_t appUid, int32_t appPid, uint32_t appTokenId);
     ~RecorderEngineGstImpl();
 
     int32_t Init();
@@ -59,6 +59,9 @@ private:
     std::map<int32_t, RecorderSourceDesc> allSources_;
     std::vector<int32_t> sourceCount_;
     std::mutex mutex_;
+    int32_t appUid_;
+    int32_t appPid_;
+    uint32_t appTokenId_;
 };
 } // namespace Media
 } // namespace OHOS

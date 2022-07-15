@@ -13,15 +13,15 @@
 
 import("//build/test.gni")
 
-module_output_path = "multimedia_media_standard/recorder"
+module_output_path = "multimedia_player_framework/recorder"
 
 ohos_unittest("recorder_unit_test") {
   module_out_path = module_output_path
   include_dirs = [
     "./include",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
-    "//foundation/multimedia/media_standard/frameworks/native/recorder",
-    "//foundation/multimedia/media_standard/test/unittest/common/include",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/frameworks/native/recorder",
+    "//foundation/multimedia/player_framework/test/unittest/common/include",
     "//foundation/graphic/graphic_2d/utils/sync_fence/export",
     "//graphic/graphic_2d/interfaces/innerkits/surface",
   ]
@@ -32,7 +32,7 @@ ohos_unittest("recorder_unit_test") {
   ]
 
   sources = [
-    "//foundation/multimedia/media_standard/test/unittest/common/src/test_params_config.cpp",
+    "//foundation/multimedia/player_framework/test/unittest/common/src/test_params_config.cpp",
     "src/recorder_mock.cpp",
     "src/recorder_unit_test.cpp",
   ]
@@ -42,8 +42,8 @@ ohos_unittest("recorder_unit_test") {
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
   ]
 
-  resource_config_file = "//foundation/multimedia/media_standard/test/unittest/resources/ohos_test.xml"
+  resource_config_file = "//foundation/multimedia/player_framework/test/unittest/resources/ohos_test.xml"
 }

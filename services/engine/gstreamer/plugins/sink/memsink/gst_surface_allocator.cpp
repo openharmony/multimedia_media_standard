@@ -17,6 +17,9 @@
 #include <sync_fence.h>
 #include "media_log.h"
 
+GST_DEBUG_CATEGORY_STATIC(gst_surface_allocator_debug_category);
+#define GST_CAT_DEFAULT gst_surface_allocator_debug_category
+
 #define gst_surface_allocator_parent_class parent_class
 G_DEFINE_TYPE(GstSurfaceAllocator, gst_surface_allocator, GST_TYPE_ALLOCATOR);
 
@@ -188,6 +191,7 @@ static void gst_surface_allocator_class_init(GstSurfaceAllocatorClass *klass)
 
     allocatorClass->alloc = gst_surface_allocator_alloc_dummy;
     allocatorClass->free = gst_surface_allocator_free;
+    GST_DEBUG_CATEGORY_INIT(gst_surface_allocator_debug_category, "prosurallocator", 0, "surface allocator");
 }
 
 GstSurfaceAllocator *gst_surface_allocator_new()
