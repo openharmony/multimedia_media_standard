@@ -43,12 +43,14 @@ typedef enum {
     BUFFER_TYPE_VIR,
     BUFFER_TYPE_AVSHMEM,
     BUFFER_TYPE_HANDLE,
-} BufferType;
+} GstBufferType;
 
 struct _GstBufferTypeMeta {
     GstMeta meta;
-    BufferType type;
+    uint32_t id;
+    GstBufferType type;
     intptr_t buf;
+    uint32_t bufLen;
     uint32_t offset;
     uint32_t length;
     uint32_t totalSize;
@@ -59,6 +61,7 @@ struct _GstBufferTypeMeta {
 };
 
 struct _GstBufferFdConfig {
+    uint32_t bufLen;
     uint32_t offset;
     uint32_t length;
     uint32_t totalSize;
@@ -67,6 +70,7 @@ struct _GstBufferFdConfig {
 };
 
 struct _GstBufferHandleConfig {
+    uint32_t bufLen;
     int32_t fenceFd;
     uint32_t bufferFlag;
     uint32_t length;

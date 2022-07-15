@@ -14,11 +14,11 @@
 import("//build/ohos.gni")
 
 declare_args() {
-  multimedia_media_standard_codec_plugins = ""
+  multimedia_player_framework_codec_plugins = ""
 }
 
 group("codec_plugins") {
-  if (multimedia_media_standard_codec_plugins != "") {
-    deps = [ multimedia_media_standard_codec_plugins ]
+  if (multimedia_player_framework_codec_plugins != "") {
+    deps = [ multimedia_player_framework_codec_plugins ]
   }
 }

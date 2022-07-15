@@ -39,15 +39,15 @@ config("gst_codec_plugins_common_config") {
   cflags_cc = [ "-frtti" ]
 
   include_dirs = [
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common/vdec",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common/venc",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common/video",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/codec/common/vdec",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/codec/common/venc",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/codec/common/video",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/codec/common",
     "//base/hiviewdfx/interfaces/innerkits/libhilog/include",
     "//utils/native/base/include",
-    "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
+    "//foundation/multimedia/player_framework/services/utils/include",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/gstreamer/gstplugins_base",
@@ -75,7 +75,7 @@ ohos_static_library("gst_codec_plugins_common") {
 
   deps = [
     "//foundation/graphic/graphic_2d:libsurface",
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",
@@ -91,5 +91,5 @@ ohos_static_library("gst_codec_plugins_common") {
   ]
 
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }

@@ -40,23 +40,23 @@ config("media_engine_gst_factory_config") {
 
   include_dirs = [
     "//utils/native/base/include",
-    "//foundation/multimedia/media_standard/services/include",
-    "//foundation/multimedia/media_standard/services/services/engine_intf",
-    "//foundation/multimedia/media_standard/services/engine/common/avcodeclist",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/player",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/recorder",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/avmetadatahelper",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/avcodec",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/avmuxer",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/loader",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/playbin_adapter",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/message",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/metadata",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/appsrc_wrap",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
-    "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/services/include",
+    "//foundation/multimedia/player_framework/services/services/engine_intf",
+    "//foundation/multimedia/player_framework/services/engine/common/avcodeclist",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/player",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/recorder",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/avmetadatahelper",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/avcodec",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/avmuxer",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/loader",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common/playbin_adapter",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common/message",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common/metadata",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common/utils",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common/appsrc_wrap",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common",
+    "//foundation/multimedia/player_framework/services/utils/include",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiocommon/include",
     "//third_party/glib/glib",
@@ -74,12 +74,12 @@ ohos_static_library("media_engine_gst_factory") {
   configs = [
     ":media_engine_gst_factory_config",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface_public_config",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config",
   ]
 
   deps = [
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
     "//utils/native/base:utils",
   ]
 
@@ -89,5 +89,5 @@ ohos_static_library("media_engine_gst_factory") {
   ]
 
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }

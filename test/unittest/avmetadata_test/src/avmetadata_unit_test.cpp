@@ -83,10 +83,10 @@ void AVMetadataUnitTest::GetThumbnail(const std::string uri)
 }
 
 /**
-    * @tc.number    : ResolveMetadata_Format_MP4_0100
-    * @tc.name      : 01.MP4 format Get MetaData (H264+AAC)
-    * @tc.desc      : test ResolveMetadata
-*/
+ * @tc.number    : ResolveMetadata_Format_MP4_0100
+ * @tc.name      : 01.MP4 format Get MetaData (H264+AAC)
+ * @tc.desc      : test ResolveMetadata
+ */
 HWTEST_F(AVMetadataUnitTest, ResolveMetadata_Format_MP4_0100, TestSize.Level0)
 {
     std::unordered_map<int32_t, std::string> expectMeta = {
@@ -108,18 +108,48 @@ HWTEST_F(AVMetadataUnitTest, ResolveMetadata_Format_MP4_0100, TestSize.Level0)
         {AV_KEY_DATE_TIME, "2022-05-29 22:10:43"},
     };
     std::string uri = AVMetadataTestBase::GetInstance().GetMountPath() +
-    std::string("/H264_AAC.mp4");
+    std::string("H264_AAC.mp4");
     CheckMeta(uri, expectMeta);
 }
 
 /**
-    * @tc.number    : FetchFrameAtTime_Resolution_2800
-    * @tc.name      : Resolution 480x320
-    * @tc.desc      : Get THUMBNAIL
+    * @tc.number    : FetchArtPicture_Format_MP3_0100
+    * @tc.name      : Get SURFACE FROM MP3_SURFACE.mp3
+    * @tc.desc      : Get SURFACE FROM MP3_SURFACE.mp3
 */
+HWTEST_F(AVMetadataUnitTest, FetchArtPicture_Format_MP3_0100, Function | MediumTest | Level0)
+{
+    std::string uri = AVMetadataTestBase::GetInstance().GetMountPath() +
+    std::string("MP3_SURFACE.mp3");
+
+    std::shared_ptr<AVMetadataMock> helper = std::make_shared<AVMetadataMock>();
+    ASSERT_NE(nullptr, helper);
+    ASSERT_EQ(true, helper->CreateAVMetadataHelper());
+    ASSERT_EQ(MSERR_OK, helper->SetSource(uri, AVMetadataUsage::AV_META_USAGE_PIXEL_MAP));
+    std::shared_ptr<AVSharedMemory> frame = helper->FetchArtPicture();
+    helper->SurfaceToFile(frame, testInfo_->name());
+    ASSERT_EQ(51.3046875*1024, frame->GetSize());
+}
+/**
+ * @tc.number    : FetchFrameAtTime_Resolution_0100
+ * @tc.name      : Resolution 170x170
+ * @tc.desc      : Get THUMBNAIL
+ */
+HWTEST_F(AVMetadataUnitTest, FetchFrameAtTime_Resolution_0100, TestSize.Level0)
+{
+    std::string uri = AVMetadataTestBase::GetInstance().GetMountPath() +
+    std::string("out_170_170.mp4");
+    GetThumbnail(uri);
+}
+
+/**
+ * @tc.number    : FetchFrameAtTime_Resolution_2800
+ * @tc.name      : Resolution 480x320
+ * @tc.desc      : Get THUMBNAIL
+ */
 HWTEST_F(AVMetadataUnitTest, FetchFrameAtTime_Resolution_2800, TestSize.Level0)
 {
     std::string uri = AVMetadataTestBase::GetInstance().GetMountPath() +
-    std::string("/out_480_320.mp4");
+    std::string("out_480_320.mp4");
     GetThumbnail(uri);
 }

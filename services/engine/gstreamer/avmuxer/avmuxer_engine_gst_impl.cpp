@@ -76,6 +76,10 @@ AVMuxerEngineGstImpl::~AVMuxerEngineGstImpl()
         gst_object_unref(muxBin_);
         muxBin_ = nullptr;
     }
+    if (allocator_ != nullptr) {
+        gst_object_unref(allocator_);
+        allocator_ = nullptr;
+    }
 }
 
 int32_t AVMuxerEngineGstImpl::Init()
@@ -178,7 +182,7 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
     CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindMediaType(mimeType, mediaType), MSERR_INVALID_VAL, "Illegal mimeType");
     if (mediaType == MEDIA_TYPE_VID) {
         CHECK_AND_RETURN_RET_LOG(videoTrackNum_ < MAX_VIDEO_TRACK_NUM, MSERR_INVALID_OPERATION,
-            "Only 1 video Tracks can be added");
+            "Only 1 video Track can be added");
         trackNum = &videoTrackNum_;
     } else if (mediaType == MEDIA_TYPE_AUD) {
         CHECK_AND_RETURN_RET_LOG(audioTrackNum_ < MAX_AUDIO_TRACK_NUM, MSERR_INVALID_OPERATION,
@@ -189,7 +193,7 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
         return MSERR_INVALID_VAL;
     }
 
-    if (AVMuxerUtil::SetCaps(trackDesc, mimeType, &srcCaps) != MSERR_OK) {
+    if (!AVMuxerUtil::SetCaps(trackDesc, mimeType, &srcCaps)) {
         MEDIA_LOGE("Failed to call SetCaps");
         trackInfo_.erase(trackId);
         return MSERR_INVALID_VAL;
@@ -262,6 +266,7 @@ int32_t AVMuxerEngineGstImpl::WriteData(std::shared_ptr<AVSharedMemory> sampleDa
         MEDIA_LOGE("Failed to call g_signal_emit_by_name");
         return MSERR_INVALID_OPERATION;
     }
+    gst_buffer_unref(buffer);
 
     return MSERR_OK;
 }

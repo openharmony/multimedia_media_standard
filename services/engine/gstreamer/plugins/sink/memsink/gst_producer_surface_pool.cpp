@@ -241,7 +241,7 @@ static void gst_producer_surface_pool_get_property(GObject *object, guint prop_i
     }
 }
 
-GstProducerSurfacePool *gst_producer_surface_pool_new()
+GstProducerSurfacePool *gst_producer_surface_pool_new(void)
 {
     GstProducerSurfacePool *pool = GST_PRODUCER_SURFACE_POOL_CAST(g_object_new(
         GST_TYPE_PRODUCER_SURFACE_POOL, "name", "SurfacePool", nullptr));
@@ -362,14 +362,8 @@ gboolean gst_producer_surface_pool_set_surface(GstProducerSurfacePool *pool, OHO
     return TRUE;
 }
 
-static void gst_producer_surface_pool_request_loop(GstProducerSurfacePool *spool)
+static void gst_producer_surface_pool_statistics(GstProducerSurfacePool *spool)
 {
-    g_return_if_fail(spool != nullptr);
-    GstBufferPool *pool = GST_BUFFER_POOL_CAST(spool);
-    GST_DEBUG_OBJECT(spool, "Loop In");
-
-    GST_BUFFER_POOL_LOCK(spool);
-
     if (spool->callCnt == 0) {
         gettimeofday(&(spool->beginTime), nullptr);
     }
@@ -383,9 +377,19 @@ static void gst_producer_surface_pool_request_loop(GstProducerSurfacePool *spool
             event.EventWrite("PLAYER_STATISTICS", OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "PLAYER");
             spool->callCnt = 0;
         } else {
-            GST_ERROR_OBJECT(pool, "Failed to call CreateMsg");
+            GST_ERROR_OBJECT(spool, "Failed to call CreateMsg");
         }
     }
+}
+
+static void gst_producer_surface_pool_request_loop(GstProducerSurfacePool *spool)
+{
+    g_return_if_fail(spool != nullptr);
+    GstBufferPool *pool = GST_BUFFER_POOL_CAST(spool);
+    GST_DEBUG_OBJECT(spool, "Loop In");
+
+    GST_BUFFER_POOL_LOCK(spool);
+    gst_producer_surface_pool_statistics(spool);
 
     while (spool->isDynamicCached && g_list_length(spool->preAllocated) >= spool->cachedBuffers && spool->started) {
         GST_BUFFER_POOL_WAIT(spool);
@@ -548,7 +552,7 @@ static GstFlowReturn gst_producer_surface_pool_alloc_buffer(GstBufferPool *pool,
     auto buffer_handle = buf->GetBufferHandle();
     g_return_val_if_fail(buffer_handle != nullptr, GST_FLOW_ERROR);
     int32_t stride = buffer_handle->stride;
-    GstBufferHandleConfig config = { memory->fence, 0, 0, 0 };
+    GstBufferHandleConfig config = { sizeof(buffer_handle), memory->fence, 0, 0, 0 };
     gst_buffer_add_buffer_handle_meta(*buffer, reinterpret_cast<intptr_t>(buffer_handle), config);
 
     GstVideoInfo *info = &spool->info;
