@@ -93,6 +93,7 @@ int32_t AVCodecEngineGstImpl::Configure(const Format &format)
 
     CHECK_AND_RETURN_RET(processor_ != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(processor_->DoProcess(format_) == MSERR_OK, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(ctrl_->SetConfigParameter(format) == MSERR_OK, MSERR_UNKNOWN);
 
     MEDIA_LOGD("Configure success");
 
@@ -157,6 +158,15 @@ int32_t AVCodecEngineGstImpl::Reset()
 
     MEDIA_LOGD("Reset success");
     return MSERR_OK;
+}
+
+int32_t AVCodecEngineGstImpl::NotifyEos()
+{
+    MEDIA_LOGD("Enter NotifyEos");
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    CHECK_AND_RETURN_RET(ctrl_ != nullptr, MSERR_UNKNOWN);
+    return ctrl_->NotifyEos();
 }
 
 sptr<Surface> AVCodecEngineGstImpl::CreateInputSurface()

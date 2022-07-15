@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 
-MEDIA_ROOT_DIR = "//foundation/multimedia/media_standard"
+MEDIA_ROOT_DIR = "//foundation/multimedia/player_framework"
 
 config("media_client_local_config") {
   include_dirs = [
@@ -189,8 +189,8 @@ ohos_shared_library("media_client") {
     deps = [
       "//foundation/graphic/graphic_2d/frameworks/surface:surface",
       "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
-      "//foundation/multimedia/media_standard/services/utils:media_format",
-      "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+      "//foundation/multimedia/player_framework/services/utils:media_format",
+      "//foundation/multimedia/player_framework/services/utils:media_service_utils",
       "//third_party/bounds_checking_function:libsec_static",
       "//utils/native/base:utils",
     ]
@@ -203,5 +203,5 @@ ohos_shared_library("media_client") {
   }
 
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }

@@ -40,8 +40,8 @@ config("gst_plugins_common_config") {
   include_dirs = [
     "include",
     "//utils/native/base/include",
-    "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/services/utils/include",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/gstreamer/gstplugins_base",
@@ -57,20 +57,21 @@ ohos_shared_library("gst_media_common") {
 
   configs = [
     ":gst_plugins_common_config",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config",
   ]
 
   sources = [
     "buffer_type_meta.c",
     "gst_shmem_allocator.cpp",
     "gst_shmem_pool.cpp",
+    "gst_shmem_wrap_allocator.cpp",
   ]
 
   deps = [
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/codec/common:gst_codec_plugins_common",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/sink/memsink:gst_mem_sink_base",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/source/memsource:gst_mem_src_base",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/codec/common:gst_codec_plugins_common",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/sink/memsink:gst_mem_sink_base",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/source/memsource:gst_mem_src_base",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",
@@ -82,5 +83,5 @@ ohos_shared_library("gst_media_common") {
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }

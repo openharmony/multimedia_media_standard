@@ -34,7 +34,7 @@ public:
     explicit VideoEncoderCallbackNapi(napi_env env, std::weak_ptr<AVCodecVideoEncoder> venc);
     virtual ~VideoEncoderCallbackNapi();
 
-    void SaveCallbackReference(const std::string &callbackName, napi_value callback);
+    void SaveCallbackReference(const std::string &name, std::weak_ptr<AutoRef> ref);
     void SendErrorCallback(MediaServiceExtErrCode errCode);
 
 protected:
@@ -45,7 +45,7 @@ protected:
 
 private:
     struct VideoEncoderJsCallback {
-        std::shared_ptr<AutoRef> callback = nullptr;
+        std::weak_ptr<AutoRef> callback;
         std::string callbackName = "unknown";
         std::string errorMsg = "unknown";
         MediaServiceExtErrCode errorCode = MSERR_EXT_UNKNOWN;
@@ -63,10 +63,7 @@ private:
     std::mutex mutex_;
     napi_env env_ = nullptr;
     std::weak_ptr<AVCodecVideoEncoder> venc_;
-    std::shared_ptr<AutoRef> errorCallback_ = nullptr;
-    std::shared_ptr<AutoRef> formatChangedCallback_ = nullptr;
-    std::shared_ptr<AutoRef> inputCallback_ = nullptr;
-    std::shared_ptr<AutoRef> outputCallback_ = nullptr;
+    std::map<std::string, std::weak_ptr<AutoRef>> refMap_;
 };
 } // namespace Media
 } // namespace OHOS

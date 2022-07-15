@@ -46,20 +46,17 @@ bool PlayerSeekFuzzer::FuzzSeek(uint8_t* data, size_t size)
         cout << "SetPlayerCallback fail" << endl;
     }
     const string path = "/data/test/resource/H264_AAC.mp4";
-    ret = SetFdSource(path);
-    if (ret != 0) {
+    if ((SetFdSource(path)) != 0) {
         cout << "SetFdSource fail" << endl;
         return false;
     }
     sptr<Surface> producerSurface = nullptr;
     producerSurface = GetVideoSurface();
-    ret = player_->SetVideoSurface(producerSurface);
-    if (ret != 0) {
+    if ((player_->SetVideoSurface(producerSurface)) != 0) {
         cout << "SetVideoSurface fail" << endl;
     }
 
-    ret = player_->PrepareAsync();
-    if (ret != 0) {
+    if ((player_->PrepareAsync()) != 0) {
         cout << "PrepareAsync fail" << endl;
         return false;
     }
