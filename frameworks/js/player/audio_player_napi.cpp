@@ -854,24 +854,21 @@ static std::string GetJSState(PlayerStates currentState)
 
     MEDIA_LOGD("GetJSState()! is called!, %{public}d", currentState);
     switch (currentState) {
-        case PLAYER_STOPPED:
-        case PLAYER_PLAYBACK_COMPLETE:
-            result = STATE_STOPPED;
-            break;
         case PLAYER_IDLE:
-            result = STATE_IDLE;
-            break;
         case PLAYER_INITIALIZED:
-            result = STATE_IDLE;
-            break;
-        case PLAYER_PAUSED:
         case PLAYER_PREPARED:
-            result = STATE_PAUSED;
+            result = STATE_IDLE;
             break;
         case PLAYER_STARTED:
             result = STATE_PLAYING;
             break;
-
+        case PLAYER_PAUSED:
+            result = STATE_PAUSED;
+            break;
+        case PLAYER_STOPPED:
+        case PLAYER_PLAYBACK_COMPLETE:
+            result = STATE_STOPPED;
+            break;
         default:
             // Considering default state as stopped
             MEDIA_LOGE("Unknown state!, %{public}d", currentState);
