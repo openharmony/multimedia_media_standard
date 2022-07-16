@@ -316,9 +316,14 @@ int32_t PlayBinCtrlerBase::SetRateInternal(double rate)
 {
     MEDIA_LOGD("execute set rate, rate: %{public}lf", rate);
 
-    gint64 position = 0;
-    gboolean ret = gst_element_query_position(GST_ELEMENT_CAST(playbin_), GST_FORMAT_TIME, &position);
-    CHECK_AND_RETURN_RET_LOG(ret, MSERR_NO_MEMORY, "query position failed");
+    gint64 position;
+    gboolean ret;
+    if (isDuration_) {
+        position = duration_ * NANO_SEC_PER_USEC;
+    } else {
+        ret = gst_element_query_position(GST_ELEMENT_CAST(playbin_), GST_FORMAT_TIME, &position);
+        CHECK_AND_RETURN_RET_LOG(ret, MSERR_NO_MEMORY, "query position failed");
+    }
 
     GstSeekFlags flags = ChooseSetRateFlags(rate);
     int64_t start = rate > 0 ? position : 0;
@@ -450,6 +455,7 @@ void PlayBinCtrlerBase::Reset() noexcept
     isSeeking_ = false;
     isRating_ = false;
     isBuffering_ = false;
+    isDuration_ = false;
 
     MEDIA_LOGD("exit");
 }
@@ -776,6 +782,7 @@ void PlayBinCtrlerBase::ProcessEndOfStream()
 {
     MEDIA_LOGD("End of stream");
     std::unique_lock<std::mutex> lock(mutex_);
+    isDuration_ = false;
     if (IsLiveSource()) {
         MEDIA_LOGD("appsrc livemode, can not loop");
         return;
