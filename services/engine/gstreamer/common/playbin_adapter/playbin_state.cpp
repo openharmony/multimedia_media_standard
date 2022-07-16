@@ -151,6 +151,7 @@ void PlayBinCtrlerBase::BaseState::HandleAsyncDone(const InnerMessage &msg)
                 PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, static_cast<int32_t>(position), {} };
                 ctrler_.ReportMessage(playBinMsg);
                 ctrler_.isSeeking_ = false;
+                ctrler_.isDuration_ = (position == ctrler_.duration_ / USEC_PER_MSEC) ? true : false;
 
                 PlayBinMessage posUpdateMsg { PLAYBIN_MSG_POSITION_UPDATE, 0, static_cast<int32_t>(position), {} };
                 ctrler_.ReportMessage(posUpdateMsg);
@@ -390,6 +391,7 @@ void PlayBinCtrlerBase::PlayingState::ProcessStateChange(const InnerMessage &msg
                 PlayBinMessage playBinMsg { PLAYBIN_MSG_SEEKDONE, 0, static_cast<int32_t>(position), {} };
                 ctrler_.ReportMessage(playBinMsg);
                 ctrler_.isSeeking_ = false;
+                ctrler_.isDuration_ = (position == ctrler_.duration_ / USEC_PER_MSEC) ? true : false;
 
                 PlayBinMessage posUpdateMsg { PLAYBIN_MSG_POSITION_UPDATE, 0, static_cast<int32_t>(position), {} };
                 ctrler_.ReportMessage(posUpdateMsg);
@@ -461,6 +463,7 @@ void PlayBinCtrlerBase::StoppedState::StateEnter()
     // maybe need the deferred task to change state from ready to null, refer to gstplayer.
 
     (void)ChangePlayBinState(GST_STATE_READY);
+    ctrler_.isDuration_ = false;
 
     MEDIA_LOGD("StoppedState::StateEnter finished");
 }
