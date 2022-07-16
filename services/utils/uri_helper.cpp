@@ -32,7 +32,8 @@ static const std::map<std::string_view, uint8_t> g_validUriTypes = {
     {"", UriHelper::UriType::URI_TYPE_FILE }, // empty uri head is treated as the file type uri.
     {"file", UriHelper::UriType::URI_TYPE_FILE},
     {"fd", UriHelper::UriType::URI_TYPE_FD},
-    {"http", UriHelper::UriType::URI_TYPE_HTTP}
+    {"http", UriHelper::UriType::URI_TYPE_HTTP},
+    {"https", UriHelper::UriType::URI_TYPE_HTTPS},
 };
 
 static bool PathToRealFileUrl(const std::string_view &path, std::string &realPath)

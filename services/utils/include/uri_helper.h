@@ -34,6 +34,7 @@ public:
         URI_TYPE_FILE,
         URI_TYPE_FD,
         URI_TYPE_HTTP,
+        URI_TYPE_HTTPS,
         URI_TYPE_UNKNOWN,
     };
 
