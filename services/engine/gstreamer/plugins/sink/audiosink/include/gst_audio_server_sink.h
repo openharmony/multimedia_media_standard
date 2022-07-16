@@ -62,6 +62,7 @@ struct _GstAudioServerSink {
     guint renderer_desc;
     gint renderer_flag;
     GstClockTime last_render_pts;
+    gboolean enable_opt_render_delay;
 };
 
 struct _GstAudioServerSinkClass {

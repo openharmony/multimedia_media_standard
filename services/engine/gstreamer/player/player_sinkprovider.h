@@ -45,6 +45,7 @@ private:
     GstElement *DoCreateAudioSink(const GstCaps *caps, const gpointer userData);
     GstElement *DoCreateVideoSink(const GstCaps *caps, const gpointer userData);
     bool EnableKpiAVSyncLog() const;
+    bool EnableOptRenderDelay() const;
     void SetFirstRenderFrameFlag(bool firstRenderFrame);
     bool GetFirstRenderFrameFlag() const;
 
