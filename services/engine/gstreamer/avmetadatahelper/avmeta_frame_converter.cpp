@@ -204,7 +204,7 @@ int32_t AVMetaFrameConverter::Reset()
      * Must flush before change state and delete the msgProcessor, otherwise deadlock will
      * happened when try to destroy the msgprocessor.
      */
-    auto tempMsgProc = std::move(msgProcessor_);
+    auto tempMsgProc = std::move(msgDispatcher_);
     lock.unlock();
     tempMsgProc->FlushBegin();
     tempMsgProc->Reset();
@@ -318,15 +318,15 @@ int32_t AVMetaFrameConverter::SetupMsgProcessor()
     CHECK_AND_RETURN_RET_LOG(bus != nullptr, MSERR_UNKNOWN, "can not get bus");
 
     auto msgNotifier = std::bind(&AVMetaFrameConverter::OnNotifyMessage, this, std::placeholders::_1);
-    msgProcessor_ = std::make_unique<GstMsgProcessor>(*bus, msgNotifier);
+    msgDispatcher_ = std::make_unique<GstMsgDispatcher>(*bus, msgNotifier);
     gst_object_unref(bus);
     bus = nullptr;
 
-    int32_t ret = msgProcessor_->Init();
+    int32_t ret = msgDispatcher_->Init();
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
     // only concern the msg from pipeline
-    msgProcessor_->AddMsgFilter(ELEM_NAME(GST_ELEMENT_CAST(pipeline_)));
+    msgDispatcher_->AddMsgFilter(ELEM_NAME(GST_ELEMENT_CAST(pipeline_)));
 
     return MSERR_OK;
 }

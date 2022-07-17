@@ -334,14 +334,14 @@ int32_t AVMuxerEngineGstImpl::SetupMsgProcessor()
     CHECK_AND_RETURN_RET_LOG(bus != nullptr, MSERR_INVALID_OPERATION, "Failed to create GstBus");
 
     auto msgNotifier = std::bind(&AVMuxerEngineGstImpl::OnNotifyMessage, this, std::placeholders::_1);
-    msgProcessor_ = std::make_unique<GstMsgProcessor>(*bus, msgNotifier);
+    msgDispatcher_ = std::make_unique<GstMsgDispatcher>(*bus, msgNotifier);
     gst_object_unref(bus);
     bus = nullptr;
 
-    int32_t ret = msgProcessor_->Init();
+    int32_t ret = msgDispatcher_->Init();
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
-    msgProcessor_->AddMsgFilter(ELEM_NAME(GST_ELEMENT_CAST(muxBin_)));
+    msgDispatcher_->AddMsgFilter(ELEM_NAME(GST_ELEMENT_CAST(muxBin_)));
 
     return MSERR_OK;
 }
@@ -359,8 +359,8 @@ void AVMuxerEngineGstImpl::OnNotifyMessage(const InnerMessage &msg)
         case InnerMsgType::INNER_MSG_ERROR: {
             std::unique_lock<std::mutex> lock(mutex_);
             MEDIA_LOGE("Error happened");
-            msgProcessor_->FlushBegin();
-            msgProcessor_->Reset();
+            msgDispatcher_->FlushBegin();
+            msgDispatcher_->Reset();
             errHappened_ = true;
             cond_.notify_all();
             break;
@@ -391,7 +391,7 @@ void AVMuxerEngineGstImpl::Clear()
     isPlay_ = false;
 
     mutex_.unlock();
-    msgProcessor_->Reset();
+    msgDispatcher_->Reset();
     mutex_.lock();
 }
 }  // namespace Media

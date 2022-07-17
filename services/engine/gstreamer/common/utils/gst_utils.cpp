@@ -48,5 +48,18 @@ bool MatchElementByMeta(
 
     return matchCnt == expectedMetaFields.size();
 }
+
+bool MatchElementByTypeName(const GstElement &elem, const std::string_view &typeName)
+{
+    GstElementFactory *elementFactory = gst_element_get_factory(&elem);
+    const gchar *eleTypeName = g_type_name(gst_element_factory_get_element_type(elementFactory));
+    CHECK_AND_RETURN_RET_LOG(eleTypeName != nullptr, false, "eleTypeName is nullptr");
+
+    if (strstr(eleTypeName, typeName.data()) != nullptr) {
+        return true;
+    }
+
+    return false;
+}
 } // namespace Media
 } // namespace OHOS

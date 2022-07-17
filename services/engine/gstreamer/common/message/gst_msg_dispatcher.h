@@ -31,11 +31,11 @@ namespace OHOS {
 namespace Media {
 struct TickCallbackInfo;
 
-class GstMsgProcessor : public NoCopyable {
+class GstMsgDispatcher : public NoCopyable {
 public:
-    GstMsgProcessor(GstBus &gstBus, const InnerMsgNotifier &notifier,
+    GstMsgDispatcher(GstBus &gstBus, const InnerMsgNotifier &notifier,
         const std::shared_ptr<IGstMsgConverter> &converter = nullptr);
-    ~GstMsgProcessor();
+    ~GstMsgDispatcher();
 
     int32_t Init();
 
@@ -53,10 +53,10 @@ public:
 
 private:
     int32_t DoInit();
-    static gboolean MainLoopRunDone(GstMsgProcessor *thiz);
+    static gboolean MainLoopRunDone(GstMsgDispatcher *thiz);
     static gboolean TickCallback(TickCallbackInfo *tickCbInfo);
     static void FreeTickType(TickCallbackInfo *tickCbInfo);
-    static gboolean BusCallback(const GstBus *bus, GstMessage *msg, GstMsgProcessor *thiz);
+    static gboolean BusCallback(const GstBus *bus, GstMessage *msg, GstMsgDispatcher *thiz);
     void ProcessGstMessage(GstMessage &msg);
     void DoReset();
 
@@ -76,7 +76,7 @@ private:
 
 struct TickCallbackInfo {
     int32_t type;
-    GstMsgProcessor *msgProcessor;
+    GstMsgDispatcher *msgProcessor;
 };
 } // namespace Media
 } // namespace OHOS

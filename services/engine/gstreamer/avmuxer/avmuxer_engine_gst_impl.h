@@ -21,7 +21,7 @@
 #include <tuple>
 #include "nocopyable.h"
 #include "i_avmuxer_engine.h"
-#include "gst_msg_processor.h"
+#include "gst_msg_dispatcher.h"
 #include "gst_shmem_wrap_allocator.h"
 #include "avmuxer_util.h"
 
@@ -57,7 +57,7 @@ private:
     std::condition_variable cond_;
     bool endFlag_ = false;
     bool errHappened_ = false;
-    std::unique_ptr<GstMsgProcessor> msgProcessor_;
+    std::unique_ptr<GstMsgDispatcher> msgDispatcher_;
     uint32_t videoTrackNum_ = 0;
     uint32_t audioTrackNum_ = 0;
     std::string format_;
