@@ -23,7 +23,7 @@
 #include "avsharedmemory.h"
 #include "inner_msg_define.h"
 #include "gst_mem_sink.h"
-#include "gst_msg_processor.h"
+#include "gst_msg_dispatcher.h"
 #include "nocopyable.h"
 
 namespace OHOS {
@@ -53,7 +53,7 @@ private:
     GstPipeline *pipeline_ = nullptr;
     GstElement *vidShMemSink_ = nullptr;
     GstElement *appSrc_ = nullptr;
-    std::unique_ptr<GstMsgProcessor> msgProcessor_;
+    std::unique_ptr<GstMsgDispatcher> msgDispatcher_;
     GstState currState_ = GST_STATE_NULL;
     GstCaps *lastCaps_ = nullptr;
     GstBuffer *lastResult_ = nullptr;

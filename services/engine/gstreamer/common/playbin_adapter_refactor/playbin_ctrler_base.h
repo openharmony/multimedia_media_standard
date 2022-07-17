@@ -18,44 +18,62 @@
 
 #include <memory>
 #include <string>
-#include <vector>
-#include <unordered_map>
 #include <mutex>
+#include <unordered_map>
 #include <gst/gst.h>
 #include "nocopyable.h"
 #include "i_playbin_ctrler.h"
-#include "state_machine.h"
-#include "gst_msg_processor.h"
-#include "task_queue.h"
+#include "gst_msg_dispatcher.h"
 
 namespace OHOS {
 namespace Media {
-class PlayBinCtrlerBase
-    : public IPlayBinCtrler,
-      public StateMachine,
-      public std::enable_shared_from_this<PlayBinCtrlerBase> {
+namespace PlayBin {
+class PlayBinCtrlerBase : public IPlayBinCtrler {
 public:
-    explicit PlayBinCtrlerBase(const PlayBinCreateParam &createParam);
+    explicit PlayBinCtrlerBase(const CreateParam &createParam);
     virtual ~PlayBinCtrlerBase();
 
     int32_t Init();
-    int32_t SetSource(const std::string &url)  override;
-    int32_t SetSource(const std::shared_ptr<GstAppsrcWrap> &appsrcWrap) override;
+    int32_t SetSource(const std::shared_ptr<SourceBase> &source) override;
     int32_t Prepare() override;
     int32_t Play() override;
     int32_t Pause() override;
-    int32_t Seek(int64_t timeUs, int32_t seekOption) override;
+    int32_t Seek(int64_t timeUs, SeekMode seekOption) override;
+    int32_t SetSpeed(double speed) override;
     int32_t Stop() override;
+    int32_t Reset() override;
     int64_t GetDuration() override;
     int64_t GetPosition() override;
-    int32_t SetRate(double rate) override;
-    double GetRate() override;
+    double GetSpeed() override;
 
-protected:
-    virtual int32_t OnInit() = 0;
+private:
+    int32_t DoSetup();
+    int32_t DoSetupSource();
+    int32_t DoSetupSink();
+    int32_t DoSetupRenderPipeline();
+    int32_t DoSetupSignal();
+    int32_t DoSetupMsgDispatcher();
+    void DoUnSetup();
+    void UpdateStateAndReport(PlayBinState newState);
+    void OnMessageReceived(const InnerMessage &msg);
 
+    RenderMode renderMode_;
+    InnerMsgNotifier notifier_;
+    std::shared_ptr<SinkProvider> sinkProvider_;
+    std::shared_ptr<SourceBase> source_;
+    std::shared_ptr<IGstMsgConverter> msgConverter_;
+    std::unique_ptr<GstMsgDispatcher> msgDispatcher_;
+    std::shared_ptr<TaskQueue> workLooper_;
+
+    std::mutex mutex_;
+    PlayBinState selfState_ = PLAYBIN_STATE_IDLE;
     GstPipeline *playbin_ = nullptr;
+
+    friend class PlayBinStateOperator;
+    friend class PlayBinEventMsgSender;
+    std::unordered_map<GstElement *, gulong> signalIds_;
 };
+}
 } // namespace Media
 } // namespace OHOS
 #endif // PLAYBIN_CTRLER_BASE_H

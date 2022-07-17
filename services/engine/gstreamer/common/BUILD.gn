@@ -68,7 +68,7 @@ ohos_static_library("media_engine_gst_common") {
   sources = [
     "appsrc_wrap/gst_appsrc_wrap.cpp",
     "message/gst_msg_converter.cpp",
-    "message/gst_msg_processor.cpp",
+    "message/gst_msg_dispatcher.cpp",
     "metadata/gst_meta_parser.cpp",
     "playbin_adapter/playbin2_ctrler.cpp",
     "playbin_adapter/playbin_ctrler_base.cpp",

@@ -18,19 +18,27 @@
 
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <gst/gst.h>
 #include "gst_appsrc_wrap.h"
+#include "inner_msg_define.h"
 #include "media_errors.h"
 #include "uri_helper.h"
 
 namespace OHOS {
 namespace Media {
-class PlayBinSource {
+namespace PlayBin {
+class SourceBase {
 public:
-    static std::unique_ptr<PlayBinSource> Create(const UriHelper &uri);
-    static std::unique_ptr<PlayBinSource> Create(const std::shared_ptr<IMediaDataSource> &dataSrc);
+    static std::shared_ptr<SourceBase> Create(const UriHelper &uri);
+    static std::shared_ptr<SourceBase> Create(const std::shared_ptr<IMediaDataSource> &dataSrc);
 
-    virtual ~PlayBinSource() = default;
+    virtual ~SourceBase() = default;
+
+    virtual std::string GetGstUrlDesc()
+    {
+        return "";
+    }
 
     virtual int32_t Start()
     {
@@ -48,32 +56,38 @@ public:
     }
 
     using ElemPtr = GstElement *;
+    virtual void OnPlayBinSetup(ElemPtr playbin)
+    {
+        (void)playbin;
+    }
+
     virtual void OnSourceSetup(ElemPtr source)
     {
         (void)source;
     }
 
-    using MsgNotifier = std::function<void(int32_t)>;
+    using MsgNotifier = std::function<void(const InnerMessage &msg)>;
     virtual void SetMsgNotifier(const MsgNotifier &notifier)
     {
         (void)notifier;
     }
 
 protected:
-    PlayBinSource() = default;
+    SourceBase() = default;
 };
 
-class AVDataSource : public PlayBinSource {
+class AVDataSource : public SourceBase {
 public:
     AVDataSource(const std::shared_ptr<IMediaDataSource> &dataSrc);
     ~AVDataSource() = default;
 
-    int32_t Start();
-    int32_t Stop();
-    bool IsSeekable();
+    std::string GetGstUrlDesc() override;
+    int32_t Start() override;
+    int32_t Stop() override;
+    bool IsSeekable() override;
 
-    void OnSourceSetup(ElemPtr source);
-    void SetMsgNotifier(const MsgNotifier &notifier);
+    void OnSourceSetup(ElemPtr source) override;
+    void SetMsgNotifier(const MsgNotifier &notifier) override;
 
 private:
     void OnAppsrcErrorMessageReceived(int32_t errorCode);
@@ -83,13 +97,26 @@ private:
     MsgNotifier notifier_;
 };
 
-class HttpsSource : public PlayBinSource {
+class NetWorkSource : public SourceBase {
 public:
-    HttpsSource() = default;
-    ~HttpsSource() = default;
+    NetWorkSource(const UriHelper &url) = default;
+    ~NetWorkSource() = default;
 
-    void OnSourceSetup(ElemPtr source);
+    std::string GetGstUrlDesc() override;
+    void OnPlayBinSetup(ElemPtr playbin) override;
+    void OnSourceSetup(ElemPtr source) override;
+
+private:
+    UriHelper uriHelper_;
+
+    static const uint64_t RING_BUFFER_MAX_SIZE;
+    static const int32_t PLAYBIN_QUEUE_MAX_SIZE;
+    static const uint64_t BUFFER_DURATION;
+    static const int32_t BUFFER_LOW_PERCENT_DEFAULT;
+    static const int32_t BUFFER_HIGH_PERCENT_DEFAULT;
+    static const uint32_t HTTP_TIME_OUT_DEFAULT;
 };
+}
 }
 }
 

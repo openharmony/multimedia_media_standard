@@ -50,6 +50,8 @@ namespace Media {
 EXPORT_API bool MatchElementByMeta(
     const GstElement &elem, const std::string_view &metaKey, const std::vector<std::string_view> &expectedMetaFields);
 
+EXPORT_API bool MatchElementByTypeName(const GstElement &elem, const std::string_view &typeName);
+
 template <typename T>
 class ThizWrapper : public NoCopyable {
 public:

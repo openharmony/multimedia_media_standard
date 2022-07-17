@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "gst_msg_processor.h"
+#include "gst_msg_dispatcher.h"
 #include "media_errors.h"
 #include "media_log.h"
 #include "scope_guard.h"
@@ -24,7 +24,7 @@ namespace {
 
 namespace OHOS {
 namespace Media {
-GstMsgProcessor::GstMsgProcessor(
+GstMsgDispatcher::GstMsgDispatcher(
     GstBus &gstBus,
     const InnerMsgNotifier &notifier,
     const std::shared_ptr<IGstMsgConverter> &converter)
@@ -34,7 +34,7 @@ GstMsgProcessor::GstMsgProcessor(
     MEDIA_LOGD("enter ctor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
 }
 
-GstMsgProcessor::~GstMsgProcessor()
+GstMsgDispatcher::~GstMsgDispatcher()
 {
     MEDIA_LOGD("enter dtor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
 
@@ -46,7 +46,7 @@ GstMsgProcessor::~GstMsgProcessor()
     }
 }
 
-int32_t GstMsgProcessor::Init()
+int32_t GstMsgDispatcher::Init()
 {
     MEDIA_LOGD("Init enter");
 
@@ -80,7 +80,7 @@ int32_t GstMsgProcessor::Init()
     return MSERR_OK;
 }
 
-int32_t GstMsgProcessor::DoInit()
+int32_t GstMsgDispatcher::DoInit()
 {
     ON_SCOPE_EXIT(0) { DoReset(); };
 
@@ -99,7 +99,7 @@ int32_t GstMsgProcessor::DoInit()
 
     busSource_ = gst_bus_create_watch(gstBus_);
     CHECK_AND_RETURN_RET_LOG(busSource_ != nullptr, MSERR_NO_MEMORY, "add bus source failed");
-    g_source_set_callback(busSource_, (GSourceFunc)&GstMsgProcessor::BusCallback, this, nullptr);
+    g_source_set_callback(busSource_, (GSourceFunc)&GstMsgDispatcher::BusCallback, this, nullptr);
     ret = g_source_attach(busSource_, context_);
     CHECK_AND_RETURN_RET_LOG(ret > 0, MSERR_INVALID_OPERATION, "add bus source failed");
 
@@ -117,7 +117,7 @@ int32_t GstMsgProcessor::DoInit()
     return MSERR_OK;
 }
 
-gboolean GstMsgProcessor::MainLoopRunDone(GstMsgProcessor *thiz)
+gboolean GstMsgDispatcher::MainLoopRunDone(GstMsgDispatcher *thiz)
 {
     if (thiz == nullptr) {
         return G_SOURCE_REMOVE;
@@ -130,7 +130,7 @@ gboolean GstMsgProcessor::MainLoopRunDone(GstMsgProcessor *thiz)
     return G_SOURCE_REMOVE;
 }
 
-void GstMsgProcessor::AddTickSource(int32_t type, uint32_t interval)
+void GstMsgDispatcher::AddTickSource(int32_t type, uint32_t interval)
 {
     auto iter = tickSource_.find(type);
     if (iter != tickSource_.end()) {
@@ -142,14 +142,14 @@ void GstMsgProcessor::AddTickSource(int32_t type, uint32_t interval)
     TickCallbackInfo *tickCbInfo = static_cast<TickCallbackInfo *>(g_malloc0((gsize)sizeof(TickCallbackInfo)));
     tickCbInfo->type = type;
     tickCbInfo->msgProcessor = this;
-    g_source_set_callback(source, (GSourceFunc)&GstMsgProcessor::TickCallback, tickCbInfo,
-        (GDestroyNotify)&GstMsgProcessor::FreeTickType);
+    g_source_set_callback(source, (GSourceFunc)&GstMsgDispatcher::TickCallback, tickCbInfo,
+        (GDestroyNotify)&GstMsgDispatcher::FreeTickType);
     guint ret = g_source_attach(source, context_);
     CHECK_AND_RETURN_LOG(ret > 0, "add tick source failed");
     (void)tickSource_.emplace(type, source);
 }
 
-void GstMsgProcessor::RemoveTickSource(int32_t type)
+void GstMsgDispatcher::RemoveTickSource(int32_t type)
 {
     auto iter = tickSource_.find(type);
     if (iter == tickSource_.end()) {
@@ -163,12 +163,12 @@ void GstMsgProcessor::RemoveTickSource(int32_t type)
     (void)tickSource_.erase(iter);
 }
 
-void GstMsgProcessor::FreeTickType(TickCallbackInfo *tickCbInfo)
+void GstMsgDispatcher::FreeTickType(TickCallbackInfo *tickCbInfo)
 {
     g_free(tickCbInfo);
 }
 
-void GstMsgProcessor::AddMsgFilter(const std::string &filter)
+void GstMsgDispatcher::AddMsgFilter(const std::string &filter)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     for (auto &elem : filters_)  {
@@ -181,17 +181,17 @@ void GstMsgProcessor::AddMsgFilter(const std::string &filter)
     filters_.push_back(filter);
 }
 
-void GstMsgProcessor::FlushBegin()
+void GstMsgDispatcher::FlushBegin()
 {
     gst_bus_set_flushing(gstBus_, TRUE);
 }
 
-void GstMsgProcessor::FlushEnd()
+void GstMsgDispatcher::FlushEnd()
 {
     gst_bus_set_flushing(gstBus_, FALSE);
 }
 
-void GstMsgProcessor::DoReset()
+void GstMsgDispatcher::DoReset()
 {
     if (busSource_ != nullptr) {
         g_source_destroy(busSource_);
@@ -216,7 +216,7 @@ void GstMsgProcessor::DoReset()
     }
 }
 
-void GstMsgProcessor::Reset() noexcept
+void GstMsgDispatcher::Reset() noexcept
 {
     if (mainLoop_ != nullptr) {
         if (g_main_loop_is_running(mainLoop_)) {
@@ -234,7 +234,7 @@ void GstMsgProcessor::Reset() noexcept
     msgConverter_ = nullptr;
 }
 
-gboolean GstMsgProcessor::TickCallback(TickCallbackInfo *tickCbInfo)
+gboolean GstMsgDispatcher::TickCallback(TickCallbackInfo *tickCbInfo)
 {
     if (tickCbInfo == nullptr || tickCbInfo->msgProcessor == nullptr) {
         MEDIA_LOGE("tickCbInfo or msgProcessor is nullptr");
@@ -247,7 +247,7 @@ gboolean GstMsgProcessor::TickCallback(TickCallbackInfo *tickCbInfo)
     return TRUE;
 }
 
-gboolean GstMsgProcessor::BusCallback(const GstBus *bus, GstMessage *msg, GstMsgProcessor *thiz)
+gboolean GstMsgDispatcher::BusCallback(const GstBus *bus, GstMessage *msg, GstMsgDispatcher *thiz)
 {
     (void)bus;
     if (thiz == nullptr) {
@@ -259,7 +259,7 @@ gboolean GstMsgProcessor::BusCallback(const GstBus *bus, GstMessage *msg, GstMsg
     return TRUE;
 }
 
-void GstMsgProcessor::ProcessGstMessage(GstMessage &msg)
+void GstMsgDispatcher::ProcessGstMessage(GstMessage &msg)
 {
     InnerMessage innerMsg {};
     innerMsg.type = InnerMsgType::INNER_MSG_UNKNOWN;

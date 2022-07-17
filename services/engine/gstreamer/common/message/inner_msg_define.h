@@ -36,12 +36,14 @@ enum InnerMsgType : int32_t {
     INNER_MSG_BUFFERING_TIME,
     INNER_MSG_BUFFERING_USED_MQ_NUM,
     INNER_MSG_POSITION_UPDATE,
+
+    INNER_MSG_COMMON_END = 0x100,
 };
 
 struct InnerMessage {
-    int32_t type;
-    int32_t detail1;
-    int32_t detail2;
+    int32_t type = INNER_MSG_UNKNOWN;
+    int32_t detail1 = 0;
+    int32_t detail2 = 0;
     std::any extend;
 };
 

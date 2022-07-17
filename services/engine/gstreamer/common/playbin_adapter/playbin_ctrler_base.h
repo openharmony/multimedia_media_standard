@@ -25,7 +25,7 @@
 #include "nocopyable.h"
 #include "i_playbin_ctrler.h"
 #include "state_machine.h"
-#include "gst_msg_processor.h"
+#include "gst_msg_dispatcher.h"
 #include "task_queue.h"
 
 namespace OHOS {
@@ -136,7 +136,7 @@ private:
     ElemSetupListener elemSetupListener_;
     ElemSetupListener elemUnSetupListener_;
     std::shared_ptr<PlayBinSinkProvider> sinkProvider_;
-    std::unique_ptr<GstMsgProcessor> msgProcessor_;
+    std::unique_ptr<GstMsgDispatcher> msgDispatcher_;
     std::string uri_;
     std::unordered_map<GstElement *, gulong> signalIds_;
     std::vector<uint32_t> bitRateVec_;

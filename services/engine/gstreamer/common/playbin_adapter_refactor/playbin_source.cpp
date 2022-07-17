@@ -23,25 +23,30 @@ constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayBinSou
 
 namespace OHOS {
 namespace Media {
-std::unique_ptr<PlayBinSource> PlayBinSource::Create(const UriHelper &uri)
+std::shared_ptr<SourceBase> SourceBase::Create(const UriHelper &uri)
 {
-    if (uri.UriType() == UriHelper::URI_TYPE_HTTPS) {
-        MEDIA_LOGD("Success to create HttpsSource");
-        return std::make_unique<HttpsSource>();
+    if (uri.UriType() == UriHelper::URI_TYPE_HTTP || uri.UriType() == UriHelper::URI_TYPE_HTTPS) {
+        MEDIA_LOGD("Success to create HttpSource");
+        return std::make_shared<NetWorkSource>();
     }
 
-    MEDIA_LOGD("Success to create PlayBinSource");
-    return std::make_unique<PlayBinSource>();
+    MEDIA_LOGD("Success to create SourceBase");
+    return std::make_shared<SourceBase>();
 }
 
-std::unique_ptr<PlayBinSource> PlayBinSource::Create(const std::shared_ptr<IMediaDataSource> &dataSrc)
+std::shared_ptr<SourceBase> SourceBase::Create(const std::shared_ptr<IMediaDataSource> &dataSrc)
 {
-    return std::make_unique<AVDataSource>(dataSrc);
+    return std::make_shared<AVDataSource>(dataSrc);
 }
 
 AVDataSource::AVDataSource(const std::shared_ptr<IMediaDataSource> &dataSrc)
     : avDataSrc_(avDataSrc_)
 {
+}
+
+std::string AVDataSource::GetGstUrlDesc()
+{
+    return "appsrc://";
 }
 
 int32_t AVDataSource::Start()
@@ -76,11 +81,11 @@ bool AVDataSource::IsSeekable()
 
 void AVDataSource::OnSourceSetup(ElemPtr source)
 {
-    if (appSrc_ == nullptr || source == nullptr) {
+    if (appSrc_ == nullptr) {
         return;
     }
 
-    if (!MatchElementByMeta(*source, GST_ELEMENT_METADATA_LONGNAME, { "AppSrc" })) {
+    if (!MatchElementByTypeName(*source, "GstAppSrc")) {
         return;
     }
 
@@ -93,10 +98,6 @@ void AVDataSource::SetMsgNotifier(const MsgNotifier &notifier)
         return;
     }
 
-    if (notifier == nullptr || notifier_ != nullptr) {
-        return;
-    }
-
     notifier_ = notifier;
     auto msgNotifier = std::bind(&AVDataSource::OnAppsrcErrorMessageReceived, this, std::placeholders::_1);
     CHECK_AND_RETURN_LOG(appSrc_->SetErrorCallback(msgNotifier) == MSERR_OK, "set callback failed");
@@ -104,16 +105,35 @@ void AVDataSource::SetMsgNotifier(const MsgNotifier &notifier)
 
 void AVDataSource::OnAppsrcErrorMessageReceived(int32_t errorCode)
 {
-    notifier_(errorCode);
+    if (errorCode != MSERR_OK) {
+        notifier_(InnerMessage { INNER_MSG_ERROR, errorCode });
+    }
 }
 
-void HttpsSource::OnSourceSetup(ElemPtr source)
-{
-    if (source == nullptr) {
-        return;
-    }
+const uint64_t NetWorkSource::RING_BUFFER_MAX_SIZE = 5242880; // 5 * 1024 * 1024
+const int32_t NetWorkSource::PLAYBIN_QUEUE_MAX_SIZE = 100 * 1024 * 1024; // 100 * 1024 * 1024 Bytes
+const uint64_t NetWorkSource::BUFFER_DURATION = 15000000000; // 15s
+const int32_t NetWorkSource::BUFFER_LOW_PERCENT_DEFAULT = 1;
+const int32_t NetWorkSource::BUFFER_HIGH_PERCENT_DEFAULT = 4;
+const uint32_t NetWorkSource::HTTP_TIME_OUT_DEFAULT = 15; // 15s
 
-    if (!MatchElementByMeta(*source, GST_ELEMENT_METADATA_LONGNAME, { "HTTP Client Source using libcURL" })) {
+std::string NetWorkSource::GetGstUrlDesc()
+{
+    return uriHelper_.FormattedUri();
+}
+
+void NetWorkSource::OnPlayBinSetup(ElemPtr playbin)
+{
+    g_object_set(playbin, "ring-buffer-max-size", RING_BUFFER_MAX_SIZE, nullptr);
+    g_object_set(playbin, "buffering-flags", true, "buffer-size", PLAYBIN_QUEUE_MAX_SIZE,
+        "buffer-duration", BUFFER_DURATION, "low-percent", BUFFER_LOW_PERCENT_DEFAULT,
+        "high-percent", BUFFER_HIGH_PERCENT_DEFAULT, nullptr);
+    g_object_set(playbin, "timeout", HTTP_TIME_OUT_DEFAULT, nullptr);
+}
+
+void NetWorkSource::OnSourceSetup(ElemPtr source)
+{
+    if (!MatchElementByTypeName(*source, "GstCurlHttpSrc")) {
         return;
     }
 
