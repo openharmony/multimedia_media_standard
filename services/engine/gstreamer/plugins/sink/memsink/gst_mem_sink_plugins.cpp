@@ -15,6 +15,7 @@
 #include "config.h"
 #include "gst_surface_mem_sink.h"
 #include "gst_shared_mem_sink.h"
+#include "gst_video_display_sink.h"
 
 static gboolean plugin_init(GstPlugin *plugin)
 {
@@ -26,6 +27,10 @@ static gboolean plugin_init(GstPlugin *plugin)
     ret = gst_element_register(plugin, "sharedmemsink", GST_RANK_PRIMARY, GST_TYPE_SHARED_MEM_SINK);
     if (ret == FALSE) {
         GST_WARNING_OBJECT(nullptr, "register sharedmemsink failed");
+    }
+    ret = gst_element_register(plugin, "videodisplaysink", GST_RANK_PRIMARY, GST_TYPE_VIDEO_DISPLAY_SINK);
+    if (ret == FALSE) {
+        GST_WARNING_OBJECT(nullptr, "register videodisplaysink failed");
     }
     return TRUE;
 }
