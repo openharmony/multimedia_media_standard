@@ -45,6 +45,7 @@ struct _GstVdecH264 {
     gboolean is_slice_buffer;
     guint cache_offset;
     GstBuffer *cache_slice_buffer;
+    GMutex cat_lock;
 };
 
 struct _GstVdecH264Class {
