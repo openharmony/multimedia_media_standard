@@ -156,7 +156,7 @@ GstElement *PlayerSinkProvider::DoCreateVideoSink(const GstCaps *caps, const gpo
     CHECK_AND_RETURN_RET_LOG(userData != nullptr, nullptr, "input userData is nullptr..");
     PlayerSinkProvider *sinkProvider = reinterpret_cast<PlayerSinkProvider *>(userData);
 
-    auto sink = gst_element_factory_make("surfacememsink", "sink");
+    auto sink = gst_element_factory_make("videodisplaysink", "sink");
     CHECK_AND_RETURN_RET_LOG(sink != nullptr, nullptr, "gst_element_factory_make failed..");
     gst_base_sink_set_async_enabled(GST_BASE_SINK(sink), FALSE);
 

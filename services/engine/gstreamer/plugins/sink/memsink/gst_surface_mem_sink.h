@@ -31,6 +31,8 @@ G_BEGIN_DECLS
 #define GST_IS_SURFACE_MEM_SINK_CLASS(klass) \
     (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_SURFACE_MEM_SINK))
 #define GST_SURFACE_MEM_SINK_CAST(obj) ((GstSurfaceMemSink*)(obj))
+#define GST_SURFACE_MEM_SINK_GET_CLASS(obj) \
+    (G_TYPE_INSTANCE_GET_CLASS ((obj), GST_TYPE_SURFACE_MEM_SINK, GstSurfaceMemSinkClass))
 
 typedef struct _GstSurfaceMemSink GstSurfaceMemSink;
 typedef struct _GstSurfaceMemSinkClass GstSurfaceMemSinkClass;
@@ -58,6 +60,7 @@ struct _GstSurfaceMemSink {
 
 struct _GstSurfaceMemSinkClass {
     GstMemSinkClass basesink_class;
+    GstFlowReturn (*do_app_render) (GstSurfaceMemSink *memsink, GstBuffer *buffer, bool is_preroll);
 };
 
 GST_API_EXPORT GType gst_surface_mem_sink_get_type(void);
