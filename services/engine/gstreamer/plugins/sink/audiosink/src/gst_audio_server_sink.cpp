@@ -53,6 +53,7 @@ enum {
     PROP_AUDIO_RENDERER_FLAG,
     PROP_AUDIO_INTERRUPT_MODE,
     PROP_LAST_RENDER_PTS,
+    PROP_ENABLE_OPT_RENDER_DELAY
 };
 
 #define gst_audio_server_sink_parent_class parent_class
@@ -144,6 +145,11 @@ static void gst_audio_server_sink_class_init(GstAudioServerSinkClass *klass)
         g_param_spec_uint64("last-render-pts", "last-render-pts", "last render pts", 0, G_MAXUINT64,
             0, (GParamFlags)(G_PARAM_READABLE | G_PARAM_STATIC_STRINGS)));
 
+    g_object_class_install_property(gobject_class, PROP_ENABLE_OPT_RENDER_DELAY,
+        g_param_spec_boolean("enable-opt-render-delay", "enable opt render delay",
+            "If TRUE, use DEFAULT_AUDIO_RENDER_DELAY instead of the latency provided by AudioStandard",
+            FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
     gst_element_class_set_static_metadata(gstelement_class,
         "Audio server sink", "Sink/Audio",
         "Push pcm data to Audio server", "OpenHarmony");
@@ -183,6 +189,7 @@ static void gst_audio_server_sink_init(GstAudioServerSink *sink)
     sink->renderer_flag = 0;
     g_mutex_init(&sink->render_lock);
     sink->last_render_pts = 0;
+    sink->enable_opt_render_delay = FALSE;
 }
 
 static void gst_audio_server_sink_finalize(GObject *object)
@@ -258,6 +265,9 @@ static void gst_audio_server_sink_set_property(GObject *object, guint prop_id,
         case PROP_AUDIO_INTERRUPT_MODE:
             g_return_if_fail(sink->audio_sink != nullptr);
             sink->audio_sink->SetAudioInterruptMode(g_value_get_int(value));
+            break;
+        case PROP_ENABLE_OPT_RENDER_DELAY:
+            sink->enable_opt_render_delay = g_value_get_boolean(value);
             break;
         default:
             break;
@@ -547,10 +557,12 @@ static void gst_audio_server_sink_get_latency(GstAudioServerSink *sink, GstBuffe
         } else {
             GST_INFO_OBJECT(sink, "frame render latency is (%" PRIu64 ")", latency);
         }
-        /* the latency provided by GetLatency() is not accurate.
-         * so we set DEFAULT_AUDIO_RENDER_DELAY to basesink.
-         */
-        gst_base_sink_set_render_delay(GST_BASE_SINK(sink), DEFAULT_AUDIO_RENDER_DELAY * GST_USECOND);
+        if (sink->enable_opt_render_delay) {
+            /* the latency provided by GetLatency() is not accurate.
+             * so we set DEFAULT_AUDIO_RENDER_DELAY to basesink.
+             */
+            gst_base_sink_set_render_delay(GST_BASE_SINK(sink), DEFAULT_AUDIO_RENDER_DELAY * GST_USECOND);
+        }
     }
     if (GST_CLOCK_TIME_IS_VALID(GST_BUFFER_PTS(buffer))) {
         sink->last_render_pts = GST_BUFFER_PTS(buffer);
