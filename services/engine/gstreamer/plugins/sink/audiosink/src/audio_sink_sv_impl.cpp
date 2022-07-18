@@ -186,7 +186,9 @@ int32_t AudioSinkSvImpl::Pause()
 {
     MEDIA_LOGD("audioRenderer Pause In");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
-    CHECK_AND_RETURN_RET(audioRenderer_->Pause() == true, MSERR_UNKNOWN);
+    if (audioRenderer_->GetStatus() == OHOS::AudioStandard::RENDERER_RUNNING) {
+        CHECK_AND_RETURN_RET(audioRenderer_->Pause() == true, MSERR_UNKNOWN);
+    }
     MEDIA_LOGD("audioRenderer Pause Out");
     return MSERR_OK;
 }
