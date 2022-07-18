@@ -69,6 +69,7 @@ ohos_shared_library("gst_mem_sink") {
     "gst_shared_mem_sink.cpp",
     "gst_surface_allocator.cpp",
     "gst_surface_mem_sink.cpp",
+    "gst_video_display_sink.cpp",
   ]
 
   if (!multimedia_player_framework_no_stride) {
