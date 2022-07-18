@@ -277,7 +277,6 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
         GST_OBJECT_UNLOCK(surface_sink);
         return GST_FLOW_OK;
     }
-    surface_sink->firstRenderFrame = FALSE;
 
     for (guint i = 0; i < gst_buffer_n_memory(buffer); i++) {
         GstMemory *memory = gst_buffer_peek_memory(buffer, i);
@@ -313,6 +312,10 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
                 GST_ERROR_OBJECT(surface_sink, "flush buffer to surface failed, %d", ret);
             }
         }
+    }
+    if (surface_sink->firstRenderFrame) {
+        GST_WARNING_OBJECT(surface_sink, "KPI-TRACE: suface flush first frame");
+        surface_sink->firstRenderFrame = FALSE;
     }
 
     GST_OBJECT_UNLOCK(surface_sink);
