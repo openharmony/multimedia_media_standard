@@ -188,7 +188,7 @@ static void gst_vdec_base_check_input_need_copy(GstVdecBase *self)
 static void gst_vdec_base_property_init(GstVdecBase *self)
 {
     g_mutex_init(&self->lock);
-    g_mutex_init(&self->cat_lock);
+
     g_mutex_init(&self->drain_lock);
     g_cond_init(&self->drain_cond);
     self->draining = FALSE;
@@ -256,7 +256,6 @@ static void gst_vdec_base_finalize(GObject *object)
     GST_DEBUG_OBJECT(object, "Finalize");
     g_return_if_fail(object != nullptr);
     GstVdecBase *self = GST_VDEC_BASE(object);
-    g_mutex_clear(&self->cat_lock);
     g_mutex_clear(&self->drain_lock);
     g_cond_clear(&self->drain_cond);
     g_mutex_clear(&self->lock);
