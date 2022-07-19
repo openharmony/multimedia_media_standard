@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace Media {
-class VideoDecCUnitTest : public testing::Test {
+class VideoDecUnitTest : public testing::Test {
 public:
     // SetUpTestCase: Called before all test cases
     static void SetUpTestCase(void) {}
