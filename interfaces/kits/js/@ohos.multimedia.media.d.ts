@@ -1118,7 +1118,7 @@ declare namespace media {
     /**
      * select a specified bitrate to playback, only valid for HLS protocal network stream. Defaulty, the
      * player will select the appropriate bitrate according to the network connection speed. The
-     * available bitrates list reported by {@link #on('availablebitratesCollected')}. Set it to select
+     * available bitrates list reported by {@link #on('availableBitratesCollect')}. Set it to select
      * a specified bitrate. If the specified bitrate is not in the list of available bitrates, the player
      * will select the minimal and closest one from the available bitrates list.
      * @since 9
@@ -1131,7 +1131,7 @@ declare namespace media {
     /**
      * select a specified bitrate to playback, only valid for HLS protocal network stream. Defaulty, the
      * player will select the appropriate bitrate according to the network connection speed. The
-     * available bitrates list reported by {@link #on('availablebitratesCollected')}. Set it to select
+     * available bitrates list reported by {@link #on('availableBitratesCollect')}. Set it to select
      * a specified bitrate. If the specified bitrate is not in the list of available bitrates, the player
      * will select the minimal and closest one from the available bitrates list.
      * @since 9
@@ -1194,7 +1194,7 @@ declare namespace media {
      * @param type Type of the playback event to listen for.
      * @param callback Callback used to listen for the playback event return available bitrates.
      */
-    on(type: 'availableBitratesCollected', callback: (bitrates: Array<number>) => void): void
+    on(type: 'availableBitratesCollect', callback: (bitrates: Array<number>) => void): void;
 
     /**
      * Listens for playback error events.
@@ -1229,7 +1229,7 @@ declare namespace media {
      * @since 9
      * @syscap SystemCapability.Multimedia.Media.VideoPlayer
      */
-    VIDEO_SCALE_TYPE_FIT_CROP
+    VIDEO_SCALE_TYPE_FIT_CROP = 1,
   }
 
   /**
