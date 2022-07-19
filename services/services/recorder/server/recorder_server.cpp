@@ -323,7 +323,7 @@ int32_t RecorderServer::Prepare()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (status_ == REC_PREPARED) {
-        return MSERR_OK;
+        return MSERR_INVALID_OPERATION;
     }
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_CONFIGURED, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
@@ -336,7 +336,7 @@ int32_t RecorderServer::Start()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (status_ == REC_RECORDING) {
-        return MSERR_OK;
+        return MSERR_INVALID_OPERATION;
     }
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_PREPARED, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
@@ -352,7 +352,7 @@ int32_t RecorderServer::Pause()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (status_ == REC_PAUSED) {
-        return MSERR_OK;
+        return MSERR_INVALID_OPERATION;
     }
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_RECORDING, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
@@ -365,7 +365,7 @@ int32_t RecorderServer::Resume()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (status_ == REC_RECORDING) {
-        return MSERR_OK;
+        return MSERR_INVALID_OPERATION;
     }
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_RECORDING && status_ != REC_PAUSED, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
