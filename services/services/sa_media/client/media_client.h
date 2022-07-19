@@ -54,7 +54,8 @@ public:
 private:
     sptr<IStandardMediaService> GetMediaProxy();
     bool IsAlived();
-    void MediaServerDied(pid_t pid);
+    static void MediaServerDied(pid_t pid);
+    void DoMediaServerDied();
 
     sptr<IStandardMediaService> mediaProxy_ = nullptr;
     sptr<MediaListenerStub> listenerStub_ = nullptr;
