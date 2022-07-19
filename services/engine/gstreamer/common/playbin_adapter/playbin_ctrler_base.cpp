@@ -783,7 +783,7 @@ void PlayBinCtrlerBase::ProcessEndOfStream()
 {
     MEDIA_LOGD("End of stream");
     std::unique_lock<std::mutex> lock(mutex_);
-    isDuration_ = false;
+    isDuration_ = true;
     if (IsLiveSource()) {
         MEDIA_LOGD("appsrc livemode, can not loop");
         return;
