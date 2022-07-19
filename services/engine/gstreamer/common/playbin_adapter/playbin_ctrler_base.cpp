@@ -33,6 +33,7 @@ namespace {
     constexpr uint64_t BUFFER_DURATION = 15000000000; // 15s
     constexpr int32_t BUFFER_LOW_PERCENT_DEFAULT = 1;
     constexpr int32_t BUFFER_HIGH_PERCENT_DEFAULT = 4;
+    constexpr int32_t BUFFER_PERCENT_THRESHOLD = 100;
     constexpr uint32_t HTTP_TIME_OUT_DEFAULT = 15; // 15s
     constexpr int32_t NANO_SEC_PER_USEC = 1000;
     constexpr double DEFAULT_RATE = 1.0;
@@ -829,7 +830,8 @@ void PlayBinCtrlerBase::HandleCacheCtrl(const InnerMessage &msg)
 
 void PlayBinCtrlerBase::HandleCacheCtrlWhenNoBuffering(int32_t percent)
 {
-    if (percent < BUFFER_LOW_PERCENT_DEFAULT) {
+    if (percent < static_cast<float>(BUFFER_LOW_PERCENT_DEFAULT) / BUFFER_HIGH_PERCENT_DEFAULT *
+        BUFFER_PERCENT_THRESHOLD) {
         isBuffering_ = true;
         {
             std::unique_lock<std::mutex> lock(mutex_);
@@ -850,7 +852,7 @@ void PlayBinCtrlerBase::HandleCacheCtrlWhenNoBuffering(int32_t percent)
 
 void PlayBinCtrlerBase::HandleCacheCtrlWhenBuffering(int32_t percent)
 {
-    if (percent > BUFFER_HIGH_PERCENT_DEFAULT) {
+    if (percent >= BUFFER_PERCENT_THRESHOLD) {
         isBuffering_ = false;
         if (GetCurrState() == playingState_) {
             {
