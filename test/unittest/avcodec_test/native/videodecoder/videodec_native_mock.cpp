@@ -21,7 +21,8 @@
 
 namespace OHOS {
 namespace Media {
-VideoDecCallbackMock::VideoDecCallbackMock(std::shared_ptr<AVCodecCallbackMock> cb, std::weak_ptr<AVCodecVideoDecoder> vd)
+VideoDecCallbackMock::VideoDecCallbackMock(std::shared_ptr<AVCodecCallbackMock> cb,
+    std::weak_ptr<AVCodecVideoDecoder> vd)
     : mockCb_(cb), videoDec_(vd)
 {
 }

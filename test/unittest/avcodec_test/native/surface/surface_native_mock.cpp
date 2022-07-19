@@ -28,7 +28,7 @@ sptr<Surface> SurfaceNativeMock::GetSurface()
 {
     if (surface_ != nullptr) {
         sptr<Rosen::WindowOption> option = new Rosen::WindowOption();
-        option->SetWindowRect({0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT});
+        option->SetWindowRect({ 0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT });
         option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_LAUNCHING);
         option->SetWindowMode(Rosen::WindowMode::WINDOW_MODE_FLOATING);
         window_ = Rosen::Window::Create("avcodec_unittest", option);
