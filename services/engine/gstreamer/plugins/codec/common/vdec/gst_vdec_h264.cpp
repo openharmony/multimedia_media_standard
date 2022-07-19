@@ -85,9 +85,11 @@ static GstBuffer *handle_slice_buffer(GstVdecBase *self, GstBuffer *buffer, bool
     gboolean slice_flag = false;
     guint8 offset = 2;
     for (gsize i = 0; i < info.size - offset; i++) {
-        if (info.data[i] == 0x01 && (info.data[i + offset] & 0x80) == 0x80 && // 0x80 is nal flag of slice
-            (info.data[i + 1] == 0x65 || info.data[i + 1] == 0x41)) { // 0x65:I frame flag, 0x41:P、B frame flag
-            slice_flag = true;
+        if (info.data[i] == 0x01)
+            if ((info.data[i + 1] == 0x65 || info.data[i + 1] == 0x41)) // 0x65:I frame flag, 0x41:P、B frame flag
+                && (info.data[i + offset] & 0x80) == 0x80) { // 0x80 is nal flag of slice
+                slice_flag = true;
+            }
             break;
         }
     }
