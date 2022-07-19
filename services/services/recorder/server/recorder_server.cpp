@@ -84,9 +84,13 @@ int32_t RecorderServer::Init()
 {
     startTimeMonitor_.StartTime();
 
+    uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
+    int32_t appUid = IPCSkeleton::GetCallingUid();
+    int32_t appPid = IPCSkeleton::GetCallingPid();
+
     auto engineFactory = EngineFactoryRepo::Instance().GetEngineFactory(IEngineFactory::Scene::SCENE_RECORDER);
     CHECK_AND_RETURN_RET_LOG(engineFactory != nullptr, MSERR_CREATE_REC_ENGINE_FAILED, "failed to get factory");
-    recorderEngine_ = engineFactory->CreateRecorderEngine();
+    recorderEngine_ = engineFactory->CreateRecorderEngine(appUid, appPid, tokenId);
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_CREATE_REC_ENGINE_FAILED,
         "failed to create recorder engine");
     status_ = REC_INITIALIZED;
@@ -97,7 +101,6 @@ int32_t RecorderServer::Init()
 bool RecorderServer::CheckPermission()
 {
     auto callerUid = IPCSkeleton::GetCallingUid();
-
     // Root users should be whitelisted
     if (callerUid == ROOT_UID) {
         MEDIA_LOGI("Root user. Permission Granted");
@@ -200,7 +203,7 @@ int32_t RecorderServer::SetCaptureRate(int32_t sourceId, double fps)
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_CONFIGURED, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
-    config_.caputreRate = fps;
+    config_.captureRate = fps;
     CaptureRate captureRate(fps);
     return recorderEngine_->Configure(sourceId, captureRate);
 }
@@ -371,6 +374,7 @@ int32_t RecorderServer::Prepare()
     std::lock_guard<std::mutex> lock(mutex_);
     MediaTrace trace("RecorderServer::Prepare");
     if (status_ == REC_PREPARED) {
+        MEDIA_LOGE("Can not repeat Prepare");
         return MSERR_INVALID_OPERATION;
     }
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_CONFIGURED, MSERR_INVALID_OPERATION);
@@ -386,7 +390,8 @@ int32_t RecorderServer::Start()
     std::lock_guard<std::mutex> lock(mutex_);
     MediaTrace trace("RecorderServer::Start");
     if (status_ == REC_RECORDING) {
-        return MSERR_OK;
+        MEDIA_LOGE("Can not repeat Start");
+        return MSERR_INVALID_OPERATION;
     }
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_PREPARED, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
@@ -404,7 +409,8 @@ int32_t RecorderServer::Pause()
     std::lock_guard<std::mutex> lock(mutex_);
     MediaTrace trace("RecorderServer::Pause");
     if (status_ == REC_PAUSED) {
-        return MSERR_OK;
+        MEDIA_LOGE("Can not repeat Pause");
+        return MSERR_INVALID_OPERATION;
     }
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_RECORDING, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
@@ -419,7 +425,8 @@ int32_t RecorderServer::Resume()
     std::lock_guard<std::mutex> lock(mutex_);
     MediaTrace trace("RecorderServer::Resume");
     if (status_ == REC_RECORDING) {
-        return MSERR_OK;
+        MEDIA_LOGE("Can not repeat Resume");
+        return MSERR_INVALID_OPERATION;
     }
     CHECK_STATUS_FAILED_AND_LOGE_RET(status_ != REC_RECORDING && status_ != REC_PAUSED, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET_LOG(recorderEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
@@ -500,7 +507,7 @@ int32_t RecorderServer::DumpInfo(int32_t fd)
     dumpString += "RecorderServer height is: " + std::to_string(config_.height) + "\n";
     dumpString += "RecorderServer frameRate is: " + std::to_string(config_.frameRate) + "\n";
     dumpString += "RecorderServer bitRate is: " + std::to_string(config_.bitRate) + "\n";
-    dumpString += "RecorderServer caputreRate is: " + std::to_string(config_.caputreRate) + "\n";
+    dumpString += "RecorderServer captureRate is: " + std::to_string(config_.captureRate) + "\n";
     dumpString += "RecorderServer audioSampleRate is: " + std::to_string(config_.audioSampleRate) + "\n";
     dumpString += "RecorderServer audioChannel is: " + std::to_string(config_.audioChannel) + "\n";
     dumpString += "RecorderServer audioBitRate is: " + std::to_string(config_.audioBitRate) + "\n";

@@ -42,6 +42,7 @@ public:
 
     virtual sptr<Surface> CreateInputSurface(const std::shared_ptr<ProcessorConfig> &inputConfig)
     {
+        (void)inputConfig;
         return nullptr;
     }
 
@@ -58,6 +59,11 @@ public:
     virtual int32_t Flush()
     {
         return MSERR_OK;
+    }
+
+    virtual int32_t NotifyEos()
+    {
+        return MSERR_INVALID_OPERATION;
     }
 
     virtual bool Needflush()

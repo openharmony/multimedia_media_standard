@@ -33,7 +33,7 @@ namespace OHOS {
 namespace Media {
 class MediaClient : public IMediaService, public NoCopyable {
 public:
-    MediaClient();
+    MediaClient() noexcept;
     ~MediaClient();
 
     std::shared_ptr<IRecorderService> CreateRecorderService() override;

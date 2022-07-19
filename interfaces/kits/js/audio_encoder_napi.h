@@ -49,6 +49,7 @@ private:
     static napi_value On(napi_env env, napi_callback_info info);
 
     void ErrorCallback(MediaServiceExtErrCode errCode);
+    void SetCallbackReference(const std::string &callbackName, std::shared_ptr<AutoRef> ref);
 
     AudioEncoderNapi();
     ~AudioEncoderNapi();
@@ -59,6 +60,7 @@ private:
     std::shared_ptr<AVCodecAudioEncoder> aenc_ = nullptr;
     std::shared_ptr<AVCodecCallback> callback_ = nullptr;
     std::shared_ptr<AVCodecNapiHelper> codecHelper_ = nullptr;
+    std::map<std::string, std::shared_ptr<AutoRef>> refMap_;
 };
 
 struct AudioEncoderAsyncContext : public MediaAsyncContext {

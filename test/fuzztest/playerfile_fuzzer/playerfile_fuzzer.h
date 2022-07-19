@@ -23,13 +23,13 @@
 namespace OHOS {
 namespace Media {
 int32_t WriteDataToFile(const std::string &path, const uint8_t* data, size_t size);
-bool FuzzPlayerFile(uint8_t* data, size_t size);
+bool FuzzPlayerFile(const uint8_t* data, size_t size);
 
 class PlayerFileFuzzer : public TestPlayer {
 public:
     PlayerFileFuzzer();
     ~PlayerFileFuzzer();
-    bool FuzzFile(uint8_t* data, size_t size);
+    bool FuzzFile(const uint8_t* data, size_t size);
 };
 }
 }

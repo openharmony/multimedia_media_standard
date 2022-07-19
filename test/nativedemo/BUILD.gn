@@ -25,19 +25,18 @@ ohos_executable("media_demo") {
     "./avcodecvenc",
     "./avcodecvdec",
     "./avmuxer",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
-    "//foundation/multimedia/media_standard/services/utils/include",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/services/utils/include",
     "//graphic/graphic_2d/interfaces/innerkits/surface",
     "//foundation/graphic/graphic_2d/utils/sync_fence/export",
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
-    "//foundation/windowmanager/interfaces/innerkits/wm",
+    "//foundation/window/window_manager/interfaces/innerkits/wm",
     "//third_party/libjpeg",
   ]
 
   cflags = [
     "-Wall",
-    "-Werror",
     "-std=c++17",
     "-fno-rtti",
     "-fno-exceptions",
@@ -51,6 +50,11 @@ ohos_executable("media_demo") {
     "-fvisibility=hidden",
     "-Wformat=2",
     "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
   ]
 
   sources = [
@@ -67,7 +71,7 @@ ohos_executable("media_demo") {
     "./recorder_profiles/recorder_profiles_demo.cpp",
   ]
 
-  configs = [ "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config" ]
+  configs = [ "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config" ]
 
   deps = [
     "//foundation/graphic/graphic_2d:libsurface",
@@ -75,9 +79,9 @@ ohos_executable("media_demo") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
-    "//foundation/windowmanager/wm:libwm",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
+    "//foundation/window/window_manager/wm:libwm",
     "//third_party/libjpeg:libjpeg_static",
     "//utils/native/base:utils",
   ]
@@ -85,9 +89,9 @@ ohos_executable("media_demo") {
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "multimedia_media_standard:media_client",
+    "multimedia_player_framework:media_client",
   ]
 
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
   subsystem_name = "multimedia"
 }

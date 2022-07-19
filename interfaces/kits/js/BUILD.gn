@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//build/ohos/ace/ace.gni")
 
 js_declaration("media_js") {
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
   sources = [ "./@ohos.multimedia.media.d.ts" ]
 }
 
@@ -28,54 +28,54 @@ ohos_copy("media_declaration") {
 
 ohos_shared_library("media") {
   include_dirs = [
-    "//foundation/multimedia/media_standard/interfaces/kits/js",
-    "//foundation/multimedia/media_standard/frameworks/js/avcodec/audio_decoder",
-    "//foundation/multimedia/media_standard/frameworks/js/avcodec/audio_encoder",
-    "//foundation/multimedia/media_standard/frameworks/js/avcodec/utils",
-    "//foundation/multimedia/media_standard/frameworks/js/avcodec/video_decoder",
-    "//foundation/multimedia/media_standard/frameworks/js/avcodec/video_encoder",
-    "//foundation/multimedia/media_standard/frameworks/js/player",
-    "//foundation/multimedia/media_standard/frameworks/js/mediadata",
-    "//foundation/multimedia/media_standard/frameworks/js/recorder",
-    "//foundation/multimedia/media_standard/frameworks/js/avmetadatahelper",
-    "//foundation/multimedia/media_standard/frameworks/js/mediacapability",
-    "//foundation/multimedia/media_standard/frameworks/js/common",
-    "//foundation/multimedia/media_standard/services/utils/include",
+    "//foundation/multimedia/player_framework/interfaces/kits/js",
+    "//foundation/multimedia/player_framework/frameworks/js/avcodec/audio_decoder",
+    "//foundation/multimedia/player_framework/frameworks/js/avcodec/audio_encoder",
+    "//foundation/multimedia/player_framework/frameworks/js/avcodec/utils",
+    "//foundation/multimedia/player_framework/frameworks/js/avcodec/video_decoder",
+    "//foundation/multimedia/player_framework/frameworks/js/avcodec/video_encoder",
+    "//foundation/multimedia/player_framework/frameworks/js/player",
+    "//foundation/multimedia/player_framework/frameworks/js/mediadata",
+    "//foundation/multimedia/player_framework/frameworks/js/recorder",
+    "//foundation/multimedia/player_framework/frameworks/js/avmetadatahelper",
+    "//foundation/multimedia/player_framework/frameworks/js/mediacapability",
+    "//foundation/multimedia/player_framework/frameworks/js/common",
+    "//foundation/multimedia/player_framework/services/utils/include",
     "//third_party/libuv/include",
     "//third_party/bounds_checking_function/include",
   ]
 
   sources = [
-    "//foundation/multimedia/media_standard/frameworks/js/avcodec/audio_decoder/audio_decoder_callback_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/avcodec/audio_decoder/audio_decoder_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/avcodec/audio_encoder/audio_encoder_callback_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/avcodec/audio_encoder/audio_encoder_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/avcodec/utils/avcodec_napi_helper.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/avcodec/utils/avcodec_napi_utils.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/avcodec/video_decoder/video_decoder_callback_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/avcodec/video_decoder/video_decoder_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/avcodec/video_encoder/video_encoder_callback_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/avcodec/video_encoder/video_encoder_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/avmuxer/avmuxer_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/common/common_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/common/media_enum_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/mediacapability/media_capability_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/mediacapability/media_capability_utils.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/mediacapability/media_capability_vcaps_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/mediadata/callback_warp.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/mediadata/callback_works.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/mediadata/jscallback.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/mediadata/media_data_source_callback.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/mediadata/media_data_source_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/player/audio_player_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/player/native_module_ohos_media.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/player/player_callback_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/player/video_callback_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/player/video_player_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/recorder/audio_recorder_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/recorder/recorder_callback_napi.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/recorder/recorder_napi_utils.cpp",
-    "//foundation/multimedia/media_standard/frameworks/js/recorder/video_recorder_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/avcodec/audio_decoder/audio_decoder_callback_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/avcodec/audio_decoder/audio_decoder_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/avcodec/audio_encoder/audio_encoder_callback_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/avcodec/audio_encoder/audio_encoder_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/avcodec/utils/avcodec_napi_helper.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/avcodec/utils/avcodec_napi_utils.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/avcodec/video_decoder/video_decoder_callback_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/avcodec/video_decoder/video_decoder_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/avcodec/video_encoder/video_encoder_callback_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/avcodec/video_encoder/video_encoder_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/avmuxer/avmuxer_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/common/common_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/common/media_enum_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/mediacapability/media_capability_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/mediacapability/media_capability_utils.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/mediacapability/media_capability_vcaps_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/mediadata/callback_warp.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/mediadata/callback_works.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/mediadata/jscallback.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/mediadata/media_data_source_callback.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/mediadata/media_data_source_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/player/audio_player_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/player/native_module_ohos_media.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/player/player_callback_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/player/video_callback_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/player/video_player_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/recorder/audio_recorder_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/recorder/recorder_callback_napi.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/recorder/recorder_napi_utils.cpp",
+    "//foundation/multimedia/player_framework/frameworks/js/recorder/video_recorder_napi.cpp",
   ]
 
   cflags = [
@@ -91,19 +91,22 @@ ohos_shared_library("media") {
     "-O2",
     "-D_FORTIFY_SOURCE=2",
     "-fvisibility=hidden",
-    "-Werror",
-    "-Wextra",
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
   ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/arkui/napi:ace_napi",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
     "//third_party/bounds_checking_function:libsec_shared",
     "//utils/native/base:utils",
   ]
@@ -114,6 +117,6 @@ ohos_shared_library("media") {
   ]
 
   relative_install_dir = "module/multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
   subsystem_name = "multimedia"
 }

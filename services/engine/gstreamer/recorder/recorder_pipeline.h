@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RECORDER_PIPELINE
-#define RECORDER_PIPELINE
+#ifndef RECORDER_PIPELINE_H
+#define RECORDER_PIPELINE_H
 
 #include <cstdint>
 #include <list>

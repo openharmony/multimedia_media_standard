@@ -476,6 +476,7 @@ int32_t RecorderServiceStub::SetMaxFileSize(MessageParcel &data, MessageParcel &
 
 int32_t RecorderServiceStub::SetLocation(MessageParcel &data, MessageParcel &reply)
 {
+    (void)reply;
     float latitude = data.ReadFloat();
     float longitude = data.ReadFloat();
     SetLocation(latitude, longitude);
@@ -484,6 +485,7 @@ int32_t RecorderServiceStub::SetLocation(MessageParcel &data, MessageParcel &rep
 
 int32_t RecorderServiceStub::SetOrientationHint(MessageParcel &data, MessageParcel &reply)
 {
+    (void)reply;
     int32_t rotation = data.ReadInt32();
     SetOrientationHint(rotation);
     return MSERR_OK;

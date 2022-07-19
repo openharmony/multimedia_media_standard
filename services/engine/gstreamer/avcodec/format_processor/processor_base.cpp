@@ -40,6 +40,7 @@ int32_t ProcessorBase::DoProcess(const Format &format)
 
 int32_t ProcessorBase::ProcessVendor(const Format &format)
 {
+    (void)format;
     return MSERR_OK;
 }
 } // namespace Media

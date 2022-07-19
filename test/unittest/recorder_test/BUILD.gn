@@ -1,0 +1,49 @@
+# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+
+module_output_path = "multimedia_player_framework/recorder"
+
+ohos_unittest("recorder_unit_test") {
+  module_out_path = module_output_path
+  include_dirs = [
+    "./include",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/frameworks/native/recorder",
+    "//foundation/multimedia/player_framework/test/unittest/common/include",
+    "//foundation/graphic/graphic_2d/utils/sync_fence/export",
+    "//graphic/graphic_2d/interfaces/innerkits/surface",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+  ]
+
+  sources = [
+    "//foundation/multimedia/player_framework/test/unittest/common/src/test_params_config.cpp",
+    "src/recorder_mock.cpp",
+    "src/recorder_unit_test.cpp",
+  ]
+
+  deps = [
+    "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d/utils:sync_fence",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
+  ]
+
+  resource_config_file = "//foundation/multimedia/player_framework/test/unittest/resources/ohos_test.xml"
+}

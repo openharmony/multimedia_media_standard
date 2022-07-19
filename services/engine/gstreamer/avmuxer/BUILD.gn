@@ -33,17 +33,20 @@ config("media_engine_gst_avmuxer_config") {
     "-Wfloat-equal",
     "-Wdate-time",
     "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
     "-Wunused-parameter",
   ]
 
   include_dirs = [
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
-    "//foundation/multimedia/media_standard/services/services/engine_intf",
-    "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/services/include",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/message",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/services/services/engine_intf",
+    "//foundation/multimedia/player_framework/services/utils/include",
+    "//foundation/multimedia/player_framework/services/include",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common/message",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common/utils",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common",
     "//utils/native/base/include",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/gst",
@@ -56,21 +59,21 @@ ohos_static_library("media_engine_gst_avmuxer") {
   sources = [
     "avmuxer_engine_gst_impl.cpp",
     "avmuxer_util.cpp",
-    "gst_shmem_wrap_allocator.cpp",
   ]
 
   configs = [
     ":media_engine_gst_avmuxer_config",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config",
   ]
 
   deps = [
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common:gst_media_common",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
   ]
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }

@@ -21,7 +21,6 @@ config("media_service_config") {
     "-fno-rtti",
     "-fno-exceptions",
     "-Wall",
-    "-Werror=sign-compare",
     "-fno-common",
     "-fstack-protector-strong",
     "-Wshadow",
@@ -33,6 +32,11 @@ config("media_service_config") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
   ]
 
   include_dirs = [
@@ -57,16 +61,16 @@ config("media_service_config") {
     "avmuxer/server",
     "//base/security/access_token/interfaces/innerkits/access_token/include",
     "//base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include",
-    "//foundation/multimedia/media_standard/services/include",
-    "//foundation/multimedia/media_standard/services/services/factory",
-    "//foundation/multimedia/media_standard/services/services/engine_intf",
-    "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
-    "//foundation/multimedia/media_standard/services/services/common",
+    "//foundation/multimedia/player_framework/services/include",
+    "//foundation/multimedia/player_framework/services/services/factory",
+    "//foundation/multimedia/player_framework/services/services/engine_intf",
+    "//foundation/multimedia/player_framework/services/utils/include",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/services/services/common",
     "//utils/native/base/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
-    "//foundation/multimedia/media_standard/services/engine/common/avcodeclist",
-    "//foundation/multimedia/media_standard/services/engine/common/recorder_profiles",
+    "//foundation/multimedia/player_framework/services/engine/common/avcodeclist",
+    "//foundation/multimedia/player_framework/services/engine/common/recorder_profiles",
   ]
 
   if (target_cpu == "arm") {
@@ -78,10 +82,10 @@ ohos_shared_library("media_service") {
   install_enable = true
 
   sources = [
-    "//foundation/multimedia/media_standard/frameworks/native/common/media_errors.cpp",
-    "//foundation/multimedia/media_standard/services/engine/common/recorder_profiles/recorder_profiles_ability_singleton.cpp",
-    "//foundation/multimedia/media_standard/services/engine/common/recorder_profiles/recorder_profiles_xml_parser.cpp",
-    "//foundation/multimedia/media_standard/services/utils/avsharedmemorybase.cpp",
+    "//foundation/multimedia/player_framework/frameworks/native/common/media_errors.cpp",
+    "//foundation/multimedia/player_framework/services/engine/common/recorder_profiles/recorder_profiles_ability_singleton.cpp",
+    "//foundation/multimedia/player_framework/services/engine/common/recorder_profiles/recorder_profiles_xml_parser.cpp",
+    "//foundation/multimedia/player_framework/services/utils/avsharedmemorybase.cpp",
     "avcodec/ipc/avcodec_listener_proxy.cpp",
     "avcodec/ipc/avcodec_service_stub.cpp",
     "avcodec/server/avcodec_server.cpp",
@@ -117,14 +121,14 @@ ohos_shared_library("media_service") {
   configs = [
     ":media_service_config",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface_public_config",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config",
   ]
 
   deps = [
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
-    "//foundation/multimedia/media_standard/services/utils:media_format",
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
+    "//foundation/multimedia/player_framework/services/utils:media_format",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
     "//utils/native/base:utils",
   ]
 
@@ -139,5 +143,5 @@ ohos_shared_library("media_service") {
   ]
 
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }

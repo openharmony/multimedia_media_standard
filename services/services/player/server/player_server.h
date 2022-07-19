@@ -132,6 +132,7 @@ private:
     void FormatToString(std::string &dumpString, std::vector<Format> &videoTrack);
     const std::string &GetStatusDescription(int32_t status);
     void ResetProcessor();
+    void ReleaseProcessor();
     void OnInfoNoChangeStatus(PlayerOnInfoType type, int32_t extra, const Format &infoBody = {});
 
     std::unique_ptr<IPlayerEngine> playerEngine_ = nullptr;
