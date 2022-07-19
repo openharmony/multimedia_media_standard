@@ -37,7 +37,7 @@ IMediaService &MediaServiceFactory::GetInstance()
     return mediaClientInstance;
 }
 
-MediaClient::MediaClient()
+MediaClient::MediaClient() noexcept
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
 }
@@ -361,6 +361,5 @@ void MediaClient::DoMediaServerDied()
         }
     }
 }
-
 } // namespace Media
 } // namespace OHOS

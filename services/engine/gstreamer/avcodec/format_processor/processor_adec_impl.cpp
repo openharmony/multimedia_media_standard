@@ -20,7 +20,7 @@
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "ProcessorAdecImpl"};
     constexpr uint32_t DEFAULT_BUFFER_SIZE = 100000;
-    constexpr uint32_t MAX_CHANNELS = 6;
+    constexpr int32_t MAX_CHANNELS = 6;
     static const GstAudioChannelPosition CHANNEL_POSITION[6][6] = {
         {
             GST_AUDIO_CHANNEL_POSITION_MONO
@@ -88,8 +88,7 @@ int32_t ProcessorAdecImpl::ProcessOptional(const Format &format)
 
 std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetInputPortConfig()
 {
-    CHECK_AND_RETURN_RET(channels_ > 0 && sampleRate_ > 0 &&
-                         static_cast<uint32_t>(channels_) <= MAX_CHANNELS, nullptr);
+    CHECK_AND_RETURN_RET(channels_ > 0 && sampleRate_ > 0 && channels_ <= MAX_CHANNELS, nullptr);
 
     guint64 channelMask = 0;
     if (!gst_audio_channel_positions_to_mask(CHANNEL_POSITION[channels_ - 1], channels_, FALSE, &channelMask)) {
@@ -99,28 +98,28 @@ std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetInputPortConfig()
 
     GstCaps *caps = nullptr;
     switch (codecName_) {
-        case CODEC_MIMIE_TYPE_AUDIO_VORBIS:
+        case CODEC_MIME_TYPE_AUDIO_VORBIS:
             caps = gst_caps_new_simple("audio/x-vorbis",
                 "rate", G_TYPE_INT, sampleRate_, "channels", G_TYPE_INT, channels_, nullptr);
             break;
-        case CODEC_MIMIE_TYPE_AUDIO_MPEG:
+        case CODEC_MIME_TYPE_AUDIO_MPEG:
             caps = gst_caps_new_simple("audio/mpeg",
                 "rate", G_TYPE_INT, sampleRate_, "channels", G_TYPE_INT, channels_,
                 "channel-mask", GST_TYPE_BITMASK, channelMask, "mpegversion", G_TYPE_INT, 1,
                 "layer", G_TYPE_INT, 3, nullptr);
             break;
-        case CODEC_MIMIE_TYPE_AUDIO_AAC:
+        case CODEC_MIME_TYPE_AUDIO_AAC:
             caps = gst_caps_new_simple("audio/mpeg",
                 "rate", G_TYPE_INT, sampleRate_, "channels", G_TYPE_INT, channels_,
                 "mpegversion", G_TYPE_INT, 4, "stream-format", G_TYPE_STRING, "adts",
                 "base-profile", G_TYPE_STRING, "lc", nullptr);
             break;
-        case CODEC_MIMIE_TYPE_AUDIO_FLAC:
+        case CODEC_MIME_TYPE_AUDIO_FLAC:
             caps = gst_caps_new_simple("audio/x-flac",
                 "rate", G_TYPE_INT, sampleRate_, "channels", G_TYPE_INT, channels_,
                 "framed", G_TYPE_BOOLEAN, TRUE, nullptr);
             break;
-        case CODEC_MIMIE_TYPE_AUDIO_OPUS:
+        case CODEC_MIME_TYPE_AUDIO_OPUS:
             caps = gst_caps_new_simple("audio/x-opus",
                 "rate", G_TYPE_INT, sampleRate_, "channels", G_TYPE_INT, channels_, nullptr);
             break;
@@ -136,8 +135,8 @@ std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetInputPortConfig()
         return nullptr;
     }
 
-    config->needParser_ = (codecName_ == CODEC_MIMIE_TYPE_AUDIO_FLAC);
-    config->needCodecData_ = (codecName_ == CODEC_MIMIE_TYPE_AUDIO_VORBIS);
+    config->needParser_ = (codecName_ == CODEC_MIME_TYPE_AUDIO_FLAC);
+    config->needCodecData_ = (codecName_ == CODEC_MIME_TYPE_AUDIO_VORBIS);
     config->bufferSize_ = DEFAULT_BUFFER_SIZE;
 
     return config;
@@ -145,8 +144,7 @@ std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetInputPortConfig()
 
 std::shared_ptr<ProcessorConfig> ProcessorAdecImpl::GetOutputPortConfig()
 {
-    CHECK_AND_RETURN_RET(channels_ > 0 && sampleRate_ > 0 &&
-                         static_cast<uint32_t>(channels_) <= MAX_CHANNELS, nullptr);
+    CHECK_AND_RETURN_RET(channels_ > 0 && sampleRate_ > 0 && channels_ <= MAX_CHANNELS, nullptr);
 
     GstCaps *caps = gst_caps_new_simple("audio/x-raw",
         "rate", G_TYPE_INT, sampleRate_,

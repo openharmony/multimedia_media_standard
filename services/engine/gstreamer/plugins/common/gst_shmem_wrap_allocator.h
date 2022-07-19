@@ -46,8 +46,9 @@ struct _GstShMemWrapAllocatorClass {
 
 GType gst_shmem_wrap_allocator_get_type(void);
 
-GstShMemWrapAllocator *gst_shmem_wrap_allocator_new(void);
-GstMemory *gst_shmem_wrap(GstAllocator *allocator, std::shared_ptr<OHOS::Media::AVSharedMemory> shmem);
+__attribute__((visibility("default"))) GstShMemWrapAllocator *gst_shmem_wrap_allocator_new(void);
+__attribute__((visibility("default"))) GstMemory *gst_shmem_wrap(GstAllocator *allocator,
+    std::shared_ptr<OHOS::Media::AVSharedMemory> shmem);
 
 G_END_DECLS
 

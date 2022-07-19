@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RECORDER_PIPELINE_CTRLER
-#define RECORDER_PIPELINE_CTRLER
+#ifndef RECORDER_PIPELINE_CTRLER_H
+#define RECORDER_PIPELINE_CTRLER_H
 
 #include <memory>
 #include "nocopyable.h"

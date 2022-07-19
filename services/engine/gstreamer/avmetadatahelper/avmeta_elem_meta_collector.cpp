@@ -460,6 +460,7 @@ void TypeFindMetaCollector::HaveTypeCallback(GstElement *elem, guint probability
 
 void TypeFindMetaCollector::OnHaveType(const GstElement &elem, const GstCaps &caps)
 {
+    (void)elem;
     std::unique_lock<std::mutex> lock(mutex_);
     if (stopCollecting_) {
         MEDIA_LOGI("stop collecting...");

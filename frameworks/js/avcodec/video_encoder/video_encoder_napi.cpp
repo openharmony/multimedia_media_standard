@@ -67,6 +67,7 @@ napi_value VideoEncoderNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getOutputMediaDescription", GetOutputMediaDescription),
         DECLARE_NAPI_FUNCTION("getVideoEncoderCaps", GetVideoEncoderCaps),
         DECLARE_NAPI_FUNCTION("on", On),
+        DECLARE_NAPI_FUNCTION("notifyEndOfStream", NotifyEos),
     };
     napi_property_descriptor staticProperty[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createVideoEncoderByMime", CreateVideoEncoderByMime),
@@ -133,6 +134,51 @@ napi_value VideoEncoderNapi::Constructor(napi_env env, napi_callback_info info)
 
     MEDIA_LOGD("Constructor success");
     return jsThis;
+}
+
+napi_value VideoEncoderNapi::NotifyEos(napi_env env, napi_callback_info info)
+{
+    MEDIA_LOGD("Enter NotifyEos");
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+
+    auto asyncCtx = std::make_unique<VideoEncoderAsyncContext>(env);
+
+    napi_value jsThis = nullptr;
+    napi_value args[1] = {nullptr};
+    size_t argCount = 1;
+    napi_status status = napi_get_cb_info(env, info, &argCount, args, &jsThis, nullptr);
+    if (status != napi_ok || jsThis == nullptr) {
+        asyncCtx->SignError(MSERR_EXT_INVALID_VAL, "Failed to napi_get_cb_info");
+    }
+
+    asyncCtx->callbackRef = CommonNapi::CreateReference(env, args[0]);
+    asyncCtx->deferred = CommonNapi::CreatePromise(env, asyncCtx->callbackRef, result);
+
+    (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncCtx->napi));
+
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "NotifyEos", NAPI_AUTO_LENGTH, &resource);
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
+        [](napi_env env, void* data) {
+            auto asyncCtx = reinterpret_cast<VideoEncoderAsyncContext *>(data);
+            if (asyncCtx == nullptr) {
+                MEDIA_LOGE("Failed, asyncCtx is nullptr");
+                return;
+            } else if (asyncCtx->napi == nullptr || asyncCtx->napi->venc_ == nullptr) {
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "nullptr");
+                return;
+            }
+            if (asyncCtx->napi->venc_->NotifyEos() != MSERR_OK) {
+                asyncCtx->SignError(MSERR_EXT_UNKNOWN, "Failed to Stop");
+            }
+        },
+        MediaAsyncContext::CompleteCallback, static_cast<void *>(asyncCtx.get()), &asyncCtx->work));
+
+    NAPI_CALL(env, napi_queue_async_work(env, asyncCtx->work));
+    asyncCtx.release();
+
+    return result;
 }
 
 void VideoEncoderNapi::Destructor(napi_env env, void *nativeObject, void *finalize)
@@ -887,9 +933,12 @@ napi_value VideoEncoderNapi::On(napi_env env, napi_callback_info info)
     std::string callbackName = CommonNapi::GetStringArgument(env, args[0]);
     MEDIA_LOGD("callbackName: %{public}s", callbackName.c_str());
 
-    CHECK_AND_RETURN_RET(VideoEncoderNapi->callback_ != nullptr, result);
-    auto cb = std::static_pointer_cast<VideoEncoderCallbackNapi>(VideoEncoderNapi->callback_);
-    cb->SaveCallbackReference(callbackName, args[1]);
+    napi_ref ref = nullptr;
+    status = napi_create_reference(env, args[1], 1, &ref);
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && ref != nullptr, result, "failed to create reference!");
+
+    std::shared_ptr<AutoRef> autoRef = std::make_shared<AutoRef>(env, ref);
+    VideoEncoderNapi->SetCallbackReference(callbackName, autoRef);
     return result;
 }
 
@@ -907,6 +956,15 @@ void VideoEncoderNapi::ErrorCallback(MediaServiceExtErrCode errCode)
     if (callback_ != nullptr) {
         auto napiCb = std::static_pointer_cast<VideoEncoderCallbackNapi>(callback_);
         napiCb->SendErrorCallback(errCode);
+    }
+}
+
+void VideoEncoderNapi::SetCallbackReference(const std::string &callbackName, std::shared_ptr<AutoRef> ref)
+{
+    refMap_[callbackName] = ref;
+    if (callback_ != nullptr) {
+        auto napiCb = std::static_pointer_cast<VideoEncoderCallbackNapi>(callback_);
+        napiCb->SaveCallbackReference(callbackName, ref);
     }
 }
 } // namespace Media

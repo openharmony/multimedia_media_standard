@@ -33,7 +33,7 @@ PlayerFileFuzzer::~PlayerFileFuzzer()
 {
 }
 
-bool PlayerFileFuzzer::FuzzFile(uint8_t* data, size_t size)
+bool PlayerFileFuzzer::FuzzFile(const uint8_t* data, size_t size)
 {
     player_ = OHOS::Media::PlayerFactory::CreatePlayer();
     if (player_ == nullptr) {
@@ -102,7 +102,7 @@ int32_t OHOS::Media::WriteDataToFile(const string &path, const uint8_t* data, si
     return 0;
 }
 
-bool OHOS::Media::FuzzPlayerFile(uint8_t* data, size_t size)
+bool OHOS::Media::FuzzPlayerFile(const uint8_t* data, size_t size)
 {
     auto player = std::make_unique<PlayerFileFuzzer>();
     if (player == nullptr) {
@@ -113,7 +113,7 @@ bool OHOS::Media::FuzzPlayerFile(uint8_t* data, size_t size)
 }
 
 /* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Media::FuzzPlayerFile(data, size);

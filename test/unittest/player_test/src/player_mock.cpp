@@ -14,10 +14,10 @@
  */
 
 #include "player_mock.h"
+#include <sys/stat.h>
 #include "media_errors.h"
 #include "ui/rs_surface_node.h"
 #include "window_option.h"
-
 using namespace OHOS::Media::PlayerTestParam;
 
 namespace OHOS {
@@ -31,6 +31,12 @@ void PlayerCallbackTest::SetSeekDoneFlag(bool seekDoneFlag)
 {
     seekDoneFlag_ = seekDoneFlag;
 }
+
+void PlayerCallbackTest::SetSpeedDoneFlag(bool speedDoneFlag)
+{
+    speedDoneFlag_ = speedDoneFlag;
+}
+
 
 void PlayerCallbackTest::SetSeekPosition(int32_t seekPosition)
 {
@@ -109,6 +115,18 @@ int32_t PlayerCallbackTest::SeekSync()
     return MSERR_OK;
 }
 
+int32_t PlayerCallbackTest::SpeedSync()
+{
+    if (speedDoneFlag_ == false) {
+        std::unique_lock<std::mutex> lockSpeed(mutexCond_);
+        condVarSpeed_.wait_for(lockSpeed, std::chrono::seconds(WAITSECOND));
+        if (speedDoneFlag_ == false) {
+            return -1;
+        }
+    }
+    return MSERR_OK;
+}
+
 void PlayerCallbackTest::OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
 {
     switch (type) {
@@ -120,6 +138,10 @@ void PlayerCallbackTest::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
             state_ = static_cast<PlayerStates>(extra);
             SetState(state_);
             Notify(state_);
+            break;
+        case INFO_TYPE_SPEEDDONE:
+            SetSpeedDoneFlag(true);
+            condVarSpeed_.notify_all();
             break;
         case INFO_TYPE_POSITION_UPDATE:
             seekPosition_ = extra;
@@ -205,6 +227,45 @@ int32_t PlayerMock::SetSource(const std::string url)
     return ret;
 }
 
+int32_t PlayerMock::SetSource(const std::string &path, int64_t offset, int64_t size)
+{
+    std::string rawFile = path.substr(strlen("file://"));
+    int32_t fd = open(rawFile.c_str(), O_RDONLY);
+    if (fd <= 0) {
+        std::cout << "Open file failed" << std::endl;
+        return -1;
+    }
+
+    struct stat64 st;
+    if (fstat64(fd, &st) != 0) {
+        std::cout << "Get file state failed" << std::endl;
+        (void)close(fd);
+        return -1;
+    }
+    int64_t length = static_cast<int64_t>(st.st_size);
+    if (size > 0) {
+        length = size;
+    }
+    int32_t ret = player_->SetSource(fd, offset, length);
+    if (ret != 0) {
+        (void)close(fd);
+        return -1;
+    }
+
+    (void)close(fd);
+    return ret;
+}
+
+int32_t PlayerMock::SetDataSrc(const std::string &path, int32_t size, bool seekable)
+{
+    if (seekable) {
+        dataSrc_ = MediaDataSourceTestSeekable::Create(path, size);
+    } else {
+        dataSrc_ = MediaDataSourceTestNoSeek::Create(path, size);
+    }
+    return player_->SetSource(dataSrc_);
+}
+
 int32_t PlayerMock::Prepare()
 {
     std::unique_lock<std::mutex> lock(mutex_);
@@ -250,6 +311,9 @@ int32_t PlayerMock::Stop()
     std::unique_lock<std::mutex> lock(mutex_);
     int32_t ret = player_->Stop();
     if (ret == MSERR_OK) {
+        if (dataSrc_ != nullptr) {
+            dataSrc_->Reset();
+        }
         return callback_->StopSync();
     }
     return ret;
@@ -319,6 +383,51 @@ int32_t PlayerMock::GetCurrentTime(int32_t &currentTime)
     return player_->GetCurrentTime(currentTime);
 }
 
+int32_t PlayerMock::GetVideoTrackInfo(std::vector<Format> &videoTrack)
+{
+    return player_->GetVideoTrackInfo(videoTrack);
+}
+
+int32_t PlayerMock::GetAudioTrackInfo(std::vector<Format> &audioTrack)
+{
+    return player_->GetAudioTrackInfo(audioTrack);
+}
+
+int32_t PlayerMock::GetVideoWidth()
+{
+    return player_->GetVideoWidth();
+}
+
+int32_t PlayerMock::GetVideoHeight()
+{
+    return player_->GetVideoHeight();
+}
+
+int32_t PlayerMock::GetDuration(int32_t &duration)
+{
+    return player_->GetDuration(duration);
+}
+
+int32_t PlayerMock::SetPlaybackSpeed(PlaybackRateMode mode)
+{
+    callback_->SetSpeedDoneFlag(false);
+    int32_t ret = player_->SetPlaybackSpeed(mode);
+    if (ret == MSERR_OK) {
+        return callback_->SpeedSync();
+    }
+    return player_->SetPlaybackSpeed(mode);
+}
+
+int32_t PlayerMock::GetPlaybackSpeed(PlaybackRateMode &mode)
+{
+    return player_->GetPlaybackSpeed(mode);
+}
+
+int32_t PlayerMock::SelectBitRate(uint32_t bitRate)
+{
+    return player_->SelectBitRate(bitRate);
+}
+
 bool PlayerMock::IsPlaying()
 {
     std::unique_lock<std::mutex> lock(mutex_);
@@ -329,6 +438,11 @@ bool PlayerMock::IsLooping()
 {
     std::unique_lock<std::mutex> lock(mutex_);
     return player_->IsLooping();
+}
+
+int32_t PlayerMock::SetParameter(const Format &param)
+{
+    return player_->SetParameter(param);
 }
 
 int32_t PlayerMock::SetPlayerCallback(const std::shared_ptr<PlayerCallback> &callback)

@@ -16,5 +16,5 @@ import("//build/ohos/sa_profile/sa_profile.gni")
 ohos_sa_profile("media_service_sa_profile") {
   sources = [ "3002.xml" ]
 
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }

@@ -41,16 +41,23 @@ public:
     virtual ~IEngineFactory() = default;
     virtual int32_t Score(Scene scene, const std::string &uri = "")
     {
+        (void)scene;
+        (void)uri;
         return 0;
     }
 
     virtual std::unique_ptr<IPlayerEngine> CreatePlayerEngine(int32_t uid = 0, int32_t pid = 0)
     {
+        (void)uid;
+        (void)pid;
         return nullptr;
     }
 
-    virtual std::unique_ptr<IRecorderEngine> CreateRecorderEngine()
+    virtual std::unique_ptr<IRecorderEngine> CreateRecorderEngine(int32_t appUid, int32_t appPid, uint32_t appTokenId)
     {
+        (void)appUid;
+        (void)appPid;
+        (void)appTokenId;
         return nullptr;
     }
 
@@ -68,7 +75,7 @@ public:
     {
         return nullptr;
     }
-    
+
     virtual std::unique_ptr<IAVMuxerEngine> CreateAVMuxerEngine()
     {
         return nullptr;

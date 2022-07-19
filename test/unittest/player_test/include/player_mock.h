@@ -17,6 +17,8 @@
 #define PLAYER_MOCK_H
 
 #include "player.h"
+#include "media_data_source_test_noseek.h"
+#include "media_data_source_test_seekable.h"
 #include "test_params_config.h"
 #include "window.h"
 
@@ -27,6 +29,7 @@ protected:
     PlayerStates state_ = PLAYER_IDLE;
     int32_t seekPosition_;
     bool seekDoneFlag_;
+    bool speedDoneFlag_;
     PlayerSeekMode seekMode_ = PlayerSeekMode::SEEK_CLOSEST;
     std::mutex mutexCond_;
     std::condition_variable condVarPrepare_;
@@ -35,6 +38,7 @@ protected:
     std::condition_variable condVarStop_;
     std::condition_variable condVarReset_;
     std::condition_variable condVarSeek_;
+    std::condition_variable condVarSpeed_;
 };
 
 class PlayerCallbackTest : public PlayerCallback, public NoCopyable, public PlayerSignal {
@@ -45,6 +49,7 @@ public:
     void SeekNotify(int32_t extra, const Format &infoBody);
     void Notify(PlayerStates currentState);
     void SetSeekDoneFlag(bool seekDoneFlag);
+    void SetSpeedDoneFlag(bool speedDoneFlag);
     void SetSeekPosition(int32_t seekPosition);
     void SetState(PlayerStates state);
     int32_t PrepareSync();
@@ -53,6 +58,7 @@ public:
     int32_t StopSync();
     int32_t ResetSync();
     int32_t SeekSync();
+    int32_t SpeedSync();
 };
 
 class PlayerMock : public NoCopyable {
@@ -61,6 +67,8 @@ public:
     virtual ~PlayerMock();
     bool CreatePlayer();
     int32_t SetSource(const std::string url);
+    int32_t SetDataSrc(const std::string &path, int32_t size, bool seekable);
+    int32_t SetSource(const std::string &path, int64_t offset, int64_t size);
     int32_t Prepare();
     int32_t PrepareAsync();
     int32_t Play();
@@ -72,14 +80,24 @@ public:
     int32_t SetVolume(float leftVolume, float rightVolume);
     int32_t SetLooping(bool loop);
     int32_t GetCurrentTime(int32_t &currentTime);
+    int32_t GetVideoTrackInfo(std::vector<Format> &videoTrack);
+    int32_t GetAudioTrackInfo(std::vector<Format> &audioTrack);
+    int32_t GetVideoWidth();
+    int32_t GetVideoHeight();
+    int32_t GetDuration(int32_t &duration);
+    int32_t SetPlaybackSpeed(PlaybackRateMode mode);
+    int32_t GetPlaybackSpeed(PlaybackRateMode &mode);
+    int32_t SelectBitRate(uint32_t bitRate);
     bool IsPlaying();
     bool IsLooping();
+    int32_t SetParameter(const Format &param);
     int32_t SetPlayerCallback(const std::shared_ptr<PlayerCallback> &callback);
     int32_t SetVideoSurface(sptr<Surface> surface);
     sptr<Surface> GetVideoSurface();
 private:
     void SeekPrepare(int32_t &mseconds, PlayerSeekMode &mode);
     std::shared_ptr<Player> player_ = nullptr;
+    std::shared_ptr<MediaDataSourceTest> dataSrc_ = nullptr;
     std::shared_ptr<PlayerCallbackTest> callback_ = nullptr;
     sptr<Rosen::Window> previewWindow_ = nullptr;
     int32_t height_ = 1080;

@@ -13,23 +13,23 @@
 
 import("//build/test.gni")
 
-module_output_path = "multimedia_media_standard/avmetadata"
+module_output_path = "multimedia_player_framework/avmetadata"
 
 ohos_unittest("avmetadata_unit_test") {
   module_out_path = module_output_path
   include_dirs = [
     "./include",
     "//base/startup/syspara_lite/interfaces/innerkits/native/syspara/include",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
-    "//foundation/multimedia/media_standard/services/utils/include",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/services/utils/include",
     "//graphic/graphic_2d/interfaces/innerkits/surface",
     "//foundation/graphic/graphic_2d/utils/sync_fence/export",
     "//drivers/peripheral/display/interfaces/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
-    "//foundation/windowmanager/interfaces/innerkits/wm",
+    "//foundation/window/window_manager/interfaces/innerkits/wm",
     "//third_party/libjpeg",
-    "//foundation/multimedia/media_standard/frameworks/native/player",
-    "//foundation/multimedia/media_standard/test/unittest/common/include",
+    "//foundation/multimedia/player_framework/frameworks/native/player",
+    "//foundation/multimedia/player_framework/test/unittest/common/include",
   ]
 
   cflags = [
@@ -50,12 +50,12 @@ ohos_unittest("avmetadata_unit_test") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
     "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
-    "//foundation/windowmanager/wm:libwm",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
+    "//foundation/window/window_manager/wm:libwm",
     "//third_party/libjpeg:libjpeg_static",
     "//utils/native/base:utils",
   ]
 
-  resource_config_file = "//foundation/multimedia/media_standard/test/unittest/resources/ohos_test.xml"
+  resource_config_file = "//foundation/multimedia/player_framework/test/unittest/resources/ohos_test.xml"
 }

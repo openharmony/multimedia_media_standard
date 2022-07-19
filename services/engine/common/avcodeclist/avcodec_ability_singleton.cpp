@@ -72,8 +72,18 @@ bool AVCodecAbilitySingleton::ParseCodecXml()
 bool AVCodecAbilitySingleton::RegisterCapability(const std::vector<CapabilityData> &registerCapabilityDataArray)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    capabilityDataArray_.insert(capabilityDataArray_.begin() + hdiCapLen_, registerCapabilityDataArray.begin(),
+        registerCapabilityDataArray.end());
+    MEDIA_LOGD("RegisterCapability success");
+    return true;
+}
+
+bool AVCodecAbilitySingleton::RegisterHdiCapability(const std::vector<CapabilityData> &registerCapabilityDataArray)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
     capabilityDataArray_.insert(capabilityDataArray_.begin(), registerCapabilityDataArray.begin(),
         registerCapabilityDataArray.end());
+    hdiCapLen_ = registerCapabilityDataArray.size();
     MEDIA_LOGD("RegisterCapability success");
     return true;
 }

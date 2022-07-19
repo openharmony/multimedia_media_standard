@@ -76,6 +76,10 @@ AVMuxerEngineGstImpl::~AVMuxerEngineGstImpl()
         gst_object_unref(muxBin_);
         muxBin_ = nullptr;
     }
+    if (allocator_ != nullptr) {
+        gst_object_unref(allocator_);
+        allocator_ = nullptr;
+    }
 }
 
 int32_t AVMuxerEngineGstImpl::Init()
@@ -178,7 +182,7 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
     CHECK_AND_RETURN_RET_LOG(AVMuxerUtil::FindMediaType(mimeType, mediaType), MSERR_INVALID_VAL, "Illegal mimeType");
     if (mediaType == MEDIA_TYPE_VID) {
         CHECK_AND_RETURN_RET_LOG(videoTrackNum_ < MAX_VIDEO_TRACK_NUM, MSERR_INVALID_OPERATION,
-            "Only 1 video Tracks can be added");
+            "Only 1 video Track can be added");
         trackNum = &videoTrackNum_;
     } else if (mediaType == MEDIA_TYPE_AUD) {
         CHECK_AND_RETURN_RET_LOG(audioTrackNum_ < MAX_AUDIO_TRACK_NUM, MSERR_INVALID_OPERATION,
@@ -189,7 +193,7 @@ int32_t AVMuxerEngineGstImpl::AddTrack(const MediaDescription &trackDesc, int32_
         return MSERR_INVALID_VAL;
     }
 
-    if (AVMuxerUtil::SetCaps(trackDesc, mimeType, &srcCaps) != MSERR_OK) {
+    if (!AVMuxerUtil::SetCaps(trackDesc, mimeType, &srcCaps)) {
         MEDIA_LOGE("Failed to call SetCaps");
         trackInfo_.erase(trackId);
         return MSERR_INVALID_VAL;
@@ -240,19 +244,29 @@ int32_t AVMuxerEngineGstImpl::WriteData(std::shared_ptr<AVSharedMemory> sampleDa
     CHECK_AND_RETURN_RET_LOG(sampleData != nullptr, MSERR_INVALID_VAL, "sampleData is nullptr");
     CHECK_AND_RETURN_RET_LOG(src != nullptr, MSERR_INVALID_VAL, "src is nullptr");
     CHECK_AND_RETURN_RET_LOG(allocator_ != nullptr, MSERR_INVALID_VAL, "allocator is nullptr");
-    
+
     GstMemory *mem = gst_shmem_wrap(GST_ALLOCATOR_CAST(allocator_), sampleData);
     CHECK_AND_RETURN_RET_LOG(mem != nullptr, MSERR_NO_MEMORY, "Failed to call gst_shmem_wrap");
-    GstBuffer *buffer = gst_buffer_new();
-    CHECK_AND_RETURN_RET_LOG(buffer != nullptr, MSERR_NO_MEMORY, "Failed to call gst_buffer_new");
-    gst_buffer_append_memory(buffer, mem);
 
+    GstBuffer *buffer = gst_buffer_new();
+    if (buffer == nullptr) {
+        gst_memory_unref(mem);
+        MEDIA_LOGE("Failed to call gst_buffer_new");
+        return MSERR_NO_MEMORY;
+    }
+
+    gst_buffer_append_memory(buffer, mem);
     GST_BUFFER_DTS(buffer) = static_cast<uint64_t>(sampleInfo.timeUs * US_TO_NS);
     GST_BUFFER_PTS(buffer) = static_cast<uint64_t>(sampleInfo.timeUs * US_TO_NS);
 
     GstFlowReturn ret;
     g_signal_emit_by_name(src, "push-buffer", buffer, &ret);
-    CHECK_AND_RETURN_RET_LOG(ret == GST_FLOW_OK, MSERR_INVALID_OPERATION, "Failed to call g_signal_emit_by_name");
+    if (ret != GST_FLOW_OK) {
+        gst_buffer_unref(buffer);
+        MEDIA_LOGE("Failed to call g_signal_emit_by_name");
+        return MSERR_INVALID_OPERATION;
+    }
+    gst_buffer_unref(buffer);
 
     return MSERR_OK;
 }
@@ -268,7 +282,7 @@ int32_t AVMuxerEngineGstImpl::WriteTrackSample(std::shared_ptr<AVSharedMemory> s
     CHECK_AND_RETURN_RET_LOG(trackInfo_[sampleInfo.trackIdx].needData_ == true, MSERR_INVALID_OPERATION,
         "Failed to push data, the queue is full");
     CHECK_AND_RETURN_RET_LOG(sampleInfo.timeUs >= 0, MSERR_INVALID_VAL, "Failed to check dts, dts muxt >= 0");
-    
+
     int32_t ret;
     GstElement *src = trackInfo_[sampleInfo.trackIdx].src_;
     CHECK_AND_RETURN_RET_LOG(src != nullptr, MSERR_INVALID_VAL, "Failed to get AppSrc");
@@ -375,6 +389,7 @@ void AVMuxerEngineGstImpl::Clear()
     endFlag_ = false;
     errHappened_ = false;
     isPlay_ = false;
+
     mutex_.unlock();
     msgProcessor_->Reset();
     mutex_.lock();

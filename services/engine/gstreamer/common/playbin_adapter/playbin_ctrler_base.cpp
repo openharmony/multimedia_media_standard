@@ -142,7 +142,7 @@ int32_t PlayBinCtrlerBase::Init()
     return ret;
 }
 
-bool PlayBinCtrlerBase::IsLiveSource()
+bool PlayBinCtrlerBase::IsLiveSource() const
 {
     if (appsrcWrap_ != nullptr && appsrcWrap_->IsLiveMode()) {
         return true;
@@ -381,7 +381,7 @@ void PlayBinCtrlerBase::SetVolume(const float &leftVolume, const float &rightVol
     }
 }
 
-int32_t PlayBinCtrlerBase::SetAudioRendererInfo(const int32_t rendererInfo, const int32_t rendererFlag)
+int32_t PlayBinCtrlerBase::SetAudioRendererInfo(const uint32_t rendererInfo, const int32_t rendererFlag)
 {
     std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
     rendererInfo_ = rendererInfo;
@@ -409,7 +409,7 @@ int32_t PlayBinCtrlerBase::SelectBitRate(uint32_t bitRate)
 
     g_object_set(playbin_, "connection-speed", static_cast<uint64_t>(bitRate), nullptr);
 
-    PlayBinMessage msg = { PLAYBIN_MSG_BITRATEDONE, 0, static_cast<int32_t>(bitRate) };
+    PlayBinMessage msg = { PLAYBIN_MSG_BITRATEDONE, 0, static_cast<int32_t>(bitRate), {} };
     ReportMessage(msg);
 
     return MSERR_OK;
@@ -427,6 +427,9 @@ void PlayBinCtrlerBase::Reset() noexcept
     }
     (void)StopInternal();
 
+    // Do it here before the ChangeState to IdleState, for avoding the deadlock when msg handler
+    // try to call the ChangeState.
+    ExitInitializedState();
     ChangeState(idleState_);
 
     if (msgQueue_ != nullptr) {
@@ -483,7 +486,7 @@ void PlayBinCtrlerBase::DoInitializeForHttp()
 
 int32_t PlayBinCtrlerBase::EnterInitializedState()
 {
-    if (isInitialized) {
+    if (isInitialized_) {
         return MSERR_OK;
     }
 
@@ -491,7 +494,7 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
 
     ON_SCOPE_EXIT(0) {
         ExitInitializedState();
-        PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_ERROR, 0, MSERR_UNKNOWN };
+        PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_ERROR, 0, MSERR_UNKNOWN, {} };
         ReportMessage(msg);
         MEDIA_LOGE("enter initialized state failed");
     };
@@ -512,14 +515,14 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
 
     uint32_t flags = 0;
     g_object_get(playbin_, "flags", &flags, nullptr);
-    if (renderMode_ & PlayBinRenderMode::DEFAULT_RENDER) {
+    if ((renderMode_ & PlayBinRenderMode::DEFAULT_RENDER) != 0) {
         flags &= ~GST_PLAY_FLAG_VIS;
     }
-    if (renderMode_ & PlayBinRenderMode::NATIVE_STREAM) {
+    if ((renderMode_ & PlayBinRenderMode::NATIVE_STREAM) != 0) {
         flags |= GST_PLAY_FLAG_NATIVE_VIDEO | GST_PLAY_FLAG_NATIVE_AUDIO;
         flags &= ~(GST_PLAY_FLAG_SOFT_COLORBALANCE | GST_PLAY_FLAG_SOFT_VOLUME);
     }
-    if (renderMode_ & PlayBinRenderMode::DISABLE_TEXT) {
+    if ((renderMode_ & PlayBinRenderMode::DISABLE_TEXT) != 0) {
         flags &= ~GST_PLAY_FLAG_TEXT;
     }
     g_object_set(playbin_, "flags", flags, nullptr);
@@ -531,7 +534,7 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
 
     DoInitializeForHttp();
 
-    isInitialized = true;
+    isInitialized_ = true;
     ChangeState(initializedState_);
 
     CANCEL_SCOPE_EXIT_GUARD(0);
@@ -543,12 +546,17 @@ void PlayBinCtrlerBase::ExitInitializedState()
 {
     MEDIA_LOGD("ExitInitializedState enter");
 
-    isInitialized = false;
+    if (!isInitialized_) {
+        return;
+    }
+    isInitialized_ = false;
 
+    mutex_.unlock();
     if (msgProcessor_ != nullptr) {
         msgProcessor_->Reset();
         msgProcessor_ = nullptr;
     }
+    mutex_.lock();
 
     for (auto &[elem, signalId] : signalIds_) {
         g_signal_handler_disconnect(elem, signalId);
@@ -601,7 +609,6 @@ int32_t PlayBinCtrlerBase::SeekInternal(int64_t timeUs, int32_t seekOption)
     constexpr int32_t usecToNanoSec = 1000;
     int64_t timeNs = timeUs * usecToNanoSec;
     seekPos_ = timeUs;
-
     isSeeking_ = true;
     GstEvent *event = gst_event_new_seek(1.0, GST_FORMAT_TIME, static_cast<GstSeekFlags>(seekFlags),
         GST_SEEK_TYPE_SET, timeNs, GST_SEEK_TYPE_SET, GST_CLOCK_TIME_NONE);
@@ -675,13 +682,7 @@ int32_t PlayBinCtrlerBase::SetupSignalMessage()
     GstBus *bus = gst_pipeline_get_bus(playbin_);
     CHECK_AND_RETURN_RET_LOG(bus != nullptr, MSERR_UNKNOWN, "can not get bus");
 
-    std::weak_ptr<PlayBinCtrlerBase> weakThiz = shared_from_this();
-    auto msgNotifier = [weakThiz](const InnerMessage &msg) {
-        std::shared_ptr<PlayBinCtrlerBase> ctrler = weakThiz.lock();
-        if (ctrler != nullptr) {
-            ctrler->OnMessageReceived(msg);
-        }
-    };
+    auto msgNotifier = std::bind(&PlayBinCtrlerBase::OnMessageReceived, this, std::placeholders::_1);
     msgProcessor_ = std::make_unique<GstMsgProcessor>(*bus, msgNotifier);
 
     gst_object_unref(bus);
@@ -998,7 +999,7 @@ void PlayBinCtrlerBase::OnVolumeChangedCb(const GstElement *playbin, GstElement 
 
     auto thizStrong = PlayBinCtrlerWrapper::TakeStrongThiz(userdata);
     if (thizStrong != nullptr) {
-        PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_VOLUME_CHANGE, 0, 0 };
+        PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_VOLUME_CHANGE, 0, 0, {} };
         thizStrong->ReportMessage(msg);
     }
 }
@@ -1039,7 +1040,7 @@ void PlayBinCtrlerBase::OnBitRateParseCompleteCb(const GstElement *playbin, uint
 
 void PlayBinCtrlerBase::OnAppsrcErrorMessageReceived(int32_t errorCode)
 {
-    PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_ERROR, 0, errorCode };
+    PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_ERROR, 0, errorCode, {} };
     ReportMessage(msg);
 }
 

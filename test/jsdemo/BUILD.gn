@@ -15,21 +15,21 @@ import("//build/ohos.gni")
 import("//build/ohos/ace/ace.gni")
 
 js_declaration("media_demo_js") {
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }
 
 ohos_shared_library("mediademo") {
   include_dirs = [
-    "//foundation/multimedia/media_standard/interfaces/kits/js",
-    "//foundation/multimedia/media_standard/frameworks/js/common",
-    "//foundation/multimedia/media_standard/services/utils/include",
+    "//foundation/multimedia/player_framework/interfaces/kits/js",
+    "//foundation/multimedia/player_framework/frameworks/js/common",
+    "//foundation/multimedia/player_framework/services/utils/include",
     "//drivers/peripheral/display/interfaces/include",
     "//third_party/bounds_checking_function/include",
   ]
 
   sources = [
-    "//foundation/multimedia/media_standard/test/jsdemo/napi_demo.cpp",
-    "//foundation/multimedia/media_standard/test/jsdemo/native_module_ohos_napidemo.cpp",
+    "//foundation/multimedia/player_framework/test/jsdemo/napi_demo.cpp",
+    "//foundation/multimedia/player_framework/test/jsdemo/native_module_ohos_napidemo.cpp",
   ]
 
   cflags = [
@@ -45,23 +45,26 @@ ohos_shared_library("mediademo") {
     "-O2",
     "-D_FORTIFY_SOURCE=2",
     "-fvisibility=hidden",
-    "-Werror",
-    "-Wextra",
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
   ]
 
-  configs = [ "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config" ]
+  configs = [ "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config" ]
 
   deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/arkui/napi:ace_napi",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
     "//third_party/bounds_checking_function:libsec_static",
     "//utils/native/base:utils",
   ]
@@ -72,6 +75,6 @@ ohos_shared_library("mediademo") {
   ]
 
   relative_install_dir = "module/multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
   subsystem_name = "multimedia"
 }

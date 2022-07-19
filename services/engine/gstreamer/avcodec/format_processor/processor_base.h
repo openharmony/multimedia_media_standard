@@ -33,7 +33,7 @@ protected:
     virtual int32_t ProcessMandatory(const Format &format) = 0;
     virtual int32_t ProcessOptional(const Format &format) = 0;
 
-    InnerCodecMimeType codecName_ = CODEC_MIMIE_TYPE_AUDIO_AAC;
+    InnerCodecMimeType codecName_ = CODEC_MIME_TYPE_AUDIO_AAC;
     bool isSoftWare_ = false;
 private:
     int32_t ProcessVendor(const Format &format);

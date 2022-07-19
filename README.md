@@ -13,7 +13,7 @@ It offers various media services covering audio, videos, and media storage. The 
 -   Audio playback and recording
 -   Video playback and recording
 
-**Figure  1**  Position in the subsystem architecture<a name="fig99659301300"></a>  
+**Figure  1**  Position in the subsystem architecture<a name="fig99659301300"></a>
 
 
 ![](figures/en-us_image_0000001105973932.png)
@@ -22,7 +22,7 @@ It offers various media services covering audio, videos, and media storage. The 
 
 The structure of the repository directory is as follows:
 ```
-/foundation/multimedia/media_standard
+/foundation/multimedia/player_framework
 ├── interfaces                           # interface
 │   ├── kits                             # Application interface
 │   └── inner_api                        # APIs between systems
@@ -62,4 +62,4 @@ The structure of the repository directory is as follows:
 
 Media repository
 
-**multimedia\media_standard**
+**multimedia\player_framework**

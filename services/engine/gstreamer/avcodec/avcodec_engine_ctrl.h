@@ -36,6 +36,7 @@ public:
     int32_t Stop();
     int32_t Flush();
     int32_t Release();
+    int32_t NotifyEos();
     void SetObs(const std::weak_ptr<IAVCodecEngineObs> &obs);
     sptr<Surface> CreateInputSurface(std::shared_ptr<ProcessorConfig> inputConfig);
     int32_t SetOutputSurface(sptr<Surface> surface);
@@ -44,6 +45,7 @@ public:
     std::shared_ptr<AVSharedMemory> GetOutputBuffer(uint32_t index);
     int32_t ReleaseOutputBuffer(uint32_t index, bool render);
     int32_t SetParameter(const Format &format);
+    int32_t SetConfigParameter(const Format &format);
 
 private:
     static GstBusSyncReply BusSyncHandler(GstBus *bus, GstMessage *message, gpointer userData);

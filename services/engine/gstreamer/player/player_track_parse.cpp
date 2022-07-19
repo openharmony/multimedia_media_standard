@@ -123,7 +123,7 @@ GstPadProbeReturn PlayerTrackParse::ProbeCallback(GstPad *pad, GstPadProbeInfo *
             GstCaps *caps = nullptr;
             gst_event_parse_caps(event, &caps);
             CHECK_AND_RETURN_RET_LOG(caps != nullptr, GST_PAD_PROBE_OK, "caps is nullptr")
-            MEDIA_LOGI("catch caps at pad %{public}s", PAD_NAME(&pad));
+            MEDIA_LOGI("catch caps at pad %{public}s", PAD_NAME(pad));
             GstMetaParser::ParseStreamCaps(*caps, it->second);
             it->second.PutIntValue(INNER_META_KEY_TRACK_INDEX, playerTrackParse->trackcount_);
             playerTrackParse->trackcount_++;
@@ -163,7 +163,7 @@ void PlayerTrackParse::SetDemuxerElementFind(bool isFind)
     demuxerElementFind_ = isFind;
 }
 
-bool PlayerTrackParse::GetDemuxerElementFind()
+bool PlayerTrackParse::GetDemuxerElementFind() const
 {
     return demuxerElementFind_;
 }

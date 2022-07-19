@@ -40,7 +40,7 @@ enum {
     PROP_0,
     PROP_CAPS,
     PROP_MAX_POOL_CAPACITY,
-    PROP_WAIT_TIME,
+    PROP_WAIT_TIME
 };
 
 static GstStaticPadTemplate g_sinktemplate = GST_STATIC_PAD_TEMPLATE("sink",

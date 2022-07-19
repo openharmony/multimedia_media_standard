@@ -67,7 +67,7 @@ public:
 
 private:
     std::unique_ptr<OHOS::AudioStandard::AudioRenderer> audioRenderer_;
-    AudioStandard::AudioRendererOptions rendererOptions_;
+    AudioStandard::AudioRendererOptions rendererOptions_ = {};
     void InitChannelRange(GstCaps *caps) const;
     void InitRateRange(GstCaps *caps) const;
     std::shared_ptr<AudioRendererMediaCallback> audioRendererMediaCallback_ = nullptr;

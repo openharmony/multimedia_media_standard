@@ -182,7 +182,7 @@ private:
     int32_t videoScaleType_ = 0;
     std::vector<Format> videoTrackInfoVec_;
     AVFileDescriptor rawFd_;
-    OHOS::AudioStandard::InterruptMode interruptMode_;
+    OHOS::AudioStandard::InterruptMode interruptMode_ = AudioStandard::InterruptMode::SHARE_MODE;
     std::map<std::string, std::shared_ptr<AutoRef>> refMap_;
 };
 } // namespace Media
