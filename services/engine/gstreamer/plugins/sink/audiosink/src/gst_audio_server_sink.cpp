@@ -53,7 +53,8 @@ enum {
     PROP_AUDIO_RENDERER_FLAG,
     PROP_AUDIO_INTERRUPT_MODE,
     PROP_LAST_RENDER_PTS,
-    PROP_ENABLE_OPT_RENDER_DELAY
+    PROP_ENABLE_OPT_RENDER_DELAY,
+    PROP_LAST_RUNNING_TIME_DIFF,
 };
 
 #define gst_audio_server_sink_parent_class parent_class
@@ -70,6 +71,7 @@ static gboolean gst_audio_server_sink_start(GstBaseSink *basesink);
 static gboolean gst_audio_server_sink_stop(GstBaseSink *basesink);
 static GstFlowReturn gst_audio_server_sink_render(GstBaseSink *basesink, GstBuffer *buffer);
 static void gst_audio_server_sink_clear_cache_buffer(GstAudioServerSink *sink);
+static GstClockTime gst_audio_server_sink_update_reach_time(GstBaseSink *basesink, GstClockTime reach_time);
 
 static void gst_audio_server_sink_class_init(GstAudioServerSinkClass *klass)
 {
@@ -150,6 +152,10 @@ static void gst_audio_server_sink_class_init(GstAudioServerSinkClass *klass)
             "If TRUE, use DEFAULT_AUDIO_RENDER_DELAY instead of the latency provided by AudioStandard",
             FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
+    g_object_class_install_property(gobject_class, PROP_LAST_RUNNING_TIME_DIFF,
+        g_param_spec_int64("last-running-time-diff", "last running time diff", "last running time diff",
+            0, G_MAXINT64, 0, (GParamFlags)(G_PARAM_READABLE | G_PARAM_STATIC_STRINGS)));
+
     gst_element_class_set_static_metadata(gstelement_class,
         "Audio server sink", "Sink/Audio",
         "Push pcm data to Audio server", "OpenHarmony");
@@ -164,6 +170,7 @@ static void gst_audio_server_sink_class_init(GstAudioServerSinkClass *klass)
     gstbasesink_class->start = gst_audio_server_sink_start;
     gstbasesink_class->stop = gst_audio_server_sink_stop;
     gstbasesink_class->render = gst_audio_server_sink_render;
+    gstbasesink_class->update_reach_time = gst_audio_server_sink_update_reach_time;
 }
 
 static void gst_audio_server_sink_init(GstAudioServerSink *sink)
@@ -190,6 +197,7 @@ static void gst_audio_server_sink_init(GstAudioServerSink *sink)
     g_mutex_init(&sink->render_lock);
     sink->last_render_pts = 0;
     sink->enable_opt_render_delay = FALSE;
+    sink->last_running_time_diff = 0;
 }
 
 static void gst_audio_server_sink_finalize(GObject *object)
@@ -308,6 +316,11 @@ static void gst_audio_server_sink_get_property(GObject *object, guint prop_id, G
             g_value_set_uint64(value, static_cast<guint64>(sink->last_render_pts));
             g_mutex_unlock(&sink->render_lock);
             break;
+        case PROP_LAST_RUNNING_TIME_DIFF:
+            g_mutex_lock(&sink->render_lock);
+            g_value_set_int64(value, static_cast<gint64>(sink->last_running_time_diff));
+            g_mutex_unlock(&sink->render_lock);
+            break;
         default:
             break;
     }
@@ -320,6 +333,27 @@ static GstCaps *gst_audio_server_sink_get_caps(GstBaseSink *basesink, GstCaps *c
     g_return_val_if_fail(sink != nullptr, FALSE);
     g_return_val_if_fail(sink->audio_sink != nullptr, FALSE);
     return sink->audio_sink->GetCaps();
+}
+
+static GstClockTime gst_audio_server_sink_update_reach_time(GstBaseSink *basesink, GstClockTime reach_time)
+{
+    g_return_val_if_fail(basesink != nullptr, reach_time);
+    GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(basesink);
+    GstClockTime base_time = gst_element_get_base_time(GST_ELEMENT(basesink)); // get base time
+    GstClockTime cur_clock_time = gst_clock_get_time(GST_ELEMENT_CLOCK(basesink)); // get current clock time
+    if (!GST_CLOCK_TIME_IS_VALID(base_time) || !GST_CLOCK_TIME_IS_VALID(cur_clock_time)) {
+        return reach_time;
+    }
+    if (cur_clock_time < base_time) {
+        return reach_time;
+    }
+    GstClockTime cur_running_time = cur_clock_time - base_time; // get running time
+    g_mutex_lock(&sink->render_lock);
+    sink->last_running_time_diff =
+        static_cast<GstClockTimeDiff>(cur_running_time) - static_cast<GstClockTimeDiff>(reach_time);
+    g_mutex_unlock(&sink->render_lock);
+
+    return GST_BASE_SINK_CLASS(parent_class)->update_reach_time(basesink, reach_time);
 }
 
 static gboolean gst_audio_server_sink_set_caps(GstBaseSink *basesink, GstCaps *caps)
@@ -536,6 +570,7 @@ static GstStateChangeReturn gst_audio_server_sink_change_state(GstElement *eleme
             gst_audio_server_sink_clear_cache_buffer(sink);
             g_mutex_lock(&sink->render_lock);
             sink->last_render_pts = 0;
+            sink->last_running_time_diff = 0;
             g_mutex_unlock(&sink->render_lock);
             break;
         default:
@@ -545,7 +580,7 @@ static GstStateChangeReturn gst_audio_server_sink_change_state(GstElement *eleme
     return ret;
 }
 
-static void gst_audio_server_sink_get_latency(GstAudioServerSink *sink, GstBuffer *buffer)
+static void gst_audio_server_sink_get_latency(GstAudioServerSink *sink, const GstBuffer *buffer)
 {
     g_mutex_lock(&sink->render_lock);
     if (sink->frame_after_segment) {
