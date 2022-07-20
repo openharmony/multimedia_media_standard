@@ -162,6 +162,7 @@ private:
     bool isRating_ = false;
     bool isBuffering_ = false;
     bool isNetWorkPlay_ = false;
+    bool isDuration_ = false;
     uint32_t rendererInfo_ = 0;
     int32_t rendererFlag_ = 0;
 
