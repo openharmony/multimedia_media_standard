@@ -137,9 +137,8 @@ int32_t PlayerServer::OnPrepare(bool async)
     }
 
     if (status_ == PLAYER_PREPARED) {
-        Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, status_, format);
-        return MSERR_OK;
+        MEDIA_LOGE("Can not Prepare, currentState is %{public}d", status_);
+        return MSERR_INVALID_OPERATION;
     }
 
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
@@ -185,9 +184,8 @@ int32_t PlayerServer::Play()
     }
 
     if (status_ == PLAYER_STARTED) {
-        Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, status_, format);
-        return MSERR_OK;
+        MEDIA_LOGE("Can not play, currentState is %{public}d", status_);
+        return MSERR_INVALID_OPERATION;
     }
 
     int32_t ret = playerEngine_->Play();
@@ -215,9 +213,8 @@ int32_t PlayerServer::Pause()
     }
 
     if (status_ == PLAYER_PAUSED) {
-        Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, status_, format);
-        return MSERR_OK;
+        MEDIA_LOGE("Can not pause, currentState is %{public}d", status_);
+        return MSERR_INVALID_OPERATION;
     }
 
     if (status_ != PLAYER_STARTED) {
@@ -242,9 +239,8 @@ int32_t PlayerServer::Stop()
     }
 
     if (status_ == PLAYER_STOPPED) {
-        Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, status_, format);
-        return MSERR_OK;
+        MEDIA_LOGE("Can not stop, currentState is %{public}d", status_);
+        return MSERR_INVALID_OPERATION;
     }
 
     if ((status_ != PLAYER_PREPARED) && (status_ != PLAYER_STARTED) &&
@@ -271,9 +267,8 @@ int32_t PlayerServer::Reset()
 int32_t PlayerServer::OnReset()
 {
     if (status_ == PLAYER_IDLE) {
-        Format format;
-        OnInfo(INFO_TYPE_STATE_CHANGE, status_, format);
-        return MSERR_OK;
+        MEDIA_LOGE("Can not reset, currentState is %{public}d", status_);
+        return MSERR_INVALID_OPERATION;
     }
 
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
