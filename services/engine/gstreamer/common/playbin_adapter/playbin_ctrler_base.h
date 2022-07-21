@@ -146,6 +146,9 @@ private:
     std::mutex condMutex_;
     std::condition_variable stateCond_;
 
+    bool isStopFinish_ = false;
+    std::mutex stopCondMutex_;
+    std::condition_variable stopCond_;
     PlayBinSinkProvider::SinkPtr audioSink_ = nullptr;
     PlayBinSinkProvider::SinkPtr videoSink_ = nullptr;
 
