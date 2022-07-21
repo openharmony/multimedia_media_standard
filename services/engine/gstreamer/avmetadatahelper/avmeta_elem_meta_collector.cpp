@@ -383,16 +383,8 @@ void AVMetaElemMetaCollector::QueryDuration(GstPad &pad)
         duration_ = streamDuration;
         MEDIA_LOGI("update duration to %{public}" PRIi64 "", duration_);
 
-        static constexpr int32_t NASEC_PER_HALF_MILLISEC = 500000;
         static constexpr int32_t NASEC_PER_MILLISEC = 1000000;
-
-        int64_t milliSecond;
-        if ((std::numeric_limits<int64_t>::max() - NASEC_PER_HALF_MILLISEC) < duration_) {
-            milliSecond = duration_ / NASEC_PER_MILLISEC; // ns -> ms
-        } else {
-            milliSecond = (duration_ + NASEC_PER_HALF_MILLISEC) / NASEC_PER_MILLISEC; // ns -> ms, round up.
-        }
-
+        int64_t milliSecond = duration_ / NASEC_PER_MILLISEC; // ns -> ms
         fileUploadMeta_.SetMeta(AV_KEY_DURATION, std::to_string(milliSecond));
         ReportMeta(fileUploadMeta_);
     }
