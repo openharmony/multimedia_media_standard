@@ -31,26 +31,19 @@ constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaClien
 
 namespace OHOS {
 namespace Media {
+static MediaClient mediaClientInstance;
 IMediaService &MediaServiceFactory::GetInstance()
 {
-    static MediaClient instance;
-    return instance;
+    return mediaClientInstance;
 }
 
-MediaClient::MediaClient()
+MediaClient::MediaClient() noexcept
 {
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
 }
 
 MediaClient::~MediaClient()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (mediaProxy_ != nullptr && deathRecipient_ != nullptr) {
-        (void)mediaProxy_->AsObject()->RemoveDeathRecipient(deathRecipient_);
-        deathRecipient_->SetNotifyCb(nullptr);
-        mediaProxy_ = nullptr;
-        deathRecipient_ = nullptr;
-    }
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
@@ -291,7 +284,7 @@ sptr<IStandardMediaService> MediaClient::GetMediaProxy()
     deathRecipient_ = new(std::nothrow) MediaDeathRecipient(pid);
     CHECK_AND_RETURN_RET_LOG(deathRecipient_ != nullptr, nullptr, "failed to new MediaDeathRecipient.");
 
-    deathRecipient_->SetNotifyCb(std::bind(&MediaClient::MediaServerDied, this, std::placeholders::_1));
+    deathRecipient_->SetNotifyCb(std::bind(&MediaClient::MediaServerDied, std::placeholders::_1));
     bool result = object->AddDeathRecipient(deathRecipient_);
     if (!result) {
         MEDIA_LOGE("failed to add deathRecipient");
@@ -306,6 +299,11 @@ sptr<IStandardMediaService> MediaClient::GetMediaProxy()
 void MediaClient::MediaServerDied(pid_t pid)
 {
     MEDIA_LOGE("media server is died, pid:%{public}d!", pid);
+    mediaClientInstance.DoMediaServerDied();
+}
+
+void MediaClient::DoMediaServerDied()
+{
     std::lock_guard<std::mutex> lock(mutex_);
     if (mediaProxy_ != nullptr) {
         (void)mediaProxy_->AsObject()->RemoveDeathRecipient(deathRecipient_);
