@@ -27,6 +27,8 @@ public:
     AVFormatNativeMock() = default;
     bool PutIntValue(const std::string_view &key, int32_t value) override;
     bool GetIntValue(const std::string_view &key, int32_t &value) override;
+    bool PutStringValue(const std::string_view &key, const std::string_view &value) override;
+    bool GetStringValue(const std::string_view &key, std::string &value) override;
     Format &GetFormat();
 
 private:

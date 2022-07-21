@@ -146,6 +146,14 @@ int32_t VideoEncNativeMock::Release()
     return MSERR_INVALID_OPERATION;
 }
 
+int32_t VideoEncNativeMock::NotifyEos()
+{
+    if (videoEnc_ != nullptr) {
+        return videoEnc_->NotifyEos();
+    }
+    return MSERR_INVALID_OPERATION;
+}
+
 std::shared_ptr<FormatMock> VideoEncNativeMock::GetOutputMediaDescription()
 {
     if (videoEnc_ != nullptr) {

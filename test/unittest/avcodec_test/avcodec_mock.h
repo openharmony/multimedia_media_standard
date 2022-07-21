@@ -31,6 +31,8 @@ public:
     virtual ~FormatMock() = default;
     virtual bool PutIntValue(const std::string_view &key, int32_t value) = 0;
     virtual bool GetIntValue(const std::string_view &key, int32_t &value) = 0;
+    virtual bool PutStringValue(const std::string_view &key, const std::string_view &value) = 0;
+    virtual bool GetStringValue(const std::string_view &key, std::string &value) = 0;
 };
 
 class AVMemoryMock : public NoCopyable {
@@ -88,6 +90,7 @@ public:
     virtual int32_t Flush() = 0;
     virtual int32_t Reset() = 0;
     virtual int32_t Release() = 0;
+    virtual int32_t NotifyEos() = 0;
     virtual std::shared_ptr<FormatMock> GetOutputMediaDescription() = 0;
     virtual int32_t SetParameter(std::shared_ptr<FormatMock> format) = 0;
     virtual int32_t FreeOutputData(uint32_t index) = 0;
