@@ -37,7 +37,6 @@ namespace {
     constexpr int32_t NANO_SEC_PER_USEC = 1000;
     constexpr double DEFAULT_RATE = 1.0;
     constexpr uint32_t INTERRUPT_EVENT_SHIFT = 8;
-    constexpr uint32_t STOP_TIMEOUT = 5;
 }
 
 namespace OHOS {
@@ -426,16 +425,8 @@ void PlayBinCtrlerBase::Reset() noexcept
         elemSetupListener_ = nullptr;
         elemUnSetupListener_ = nullptr;
     }
-    isStopFinish_ = false;
-    int32_t ret = StopInternal();
-    CHECK_AND_RETURN(ret == MSERR_OK);
-    {
-        std::unique_lock<std::mutex> condLock(stopCondMutex_);
-        stopCond_.wait_for(condLock, std::chrono::seconds(STOP_TIMEOUT), [this]() {
-            return isStopFinish_;
-        });
-    }
-    CHECK_AND_RETURN(isStopFinish_);
+    (void)StopInternal();
+
     // Do it here before the ChangeState to IdleState, for avoding the deadlock when msg handler
     // try to call the ChangeState.
     ExitInitializedState();
@@ -1072,12 +1063,7 @@ void PlayBinCtrlerBase::ReportMessage(const PlayBinMessage &msg)
         isErrorHappened_ = true;
         stateCond_.notify_all();
     }
-    if (msg.type == PlayBinMsgType::PLAYBIN_MSG_STATE_CHANGE &&
-        msg.code == PlayBinState::PLAYBIN_STATE_STOPPED) {
-        std::unique_lock<std::mutex> condLock(stopCondMutex_);
-        isStopFinish_ = true;
-        stopCond_.notify_all();
-    }
+
     MEDIA_LOGD("report msg, type: %{public}d", msg.type);
 
     auto msgReportHandler = std::make_shared<TaskHandler<void>>([this, msg]() { notifier_(msg); });
