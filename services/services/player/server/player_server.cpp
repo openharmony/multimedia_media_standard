@@ -252,7 +252,7 @@ int32_t PlayerServer::HandlePrepare()
     (void)playerEngine_->SetVolume(config_.leftVolume, config_.rightVolume);
     (void)playerEngine_->SetLooping(config_.looping);
     if (config_.speedMode != SPEED_FORWARD_1_00_X) {
-        (void)SetPlaybackSpeed(config_.speedMode);
+        (void)playerEngine_->SetPlaybackSpeed(config_.speedMode);
     }
 
     return MSERR_OK;
