@@ -22,7 +22,7 @@ constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "VideoCallb
 const std::string START_RENDER_FRAME_CALLBACK_NAME = "startRenderFrame";
 const std::string VIDEO_SIZE_CHANGED_CALLBACK_NAME = "videoSizeChanged";
 const std::string PLAYBACK_COMPLETED_CALLBACK_NAME = "playbackCompleted";
-const std::string BITRATE_COLLECTED_CALLBACK_NAME = "availableBitrateCollected";
+const std::string BITRATE_COLLECTED_CALLBACK_NAME = "availableBitratesCollect";
 }
 
 namespace OHOS {
