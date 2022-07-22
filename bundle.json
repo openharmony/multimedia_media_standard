@@ -36,7 +36,7 @@
           "window_manager",
           "napi",
           "startup_l2",
-          "samgr_standard",
+          "samgr",
           "libxml2",
           "thirdparty_bounds_checking_function",
           "hitrace_native",
