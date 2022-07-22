@@ -33,7 +33,7 @@ namespace OHOS {
 namespace Media {
 class MediaClient : public IMediaService, public NoCopyable {
 public:
-    MediaClient() noexcept;
+    MediaClient();
     ~MediaClient();
 
     std::shared_ptr<IRecorderService> CreateRecorderService() override;
@@ -54,9 +54,8 @@ public:
 private:
     sptr<IStandardMediaService> GetMediaProxy();
     bool IsAlived();
-    static void MediaServerDied(pid_t pid);
-    void DoMediaServerDied();
-    
+    void MediaServerDied(pid_t pid);
+
     sptr<IStandardMediaService> mediaProxy_ = nullptr;
     sptr<MediaListenerStub> listenerStub_ = nullptr;
     sptr<MediaDeathRecipient> deathRecipient_ = nullptr;
