@@ -87,7 +87,8 @@ bool PlayerSinkProvider::EnableOptRenderDelay() const
     std::string enable;
     int32_t res = OHOS::system::GetStringParameter("sys.media.kpi.opt.renderdelay.enable", enable, "");
     if (res != 0 || enable.empty()) {
-        return false;
+        MEDIA_LOGW("KPI-TRACE: get value fail, default enable");
+        return true;
     }
 
     MEDIA_LOGI("KPI-TRACE: sys.media.kpi.opt.renderdelay.enable=%{public}s", enable.c_str());
