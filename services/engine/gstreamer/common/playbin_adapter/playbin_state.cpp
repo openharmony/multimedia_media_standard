@@ -375,7 +375,7 @@ int32_t PlayBinCtrlerBase::PlayingState::SetRate(double rate)
 
 void PlayBinCtrlerBase::PlayingState::ProcessStateChange(const InnerMessage &msg)
 {
-    if ((msg.detail1 == GST_STATE_PLAYING) && (msg.detail2 == GST_STATE_PAUSED)) {
+    if ((msg.detail1 == GST_STATE_PLAYING) && (msg.detail2 == GST_STATE_PAUSED) && !ctrler_.isBuffering_) {
         ctrler_.ChangeState(ctrler_.pausedState_);
         return;
     }
