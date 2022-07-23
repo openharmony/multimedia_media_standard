@@ -215,6 +215,11 @@ int32_t PlayBinCtrlerBase::Play()
         return MSERR_OK;
     }
 
+    if (isBuffering_) {
+        ChangeState(playingState_);
+        return MSERR_OK;
+    }
+
     auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
     int32_t ret = currState->Play();
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Play failed");
@@ -230,6 +235,11 @@ int32_t PlayBinCtrlerBase::Pause()
 
     if (GetCurrState() == pausedState_ || GetCurrState() == preparedState_) {
         MEDIA_LOGI("already at paused state, skip");
+        return MSERR_OK;
+    }
+
+    if (isBuffering_) {
+        ChangeState(pausedState_);
         return MSERR_OK;
     }
 
@@ -839,8 +849,10 @@ void PlayBinCtrlerBase::HandleCacheCtrl(const InnerMessage &msg)
 
 void PlayBinCtrlerBase::HandleCacheCtrlWhenNoBuffering(int32_t percent)
 {
+    GstState state = GST_STATE_NULL;
+    gst_element_get_state(GST_ELEMENT_CAST(playbin_), &state, nullptr, static_cast<GstClockTime>(0));
     if (percent < static_cast<float>(BUFFER_LOW_PERCENT_DEFAULT) / BUFFER_HIGH_PERCENT_DEFAULT *
-        BUFFER_PERCENT_THRESHOLD) {
+        BUFFER_PERCENT_THRESHOLD && !isSeeking_ && !isRating_ && state != GST_STATE_PAUSED) {
         isBuffering_ = true;
         {
             std::unique_lock<std::mutex> lock(mutex_);
