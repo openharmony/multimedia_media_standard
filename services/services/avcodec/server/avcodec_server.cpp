@@ -148,6 +148,21 @@ int32_t AVCodecServer::Flush()
     return ret;
 }
 
+int32_t AVCodecServer::NotifyEos()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    MediaTrace trace("AVCodecServer::NotifyEos");
+    CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_RUNNING, MSERR_INVALID_OPERATION, "invalid state");
+    CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
+    int32_t ret = codecEngine_->NotifyEos();
+    if (ret == MSERR_OK) {
+        status_ = AVCODEC_END_OF_STREAM;
+        BehaviorEventWrite(GetStatusDescription(status_), "AVCodec");
+        MEDIA_LOGI("EOS state");
+    }
+    return ret;
+}
+
 int32_t AVCodecServer::Reset()
 {
     std::lock_guard<std::mutex> lock(mutex_);

@@ -189,9 +189,14 @@ void PlayerEngineGstImpl::HandleInfoMessage(const PlayBinMessage &msg)
 
 void PlayerEngineGstImpl::HandleSeekDoneMessage(const PlayBinMessage &msg)
 {
-    MEDIA_LOGI("seek done, seek position = %{public}dms", msg.code / MSEC_PER_USEC);
+    MEDIA_LOGI("seek done, seek position = %{public}dms", msg.code);
 
-    int32_t status = msg.code / MSEC_PER_USEC;
+    GstElement *decoder = codecChangedDetector_->GetDecoder();
+    if (codecChangedDetector_->isHardwareDec() && decoder != nullptr) {
+        g_object_set(decoder, "seeking", false, nullptr);
+    }
+
+    int32_t status = msg.code;
     Format format;
     std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
     if (notifyObs != nullptr) {
@@ -418,7 +423,6 @@ void PlayerEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
         { PLAYBIN_MSG_POSITION_UPDATE, std::bind(&PlayerEngineGstImpl::HandlePositionUpdateMessage, this,
             std::placeholders::_1) },
     };
-
     if (MSG_NOTIFY_FUNC_TABLE.count(msg.type) != 0) {
         MSG_NOTIFY_FUNC_TABLE.at(msg.type)(msg);
     }
@@ -705,6 +709,11 @@ int32_t PlayerEngineGstImpl::Seek(int32_t mSeconds, PlayerSeekMode mode)
     CHECK_AND_RETURN_RET_LOG(playBinCtrler_ != nullptr, MSERR_INVALID_OPERATION, "playBinCtrler_ is nullptr");
     MEDIA_LOGI("Seek in %{public}dms", mSeconds);
 
+    GstElement *decoder = codecChangedDetector_->GetDecoder();
+    if (codecChangedDetector_->isHardwareDec() && decoder != nullptr) {
+        g_object_set(decoder, "seeking", true, nullptr);
+    }
+
     int64_t position = static_cast<int64_t>(mSeconds) * MSEC_PER_USEC;
     return playBinCtrler_->Seek(position, mode);
 }
@@ -735,9 +744,8 @@ int32_t PlayerEngineGstImpl::SetVideoScaleType(VideoScaleType videoScaleType)
     if (sinkProvider_ != nullptr) {
         MEDIA_LOGD("SetVideoScaleType in");
         sinkProvider_->SetVideoScaleType(static_cast<uint32_t>(videoScaleType));
-    } else {
-        videoScaleType_ = videoScaleType;
     }
+    videoScaleType_ = videoScaleType;
     return MSERR_OK;
 }
 
@@ -805,10 +813,24 @@ void PlayerEngineGstImpl::OnNotifyElemUnSetup(GstElement &elem)
     codecChangedDetector_->DetectCodecUnSetup(&elem, videoSink);
 }
 
+CodecChangedDetector::~CodecChangedDetector()
+{
+    if (decoder_ != nullptr) {
+        gst_object_unref(decoder_);
+        decoder_ = nullptr;
+    }
+}
+
 void CodecChangedDetector::SetupCodecCb(const std::string &metaStr, GstElement *src, GstElement *videoSink)
 {
     if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {
         isHardwareDec_ = true;
+        g_object_set(G_OBJECT(src), "enable-slice-cat", TRUE, nullptr);
+        if (decoder_ != nullptr) {
+            gst_object_unref(decoder_);
+            decoder_ = nullptr;
+        }
+        decoder_ = GST_ELEMENT_CAST(gst_object_ref(src));
         if (!codecTypeList_.empty()) {
             // For hls scene when change codec, the second codec should not go performance mode process.
             codecTypeList_.push_back(true);
@@ -874,6 +896,16 @@ void CodecChangedDetector::DetectCodecUnSetup(GstElement *src, GstElement *video
     }
     g_object_set(G_OBJECT(videoSink), "caps", caps, nullptr);
     gst_caps_unref(caps);
+}
+
+GstElement *CodecChangedDetector::GetDecoder()
+{
+    return decoder_;
+}
+
+bool CodecChangedDetector::isHardwareDec()
+{
+    return isHardwareDec_;
 }
 } // namespace Media
 } // namespace OHOS

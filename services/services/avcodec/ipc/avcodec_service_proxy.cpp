@@ -234,6 +234,25 @@ int32_t AVCodecServiceProxy::Flush()
     return reply.ReadInt32();
 }
 
+int32_t AVCodecServiceProxy::NotifyEos()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(AVCodecServiceProxy::GetDescriptor())) {
+        MEDIA_LOGE("Failed to write descriptor");
+        return MSERR_UNKNOWN;
+    }
+
+    int32_t ret = Remote()->SendRequest(NOTIFY_EOS, data, reply, option);
+    if (ret != MSERR_OK) {
+        MEDIA_LOGE("NotifyEos failed, error: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
 int32_t AVCodecServiceProxy::Reset()
 {
     inputBufferCache_ = nullptr;

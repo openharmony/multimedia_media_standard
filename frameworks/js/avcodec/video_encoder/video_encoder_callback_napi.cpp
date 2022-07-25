@@ -18,6 +18,7 @@
 #include "avcodec_napi_utils.h"
 #include "media_errors.h"
 #include "media_log.h"
+#include "scope_guard.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "VideoEncoderCallbackNapi"};
@@ -37,37 +38,23 @@ VideoEncoderCallbackNapi::~VideoEncoderCallbackNapi()
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
-void VideoEncoderCallbackNapi::SaveCallbackReference(const std::string &callbackName, napi_value args)
+void VideoEncoderCallbackNapi::SaveCallbackReference(const std::string &name, std::weak_ptr<AutoRef> ref)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-
-    napi_ref callback = nullptr;
-    napi_status status = napi_create_reference(env_, args, 1, &callback);
-    CHECK_AND_RETURN_LOG(status == napi_ok && callback != nullptr, "Failed to create callback reference");
-
-    std::shared_ptr<AutoRef> cb = std::make_shared<AutoRef>(env_, callback);
-    if (callbackName == ERROR_CALLBACK_NAME) {
-        errorCallback_ = cb;
-    } else if (callbackName == FORMAT_CHANGED_CALLBACK_NAME) {
-        formatChangedCallback_ = cb;
-    } else if (callbackName == INPUT_CALLBACK_NAME) {
-        inputCallback_ = cb;
-    } else if (callbackName == OUTPUT_CALLBACK_NAME) {
-        outputCallback_ = cb;
-    } else {
-        MEDIA_LOGW("Unknown callback type: %{public}s", callbackName.c_str());
-        return;
-    }
+    refMap_[name] = ref;
 }
 
 void VideoEncoderCallbackNapi::SendErrorCallback(MediaServiceExtErrCode errCode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN(errorCallback_ != nullptr);
+    if (refMap_.find(ERROR_CALLBACK_NAME) == refMap_.end()) {
+        MEDIA_LOGW("can not find error callback!");
+        return;
+    }
 
     VideoEncoderJsCallback *cb = new(std::nothrow) VideoEncoderJsCallback();
     CHECK_AND_RETURN(cb != nullptr);
-    cb->callback = errorCallback_;
+    cb->callback = refMap_.at(ERROR_CALLBACK_NAME);
     cb->callbackName = ERROR_CALLBACK_NAME;
     cb->errorMsg = MSExtErrorToString(errCode);
     cb->errorCode = errCode;
@@ -78,26 +65,23 @@ void VideoEncoderCallbackNapi::OnError(AVCodecErrorType errorType, int32_t errCo
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGD("OnError is called, name: %{public}d, error message: %{public}d", errorType, errCode);
-    CHECK_AND_RETURN(errorCallback_ != nullptr);
 
-    VideoEncoderJsCallback *cb = new(std::nothrow) VideoEncoderJsCallback();
-    CHECK_AND_RETURN(cb != nullptr);
-    cb->callback = errorCallback_;
-    cb->callbackName = ERROR_CALLBACK_NAME;
-    cb->errorMsg = MSErrorToExtErrorString(static_cast<MediaServiceErrCode>(errCode));
-    cb->errorCode = MSErrorToExtError(static_cast<MediaServiceErrCode>(errCode));
-    return OnJsErrorCallBack(cb);
+    MediaServiceExtErrCode err = MSErrorToExtError(static_cast<MediaServiceErrCode>(errCode));
+    return SendErrorCallback(err);
 }
 
 void VideoEncoderCallbackNapi::OnOutputFormatChanged(const Format &format)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGD("OnOutputFormatChanged is called");
-    CHECK_AND_RETURN(formatChangedCallback_ != nullptr);
+    if (refMap_.find(FORMAT_CHANGED_CALLBACK_NAME) == refMap_.end()) {
+        MEDIA_LOGW("can not find output format changed callback!");
+        return;
+    }
 
     VideoEncoderJsCallback *cb = new(std::nothrow) VideoEncoderJsCallback();
     CHECK_AND_RETURN(cb != nullptr);
-    cb->callback = formatChangedCallback_;
+    cb->callback = refMap_.at(FORMAT_CHANGED_CALLBACK_NAME);
     cb->callbackName = FORMAT_CHANGED_CALLBACK_NAME;
     cb->format = format;
     return OnJsFormatCallBack(cb);
@@ -106,8 +90,10 @@ void VideoEncoderCallbackNapi::OnOutputFormatChanged(const Format &format)
 void VideoEncoderCallbackNapi::OnInputBufferAvailable(uint32_t index)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN(inputCallback_ != nullptr);
-
+    if (refMap_.find(INPUT_CALLBACK_NAME) == refMap_.end()) {
+        MEDIA_LOGW("can not find inputbuffer callback!");
+        return;
+    }
     auto adec = venc_.lock();
     CHECK_AND_RETURN(adec != nullptr);
 
@@ -117,7 +103,7 @@ void VideoEncoderCallbackNapi::OnInputBufferAvailable(uint32_t index)
     VideoEncoderJsCallback *cb = new(std::nothrow) VideoEncoderJsCallback();
     CHECK_AND_RETURN(cb != nullptr);
 
-    cb->callback = inputCallback_;
+    cb->callback = refMap_.at(INPUT_CALLBACK_NAME);
     cb->callbackName = INPUT_CALLBACK_NAME;
     cb->index = index;
     cb->memory = buffer;
@@ -127,8 +113,10 @@ void VideoEncoderCallbackNapi::OnInputBufferAvailable(uint32_t index)
 void VideoEncoderCallbackNapi::OnOutputBufferAvailable(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN(outputCallback_ != nullptr);
-
+    if (refMap_.find(OUTPUT_CALLBACK_NAME) == refMap_.end()) {
+        MEDIA_LOGW("can not find outputbuffer callback!");
+        return;
+    }
     auto venc = venc_.lock();
     CHECK_AND_RETURN(venc != nullptr);
 
@@ -145,7 +133,7 @@ void VideoEncoderCallbackNapi::OnOutputBufferAvailable(uint32_t index, AVCodecBu
     VideoEncoderJsCallback *cb = new(std::nothrow) VideoEncoderJsCallback();
     CHECK_AND_RETURN(cb != nullptr);
 
-    cb->callback = outputCallback_;
+    cb->callback = refMap_.at(OUTPUT_CALLBACK_NAME);
     cb->callbackName = OUTPUT_CALLBACK_NAME;
     cb->memory = buffer;
     cb->index = index;
@@ -156,49 +144,43 @@ void VideoEncoderCallbackNapi::OnOutputBufferAvailable(uint32_t index, AVCodecBu
 
 void VideoEncoderCallbackNapi::OnJsErrorCallBack(VideoEncoderJsCallback *jsCb) const
 {
+    ON_SCOPE_EXIT(0) { delete jsCb; };
+
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr) {
-        MEDIA_LOGE("Fail to get uv event loop");
-        delete jsCb;
-        return;
-    }
+    CHECK_AND_RETURN_LOG(loop != nullptr, "Fail to get uv event loop");
 
     uv_work_t *work = new(std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        MEDIA_LOGE("No memory");
-        delete jsCb;
-        return;
-    }
+    CHECK_AND_RETURN_LOG(work != nullptr, "Fail to new uv_work_t");
 
     work->data = reinterpret_cast<void *>(jsCb);
     // async callback, jsWork and jsWork->data should be heap object.
     int ret = uv_queue_work(loop, work, [] (uv_work_t *work) {}, [] (uv_work_t *work, int status) {
-        // Js Thread
         CHECK_AND_RETURN_LOG(work != nullptr, "Work thread is nullptr");
         VideoEncoderJsCallback *event = reinterpret_cast<VideoEncoderJsCallback *>(work->data);
-        napi_env env = event->callback->env_;
-        napi_ref callback = event->callback->cb_;
         MEDIA_LOGD("JsCallBack %{public}s, uv_queue_work start", event->callbackName.c_str());
         do {
             CHECK_AND_BREAK(status != UV_ECANCELED);
+            std::shared_ptr<AutoRef> ref = event->callback.lock();
+            CHECK_AND_BREAK_LOG(ref != nullptr, "%{public}s AutoRef is nullptr", event->callbackName.c_str());
+
             napi_value jsCallback = nullptr;
-            napi_status nstatus = napi_get_reference_value(env, callback, &jsCallback);
+            napi_status nstatus = napi_get_reference_value(ref->env_, ref->cb_, &jsCallback);
             CHECK_AND_BREAK(nstatus == napi_ok && jsCallback != nullptr);
 
             napi_value msgValStr = nullptr;
-            nstatus = napi_create_string_utf8(env, event->errorMsg.c_str(), NAPI_AUTO_LENGTH, &msgValStr);
+            nstatus = napi_create_string_utf8(ref->env_, event->errorMsg.c_str(), NAPI_AUTO_LENGTH, &msgValStr);
             CHECK_AND_BREAK(nstatus == napi_ok && msgValStr != nullptr);
 
             napi_value args[1] = { nullptr };
-            nstatus = napi_create_error(env, nullptr, msgValStr, &args[0]);
+            nstatus = napi_create_error(ref->env_, nullptr, msgValStr, &args[0]);
             CHECK_AND_BREAK(nstatus == napi_ok && args[0] != nullptr);
 
-            nstatus = CommonNapi::FillErrorArgs(env, static_cast<int32_t>(event->errorCode), args[0]);
+            nstatus = CommonNapi::FillErrorArgs(ref->env_, static_cast<int32_t>(event->errorCode), args[0]);
             CHECK_AND_RETURN(nstatus == napi_ok);
 
             napi_value result = nullptr;
-            nstatus = napi_call_function(env, nullptr, jsCallback, 1, args, &result);
+            nstatus = napi_call_function(ref->env_, nullptr, jsCallback, 1, args, &result);
             CHECK_AND_BREAK(nstatus == napi_ok);
         } while (0);
         delete event;
@@ -209,24 +191,19 @@ void VideoEncoderCallbackNapi::OnJsErrorCallBack(VideoEncoderJsCallback *jsCb) c
         delete jsCb;
         delete work;
     }
+    CANCEL_SCOPE_EXIT_GUARD(0);
 }
 
 void VideoEncoderCallbackNapi::OnJsBufferCallBack(VideoEncoderJsCallback *jsCb, bool isInput) const
 {
+    ON_SCOPE_EXIT(0) { delete jsCb; };
+
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr) {
-        MEDIA_LOGE("Fail to get uv event loop");
-        delete jsCb;
-        return;
-    }
+    CHECK_AND_RETURN_LOG(loop != nullptr, "Fail to get uv event loop");
 
     uv_work_t *work = new(std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        MEDIA_LOGE("No memory");
-        delete jsCb;
-        return;
-    }
+    CHECK_AND_RETURN_LOG(work != nullptr, "Fail to new uv_work_t");
 
     jsCb->isInput = isInput;
     work->data = reinterpret_cast<void *>(jsCb);
@@ -235,25 +212,27 @@ void VideoEncoderCallbackNapi::OnJsBufferCallBack(VideoEncoderJsCallback *jsCb, 
         // Js Thread
         CHECK_AND_RETURN_LOG(work != nullptr, "Work thread is nullptr");
         VideoEncoderJsCallback *event = reinterpret_cast<VideoEncoderJsCallback *>(work->data);
-        napi_env env = event->callback->env_;
         MEDIA_LOGD("JsCallBack %{public}s, uv_queue_work start", event->callbackName.c_str());
         do {
             CHECK_AND_BREAK(status != UV_ECANCELED);
+            std::shared_ptr<AutoRef> ref = event->callback.lock();
+            CHECK_AND_BREAK_LOG(ref != nullptr, "%{public}s AutoRef is nullptr", event->callbackName.c_str());
+
             napi_value jsCallback = nullptr;
-            napi_status nstatus = napi_get_reference_value(env, event->callback->cb_, &jsCallback);
+            napi_status nstatus = napi_get_reference_value(ref->env_, ref->cb_, &jsCallback);
             CHECK_AND_BREAK(nstatus == napi_ok && jsCallback != nullptr);
 
             napi_value args[1] = { nullptr };
             if (event->isInput) {
-                args[0] = AVCodecNapiUtil::CreateInputCodecBuffer(env, event->index, event->memory);
+                args[0] = AVCodecNapiUtil::CreateInputCodecBuffer(ref->env_, event->index, event->memory);
             } else {
-                args[0] = AVCodecNapiUtil::CreateOutputCodecBuffer(env, event->index,
+                args[0] = AVCodecNapiUtil::CreateOutputCodecBuffer(ref->env_, event->index,
                     event->memory, event->info, event->flag);
             }
             CHECK_AND_BREAK(args[0] != nullptr);
 
             napi_value result = nullptr;
-            nstatus = napi_call_function(env, nullptr, jsCallback, 1, args, &result);
+            nstatus = napi_call_function(ref->env_, nullptr, jsCallback, 1, args, &result);
             CHECK_AND_BREAK(nstatus == napi_ok);
         } while (0);
         delete event;
@@ -264,45 +243,41 @@ void VideoEncoderCallbackNapi::OnJsBufferCallBack(VideoEncoderJsCallback *jsCb, 
         delete jsCb;
         delete work;
     }
+    CANCEL_SCOPE_EXIT_GUARD(0);
 }
 
 void VideoEncoderCallbackNapi::OnJsFormatCallBack(VideoEncoderJsCallback *jsCb) const
 {
+    ON_SCOPE_EXIT(0) { delete jsCb; };
+
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr) {
-        MEDIA_LOGE("Fail to get uv event loop");
-        delete jsCb;
-        return;
-    }
+    CHECK_AND_RETURN_LOG(loop != nullptr, "Fail to get uv event loop");
 
     uv_work_t *work = new(std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        MEDIA_LOGE("No memory");
-        delete jsCb;
-        return;
-    }
+    CHECK_AND_RETURN_LOG(work != nullptr, "Fail to new uv_work_t");
 
     work->data = reinterpret_cast<void *>(jsCb);
     // async callback, jsWork and jsWork->data should be heap object.
     int ret = uv_queue_work(loop, work, [] (uv_work_t *work) {}, [] (uv_work_t *work, int status) {
-        // Js Thread
         CHECK_AND_RETURN_LOG(work != nullptr, "Work thread is nullptr");
         VideoEncoderJsCallback *event = reinterpret_cast<VideoEncoderJsCallback *>(work->data);
-        napi_env env = event->callback->env_;
         MEDIA_LOGD("JsCallBack %{public}s, uv_queue_work start", event->callbackName.c_str());
         do {
             CHECK_AND_BREAK(status != UV_ECANCELED);
+            std::shared_ptr<AutoRef> ref = event->callback.lock();
+            CHECK_AND_BREAK_LOG(ref != nullptr, "%{public}s AutoRef is nullptr", event->callbackName.c_str());
+
             napi_value jsCallback = nullptr;
-            napi_status nstatus = napi_get_reference_value(env, event->callback->cb_, &jsCallback);
+            napi_status nstatus = napi_get_reference_value(ref->env_, ref->cb_, &jsCallback);
             CHECK_AND_BREAK(nstatus == napi_ok && jsCallback != nullptr);
 
             napi_value args[1] = { nullptr };
-            args[0] = CommonNapi::CreateFormatBuffer(env, event->format);
+            args[0] = CommonNapi::CreateFormatBuffer(ref->env_, event->format);
             CHECK_AND_BREAK(args[0] != nullptr);
 
             napi_value result = nullptr;
-            nstatus = napi_call_function(env, nullptr, jsCallback, 1, args, &result);
+            nstatus = napi_call_function(ref->env_, nullptr, jsCallback, 1, args, &result);
             CHECK_AND_BREAK(nstatus == napi_ok);
         } while (0);
         delete event;
@@ -313,6 +288,7 @@ void VideoEncoderCallbackNapi::OnJsFormatCallBack(VideoEncoderJsCallback *jsCb) 
         delete jsCb;
         delete work;
     }
+    CANCEL_SCOPE_EXIT_GUARD(0);
 }
 } // namespace Media
 } // namespace OHOS

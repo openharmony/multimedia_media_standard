@@ -13,10 +13,12 @@
 
 import("//build/ohos.gni")
 
+declare_args() {
+  multimedia_player_framework_codec_plugins = ""
+}
+
 group("codec_plugins") {
-  if ("${product_name}" == "m40") {
-    deps = [
-      "//foundation/multimedia/omx_adapter/omx_plugins:gst_codec_plugin_omx",
-    ]
+  if (multimedia_player_framework_codec_plugins != "") {
+    deps = [ multimedia_player_framework_codec_plugins ]
   }
 }

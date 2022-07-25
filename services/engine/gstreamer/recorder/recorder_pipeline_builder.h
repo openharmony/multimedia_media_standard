@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RECORDER_PIPELINE_BUILDER
-#define RECORDER_PIPELINE_BUILDER
+#ifndef RECORDER_PIPELINE_BUILDER_H
+#define RECORDER_PIPELINE_BUILDER_H
 
 #include <memory>
 #include "nocopyable.h"
@@ -27,7 +27,7 @@ namespace OHOS {
 namespace Media {
 class RecorderPipelineBuilder : public NoCopyable {
 public:
-    RecorderPipelineBuilder();
+    RecorderPipelineBuilder(int32_t appUid, int32_t appPid, uint32_t appTokenId);
     ~RecorderPipelineBuilder();
 
     int32_t SetSource(const RecorderSourceDesc &desc);
@@ -59,6 +59,9 @@ private:
     size_t videoSrcCount_ = 0;
     size_t otherSrcCount_ = 0;
     int32_t currentCodeFormat_ = 0;
+    int32_t appUid_;
+    int32_t appPid_;
+    uint32_t appTokenId_;
 };
 } // namespace Media
 } // namespace OHOS

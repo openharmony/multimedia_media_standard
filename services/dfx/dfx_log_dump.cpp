@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -166,7 +166,7 @@ void DfxLogDump::TaskProcessor()
             ofStream.open(file, std::ios::out | std::ios::app);
         }
         if (!ofStream.is_open()) {
-            return;
+            continue;
         }
         isNewFile_ = false;
         if (lineCount >= FILE_LINE_MAX) {

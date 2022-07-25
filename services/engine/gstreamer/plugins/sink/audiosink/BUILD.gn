@@ -20,7 +20,6 @@ config("gst_audio_server_sink_config") {
     "-fno-rtti",
     "-fno-exceptions",
     "-Wall",
-    "-Werror=sign-compare",
     "-fno-common",
     "-fstack-protector-strong",
     "-FPIC",
@@ -31,14 +30,19 @@ config("gst_audio_server_sink_config") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
   ]
 
   include_dirs = [
     "include",
     "//utils/native/base/include",
-    "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
+    "//foundation/multimedia/player_framework/services/utils/include",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common",
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiocommon/include",
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiomanager/include",
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiorenderer/include",
@@ -65,13 +69,13 @@ ohos_shared_library("gst_audio_server_sink") {
 
   configs = [
     ":gst_audio_server_sink_config",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config",
   ]
 
   deps = [
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiomanager:audio_client",
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiorenderer:audio_renderer",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",
@@ -83,5 +87,5 @@ ohos_shared_library("gst_audio_server_sink") {
 
   relative_install_dir = "media/plugins"
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }

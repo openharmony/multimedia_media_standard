@@ -30,7 +30,8 @@ namespace Media {
         pipelineDesc_->allLinkDescs[srcElem] = linkDesc;                                                        \
     } while (false)
 
-RecorderPipelineBuilder::RecorderPipelineBuilder()
+RecorderPipelineBuilder::RecorderPipelineBuilder(int32_t appUid, int32_t appPid, uint32_t appTokenId)
+    : appUid_(appUid), appPid_(appPid), appTokenId_(appTokenId)
 {
     MEDIA_LOGD("enter, ctor");
 }
@@ -153,6 +154,7 @@ int32_t RecorderPipelineBuilder::SetAudioSource(const RecorderSourceDesc &desc)
     }
 
     CHECK_AND_RETURN_RET(audioSrcElem != nullptr, MSERR_INVALID_VAL);
+    (void)audioSrcElem->Configure(AppInfo {appUid_, appPid_, appTokenId_});
 
     std::shared_ptr<RecorderElement> audioConvert = CreateElement("AudioConverter", desc, false);
     CHECK_AND_RETURN_RET(audioConvert != nullptr, MSERR_INVALID_VAL);

@@ -32,7 +32,12 @@ enum {
     PROP_BITRATE,
     PROP_VENDOR,
     PROP_USE_SURFACE_INPUT,
-    PROP_USE_SURFACE_OUTPUT
+    PROP_USE_SURFACE_OUTPUT,
+    PROP_FLUSH_AT_START,
+    PROP_BITRATE_MODE,
+    PROP_CODEC_QUALITY,
+    PROP_I_FRAME_INTREVAL,
+    PROP_CODEC_PROFILE,
 };
 
 #define gst_codec_bin_parent_class parent_class
@@ -42,6 +47,7 @@ static void gst_codec_bin_finalize(GObject *object);
 static void gst_codec_bin_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *param_spec);
 static void gst_codec_bin_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *param_spec);
 static GstStateChangeReturn gst_codec_bin_change_state(GstElement *element, GstStateChange transition);
+static void gst_codec_bin_init_config(GObjectClass *gobject_class);
 
 #define GST_TYPE_CODEC_BIN_TYPE (gst_codec_bin_type_get_type())
 static GType gst_codec_bin_type_get_type(void)
@@ -118,6 +124,16 @@ static void gst_codec_bin_class_init(GstCodecBinClass *klass)
         g_param_spec_pointer("vendor", "Vendor property", "Vendor property",
             (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
+    gst_codec_bin_init_config(gobject_class);
+
+    gst_element_class_set_static_metadata(gstelement_class,
+        "Codec Bin", "Bin/Decoder&Encoder", "Auto construct codec pipeline", "OpenHarmony");
+
+    gstelement_class->change_state = gst_codec_bin_change_state;
+}
+
+static void gst_codec_bin_init_config(GObjectClass *gobject_class)
+{
     g_object_class_install_property(gobject_class, PROP_USE_SURFACE_INPUT,
         g_param_spec_boolean("use-surface-input", "use surface input", "The source is surface",
             FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
@@ -126,10 +142,25 @@ static void gst_codec_bin_class_init(GstCodecBinClass *klass)
         g_param_spec_boolean("use-surface-output", "use surface output", "The sink is surface",
             FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
-    gst_element_class_set_static_metadata(gstelement_class,
-        "Codec Bin", "Bin/Decoder&Encoder", "Auto construct codec pipeline", "OpenHarmony");
+    g_object_class_install_property(gobject_class, PROP_FLUSH_AT_START,
+        g_param_spec_boolean("flush-at-start", "flush at start", "The Flush is at start",
+            FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
-    gstelement_class->change_state = gst_codec_bin_change_state;
+    g_object_class_install_property(gobject_class, PROP_BITRATE_MODE,
+        g_param_spec_int("bitrate-mode", "Bitrate mode", "bitrate mode for video encoder",
+            0, G_MAXINT32, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_CODEC_QUALITY,
+        g_param_spec_int("codec-quality", "Codec quality", "Codec quality for video encoder",
+            0, G_MAXINT32, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_I_FRAME_INTREVAL,
+        g_param_spec_int("i-frame-interval", "I frame interval", "I frame interval for video encoder",
+            0, G_MAXINT32, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_CODEC_PROFILE,
+        g_param_spec_int("codec-profile", "Codec profile", "Codec profile for video encoder",
+            0, G_MAXINT32, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 }
 
 static void gst_codec_bin_init(GstCodecBin *bin)
@@ -151,6 +182,9 @@ static void gst_codec_bin_init(GstCodecBin *bin)
     bin->need_parser = FALSE;
     bin->is_input_surface = FALSE;
     bin->is_output_surface = FALSE;
+    bin->bitrate_mode = -1;
+    bin->codec_quality = -1;
+    bin->i_frame_interval = -1;
 }
 
 static void gst_codec_bin_finalize(GObject *object)
@@ -165,10 +199,38 @@ static void gst_codec_bin_finalize(GObject *object)
     G_OBJECT_CLASS(parent_class)->finalize(object);
 }
 
-static void gst_codec_bin_set_property(GObject *object, guint prop_id,
+static void gst_codec_bin_set_property_next(GObject *object, guint prop_id,
     const GValue *value, GParamSpec *param_spec)
 {
     (void)param_spec;
+    GstCodecBin *bin = GST_CODEC_BIN(object);
+    g_return_if_fail(bin != nullptr);
+    switch (prop_id) {
+        case PROP_FLUSH_AT_START:
+            if (bin->type == CODEC_BIN_TYPE_VIDEO_ENCODER && bin->src != nullptr) {
+                g_object_set(bin->src, "flush-at-start", g_value_get_boolean(value), nullptr);
+            }
+            break;
+        case PROP_BITRATE_MODE:
+            bin->bitrate_mode = g_value_get_int(value);
+            break;
+        case PROP_CODEC_QUALITY:
+            bin->codec_quality = g_value_get_int(value);
+            break;
+        case PROP_I_FRAME_INTREVAL:
+            bin->i_frame_interval = g_value_get_int(value);
+            break;
+        case PROP_CODEC_PROFILE:
+            bin->codec_profile = g_value_get_int(value);
+            break;
+        default:
+            break;
+    }
+}
+
+static void gst_codec_bin_set_property(GObject *object, guint prop_id,
+    const GValue *value, GParamSpec *param_spec)
+{
     GstCodecBin *bin = GST_CODEC_BIN(object);
     g_return_if_fail(bin != nullptr);
     switch (prop_id) {
@@ -217,6 +279,7 @@ static void gst_codec_bin_set_property(GObject *object, guint prop_id,
         default:
             break;
     }
+    gst_codec_bin_set_property_next(object, prop_id, value, param_spec);
 }
 
 static void gst_codec_bin_get_property(GObject *object, guint prop_id,
@@ -413,6 +476,10 @@ static gboolean operate_element(GstCodecBin *bin)
     }
     if (bin->type == CODEC_BIN_TYPE_VIDEO_ENCODER && bin->use_software == FALSE) {
         g_object_set(bin->coder, "enable-surface", bin->is_input_surface, nullptr);
+        g_object_set(bin->coder, "bitrate-mode", bin->bitrate_mode, nullptr);
+        g_object_set(bin->coder, "codec-quality", bin->codec_quality, nullptr);
+        g_object_set(bin->coder, "i-frame-interval-new", bin->i_frame_interval, nullptr);
+        g_object_set(bin->coder, "codec-profile", bin->codec_profile, nullptr);
     }
     return TRUE;
 }

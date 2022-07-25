@@ -27,7 +27,10 @@
 
 namespace OHOS {
 namespace Media {
-class AVMuxerEngineGstImpl : public IAVMuxerEngine, public NoCopyable {
+class AVMuxerEngineGstImpl :
+    public IAVMuxerEngine,
+    public std::enable_shared_from_this<AVMuxerEngineGstImpl>,
+    public NoCopyable {
 public:
     AVMuxerEngineGstImpl();
     ~AVMuxerEngineGstImpl();

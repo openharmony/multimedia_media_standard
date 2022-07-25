@@ -141,6 +141,7 @@ std::vector<std::shared_ptr<AVSharedMemory>> AVMetaFrameExtractor::ExtractIntern
 int32_t AVMetaFrameExtractor::StartExtract(
     int32_t numFrames, int64_t timeUs, int32_t option, const OutputConfiguration &param)
 {
+    (void)numFrames;
     std::unique_lock<std::mutex> lock(mutex_);
 
     ON_SCOPE_EXIT(0) { StopExtract(); };

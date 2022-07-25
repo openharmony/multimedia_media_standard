@@ -14,20 +14,21 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
-module_output_path = "media_standard/media_player"
+module_output_path = "player_framework/media_player"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("PlayerSeekFuzzTest") {
   module_out_path = module_output_path
-  fuzz_config_file =
-      "//foundation//multimedia/media_standard/test/fuzztest/playerseek_fuzzer"
+  fuzz_config_file = "//foundation//multimedia/player_framework/test/fuzztest/playerseek_fuzzer"
+
+  resource_config_file = "//foundation/multimedia/player_framework/test/fuzztest/resource/ohos_test.xml"
 
   include_dirs = [
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
-    "//foundation/multimedia/media_standard/services/utils/include",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/services/utils/include",
     "//graphic/graphic_2d/interfaces/innerkits/surface",
-    "//foundation/windowmanager/interfaces/innerkits/wm",
-    "//foundation/multimedia/media_standard/test/fuzztest/",
+    "//foundation/window/window_manager/interfaces/innerkits/wm",
+    "//foundation/multimedia/player_framework/test/fuzztest/",
   ]
   cflags = [
     "-g",
@@ -43,12 +44,12 @@ ohos_fuzztest("PlayerSeekFuzzTest") {
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/windowmanager/wm:libwm",
+    "//foundation/window/window_manager/wm:libwm",
   ]
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "multimedia_media_standard:media_client",
+    "multimedia_player_framework:media_client",
   ]
 }
 

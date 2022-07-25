@@ -21,7 +21,6 @@ config("media_engine_gst_avmeta_config") {
     "-fno-rtti",
     "-fno-exceptions",
     "-Wall",
-    "-Werror=sign-compare",
     "-fno-common",
     "-fstack-protector-strong",
     "-Wshadow",
@@ -33,23 +32,28 @@ config("media_engine_gst_avmeta_config") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
   ]
 
   include_dirs = [
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
-    "//foundation/multimedia/media_standard/services/services/engine_intf",
-    "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/services/include",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/playbin_adapter",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/metadata",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/message",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/appsrc_wrap",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/services/services/engine_intf",
+    "//foundation/multimedia/player_framework/services/utils/include",
+    "//foundation/multimedia/player_framework/services/include",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common/playbin_adapter",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common/metadata",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common/message",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common/utils",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common/appsrc_wrap",
     "//foundation/graphic/standard/interfaces/innerkits/surface",
     "//foundation/graphic/standard/interfaces/innerkits/common",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/sink/memsink",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/sink/memsink",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
     "//drivers/peripheral/base",
     "//drivers/peripheral/display/interfaces/include",
@@ -77,17 +81,17 @@ ohos_static_library("media_engine_gst_avmeta") {
 
   configs = [
     ":media_engine_gst_avmeta_config",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config",
   ]
 
   deps = [
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins:media_engine_gst_plugins_common",
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins:media_engine_gst_plugins_common",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
   ]
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }

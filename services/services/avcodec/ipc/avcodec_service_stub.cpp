@@ -112,6 +112,7 @@ int32_t AVCodecServiceStub::Init()
     recFuncs_[FLUSH] = &AVCodecServiceStub::Flush;
     recFuncs_[RESET] = &AVCodecServiceStub::Reset;
     recFuncs_[RELEASE] = &AVCodecServiceStub::Release;
+    recFuncs_[NOTIFY_EOS] = &AVCodecServiceStub::NotifyEos;
     recFuncs_[CREATE_INPUT_SURFACE] = &AVCodecServiceStub::CreateInputSurface;
     recFuncs_[SET_OUTPUT_SURFACE] = &AVCodecServiceStub::SetOutputSurface;
     recFuncs_[GET_INPUT_BUFFER] = &AVCodecServiceStub::GetInputBuffer;
@@ -232,6 +233,12 @@ int32_t AVCodecServiceStub::Release()
     inputBufferCache_ = nullptr;
     outputBufferCache_ = nullptr;
     return codecServer_->Release();
+}
+
+int32_t AVCodecServiceStub::NotifyEos()
+{
+    CHECK_AND_RETURN_RET_LOG(codecServer_ != nullptr, MSERR_NO_MEMORY, "avcodec server is nullptr");
+    return codecServer_->NotifyEos();
 }
 
 sptr<OHOS::Surface> AVCodecServiceStub::CreateInputSurface()
@@ -366,8 +373,16 @@ int32_t AVCodecServiceStub::Release(MessageParcel &data, MessageParcel &reply)
     return MSERR_OK;
 }
 
+int32_t AVCodecServiceStub::NotifyEos(MessageParcel &data, MessageParcel &reply)
+{
+    (void)data;
+    reply.WriteInt32(NotifyEos());
+    return MSERR_OK;
+}
+
 int32_t AVCodecServiceStub::CreateInputSurface(MessageParcel &data, MessageParcel &reply)
 {
+    (void)data;
     sptr<OHOS::Surface> surface = CreateInputSurface();
     if (surface != nullptr && surface->GetProducer() != nullptr) {
         sptr<IRemoteObject> object = surface->GetProducer()->AsObject();

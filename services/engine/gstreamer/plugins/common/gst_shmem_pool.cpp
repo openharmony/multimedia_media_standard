@@ -123,6 +123,7 @@ GstShMemPool *gst_shmem_pool_new()
 static const gchar **gst_shmem_pool_get_options(GstBufferPool *pool)
 {
     // add buffer type meta option at here
+    (void)pool;
     static const gchar *options[] = { GST_BUFFER_POOL_OPTION_VIDEO_META, nullptr };
     return options;
 }
@@ -324,7 +325,7 @@ static GstFlowReturn add_meta_to_buffer(GstShMemPool *spool, GstBuffer *buffer, 
         flag = FLAGS_READ_ONLY;
     }
 
-    GstBufferFdConfig config = { 0, mem->GetSize(), mem->GetSize(), flag, 0 };
+    GstBufferFdConfig config = { sizeof(mem->GetFd()), 0, mem->GetSize(), mem->GetSize(), flag, 0 };
     gst_buffer_add_buffer_fd_meta(buffer, mem->GetFd(), config);
 
     return GST_FLOW_OK;
@@ -333,6 +334,7 @@ static GstFlowReturn add_meta_to_buffer(GstShMemPool *spool, GstBuffer *buffer, 
 static GstFlowReturn gst_shmem_pool_alloc_buffer(GstBufferPool *pool,
     GstBuffer **buffer, GstBufferPoolAcquireParams *params)
 {
+    (void)params;
     g_return_val_if_fail(pool != nullptr && buffer != nullptr, GST_FLOW_ERROR);
     GstShMemPool *spool = GST_SHMEM_POOL_CAST(pool);
     g_return_val_if_fail(spool != nullptr, GST_FLOW_ERROR);
@@ -410,7 +412,7 @@ static void gst_shmem_pool_memory_available(GstBufferPool *pool)
     GST_DEBUG("pool memory available, currBuffers: %d", g_atomic_int_get(&spool->curBuffers));
 
     GstBuffer *buffer = nullptr;
-    GstBufferPoolAcquireParams params = { GST_FORMAT_DEFAULT, 0, 0, GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT };
+    GstBufferPoolAcquireParams params = { GST_FORMAT_DEFAULT, 0, 0, GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT, {} };
     GstFlowReturn ret = gst_shmem_pool_acquire_buffer(pool, &buffer, &params);
 
     GST_DEBUG("memory available, fake acquire ret: %s", gst_flow_get_name(ret));
