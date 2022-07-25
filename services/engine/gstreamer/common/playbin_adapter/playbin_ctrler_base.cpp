@@ -267,6 +267,7 @@ int32_t PlayBinCtrlerBase::StopInternal()
     auto state = GetCurrState();
     if (state == idleState_ || state == stoppedState_ || state == initializedState_ || state == preparingState_) {
         MEDIA_LOGI("curr state is %{public}s, skip", state->GetStateName().c_str());
+        isStopFinish_ = true;
         return MSERR_OK;
     }
 
