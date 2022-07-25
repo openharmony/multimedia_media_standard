@@ -360,7 +360,7 @@ static bool DateTimeMetaSetter(const GValue &gval, const std::string_view &key, 
         time << "-" << std::setfill('0') << std::setw(FORMATTED_TIME_NUM_SIZE) << month;
     }
 
-    if (gst_date_time_get_day(dateTime)) {
+    if (gst_date_time_has_day(dateTime)) {
         std::string day = std::to_string(gst_date_time_get_day(dateTime));
         time << "-" << std::setfill('0') << std::setw(FORMATTED_TIME_NUM_SIZE) << day;
     }
