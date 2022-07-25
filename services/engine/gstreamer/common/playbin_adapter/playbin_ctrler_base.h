@@ -119,7 +119,7 @@ private:
     void OnSinkMessageReceived(const PlayBinMessage &msg);
     void ReportMessage(const PlayBinMessage &msg);
     void Reset() noexcept;
-    bool IsLiveSource();
+    bool IsLiveSource() const;
     int32_t DoInitializeForDataSource();
     void DoInitializeForHttp();
     void HandleCacheCtrl(const InnerMessage &msg);
@@ -140,12 +140,16 @@ private:
     std::string uri_;
     std::unordered_map<GstElement *, gulong> signalIds_;
     std::vector<uint32_t> bitRateVec_;
-    bool isInitialized = false;
+    bool isInitialized_ = false;
 
     bool isErrorHappened_ = false;
     std::mutex condMutex_;
     std::condition_variable stateCond_;
 
+    bool isStopFinish_ = false;
+    std::mutex stopCondMutex_;
+    std::condition_variable stopCond_;
+    
     PlayBinSinkProvider::SinkPtr audioSink_ = nullptr;
     PlayBinSinkProvider::SinkPtr videoSink_ = nullptr;
 
@@ -158,6 +162,7 @@ private:
     bool isRating_ = false;
     bool isBuffering_ = false;
     bool isNetWorkPlay_ = false;
+    bool isDuration_ = false;
     uint32_t rendererInfo_ = 0;
     int32_t rendererFlag_ = 0;
 

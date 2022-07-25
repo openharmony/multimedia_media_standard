@@ -75,10 +75,10 @@ void AudioSinkSvImpl::InitChannelRange(GstCaps *caps) const
     CHECK_AND_RETURN_LOG(caps != nullptr, "caps is null");
     std::vector<AudioStandard::AudioChannel> supportedChannelsList = AudioStandard::
                                                                      AudioRenderer::GetSupportedChannels();
-    GValue list = { 0, };
+    GValue list = G_VALUE_INIT;
     (void)g_value_init(&list, GST_TYPE_LIST);
     for (auto channel : supportedChannelsList) {
-        GValue value = { 0, };
+        GValue value = G_VALUE_INIT;
         (void)g_value_init(&value, G_TYPE_INT);
         g_value_set_int(&value, channel);
         gst_value_list_append_value(&list, &value);
@@ -93,10 +93,10 @@ void AudioSinkSvImpl::InitRateRange(GstCaps *caps) const
     CHECK_AND_RETURN_LOG(caps != nullptr, "caps is null");
     std::vector<AudioStandard::AudioSamplingRate> supportedSampleList = AudioStandard::
                                                                         AudioRenderer::GetSupportedSamplingRates();
-    GValue list = { 0, };
+    GValue list = G_VALUE_INIT;
     (void)g_value_init(&list, GST_TYPE_LIST);
     for (auto rate : supportedSampleList) {
-        GValue value = { 0, };
+        GValue value = G_VALUE_INIT;
         (void)g_value_init(&value, G_TYPE_INT);
         g_value_set_int(&value, rate);
         gst_value_list_append_value(&list, &value);
@@ -186,7 +186,9 @@ int32_t AudioSinkSvImpl::Pause()
 {
     MEDIA_LOGD("audioRenderer Pause In");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
-    CHECK_AND_RETURN_RET(audioRenderer_->Pause() == true, MSERR_UNKNOWN);
+    if (audioRenderer_->GetStatus() == OHOS::AudioStandard::RENDERER_RUNNING) {
+        CHECK_AND_RETURN_RET(audioRenderer_->Pause() == true, MSERR_UNKNOWN);
+    }
     MEDIA_LOGD("audioRenderer Pause Out");
     return MSERR_OK;
 }
@@ -268,6 +270,7 @@ int32_t AudioSinkSvImpl::SetParameters(uint32_t bitsPerSample, uint32_t channels
 
 int32_t AudioSinkSvImpl::GetParameters(uint32_t &bitsPerSample, uint32_t &channels, uint32_t &sampleRate)
 {
+    (void)bitsPerSample;
     MEDIA_LOGD("GetParameters");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
     AudioStandard::AudioRendererParams params;

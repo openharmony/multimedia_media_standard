@@ -51,6 +51,8 @@ enum {
     PROP_SUSPEND,
     PROP_REPEAT,
     PROP_MAX_FRAME_RATE,
+    PROP_NOTIFY_EOS,
+    PROP_FLUSH_AT_START,
 };
 
 G_DEFINE_TYPE(GstSurfaceSrc, gst_surface_src, GST_TYPE_MEM_SRC);
@@ -100,6 +102,14 @@ static void gst_surface_src_class_init(GstSurfaceSrcClass *klass)
         g_param_spec_uint("max-framerate", "Max frame rate", "Max frame rate",
             0, G_MAXUINT32, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
+    g_object_class_install_property(gobject_class, PROP_NOTIFY_EOS,
+        g_param_spec_boolean("notify-eos", "notify eos", "Need notify eos",
+            FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
+    g_object_class_install_property(gobject_class, PROP_FLUSH_AT_START,
+        g_param_spec_boolean("flush-at-start", "flush at start", "The Flush is at start",
+            FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+
     gstelement_class->change_state = gst_surface_src_change_state;
     gstelement_class->send_event = gst_surface_src_send_event;
     gstbasesrc_class->fill = gst_surface_src_fill;
@@ -119,6 +129,7 @@ static void gst_surface_src_init(GstSurfaceSrc *surfacesrc)
     surfacesrc->stride = STRIDE_ALIGN;
     surfacesrc->need_flush = FALSE;
     surfacesrc->flushing = FALSE;
+    surfacesrc->flush_at_start = FALSE;
 }
 
 static void gst_surface_src_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
@@ -163,6 +174,13 @@ static void gst_surface_src_set_property(GObject *object, guint prop_id, const G
             g_return_if_fail(src->pool != nullptr);
             g_object_set(src->pool, "max-framerate", g_value_get_uint(value), nullptr);
             break;
+        case PROP_NOTIFY_EOS:
+            g_return_if_fail(src->pool != nullptr);
+            g_object_set(src->pool, "notify-eos", g_value_get_boolean(value), nullptr);
+            break;
+        case PROP_FLUSH_AT_START:
+            src->flush_at_start = g_value_get_boolean(value);
+            break;
         default:
             break;
     }
@@ -175,6 +193,7 @@ static GstFlowReturn gst_surface_src_fill(GstBaseSrc *src, guint64 offset, guint
     (void)size;
     GstBufferTypeMeta *meta = gst_buffer_get_buffer_type_meta(buf);
     if (meta != nullptr && (meta->bufferFlag & BUFFER_FLAG_EOS)) {
+        GST_DEBUG_OBJECT(src, "EOS buffer");
         return GST_FLOW_EOS;
     }
     return GST_FLOW_OK;
@@ -233,24 +252,39 @@ static gboolean gst_surface_src_send_event(GstElement *element, GstEvent *event)
     GstSurfaceSrc *surfacesrc = GST_SURFACE_SRC(element);
     g_return_val_if_fail(surfacesrc != nullptr, FALSE);
     g_return_val_if_fail(event != nullptr, FALSE);
-    GST_DEBUG_OBJECT(surfacesrc, "New event %s", GST_EVENT_TYPE_NAME(event));
+    GST_INFO_OBJECT(surfacesrc, "New event %s", GST_EVENT_TYPE_NAME(event));
 
     switch (GST_EVENT_TYPE(event)) {
         case GST_EVENT_FLUSH_START:
             if (surfacesrc->need_flush == FALSE) {
-                GST_DEBUG_OBJECT(surfacesrc, "No need flushing");
+                GST_INFO_OBJECT(surfacesrc, "No need flushing");
                 surfacesrc->flushing = FALSE;
                 return TRUE;
             }
             surfacesrc->flushing = TRUE;
+            if (surfacesrc->flush_at_start == FALSE) {
+                gst_buffer_pool_set_flushing(surfacesrc->pool, TRUE);
+            } else {
+                GST_INFO_OBJECT(surfacesrc, "No need flush start for flush at start");
+            }
             break;
-        case GST_EVENT_FLUSH_STOP:
+        case GST_EVENT_FLUSH_STOP: {
+            gboolean flush_at_start = surfacesrc->flush_at_start;
+            if (surfacesrc->flush_at_start == TRUE) {
+                surfacesrc->flush_at_start = FALSE;
+            }
             if (surfacesrc->flushing == FALSE) {
-                GST_DEBUG_OBJECT(surfacesrc, "No flush start");
+                GST_INFO_OBJECT(surfacesrc, "No flush start");
                 return TRUE;
+            }
+            if (flush_at_start == FALSE) {
+                gst_buffer_pool_set_flushing(surfacesrc->pool, FALSE);
+            } else {
+                GST_INFO_OBJECT(surfacesrc, "No need flush start for flush at start");
             }
             surfacesrc->flushing = FALSE;
             break;
+        }
         default:
             break;
     }

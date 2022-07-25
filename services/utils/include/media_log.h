@@ -29,38 +29,38 @@ namespace OHOS {
 
 #define __FILENAME__ (__builtin_strrchr(__FILE__, '/') ? __builtin_strrchr(__FILE__, '/') + 1 : __FILE__)
 
-#define __MEDIA_LOG(func, fmt, args...)                                                       \
+#define MEDIA_LOG(func, fmt, args...)                                                       \
     do {                                                                                      \
         (void)func(LABEL, "{%{public}s():%{public}d} " fmt, __FUNCTION__, __LINE__, ##args);  \
     } while (0)
 
 #ifdef OHOS_MEDIA_LOG_DFX
-#define __DUMP_LOG(level, fmt, args...)                                                       \
+#define DUMP_LOG(level, fmt, args...)                                                       \
     do {                                                                                      \
         (void)OHOS::Media::DfxLogDump::GetInstance().SaveLog(level, LABEL,                    \
             "{%s():%d} " fmt, __FUNCTION__, __LINE__, ##args);                                \
     } while (0);
 #define MEDIA_LOGD(fmt, ...)                                                                  \
-    __DUMP_LOG("LOGD", fmt, ##__VA_ARGS__)                                                    \
-    __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Debug, fmt, ##__VA_ARGS__)
+    DUMP_LOG("LOGD", fmt, ##__VA_ARGS__)                                                    \
+    MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Debug, fmt, ##__VA_ARGS__)
 #define MEDIA_LOGI(fmt, ...)                                                                  \
-    __DUMP_LOG("LOGI", fmt, ##__VA_ARGS__)                                                    \
-    __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Info, fmt, ##__VA_ARGS__)
+    DUMP_LOG("LOGI", fmt, ##__VA_ARGS__)                                                    \
+    MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Info, fmt, ##__VA_ARGS__)
 #define MEDIA_LOGW(fmt, ...)                                                                  \
-    __DUMP_LOG("LOGW", fmt, ##__VA_ARGS__)                                                    \
-    __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Warn, fmt, ##__VA_ARGS__)
+    DUMP_LOG("LOGW", fmt, ##__VA_ARGS__)                                                    \
+    MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Warn, fmt, ##__VA_ARGS__)
 #define MEDIA_LOGE(fmt, ...)                                                                  \
-    __DUMP_LOG("LOGE", fmt, ##__VA_ARGS__)                                                    \
-    __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Error, fmt, ##__VA_ARGS__)
+    DUMP_LOG("LOGE", fmt, ##__VA_ARGS__)                                                    \
+    MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Error, fmt, ##__VA_ARGS__)
 #define MEDIA_LOGF(fmt, ...)                                                                  \
-    __DUMP_LOG("LOGF", fmt, ##__VA_ARGS__)                                                    \
-    __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Fatal, fmt, ##__VA_ARGS__)
+    DUMP_LOG("LOGF", fmt, ##__VA_ARGS__)                                                    \
+    MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Fatal, fmt, ##__VA_ARGS__)
 #else
-#define MEDIA_LOGD(fmt, ...) __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Debug, fmt, ##__VA_ARGS__)
-#define MEDIA_LOGI(fmt, ...) __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Info, fmt, ##__VA_ARGS__)
-#define MEDIA_LOGW(fmt, ...) __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Warn, fmt, ##__VA_ARGS__)
-#define MEDIA_LOGE(fmt, ...) __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Error, fmt, ##__VA_ARGS__)
-#define MEDIA_LOGF(fmt, ...) __MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Fatal, fmt, ##__VA_ARGS__)
+#define MEDIA_LOGD(fmt, ...) MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Debug, fmt, ##__VA_ARGS__)
+#define MEDIA_LOGI(fmt, ...) MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Info, fmt, ##__VA_ARGS__)
+#define MEDIA_LOGW(fmt, ...) MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Warn, fmt, ##__VA_ARGS__)
+#define MEDIA_LOGE(fmt, ...) MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Error, fmt, ##__VA_ARGS__)
+#define MEDIA_LOGF(fmt, ...) MEDIA_LOG(::OHOS::HiviewDFX::HiLog::Fatal, fmt, ##__VA_ARGS__)
 #endif
 
 #define CHECK_AND_RETURN(cond)                      \

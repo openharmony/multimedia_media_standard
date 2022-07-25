@@ -24,21 +24,21 @@
 
 G_BEGIN_DECLS
 
-#define GST_TYPE_SURFACE_POOL (gst_producer_surface_pool_get_type())
+#define GST_TYPE_PRODUCER_SURFACE_POOL (gst_producer_surface_pool_get_type())
 #define GST_PRODUCER_SURFACE_POOL(obj) \
-    (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_SURFACE_POOL, GstSurfacePool))
+    (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_PRODUCER_SURFACE_POOL, GstProducerSurfacePool))
 #define GST_PRODUCER_SURFACE_POOL_CLASS(klass) \
-    (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_SURFACE_POOL, GstSurfacePoolClass))
+    (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_PRODUCER_SURFACE_POOL, GstProducerSurfacePoolClass))
 #define GST_IS_SURFACE_POOL(obj) \
-    (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_SURFACE_POOL))
+    (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_PRODUCER_SURFACE_POOL))
 #define GST_IS_SURFACE_POOL_CLASS(klass) \
-    (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_SURFACE_POOL))
-#define GST_PRODUCER_SURFACE_POOL_CAST(obj) ((GstSurfacePool*)(obj))
+    (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_PRODUCER_SURFACE_POOL))
+#define GST_PRODUCER_SURFACE_POOL_CAST(obj) ((GstProducerSurfacePool*)(obj))
 
-typedef struct _GstSurfacePool GstSurfacePool;
-typedef struct _GstSurfacePoolClass GstSurfacePoolClass;
+typedef struct _GstProducerSurfacePool GstProducerSurfacePool;
+typedef struct _GstProducerSurfacePoolClass GstProducerSurfacePoolClass;
 
-struct _GstSurfacePool {
+struct _GstProducerSurfacePool {
     GstBufferPool basepool;
     OHOS::sptr<OHOS::Surface> surface;
     gboolean started;
@@ -63,15 +63,16 @@ struct _GstSurfacePool {
     guint scale_type;
 };
 
-struct _GstSurfacePoolClass {
+struct _GstProducerSurfacePoolClass {
     GstBufferPoolClass basepool_class;
 };
 
 GType gst_producer_surface_pool_get_type(void);
 
-GstSurfacePool *gst_producer_surface_pool_new();
+GstProducerSurfacePool *gst_producer_surface_pool_new(void);
 
-GST_API gboolean gst_producer_surface_pool_set_surface(GstSurfacePool *pool, OHOS::sptr<OHOS::Surface> surface);
+GST_API gboolean gst_producer_surface_pool_set_surface(GstProducerSurfacePool *pool,
+    OHOS::sptr<OHOS::Surface> surface);
 
 G_END_DECLS
 

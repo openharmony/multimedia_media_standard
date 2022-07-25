@@ -20,7 +20,6 @@ config("gst_codec_bin_config") {
     "-fno-rtti",
     "-fno-exceptions",
     "-Wall",
-    "-Werror=sign-compare",
     "-fno-common",
     "-fstack-protector-strong",
     "-FPIC",
@@ -31,13 +30,18 @@ config("gst_codec_bin_config") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
   ]
 
   include_dirs = [
     "include",
     "//utils/native/base/include",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common/utils",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common/utils",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/gstreamer/gstplugins_base",
@@ -56,7 +60,7 @@ ohos_shared_library("gst_codec_bin") {
   configs = [ ":gst_codec_bin_config" ]
 
   deps = [
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/common:media_gst_dfx",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/common:media_gst_dfx",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",
@@ -68,5 +72,5 @@ ohos_shared_library("gst_codec_bin") {
 
   relative_install_dir = "media/plugins"
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }

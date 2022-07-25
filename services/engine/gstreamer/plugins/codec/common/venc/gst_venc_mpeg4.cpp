@@ -52,6 +52,7 @@ static void gst_venc_mpeg4_init(GstVencMpeg4 *self)
 
 static GstCaps *gst_venc_mpeg4_get_caps(GstVencBase *self, GstVideoCodecState *state)
 {
+    (void)state;
     g_return_val_if_fail(self != nullptr, nullptr);
     GstCaps *caps = gst_caps_new_simple("video/mpeg",
         "mpegversion", G_TYPE_INT, 4,

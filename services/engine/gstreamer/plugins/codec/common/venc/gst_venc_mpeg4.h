@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef GST_VENC_Mpeg4_H
-#define GST_VENC_Mpeg4_H
+#ifndef GST_VENC_MPEG4_H
+#define GST_VENC_MPEG4_H
 
 #ifndef GST_API_EXPORT
 #define GST_API_EXPORT __attribute__((visibility("default")))
@@ -52,4 +52,4 @@ GST_API_EXPORT GType gst_venc_mpeg4_get_type(void);
 
 G_END_DECLS
 
-#endif /* GST_VENC_Mpeg4_H */
+#endif /* GST_VENC_MPEG4_H */

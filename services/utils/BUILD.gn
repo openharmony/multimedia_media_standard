@@ -20,24 +20,24 @@ ohos_static_library("media_format") {
   ]
 
   include_dirs = [
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
-    "//foundation/multimedia/media_standard/services/utils/include",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/services/utils/include",
     "//utils/native/base/include",
     "//third_party/libxml2/include",
   ]
 
-  configs = [ "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config" ]
+  configs = [ "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config" ]
 
   deps = [
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
     "//third_party/libxml2:xml2",
   ]
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }
 
 config("media_service_utils_public_config") {
@@ -63,7 +63,7 @@ ohos_shared_library("media_service_utils") {
 
   include_dirs = [
     "//utils/native/base/include",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
     "//third_party/libxml2/include",
   ]
 
@@ -72,7 +72,6 @@ ohos_shared_library("media_service_utils") {
     "-fno-rtti",
     "-fno-exceptions",
     "-Wall",
-    "-Werror=sign-compare",
     "-fno-common",
     "-fstack-protector-strong",
     "-Wshadow",
@@ -84,15 +83,20 @@ ohos_shared_library("media_service_utils") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
   ]
 
   configs = [
     ":media_service_utils_public_config",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config",
   ]
 
   deps = [
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
     "//third_party/libxml2:xml2",
     "//utils/native/base:utils",
   ]
@@ -104,5 +108,5 @@ ohos_shared_library("media_service_utils") {
   ]
 
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }

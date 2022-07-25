@@ -110,12 +110,12 @@ static void gst_audio_capture_src_class_init(GstAudioCaptureSrcClass *klass)
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
     g_object_class_install_property(gobject_class, PROP_APP_UID,
-        g_param_spec_uint("app-uid", "Appuid",
+        g_param_spec_int("app-uid", "Appuid",
             "APP UID", 0, G_MAXINT32, 0,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
     g_object_class_install_property(gobject_class, PROP_APP_PID,
-        g_param_spec_uint("app-pid", "Apppid",
+        g_param_spec_int("app-pid", "Apppid",
             "APP PID", 0, G_MAXINT32, 0,
             (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
@@ -196,6 +196,7 @@ static void gst_audio_capture_src_set_property(GObject *object, guint prop_id,
             break;
         case PROP_BYPASS_AUDIO_SERVICE:
             src->bypass_audio = g_value_get_boolean(value);
+            break;
         default:
             break;
     }

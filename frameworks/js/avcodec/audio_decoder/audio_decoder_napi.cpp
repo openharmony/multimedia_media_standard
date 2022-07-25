@@ -843,9 +843,12 @@ napi_value AudioDecoderNapi::On(napi_env env, napi_callback_info info)
     std::string callbackName = CommonNapi::GetStringArgument(env, args[0]);
     MEDIA_LOGD("callbackName: %{public}s", callbackName.c_str());
 
-    CHECK_AND_RETURN_RET(audioDecoderNapi->callback_ != nullptr, result);
-    auto cb = std::static_pointer_cast<AudioDecoderCallbackNapi>(audioDecoderNapi->callback_);
-    cb->SaveCallbackReference(callbackName, args[1]);
+    napi_ref ref = nullptr;
+    status = napi_create_reference(env, args[1], 1, &ref);
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && ref != nullptr, result, "failed to create reference!");
+
+    std::shared_ptr<AutoRef> autoRef = std::make_shared<AutoRef>(env, ref);
+    audioDecoderNapi->SetCallbackReference(callbackName, autoRef);
     return result;
 }
 
@@ -854,6 +857,15 @@ void AudioDecoderNapi::ErrorCallback(MediaServiceExtErrCode errCode)
     if (callback_ != nullptr) {
         auto napiCb = std::static_pointer_cast<AudioDecoderCallbackNapi>(callback_);
         napiCb->SendErrorCallback(errCode);
+    }
+}
+
+void AudioDecoderNapi::SetCallbackReference(const std::string &callbackName, std::shared_ptr<AutoRef> ref)
+{
+    refMap_[callbackName] = ref;
+    if (callback_ != nullptr) {
+        auto napiCb = std::static_pointer_cast<AudioDecoderCallbackNapi>(callback_);
+        napiCb->SaveCallbackReference(callbackName, ref);
     }
 }
 } // namespace Media

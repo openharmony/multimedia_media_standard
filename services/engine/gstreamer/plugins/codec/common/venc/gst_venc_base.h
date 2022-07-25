@@ -95,6 +95,11 @@ struct _GstVencBase {
     guint i_frame_interval;
     gboolean flushing_stopping;
     gboolean encoder_start;
+    gint bitrate_mode;
+    gint codec_quality;
+    gint i_frame_interval_new;
+    gint codec_profile;
+    gint codec_level;
 };
 
 struct _GstVencBaseClass {

@@ -75,7 +75,7 @@ int32_t SrcSurfaceImpl::SetParameter(const Format &format)
 
     if (format.GetValueType(std::string_view("max_encoder_fps")) == FORMAT_TYPE_INT32) {
         if (format.GetIntValue("max_encoder_fps", value) && value >= 0) {
-            g_object_set(src_, "max_framerate", static_cast<uint32_t>(value), nullptr);
+            g_object_set(src_, "max-framerate", static_cast<uint32_t>(value), nullptr);
         }
     }
 
@@ -85,6 +85,13 @@ int32_t SrcSurfaceImpl::SetParameter(const Format &format)
         }
     }
 
+    return MSERR_OK;
+}
+
+int32_t SrcSurfaceImpl::NotifyEos()
+{
+    gboolean value = TRUE;
+    g_object_set(src_, "notify-eos", value, nullptr);
     return MSERR_OK;
 }
 } // namespace Media

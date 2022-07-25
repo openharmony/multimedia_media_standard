@@ -76,7 +76,6 @@ private:
     bool ParseData(xmlNode *node);
     std::vector<CapabilityData> capabilityDataArray_;
     xmlDoc *mDoc_ = nullptr;
-    std::string capabilityListVal_;
     std::vector<std::string> capabilityKeys_;
 };
 } // namespace Media

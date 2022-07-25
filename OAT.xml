@@ -65,6 +65,9 @@ Note:If the text contains special characters, please escape them according to th
             <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies" >
                 <filteritem type="filepath" name="figures/.*" desc="architecture figure binary."/>
             </filefilter>
+            <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies" >
+                <filteritem type="filepath" name="test/.*" desc="Resource, config and certification binary."/>
+            </filefilter>
         </filefilterlist>
     </oatconfig>
 </configuration>

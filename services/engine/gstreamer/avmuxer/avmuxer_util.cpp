@@ -170,17 +170,17 @@ static GstCaps *CreateCaps(FormatParam &param, const std::string &mimeType)
     return src_caps;
 }
 
-int32_t AVMuxerUtil::SetCaps(const MediaDescription &trackDesc, const std::string &mimeType,
+bool AVMuxerUtil::SetCaps(const MediaDescription &trackDesc, const std::string &mimeType,
     GstCaps **src_caps)
 {
-    MEDIA_LOGD("Set %{public}s cpas", mimeType.c_str());
-    bool ret;
+    MEDIA_LOGD("Set %{public}s caps", mimeType.c_str());
+    CHECK_AND_RETURN_RET_LOG(src_caps != nullptr, false, "src_caps is nullptr");
     FormatParam param;
-    ret = parseParam(param, trackDesc, mimeType);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_VAL, "Failed to call parseParam");
+    bool ret = parseParam(param, trackDesc, mimeType);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, false, "Failed to call parseParam");
     *src_caps = CreateCaps(param, mimeType);
 
-    return MSERR_OK;
+    return true;
 }
 
 std::vector<std::string> AVMuxerUtil::FindFormat()

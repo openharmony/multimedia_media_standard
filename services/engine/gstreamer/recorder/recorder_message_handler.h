@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_MEDIA_RECORDER_MESSAGE_HANDLER
-#define OHOS_MEDIA_RECORDER_MESSAGE_HANDLER
+#ifndef OHOS_MEDIA_RECORDER_MESSAGE_HANDLER_H
+#define OHOS_MEDIA_RECORDER_MESSAGE_HANDLER_H
 
 #include <gst/gstmessage.h>
 #include "nocopyable.h"

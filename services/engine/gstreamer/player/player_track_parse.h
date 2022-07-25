@@ -30,7 +30,7 @@ public:
     int32_t GetVideoTrackInfo(std::vector<Format> &videoTrack);
     int32_t GetAudioTrackInfo(std::vector<Format> &audioTrack);
     void SetDemuxerElementFind(bool isFind);
-    bool GetDemuxerElementFind();
+    bool GetDemuxerElementFind() const;
     static void OnPadAddedCb(const GstElement *element, GstPad *pad, gpointer userdata);
     PlayerTrackParse() {};
     ~PlayerTrackParse() {};

@@ -108,6 +108,7 @@ int32_t VideoEncoder::Configure(const RecorderParam &recParam)
         }
         MEDIA_LOGI("Set video encode format: %{public}d", encoderFormat_);
         MarkParameter(param.type);
+        return MSERR_OK;
     }
 
     if (recParam.type == RecorderPublicParamType::VID_BITRATE) {

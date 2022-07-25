@@ -20,7 +20,6 @@ config("gst_mem_sink_config") {
     "-fno-rtti",
     "-fno-exceptions",
     "-Wall",
-    "-Werror=sign-compare",
     "-fno-common",
     "-fstack-protector-strong",
     "-Wshadow",
@@ -32,14 +31,19 @@ config("gst_mem_sink_config") {
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
   ]
 
   include_dirs = [
     "//utils/native/base/include",
-    "//foundation/multimedia/media_standard/services/utils/include",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/sink/memsink",
+    "//foundation/multimedia/player_framework/services/utils/include",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/sink/memsink",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/gstreamer/gstplugins_base",
@@ -53,6 +57,10 @@ config("gst_mem_sink_config") {
   ]
 }
 
+declare_args() {
+  multimedia_player_framework_no_stride = true
+}
+
 ohos_shared_library("gst_mem_sink") {
   install_enable = true
 
@@ -61,9 +69,10 @@ ohos_shared_library("gst_mem_sink") {
     "gst_shared_mem_sink.cpp",
     "gst_surface_allocator.cpp",
     "gst_surface_mem_sink.cpp",
+    "gst_video_display_sink.cpp",
   ]
 
-  if ("${product_name}" == "m40") {
+  if (!multimedia_player_framework_no_stride) {
     sources += [ "gst_producer_surface_pool.cpp" ]
   } else {
     sources += [ "gst_producer_surface_pool_no_stride.cpp" ]
@@ -71,15 +80,15 @@ ohos_shared_library("gst_mem_sink") {
 
   configs = [
     ":gst_mem_sink_config",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx_public_config",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config",
   ]
 
   deps = [
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/utils:sync_fence",
-    "//foundation/multimedia/media_standard/services/dfx:media_service_dfx",
-    "//foundation/multimedia/media_standard/services/engine/gstreamer/plugins/common:gst_media_common",
-    "//foundation/multimedia/media_standard/services/utils:media_service_utils",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common:gst_media_common",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
     "//third_party/glib:glib",
     "//third_party/glib:gmodule",
     "//third_party/glib:gobject",
@@ -96,12 +105,12 @@ ohos_shared_library("gst_mem_sink") {
 
   relative_install_dir = "media/plugins"
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }
 
 ohos_static_library("gst_mem_sink_base") {
   sources = [ "gst_mem_sink.cpp" ]
   configs = [ ":gst_mem_sink_config" ]
   subsystem_name = "multimedia"
-  part_name = "multimedia_media_standard"
+  part_name = "multimedia_player_framework"
 }

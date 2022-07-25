@@ -82,6 +82,21 @@ PlayBinSinkProvider::SinkPtr PlayerSinkProvider::CreateAudioSink()
     return audioSink_;
 }
 
+bool PlayerSinkProvider::EnableOptRenderDelay() const
+{
+    std::string enable;
+    int32_t res = OHOS::system::GetStringParameter("sys.media.kpi.opt.renderdelay.enable", enable, "");
+    if (res != 0 || enable.empty()) {
+        return false;
+    }
+
+    MEDIA_LOGI("KPI-TRACE: sys.media.kpi.opt.renderdelay.enable=%{public}s", enable.c_str());
+    if (enable != "true") {
+        return false;
+    }
+    return true;
+}
+
 GstElement *PlayerSinkProvider::DoCreateAudioSink(const GstCaps *caps, const gpointer userData)
 {
     (void)caps;
@@ -93,6 +108,9 @@ GstElement *PlayerSinkProvider::DoCreateAudioSink(const GstCaps *caps, const gpo
 
     g_object_set(G_OBJECT(sink), "app-uid", uid_, nullptr);
     g_object_set(G_OBJECT(sink), "app-pid", pid_, nullptr);
+
+    gboolean enable = static_cast<gboolean>(EnableOptRenderDelay());
+    g_object_set(G_OBJECT(sink), "enable-opt-render-delay", enable, nullptr);
 
     GstPad *pad = gst_element_get_static_pad(sink, "sink");
     if (pad == nullptr) {
@@ -107,7 +125,7 @@ GstElement *PlayerSinkProvider::DoCreateAudioSink(const GstCaps *caps, const gpo
     return sink;
 }
 
-bool PlayerSinkProvider::EnableKpiAVSyncLog()
+bool PlayerSinkProvider::EnableKpiAVSyncLog() const
 {
     std::string enable;
     int32_t res = OHOS::system::GetStringParameter("sys.media.kpi.avsync.log.enable", enable, "");
@@ -156,7 +174,7 @@ GstElement *PlayerSinkProvider::DoCreateVideoSink(const GstCaps *caps, const gpo
     CHECK_AND_RETURN_RET_LOG(userData != nullptr, nullptr, "input userData is nullptr..");
     PlayerSinkProvider *sinkProvider = reinterpret_cast<PlayerSinkProvider *>(userData);
 
-    auto sink = gst_element_factory_make("surfacememsink", "sink");
+    auto sink = gst_element_factory_make("videodisplaysink", "sink");
     CHECK_AND_RETURN_RET_LOG(sink != nullptr, nullptr, "gst_element_factory_make failed..");
     gst_base_sink_set_async_enabled(GST_BASE_SINK(sink), FALSE);
 
@@ -245,7 +263,7 @@ void PlayerSinkProvider::SetFirstRenderFrameFlag(bool firstRenderFrame)
     firstRenderFrame_ = firstRenderFrame;
 }
 
-bool PlayerSinkProvider::GetFirstRenderFrameFlag()
+bool PlayerSinkProvider::GetFirstRenderFrameFlag() const
 {
     return firstRenderFrame_;
 }

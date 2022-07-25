@@ -233,6 +233,8 @@ protected:
      */
     virtual RecorderMsgProcResult DoProcessMessage(GstMessage &msg, RecorderMessage &prettyMsg)
     {
+        (void)msg;
+        (void)prettyMsg;
         return RecorderMsgProcResult::REC_MSG_PROC_IGNORE;
     }
 

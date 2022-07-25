@@ -197,11 +197,11 @@ void AVMetadataMock::FrameToFile(std::shared_ptr<PixelMap> frame,
     int32_t bufferSize = frame->GetByteCount();
     const uint8_t MAX_FILE_PATH_LENGTH = 255;
     char filePath[MAX_FILE_PATH_LENGTH];
-    if (access("/data/media/ThumbnailBak", 0) != F_OK) {
-        mkdir("/data/media/ThumbnailBak", 0777);  // permission 777
+    if (access("/data/test/ThumbnailBak", 0) != F_OK) {
+        mkdir("/data/test/ThumbnailBak", 0777);  // 0777 is the file permission.
     }
     auto ret = sprintf_s(filePath, MAX_FILE_PATH_LENGTH,
-        "/data/media/ThumbnailBak/%s_time_%" PRIi64 "_option_%d_width_%d_height_%d_color_%d.pixel",
+        "/data/test/ThumbnailBak/%s_time_%" PRIi64 "_option_%d_width_%d_height_%d_color_%d.pixel",
         fileName, timeUs, queryOption, frame->GetWidth(), frame->GetHeight(), frame->GetPixelFormat());
     if (ret <= 0) {
         std::cout << "generate file path failed" << std::endl;
@@ -222,10 +222,10 @@ void AVMetadataMock::SurfaceToFile(std::shared_ptr<AVSharedMemory> frame,
     int32_t bufferSize = frame->GetSize();
     const uint8_t MAX_FILE_PATH_LENGTH = 255;
     char filePath[MAX_FILE_PATH_LENGTH];
-    if (access("/data/media/SurfaceBak", 0) != F_OK) {
-        mkdir("/data/media/SurfaceBak", 0777); // permission 777
+    if (access("/data/test/SurfaceBak", 0) != F_OK) {
+        mkdir("/data/test/SurfaceBak", 0777); // permission 777
     }
-    auto ret = sprintf_s(filePath, MAX_FILE_PATH_LENGTH, "/data/media/SurfaceBak/%s.pixel", fileName);
+    auto ret = sprintf_s(filePath, MAX_FILE_PATH_LENGTH, "/data/test/SurfaceBak/%s.pixel", fileName);
     if (ret <= 0) {
         std::cout << "generate file path failed" << std::endl;
         return;
@@ -242,11 +242,11 @@ void AVMetadataMock::FrameToJpeg(std::shared_ptr<PixelMap> frame,
 {
     const uint8_t MAX_FILE_PATH_LENGTH = 255;
     char filePath[MAX_FILE_PATH_LENGTH];
-    if (access("/data/media/ThumbnailBak", 0) != F_OK) {
-        mkdir("/data/media/ThumbnailBak", 0777); // permission 777
+    if (access("/data/test/ThumbnailBak", 0) != F_OK) {
+        mkdir("/data/test/ThumbnailBak", 0777); // permission 777
     }
     auto ret = sprintf_s(filePath, MAX_FILE_PATH_LENGTH,
-        "/data/media/ThumbnailBak/%s_time_%" PRIi64 "_option_%d_width_%d_height_%d_color_%d.jpg",
+        "/data/test/ThumbnailBak/%s_time_%" PRIi64 "_option_%d_width_%d_height_%d_color_%d.jpg",
         fileName, timeUs, queryOption, frame->GetWidth(), frame->GetHeight(), frame->GetPixelFormat());
     if (ret <= 0) {
         std::cout << "generate file path failed" << std::endl;
@@ -373,10 +373,10 @@ std::string AVMetadataTestBase::GetPrettyDuration(int64_t duration) // ms
 
     std::ostringstream oss;
     oss << std::setfill('0')
-        << std::setw(2) << hour << ":"
-        << std::setw(2) << min << ":"
-        << std::setw(2) << sec << "."
-        << std::setw(3) << milliSec;
+        << std::setw(2) << hour << ":" // Set the width of the output field to 2 for hour.
+        << std::setw(2) << min << ":"  // Set the width of the output field to 2 for min.
+        << std::setw(2) << sec << "."  // Set the width of the output field to 2 for sec.
+        << std::setw(3) << milliSec;   // Set the width of the output field to 3 for milliSec.
 
     return oss.str();
 }

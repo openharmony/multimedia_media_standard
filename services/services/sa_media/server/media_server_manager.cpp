@@ -31,6 +31,7 @@ constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "MediaServe
 namespace OHOS {
 namespace Media {
 constexpr uint32_t SERVER_MAX_NUMBER = 16;
+constexpr uint32_t RECORDER_MAX_NUMBER = 2;
 MediaServerManager &MediaServerManager::GetInstance()
 {
     static MediaServerManager instance;
@@ -183,7 +184,7 @@ sptr<IRemoteObject> MediaServerManager::CreatePlayerStubObject()
 
 sptr<IRemoteObject> MediaServerManager::CreateRecorderStubObject()
 {
-    if (recorderStubMap_.size() >= SERVER_MAX_NUMBER) {
+    if (recorderStubMap_.size() >= RECORDER_MAX_NUMBER) {
         MEDIA_LOGE("The number of recorder services(%{public}zu) has reached the upper limit."
             "Please release the applied resources.", recorderStubMap_.size());
         return nullptr;

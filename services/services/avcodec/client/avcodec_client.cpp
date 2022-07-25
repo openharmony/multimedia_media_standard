@@ -129,6 +129,15 @@ int32_t AVCodecClient::Flush()
     return codecProxy_->Flush();
 }
 
+int32_t AVCodecClient::NotifyEos()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    CHECK_AND_RETURN_RET_LOG(codecProxy_ != nullptr, MSERR_NO_MEMORY, "codec service does not exist.");
+
+    MEDIA_LOGD("NotifyEos");
+    return codecProxy_->NotifyEos();
+}
+
 int32_t AVCodecClient::Reset()
 {
     std::lock_guard<std::mutex> lock(mutex_);
