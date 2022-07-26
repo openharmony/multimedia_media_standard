@@ -47,7 +47,7 @@ config("media_engine_gst_recorder_config") {
     "//foundation/multimedia/player_framework/services/services/engine_intf",
     "//foundation/multimedia/player_framework/services/engine/common/avcodeclist",
     "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/glib/glib",

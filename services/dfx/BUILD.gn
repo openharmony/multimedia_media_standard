@@ -25,7 +25,7 @@ ohos_shared_library("media_service_dfx") {
 
   include_dirs = [
     ".",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
   ]
 
   cflags = [
@@ -51,9 +51,10 @@ ohos_shared_library("media_service_dfx") {
     "-Wunused-parameter",
   ]
 
-  deps = [ "//utils/native/base:utils" ]
-
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
 
   subsystem_name = "multimedia"
   part_name = "multimedia_player_framework"

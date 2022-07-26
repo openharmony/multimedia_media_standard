@@ -44,7 +44,7 @@
           "ipc",
           "graphic_standard",
           "hisysevent_native",
-          "utils_base",
+          "c_utils",
           "hilog_native",
           "zlib",
           "access_token",
