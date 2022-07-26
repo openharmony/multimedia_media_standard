@@ -39,7 +39,7 @@ config("gst_codec_bin_config") {
 
   include_dirs = [
     "include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//foundation/multimedia/player_framework/services/engine/gstreamer/common/utils",
     "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common",
     "//third_party/gstreamer/gstreamer",

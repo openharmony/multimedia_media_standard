@@ -39,7 +39,7 @@ config("media_engine_gst_loader_config") {
   ]
 
   include_dirs = [
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//third_party/glib/glib",
     "//third_party/glib",
     "//third_party/gstreamer/gstreamer",
@@ -62,10 +62,10 @@ ohos_static_library("media_engine_gst_loader") {
     "//third_party/glib:glib",
     "//third_party/glib:gobject",
     "//third_party/gstreamer/gstreamer:gstreamer",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "init:libbegetutil",
   ]

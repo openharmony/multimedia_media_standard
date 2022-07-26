@@ -40,7 +40,7 @@ config("gst_audio_capture_src_config") {
 
   include_dirs = [
     "include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//foundation/multimedia/player_framework/services/utils/include",
     "//foundation/multimedia/player_framework/interfaces/inner_api/native",
     "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common",
@@ -86,10 +86,12 @@ ohos_shared_library("gst_audio_capture_src") {
     "//third_party/gstreamer/gstplugins_base:gstaudio",
     "//third_party/gstreamer/gstreamer:gstbase",
     "//third_party/gstreamer/gstreamer:gstreamer",
-    "//utils/native/base:utils",
   ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
 
   relative_install_dir = "media/plugins"
   subsystem_name = "multimedia"
