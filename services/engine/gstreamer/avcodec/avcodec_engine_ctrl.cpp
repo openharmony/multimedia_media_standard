@@ -119,7 +119,6 @@ int32_t AVCodecEngineCtrl::Start()
 
     CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);
     if (flushAtStart_ || sink_->IsEos()) {
-        g_object_set(codecBin_, "flush-at-start", TRUE, nullptr);
         CHECK_AND_RETURN_RET(Flush() == MSERR_OK, MSERR_INVALID_OPERATION);
         flushAtStart_ = false;
     }
