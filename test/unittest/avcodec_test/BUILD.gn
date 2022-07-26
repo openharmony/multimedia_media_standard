@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 
-module_output_path = "multimedia_media_standard/avcodec"
+module_output_path = "multimedia_player_framework/avcodec"
 
 ohos_unittest("avcodec_native_unit_test") {
   module_out_path = module_output_path
@@ -26,10 +26,10 @@ ohos_unittest("avcodec_native_unit_test") {
     "./native/surface/",
     "./native/videodecoder/",
     "./native/videoencoder/",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
     "//graphic/graphic_2d/interfaces/innerkits/surface",
-    "//foundation/windowmanager/interfaces/innerkits/wm",
-    "//foundation/multimedia/media_standard/test/unittest/common/include",
+    "//foundation/window/window_manager/interfaces/innerkits/wm",
+    "//foundation/multimedia/player_framework/test/unittest/common/include",
   ]
 
   cflags = [
@@ -55,6 +55,8 @@ ohos_unittest("avcodec_native_unit_test") {
   ]
 
   sources = [
+    "./native/audiodecoder/audiodec_native_mock.cpp",
+    "./native/audioencoder/audioenc_native_mock.cpp",
     "./native/avcodec_mock_factory.cpp",
     "./native/avformat/avformat_native_mock.cpp",
     "./native/avmemory/avmemory_native_mock.cpp",
@@ -67,9 +69,9 @@ ohos_unittest("avcodec_native_unit_test") {
     "//foundation/graphic/graphic_2d:libsurface",
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/multimedia/media_standard/interfaces/inner_api/native:media_client",
-    "//foundation/windowmanager/wm:libwm",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
+    "//foundation/window/window_manager/wm:libwm",
   ]
 
-  resource_config_file = "//foundation/multimedia/media_standard/test/unittest/resources/ohos_test.xml"
+  resource_config_file = "//foundation/multimedia/player_framework/test/unittest/resources/ohos_test.xml"
 }
