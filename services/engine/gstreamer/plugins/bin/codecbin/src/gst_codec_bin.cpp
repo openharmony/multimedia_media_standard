@@ -33,7 +33,6 @@ enum {
     PROP_VENDOR,
     PROP_USE_SURFACE_INPUT,
     PROP_USE_SURFACE_OUTPUT,
-    PROP_FLUSH_AT_START,
     PROP_BITRATE_MODE,
     PROP_CODEC_QUALITY,
     PROP_I_FRAME_INTREVAL,
@@ -142,10 +141,6 @@ static void gst_codec_bin_init_config(GObjectClass *gobject_class)
         g_param_spec_boolean("use-surface-output", "use surface output", "The sink is surface",
             FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
-    g_object_class_install_property(gobject_class, PROP_FLUSH_AT_START,
-        g_param_spec_boolean("flush-at-start", "flush at start", "The Flush is at start",
-            FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
-
     g_object_class_install_property(gobject_class, PROP_BITRATE_MODE,
         g_param_spec_int("bitrate-mode", "Bitrate mode", "bitrate mode for video encoder",
             0, G_MAXINT32, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
@@ -206,11 +201,6 @@ static void gst_codec_bin_set_property_next(GObject *object, guint prop_id,
     GstCodecBin *bin = GST_CODEC_BIN(object);
     g_return_if_fail(bin != nullptr);
     switch (prop_id) {
-        case PROP_FLUSH_AT_START:
-            if (bin->type == CODEC_BIN_TYPE_VIDEO_ENCODER && bin->src != nullptr) {
-                g_object_set(bin->src, "flush-at-start", g_value_get_boolean(value), nullptr);
-            }
-            break;
         case PROP_BITRATE_MODE:
             bin->bitrate_mode = g_value_get_int(value);
             break;
