@@ -17,6 +17,8 @@
 #include "avformat_native_mock.h"
 #include "avmemory_native_mock.h"
 #include "surface_native_mock.h"
+#include "audiodec_native_mock.h"
+#include "audioenc_native_mock.h"
 #include "videodec_native_mock.h"
 #include "videoenc_native_mock.h"
 
@@ -54,6 +56,42 @@ std::shared_ptr<VideoEncMock> AVCodecMockFactory::CreateVideoEncMockByName(const
     auto videoEnc = VideoEncoderFactory::CreateByName(name);
     if (videoEnc != nullptr) {
         return std::make_shared<VideoEncNativeMock>(videoEnc);
+    }
+    return nullptr;
+}
+
+std::shared_ptr<AudioDecMock> AVCodecMockFactory::CreateAudioDecMockByMine(const std::string &mime)
+{
+    auto audioDec = AudioDecoderFactory::CreateByMime(mime);
+    if (audioDec != nullptr) {
+        return std::make_shared<AudioDecNativeMock>(audioDec);
+    }
+    return nullptr;
+}
+
+std::shared_ptr<AudioDecMock> AVCodecMockFactory::CreateAudioDecMockByName(const std::string &name)
+{
+    auto audioDec = AudioDecoderFactory::CreateByName(name);
+    if (audioDec != nullptr) {
+        return std::make_shared<AudioDecNativeMock>(audioDec);
+    }
+    return nullptr;
+}
+
+std::shared_ptr<AudioEncMock> AVCodecMockFactory::CreateAudioEncMockByMine(const std::string &mime)
+{
+    auto audioEnc = AudioEncoderFactory::CreateByMime(mime);
+    if (audioEnc != nullptr) {
+        return std::make_shared<AudioEncNativeMock>(audioEnc);
+    }
+    return nullptr;
+}
+
+std::shared_ptr<AudioEncMock> AVCodecMockFactory::CreateAudioEncMockByName(const std::string &name)
+{
+    auto audioEnc = AudioEncoderFactory::CreateByName(name);
+    if (audioEnc != nullptr) {
+        return std::make_shared<AudioEncNativeMock>(audioEnc);
     }
     return nullptr;
 }
