@@ -42,5 +42,9 @@
             <option name="push" value="res_avmetadata/MP3_SURFACE.mp3 -> /data/test" src="res"/>
         </preparer>
     </target>
+    <target name="vcodec_native_unit_test">
+        <preparer>
+            <option name="push" value="res_codec/out_320_240_10s.h264 -> /data/test" src="res"/>
+        </preparer>
 </configuration>
 

@@ -13,56 +13,66 @@
 
 import("//build/test.gni")
 
+MEDIA_ROOT_DIR = "//foundation/multimedia/player_framework/"
 module_output_path = "multimedia_player_framework/avcodec"
 
-ohos_unittest("avcodec_native_unit_test") {
+avcodec_unittest_native_include_dirs = [
+  "//graphic/graphic_2d/interfaces/innerkits/surface",
+  "//foundation//window/window_manager/interfaces/innerkits/wm",
+  "$MEDIA_ROOT_DIR/interfaces/inner_api/native",
+  "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/native/audiodecoder/",
+  "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/native/audioencoder/",
+  "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/native/avformat/",
+  "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/native/avmemory/",
+  "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/native/surface/",
+  "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/native/videodecoder/",
+  "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/native/videoencoder/",
+  "$MEDIA_ROOT_DIR/test/unittest/common/include/",
+]
+
+avcodec_unittest_cflags = [
+  "-std=c++17",
+  "-fno-rtti",
+  "-fno-exceptions",
+  "-Wall",
+  "-fno-common",
+  "-fstack-protector-strong",
+  "-Wshadow",
+  "-FPIC",
+  "-FS",
+  "-O2",
+  "-D_FORTIFY_SOURCE=2",
+  "-fvisibility=hidden",
+  "-Wformat=2",
+  "-Wdate-time",
+  "-Werror",
+  "-Wextra",
+  "-Wimplicit-fallthrough",
+  "-Wsign-compare",
+  "-Wunused-parameter",
+]
+
+##################################################################################################################
+ohos_unittest("vcodec_native_unit_test") {
   module_out_path = module_output_path
-  include_dirs = [
+  include_dirs = avcodec_unittest_native_include_dirs
+  include_dirs += [
     "./",
-    "./native/audiodecoder/",
-    "./native/audioencoder/",
-    "./native/avformat/",
-    "./native/avmemory/",
-    "./native/surface/",
-    "./native/videodecoder/",
-    "./native/videoencoder/",
-    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
-    "//graphic/graphic_2d/interfaces/innerkits/surface",
-    "//foundation/window/window_manager/interfaces/innerkits/wm",
-    "//foundation/multimedia/player_framework/test/unittest/common/include",
+    "./vcodec_test",
   ]
 
-  cflags = [
-    "-std=c++17",
-    "-fno-rtti",
-    "-fno-exceptions",
-    "-Wall",
-    "-fno-common",
-    "-fstack-protector-strong",
-    "-Wshadow",
-    "-FPIC",
-    "-FS",
-    "-O2",
-    "-D_FORTIFY_SOURCE=2",
-    "-fvisibility=hidden",
-    "-Wformat=2",
-    "-Wdate-time",
-    "-Werror",
-    "-Wextra",
-    "-Wimplicit-fallthrough",
-    "-Wsign-compare",
-    "-Wunused-parameter",
-  ]
+  cflags = avcodec_unittest_cflags
 
   sources = [
-    "./native/audiodecoder/audiodec_native_mock.cpp",
-    "./native/audioencoder/audioenc_native_mock.cpp",
     "./native/avcodec_mock_factory.cpp",
     "./native/avformat/avformat_native_mock.cpp",
     "./native/avmemory/avmemory_native_mock.cpp",
     "./native/surface/surface_native_mock.cpp",
     "./native/videodecoder/videodec_native_mock.cpp",
     "./native/videoencoder/videoenc_native_mock.cpp",
+    "./vcodec_test/vcodec_unit_test.cpp",
+    "./vcodec_test/vdec_mock.cpp",
+    "./vcodec_test/venc_mock.cpp",
   ]
 
   deps = [
