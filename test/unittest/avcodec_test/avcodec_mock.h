@@ -96,12 +96,50 @@ public:
     virtual int32_t FreeOutputData(uint32_t index) = 0;
 };
 
+class AudioDecMock : public NoCopyable {
+public:
+    virtual ~AudioDecMock() = default;
+    virtual int32_t SetCallback(std::shared_ptr<AVCodecCallbackMock> cb) = 0;
+    virtual int32_t Configure(std::shared_ptr<FormatMock> format) = 0;
+    virtual int32_t Prepare() = 0;
+    virtual int32_t Start() = 0;
+    virtual int32_t Stop() = 0;
+    virtual int32_t Flush() = 0;
+    virtual int32_t Reset() = 0;
+    virtual int32_t Release() = 0;
+    virtual int32_t PushInputData(uint32_t index, AVCodecBufferAttrMock &attr) = 0;
+    virtual std::shared_ptr<FormatMock> GetOutputMediaDescription() = 0;
+    virtual int32_t SetParameter(std::shared_ptr<FormatMock> format) = 0;
+    virtual int32_t FreeOutputData(uint32_t index) = 0;
+};
+
+class AudioEncMock : public NoCopyable {
+public:
+    virtual ~AudioEncMock() = default;
+    virtual int32_t SetCallback(std::shared_ptr<AVCodecCallbackMock> cb) = 0;
+    virtual int32_t Configure(std::shared_ptr<FormatMock> format) = 0;
+    virtual int32_t Prepare() = 0;
+    virtual int32_t Start() = 0;
+    virtual int32_t Stop() = 0;
+    virtual int32_t Flush() = 0;
+    virtual int32_t Reset() = 0;
+    virtual int32_t Release() = 0;
+    virtual int32_t PushInputData(uint32_t index, AVCodecBufferAttrMock &attr) = 0;
+    virtual std::shared_ptr<FormatMock> GetOutputMediaDescription() = 0;
+    virtual int32_t SetParameter(std::shared_ptr<FormatMock> format) = 0;
+    virtual int32_t FreeOutputData(uint32_t index) = 0;
+};
+
 class __attribute__((visibility("default"))) AVCodecMockFactory {
 public:
     static std::shared_ptr<VideoDecMock> CreateVideoDecMockByMine(const std::string &mime);
     static std::shared_ptr<VideoDecMock> CreateVideoDecMockByName(const std::string &name);
     static std::shared_ptr<VideoEncMock> CreateVideoEncMockByMine(const std::string &mime);
     static std::shared_ptr<VideoEncMock> CreateVideoEncMockByName(const std::string &name);
+    static std::shared_ptr<AudioDecMock> CreateAudioDecMockByMine(const std::string &mime);
+    static std::shared_ptr<AudioDecMock> CreateAudioDecMockByName(const std::string &name);
+    static std::shared_ptr<AudioEncMock> CreateAudioEncMockByMine(const std::string &mime);
+    static std::shared_ptr<AudioEncMock> CreateAudioEncMockByName(const std::string &name);
     static std::shared_ptr<FormatMock> CreateFormat();
     static std::shared_ptr<SurfaceMock> CreateSurface();
 
