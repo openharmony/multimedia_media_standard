@@ -16,12 +16,15 @@
 #include "gst_surface_allocator.h"
 #include <sync_fence.h>
 #include "media_log.h"
+#include "media_dfx.h"
 
 GST_DEBUG_CATEGORY_STATIC(gst_surface_allocator_debug_category);
 #define GST_CAT_DEFAULT gst_surface_allocator_debug_category
 
 #define gst_surface_allocator_parent_class parent_class
 G_DEFINE_TYPE(GstSurfaceAllocator, gst_surface_allocator, GST_TYPE_ALLOCATOR);
+
+using namespace OHOS::Media;
 
 enum class VideoScaleType {
     VIDEO_SCALE_TYPE_FIT,
@@ -57,10 +60,10 @@ static OHOS::ScalingMode gst_surface_allocator_get_scale_type(GstSurfaceAllocPar
     return SCALEMODE_MAP.at(static_cast<VideoScaleType>(param.scale_type));
 }
 
-GstSurfaceMemory *gst_surface_allocator_alloc(GstSurfaceAllocator *allocator, GstSurfaceAllocParam param)
+static bool gst_surface_request_buffer(GstSurfaceAllocator *allocator, GstSurfaceAllocParam param,
+    OHOS::sptr<OHOS::SurfaceBuffer> &buffer)
 {
-    g_return_val_if_fail(allocator != nullptr && allocator->surface != nullptr, nullptr);
-
+    MediaTrace trace("Surface::RequestBuffer");
     static constexpr int32_t stride_alignment = 8;
     int32_t wait_time = param.dont_wait ? 0 : INT_MAX; // wait forever or no wait.
     OHOS::BufferRequestConfig request_config = {
@@ -68,44 +71,66 @@ GstSurfaceMemory *gst_surface_allocator_alloc(GstSurfaceAllocator *allocator, Gs
         HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA, wait_time
     };
     int32_t release_fence = -1;
-    OHOS::sptr<OHOS::SurfaceBuffer> surface_buffer = nullptr;
-    OHOS::SurfaceError ret = allocator->surface->RequestBuffer(surface_buffer, release_fence, request_config);
-    if (ret == OHOS::SurfaceError::SURFACE_ERROR_NO_BUFFER) {
-        GST_INFO("there is no more buffers");
+    OHOS::SurfaceError ret = allocator->surface->RequestBuffer(buffer, release_fence, request_config);
+    if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK || buffer == nullptr) {
+        GST_ERROR("there is no more surface buffer");
+        return false;
     }
-    if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK || surface_buffer == nullptr) {
+    {
+        MediaTrace mapTrace("Surface::Map");
+        if (buffer->Map() != OHOS::SurfaceError::SURFACE_ERROR_OK) {
+            GST_ERROR("surface buffer Map failed");
+            allocator->surface->CancelBuffer(buffer);
+            return false;
+        }
+    }
+
+    {
+        MediaTrace FenceTrace("Surface::WaitFence");
+        OHOS::sptr<OHOS::SyncFence> autoFence = new(std::nothrow) OHOS::SyncFence(release_fence);
+        if (autoFence != nullptr) {
+            autoFence->Wait(100); // 100ms
+        }
+    }
+
+    {
+        MediaTrace scaleTrace("Surface::SetScalingMode");
+        auto scaleType = gst_surface_allocator_get_scale_type(param);
+        ret = allocator->surface->SetScalingMode(buffer->GetSeqNum(), scaleType);
+        if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
+            GST_ERROR("surface buffer set scaling mode failed");
+            allocator->surface->CancelBuffer(buffer);
+            return false;
+        }
+    }
+    return true;
+}
+
+GstSurfaceMemory *gst_surface_allocator_alloc(GstSurfaceAllocator *allocator, GstSurfaceAllocParam param)
+{
+    g_return_val_if_fail(allocator != nullptr && allocator->surface != nullptr, nullptr);
+
+    OHOS::sptr<OHOS::SurfaceBuffer> buffer = nullptr;
+    if (!gst_surface_request_buffer(allocator, param, buffer) || buffer == nullptr) {
+        GST_ERROR("failed to request surface buffer");
         return nullptr;
-    }
-    ret = allocator->surface->SetScalingMode(surface_buffer->GetSeqNum(), gst_surface_allocator_get_scale_type(param));
-    if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
-        GST_ERROR("set scaling mode failed");
-        return nullptr;
-    }
-    ret = surface_buffer->Map();
-    if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
-        GST_ERROR("surface_buffer Map failed");
-        return nullptr;
-    }
-    OHOS::sptr<OHOS::SyncFence> autoFence = new(std::nothrow) OHOS::SyncFence(release_fence);
-    if (autoFence != nullptr) {
-        autoFence->Wait(100); // 100ms
     }
 
     GstSurfaceMemory *memory = reinterpret_cast<GstSurfaceMemory *>(g_slice_alloc0(sizeof(GstSurfaceMemory)));
     if (memory == nullptr) {
         GST_ERROR("alloc GstSurfaceMemory slice failed");
-        allocator->surface->CancelBuffer(surface_buffer);
+        allocator->surface->CancelBuffer(buffer);
         return nullptr;
     }
 
     gst_memory_init(GST_MEMORY_CAST(memory), (GstMemoryFlags)0, GST_ALLOCATOR_CAST(allocator), nullptr,
-        surface_buffer->GetSize(), 0, 0, surface_buffer->GetSize());
+        buffer->GetSize(), 0, 0, buffer->GetSize());
 
-    memory->buf = surface_buffer;
+    memory->buf = buffer;
     memory->fence = -1;
     memory->need_render = FALSE;
     GST_DEBUG("alloc surface buffer for width: %d, height: %d, format: %d, size: %u",
-        param.width, param.height, param.format, surface_buffer->GetSize());
+        param.width, param.height, param.format, buffer->GetSize());
 
     return memory;
 }
