@@ -26,7 +26,7 @@ namespace {
 
 sptr<Surface> SurfaceNativeMock::GetSurface()
 {
-    if (surface_ != nullptr) {
+    if (surface_ == nullptr) {
         sptr<Rosen::WindowOption> option = new Rosen::WindowOption();
         option->SetWindowRect({ 0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT });
         option->SetWindowType(Rosen::WindowType::WINDOW_TYPE_APP_LAUNCHING);
