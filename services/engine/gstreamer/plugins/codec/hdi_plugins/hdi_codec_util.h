@@ -25,6 +25,7 @@
 #include "OMX_Component.h"
 #include "display_type.h"
 #include "codec_component_if.h"
+#include "codec_omx_ext.h"
 
 namespace OHOS {
 namespace Media {
