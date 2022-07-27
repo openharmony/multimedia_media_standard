@@ -21,8 +21,10 @@
 #include "media_log.h"
 #include "param_wrapper.h"
 #include "scope_guard.h"
+#include "media_dfx.h"
 
 using namespace OHOS;
+using namespace OHOS::Media;
 struct _GstSurfaceMemSinkPrivate {
     OHOS::sptr<OHOS::Surface> surface;
     GstProducerSurfacePool *pool;
@@ -285,27 +287,13 @@ static gboolean gst_surface_mem_sink_need_flush(GstSurfaceMemSink *surface_sink,
     return needFlush;
 }
 
-static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, GstBuffer *buffer, bool is_preroll)
+static GstFlowReturn gst_surface_do_render_buffer(GstMemSink *memsink, GstBuffer *buffer, bool is_preroll)
 {
     g_return_val_if_fail(memsink != nullptr && buffer != nullptr, GST_FLOW_ERROR);
     GstSurfaceMemSink *surface_sink = GST_SURFACE_MEM_SINK_CAST(memsink);
     g_return_val_if_fail(surface_sink != nullptr, GST_FLOW_ERROR);
     GstSurfaceMemSinkPrivate *priv = surface_sink->priv;
-    GstSurfaceMemSinkClass *surface_sink_class = GST_SURFACE_MEM_SINK_GET_CLASS(surface_sink);
-    GST_OBJECT_LOCK(surface_sink);
-
-    if (gst_surface_mem_sink_drop_frame_check(surface_sink) == FALSE) {
-        GST_OBJECT_UNLOCK(surface_sink);
-        GST_DEBUG_OBJECT(surface_sink, "user set rate, drop same frame");
-        return GST_FLOW_OK;
-    }
-
-    if (surface_sink->firstRenderFrame && is_preroll) {
-        GST_DEBUG_OBJECT(surface_sink, "first render frame");
-        GST_OBJECT_UNLOCK(surface_sink);
-        return GST_FLOW_OK;
-    }
-    surface_sink->firstRenderFrame = FALSE;
+    g_return_val_if_fail(priv != nullptr, GST_FLOW_ERROR);
 
     for (guint i = 0; i < gst_buffer_n_memory(buffer); i++) {
         GstMemory *memory = gst_buffer_peek_memory(buffer, i);
@@ -325,13 +313,42 @@ static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, Gst
                 { 0, 0, surface_mem->buf->GetWidth(), surface_mem->buf->GetHeight() }, GST_BUFFER_PTS(buffer)
             };
             gst_surface_mem_sink_dump_buffer(surface_sink, buffer);
-            OHOS::SurfaceError ret = priv->surface->FlushBuffer(surface_mem->buf, surface_mem->fence, flushConfig);
-            if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
-                surface_mem->need_render = FALSE;
-                GST_ERROR_OBJECT(surface_sink, "flush buffer to surface failed, %d", ret);
+            {
+                MediaTrace trace("Surface::FlushBuffer");
+                OHOS::SurfaceError ret = priv->surface->FlushBuffer(surface_mem->buf, surface_mem->fence, flushConfig);
+                if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
+                    surface_mem->need_render = FALSE;
+                    GST_ERROR_OBJECT(surface_sink, "flush buffer to surface failed, %d", ret);
+                }
             }
         }
     }
+    return GST_FLOW_OK;
+}
+
+static GstFlowReturn gst_surface_mem_sink_do_app_render(GstMemSink *memsink, GstBuffer *buffer, bool is_preroll)
+{
+    g_return_val_if_fail(memsink != nullptr && buffer != nullptr, GST_FLOW_ERROR);
+    GstSurfaceMemSink *surface_sink = GST_SURFACE_MEM_SINK_CAST(memsink);
+    g_return_val_if_fail(surface_sink != nullptr, GST_FLOW_ERROR);
+
+    GstSurfaceMemSinkClass *surface_sink_class = GST_SURFACE_MEM_SINK_GET_CLASS(surface_sink);
+    GST_OBJECT_LOCK(surface_sink);
+
+    if (gst_surface_mem_sink_drop_frame_check(surface_sink) == FALSE) {
+        GST_OBJECT_UNLOCK(surface_sink);
+        GST_DEBUG_OBJECT(surface_sink, "user set rate, drop same frame");
+        return GST_FLOW_OK;
+    }
+
+    if (surface_sink->firstRenderFrame && is_preroll) {
+        GST_DEBUG_OBJECT(surface_sink, "first render frame");
+        GST_OBJECT_UNLOCK(surface_sink);
+        return GST_FLOW_OK;
+    }
+    surface_sink->firstRenderFrame = FALSE;
+
+    (void)gst_surface_do_render_buffer(memsink, buffer, is_preroll);
 
     GST_OBJECT_UNLOCK(surface_sink);
 

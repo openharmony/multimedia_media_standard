@@ -24,13 +24,6 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayerServer"};
-    enum PlayerTaskID : int32_t {
-        PREPARE_TASK_ID = 0,
-        PLAY_TASK_ID = 1,
-        PAUSE_TASK_ID = 2,
-        STOP_TASK_ID = 3,
-        SEEK_TASK_ID = 4,
-    };
 }
 
 namespace OHOS {
@@ -102,7 +95,7 @@ int32_t PlayerServer::Init()
 int32_t PlayerServer::SetSource(const std::string &url)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    MediaTrace trace("PlayerServer::SetSource");
+    MediaTrace trace("PlayerServer::SetSource url");
     MEDIA_LOGW("KPI-TRACE: PlayerServer SetSource in(url)");
     config_.url = url;
     int32_t ret = InitPlayEngine(url);
@@ -113,7 +106,7 @@ int32_t PlayerServer::SetSource(const std::string &url)
 int32_t PlayerServer::SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    MediaTrace trace("PlayerServer::SetSource");
+    MediaTrace trace("PlayerServer::SetSource dataSrc");
     CHECK_AND_RETURN_RET_LOG(dataSrc != nullptr, MSERR_INVALID_VAL, "data source is nullptr");
     MEDIA_LOGW("KPI-TRACE: PlayerServer SetSource in(dataSrc)");
     dataSrc_ = dataSrc;
@@ -133,7 +126,7 @@ int32_t PlayerServer::SetSource(const std::shared_ptr<IMediaDataSource> &dataSrc
 int32_t PlayerServer::SetSource(int32_t fd, int64_t offset, int64_t size)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    MediaTrace trace("PlayerServer::SetSource");
+    MediaTrace trace("PlayerServer::SetSource fd");
     MEDIA_LOGW("KPI-TRACE: PlayerServer SetSource in(fd)");
     auto uriHelper = std::make_unique<UriHelper>(fd, offset, size);
     CHECK_AND_RETURN_RET_LOG(uriHelper->AccessCheck(UriHelper::URI_READ), MSERR_INVALID_VAL, "Failed to read the fd");
@@ -185,7 +178,7 @@ int32_t PlayerServer::Prepare()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGW("KPI-TRACE: PlayerServer Prepare in");
-    MediaTrace trace("PlayerServer::Prepare");
+
     int32_t ret = OnPrepare();
     CHECK_AND_RETURN_RET(ret == MSERR_OK, ret);
 
@@ -228,7 +221,7 @@ int32_t PlayerServer::OnPrepare()
             auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
             return currState->Prepare();
         });
-        MediaTrace::TraceBegin("PlayerServer::PrepareAsync", PREPARE_TASK_ID);
+        MediaTrace::TraceBegin("PlayerServer::PrepareAsync", MediaTrace::PLAYER_PREPARE_TASK_ID);
         ret = taskMgr_.LaunchTask(preparedTask, PlayerServerTaskType::STATE_CHANGE);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Prepare launch task failed");
 
@@ -274,7 +267,7 @@ int32_t PlayerServer::Play()
             (void)currState->Play();
         });
 
-        MediaTrace::TraceBegin("PlayerServer::Play", PLAY_TASK_ID);
+        MediaTrace::TraceBegin("PlayerServer::Play", MediaTrace::PLAYER_PLAY_TASK_ID);
         int ret = taskMgr_.LaunchTask(playingTask, PlayerServerTaskType::STATE_CHANGE);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Play failed");
 
@@ -310,7 +303,7 @@ int32_t PlayerServer::Pause()
         auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
         (void)currState->Pause();
     });
-    MediaTrace::TraceBegin("PlayerServer::Pause", PAUSE_TASK_ID);
+    MediaTrace::TraceBegin("PlayerServer::Pause", MediaTrace::PLAYER_PAUSE_TASK_ID);
     int ret = taskMgr_.LaunchTask(pauseTask, PlayerServerTaskType::STATE_CHANGE);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Pause failed");
 
@@ -341,7 +334,7 @@ int32_t PlayerServer::Stop()
             auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
             (void)currState->Stop();
         });
-        MediaTrace::TraceBegin("PlayerServer::Stop", STOP_TASK_ID);
+        MediaTrace::TraceBegin("PlayerServer::Stop", MediaTrace::PLAYER_STOP_TASK_ID);
         int ret = taskMgr_.LaunchTask(stopTask, PlayerServerTaskType::STATE_CHANGE);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Stop failed");
 
@@ -469,7 +462,6 @@ bool PlayerServer::IsValidSeekMode(PlayerSeekMode mode)
 int32_t PlayerServer::Seek(int32_t mSeconds, PlayerSeekMode mode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    MediaTrace::TraceBegin("Player::Seek", SEEK_TASK_ID);
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
 
     if (lastOpStatus_ != PLAYER_PREPARED && lastOpStatus_ != PLAYER_PAUSED && lastOpStatus_ != PLAYER_STARTED) {
@@ -486,7 +478,6 @@ int32_t PlayerServer::Seek(int32_t mSeconds, PlayerSeekMode mode)
     if (mSeconds == 0 && playerEngine_->GetCurrentTime(currentTime) == MSERR_OK && currentTime == mSeconds) {
         MEDIA_LOGW("Seek to the inner position");
         Format format;
-        MediaTrace::TraceEnd("Player::Seek", SEEK_TASK_ID);
         OnInfoNoChangeStatus(INFO_TYPE_SEEKDONE, 0, format);
         return MSERR_OK;
     }
@@ -498,6 +489,7 @@ int32_t PlayerServer::Seek(int32_t mSeconds, PlayerSeekMode mode)
         (void)currState->Seek(mSeconds, mode);
     });
 
+    MediaTrace::TraceBegin("PlayerServer::Seek", MediaTrace::PLAYER_SEEK_TASK_ID);
     int ret = taskMgr_.LaunchTask(seekTask, PlayerServerTaskType::SEEKING);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Seek failed");
 
