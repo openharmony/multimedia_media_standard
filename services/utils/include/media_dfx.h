@@ -21,6 +21,13 @@
 #include "nocopyable.h"
 #include "hisysevent.h"
 
+namespace {
+    enum AVCodeServerID : int32_t {
+        CODEC_FIRSTFRAME_TASK_ID = 0,
+        CODEC_FRAME_TASK_ID = 1,
+    };
+}
+
 namespace OHOS {
 namespace Media {
 class __attribute__((visibility("default"))) MediaEvent : public NoCopyable {
