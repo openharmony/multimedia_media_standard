@@ -443,16 +443,20 @@ void PlayBinCtrlerBase::Reset() noexcept
         elemSetupListener_ = nullptr;
         elemUnSetupListener_ = nullptr;
     }
-    isStopFinish_ = false;
-    int32_t ret = StopInternal();
-    CHECK_AND_RETURN(ret == MSERR_OK);
-    {
-        std::unique_lock<std::mutex> condLock(stopCondMutex_);
-        stopCond_.wait_for(condLock, std::chrono::seconds(STOP_TIMEOUT), [this]() {
-            return isStopFinish_;
-        });
+
+    if (GetCurrState() != preparingState_ && GetCurrState() != stoppedState_) {
+        isStopFinish_ = false;
+        int32_t ret = StopInternal();
+        CHECK_AND_RETURN(ret == MSERR_OK);
+        {
+            std::unique_lock<std::mutex> condLock(stopCondMutex_);
+            stopCond_.wait_for(condLock, std::chrono::seconds(STOP_TIMEOUT), [this]() {
+                return isStopFinish_;
+            });
+        }
+        CHECK_AND_RETURN(isStopFinish_);
     }
-    CHECK_AND_RETURN(isStopFinish_);
+
     // Do it here before the ChangeState to IdleState, for avoding the deadlock when msg handler
     // try to call the ChangeState.
     ExitInitializedState();
@@ -672,6 +676,8 @@ void PlayBinCtrlerBase::SetupCustomElement()
         audioSink_ = sinkProvider_->CreateAudioSink();
         if (audioSink_ != nullptr) {
             g_object_set(playbin_, "audio-sink", audioSink_, nullptr);
+            SetupVolumeChangedCb();
+            SetupInterruptEventCb();
         }
         videoSink_ = sinkProvider_->CreateVideoSink();
         if (videoSink_ != nullptr) {
@@ -1029,7 +1035,7 @@ void PlayBinCtrlerBase::OnVolumeChangedCb(const GstElement *playbin, GstElement 
     }
 
     auto thizStrong = PlayBinCtrlerWrapper::TakeStrongThiz(userdata);
-    if (thizStrong != nullptr) {
+    if (thizStrong != nullptr && thizStrong->GetCurrState() != thizStrong->preparingState_) {
         PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_VOLUME_CHANGE, 0, 0, {} };
         thizStrong->ReportMessage(msg);
     }
