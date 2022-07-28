@@ -41,10 +41,10 @@ class VEncCallbackTest : public AVCodecCallbackMock {
 public:
     explicit VEncCallbackTest(std::shared_ptr<VEncSignal> signal);
     virtual ~VEncCallbackTest();
-    void OnError(int32_t errorCode);
-    void OnStreamChanged(std::shared_ptr<FormatMock> format);
-    void OnNeedInputData(uint32_t index, std::shared_ptr<AVMemoryMock> data);
-    void OnNewOutputData(uint32_t index, std::shared_ptr<AVMemoryMock> data, AVCodecBufferAttrMock attr);
+    void OnError(int32_t errorCode) override;
+    void OnStreamChanged(std::shared_ptr<FormatMock> format) override;
+    void OnNeedInputData(uint32_t index, std::shared_ptr<AVMemoryMock> data) override;
+    void OnNewOutputData(uint32_t index, std::shared_ptr<AVMemoryMock> data, AVCodecBufferAttrMock attr) override;
 private:
     std::shared_ptr<VEncSignal> signal_;
 };
