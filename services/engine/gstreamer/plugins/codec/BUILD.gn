@@ -20,6 +20,6 @@ declare_args() {
 group("codec_plugins") {
   deps = [ "hdi_plugins:gst_codec_plugin_hdi" ]
   if (multimedia_player_framework_codec_plugins != "") {
-    deps += [ multimedia_media_standard_codec_plugins ]
+    deps += [ multimedia_player_framework_codec_plugins ]
   }
 }
