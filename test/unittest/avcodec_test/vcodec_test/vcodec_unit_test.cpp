@@ -46,7 +46,7 @@ void VCodecUnitTest::SetUp(void)
     testInfo_ = ::testing::UnitTest::GetInstance()->current_test_info();
     string prefix = "/data/test/";
     string fileName = testInfo_->name();
-    string suffix = ".aac";
+    string suffix = ".es";
     videoEnc_->SetOutPath(prefix + fileName + suffix);
 }
 

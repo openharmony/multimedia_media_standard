@@ -193,6 +193,29 @@ int32_t VDecMock::FreeOutputData(uint32_t index)
     return videoDec_->FreeOutputData(index);
 }
 
+int32_t VDecMock::PushInputDataMock(uint32_t index)
+{
+    struct AVCodecBufferAttrMock attr;
+    attr.offset = 0;
+    if (frameCount_ == ES_LENGTH) {
+        attr.flags = AVCODEC_BUFFER_FLAG_EOS;
+        attr.size = 0;
+        attr.pts = 0;
+        cout << "EOS Frame, frameCount = " << frameCount_ << endl;
+        isRunning_.store(false);
+    } else {
+        if (isFirstFrame_) {
+            attr.flags = AVCODEC_BUFFER_FLAG_CODEC_DATA;
+            isFirstFrame_ = false;
+        } else {
+            attr.flags = AVCODEC_BUFFER_FLAG_NONE;
+        }
+        attr.size = bufferSize;
+        attr.pts = timestamp_;
+    }
+    return videoDec_->PushInputData(index, attr);
+}
+
 void VDecMock::InpLoopFunc()
 {
     while (true) {
@@ -231,35 +254,11 @@ void VDecMock::InpLoopFunc()
             }
             free(fileBuffer);
         }
-        struct AVCodecBufferAttrMock attr;
-        attr.offset = 0;
-        if (frameCount_ == ES_LENGTH) {
-            attr.flags = AVCODEC_BUFFER_FLAG_EOS;
-            attr.size = 0;
-            attr.pts = 0;
-            cout << "EOS Frame, frameCount = " << frameCount_ << endl;
-            isRunning_.store(false);
-        } else {
-            if (isFirstFrame_) {
-                attr.flags = AVCODEC_BUFFER_FLAG_CODEC_DATA;
-                isFirstFrame_ = false;
-            } else {
-                attr.flags = AVCODEC_BUFFER_FLAG_NONE;
-            }
-            attr.size = bufferSize;
-            attr.pts = timestamp_;
-        }
-        if (videoDec_->PushInputData(index, attr) != MSERR_OK) {
+        if (videoDec_->PushInputDataMock(index) != MSERR_OK) {
             cout << "Fatal: PushInputData fail, exit" << endl;
         }
-
         timestamp_ += FRAME_DURATION_US;
         frameCount_++;
-
-        if (buffer == nullptr) {
-            cout << "Fatal: GetOutputBuffer fail, exit" << endl;
-            break;
-        }
         signal_->inIndexQueue_.pop();
         signal_->inBufferQueue_.pop();
     }
