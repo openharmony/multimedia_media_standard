@@ -276,7 +276,6 @@ void VDecMock::OutLoopFunc()
             break;
         }
         uint32_t index = signal_->outIndexQueue_.front();
-
         if (videoDec_->RenderOutputData(index) != MSERR_OK) {
             cout << "Fatal: ReleaseOutputBuffer fail index" << index << endl;
             break;

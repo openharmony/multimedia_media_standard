@@ -109,7 +109,7 @@ int32_t VEncMock::Stop()
     isRunning_.store(false);
     if (outLoop_ != nullptr && outLoop_->joinable()) {
         unique_lock<mutex> queueLock(signal_->mutex_);
-        signal_->outIndexQueue_.push(10000);
+        signal_->outIndexQueue_.push(10000); // push 10000 to stop queue
         signal_->outCond_.notify_all();
         queueLock.unlock();
         outLoop_->join();
@@ -128,7 +128,7 @@ int32_t VEncMock::Reset()
     isRunning_.store(false);
     if (outLoop_ != nullptr && outLoop_->joinable()) {
         unique_lock<mutex> queueLock(signal_->outMutex_);
-        signal_->outIndexQueue_.push(10000);
+        signal_->outIndexQueue_.push(10000); // push 10000 to stop queue
         signal_->outCond_.notify_all();
         queueLock.unlock();
         outLoop_->join();
