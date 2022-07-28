@@ -194,7 +194,7 @@ HWTEST_F(VCodecUnitTest, video_codec_SetParameter_0100, TestSize.Level0)
     EXPECT_EQ(MSERR_OK, videoEnc_->Start());
     EXPECT_EQ(MSERR_OK, videoEnc_->SetParameter(format));
     EXPECT_EQ(MSERR_OK, videoDec_->SetParameter(format));
-    sleep(5); // start run 10s
+    sleep(5); // start run 5s
     EXPECT_EQ(MSERR_OK, videoDec_->Stop());
     EXPECT_EQ(MSERR_OK, videoEnc_->Stop());
 }
