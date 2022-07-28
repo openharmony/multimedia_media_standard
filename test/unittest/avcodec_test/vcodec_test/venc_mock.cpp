@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-#include <string>
 #include <sync_fence.h>
 #include "nocopyable.h"
-#include "venc_mock.h"
 #include "media_errors.h"
+#include "venc_mock.h"
 using namespace std;
 using namespace OHOS::Media::VCodecTestParam;
 
@@ -27,21 +26,25 @@ VEncCallbackTest::VEncCallbackTest(std::shared_ptr<VEncSignal> signal)
     : signal_(signal)
 {
 }
+
 VEncCallbackTest::~VEncCallbackTest()
 {
 }
+
 void VEncCallbackTest::OnError(int32_t errorCode)
 {
     cout << "VEnc Error errorCode=" << errorCode << endl;
 }
+
 void VEncCallbackTest::OnStreamChanged(std::shared_ptr<FormatMock> format)
 {
     cout << "VEnc Format Changed" << endl;
 }
+
 void VEncCallbackTest::OnNeedInputData(uint32_t index, std::shared_ptr<AVMemoryMock> data)
 {
-    
 }
+
 void VEncCallbackTest::OnNewOutputData(uint32_t index, std::shared_ptr<AVMemoryMock> data, AVCodecBufferAttrMock attr)
 {
     unique_lock<mutex> lock(signal_->outMutex_);
@@ -55,43 +58,52 @@ VEncMock::VEncMock(std::shared_ptr<VEncSignal> signal)
     : signal_(signal)
 {
 }
+
 VEncMock::~VEncMock()
 {
 }
+
 bool VEncMock::CreateVideoEncMockByMine(const std::string &mime)
 {
     videoEnc_ = AVCodecMockFactory::CreateVideoEncMockByMine(mime);
     return videoEnc_ != nullptr;
 }
+
 bool VEncMock::CreateVideoEncMockByName(const std::string &name)
 {
     videoEnc_ = AVCodecMockFactory::CreateVideoEncMockByName(name);
     return videoEnc_ != nullptr;
 }
+
 int32_t VEncMock::SetCallback(std::shared_ptr<AVCodecCallbackMock> cb)
 {
     return videoEnc_->SetCallback(cb);
 }
+
 std::shared_ptr<SurfaceMock> VEncMock::GetInputSurface()
 {
     surface_ = videoEnc_->GetInputSurface();
     return surface_;
 }
+
 int32_t VEncMock::Configure(std::shared_ptr<FormatMock> format)
 {
     return videoEnc_->Configure(format);
 }
+
 int32_t VEncMock::Prepare()
 {
     return videoEnc_->Prepare();
 }
+
 int32_t VEncMock::Start()
 {
     isRunning_.store(true);
     outLoop_ = make_unique<thread>(&VEncMock::OutLoopFunc, this);
     UNITTEST_CHECK_AND_RETURN_RET_LOG(outLoop_ != nullptr, MSERR_UNKNOWN, "Fatal: No memory");
-    return videoEnc_->Start();  
+    return videoEnc_->Start();
 }
+
 int32_t VEncMock::Stop()
 {
     isRunning_.store(false);
@@ -105,10 +117,12 @@ int32_t VEncMock::Stop()
     }
     return videoEnc_->Stop();
 }
+
 int32_t VEncMock::Flush()
 {
     return videoEnc_->Flush();
 }
+
 int32_t VEncMock::Reset()
 {
     isRunning_.store(false);
@@ -122,26 +136,32 @@ int32_t VEncMock::Reset()
     }
     return videoEnc_->Reset();
 }
+
 int32_t VEncMock::Release()
 {
     return videoEnc_->Release();
 }
+
 std::shared_ptr<FormatMock> VEncMock::GetOutputMediaDescription()
 {
     return videoEnc_->GetOutputMediaDescription();
 }
+
 int32_t VEncMock::SetParameter(std::shared_ptr<FormatMock> format)
 {
     return videoEnc_->SetParameter(format);
 }
+
 int32_t VEncMock::FreeOutputData(uint32_t index)
 {
     return videoEnc_->FreeOutputData(index);
 }
+
 void VEncMock::SetOutPath(const std::string &path)
 {
     outPath_ = path;
 }
+
 void VEncMock::OutLoopFunc()
 {
     while (true) {
@@ -150,7 +170,7 @@ void VEncMock::OutLoopFunc()
         }
 
         unique_lock<mutex> lock(signal_->outMutex_);
-        signal_->outCond_.wait(lock, [this](){ return signal_->outIndexQueue_.size() > 0; });
+        signal_->outCond_.wait(lock, [this]() { return signal_->outIndexQueue_.size() > 0; });
 
         if (!isRunning_.load()) {
             break;
@@ -174,9 +194,6 @@ void VEncMock::OutLoopFunc()
             if (outFile == nullptr) {
                 cout << "dump data fail" << endl;
             } else {
-                if (buffer == nullptr) {
-                    cout << "3 buffer == nullptr" << endl;
-                }
                 fwrite(buffer->GetAddr(), 1, size, outFile);
             }
             fclose(outFile);

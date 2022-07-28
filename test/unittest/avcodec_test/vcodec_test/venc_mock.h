@@ -27,7 +27,7 @@
 #include "securec.h"
 namespace OHOS {
 namespace Media {
-class VEncSignal {
+struct VEncSignal {
 public:
     std::mutex mutex_;
     std::mutex outMutex_;
@@ -35,8 +35,8 @@ public:
     std::queue<std::shared_ptr<AVMemoryMock>> outBufferQueue_;
     std::queue<uint32_t> outIndexQueue_;
     std::queue<uint32_t> outSizeQueue_;
-    
 };
+
 class VEncCallbackTest : public AVCodecCallbackMock {
 public:
     explicit VEncCallbackTest(std::shared_ptr<VEncSignal> signal);
