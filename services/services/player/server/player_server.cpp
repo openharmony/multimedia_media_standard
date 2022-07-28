@@ -218,10 +218,11 @@ int32_t PlayerServer::OnPrepare()
         lastOpStatus_ = PLAYER_PREPARED;
 
         auto preparedTask = std::make_shared<TaskHandler<int32_t>>([this]() {
+            MediaTrace::TraceBegin("PlayerServer::PrepareAsync", FAKE_POINTER(this));
             auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
             return currState->Prepare();
         });
-        MediaTrace::TraceBegin("PlayerServer::PrepareAsync", MediaTrace::PLAYER_PREPARE_TASK_ID);
+
         ret = taskMgr_.LaunchTask(preparedTask, PlayerServerTaskType::STATE_CHANGE);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Prepare launch task failed");
 
@@ -263,11 +264,11 @@ int32_t PlayerServer::Play()
         }
 
         auto playingTask = std::make_shared<TaskHandler<void>>([this]() {
+            MediaTrace::TraceBegin("PlayerServer::Play", FAKE_POINTER(this));
             auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
             (void)currState->Play();
         });
 
-        MediaTrace::TraceBegin("PlayerServer::Play", MediaTrace::PLAYER_PLAY_TASK_ID);
         int ret = taskMgr_.LaunchTask(playingTask, PlayerServerTaskType::STATE_CHANGE);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Play failed");
 
@@ -300,10 +301,11 @@ int32_t PlayerServer::Pause()
     }
 
     auto pauseTask = std::make_shared<TaskHandler<void>>([this]() {
+        MediaTrace::TraceBegin("PlayerServer::Pause", FAKE_POINTER(this));
         auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
         (void)currState->Pause();
     });
-    MediaTrace::TraceBegin("PlayerServer::Pause", MediaTrace::PLAYER_PAUSE_TASK_ID);
+
     int ret = taskMgr_.LaunchTask(pauseTask, PlayerServerTaskType::STATE_CHANGE);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Pause failed");
 
@@ -331,10 +333,11 @@ int32_t PlayerServer::Stop()
         taskMgr_.ClearAllTask();
 
         auto stopTask = std::make_shared<TaskHandler<void>>([this]() {
+            MediaTrace::TraceBegin("PlayerServer::Stop", FAKE_POINTER(this));
             auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
             (void)currState->Stop();
         });
-        MediaTrace::TraceBegin("PlayerServer::Stop", MediaTrace::PLAYER_STOP_TASK_ID);
+
         int ret = taskMgr_.LaunchTask(stopTask, PlayerServerTaskType::STATE_CHANGE);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Stop failed");
 
@@ -485,11 +488,11 @@ int32_t PlayerServer::Seek(int32_t mSeconds, PlayerSeekMode mode)
     mSeconds = std::max(0, mSeconds);
 
     auto seekTask = std::make_shared<TaskHandler<void>>([this, mSeconds, mode]() {
+        MediaTrace::TraceBegin("PlayerServer::Seek", FAKE_POINTER(this));
         auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
         (void)currState->Seek(mSeconds, mode);
     });
 
-    MediaTrace::TraceBegin("PlayerServer::Seek", MediaTrace::PLAYER_SEEK_TASK_ID);
     int ret = taskMgr_.LaunchTask(seekTask, PlayerServerTaskType::SEEKING);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Seek failed");
 

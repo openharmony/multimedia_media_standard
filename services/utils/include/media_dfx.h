@@ -39,13 +39,6 @@ __attribute__((visibility("default"))) void FaultEventWrite(std::string msg, std
 
 class __attribute__((visibility("default"))) MediaTrace : public NoCopyable {
 public:
-    enum TraceTaskID : int32_t {
-        PLAYER_PREPARE_TASK_ID = 0,
-        PLAYER_PLAY_TASK_ID = 1,
-        PLAYER_PAUSE_TASK_ID = 2,
-        PLAYER_STOP_TASK_ID = 3,
-        PLAYER_SEEK_TASK_ID = 4,
-    };
     explicit MediaTrace(const std::string &funcName);
     static void TraceBegin(const std::string &funcName, int32_t taskId);
     static void TraceEnd(const std::string &funcName, int32_t taskId);
