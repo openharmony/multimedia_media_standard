@@ -27,7 +27,7 @@
 #include "securec.h"
 namespace OHOS {
 namespace Media {
-class VDecSignal {
+struct VDecSignal {
 public:
     std::mutex inMutex_;
     std::mutex outMutex_;
@@ -40,6 +40,7 @@ public:
     std::queue<std::shared_ptr<AVMemoryMock>> inBufferQueue_;
     std::queue<std::shared_ptr<AVMemoryMock>> outBufferQueue_;
 };
+
 class VDecCallbackTest : public AVCodecCallbackMock {
 public:
     explicit VDecCallbackTest(std::shared_ptr<VDecSignal> signal);
@@ -49,7 +50,7 @@ public:
     void OnNeedInputData(uint32_t index, std::shared_ptr<AVMemoryMock> data);
     void OnNewOutputData(uint32_t index, std::shared_ptr<AVMemoryMock> data, AVCodecBufferAttrMock attr);
 private:
-    std::shared_ptr<VDecSignal> signal_;
+    std::shared_ptr<VDecSignal> signal_ = nullptr;
 };
 
 class VDecMock : public NoCopyable {
@@ -77,8 +78,8 @@ private:
     std::unique_ptr<std::ifstream> testFile_;
     std::unique_ptr<std::thread> inputLoop_;
     std::unique_ptr<std::thread> outputLoop_;
-    std::shared_ptr<VideoDecMock> videoDec_;
-    std::shared_ptr<VDecSignal> signal_;
+    std::shared_ptr<VideoDecMock> videoDec_ = nullptr;
+    std::shared_ptr<VDecSignal> signal_ = nullptr;
     void InpLoopFunc();
     void OutLoopFunc();
     bool isFirstFrame_ = true;

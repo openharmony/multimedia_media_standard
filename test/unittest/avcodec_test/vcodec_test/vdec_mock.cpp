@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-#include <string>
 #include "nocopyable.h"
-#include "vdec_mock.h"
 #include "media_errors.h"
 #include "avcodec_common.h"
+#include "vdec_mock.h"
 using namespace std;
 using namespace OHOS::Media::VCodecTestParam;
 namespace OHOS {
@@ -26,17 +25,21 @@ VDecCallbackTest::VDecCallbackTest(std::shared_ptr<VDecSignal> signal)
     : signal_(signal)
 {
 }
+
 VDecCallbackTest::~VDecCallbackTest()
 {
 }
+
 void VDecCallbackTest::OnError(int32_t errorCode)
 {
     cout << "VDec Error errorCode=" << errorCode << endl;
 }
+
 void VDecCallbackTest::OnStreamChanged(std::shared_ptr<FormatMock> format)
 {
     cout << "VDec Format Changed" << endl;
 }
+
 void VDecCallbackTest::OnNeedInputData(uint32_t index, std::shared_ptr<AVMemoryMock> data)
 {
     unique_lock<mutex> lock(signal_->inMutex_);
@@ -44,6 +47,7 @@ void VDecCallbackTest::OnNeedInputData(uint32_t index, std::shared_ptr<AVMemoryM
     signal_->inBufferQueue_.push(data);
     signal_->inCond_.notify_all();
 }
+
 void VDecCallbackTest::OnNewOutputData(uint32_t index, std::shared_ptr<AVMemoryMock> data, AVCodecBufferAttrMock attr)
 {
     unique_lock<mutex> lock(signal_->outMutex_);
@@ -57,36 +61,43 @@ VDecMock::VDecMock(std::shared_ptr<VDecSignal> signal)
     : signal_(signal)
 {
 }
+
 VDecMock::~VDecMock()
 {
-
 }
+
 bool VDecMock::CreateVideoDecMockByMine(const std::string &mime)
 {
     videoDec_ = AVCodecMockFactory::CreateVideoDecMockByMine(mime);
     return videoDec_ != nullptr;
 }
+
 bool VDecMock::CreateVideoDecMockByName(const std::string &name)
 {
     videoDec_ = AVCodecMockFactory::CreateVideoDecMockByName(name);
     return videoDec_ != nullptr;
 }
+
 int32_t VDecMock::SetCallback(std::shared_ptr<AVCodecCallbackMock> cb)
 {
     return videoDec_->SetCallback(cb);
 }
+
 int32_t VDecMock::SetOutputSurface(std::shared_ptr<SurfaceMock> surface)
 {
     return videoDec_->SetOutputSurface(surface);
 }
+
 int32_t VDecMock::Configure(std::shared_ptr<FormatMock> format)
 {
     return videoDec_->Configure(format);
 }
+
 int32_t VDecMock::Prepare()
 {
     return videoDec_->Prepare();
 }
+
 int32_t VDecMock::Start()
 {
     isRunning_.store(true);
@@ -102,12 +113,13 @@ int32_t VDecMock::Start()
     UNITTEST_CHECK_AND_RETURN_RET_LOG(outputLoop_ != nullptr, MSERR_OK, "Fatal: No memory");
     return videoDec_->Start();
 }
+
 int32_t VDecMock::Stop()
 {
     isRunning_.store(false);
     if (inputLoop_ != nullptr && inputLoop_->joinable()) {
         unique_lock<mutex> queueLock(signal_->inMutex_);
-        signal_->inIndexQueue_.push(10000);
+        signal_->inIndexQueue_.push(10000);  // push 10000 to stop queue
         signal_->inCond_.notify_all();
         queueLock.unlock();
         inputLoop_->join();
@@ -115,7 +127,7 @@ int32_t VDecMock::Stop()
     }
     if (outputLoop_ != nullptr && outputLoop_->joinable()) {
         unique_lock<mutex> lock(signal_->outMutex_);
-        signal_->outIndexQueue_.push(10000);
+        signal_->outIndexQueue_.push(10000); // push 10000 to stop queue
         signal_->outCond_.notify_all();
         lock.unlock();
         outputLoop_->join();
@@ -123,16 +135,18 @@ int32_t VDecMock::Stop()
     }
     return videoDec_->Stop();
 }
+
 int32_t VDecMock::Flush()
 {
     return videoDec_->Flush();
 }
+
 int32_t VDecMock::Reset()
 {
     isRunning_.store(false);
     if (inputLoop_ != nullptr && inputLoop_->joinable()) {
         unique_lock<mutex> queueLock(signal_->inMutex_);
-        signal_->inIndexQueue_.push(10000);
+        signal_->inIndexQueue_.push(10000); // push 10000 to stop queue
         signal_->inCond_.notify_all();
         queueLock.unlock();
         inputLoop_->join();
@@ -140,7 +154,7 @@ int32_t VDecMock::Reset()
     }
     if (outputLoop_ != nullptr && outputLoop_->joinable()) {
         unique_lock<mutex> lock(signal_->outMutex_);
-        signal_->outIndexQueue_.push(10000);
+        signal_->outIndexQueue_.push(10000);  // push 10000 to stop queue
         signal_->outCond_.notify_all();
         lock.unlock();
         outputLoop_->join();
@@ -148,26 +162,32 @@ int32_t VDecMock::Reset()
     }
     return videoDec_->Reset();
 }
+
 int32_t VDecMock::Release()
 {
     return videoDec_->Release();
 }
+
 std::shared_ptr<FormatMock> VDecMock::GetOutputMediaDescription()
 {
     return videoDec_->GetOutputMediaDescription();
 }
+
 int32_t VDecMock::SetParameter(std::shared_ptr<FormatMock> format)
 {
     return videoDec_->SetParameter(format);
 }
+
 int32_t VDecMock::PushInputData(uint32_t index, AVCodecBufferAttrMock &attr)
 {
     return videoDec_->PushInputData(index, attr);
 }
+
 int32_t VDecMock::RenderOutputData(uint32_t index)
 {
     return videoDec_->RenderOutputData(index);
 }
+
 int32_t VDecMock::FreeOutputData(uint32_t index)
 {
     return videoDec_->FreeOutputData(index);
@@ -181,7 +201,7 @@ void VDecMock::InpLoopFunc()
         }
 
         unique_lock<mutex> lock(signal_->inMutex_);
-        signal_->inCond_.wait(lock, [this](){ return signal_->inIndexQueue_.size() > 0; });
+        signal_->inCond_.wait(lock, [this]() { return signal_->inIndexQueue_.size() > 0; });
 
         if (!isRunning_.load()) {
             break;
@@ -204,7 +224,7 @@ void VDecMock::InpLoopFunc()
                 break;
             }
 
-            if (memcpy_s(buffer->GetAddr(), buffer->GetSize(), fileBuffer, bufferSize) != MSERR_OK) {
+            if (memcpy_s(buffer->GetAddr(), buffer->GetSize(), fileBuffer, bufferSize) != EOK) {
                 cout << "Fatal: memcpy fail" << endl;
                 free(fileBuffer);
                 break;
@@ -232,7 +252,7 @@ void VDecMock::InpLoopFunc()
         if (videoDec_->PushInputData(index, attr) != MSERR_OK) {
             cout << "Fatal: PushInputData fail, exit" << endl;
         }
-        
+
         timestamp_ += FRAME_DURATION_US;
         frameCount_++;
 
@@ -244,6 +264,7 @@ void VDecMock::InpLoopFunc()
         signal_->inBufferQueue_.pop();
     }
 }
+
 void VDecMock::OutLoopFunc()
 {
     while (true) {
@@ -251,7 +272,7 @@ void VDecMock::OutLoopFunc()
             break;
         }
         unique_lock<mutex> lock(signal_->outMutex_);
-        signal_->outCond_.wait(lock, [this](){ return signal_->outIndexQueue_.size() > 0; });
+        signal_->outCond_.wait(lock, [this]() { return signal_->outIndexQueue_.size() > 0; });
         if (!isRunning_.load()) {
             break;
         }

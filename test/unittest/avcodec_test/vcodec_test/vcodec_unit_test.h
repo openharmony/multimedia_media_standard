@@ -21,7 +21,7 @@
 #include "venc_mock.h"
 namespace OHOS {
 namespace Media {
-class VideoCodecUnitTest : public testing::Test {
+class VCodecUnitTest : public testing::Test {
 public:
     // SetUpTestCase: Called before all test cases
     static void SetUpTestCase(void);
