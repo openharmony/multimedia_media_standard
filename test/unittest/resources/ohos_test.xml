@@ -46,5 +46,6 @@
         <preparer>
             <option name="push" value="res_codec/out_320_240_10s.h264 -> /data/test" src="res"/>
         </preparer>
+    </target>
 </configuration>
 
