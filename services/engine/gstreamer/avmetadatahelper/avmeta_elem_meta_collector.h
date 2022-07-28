@@ -102,7 +102,7 @@ protected:
     bool AddProbeToPadList(GList &list);
     bool AddProbeToPad(GstPad &pad);
     bool ConnectSignal(GstElement &elem, std::string_view signal, GCallback callback);
-    void ReportMeta(const Metadata &metadata);
+    void ReportMeta(const Metadata &uploadMeta);
 
     static GstPadProbeReturn ProbeCallback(GstPad *pad, GstPadProbeInfo *info, gpointer usrdata);
     void OnEventProbe(GstPad &pad, GstEvent &event);
