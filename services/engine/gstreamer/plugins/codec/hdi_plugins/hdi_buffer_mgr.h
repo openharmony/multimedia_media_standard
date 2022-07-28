@@ -28,6 +28,7 @@
 #include "codec_component_type.h"
 #include "codec_component_if.h"
 #include "buffer_type_meta.h"
+#include "codec_omx_ext.h"
 
 namespace OHOS {
 namespace Media {
