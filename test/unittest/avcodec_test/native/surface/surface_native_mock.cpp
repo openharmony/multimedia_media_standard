@@ -23,7 +23,13 @@ namespace {
     constexpr uint32_t DEFAULT_WIDTH = 480;
     constexpr uint32_t DEFAULT_HEIGHT = 360;
 }
-
+SurfaceNativeMock::~SurfaceNativeMock()
+{
+    if (window_ != nullptr) {
+        window_->Destroy();
+        window_ = nullptr;
+    }
+}
 sptr<Surface> SurfaceNativeMock::GetSurface()
 {
     if (surface_ == nullptr) {
