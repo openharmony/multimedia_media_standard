@@ -193,7 +193,7 @@ int32_t VDecMock::FreeOutputData(uint32_t index)
     return videoDec_->FreeOutputData(index);
 }
 
-int32_t VDecMock::PushInputDataMock(uint32_t index)
+int32_t VDecMock::PushInputDataMock(uint32_t index, uint32_t bufferSize)
 {
     struct AVCodecBufferAttrMock attr;
     attr.offset = 0;
@@ -254,7 +254,7 @@ void VDecMock::InpLoopFunc()
             }
             free(fileBuffer);
         }
-        if (videoDec_->PushInputDataMock(index) != MSERR_OK) {
+        if (PushInputDataMock(index, bufferSize) != MSERR_OK) {
             cout << "Fatal: PushInputData fail, exit" << endl;
         }
         timestamp_ += FRAME_DURATION_US;
