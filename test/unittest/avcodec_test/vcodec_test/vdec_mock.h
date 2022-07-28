@@ -80,7 +80,7 @@ private:
     std::unique_ptr<std::thread> outputLoop_;
     std::shared_ptr<VideoDecMock> videoDec_ = nullptr;
     std::shared_ptr<VDecSignal> signal_ = nullptr;
-    int32_t PushInputDataMock(uint32_t index);
+    int32_t PushInputDataMock(uint32_t index, uint32_t bufferSize);
     void InpLoopFunc();
     void OutLoopFunc();
     bool isFirstFrame_ = true;
