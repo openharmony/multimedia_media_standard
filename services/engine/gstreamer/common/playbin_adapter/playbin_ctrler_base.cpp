@@ -444,18 +444,16 @@ void PlayBinCtrlerBase::Reset() noexcept
         elemUnSetupListener_ = nullptr;
     }
 
-    if (GetCurrState() != preparingState_ && GetCurrState() != stoppedState_) {
-        isStopFinish_ = false;
-        int32_t ret = StopInternal();
-        CHECK_AND_RETURN(ret == MSERR_OK);
-        {
-            std::unique_lock<std::mutex> condLock(stopCondMutex_);
-            stopCond_.wait_for(condLock, std::chrono::seconds(STOP_TIMEOUT), [this]() {
-                return isStopFinish_;
-            });
-        }
-        CHECK_AND_RETURN(isStopFinish_);
+    isStopFinish_ = false;
+    int32_t ret = StopInternal();
+    CHECK_AND_RETURN(ret == MSERR_OK);
+    {
+        std::unique_lock<std::mutex> condLock(stopCondMutex_);
+        stopCond_.wait_for(condLock, std::chrono::seconds(STOP_TIMEOUT), [this]() {
+            return isStopFinish_;
+        });
     }
+    CHECK_AND_RETURN(isStopFinish_);
 
     // Do it here before the ChangeState to IdleState, for avoding the deadlock when msg handler
     // try to call the ChangeState.
