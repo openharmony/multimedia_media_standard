@@ -20,13 +20,6 @@
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayerServerState"};
-    enum PlayerTaskID : int32_t {
-        PREPARE_TASK_ID = 0,
-        PLAY_TASK_ID = 1,
-        PAUSE_TASK_ID = 2,
-        STOP_TASK_ID = 3,
-        SEEK_TASK_ID = 4,
-    };
 }
 
 namespace OHOS {
@@ -86,7 +79,7 @@ int32_t PlayerServer::BaseState::OnMessageReceived(PlayerOnInfoType type, int32_
     if (type == INFO_TYPE_SEEKDONE) {
         int32_t ret = MSERR_OK;
         (void)server_.taskMgr_.MarkTaskDone();
-        MediaTrace::TraceEnd("Player::Seek", SEEK_TASK_ID);
+        MediaTrace::TraceEnd("PlayerServer::Seek", FAKE_POINTER(&server_));
         if (server_.disableNextSeekDone_ && extra == 0) {
             ret = MSERR_UNSUPPORT;
         }
@@ -143,7 +136,7 @@ int32_t PlayerServer::PreparingState::Stop()
 void PlayerServer::PreparingState::HandleStateChange(int32_t newState)
 {
     if (newState == PLAYER_PREPARED) {
-        MediaTrace::TraceEnd("PlayerServer::PrepareAsync", PREPARE_TASK_ID);
+        MediaTrace::TraceEnd("PlayerServer::PrepareAsync", FAKE_POINTER(&server_));
         server_.ChangeState(server_.preparedState_);
         server_.stateCond_.notify_one(); // awake the stateCond_'s waiter in Prepare()
         (void)server_.taskMgr_.MarkTaskDone();
@@ -178,12 +171,12 @@ int32_t PlayerServer::PreparedState::SetPlaybackSpeed(PlaybackRateMode mode)
 void PlayerServer::PreparedState::HandleStateChange(int32_t newState)
 {
     if (newState == PLAYER_STARTED) {
-        MediaTrace::TraceEnd("PlayerServer::Play", PLAY_TASK_ID);
+        MediaTrace::TraceEnd("PlayerServer::Play", FAKE_POINTER(&server_));
         server_.ChangeState(server_.playingState_);
         server_.startTimeMonitor_.FinishTime();
         (void)server_.taskMgr_.MarkTaskDone();
     } else if (newState == PLAYER_STOPPED) {
-        MediaTrace::TraceEnd("PlayerServer::Stop", STOP_TASK_ID);
+        MediaTrace::TraceEnd("PlayerServer::Stop", FAKE_POINTER(&server_));
         server_.ChangeState(server_.stoppedState_);
         (void)server_.taskMgr_.MarkTaskDone();
     }
@@ -217,11 +210,11 @@ int32_t PlayerServer::PlayingState::SetPlaybackSpeed(PlaybackRateMode mode)
 void PlayerServer::PlayingState::HandleStateChange(int32_t newState)
 {
     if (newState == PLAYER_PAUSED) {
-        MediaTrace::TraceEnd("PlayerServer::Pause", PAUSE_TASK_ID);
+        MediaTrace::TraceEnd("PlayerServer::Pause", FAKE_POINTER(&server_));
         server_.ChangeState(server_.pausedState_);
         (void)server_.taskMgr_.MarkTaskDone();
     } else if (newState == PLAYER_STOPPED) {
-        MediaTrace::TraceEnd("PlayerServer::Stop", STOP_TASK_ID);
+        MediaTrace::TraceEnd("PlayerServer::Stop", FAKE_POINTER(&server_));
         server_.ChangeState(server_.stoppedState_);
         (void)server_.taskMgr_.MarkTaskDone();
     }
@@ -266,11 +259,11 @@ int32_t PlayerServer::PausedState::SetPlaybackSpeed(PlaybackRateMode mode)
 void PlayerServer::PausedState::HandleStateChange(int32_t newState)
 {
     if (newState == PLAYER_STARTED) {
-        MediaTrace::TraceEnd("PlayerServer::Play", PLAY_TASK_ID);
+        MediaTrace::TraceEnd("PlayerServer::Play", FAKE_POINTER(&server_));
         server_.ChangeState(server_.playingState_);
         (void)server_.taskMgr_.MarkTaskDone();
     } else if (newState == PLAYER_STOPPED) {
-        MediaTrace::TraceEnd("PlayerServer::Stop", STOP_TASK_ID);
+        MediaTrace::TraceEnd("PlayerServer::Stop", FAKE_POINTER(&server_));
         server_.ChangeState(server_.stoppedState_);
         (void)server_.taskMgr_.MarkTaskDone();
     }
@@ -300,11 +293,11 @@ int32_t PlayerServer::PlaybackCompletedState::Stop()
 void PlayerServer::PlaybackCompletedState::HandleStateChange(int32_t newState)
 {
     if (newState == PLAYER_STARTED) {
-        MediaTrace::TraceEnd("PlayerServer::Play", PLAY_TASK_ID);
+        MediaTrace::TraceEnd("PlayerServer::Play", FAKE_POINTER(&server_));
         server_.ChangeState(server_.playingState_);
         (void)server_.taskMgr_.MarkTaskDone();
     } else if (newState == PLAYER_STOPPED) {
-        MediaTrace::TraceEnd("PlayerServer::Stop", STOP_TASK_ID);
+        MediaTrace::TraceEnd("PlayerServer::Stop", FAKE_POINTER(&server_));
         server_.ChangeState(server_.stoppedState_);
         (void)server_.taskMgr_.MarkTaskDone();
     }

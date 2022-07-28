@@ -17,6 +17,7 @@
 #include <vector>
 #include "media_log.h"
 #include "media_errors.h"
+#include "media_dfx.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AudioSinkSvImpl"};
@@ -108,6 +109,7 @@ void AudioSinkSvImpl::InitRateRange(GstCaps *caps) const
 
 int32_t AudioSinkSvImpl::SetVolume(float volume)
 {
+    MediaTrace trace("AudioSink::SetVolume");
     MEDIA_LOGD("audioRenderer SetVolume(%{public}lf) In", volume);
     CHECK_AND_RETURN_RET_LOG(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION, "audioRenderer_ is nullptr");
     int32_t ret = audioRenderer_->SetVolume(volume);
@@ -150,6 +152,7 @@ int32_t AudioSinkSvImpl::GetMinVolume(float &volume)
 
 int32_t AudioSinkSvImpl::Prepare(int32_t appUid, int32_t appPid)
 {
+    MediaTrace trace("AudioSink::Prepare");
     MEDIA_LOGD("audioRenderer Prepare In");
     AudioStandard::AppInfo appInfo = {};
     appInfo.appUid = appUid;
@@ -166,6 +169,7 @@ int32_t AudioSinkSvImpl::Prepare(int32_t appUid, int32_t appPid)
 
 int32_t AudioSinkSvImpl::Start()
 {
+    MediaTrace trace("AudioSink::Start");
     MEDIA_LOGD("audioRenderer Start In");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
     (void)audioRenderer_->Start();
@@ -175,6 +179,7 @@ int32_t AudioSinkSvImpl::Start()
 
 int32_t AudioSinkSvImpl::Stop()
 {
+    MediaTrace trace("AudioSink::Stop");
     MEDIA_LOGD("audioRenderer Stop In");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
     (void)audioRenderer_->Stop();
@@ -184,6 +189,7 @@ int32_t AudioSinkSvImpl::Stop()
 
 int32_t AudioSinkSvImpl::Pause()
 {
+    MediaTrace trace("AudioSink::Pause");
     MEDIA_LOGD("audioRenderer Pause In");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
     if (audioRenderer_->GetStatus() == OHOS::AudioStandard::RENDERER_RUNNING) {
@@ -195,6 +201,7 @@ int32_t AudioSinkSvImpl::Pause()
 
 int32_t AudioSinkSvImpl::Drain()
 {
+    MediaTrace trace("AudioSink::Drain");
     MEDIA_LOGD("Drain");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(audioRenderer_->Drain() == true, MSERR_UNKNOWN);
@@ -203,6 +210,7 @@ int32_t AudioSinkSvImpl::Drain()
 
 int32_t AudioSinkSvImpl::Flush()
 {
+    MediaTrace trace("AudioSink::Flush");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
     if (audioRenderer_->GetStatus() == OHOS::AudioStandard::RENDERER_RUNNING) {
         MEDIA_LOGD("Flush");
@@ -214,6 +222,7 @@ int32_t AudioSinkSvImpl::Flush()
 
 int32_t AudioSinkSvImpl::Release()
 {
+    MediaTrace trace("AudioSink::Release");
     MEDIA_LOGD("audioRenderer Release In");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
     (void)audioRenderer_->Release();
@@ -224,6 +233,7 @@ int32_t AudioSinkSvImpl::Release()
 
 int32_t AudioSinkSvImpl::SetParameters(uint32_t bitsPerSample, uint32_t channels, uint32_t sampleRate)
 {
+    MediaTrace trace("AudioSink::SetParameters");
     (void)bitsPerSample;
     MEDIA_LOGD("SetParameters in, channels:%{public}d, sampleRate:%{public}d", channels, sampleRate);
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
@@ -310,6 +320,7 @@ bool AudioSinkSvImpl::Writeable() const
 
 int32_t AudioSinkSvImpl::Write(uint8_t *buffer, size_t size)
 {
+    MediaTrace trace("AudioSink::Write");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr && buffer != nullptr, MSERR_INVALID_OPERATION);
     size_t bytesWritten = 0;
     int32_t bytesSingle = 0;
@@ -324,6 +335,7 @@ int32_t AudioSinkSvImpl::Write(uint8_t *buffer, size_t size)
 
 int32_t AudioSinkSvImpl::GetAudioTime(uint64_t &time)
 {
+    MediaTrace trace("AudioSink::GetAudioTime");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
     AudioStandard::Timestamp timeStamp;
     bool ret = audioRenderer_->GetAudioTime(timeStamp, AudioStandard::Timestamp::Timestampbase::MONOTONIC);
@@ -334,6 +346,7 @@ int32_t AudioSinkSvImpl::GetAudioTime(uint64_t &time)
 
 int32_t AudioSinkSvImpl::GetLatency(uint64_t &latency) const
 {
+    MediaTrace trace("AudioSink::GetLatency");
     CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
     CHECK_AND_RETURN_RET(audioRenderer_->GetLatency(latency) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
     return MSERR_OK;
