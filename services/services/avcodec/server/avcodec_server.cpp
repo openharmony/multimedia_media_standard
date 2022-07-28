@@ -356,15 +356,13 @@ void AVCodecServer::OnOutputBufferAvailable(uint32_t index, AVCodecBufferInfo in
     if (isFirstFrameOut_) {
         MediaTrace::TraceEnd("AVCodecServer::FirstFrame", CODEC_FIRSTFRAME_TASK_ID);
         isFirstFrameOut_ = false;
-    }
-    else {
+    } else {
         MediaTrace::TraceEnd("AVCodecServer::Frame", CODEC_FRAME_TASK_ID);
     }
 
     if (AVCODEC_BUFFER_FLAG_EOS == flag) {
         ResetTrace();
-    }
-    else {
+    } else {
         MediaTrace::TraceBegin("AVCodecServer::Frame", CODEC_FRAME_TASK_ID);
     }
 
