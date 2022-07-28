@@ -133,3 +133,102 @@ HWTEST_F(VCodecUnitTest, video_codec_start_0100, TestSize.Level0)
     EXPECT_EQ(MSERR_OK, videoEnc_->Start());
 }
 
+/**
+ * @tc.name: video_codec_0100
+ * @tc.desc: video decodec h264->mpeg4
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(VCodecUnitTest, video_codec_0100, TestSize.Level0)
+{
+    std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
+    ASSERT_NE(nullptr, format);
+    string width = "width";
+    string height = "height";
+    string pixelFormat = "pixel_format";
+    string frame_rate = "frame_rate";
+    (void)format->PutIntValue(width.c_str(), DEFAULT_WIDTH);
+    (void)format->PutIntValue(height.c_str(), DEFAULT_HEIGHT);
+    (void)format->PutIntValue(pixelFormat.c_str(), NV12);
+    (void)format->PutIntValue(frame_rate.c_str(), DEFAULT_FRAME_RATE);
+    ASSERT_EQ(MSERR_OK, videoEnc_->Configure(format));
+    ASSERT_EQ(MSERR_OK, videoDec_->Configure(format));
+    std::shared_ptr<SurfaceMock> surface = videoEnc_->GetInputSurface();
+    ASSERT_NE(nullptr, surface);
+    ASSERT_EQ(MSERR_OK, videoDec_->SetOutputSurface(surface));
+
+    EXPECT_EQ(MSERR_OK, videoDec_->Prepare());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Prepare());
+    EXPECT_EQ(MSERR_OK, videoDec_->Start());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Start());
+    sleep(10); // start run 10s
+    EXPECT_EQ(MSERR_OK, videoDec_->Stop());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Stop());
+}
+/**
+ * @tc.name: video_codec_SetParameter_0100
+ * @tc.desc: video codec SetParameter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(VCodecUnitTest, video_codec_SetParameter_0100, TestSize.Level0)
+{
+    std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
+    ASSERT_NE(nullptr, format);
+    string width = "width";
+    string height = "height";
+    string pixelFormat = "pixel_format";
+    string frame_rate = "frame_rate";
+    (void)format->PutIntValue(width.c_str(), DEFAULT_WIDTH);
+    (void)format->PutIntValue(height.c_str(), DEFAULT_HEIGHT);
+    (void)format->PutIntValue(pixelFormat.c_str(), NV12);
+    (void)format->PutIntValue(frame_rate.c_str(), DEFAULT_FRAME_RATE);
+    ASSERT_EQ(MSERR_OK, videoEnc_->Configure(format));
+    ASSERT_EQ(MSERR_OK, videoDec_->Configure(format));
+    std::shared_ptr<SurfaceMock> surface = videoEnc_->GetInputSurface();
+    ASSERT_NE(nullptr, surface);
+    ASSERT_EQ(MSERR_OK, videoDec_->SetOutputSurface(surface));
+    EXPECT_EQ(MSERR_OK, videoDec_->Prepare());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Prepare());
+    EXPECT_EQ(MSERR_OK, videoDec_->Start());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Start());
+    EXPECT_EQ(MSERR_OK, videoEnc_->SetParameter(format));
+    EXPECT_EQ(MSERR_OK, videoDec_->SetParameter(format));
+    sleep(5); // start run 10s
+    EXPECT_EQ(MSERR_OK, videoDec_->Stop());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Stop());
+}
+
+/**
+ * @tc.name: video_codec_GetOutputMediaDescription_0100
+ * @tc.desc: video codec GetOutputMediaDescription
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(VCodecUnitTest, video_codec_GetOutputMediaDescription_0100, TestSize.Level0)
+{
+    std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
+    ASSERT_NE(nullptr, format);
+    string width = "width";
+    string height = "height";
+    string pixelFormat = "pixel_format";
+    string frame_rate = "frame_rate";
+    (void)format->PutIntValue(width.c_str(), DEFAULT_WIDTH);
+    (void)format->PutIntValue(height.c_str(), DEFAULT_HEIGHT);
+    (void)format->PutIntValue(pixelFormat.c_str(), NV12);
+    (void)format->PutIntValue(frame_rate.c_str(), DEFAULT_FRAME_RATE);
+    ASSERT_EQ(MSERR_OK, videoEnc_->Configure(format));
+    ASSERT_EQ(MSERR_OK, videoDec_->Configure(format));
+    std::shared_ptr<SurfaceMock> surface = videoEnc_->GetInputSurface();
+    ASSERT_NE(nullptr, surface);
+    ASSERT_EQ(MSERR_OK, videoDec_->SetOutputSurface(surface));
+    EXPECT_EQ(MSERR_OK, videoDec_->Prepare());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Prepare());
+    EXPECT_EQ(MSERR_OK, videoDec_->Start());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Start());
+    sleep(2); // start run 2s
+    EXPECT_NE(nullptr, videoDec_->GetOutputMediaDescription());
+    EXPECT_NE(nullptr, videoEnc_->GetOutputMediaDescription());
+    EXPECT_EQ(MSERR_OK, videoDec_->Stop());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Stop());
+}
