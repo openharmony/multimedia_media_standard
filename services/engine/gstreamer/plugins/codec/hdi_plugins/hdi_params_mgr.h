@@ -23,6 +23,7 @@
 #include "nocopyable.h"
 #include "i_codec_params_mgr.h"
 #include "codec_component_if.h"
+#include "codec_omx_ext.h"
 
 namespace OHOS {
 namespace Media {
