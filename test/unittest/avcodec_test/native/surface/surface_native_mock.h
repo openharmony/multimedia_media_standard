@@ -26,7 +26,7 @@ class SurfaceNativeMock : public SurfaceMock {
 public:
     explicit SurfaceNativeMock(sptr<Surface> surface) : surface_(surface) {}
     SurfaceNativeMock() = default;
-    ~SurfaceNativeMock() = default;
+    ~SurfaceNativeMock();
     sptr<Surface> GetSurface();
 
 private:

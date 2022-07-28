@@ -52,7 +52,7 @@ struct AVCodecBufferAttrMock {
 
 class AVCodecCallbackMock : public NoCopyable {
 public:
-    virtual ~AVCodecCallbackMock() = 0;
+    virtual ~AVCodecCallbackMock() = default;
     virtual void OnError(int32_t errorCode) = 0;
     virtual void OnStreamChanged(std::shared_ptr<FormatMock> format) = 0;
     virtual void OnNeedInputData(uint32_t index, std::shared_ptr<AVMemoryMock> data) = 0;
