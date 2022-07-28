@@ -443,7 +443,6 @@ void PlayBinCtrlerBase::Reset() noexcept
         elemSetupListener_ = nullptr;
         elemUnSetupListener_ = nullptr;
     }
-
     isStopFinish_ = false;
     int32_t ret = StopInternal();
     CHECK_AND_RETURN(ret == MSERR_OK);
@@ -454,7 +453,6 @@ void PlayBinCtrlerBase::Reset() noexcept
         });
     }
     CHECK_AND_RETURN(isStopFinish_);
-
     // Do it here before the ChangeState to IdleState, for avoding the deadlock when msg handler
     // try to call the ChangeState.
     ExitInitializedState();
