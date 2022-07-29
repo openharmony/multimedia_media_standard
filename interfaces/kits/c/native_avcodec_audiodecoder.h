@@ -151,8 +151,8 @@ AVErrCode OH_AudioDecoder_Reset(AVCodec *codec);
 
 /**
  * @brief Get the description information of the output data of the decoder, refer to {@link AVFormat} for details.
- * It should be noted that the life cycle of the AVFormat instance pointed to by the return value * will be the next
- * time the interface is called or the AVCodec instance is destroyed invalid.
+ * It should be noted that the life cycle of the AVFormat instance pointed to by the return value * needs to
+ * be manually released by the caller
  * @syscap SystemCapability.Multimedia.Media.AudioDecoder
  * @param codec Pointer to an AVCodec instance
  * @return Returns the AVFormat handle pointer, the life cycle is refreshed with the next GetOutputMediaDescription,

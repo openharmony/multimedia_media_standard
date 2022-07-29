@@ -162,8 +162,8 @@ AVErrCode OH_VideoDecoder_Reset(AVCodec *codec);
 
 /**
  * @brief Get the description information of the output data of the decoder, refer to {@link AVFormat}
- * for details. It should be noted that the life cycle of the AVFormat instance pointed to by the return
- * value will be invalid when the interface is called next time or the AVCodec instance is destroyed.
+ * It should be noted that the life cycle of the AVFormat instance pointed to by the return value * needs
+ * to be manually released by the caller.
  * @syscap SystemCapability.Multimedia.Media.VideoDecoder
  * @param codec Pointer to an AVCodec instance
  * @return Returns a pointer to an AVFormat instance
