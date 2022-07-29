@@ -672,6 +672,8 @@ void PlayBinCtrlerBase::SetupCustomElement()
         audioSink_ = sinkProvider_->CreateAudioSink();
         if (audioSink_ != nullptr) {
             g_object_set(playbin_, "audio-sink", audioSink_, nullptr);
+            SetupVolumeChangedCb();
+            SetupInterruptEventCb();
         }
         videoSink_ = sinkProvider_->CreateVideoSink();
         if (videoSink_ != nullptr) {
@@ -1029,7 +1031,7 @@ void PlayBinCtrlerBase::OnVolumeChangedCb(const GstElement *playbin, GstElement 
     }
 
     auto thizStrong = PlayBinCtrlerWrapper::TakeStrongThiz(userdata);
-    if (thizStrong != nullptr) {
+    if (thizStrong != nullptr && thizStrong->GetCurrState() != thizStrong->preparingState_) {
         PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_VOLUME_CHANGE, 0, 0, {} };
         thizStrong->ReportMessage(msg);
     }
