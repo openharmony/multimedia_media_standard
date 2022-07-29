@@ -22,7 +22,7 @@ ohos_static_library("media_format") {
   include_dirs = [
     "//foundation/multimedia/player_framework/interfaces/inner_api/native",
     "//foundation/multimedia/player_framework/services/utils/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//third_party/libxml2/include",
   ]
 
@@ -34,7 +34,10 @@ ohos_static_library("media_format") {
     "//third_party/libxml2:xml2",
   ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
 
   subsystem_name = "multimedia"
   part_name = "multimedia_player_framework"
@@ -62,7 +65,7 @@ ohos_shared_library("media_service_utils") {
   ]
 
   include_dirs = [
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//foundation/multimedia/player_framework/interfaces/inner_api/native",
     "//third_party/libxml2/include",
   ]
@@ -98,10 +101,10 @@ ohos_shared_library("media_service_utils") {
   deps = [
     "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
     "//third_party/libxml2:xml2",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hisysevent_native:libhisysevent",
     "hitrace_native:hitrace_meter",
     "hiviewdfx_hilog_native:libhilog",

@@ -83,10 +83,10 @@ ohos_executable("media_demo") {
     "//foundation/multimedia/player_framework/services/utils:media_service_utils",
     "//foundation/window/window_manager/wm:libwm",
     "//third_party/libjpeg:libjpeg_static",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "multimedia_player_framework:media_client",
