@@ -65,8 +65,8 @@ int32_t HdiOutBufferMgr::Start()
 int32_t HdiOutBufferMgr::PushBuffer(GstBuffer *buffer)
 {
     MEDIA_LOGD("Enter PushBuffer");
-    ON_SCOPE_EXIT(0) { gst_buffer_unref(buffer); };
     std::unique_lock<std::mutex> lock(mutex_);
+    ON_SCOPE_EXIT(0) { gst_buffer_unref(buffer); };
     if (isFlushed_ || !isStart_) {
         MEDIA_LOGD("isFlush %{public}d isStart %{public}d", isFlushed_, isStart_);
         return GST_CODEC_FLUSH;
