@@ -402,7 +402,7 @@ static void gst_consumer_surface_pool_buffer_available(GstConsumerSurfacePool *p
 
     if (priv->is_first_buffer_in_for_trace) {
         OHOS::Media::MediaTrace trace("AVCodecServer::gst_consumer_surface_pool_buffer_available");
-        OHOS::Media::MediaTrace::TraceBegin("AVCodecServer::FirstFrame", 
+        OHOS::Media::MediaTrace::TraceBegin("AVCodecServer::FirstFrame",
             FAKE_POINTER(priv->consumer_surface.GetRefPtr()));
         priv->is_first_buffer_in_for_trace = FALSE;
     }
