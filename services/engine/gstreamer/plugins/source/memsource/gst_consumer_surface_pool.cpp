@@ -19,6 +19,7 @@
 #include "buffer_type_meta.h"
 #include "scope_guard.h"
 #include "media_dfx.h"
+#include "media_log.h"
 using namespace OHOS;
 
 #define gst_consumer_surface_pool_parent_class parent_class
@@ -401,7 +402,7 @@ static void gst_consumer_surface_pool_buffer_available(GstConsumerSurfacePool *p
 
     if (priv->is_first_buffer_in_for_trace) {
         OHOS::Media::MediaTrace trace("AVCodecServer::gst_consumer_surface_pool_buffer_available");
-        OHOS::Media::MediaTrace::TraceBegin("AVCodecServer::FirstFrame", OHOS::Media::CODEC_FIRSTFRAME_TASK_ID);
+        OHOS::Media::MediaTrace::TraceBegin("AVCodecServer::FirstFrame", FAKE_POINTER(priv->consumer_surface.GetRefPtr()));
         priv->is_first_buffer_in_for_trace = FALSE;
     }
 

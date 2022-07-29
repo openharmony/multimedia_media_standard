@@ -80,6 +80,7 @@ private:
     std::mutex cbMutex_;
     Format config_;
     std::string lastErrMsg_;
+    int32_t fFrameTraceId_ = 0;
     bool isFirstFrameIn_ = true;
     bool isFirstFrameOut_ = true;
 };

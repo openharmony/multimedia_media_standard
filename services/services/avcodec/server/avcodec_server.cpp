@@ -195,6 +195,8 @@ sptr<Surface> AVCodecServer::CreateInputSurface()
     std::lock_guard<std::mutex> lock(mutex_);
     CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_CONFIGURED, nullptr, "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, nullptr, "engine is nullptr");
+    sptr<Surface> surface = codecEngine_->CreateInputSurface();
+    fFrameTraceId_ = FAKE_POINTER(surface.GetRefPtr());
     return codecEngine_->CreateInputSurface();
 }
 
@@ -217,8 +219,9 @@ std::shared_ptr<AVSharedMemory> AVCodecServer::GetInputBuffer(uint32_t index)
 int32_t AVCodecServer::QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    fFrameTraceId_ = FAKE_POINTER(this);
     if (isFirstFrameIn_) {
-        MediaTrace::TraceBegin("AVCodecServer::FirstFrame", CODEC_FIRSTFRAME_TASK_ID);
+        MediaTrace::TraceBegin("AVCodecServer::FirstFrame", fFrameTraceId_);
         isFirstFrameIn_ = false;
     }
     CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_RUNNING, MSERR_INVALID_OPERATION, "invalid state");
@@ -354,16 +357,16 @@ void AVCodecServer::OnOutputBufferAvailable(uint32_t index, AVCodecBufferInfo in
 {
     std::lock_guard<std::mutex> lock(cbMutex_);
     if (isFirstFrameOut_) {
-        MediaTrace::TraceEnd("AVCodecServer::FirstFrame", CODEC_FIRSTFRAME_TASK_ID);
+        MediaTrace::TraceEnd("AVCodecServer::FirstFrame", fFrameTraceId_);
         isFirstFrameOut_ = false;
     } else {
-        MediaTrace::TraceEnd("AVCodecServer::Frame", CODEC_FRAME_TASK_ID);
+        MediaTrace::TraceEnd("AVCodecServer::Frame", FAKE_POINTER(this));
     }
 
     if (AVCODEC_BUFFER_FLAG_EOS == flag) {
         ResetTrace();
     } else {
-        MediaTrace::TraceBegin("AVCodecServer::Frame", CODEC_FRAME_TASK_ID);
+        MediaTrace::TraceBegin("AVCodecServer::Frame", FAKE_POINTER(this));
     }
 
     if (codecCb_ == nullptr) {
@@ -376,8 +379,8 @@ void AVCodecServer::ResetTrace()
 {
     isFirstFrameIn_ = true;
     isFirstFrameOut_ = true;
-    MediaTrace::TraceEnd("AVCodecServer::Frame", CODEC_FRAME_TASK_ID);
-    MediaTrace::TraceEnd("AVCodecServer::FirstFrame", CODEC_FIRSTFRAME_TASK_ID);
+    MediaTrace::TraceEnd("AVCodecServer::Frame", FAKE_POINTER(this));
+    MediaTrace::TraceEnd("AVCodecServer::FirstFrame", fFrameTraceId_);
 }
 } // namespace Media
 } // namespace OHOS

@@ -23,11 +23,6 @@
 
 namespace OHOS {
 namespace Media {
-enum AVCodeServerID : int32_t {
-    CODEC_FIRSTFRAME_TASK_ID = 0,
-    CODEC_FRAME_TASK_ID = 1,
-};
-
 class __attribute__((visibility("default"))) MediaEvent : public NoCopyable {
 public:
     MediaEvent() = default;
