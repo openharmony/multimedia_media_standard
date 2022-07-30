@@ -42,7 +42,9 @@ int32_t HdiVencOutBufferMgr::UseBuffers(std::vector<GstBuffer *> buffers)
     auto omxBuffers = PreUseAshareMems(buffers);
     int32_t ret = UseHdiBuffers(omxBuffers);
     for (auto buffer : buffers) {
-        mBuffers.push_back(buffer);
+        GstBufferWrap bufferWarp = {};
+        bufferWarp.gstBuffer = buffer;
+        mBuffers.push_back(bufferWarp);
         gst_buffer_ref(buffer);
     }
     MEDIA_LOGD("UseBuffers end");

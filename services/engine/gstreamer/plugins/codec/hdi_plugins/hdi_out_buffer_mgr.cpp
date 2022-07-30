@@ -40,23 +40,18 @@ HdiOutBufferMgr::~HdiOutBufferMgr()
 
 int32_t HdiOutBufferMgr::Start()
 {
-    MEDIA_LOGD("Enter Start");
+    MEDIA_LOGD("Enter Start mBuffers size %{public}zu", mBuffers.size());
     std::unique_lock<std::mutex> lock(mutex_);
     isStart_ = true;
     isFlushed_ = false;
     while (!mBuffers.empty()) {
-        GstBuffer *buffer = mBuffers.front();
-        if (buffer == nullptr) {
-            mBuffers.pop_front();
-            MEDIA_LOGI("nullptr, continue!");
-            continue;
-        }
-        std::shared_ptr<HdiBufferWrap> codecBuffer = GetCodecBuffer(buffer);
+        GstBufferWrap buffer = mBuffers.front();
+        std::shared_ptr<HdiBufferWrap> codecBuffer = GetCodecBuffer(buffer.gstBuffer);
         CHECK_AND_RETURN_RET_LOG(codecBuffer != nullptr, GST_CODEC_ERROR, "Push buffer failed");
         auto ret = HdiFillThisBuffer(handle_, &codecBuffer->hdiBuffer);
         CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "FillThisBuffer failed");
         mBuffers.pop_front();
-        gst_buffer_unref(buffer);
+        gst_buffer_unref(buffer.gstBuffer);
     }
     MEDIA_LOGD("Quit Start");
     return GST_CODEC_OK;
@@ -64,7 +59,8 @@ int32_t HdiOutBufferMgr::Start()
 
 int32_t HdiOutBufferMgr::PushBuffer(GstBuffer *buffer)
 {
-    MEDIA_LOGD("Enter PushBuffer");
+    MEDIA_LOGD("mBuffers %{public}zu, available %{public}zu codingBuffers %{public}zu",
+        mBuffers.size(), availableBuffers_.size(), codingBuffers_.size());
     std::unique_lock<std::mutex> lock(mutex_);
     ON_SCOPE_EXIT(0) { gst_buffer_unref(buffer); };
     if (isFlushed_ || !isStart_) {
@@ -91,14 +87,17 @@ int32_t HdiOutBufferMgr::PullBuffer(GstBuffer **buffer)
     }
     if (!mBuffers.empty()) {
         MEDIA_LOGD("mBuffers %{public}zu, available %{public}zu", mBuffers.size(), availableBuffers_.size());
-        (*buffer) = mBuffers.front();
+        GstBufferWrap bufferWarp = mBuffers.front();
         mBuffers.pop_front();
+        if (bufferWarp.isEos) {
+            gst_buffer_unref(bufferWarp.gstBuffer);
+            MEDIA_LOGD("buffer is in eos");
+            return GST_CODEC_EOS;
+        }
+        (*buffer) = bufferWarp.gstBuffer;
+        return GST_CODEC_OK;
     }
-    if ((*buffer) == nullptr) {
-        MEDIA_LOGD("buffer is in eos");
-        return GST_CODEC_EOS;
-    }
-    return GST_CODEC_OK;
+    return GST_CODEC_ERROR;
 }
 
 int32_t HdiOutBufferMgr::FreeBuffers()
@@ -107,7 +106,7 @@ int32_t HdiOutBufferMgr::FreeBuffers()
     std::unique_lock<std::mutex> lock(mutex_);
     freeCond_.wait(lock, [this]() { return availableBuffers_.size() == mPortDef_.nBufferCountActual; });
     FreeCodecBuffers();
-    std::for_each(mBuffers.begin(), mBuffers.end(), [&](GstBuffer *buffer) { gst_buffer_unref(buffer); });
+    std::for_each(mBuffers.begin(), mBuffers.end(), [&](GstBufferWrap buffer) { gst_buffer_unref(buffer.gstBuffer); });
     EmptyList(mBuffers);
     return GST_CODEC_OK;
 }
@@ -117,18 +116,20 @@ int32_t HdiOutBufferMgr::CodecBufferAvailable(const OmxCodecBuffer *buffer)
     MEDIA_LOGD("codecBufferAvailable");
     CHECK_AND_RETURN_RET_LOG(buffer != nullptr, GST_CODEC_ERROR, "FillBufferDone failed");
     std::unique_lock<std::mutex> lock(mutex_);
-    MEDIA_LOGD("mBuffers %{public}zu, available %{public}zu", mBuffers.size(), availableBuffers_.size());
+    MEDIA_LOGD("mBuffers %{public}zu, available %{public}zu codingBuffers %{public}zu",
+        mBuffers.size(), availableBuffers_.size(), codingBuffers_.size());
     for (auto iter = codingBuffers_.begin(); iter != codingBuffers_.end(); ++iter) {
         if (iter->first != nullptr && iter->first->hdiBuffer.bufferId == buffer->bufferId) {
             availableBuffers_.push_back(iter->first);
+            GstBufferWrap bufferWarp = {};
             if (buffer->flag & OMX_BUFFERFLAG_EOS) {
                 MEDIA_LOGD("Bufferavailable, but buffer is eos");
-                mBuffers.push_back(nullptr);
-                gst_buffer_unref(iter->second);
+                bufferWarp.isEos = true;
             } else {
-                mBuffers.push_back(iter->second);
                 gst_buffer_resize(iter->second, buffer->offset, buffer->filledLen);
             }
+            bufferWarp.gstBuffer = iter->second;
+            mBuffers.push_back(bufferWarp);
             (void)codingBuffers_.erase(iter);
             break;
         }
