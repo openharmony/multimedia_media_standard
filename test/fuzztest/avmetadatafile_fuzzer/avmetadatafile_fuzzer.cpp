@@ -13,15 +13,13 @@
  * limitations under the License.
  */
 
-#include "aw_common.h"
-#include "avmetadatafile_fuzzer.h"
 #include <iostream>
+#include "aw_common.h"
 #include "string_ex.h"
 #include "media_errors.h"
 #include "directory_ex.h"
-// #include "ui/rs_surface_node.h"
+#include "avmetadatafile_fuzzer.h"
 #include "window_option.h"
-
 
 using namespace std;
 using namespace OHOS;

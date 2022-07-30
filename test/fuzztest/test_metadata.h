@@ -16,13 +16,10 @@
 #ifndef TEST_METADATA_H
 #define TEST_METADATA_H
 
-// #include "aw_common.h"
 #include "avmetadatahelper.h"
-// #include "av_common.h"
 #include "window.h"
 #include "surface.h"
 #include "display_type.h"
-
 
 namespace OHOS {
 namespace Media {

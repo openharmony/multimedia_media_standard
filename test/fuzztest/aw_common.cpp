@@ -24,9 +24,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <stdio.h>
-
-// #include "ui/rs_surface_node.h"
+#include <cstdio.h>
 #include "window_option.h"
 
 using namespace std;

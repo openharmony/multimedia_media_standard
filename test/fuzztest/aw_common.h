@@ -16,8 +16,8 @@
 #ifndef AWCOMMON_H
 #define AWCOMMON_H
 
-#include "window.h"
 #include <string>
+#include "window.h"
 
 // namespace OHOS {
 // namespace Media {
