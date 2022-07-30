@@ -44,6 +44,9 @@ public:
     static constexpr std::string_view RENDERER_FLAG = "renderer_flag";
     static constexpr std::string_view VIDEO_SCALE_TYPE = "video_scale_type";
     static constexpr std::string_view AUDIO_INTERRUPT_MODE = "audio_interrupt_mode";
+    static constexpr std::string_view AUDIO_INTERRUPT_TYPE = "audio_interrupt_type";
+    static constexpr std::string_view AUDIO_INTERRUPT_FORCE = "audio_interrupt_force";
+    static constexpr std::string_view AUDIO_INTERRUPT_HINT = "audio_interrupt_hint";
 };
 
 enum BufferingInfoType : int32_t {
