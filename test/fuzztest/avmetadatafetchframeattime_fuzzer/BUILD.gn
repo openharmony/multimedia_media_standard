@@ -53,8 +53,8 @@ ohos_fuzztest("AVmetadataFetchFrameAtTimeFuzzTest") {
     "-Wunused-parameter",
   ]
   sources = [
-    "../test_metadata.cpp",
     "../aw_common.cpp",
+    "../test_metadata.cpp",
     "avmetadatafetchframeattime_fuzzer.cpp",
   ]
   deps = [
