@@ -302,5 +302,10 @@ void PlayerServer::PlaybackCompletedState::HandleStateChange(int32_t newState)
         (void)server_.taskMgr_.MarkTaskDone();
     }
 }
+
+int32_t PlayerServer::PlaybackCompletedState::SetPlaybackSpeed(PlaybackRateMode mode)
+{
+    return server_.HandleSetPlaybackSpeed(mode);
+}
 }
 }
