@@ -267,11 +267,6 @@ napi_value VideoPlayerNapi::GetUrl(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&jsPlayer));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "Failed to retrieve instance");
 
-    if (jsPlayer->url_.empty()) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
-        return undefinedResult;
-    }
-
     napi_value jsResult = nullptr;
     status = napi_create_string_utf8(env, jsPlayer->url_.c_str(), NAPI_AUTO_LENGTH, &jsResult);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_create_string_utf8 error");
@@ -1232,11 +1227,7 @@ napi_value VideoPlayerNapi::GetCurrentTime(napi_env env, napi_callback_info info
 
     CHECK_AND_RETURN_RET_LOG(jsPlayer->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t currentTime = -1;
-    int32_t ret = jsPlayer->nativePlayer_->GetCurrentTime(currentTime);
-    if (ret != MSERR_OK || currentTime < 0) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_UNKNOWN);
-        return undefinedResult;
-    }
+    (void)jsPlayer->nativePlayer_->GetCurrentTime(currentTime);
 
     napi_value jsResult = nullptr;
     status = napi_create_int32(env, currentTime, &jsResult);
@@ -1264,11 +1255,7 @@ napi_value VideoPlayerNapi::GetDuration(napi_env env, napi_callback_info info)
 
     CHECK_AND_RETURN_RET_LOG(jsPlayer->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t duration = -1;
-    int32_t ret = jsPlayer->nativePlayer_->GetDuration(duration);
-    if (ret != MSERR_OK) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_UNKNOWN);
-        return undefinedResult;
-    }
+    (void)jsPlayer->nativePlayer_->GetDuration(duration);
 
     napi_value jsResult = nullptr;
     status = napi_create_int32(env, duration, &jsResult);
