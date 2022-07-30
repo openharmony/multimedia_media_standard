@@ -526,5 +526,10 @@ void PlayBinCtrlerBase::PlaybackCompletedState::ProcessStateChange(const InnerMe
         ctrler_.isSeeking_ = false;
     }
 }
+
+void PlayBinCtrlerBase::PlaybackCompletedState::HandleAsyncDone(const InnerMessage &msg)
+{
+    (void)msg;
+}
 } // namespace Media
 } // namespace OHOS
