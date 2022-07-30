@@ -513,6 +513,7 @@ int32_t PlayBinCtrlerBase::PlaybackCompletedState::Seek(int64_t timeUs, int32_t 
 
 int32_t PlayBinCtrlerBase::PlaybackCompletedState::SetRate(double rate)
 {
+    ctrler_.rate_ = rate;
     PlayBinMessage msg = { PLAYBIN_MSG_SPEEDDONE, 0, rate, {} };
     ctrler_.ReportMessage(msg);
     return MSERR_OK;
