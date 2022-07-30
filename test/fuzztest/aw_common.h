@@ -22,7 +22,7 @@
 // namespace OHOS {
 // namespace Media {
 int32_t WriteDataToFile(const std::string &path, const std::uint8_t *data, std::size_t size);
-int32_t ProduceRandomNumberCrypt();
+int32_t ProduceRandomNumberCrypt(void);
 // }
 // }
 #endif
