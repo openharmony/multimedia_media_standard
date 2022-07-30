@@ -14,8 +14,8 @@
  */
 
 #include "avmetadatafetchframeattime_fuzzer.h"
-#include "aw_common.h"
 #include <iostream>
+#include "aw_common.h"
 #include "string_ex.h"
 #include "media_errors.h"
 #include "directory_ex.h"
@@ -37,7 +37,6 @@ AVMetadataFetchFrameAtTimeFuzzer::~AVMetadataFetchFrameAtTimeFuzzer()
 
 bool AVMetadataFetchFrameAtTimeFuzzer::FuzzAVMetadataFetchFrameAtTime(uint8_t *data, size_t size)
 {
-
     constexpr int32_t AVMetadataQueryOptionList = 4;
     constexpr int32_t ColorFormatList = 11;
 
