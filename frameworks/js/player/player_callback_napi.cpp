@@ -257,9 +257,9 @@ void PlayerCallbackNapi::OnAudioInterruptCb(const Format &infoBody) const
     int32_t eventType = 0;
     int32_t forceType = 0;
     int32_t hintType = 0;
-    (void)infoBody.GetIntValue("eventType", eventType);
-    (void)infoBody.GetIntValue("forceType", forceType);
-    (void)infoBody.GetIntValue("hintType", hintType);
+    (void)infoBody.GetIntValue(PlayerKeys::AUDIO_INTERRUPT_TYPE, eventType);
+    (void)infoBody.GetIntValue(PlayerKeys::AUDIO_INTERRUPT_FORCE, forceType);
+    (void)infoBody.GetIntValue(PlayerKeys::AUDIO_INTERRUPT_HINT, hintType);
     cb->interruptEvent.eventType = AudioStandard::InterruptType(eventType);
     cb->interruptEvent.forceType = AudioStandard::InterruptForceType(forceType);
     cb->interruptEvent.hintType = AudioStandard::InterruptHint(hintType);
