@@ -196,8 +196,8 @@ sptr<Surface> AVCodecServer::CreateInputSurface()
     CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_CONFIGURED, nullptr, "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, nullptr, "engine is nullptr");
     sptr<Surface> surface = codecEngine_->CreateInputSurface();
-    fFrameTraceId_ = FAKE_POINTER(surface.GetRefPtr());
-    return codecEngine_->CreateInputSurface();
+    firstFrameTraceId_ = FAKE_POINTER(surface.GetRefPtr());
+    return surface;
 }
 
 int32_t AVCodecServer::SetOutputSurface(sptr<Surface> surface)
@@ -219,9 +219,9 @@ std::shared_ptr<AVSharedMemory> AVCodecServer::GetInputBuffer(uint32_t index)
 int32_t AVCodecServer::QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    fFrameTraceId_ = FAKE_POINTER(this);
+    firstFrameTraceId_ = FAKE_POINTER(this);
     if (isFirstFrameIn_) {
-        MediaTrace::TraceBegin("AVCodecServer::FirstFrame", fFrameTraceId_);
+        MediaTrace::TraceBegin("AVCodecServer::FirstFrame", firstFrameTraceId_);
         isFirstFrameIn_ = false;
     }
     CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_RUNNING, MSERR_INVALID_OPERATION, "invalid state");
@@ -357,7 +357,7 @@ void AVCodecServer::OnOutputBufferAvailable(uint32_t index, AVCodecBufferInfo in
 {
     std::lock_guard<std::mutex> lock(cbMutex_);
     if (isFirstFrameOut_) {
-        MediaTrace::TraceEnd("AVCodecServer::FirstFrame", fFrameTraceId_);
+        MediaTrace::TraceEnd("AVCodecServer::FirstFrame", firstFrameTraceId_);
         isFirstFrameOut_ = false;
     } else {
         MediaTrace::TraceEnd("AVCodecServer::Frame", FAKE_POINTER(this));
@@ -380,7 +380,7 @@ void AVCodecServer::ResetTrace()
     isFirstFrameIn_ = true;
     isFirstFrameOut_ = true;
     MediaTrace::TraceEnd("AVCodecServer::Frame", FAKE_POINTER(this));
-    MediaTrace::TraceEnd("AVCodecServer::FirstFrame", fFrameTraceId_);
+    MediaTrace::TraceEnd("AVCodecServer::FirstFrame", firstFrameTraceId_);
 }
 } // namespace Media
 } // namespace OHOS
