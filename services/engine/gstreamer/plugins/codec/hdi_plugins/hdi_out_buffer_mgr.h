@@ -21,6 +21,10 @@
 
 namespace OHOS {
 namespace Media {
+struct GstBufferWrap {
+    bool isEos = false;
+    GstBuffer *gstBuffer = nullptr;
+};
 class HdiOutBufferMgr : public HdiBufferMgr {
 public:
     HdiOutBufferMgr();
@@ -32,7 +36,7 @@ public:
     int32_t CodecBufferAvailable(const OmxCodecBuffer *buffer) override;
 
 protected:
-    std::list<GstBuffer *> mBuffers;
+    std::list<GstBufferWrap> mBuffers;
 };
 } // namespace Media
 } // namespace OHOS
