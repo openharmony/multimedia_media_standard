@@ -294,6 +294,7 @@ int32_t PlayerServer::Pause()
     std::lock_guard<std::mutex> lock(mutex_);
 
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
+    MEDIA_LOGD("PlayerServer Pause in");
 
     if (lastOpStatus_ != PLAYER_STARTED) {
         MEDIA_LOGE("Can not Pause, currentState is %{public}s", GetStatusDescription(lastOpStatus_).c_str());
@@ -409,6 +410,7 @@ int32_t PlayerServer::Release()
         std::lock_guard<std::mutex> lockCb(mutexCb_);
         playerCb_ = nullptr;
     }
+    MEDIA_LOGD("PlayerServer Release in");
     (void)OnReset();
     std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&PlayerServer::ReleaseProcessor, this);
     if (thread != nullptr && thread->joinable()) {
@@ -424,7 +426,7 @@ int32_t PlayerServer::SetVolume(float leftVolume, float rightVolume)
         MEDIA_LOGE("Can not SetVolume, currentState is PLAYER_STATE_ERROR");
         return MSERR_INVALID_OPERATION;
     }
-
+    MEDIA_LOGD("PlayerServer SetVolume in leftVolume %{public}f %{public}f", leftVolume, rightVolume);
     constexpr float maxVolume = 1.0f;
     if ((leftVolume < 0) || (leftVolume > maxVolume) || (rightVolume < 0) || (rightVolume > maxVolume)) {
         MEDIA_LOGE("SetVolume failed, the volume should be set to a value ranging from 0 to 5");
@@ -516,7 +518,7 @@ int32_t PlayerServer::GetCurrentTime(int32_t &currentTime)
         return MSERR_INVALID_OPERATION;
     }
 
-    MEDIA_LOGI("PlayerServer::GetCurrentTime");
+    MEDIA_LOGD("PlayerServer GetCurrentTime in");
     currentTime = 0;
     if (playerEngine_ != nullptr) {
         int32_t ret = playerEngine_->GetCurrentTime(currentTime);
@@ -536,7 +538,7 @@ int32_t PlayerServer::GetVideoTrackInfo(std::vector<Format> &videoTrack)
         MEDIA_LOGE("Can not get track info, currentState is %{public}s", GetStatusDescription(lastOpStatus_).c_str());
         return MSERR_INVALID_OPERATION;
     }
-
+    MEDIA_LOGD("PlayerServer GetVideoTrackInfo in");
     int32_t ret = playerEngine_->GetVideoTrackInfo(videoTrack);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine GetVideoTrackInfo Failed!");
     return MSERR_OK;
@@ -553,7 +555,7 @@ int32_t PlayerServer::GetAudioTrackInfo(std::vector<Format> &audioTrack)
         MEDIA_LOGE("Can not get track info, currentState is %{public}s", GetStatusDescription(lastOpStatus_).c_str());
         return MSERR_INVALID_OPERATION;
     }
-
+    MEDIA_LOGD("PlayerServer GetAudioTrackInfo in");
     int32_t ret = playerEngine_->GetAudioTrackInfo(audioTrack);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine GetAudioTrackInfo Failed!");
     return MSERR_OK;
@@ -570,7 +572,7 @@ int32_t PlayerServer::GetVideoWidth()
         MEDIA_LOGE("Can not get track info, currentState is %{public}s", GetStatusDescription(lastOpStatus_).c_str());
         return MSERR_INVALID_OPERATION;
     }
-
+    MEDIA_LOGD("PlayerServer GetVideoWidth in");
     return playerEngine_->GetVideoWidth();
 }
 
@@ -585,7 +587,7 @@ int32_t PlayerServer::GetVideoHeight()
         MEDIA_LOGE("Can not get track info, currentState is %{public}s", GetStatusDescription(lastOpStatus_).c_str());
         return MSERR_INVALID_OPERATION;
     }
-
+    MEDIA_LOGD("PlayerServer GetVideoHeight in");
     return playerEngine_->GetVideoHeight();
 }
 
@@ -597,6 +599,7 @@ int32_t PlayerServer::GetDuration(int32_t &duration)
         MEDIA_LOGE("Can not GetDuration, currentState is %{public}s", GetStatusDescription(lastOpStatus_).c_str());
         return MSERR_INVALID_OPERATION;
     }
+    MEDIA_LOGD("PlayerServer GetDuration in");
     duration = 0;
     if (playerEngine_ != nullptr) {
         int ret = playerEngine_->GetDuration(duration);
@@ -615,7 +618,7 @@ int32_t PlayerServer::SetPlaybackSpeed(PlaybackRateMode mode)
             GetStatusDescription(lastOpStatus_).c_str());
         return MSERR_INVALID_OPERATION;
     }
-
+    MEDIA_LOGD("PlayerServer SetPlaybackSpeed in, mode %{public}d", mode);
     if (dataSrc_ != nullptr) {
         int64_t size = 0;
         (void)dataSrc_->GetSize(size);
@@ -674,6 +677,7 @@ int32_t PlayerServer::GetPlaybackSpeed(PlaybackRateMode &mode)
         MEDIA_LOGE("Can not GetDuration, currentState is PLAYER_STATE_ERROR");
         return MSERR_INVALID_OPERATION;
     }
+    MEDIA_LOGD("PlayerServer GetPlaybackSpeed in");
 
     mode = config_.speedMode;
     return MSERR_OK;
@@ -698,7 +702,7 @@ int32_t PlayerServer::SetVideoSurface(sptr<Surface> surface)
         MEDIA_LOGE("current state: %{public}s, can not SetVideoSurface", GetStatusDescription(lastOpStatus_).c_str());
         return MSERR_INVALID_OPERATION;
     }
-
+    MEDIA_LOGD("PlayerServer SetVideoSurface in");
     surface_ = surface;
     return MSERR_OK;
 }
@@ -732,6 +736,7 @@ int32_t PlayerServer::SetLooping(bool loop)
         MEDIA_LOGE("Can not SetLooping, currentState is PLAYER_STATE_ERROR");
         return MSERR_INVALID_OPERATION;
     }
+    MEDIA_LOGD("PlayerServer SetLooping in, loop %{public}d", loop);
 
     if (dataSrc_ != nullptr) {
         int64_t size = 0;
