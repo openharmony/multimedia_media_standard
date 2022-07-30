@@ -22,8 +22,8 @@
 namespace OHOS {
 namespace Media {
 struct GstBufferWrap {
-    bool isEos;
-    GstBuffer *gstBuffer;
+    bool isEos = false;
+    GstBuffer *gstBuffer = nullptr;
 };
 class HdiOutBufferMgr : public HdiBufferMgr {
 public:

@@ -59,7 +59,7 @@ int32_t HdiOutBufferMgr::Start()
 
 int32_t HdiOutBufferMgr::PushBuffer(GstBuffer *buffer)
 {
-    MEDIA_LOGD("mBuffers %{public}zu, available %{public}zu codingBuffers %{public}zu",
+    MEDIA_LOGD("mBuffers %{public}zu, available %{public}zu, codingBuffers %{public}zu",
         mBuffers.size(), availableBuffers_.size(), codingBuffers_.size());
     std::unique_lock<std::mutex> lock(mutex_);
     ON_SCOPE_EXIT(0) { gst_buffer_unref(buffer); };
