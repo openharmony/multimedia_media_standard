@@ -18,8 +18,8 @@
 #include "string_ex.h"
 #include "media_errors.h"
 #include "directory_ex.h"
-#include "avmetadatafile_fuzzer.h"
 #include "window_option.h"
+#include "avmetadatafile_fuzzer.h"
 
 using namespace std;
 using namespace OHOS;
