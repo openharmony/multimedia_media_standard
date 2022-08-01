@@ -825,7 +825,7 @@ void CodecChangedDetector::SetupCodecCb(const std::string &metaStr, GstElement *
 {
     if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {
         isHardwareDec_ = true;
-        g_object_set(G_OBJECT(src), "enable-slice-cat", TRUE, nullptr);
+        g_object_set(G_OBJECT(src), "enable-slice-cat", FALSE, nullptr);
         if (decoder_ != nullptr) {
             gst_object_unref(decoder_);
             decoder_ = nullptr;
