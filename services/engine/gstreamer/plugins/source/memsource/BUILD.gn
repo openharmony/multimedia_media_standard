@@ -55,6 +55,7 @@ config("gst_mem_src_config") {
     "//third_party/glib/gmodule",
     "//foundation/graphic/graphic_2d/interfaces/innerkits/common",
     "//foundation/graphic/graphic_2d/utils/sync_fence/export",
+    "//base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include",
   ]
 }
 
