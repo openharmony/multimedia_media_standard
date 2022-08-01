@@ -18,6 +18,8 @@
 #include "gst_consumer_surface_memory.h"
 #include "buffer_type_meta.h"
 #include "scope_guard.h"
+#include "media_dfx.h"
+#include "media_log.h"
 using namespace OHOS;
 
 #define gst_consumer_surface_pool_parent_class parent_class
@@ -39,6 +41,7 @@ struct _GstConsumerSurfacePoolPrivate {
     guint64 pre_timestamp;
     GstBuffer *cache_buffer;
     gboolean need_eos_buffer;
+    gboolean is_first_buffer_in_for_trace;
 };
 
 enum {
@@ -224,6 +227,7 @@ static void gst_consumer_surface_pool_flush_stop(GstBufferPool *pool)
     g_mutex_lock(&priv->pool_lock);
     surfacepool->priv->flushing = FALSE;
     surfacepool->priv->is_first_buffer = TRUE;
+    surfacepool->priv->is_first_buffer_in_for_trace = TRUE;
     g_mutex_unlock(&priv->pool_lock);
 }
 
@@ -363,6 +367,7 @@ static void gst_consumer_surface_pool_init(GstConsumerSurfacePool *pool)
     priv->start = FALSE;
     priv->suspend = FALSE;
     priv->is_first_buffer = TRUE;
+    priv->is_first_buffer_in_for_trace = TRUE;
     priv->repeat_interval = 0;
     priv->max_frame_rate = 0;
     priv->pre_timestamp = 0;
@@ -394,6 +399,13 @@ static void gst_consumer_surface_pool_buffer_available(GstConsumerSurfacePool *p
     if (priv->available_buf_count == 0) {
         g_cond_signal(&priv->buffer_available_con);
     }
+
+    if (priv->is_first_buffer_in_for_trace) {
+        OHOS::Media::MediaTrace::TraceBegin("AVCodecServer::FirstFrame",
+            FAKE_POINTER(priv->consumer_surface.GetRefPtr()));
+        priv->is_first_buffer_in_for_trace = FALSE;
+    }
+
     pool->priv->available_buf_count++;
     GST_DEBUG_OBJECT(pool, "Available buffer count %u", pool->priv->available_buf_count);
 }

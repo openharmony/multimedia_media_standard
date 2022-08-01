@@ -66,6 +66,7 @@ public:
     void OnOutputFormatChanged(const Format &format) override;
     void OnInputBufferAvailable(uint32_t index) override;
     void OnOutputBufferAvailable(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag) override;
+    void ResetTrace();
 
 private:
     int32_t Init();
@@ -79,6 +80,9 @@ private:
     std::mutex cbMutex_;
     Format config_;
     std::string lastErrMsg_;
+    int32_t firstFrameTraceId_ = 0;
+    bool isFirstFrameIn_ = true;
+    bool isFirstFrameOut_ = true;
 };
 } // namespace Media
 } // namespace OHOS
