@@ -25,13 +25,13 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <cstdio.h>
-#include "window_option.h"
 
 using namespace std;
 using namespace OHOS;
 using namespace Media;
+using namespace PlayerTestParam;
 
-int32_t WriteDataToFile(const string &path, const uint8_t *data, size_t size)
+int32_t PlayerTestParam::WriteDataToFile(const string &path, const uint8_t *data, size_t size)
 {
     FILE *file = nullptr;
     file = fopen(path.c_str(), "w+");
@@ -48,7 +48,7 @@ int32_t WriteDataToFile(const string &path, const uint8_t *data, size_t size)
     return 0;
 }
 
-int32_t ProduceRandomNumberCrypt()
+int32_t PlayerTestParam::ProduceRandomNumberCrypt()
 {
     int32_t r = 0;
     int fd = open("/dev/random", O_RDONLY);
