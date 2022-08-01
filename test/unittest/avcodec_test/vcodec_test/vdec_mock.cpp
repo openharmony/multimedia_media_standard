@@ -104,7 +104,7 @@ int32_t VDecMock::Start()
 
     testFile_ = std::make_unique<std::ifstream>();
     UNITTEST_CHECK_AND_RETURN_RET_LOG(testFile_ != nullptr, MSERR_OK, "Fatal: No memory");
-    testFile_->open("/data/test/out_320_240_10s.h264", std::ios::in | std::ios::binary);
+    testFile_->open("/data/test/media/out_320_240_10s.h264", std::ios::in | std::ios::binary);
 
     inputLoop_ = make_unique<thread>(&VDecMock::InpLoopFunc, this);
     UNITTEST_CHECK_AND_RETURN_RET_LOG(inputLoop_ != nullptr, MSERR_OK, "Fatal: No memory");

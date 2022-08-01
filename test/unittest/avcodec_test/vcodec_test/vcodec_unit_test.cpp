@@ -44,7 +44,7 @@ void VCodecUnitTest::SetUp(void)
     EXPECT_EQ(MSERR_OK, videoEnc_->SetCallback(vencCallback_));
 
     testInfo_ = ::testing::UnitTest::GetInstance()->current_test_info();
-    string prefix = "/data/test/";
+    string prefix = "/data/test/media";
     string fileName = testInfo_->name();
     string suffix = ".es";
     videoEnc_->SetOutPath(prefix + fileName + suffix);
@@ -229,6 +229,40 @@ HWTEST_F(VCodecUnitTest, video_codec_GetOutputMediaDescription_0100, TestSize.Le
     sleep(2); // start run 2s
     EXPECT_NE(nullptr, videoDec_->GetOutputMediaDescription());
     EXPECT_NE(nullptr, videoEnc_->GetOutputMediaDescription());
+    EXPECT_EQ(MSERR_OK, videoDec_->Stop());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Stop());
+}
+
+/**
+ * @tc.name: video_NotifyEos_0100
+ * @tc.desc: video encodec NotifyEos
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(VCodecUnitTest, video_NotifyEos_0100, TestSize.Level0)
+{
+    std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
+    ASSERT_NE(nullptr, format);
+    string width = "width";
+    string height = "height";
+    string pixelFormat = "pixel_format";
+    string frame_rate = "frame_rate";
+    (void)format->PutIntValue(width.c_str(), DEFAULT_WIDTH);
+    (void)format->PutIntValue(height.c_str(), DEFAULT_HEIGHT);
+    (void)format->PutIntValue(pixelFormat.c_str(), NV12);
+    (void)format->PutIntValue(frame_rate.c_str(), DEFAULT_FRAME_RATE);
+    ASSERT_EQ(MSERR_OK, videoEnc_->Configure(format));
+    ASSERT_EQ(MSERR_OK, videoDec_->Configure(format));
+    std::shared_ptr<SurfaceMock> surface = videoEnc_->GetInputSurface();
+    ASSERT_NE(nullptr, surface);
+    ASSERT_EQ(MSERR_OK, videoDec_->SetOutputSurface(surface));
+
+    EXPECT_EQ(MSERR_OK, videoDec_->Prepare());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Prepare());
+    EXPECT_EQ(MSERR_OK, videoDec_->Start());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Start());
+    sleep(10); // start run 10s
+    EXPECT_EQ(MSERR_OK, videoEnc_->NotifyEos());
     EXPECT_EQ(MSERR_OK, videoDec_->Stop());
     EXPECT_EQ(MSERR_OK, videoEnc_->Stop());
 }
