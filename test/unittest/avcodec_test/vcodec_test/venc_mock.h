@@ -64,6 +64,7 @@ public:
     int32_t Flush();
     int32_t Reset();
     int32_t Release();
+    int32_t NotifyEos();
     std::shared_ptr<FormatMock> GetOutputMediaDescription();
     int32_t SetParameter(std::shared_ptr<FormatMock> format);
     int32_t FreeOutputData(uint32_t index);
@@ -76,7 +77,7 @@ private:
     std::shared_ptr<VEncSignal> signal_ = nullptr;
     std::shared_ptr<SurfaceMock> surface_ = nullptr;
     uint32_t frameCount_ = 0;
-    std::string outPath_ = "/data/test/vout.es";
+    std::string outPath_ = "/data/test/media/vout.es";
 };
 }  // namespace Media
 }  // namespace OHOS

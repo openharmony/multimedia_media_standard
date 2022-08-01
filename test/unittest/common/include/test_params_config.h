@@ -65,6 +65,7 @@ namespace RecorderTestParam {
     constexpr uint32_t RECORDER_TIME = 5;
     constexpr uint32_t YUV_BUFFER_SIZE = YUV_BUFFER_WIDTH * YUV_BUFFER_HEIGHT * 3 / 2;
     constexpr uint32_t SEC_TO_NS = 1000000000;
+    const std::string RECORDER_ROOT = "/data/test/media/";
     const std::string PURE_VIDEO = "video";
     const std::string PURE_AUDIO = "audio";
     const std::string AUDIO_VIDEO = "av";
