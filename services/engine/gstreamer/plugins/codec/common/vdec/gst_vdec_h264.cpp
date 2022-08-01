@@ -67,16 +67,18 @@ static gboolean get_slice_flag(GstMapInfo *info, bool &ready_push, gboolean &is_
     guint8 offset = 2;
     for (gsize i = 0; i < info->size - offset; i++) {
         if (info->data[i] == 0x01) {
+            gboolean is_data_frame = true;
             if ((info->data[i + 1] & 0x1F) == 0x06 || // 0x1F is the mask of last 5 bits, 0x06 is SEI flag
                 (info->data[i + 1] & 0x1F) == 0x07 || // 0x1F is the mask of last 5 bits, 0x07 is SPS flag
                 (info->data[i + 1] & 0x1F) == 0x08) { // 0x1F is the mask of last 5 bits, 0x08 is PPS flag
-                if (is_slice_buffer == false) {
-                    ready_push = true;
-                    return false;
-                } else {
-                    return true;
-                }
-            } else if ((info->data[i + offset] & 0x80) == 0x80) {
+                is_data_frame = false;
+            }
+            if (is_data_frame == false && is_slice_buffer == false) {
+                ready_push = true;
+                return false;
+            } else if (is_data_frame == false && is_slice_buffer == true) {
+                return true;
+            } else if (is_data_frame == true && (info->data[i + offset] & 0x80) == 0x80) {
                 return true;
             }
             break;
