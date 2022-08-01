@@ -142,6 +142,11 @@ int32_t VEncMock::Release()
     return videoEnc_->Release();
 }
 
+int32_t VEncMock::NotifyEos()
+{
+    return videoEnc_->NotifyEos();
+}
+
 std::shared_ptr<FormatMock> VEncMock::GetOutputMediaDescription()
 {
     return videoEnc_->GetOutputMediaDescription();
