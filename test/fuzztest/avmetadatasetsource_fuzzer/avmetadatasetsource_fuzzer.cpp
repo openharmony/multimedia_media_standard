@@ -25,6 +25,7 @@
 using namespace std;
 using namespace OHOS;
 using namespace Media;
+using namespace PlayerTestParam;
 
 AVMetadataSetSourceFuzzer::AVMetadataSetSourceFuzzer()
 {
