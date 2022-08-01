@@ -19,6 +19,7 @@
 #define gst_vdec_h264_parent_class parent_class
 G_DEFINE_TYPE(GstVdecH264, gst_vdec_h264, GST_TYPE_VDEC_BASE);
 
+static gboolean get_slice_flag(GstMapInfo *info, bool &ready_push, gboolean &is_slice_buffer);
 static GstBuffer *handle_slice_buffer(GstVdecBase *self, GstBuffer *buffer, bool &ready_push, bool is_finish);
 static gboolean cat_slice_buffer(GstVdecBase *self, GstMapInfo *src_info);
 static void flush_cache_slice_buffer(GstVdecBase *self);
@@ -61,6 +62,29 @@ static void gst_vdec_h264_init(GstVdecH264 *self)
     self->cache_slice_buffer = nullptr;
 }
 
+static gboolean get_slice_flag(GstMapInfo *info, bool &ready_push, gboolean &is_slice_buffer)
+{
+    guint8 offset = 2;
+    for (gsize i = 0; i < info->size - offset; i++) {
+        if (info->data[i] == 0x01) {
+            if ((info->data[i + 1] & 0x1F) == 0x06 || // 0x1F is the mask of last 5 bits, 0x06 is SEI flag
+                (info->data[i + 1] & 0x1F) == 0x07 || // 0x1F is the mask of last 5 bits, 0x07 is SPS flag
+                (info->data[i + 1] & 0x1F) == 0x08) { // 0x1F is the mask of last 5 bits, 0x08 is PPS flag
+                if (is_slice_buffer == false) {
+                    ready_push = true;
+                    return false;
+                } else {
+                    return true;
+                }
+            } else if ((info->data[i + offset] & 0x80) == 0x80) {
+                return true;
+            }
+            break;
+        }
+    }
+    return false;
+}
+
 static GstBuffer *handle_slice_buffer(GstVdecBase *self, GstBuffer *buffer, bool &ready_push, bool is_finish)
 {
     GstVdecH264 *vdec_h264 = GST_VDEC_H264(self);
@@ -82,16 +106,11 @@ static GstBuffer *handle_slice_buffer(GstVdecBase *self, GstBuffer *buffer, bool
         g_mutex_unlock(&vdec_h264->cat_lock);
         return buffer;
     }
-    gboolean slice_flag = false;
-    guint8 offset = 2;
-    for (gsize i = 0; i < info.size - offset; i++) {
-        if (info.data[i] == 0x01) {
-            if ((info.data[i + 1] == 0x65 || info.data[i + 1] == 0x41) // 0x65:I frame flag, 0x41:P、B frame flag
-                && (info.data[i + offset] & 0x80) == 0x80) { // 0x80 is nal flag of slice
-                slice_flag = true;
-            }
-            break;
-        }
+    gboolean slice_flag = get_slice_flag(&info, ready_push);
+    if (ready_push) {
+        gst_buffer_unmap(buffer, &info);
+        g_mutex_unlock(&vdec_h264->cat_lock);
+        return buffer;
     }
 
     if (slice_flag == true && vdec_h264->is_slice_buffer == false) { // cache the first slice frame
