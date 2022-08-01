@@ -26,6 +26,7 @@
 using namespace std;
 using namespace OHOS;
 using namespace Media;
+using namespace PlayerTestParam;
 
 AVMetadataFetchFrameAtTimeFuzzer::AVMetadataFetchFrameAtTimeFuzzer()
 {
@@ -37,8 +38,8 @@ AVMetadataFetchFrameAtTimeFuzzer::~AVMetadataFetchFrameAtTimeFuzzer()
 
 bool AVMetadataFetchFrameAtTimeFuzzer::FuzzAVMetadataFetchFrameAtTime(uint8_t *data, size_t size)
 {
-    constexpr int32_t AVMetadataQueryOptionList = 4;
-    constexpr int32_t ColorFormatList = 11;
+    constexpr int32_t avMetadataQueryOptionList = 4;
+    constexpr int32_t avColorFormatList = 11;
 
     avmetadata = AVMetadataHelperFactory::CreateAVMetadataHelper();
     if (avmetadata == nullptr) {
@@ -48,23 +49,22 @@ bool AVMetadataFetchFrameAtTimeFuzzer::FuzzAVMetadataFetchFrameAtTime(uint8_t *d
     }
 
     const string path = "/data/test/resource/H264_AAC.mp4";
-    int32_t reMetadatasetsource = MetaDataSetSource(path);
-    if (reMetadatasetsource != 0) {
+    if (MetaDataSetSource(path) != 0) {
         cout << "avmetadata SetSource file" << endl;
         avmetadata->Release();
         return false;
     }
 
     if (size >= sizeof(int64_t)) {
-        int32_t nameListAVMetadataQueryOption[AVMetadataQueryOptionList] {
+        int32_t nameAVMetadataQueryOption[avMetadataQueryOptionList] {
             AV_META_QUERY_NEXT_SYNC,
             AV_META_QUERY_PREVIOUS_SYNC,
             AV_META_QUERY_CLOSEST_SYNC,
             AV_META_QUERY_CLOSEST
         };
 
-        int32_t option = nameListAVMetadataQueryOption[ProduceRandomNumberCrypt() % AVMetadataQueryOptionList];
-        PixelFormat colorFormats[ColorFormatList] {
+        int32_t optionFetchFrameAtTime = nameAVMetadataQueryOption[ProduceRandomNumberCrypt() % avMetadataQueryOptionList];
+        PixelFormat colorFormats[avColorFormatList] {
             PixelFormat::UNKNOWN,
             PixelFormat::ARGB_8888,
             PixelFormat::RGB_565,
@@ -77,16 +77,14 @@ bool AVMetadataFetchFrameAtTimeFuzzer::FuzzAVMetadataFetchFrameAtTime(uint8_t *d
             PixelFormat::NV12,
             PixelFormat::CMYK
         };
-        PixelFormat colorFormat = colorFormats[ProduceRandomNumberCrypt() % ColorFormatList];
+        PixelFormat colorFormat = colorFormats[ProduceRandomNumberCrypt() % avColorFormatList];
 
-        int32_t dstWidth = ProduceRandomNumberCrypt();
-        int32_t dstHeight = ProduceRandomNumberCrypt();
-        struct PixelMapParams pixelMapParams_ = {dstWidth, dstHeight, colorFormat};
+        struct PixelMapParams pixelMapParams = {ProduceRandomNumberCrypt(), ProduceRandomNumberCrypt(), colorFormat};
         
-        std::shared_ptr<PixelMap> retfetchframeattime =
-            avmetadata->FetchFrameAtTime(*reinterpret_cast<int64_t *>(data), option, pixelMapParams_);
+        std::shared_ptr<PixelMap> retFetchFrameAtTime =
+            avmetadata->FetchFrameAtTime(*reinterpret_cast<int64_t *>(data), optionFetchFrameAtTime, pixelMapParams);
 
-        if (retfetchframeattime != 0) {
+        if (retFetchFrameAtTime != 0) {
             cout << "expect avmetadata FetchFrameAtTime fail" << endl;
             avmetadata->Release();
             return true;
