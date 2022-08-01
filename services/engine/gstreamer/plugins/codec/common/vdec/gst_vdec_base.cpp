@@ -949,7 +949,6 @@ static GstFlowReturn gst_vdec_base_push_input_buffer(GstVideoDecoder *decoder, G
 
     if (buf == nullptr) {
         GST_DEBUG_OBJECT(self, "buffer is null");
-        gst_buffer_ref(buf);
         return GST_FLOW_OK;
     }
 
