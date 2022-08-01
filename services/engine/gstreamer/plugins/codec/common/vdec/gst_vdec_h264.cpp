@@ -108,7 +108,7 @@ static GstBuffer *handle_slice_buffer(GstVdecBase *self, GstBuffer *buffer, bool
         g_mutex_unlock(&vdec_h264->cat_lock);
         return buffer;
     }
-    gboolean slice_flag = get_slice_flag(&info, ready_push);
+    gboolean slice_flag = get_slice_flag(&info, ready_push, vdec_h264->is_slice_buffer);
     if (ready_push) {
         gst_buffer_unmap(buffer, &info);
         g_mutex_unlock(&vdec_h264->cat_lock);
