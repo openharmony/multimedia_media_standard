@@ -50,6 +50,7 @@ public:
 private:
     static GstBusSyncReply BusSyncHandler(GstBus *bus, GstMessage *message, gpointer userData);
 
+    int32_t InnerFlush();
     AVCodecType codecType_ = AVCODEC_TYPE_VIDEO_ENCODER;
     GstPipeline *gstPipeline_ = nullptr;
     GstBus *bus_ = nullptr;

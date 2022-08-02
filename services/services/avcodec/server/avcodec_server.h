@@ -35,6 +35,7 @@ public:
         AVCODEC_CONFIGURED,
         AVCODEC_PREPARED,
         AVCODEC_RUNNING,
+        AVCODEC_FLUSHED,
         AVCODEC_END_OF_STREAM,
         AVCODEC_ERROR,
     };
