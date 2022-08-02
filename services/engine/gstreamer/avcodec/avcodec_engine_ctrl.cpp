@@ -119,7 +119,7 @@ int32_t AVCodecEngineCtrl::Start()
 
     CHECK_AND_RETURN_RET(sink_ != nullptr, MSERR_UNKNOWN);
     if (flushAtStart_ || sink_->IsEos()) {
-        CHECK_AND_RETURN_RET(Flush() == MSERR_OK, MSERR_INVALID_OPERATION);
+        CHECK_AND_RETURN_RET(InnerFlush() == MSERR_OK, MSERR_INVALID_OPERATION);
         flushAtStart_ = false;
     }
 
@@ -152,7 +152,7 @@ int32_t AVCodecEngineCtrl::Stop()
         gstPipeCond_.wait(lock);
     }
 
-    CHECK_AND_RETURN_RET(Flush() == MSERR_OK, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(InnerFlush() == MSERR_OK, MSERR_UNKNOWN);
 
     MEDIA_LOGD("Stop success");
     isStart_ = false;
@@ -160,6 +160,14 @@ int32_t AVCodecEngineCtrl::Stop()
 }
 
 int32_t AVCodecEngineCtrl::Flush()
+{
+    MEDIA_LOGD("Flush in");
+    int32_t ret = Stop();
+    MEDIA_LOGD("Flush out");
+    return ret;
+}
+
+int32_t AVCodecEngineCtrl::InnerFlush()
 {
     CHECK_AND_RETURN_RET(gstPipeline_ != nullptr, MSERR_UNKNOWN);
 
