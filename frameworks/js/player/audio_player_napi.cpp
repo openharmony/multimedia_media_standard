@@ -282,10 +282,6 @@ napi_value AudioPlayerNapi::GetSrc(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
 
-    if (player->uri_.empty()) {
-        return undefinedResult;
-    }
-
     status = napi_create_string_utf8(env, player->uri_.c_str(), NAPI_AUTO_LENGTH, &jsResult);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_create_string_utf8 error");
 
@@ -801,11 +797,7 @@ napi_value AudioPlayerNapi::GetCurrentTime(napi_env env, napi_callback_info info
 
     CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t currentTime = -1;
-    int32_t ret = player->nativePlayer_->GetCurrentTime(currentTime);
-    if (ret != MSERR_OK || currentTime < 0) {
-        player->ErrorCallback(MSERR_EXT_UNKNOWN);
-        return undefinedResult;
-    }
+    (void)player->nativePlayer_->GetCurrentTime(currentTime);
 
     napi_value jsResult = nullptr;
     status = napi_create_int32(env, currentTime, &jsResult);
@@ -835,11 +827,7 @@ napi_value AudioPlayerNapi::GetDuration(napi_env env, napi_callback_info info)
 
     CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t duration = -1;
-    int32_t ret = player->nativePlayer_->GetDuration(duration);
-    if (ret != MSERR_OK) {
-        player->ErrorCallback(MSERR_EXT_UNKNOWN);
-        return undefinedResult;
-    }
+    (void)player->nativePlayer_->GetDuration(duration);
 
     status = napi_create_int32(env, duration, &jsResult);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_create_int64 error");

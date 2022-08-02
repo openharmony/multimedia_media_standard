@@ -372,7 +372,7 @@ int32_t PlayerServer::OnReset()
 {
     if (lastOpStatus_ == PLAYER_IDLE) {
         MEDIA_LOGE("Can not Reset, currentState is %{public}s", GetStatusDescription(lastOpStatus_).c_str());
-        return MSERR_OK;
+        return MSERR_INVALID_OPERATION;
     }
     CHECK_AND_RETURN_RET_LOG(playerEngine_ != nullptr, MSERR_NO_MEMORY, "playerEngine_ is nullptr");
 
@@ -479,7 +479,7 @@ int32_t PlayerServer::Seek(int32_t mSeconds, PlayerSeekMode mode)
         return MSERR_INVALID_VAL;
     }
 
-    int32_t currentTime = 0;
+    int32_t currentTime = -1;
     if (mSeconds == 0 && playerEngine_->GetCurrentTime(currentTime) == MSERR_OK && currentTime == mSeconds) {
         MEDIA_LOGW("Seek to the inner position");
         Format format;
@@ -519,7 +519,7 @@ int32_t PlayerServer::GetCurrentTime(int32_t &currentTime)
     }
 
     MEDIA_LOGD("PlayerServer GetCurrentTime in");
-    currentTime = 0;
+    currentTime = -1;
     if (playerEngine_ != nullptr) {
         int32_t ret = playerEngine_->GetCurrentTime(currentTime);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine GetCurrentTime Failed!");
@@ -599,8 +599,9 @@ int32_t PlayerServer::GetDuration(int32_t &duration)
         MEDIA_LOGE("Can not GetDuration, currentState is %{public}s", GetStatusDescription(lastOpStatus_).c_str());
         return MSERR_INVALID_OPERATION;
     }
+
     MEDIA_LOGD("PlayerServer GetDuration in");
-    duration = 0;
+    duration = -1;
     if (playerEngine_ != nullptr) {
         int ret = playerEngine_->GetDuration(duration);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine GetDuration Failed!");
