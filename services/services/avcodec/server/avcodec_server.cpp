@@ -28,6 +28,7 @@ namespace {
         {OHOS::Media::AVCodecServer::AVCODEC_CONFIGURED, "configured"},
         {OHOS::Media::AVCodecServer::AVCODEC_PREPARED, "prepared"},
         {OHOS::Media::AVCodecServer::AVCODEC_RUNNING, "running"},
+        {OHOS::Media::AVCodecServer::AVCODEC_FLUSHED, "flushed"},
         {OHOS::Media::AVCodecServer::AVCODEC_END_OF_STREAM, "end of stream"},
         {OHOS::Media::AVCodecServer::AVCODEC_ERROR, "error"},
     };
@@ -114,7 +115,8 @@ int32_t AVCodecServer::Start()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MediaTrace trace("AVCodecServer::Start");
-    CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_PREPARED, MSERR_INVALID_OPERATION, "invalid state");
+    CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_PREPARED || status_ == AVCODEC_FLUSHED,
+        MSERR_INVALID_OPERATION, "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = codecEngine_->Start();
     status_ = (ret == MSERR_OK ? AVCODEC_RUNNING : AVCODEC_ERROR);
@@ -126,8 +128,8 @@ int32_t AVCodecServer::Stop()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MediaTrace trace("AVCodecServer::Stop");
-    CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_RUNNING || status_ == AVCODEC_END_OF_STREAM,
-        MSERR_INVALID_OPERATION, "invalid state");
+    CHECK_AND_RETURN_RET_LOG(status_ == AVCODEC_RUNNING || status_ == AVCODEC_END_OF_STREAM ||
+        status_ == AVCODEC_FLUSHED, MSERR_INVALID_OPERATION, "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = codecEngine_->Stop();
     status_ = (ret == MSERR_OK ? AVCODEC_PREPARED : AVCODEC_ERROR);
@@ -144,7 +146,7 @@ int32_t AVCodecServer::Flush()
         MSERR_INVALID_OPERATION, "invalid state");
     CHECK_AND_RETURN_RET_LOG(codecEngine_ != nullptr, MSERR_NO_MEMORY, "engine is nullptr");
     int32_t ret = codecEngine_->Flush();
-    status_ = (ret == MSERR_OK ? AVCODEC_RUNNING : AVCODEC_ERROR);
+    status_ = (ret == MSERR_OK ? AVCODEC_FLUSHED : AVCODEC_ERROR);
     BehaviorEventWrite(GetStatusDescription(status_), "AVCodec");
     ResetTrace();
     return ret;
