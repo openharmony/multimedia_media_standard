@@ -148,7 +148,7 @@ typedef struct AVCodecAsyncCallback {
 } AVCodecAsyncCallback;
 
 /**
- * @brief The extra data's key of surface Buffer 
+ * @brief The extra data's key of surface Buffer
  * @syscap SystemCapability.Multimedia.Media.CodecBase
  * @since 9
  * @version 1.0
