@@ -628,6 +628,7 @@ int32_t PlayBinCtrlerBase::PrepareAsyncInternal()
 int32_t PlayBinCtrlerBase::SeekInternal(int64_t timeUs, int32_t seekOption)
 {
     MEDIA_LOGD("execute seek, time: %{public}" PRIi64 ", option: %{public}d", timeUs, seekOption);
+    
     int32_t seekFlags = SEEK_OPTION_TO_GST_SEEK_FLAGS.at(seekOption);
     timeUs = timeUs > duration_ ? duration_ : timeUs;
     timeUs = timeUs < 0 ? 0 : timeUs;
