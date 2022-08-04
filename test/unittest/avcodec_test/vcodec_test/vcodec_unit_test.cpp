@@ -40,7 +40,7 @@ void VCodecUnitTest::SetUp(void)
     vencCallback_ = std::make_shared<VEncCallbackTest>(vencSignal);
     ASSERT_NE(nullptr, vencCallback_);
     videoEnc_ = std::make_shared<VEncMock>(vencSignal);
-    ASSERT_TRUE(videoEnc_->CreateVideoEncMockByMine("video/mp4v-es"));
+    ASSERT_TRUE(videoEnc_->CreateVideoEncMockByMine("video/avc"));
     EXPECT_EQ(MSERR_OK, videoEnc_->SetCallback(vencCallback_));
 
     testInfo_ = ::testing::UnitTest::GetInstance()->current_test_info();
