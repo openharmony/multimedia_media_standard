@@ -30,15 +30,6 @@ typedef struct NativeWindow NativeWindow;
 typedef struct AVCodec AVCodec;
 
 /**
- * @brief Enumerates the MIME types of audio and video codecs
- * @syscap SystemCapability.Multimedia.Media.CodecBase
- * @since 9
- * @version 1.0
- */
-extern const char* AVCODEC_MIME_TYPE_VIDEO_AVC;
-extern const char* AVCODEC_MIME_TYPE_AUDIO_AAC;
-
-/**
  * @brief Enumerate the categories of AVCodec's Buffer tags
  * @syscap SystemCapability.Multimedia.Media.CodecBase
  * @since 9
@@ -148,18 +139,24 @@ typedef struct AVCodecAsyncCallback {
 } AVCodecAsyncCallback;
 
 /**
+ * @brief Enumerates the MIME types of audio and video codecs
+ * @syscap SystemCapability.Multimedia.Media.CodecBase
+ * @since 9
+ * @version 1.0
+ */
+const char* const AVCODEC_MIME_TYPE_VIDEO_AVC = "video/avc";
+const char* const AVCODEC_MIME_TYPE_AUDIO_AAC = "audio/mp4a-latm";
+
+/**
  * @brief The extra data's key of surface Buffer
  * @syscap SystemCapability.Multimedia.Media.CodecBase
  * @since 9
  * @version 1.0
  */
-typedef struct OHSurfaceBufferExtraDataKey {
-    /* Key for timeStamp in surface's extraData, value type is int64 */
-    const char* ED_KEY_TIME_STAMP = "timeStamp";
-
-    /* Key for endOfStream in surface's extraData, value type is bool */
-    const char* ED_KEY_END_OF_STREAM = "endOfStream";
-} OHSurfaceBufferExtraDataKey;
+/* Key for timeStamp in surface's extraData, value type is int64 */
+const char* const ED_KEY_TIME_STAMP = "timeStamp";
+/* Key for endOfStream in surface's extraData, value type is bool */
+const char* const ED_KEY_END_OF_STREAM = "endOfStream";
 
 /**
  * @brief Provides the uniform container for storing the media description.
@@ -167,70 +164,68 @@ typedef struct OHSurfaceBufferExtraDataKey {
  * @since 9
  * @version 1.0
  */
-typedef struct OHMediaDescriptionKey {
-    /* Key for track index, value type is uint32_t. */
-    const char* MD_KEY_TRACK_INDEX = "track_index";
-    /* Key for track type, value type is uint8_t, see @OHMediaType. */
-    const char* MD_KEY_TRACK_TYPE = "track_type";
-    /* Key for codec mime type, value type is string. */
-    const char* MD_KEY_CODEC_MIME = "codec_mime";
-    /* Key for duration, value type is int64_t. */
-    const char* MD_KEY_DURATION = "duration";
-    /* Key for bitrate, value type is uint32_t. */
-    const char* MD_KEY_BITRATE = "bitrate";
-    /* Key for max input size, value type is uint32_t */
-    const char* MD_KEY_MAX_INPUT_SIZE = "max_input_size";
-    /* Key for max video encoder fps, value type is double */
-    const char* MD_KEY_MAX_ENCODER_FPS = "max_encoder_fps";
-    /* Key for video width, value type is uint32_t */
-    const char* MD_KEY_WIDTH = "width";
-    /* Key for video height, value type is uint32_t */
-    const char* MD_KEY_HEIGHT = "height";
-    /* Key for video pixel format, value type is int32_t, see @OHVideoPixelFormat */
-    const char* MD_KEY_PIXEL_FORMAT = "pixel_format";
-    /* key for audio raw format, value type is uint32_t , see @AudioSampleFormat */
-    const char* MD_KEY_AUDIO_SAMPLE_FORMAT = "audio_sample_format";
-    /* Key for video frame rate, value type is double. */
-    const char* MD_KEY_FRAME_RATE = "frame_rate";
-    /* Key for video capture rate, value type is double */
-    const char* MD_KEY_CAPTURE_RATE = "capture_rate";
-    /**
-     * Key for the interval of key frame. value type is int32_t, the unit is milliseconds.
-     * A negative value means no key frames are requested after the first frame. A zero
-     * value means a stream containing all key frames is requested.
-     */
-    const char* MD_KEY_I_FRAME_INTERVAL = "i_frame_interval";
-    /* Key for the request a I-Frame immediately. value type is boolean */
-    const char* MD_KEY_REQUEST_I_FRAME = "req_i_frame";
-    /* repeat encode the previous frame after the pts in milliseconds, value type is int32_t */
-    const char* MD_KEY_REPEAT_FRAME_AFTER = "repeat_frame_after";
-    /* suspend input surface data. the value type is int32_t, 0:not suspend, 1:suspend. */
-    const char* MD_KEY_SUSPEND_INPUT_SURFACE = "suspend_input_surface";
-    /* video encode bitrate mode, the value type is int32_t, see @OHVideoEncodeBitrateMode */
-    const char* MD_KEY_VIDEO_ENCODE_BITRATE_MODE = "video_encode_bitrate_mode";
-    /* encode profile, the value type is number.
-     * see @OHAVCProfile, OHHEVCProfile, OHMPEG2Profile, OHMPEG4Profile, OHH263Profile, OHAACProfile
-     */
-    const char* MD_KEY_PROFILE = "codec_profile";
-    /* encode quality, the value type is int32_t. */
-    const char* MD_KEY_QUALITY = "codec_quality";
-    /* true video picture top position in the buffer, the value type is int32_t. */
-    const char* MD_KEY_RECT_TOP = "rect_top";
-    /* true video picture bottom position in the buffer, the value type is int32_t. */
-    const char* MD_KEY_RECT_BOTTOM = "rect_bottom";
-    /* true video picture left position in the buffer, the value type is int32_t. */
-    const char* MD_KEY_RECT_LEFT = "rect_left";
-    /* true video picture right position in the buffer, the value type is int32_t. */
-    const char* MD_KEY_RECT_RIGHT = "rect_right";
-    /* video raw data color standard. the value type is int32_t. */
-    const char* MD_KEY_COLOR_STANDARD = "color_standard";
-    /* Key for audio channel count, value type is uint32_t */
-    const char* MD_KEY_AUD_CHANNEL_COUNT = "channel_count";
-    /* Key for audio sample rate, value type is uint32_t */
-    const char* MD_KEY_AUD_SAMPLE_RATE = "sample_rate";
-    /* custom key prefix, media service will pass through to HAL. */
-    const char* MD_KEY_CUSTOM = "vendor.custom";
-} OHMediaDescriptionKey;
+/* Key for track index, value type is uint32_t. */
+const char* const MD_KEY_TRACK_INDEX = "track_index";
+/* Key for track type, value type is uint8_t, see @OHMediaType. */
+const char* const MD_KEY_TRACK_TYPE = "track_type";
+/* Key for codec mime type, value type is string. */
+const char* const MD_KEY_CODEC_MIME = "codec_mime";
+/* Key for duration, value type is int64_t. */
+const char* const MD_KEY_DURATION = "duration";
+/* Key for bitrate, value type is uint32_t. */
+const char* const MD_KEY_BITRATE = "bitrate";
+/* Key for max input size, value type is uint32_t */
+const char* const MD_KEY_MAX_INPUT_SIZE = "max_input_size";
+/* Key for max video encoder fps, value type is double */
+const char* const MD_KEY_MAX_ENCODER_FPS = "max_encoder_fps";
+/* Key for video width, value type is uint32_t */
+const char* const MD_KEY_WIDTH = "width";
+/* Key for video height, value type is uint32_t */
+const char* const MD_KEY_HEIGHT = "height";
+/* Key for video pixel format, value type is int32_t, see @OHVideoPixelFormat */
+const char* const MD_KEY_PIXEL_FORMAT = "pixel_format";
+/* key for audio raw format, value type is uint32_t , see @AudioSampleFormat */
+const char* const MD_KEY_AUDIO_SAMPLE_FORMAT = "audio_sample_format";
+/* Key for video frame rate, value type is double. */
+const char* const MD_KEY_FRAME_RATE = "frame_rate";
+/* Key for video capture rate, value type is double */
+const char* const MD_KEY_CAPTURE_RATE = "capture_rate";
+/**
+ * Key for the interval of key frame. value type is int32_t, the unit is milliseconds.
+ * A negative value means no key frames are requested after the first frame. A zero
+ * value means a stream containing all key frames is requested.
+ */
+const char* const MD_KEY_I_FRAME_INTERVAL = "i_frame_interval";
+/* Key for the request a I-Frame immediately. value type is boolean */
+const char* const MD_KEY_REQUEST_I_FRAME = "req_i_frame";
+/* repeat encode the previous frame after the pts in milliseconds, value type is int32_t */
+const char* const MD_KEY_REPEAT_FRAME_AFTER = "repeat_frame_after";
+/* suspend input surface data. the value type is int32_t, 0:not suspend, 1:suspend. */
+const char* const MD_KEY_SUSPEND_INPUT_SURFACE = "suspend_input_surface";
+/* video encode bitrate mode, the value type is int32_t, see @OHVideoEncodeBitrateMode */
+const char* const MD_KEY_VIDEO_ENCODE_BITRATE_MODE = "video_encode_bitrate_mode";
+/* encode profile, the value type is number.
+ * see @OHAVCProfile, OHHEVCProfile, OHMPEG2Profile, OHMPEG4Profile, OHH263Profile, OHAACProfile
+ */
+const char* const MD_KEY_PROFILE = "codec_profile";
+/* encode quality, the value type is int32_t. */
+const char* const MD_KEY_QUALITY = "codec_quality";
+/* true video picture top position in the buffer, the value type is int32_t. */
+const char* const MD_KEY_RECT_TOP = "rect_top";
+/* true video picture bottom position in the buffer, the value type is int32_t. */
+const char* const MD_KEY_RECT_BOTTOM = "rect_bottom";
+/* true video picture left position in the buffer, the value type is int32_t. */
+const char* const MD_KEY_RECT_LEFT = "rect_left";
+/* true video picture right position in the buffer, the value type is int32_t. */
+const char* const MD_KEY_RECT_RIGHT = "rect_right";
+/* video raw data color standard. the value type is int32_t. */
+const char* const MD_KEY_COLOR_STANDARD = "color_standard";
+/* Key for audio channel count, value type is uint32_t */
+const char* const MD_KEY_AUD_CHANNEL_COUNT = "channel_count";
+/* Key for audio sample rate, value type is uint32_t */
+const char* const MD_KEY_AUD_SAMPLE_RATE = "sample_rate";
+/* custom key prefix, media service will pass through to HAL. */
+const char* const MD_KEY_CUSTOM = "vendor.custom";
 
 /**
  * @brief Media type.
