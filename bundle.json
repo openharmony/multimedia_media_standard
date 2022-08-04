@@ -68,11 +68,11 @@
             "//foundation/multimedia/player_framework/interfaces/kits/js:media",
             "//foundation/multimedia/player_framework/interfaces/kits/js:media_js",
             "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
-            "//foundation/multimedia/player_framework/test/nativedemo:media_demo",
+            "//foundation/multimedia/player_framework/test/nativedemo:media_demo"
           ],
           "service_group": [
             "//foundation/multimedia/player_framework/services:media_services_package",
-            "//foundation/multimedia/player_framework/sa_profile:media_service_sa_profile",
+            "//foundation/multimedia/player_framework/sa_profile:media_service_sa_profile"
           ]
         },
         "inner_kits": [
@@ -81,10 +81,10 @@
             "name": "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
             "header": {
               "header_files": [
-                "avcodec_audio_decoder.h"
-                "avcodec_audio_encoder.h"
-                "avcodec_video_decoder.h"
-                "avcodec_video_encoder.h"
+                "avcodec_audio_decoder.h",
+                "avcodec_audio_encoder.h",
+                "avcodec_video_decoder.h",
+                "avcodec_video_encoder.h",
                 "player.h",
                 "recorder.h"
               ],
