@@ -62,26 +62,31 @@
         ]
       },
       "build": {
-        "sub_component": [
-          "//foundation/multimedia/player_framework/services:media_services_package",
-          "//foundation/multimedia/player_framework/sa_profile:media_service_sa_profile",
-          "//foundation/multimedia/player_framework/interfaces/kits/js:media",
-          "//foundation/multimedia/player_framework/interfaces/kits/js:media_js",
-          "//foundation/multimedia/player_framework/frameworks/videodisplaymanager:videodisplaymanager",
-          "//foundation/multimedia/player_framework/test/nativedemo:media_demo",
-          "//foundation/multimedia/player_framework/test/jsdemo:media_demo_js",
-          "//foundation/multimedia/player_framework/test/jsdemo:mediademo"
-        ],
+        "group_type": {
+          "base_group": [],
+          "fwk_group": [
+            "//foundation/multimedia/player_framework/interfaces/kits/js:media",
+            "//foundation/multimedia/player_framework/interfaces/kits/js:media_js",
+            "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
+            "//foundation/multimedia/player_framework/test/nativedemo:media_demo"
+          ],
+          "service_group": [
+            "//foundation/multimedia/player_framework/services:media_services_package",
+            "//foundation/multimedia/player_framework/sa_profile:media_service_sa_profile"
+          ]
+        },
         "inner_kits": [
           {
             "type": "none",
             "name": "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
             "header": {
               "header_files": [
-                  "player.h",
-                  "recorder.h",
-                  "avcodec_list.h",
-                  "recorder_profiles.h"
+                "avcodec_audio_decoder.h",
+                "avcodec_audio_encoder.h",
+                "avcodec_video_decoder.h",
+                "avcodec_video_encoder.h",
+                "player.h",
+                "recorder.h"
               ],
               "header_base": "//foundation/multimedia/player_framework/interfaces/inner_api/native"
             }
@@ -91,7 +96,7 @@
             "name": "//foundation/multimedia/player_framework/interfaces/kits/js:media",
             "header": {
               "header_files": [
-                    "native_module_ohos_media.h"
+                "native_module_ohos_media.h"
               ],
               "header_base": "//foundation/multimedia/player_framework/interfaces/kits/js"
             }
