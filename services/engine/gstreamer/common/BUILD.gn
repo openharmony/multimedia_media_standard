@@ -42,6 +42,7 @@ config("media_engine_gst_common_config") {
   ]
 
   include_dirs = [
+    "//base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include",
     "//commonlibrary/c_utils/base/include",
     "//third_party/glib/glib",
     "//third_party/glib",
