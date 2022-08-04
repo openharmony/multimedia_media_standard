@@ -493,6 +493,7 @@ void PlayBinCtrlerBase::PlaybackCompletedState::StateEnter()
 
 int32_t PlayBinCtrlerBase::PlaybackCompletedState::Play()
 {
+    ctrler_.isDuration_ = false;
     return ctrler_.SeekInternal(0, IPlayBinCtrler::PlayBinSeekMode::PREV_SYNC);
 }
 
