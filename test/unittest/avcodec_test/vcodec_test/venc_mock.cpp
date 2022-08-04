@@ -48,6 +48,9 @@ void VEncCallbackTest::OnNeedInputData(uint32_t index, std::shared_ptr<AVMemoryM
 void VEncCallbackTest::OnNewOutputData(uint32_t index, std::shared_ptr<AVMemoryMock> data, AVCodecBufferAttrMock attr)
 {
     unique_lock<mutex> lock(signal_->outMutex_);
+    if (!signal_->isRunning_.load()) {
+        return;
+    }
     signal_->outIndexQueue_.push(index);
     signal_->outSizeQueue_.push(attr.size);
     signal_->outBufferQueue_.push(data);
@@ -98,15 +101,15 @@ int32_t VEncMock::Prepare()
 
 int32_t VEncMock::Start()
 {
-    isRunning_.store(true);
+    signal_->isRunning_.store(true);
     outLoop_ = make_unique<thread>(&VEncMock::OutLoopFunc, this);
     UNITTEST_CHECK_AND_RETURN_RET_LOG(outLoop_ != nullptr, MSERR_UNKNOWN, "Fatal: No memory");
     return videoEnc_->Start();
 }
 
-int32_t VEncMock::Stop()
+void VEncMock::FlushInner()
 {
-    isRunning_.store(false);
+    signal_->isRunning_.store(false);
     if (outLoop_ != nullptr && outLoop_->joinable()) {
         unique_lock<mutex> queueLock(signal_->mutex_);
         signal_->outIndexQueue_.push(10000); // push 10000 to stop queue
@@ -114,26 +117,26 @@ int32_t VEncMock::Stop()
         queueLock.unlock();
         outLoop_->join();
         outLoop_.reset();
+        std::queue<uint32_t> temp;
+        std::swap(temp, signal_->outIndexQueue_);
     }
+}
+
+int32_t VEncMock::Stop()
+{
+    FlushInner();
     return videoEnc_->Stop();
 }
 
 int32_t VEncMock::Flush()
 {
+    FlushInner();
     return videoEnc_->Flush();
 }
 
 int32_t VEncMock::Reset()
 {
-    isRunning_.store(false);
-    if (outLoop_ != nullptr && outLoop_->joinable()) {
-        unique_lock<mutex> queueLock(signal_->outMutex_);
-        signal_->outIndexQueue_.push(10000); // push 10000 to stop queue
-        signal_->outCond_.notify_all();
-        queueLock.unlock();
-        outLoop_->join();
-        outLoop_.reset();
-    }
+    FlushInner();
     return videoEnc_->Reset();
 }
 
@@ -170,14 +173,14 @@ void VEncMock::SetOutPath(const std::string &path)
 void VEncMock::OutLoopFunc()
 {
     while (true) {
-        if (!isRunning_.load()) {
+        if (!signal_->isRunning_.load()) {
             break;
         }
 
         unique_lock<mutex> lock(signal_->outMutex_);
         signal_->outCond_.wait(lock, [this]() { return signal_->outIndexQueue_.size() > 0; });
 
-        if (!isRunning_.load()) {
+        if (!signal_->isRunning_.load()) {
             break;
         }
 
