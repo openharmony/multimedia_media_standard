@@ -144,8 +144,8 @@ typedef struct AVCodecAsyncCallback {
  * @since 9
  * @version 1.0
  */
-const char* const AVCODEC_MIME_TYPE_VIDEO_AVC = "video/avc";
-const char* const AVCODEC_MIME_TYPE_AUDIO_AAC = "audio/mp4a-latm";
+extern const char* AVCODEC_MIME_TYPE_VIDEO_AVC;
+extern const char* AVCODEC_MIME_TYPE_AUDIO_AAC;
 
 /**
  * @brief The extra data's key of surface Buffer
@@ -154,9 +154,9 @@ const char* const AVCODEC_MIME_TYPE_AUDIO_AAC = "audio/mp4a-latm";
  * @version 1.0
  */
 /* Key for timeStamp in surface's extraData, value type is int64 */
-const char* const ED_KEY_TIME_STAMP = "timeStamp";
+extern const char* ED_KEY_TIME_STAMP;
 /* Key for endOfStream in surface's extraData, value type is bool */
-const char* const ED_KEY_END_OF_STREAM = "endOfStream";
+extern const char* ED_KEY_END_OF_STREAM;
 
 /**
  * @brief Provides the uniform container for storing the media description.
@@ -165,67 +165,65 @@ const char* const ED_KEY_END_OF_STREAM = "endOfStream";
  * @version 1.0
  */
 /* Key for track index, value type is uint32_t. */
-const char* const MD_KEY_TRACK_INDEX = "track_index";
+extern const char* MD_KEY_TRACK_INDEX;
 /* Key for track type, value type is uint8_t, see @OHMediaType. */
-const char* const MD_KEY_TRACK_TYPE = "track_type";
+extern const char* MD_KEY_TRACK_TYPE;
 /* Key for codec mime type, value type is string. */
-const char* const MD_KEY_CODEC_MIME = "codec_mime";
+extern const char* MD_KEY_CODEC_MIME;
 /* Key for duration, value type is int64_t. */
-const char* const MD_KEY_DURATION = "duration";
+extern const char* MD_KEY_DURATION;
 /* Key for bitrate, value type is uint32_t. */
-const char* const MD_KEY_BITRATE = "bitrate";
+extern const char* MD_KEY_BITRATE;
 /* Key for max input size, value type is uint32_t */
-const char* const MD_KEY_MAX_INPUT_SIZE = "max_input_size";
+extern const char* MD_KEY_MAX_INPUT_SIZE;
 /* Key for max video encoder fps, value type is double */
-const char* const MD_KEY_MAX_ENCODER_FPS = "max_encoder_fps";
+extern const char* MD_KEY_MAX_ENCODER_FPS;
 /* Key for video width, value type is uint32_t */
-const char* const MD_KEY_WIDTH = "width";
+extern const char* MD_KEY_WIDTH;
 /* Key for video height, value type is uint32_t */
-const char* const MD_KEY_HEIGHT = "height";
+extern const char* MD_KEY_HEIGHT;
 /* Key for video pixel format, value type is int32_t, see @OHVideoPixelFormat */
-const char* const MD_KEY_PIXEL_FORMAT = "pixel_format";
+extern const char* MD_KEY_PIXEL_FORMAT;
 /* key for audio raw format, value type is uint32_t , see @AudioSampleFormat */
-const char* const MD_KEY_AUDIO_SAMPLE_FORMAT = "audio_sample_format";
+extern const char* MD_KEY_AUDIO_SAMPLE_FORMAT;
 /* Key for video frame rate, value type is double. */
-const char* const MD_KEY_FRAME_RATE = "frame_rate";
+extern const char* MD_KEY_FRAME_RATE;
 /* Key for video capture rate, value type is double */
-const char* const MD_KEY_CAPTURE_RATE = "capture_rate";
+extern const char* MD_KEY_CAPTURE_RATE;
 /**
  * Key for the interval of key frame. value type is int32_t, the unit is milliseconds.
  * A negative value means no key frames are requested after the first frame. A zero
  * value means a stream containing all key frames is requested.
  */
-const char* const MD_KEY_I_FRAME_INTERVAL = "i_frame_interval";
+extern const char* MD_KEY_I_FRAME_INTERVAL;
 /* Key for the request a I-Frame immediately. value type is boolean */
-const char* const MD_KEY_REQUEST_I_FRAME = "req_i_frame";
+extern const char* MD_KEY_REQUEST_I_FRAME;
 /* repeat encode the previous frame after the pts in milliseconds, value type is int32_t */
-const char* const MD_KEY_REPEAT_FRAME_AFTER = "repeat_frame_after";
+extern const char* MD_KEY_REPEAT_FRAME_AFTER;
 /* suspend input surface data. the value type is int32_t, 0:not suspend, 1:suspend. */
-const char* const MD_KEY_SUSPEND_INPUT_SURFACE = "suspend_input_surface";
+extern const char* MD_KEY_SUSPEND_INPUT_SURFACE;
 /* video encode bitrate mode, the value type is int32_t, see @OHVideoEncodeBitrateMode */
-const char* const MD_KEY_VIDEO_ENCODE_BITRATE_MODE = "video_encode_bitrate_mode";
-/* encode profile, the value type is number.
- * see @OHAVCProfile, OHHEVCProfile, OHMPEG2Profile, OHMPEG4Profile, OHH263Profile, OHAACProfile
- */
-const char* const MD_KEY_PROFILE = "codec_profile";
+extern const char* MD_KEY_VIDEO_ENCODE_BITRATE_MODE;
+/* encode profile, the value type is number. see @OHAVCProfile, OHAACProfile. */
+extern const char* MD_KEY_PROFILE;
 /* encode quality, the value type is int32_t. */
-const char* const MD_KEY_QUALITY = "codec_quality";
+extern const char* MD_KEY_QUALITY;
 /* true video picture top position in the buffer, the value type is int32_t. */
-const char* const MD_KEY_RECT_TOP = "rect_top";
+extern const char* MD_KEY_RECT_TOP;
 /* true video picture bottom position in the buffer, the value type is int32_t. */
-const char* const MD_KEY_RECT_BOTTOM = "rect_bottom";
+extern const char* MD_KEY_RECT_BOTTOM;
 /* true video picture left position in the buffer, the value type is int32_t. */
-const char* const MD_KEY_RECT_LEFT = "rect_left";
+extern const char* MD_KEY_RECT_LEFT;
 /* true video picture right position in the buffer, the value type is int32_t. */
-const char* const MD_KEY_RECT_RIGHT = "rect_right";
+extern const char* MD_KEY_RECT_RIGHT;
 /* video raw data color standard. the value type is int32_t. */
-const char* const MD_KEY_COLOR_STANDARD = "color_standard";
+extern const char* MD_KEY_COLOR_STANDARD;
 /* Key for audio channel count, value type is uint32_t */
-const char* const MD_KEY_AUD_CHANNEL_COUNT = "channel_count";
+extern const char* MD_KEY_AUD_CHANNEL_COUNT;
 /* Key for audio sample rate, value type is uint32_t */
-const char* const MD_KEY_AUD_SAMPLE_RATE = "sample_rate";
+extern const char* MD_KEY_AUD_SAMPLE_RATE;
 /* custom key prefix, media service will pass through to HAL. */
-const char* const MD_KEY_CUSTOM = "vendor.custom";
+extern const char* MD_KEY_CUSTOM;
 
 /**
  * @brief Media type.
@@ -238,8 +236,6 @@ typedef enum OHMediaType {
     MEDIA_TYPE_AUD = 0,
     /* track is video. */
     MEDIA_TYPE_VID = 1,
-    /* track is subtitle. */
-    MEDIA_TYPE_SUBTITLE = 2,
 } OHMediaType;
 
 /**
@@ -257,8 +253,6 @@ typedef enum OHVideoPixelFormat {
     NV21 = 3,
     /* format from surface. */
     SURFACE_FORMAT = 4,
-    /* RGBA. */
-    RGBA = 5,
 } OHVideoPixelFormat;
 
 /**
@@ -284,86 +278,9 @@ typedef enum OHVideoEncodeBitrateMode {
  */
 typedef enum OHAVCProfile {
     AVC_PROFILE_BASELINE = 0,
-    AVC_PROFILE_CONSTRAINED_BASELINE = 1,
-    AVC_PROFILE_CONSTRAINED_HIGH = 2,
-    AVC_PROFILE_EXTENDED = 3,
     AVC_PROFILE_HIGH = 4,
-    AVC_PROFILE_HIGH_10 = 5,
-    AVC_PROFILE_HIGH_422 = 6,
-    AVC_PROFILE_HIGH_444 = 7,
     AVC_PROFILE_MAIN = 8,
 } OHAVCProfile;
-
-/**
- * @brief HEVC Profile
- * @syscap SystemCapability.Multimedia.Media.CodecBase
- * @since 9
- * @version 1.0
- */
-typedef enum OHHEVCProfile {
-    HEVC_PROFILE_MAIN = 0,
-    HEVC_PROFILE_MAIN_10 = 1,
-    HEVC_PROFILE_MAIN_STILL = 2,
-    HEVC_PROFILE_MAIN_10_HDR10 = 3,
-} OHHEVCProfile;
-
-/**
- * @brief MPEG2 Profile
- * @syscap SystemCapability.Multimedia.Media.CodecBase
- * @since 9
- * @version 1.0
- */
-typedef enum OHMPEG2Profile {
-    MPEG2_PROFILE_422 = 0,
-    MPEG2_PROFILE_HIGH = 1,
-    MPEG2_PROFILE_MAIN = 2,
-    MPEG2_PROFILE_SNR = 3,
-    MPEG2_PROFILE_SIMPLE = 4,
-    MPEG2_PROFILE_SPATIAL = 5,
-} OHMPEG2Profile;
-
-/**
- * @brief MPEG4 Profile
- * @syscap SystemCapability.Multimedia.Media.CodecBase
- * @since 9
- * @version 1.0
- */
-typedef enum OHMPEG4Profile {
-    MPEG4_PROFILE_ADVANCED_CODING = 0,
-    MPEG4_PROFILE_ADVANCED_CORE = 1,
-    MPEG4_PROFILE_ADVANCED_REAL_TIME = 2,
-    MPEG4_PROFILE_ADVANCED_SCALABLE = 3,
-    MPEG4_PROFILE_ADVANCED_SIMPLE = 4,
-    MPEG4_PROFILE_BASIC_ANIMATED = 5,
-    MPEG4_PROFILE_CORE = 6,
-    MPEG4_PROFILE_CORE_SCALABLE = 7,
-    MPEG4_PROFILE_HYBRID = 8,
-    MPEG4_PROFILE_MAIN = 9,
-    MPEG4_PROFILE_NBIT = 10,
-    MPEG4_PROFILE_SCALABLE_TEXTURE = 11,
-    MPEG4_PROFILE_SIMPLE = 12,
-    MPEG4_PROFILE_SIMPLE_FBA = 13,
-    MPEG4_PROFILE_SIMPLE_FACE = 14,
-    MPEG4_PROFILE_SIMPLE_SCALABLE = 15,
-} OHMPEG4Profile;
-
-/**
- * @brief H263 Profile
- * @syscap SystemCapability.Multimedia.Media.CodecBase
- * @since 9
- * @version 1.0
- */
-typedef enum OHH263Profile {
-    H263_PROFILE_BACKWARD_COMPATIBLE = 0,
-    H263_PROFILE_BASELINE = 1,
-    H263_PROFILE_H320_CODING = 2,
-    H263_PROFILE_HIGH_COMPRESSION = 3,
-    H263_PROFILE_HIGH_LATENCY = 4,
-    H263_PROFILE_ISW_V2 = 5,
-    H263_PROFILE_ISW_V3 = 6,
-    H263_PROFILE_INTERLACE = 7,
-    H263_PROFILE_INTERNET = 8,
-} OHH263Profile;
 
 /**
  * @brief AAC Profile
@@ -373,12 +290,6 @@ typedef enum OHH263Profile {
  */
 typedef enum OHAACProfile {
     AAC_PROFILE_LC = 0,
-    AAC_PROFILE_ELD = 1,
-    AAC_PROFILE_ERLC = 2,
-    AAC_PROFILE_HE = 3,
-    AAC_PROFILE_HE_V2 = 4,
-    AAC_PROFILE_LD = 5,
-    AAC_PROFILE_MAIN = 6,
 } OHAACProfile;
 
 #ifdef __cplusplus
