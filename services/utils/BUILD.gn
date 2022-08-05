@@ -16,22 +16,16 @@ import("//build/ohos.gni")
 ohos_static_library("media_format") {
   sources = [
     "format.cpp",
-    "xml_parse.cpp",
   ]
 
   include_dirs = [
     "//foundation/multimedia/player_framework/interfaces/inner_api/native",
     "//foundation/multimedia/player_framework/services/utils/include",
     "//commonlibrary/c_utils/base/include",
-    "//third_party/libxml2/include",
   ]
 
-  configs = [ "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config" ]
-
   deps = [
-    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
     "//foundation/multimedia/player_framework/services/utils:media_service_utils",
-    "//third_party/libxml2:xml2",
   ]
 
   external_deps = [
@@ -95,11 +89,9 @@ ohos_shared_library("media_service_utils") {
 
   configs = [
     ":media_service_utils_public_config",
-    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config",
   ]
 
   deps = [
-    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
     "//third_party/libxml2:xml2",
   ]
 
