@@ -27,8 +27,7 @@
 #define gst_surface_src_parent_class parent_class
 using namespace OHOS;
 namespace {
-    constexpr guint MAX_SURFACE_QUEUE_SIZE = 12;
-    constexpr guint DEFAULT_SURFACE_QUEUE_SIZE = 8;
+    constexpr guint DEFAULT_SURFACE_QUEUE_SIZE = 4;
     constexpr int32_t DEFAULT_SURFACE_SIZE = 1024 * 1024;
     constexpr int32_t DEFAULT_VIDEO_WIDTH = 1920;
     constexpr int32_t DEFAULT_VIDEO_HEIGHT = 1080;
@@ -234,6 +233,10 @@ static gboolean gst_surface_src_create_surface(GstSurfaceSrc *surfacesrc)
     surfacesrc->consumerSurface = consumerSurface;
     surfacesrc->producerSurface = producerSurface;
 
+    SurfaceError ret = surfacesrc->consumerSurface->SetQueueSize(DEFAULT_SURFACE_QUEUE_SIZE);
+    if (ret != SURFACE_ERROR_OK) {
+        GST_WARNING_OBJECT(surfacesrc, "set queue size fail");
+    }
     GST_DEBUG_OBJECT(surfacesrc, "create surface");
     return TRUE;
 }
@@ -349,14 +352,15 @@ static void gst_surface_src_init_surface(GstSurfaceSrc *src)
     }
 }
 
-static gboolean gst_surface_src_get_pool(GstSurfaceSrc *surfacesrc, GstQuery *query, GstCaps *outcaps,
-    guint min_buf, guint max_buf)
+static gboolean gst_surface_src_get_pool(GstSurfaceSrc *surfacesrc, GstQuery *query, GstCaps *outcaps)
 {
     g_return_val_if_fail(surfacesrc != nullptr && query != nullptr && surfacesrc->consumerSurface != nullptr, FALSE);
     if (surfacesrc->pool == nullptr) {
         return FALSE;
     }
     GstMemSrc *memsrc = GST_MEM_SRC(surfacesrc);
+    guint min_buf = surfacesrc->consumerSurface->GetQueueSize();
+    guint max_buf = min_buf;
     memsrc->buffer_num = max_buf;
     gboolean is_video = gst_query_find_allocation_meta(query, GST_VIDEO_META_API_TYPE, nullptr);
     if (is_video) {
@@ -369,10 +373,6 @@ static gboolean gst_surface_src_get_pool(GstSurfaceSrc *surfacesrc, GstQuery *qu
         }
     }
     GST_INFO_OBJECT(surfacesrc, "update buffer num %u", memsrc->buffer_num);
-    SurfaceError ret = surfacesrc->consumerSurface->SetQueueSize(memsrc->buffer_num);
-    if (ret != SURFACE_ERROR_OK) {
-        GST_WARNING_OBJECT(surfacesrc, "set queue size fail");
-    }
     GstStructure *config = gst_buffer_pool_get_config(surfacesrc->pool);
     if (is_video) {
         gst_buffer_pool_config_add_option(config, GST_BUFFER_POOL_OPTION_VIDEO_META);
@@ -428,15 +428,7 @@ static gboolean gst_surface_src_decide_allocation(GstBaseSrc *basesrc, GstQuery 
         gst_object_unref(pool);
         pool = nullptr;
     }
-    if (min_buf > MAX_SURFACE_QUEUE_SIZE || max_buf > MAX_SURFACE_QUEUE_SIZE) {
-        min_buf = MAX_SURFACE_QUEUE_SIZE;
-        max_buf = MAX_SURFACE_QUEUE_SIZE;
-    } else if (min_buf > max_buf) {
-        max_buf = min_buf;
-    } else {
-        max_buf = max_buf == 0 ? DEFAULT_SURFACE_QUEUE_SIZE : max_buf;
-    }
-    if (gst_surface_src_get_pool(surfacesrc, query, outcaps, min_buf, max_buf)) {
+    if (gst_surface_src_get_pool(surfacesrc, query, outcaps)) {
         return TRUE;
     }
     return FALSE;
