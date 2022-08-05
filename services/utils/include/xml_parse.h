@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace Media {
-class XmlParser {
+class __attribute__((visibility("default"))) XmlParser {
 public:
     virtual ~XmlParser();
     virtual bool LoadConfiguration(const char *xmlPath) final;
