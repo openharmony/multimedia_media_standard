@@ -43,6 +43,9 @@ void VDecCallbackTest::OnStreamChanged(std::shared_ptr<FormatMock> format)
 void VDecCallbackTest::OnNeedInputData(uint32_t index, std::shared_ptr<AVMemoryMock> data)
 {
     unique_lock<mutex> lock(signal_->inMutex_);
+    if (!signal_->isRunning_.load()) {
+        return;
+    }
     signal_->inIndexQueue_.push(index);
     signal_->inBufferQueue_.push(data);
     signal_->inCond_.notify_all();
@@ -51,6 +54,9 @@ void VDecCallbackTest::OnNeedInputData(uint32_t index, std::shared_ptr<AVMemoryM
 void VDecCallbackTest::OnNewOutputData(uint32_t index, std::shared_ptr<AVMemoryMock> data, AVCodecBufferAttrMock attr)
 {
     unique_lock<mutex> lock(signal_->outMutex_);
+    if (!signal_->isRunning_.load()) {
+        return;
+    }
     signal_->outIndexQueue_.push(index);
 
     signal_->outSizeQueue_.push(attr.size);
@@ -100,7 +106,7 @@ int32_t VDecMock::Prepare()
 
 int32_t VDecMock::Start()
 {
-    isRunning_.store(true);
+    signal_->isRunning_.store(true);
 
     testFile_ = std::make_unique<std::ifstream>();
     UNITTEST_CHECK_AND_RETURN_RET_LOG(testFile_ != nullptr, MSERR_OK, "Fatal: No memory");
@@ -114,9 +120,9 @@ int32_t VDecMock::Start()
     return videoDec_->Start();
 }
 
-int32_t VDecMock::Stop()
+void VDecMock::FlushInner()
 {
-    isRunning_.store(false);
+    signal_->isRunning_.store(false);
     if (inputLoop_ != nullptr && inputLoop_->joinable()) {
         unique_lock<mutex> queueLock(signal_->inMutex_);
         signal_->inIndexQueue_.push(10000);  // push 10000 to stop queue
@@ -124,6 +130,8 @@ int32_t VDecMock::Stop()
         queueLock.unlock();
         inputLoop_->join();
         inputLoop_.reset();
+        std::queue<uint32_t> temp;
+        std::swap(temp, signal_->inIndexQueue_);
     }
     if (outputLoop_ != nullptr && outputLoop_->joinable()) {
         unique_lock<mutex> lock(signal_->outMutex_);
@@ -132,34 +140,26 @@ int32_t VDecMock::Stop()
         lock.unlock();
         outputLoop_->join();
         outputLoop_.reset();
+        std::queue<uint32_t> temp;
+        std::swap(temp, signal_->outIndexQueue_);
     }
+}
+
+int32_t VDecMock::Stop()
+{
+    FlushInner();
     return videoDec_->Stop();
 }
 
 int32_t VDecMock::Flush()
 {
+    FlushInner();
     return videoDec_->Flush();
 }
 
 int32_t VDecMock::Reset()
 {
-    isRunning_.store(false);
-    if (inputLoop_ != nullptr && inputLoop_->joinable()) {
-        unique_lock<mutex> queueLock(signal_->inMutex_);
-        signal_->inIndexQueue_.push(10000); // push 10000 to stop queue
-        signal_->inCond_.notify_all();
-        queueLock.unlock();
-        inputLoop_->join();
-        inputLoop_.reset();
-    }
-    if (outputLoop_ != nullptr && outputLoop_->joinable()) {
-        unique_lock<mutex> lock(signal_->outMutex_);
-        signal_->outIndexQueue_.push(10000);  // push 10000 to stop queue
-        signal_->outCond_.notify_all();
-        lock.unlock();
-        outputLoop_->join();
-        outputLoop_.reset();
-    }
+    FlushInner();
     return videoDec_->Reset();
 }
 
@@ -202,7 +202,7 @@ int32_t VDecMock::PushInputDataMock(uint32_t index, uint32_t bufferSize)
         attr.size = 0;
         attr.pts = 0;
         cout << "EOS Frame, frameCount = " << frameCount_ << endl;
-        isRunning_.store(false);
+        signal_->isRunning_.store(false);
     } else {
         if (isFirstFrame_) {
             attr.flags = AVCODEC_BUFFER_FLAG_CODEC_DATA;
@@ -219,14 +219,14 @@ int32_t VDecMock::PushInputDataMock(uint32_t index, uint32_t bufferSize)
 void VDecMock::InpLoopFunc()
 {
     while (true) {
-        if (!isRunning_.load()) {
+        if (!signal_->isRunning_.load()) {
             break;
         }
 
         unique_lock<mutex> lock(signal_->inMutex_);
         signal_->inCond_.wait(lock, [this]() { return signal_->inIndexQueue_.size() > 0; });
 
-        if (!isRunning_.load()) {
+        if (!signal_->isRunning_.load()) {
             break;
         }
         uint32_t index = signal_->inIndexQueue_.front();
@@ -267,12 +267,12 @@ void VDecMock::InpLoopFunc()
 void VDecMock::OutLoopFunc()
 {
     while (true) {
-        if (!isRunning_.load()) {
+        if (!signal_->isRunning_.load()) {
             break;
         }
         unique_lock<mutex> lock(signal_->outMutex_);
         signal_->outCond_.wait(lock, [this]() { return signal_->outIndexQueue_.size() > 0; });
-        if (!isRunning_.load()) {
+        if (!signal_->isRunning_.load()) {
             break;
         }
         uint32_t index = signal_->outIndexQueue_.front();
