@@ -92,7 +92,7 @@ protected:
     bool isFlushed_ = false;
     bool isStart_ = false;
     int32_t mPortIndex_;
-    CompVerInfo verInfo_;
+    CompVerInfo verInfo_ = {};
     std::mutex mutex_;
     std::condition_variable flushCond_;
     std::condition_variable bufferCond_;

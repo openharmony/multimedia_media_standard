@@ -68,7 +68,7 @@ std::shared_ptr<HdiBufferWrap> HdiBufferMgr::GetCodecBuffer(GstBuffer *buffer)
                 gst_buffer_ref(buffer);
                 (void)availableBuffers_.erase(iter);
                 UpdateCodecMeta(bufferType, codecBuffer);
-                codecBuffer->hdiBuffer.pts = GST_BUFFER_PTS(buffer);
+                codecBuffer->hdiBuffer.pts = (int64_t)(GST_BUFFER_PTS(buffer));
                 break;
             }
         }

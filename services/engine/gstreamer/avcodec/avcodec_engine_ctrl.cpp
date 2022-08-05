@@ -167,7 +167,7 @@ int32_t AVCodecEngineCtrl::Flush()
     return ret;
 }
 
-int32_t AVCodecEngineCtrl::InnerFlush()
+int32_t AVCodecEngineCtrl::InnerFlush() const
 {
     CHECK_AND_RETURN_RET(gstPipeline_ != nullptr, MSERR_UNKNOWN);
 

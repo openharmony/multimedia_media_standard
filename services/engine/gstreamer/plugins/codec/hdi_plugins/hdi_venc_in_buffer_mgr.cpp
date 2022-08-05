@@ -91,7 +91,7 @@ std::shared_ptr<HdiBufferWrap> HdiVencInBufferMgr::GetCodecBuffer(GstBuffer *buf
         codecBuffer->hdiBuffer.fenceFd = bufferType->fenceFd;
         codecBuffer->hdiBuffer.buffer = reinterpret_cast<uint8_t *>(bufferType->buf);
         codecBuffer->hdiBuffer.bufferLen = bufferType->bufLen;
-        codecBuffer->hdiBuffer.pts = GST_BUFFER_PTS(buffer);
+        codecBuffer->hdiBuffer.pts = (int64_t)(GST_BUFFER_PTS(buffer));
         return codecBuffer;
     }
     return HdiBufferMgr::GetCodecBuffer(buffer);
