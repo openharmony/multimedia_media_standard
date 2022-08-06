@@ -91,6 +91,7 @@ ohos_unittest("vcodec_native_unit_test") {
 
   resource_config_file = "//foundation/multimedia/player_framework/test/unittest/resources/ohos_test.xml"
 }
+
 ##################################################################################################################
 ohos_unittest("avcodec_list_native_unit_test") {
   module_out_path = module_output_path
