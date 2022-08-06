@@ -14,8 +14,9 @@
  */
 
 #include "avcodec_info_native_mock.h"
-#include "avcodec_list_native_mock.h"
 #include "avformat_native_mock.h"
+#include "avcodec_list_native_mock.h"
+
 namespace OHOS {
 namespace Media {
 std::string AVCodecListNativeMock::FindVideoDecoder(std::shared_ptr<FormatMock> format)
