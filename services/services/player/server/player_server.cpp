@@ -411,7 +411,9 @@ int32_t PlayerServer::Release()
         playerCb_ = nullptr;
     }
     MEDIA_LOGD("PlayerServer Release in");
-    (void)OnReset();
+    if (lastOpStatus_ != PLAYER_IDLE) {
+        (void)OnReset();
+    }
     std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&PlayerServer::ReleaseProcessor, this);
     if (thread != nullptr && thread->joinable()) {
         thread->join();
