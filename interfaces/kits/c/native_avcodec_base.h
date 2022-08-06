@@ -164,8 +164,6 @@ extern const char* ED_KEY_END_OF_STREAM;
  * @since 9
  * @version 1.0
  */
-/* Key for track index, value type is uint32_t. */
-extern const char* MD_KEY_TRACK_INDEX;
 /* Key for track type, value type is uint8_t, see @OHMediaType. */
 extern const char* MD_KEY_TRACK_TYPE;
 /* Key for codec mime type, value type is string. */
@@ -176,8 +174,6 @@ extern const char* MD_KEY_DURATION;
 extern const char* MD_KEY_BITRATE;
 /* Key for max input size, value type is uint32_t */
 extern const char* MD_KEY_MAX_INPUT_SIZE;
-/* Key for max video encoder fps, value type is double */
-extern const char* MD_KEY_MAX_ENCODER_FPS;
 /* Key for video width, value type is uint32_t */
 extern const char* MD_KEY_WIDTH;
 /* Key for video height, value type is uint32_t */
@@ -188,42 +184,14 @@ extern const char* MD_KEY_PIXEL_FORMAT;
 extern const char* MD_KEY_AUDIO_SAMPLE_FORMAT;
 /* Key for video frame rate, value type is double. */
 extern const char* MD_KEY_FRAME_RATE;
-/* Key for video capture rate, value type is double */
-extern const char* MD_KEY_CAPTURE_RATE;
-/**
- * Key for the interval of key frame. value type is int32_t, the unit is milliseconds.
- * A negative value means no key frames are requested after the first frame. A zero
- * value means a stream containing all key frames is requested.
- */
-extern const char* MD_KEY_I_FRAME_INTERVAL;
-/* Key for the request a I-Frame immediately. value type is boolean */
-extern const char* MD_KEY_REQUEST_I_FRAME;
-/* repeat encode the previous frame after the pts in milliseconds, value type is int32_t */
-extern const char* MD_KEY_REPEAT_FRAME_AFTER;
-/* suspend input surface data. the value type is int32_t, 0:not suspend, 1:suspend. */
-extern const char* MD_KEY_SUSPEND_INPUT_SURFACE;
 /* video encode bitrate mode, the value type is int32_t, see @OHVideoEncodeBitrateMode */
 extern const char* MD_KEY_VIDEO_ENCODE_BITRATE_MODE;
 /* encode profile, the value type is number. see @OHAVCProfile, OHAACProfile. */
 extern const char* MD_KEY_PROFILE;
-/* encode quality, the value type is int32_t. */
-extern const char* MD_KEY_QUALITY;
-/* true video picture top position in the buffer, the value type is int32_t. */
-extern const char* MD_KEY_RECT_TOP;
-/* true video picture bottom position in the buffer, the value type is int32_t. */
-extern const char* MD_KEY_RECT_BOTTOM;
-/* true video picture left position in the buffer, the value type is int32_t. */
-extern const char* MD_KEY_RECT_LEFT;
-/* true video picture right position in the buffer, the value type is int32_t. */
-extern const char* MD_KEY_RECT_RIGHT;
-/* video raw data color standard. the value type is int32_t. */
-extern const char* MD_KEY_COLOR_STANDARD;
 /* Key for audio channel count, value type is uint32_t */
 extern const char* MD_KEY_AUD_CHANNEL_COUNT;
 /* Key for audio sample rate, value type is uint32_t */
 extern const char* MD_KEY_AUD_SAMPLE_RATE;
-/* custom key prefix, media service will pass through to HAL. */
-extern const char* MD_KEY_CUSTOM;
 
 /**
  * @brief Media type.
