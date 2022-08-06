@@ -110,6 +110,7 @@ bool Format::PutIntValue(const std::string_view &key, int32_t value)
     FormatData data;
     data.type = FORMAT_TYPE_INT32;
     data.val.int32Val = value;
+    RemoveKey(key);
     auto ret = formatMap_.insert(std::make_pair(key, data));
     return ret.second;
 }
@@ -119,6 +120,7 @@ bool Format::PutLongValue(const std::string_view &key, int64_t value)
     FormatData data;
     data.type = FORMAT_TYPE_INT64;
     data.val.int64Val = value;
+    RemoveKey(key);
     auto ret = formatMap_.insert(std::make_pair(key, data));
     return ret.second;
 }
@@ -128,6 +130,7 @@ bool Format::PutFloatValue(const std::string_view &key, float value)
     FormatData data;
     data.type = FORMAT_TYPE_FLOAT;
     data.val.floatVal = value;
+    RemoveKey(key);
     auto ret = formatMap_.insert(std::make_pair(key, data));
     return ret.second;
 }
@@ -137,6 +140,7 @@ bool Format::PutDoubleValue(const std::string_view &key, double value)
     FormatData data;
     data.type = FORMAT_TYPE_DOUBLE;
     data.val.doubleVal = value;
+    RemoveKey(key);
     auto ret = formatMap_.insert(std::make_pair(key, data));
     return ret.second;
 }
@@ -146,6 +150,7 @@ bool Format::PutStringValue(const std::string_view &key, const std::string_view 
     FormatData data;
     data.type = FORMAT_TYPE_STRING;
     data.stringVal = value;
+    RemoveKey(key);
     auto ret = formatMap_.insert(std::make_pair(key, data));
     return ret.second;
 }
