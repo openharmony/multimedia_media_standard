@@ -182,7 +182,7 @@ extern const char* MD_KEY_MAX_ENCODER_FPS;
 extern const char* MD_KEY_WIDTH;
 /* Key for video height, value type is uint32_t */
 extern const char* MD_KEY_HEIGHT;
-/* Key for video pixel format, value type is int32_t, see @OHVideoPixelFormat */
+/* Key for video pixel format, value type is int32_t, see @AVPixelFormat */
 extern const char* MD_KEY_PIXEL_FORMAT;
 /* key for audio raw format, value type is uint32_t , see @AudioSampleFormat */
 extern const char* MD_KEY_AUDIO_SAMPLE_FORMAT;
@@ -237,23 +237,6 @@ typedef enum OHMediaType {
     /* track is video. */
     MEDIA_TYPE_VID = 1,
 } OHMediaType;
-
-/**
- * @brief The format of video pixel.
- * @syscap SystemCapability.Multimedia.Media.CodecBase
- * @since 9
- * @version 1.0
- */
-typedef enum OHVideoPixelFormat {
-    /* yuv 420 planar. */
-    YUVI420 = 1,
-    /* NV12. yuv 420 semiplanar. */
-    NV12 = 2,
-    /* NV21. yvu 420 semiplanar. */
-    NV21 = 3,
-    /* format from surface. */
-    SURFACE_FORMAT = 4,
-} OHVideoPixelFormat;
 
 /**
  * @brief The bitrate mode of video encoder.
