@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "avcodec_info_native_mock.h"
 #include "videoenc_native_mock.h"
 #include "avformat_native_mock.h"
 #include "avmemory_native_mock.h"

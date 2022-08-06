@@ -14,6 +14,7 @@
  */
 
 #include "videodec_native_mock.h"
+#include "avcodec_info_native_mock.h"
 #include "avformat_native_mock.h"
 #include "avmemory_native_mock.h"
 #include "surface_native_mock.h"
