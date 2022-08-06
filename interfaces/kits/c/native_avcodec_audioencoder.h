@@ -57,7 +57,7 @@ AVCodec* OH_AudioEncoder_CreateByName(const char *name);
  * @since 9
  * @version 1.0
  */
-AVErrCode OHAudioEncoder_Destroy(AVCodec *codec);
+AVErrCode OH_AudioEncoder_Destroy(AVCodec *codec);
 
 /**
  * @brief Set the asynchronous callback function so that your application can respond to

@@ -50,7 +50,7 @@
     /* AUDIO ENCODER */
     { "name": "OH_AudioEncoder_CreateByMime" },
     { "name": "OH_AudioEncoder_CreateByName" },
-    { "name": "OHAudioEncoder_Destroy" },
+    { "name": "OH_AudioEncoder_Destroy" },
     { "name": "OH_AudioEncoder_SetCallback" },
     { "name": "OH_AudioEncoder_Configure" },
     { "name": "OH_AudioEncoder_Prepare" },
