@@ -209,6 +209,21 @@ AVErrCode OH_VideoEncoder_FreeOutputData(AVCodec *codec, uint32_t index);
  */
 AVErrCode OH_VideoEncoder_NotifyEndOfStream(AVCodec *codec);
 
+/**
+ * @brief The bitrate mode of video encoder.
+ * @syscap SystemCapability.Multimedia.Media.VideoEncoder
+ * @since 9
+ * @version 1.0
+ */
+typedef enum OHVideoEncodeBitrateMode {
+    /* constant bit rate mode. */
+    CBR = 0,
+    /* variable bit rate mode. */
+    VBR = 1,
+    /* constant quality mode. */
+    CQ = 2,
+} OHVideoEncodeBitrateMode;
+
 #ifdef __cplusplus
 }
 #endif
