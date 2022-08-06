@@ -239,21 +239,6 @@ typedef enum OHMediaType {
 } OHMediaType;
 
 /**
- * @brief The bitrate mode of video encoder.
- * @syscap SystemCapability.Multimedia.Media.CodecBase
- * @since 9
- * @version 1.0
- */
-typedef enum OHVideoEncodeBitrateMode {
-    /* constant bit rate mode. */
-    CBR = 0,
-    /* variable bit rate mode. */
-    VBR = 1,
-    /* constant quality mode. */
-    CQ = 2,
-} OHVideoEncodeBitrateMode;
-
-/**
  * @brief AVC Profile
  * @syscap SystemCapability.Multimedia.Media.CodecBase
  * @since 9
