@@ -67,9 +67,9 @@ ohos_unittest("vcodec_native_unit_test") {
   cflags = avcodec_unittest_cflags
 
   sources = [
-    "./native/avcodec_mock_factory.cpp",
     "./native/avcodec_info/avcodec_info_native_mock.cpp",
     "./native/avcodec_list/avcodec_list_native_mock.cpp",
+    "./native/avcodec_mock_factory.cpp",
     "./native/avformat/avformat_native_mock.cpp",
     "./native/avmemory/avmemory_native_mock.cpp",
     "./native/enum/enum_native_mock.cpp",
@@ -104,11 +104,11 @@ ohos_unittest("avcodec_list_native_unit_test") {
 
   sources = [
     "./avcodec_list_test/avcodec_list_unit_test.cpp",
-    "./native/enum/enum_native_mock.cpp",
     "./native/avcodec_info/avcodec_info_native_mock.cpp",
     "./native/avcodec_list/avcodec_list_native_mock.cpp",
     "./native/avcodec_mock_factory.cpp",
     "./native/avformat/avformat_native_mock.cpp",
+    "./native/enum/enum_native_mock.cpp",
   ]
 
   deps = [
