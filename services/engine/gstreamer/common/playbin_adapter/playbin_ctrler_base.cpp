@@ -25,6 +25,7 @@
 #include "scope_guard.h"
 #include "playbin_state.h"
 #include "gst_utils.h"
+#include "media_dfx.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayBinCtrlerBase"};
@@ -516,7 +517,7 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
     if (isInitialized_) {
         return MSERR_OK;
     }
-
+    MediaTrace("PlayBinCtrlerBase::InitializedState");
     MEDIA_LOGD("EnterInitializedState enter");
 
     ON_SCOPE_EXIT(0) {
@@ -566,6 +567,7 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
 
     CANCEL_SCOPE_EXIT_GUARD(0);
     MEDIA_LOGD("EnterInitializedState exit");
+
     return MSERR_OK;
 }
 
