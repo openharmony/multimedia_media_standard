@@ -14,6 +14,9 @@
  */
 
 #include "avcodec_mock.h"
+#include "avcodec_list_native_mock.h"
+#include "enum_native_mock.h"
+#include "avcodec_info_native_mock.h"
 #include "avformat_native_mock.h"
 #include "avmemory_native_mock.h"
 #include "surface_native_mock.h"
@@ -104,6 +107,30 @@ std::shared_ptr<FormatMock> AVCodecMockFactory::CreateFormat()
 std::shared_ptr<SurfaceMock> AVCodecMockFactory::CreateSurface()
 {
     return std::make_shared<SurfaceNativeMock>();
+}
+
+std::shared_ptr<AVCodecInfoMock> AVCodecMockFactory::CreateAVCodecInfo()
+{
+    return std::make_shared<AVCodecInfoNativeMock>();
+}
+
+std::shared_ptr<VideoCapsMock> AVCodecMockFactory::CreateVideoCaps()
+{
+    return std::make_shared<VideoCapsNativeMock>();
+}
+
+std::shared_ptr<AVCodecListMock> AVCodecMockFactory::CreateAVCodecList()
+{
+    auto avCodecList = AVCodecListFactory::CreateAVCodecList();
+    if (avCodecList != nullptr) {
+        return std::make_shared<AVCodecListNativeMock>(avCodecList);
+    }
+    return nullptr;
+}
+
+std::shared_ptr<EnumMock> AVCodecMockFactory::CreateEnum()
+{
+    return std::make_shared<EnumNativeMock>();
 }
 }
 }
