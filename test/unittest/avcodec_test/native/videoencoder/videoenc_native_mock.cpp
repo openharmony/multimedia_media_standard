@@ -14,11 +14,11 @@
  */
 
 #include "avcodec_info_native_mock.h"
-#include "videoenc_native_mock.h"
 #include "avformat_native_mock.h"
 #include "avmemory_native_mock.h"
 #include "surface_native_mock.h"
 #include "media_errors.h"
+#include "videoenc_native_mock.h"
 
 namespace OHOS {
 namespace Media {
