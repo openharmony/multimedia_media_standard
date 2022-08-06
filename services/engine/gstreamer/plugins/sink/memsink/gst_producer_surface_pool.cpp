@@ -265,7 +265,7 @@ static gboolean parse_caps_info(GstCaps *caps, GstVideoInfo *info, PixelFormat *
 {
     if (caps == nullptr) {
         GST_INFO("caps is nullptr");
-        return FASLE;
+        return FALSE;
     }
 
     if (!gst_video_info_from_caps(info, caps)) {
