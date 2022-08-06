@@ -91,7 +91,7 @@ protected:
     bool isFlushing_ = false;
     bool isFlushed_ = false;
     bool isStart_ = false;
-    int32_t mPortIndex_;
+    int32_t mPortIndex_ = 0;
     CompVerInfo verInfo_ = {};
     std::mutex mutex_;
     std::condition_variable flushCond_;

@@ -101,7 +101,7 @@ private:
     PortState outState_ = ACTIVATED;
     bool start_ = false;
     uint32_t id_ = 0;
-    CompVerInfo verInfo_;
+    CompVerInfo verInfo_ = {};
 };
 } // namespace Media
 } // namespace OHOS
