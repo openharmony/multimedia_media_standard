@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,6 +33,7 @@ enum AVCodecTypeMock : int32_t {
 struct RangeMock {
     int32_t minVal;
     int32_t maxVal;
+    RangeMock() : minVal(0), maxVal(0) {}
 };
 
 class SurfaceMock : public NoCopyable {
@@ -60,62 +61,62 @@ public:
 class AVCodecInfoMock : public NoCopyable {
 public:
     virtual ~AVCodecInfoMock() = default;
-    virtual std::string GetName();
-    virtual int32_t GetType();
-    virtual std::string GetMimeType();
-    virtual bool IsHardwareAccelerated();
-    virtual bool IsSoftwareOnly();
-    virtual bool IsVendor();
+    virtual std::string GetName() const = 0;
+    virtual int32_t GetType() const = 0;
+    virtual std::string GetMimeType() const = 0;
+    virtual bool IsHardwareAccelerated() const = 0;
+    virtual bool IsSoftwareOnly() const = 0;
+    virtual bool IsVendor() const = 0;
 };
 
 class VideoCapsMock : public NoCopyable {
 public:
     virtual ~VideoCapsMock() = default;
-    virtual std::shared_ptr<AVCodecInfoMock> GetCodecInfo();
-    virtual RangeMock GetSupportedBitrate();
-    virtual std::vector<int32_t> GetSupportedFormats();
-    virtual int32_t GetSupportedHeightAlignment();
-    virtual int32_t GetSupportedWidthAlignment();
-    virtual RangeMock GetSupportedWidth();
-    virtual RangeMock GetSupportedHeight();
-    virtual std::vector<int32_t> GetSupportedProfiles();
-    virtual std::vector<int32_t> GetSupportedLevels();
-    virtual RangeMock GetSupportedEncodeQuality();
-    virtual bool IsSizeSupported(int32_t width, int32_t height);
-    virtual RangeMock GetSupportedFrameRate();
-    virtual RangeMock GetSupportedFrameRatesFor(int32_t width, int32_t height);
-    virtual bool IsSizeAndRateSupported(int32_t width, int32_t height, double frameRate);
-    virtual RangeMock GetPreferredFrameRate(int32_t width, int32_t height);
-    virtual std::vector<int32_t> GetSupportedBitrateMode();
-    virtual RangeMock GetSupportedQuality();
-    virtual RangeMock GetSupportedComplexity();
-    virtual bool IsSupportDynamicIframe();
+    virtual std::shared_ptr<AVCodecInfoMock> GetCodecInfo() const = 0;
+    virtual RangeMock GetSupportedBitrate() const = 0;
+    virtual std::vector<int32_t> GetSupportedFormats() const = 0;
+    virtual int32_t GetSupportedHeightAlignment() const = 0;
+    virtual int32_t GetSupportedWidthAlignment() const = 0;
+    virtual RangeMock GetSupportedWidth() const = 0;
+    virtual RangeMock GetSupportedHeight() const = 0;
+    virtual std::vector<int32_t> GetSupportedProfiles() const = 0;
+    virtual std::vector<int32_t> GetSupportedLevels() const = 0;
+    virtual RangeMock GetSupportedEncodeQuality() const = 0;
+    virtual bool IsSizeSupported(int32_t width, int32_t height) const = 0;
+    virtual RangeMock GetSupportedFrameRate() const = 0;
+    virtual RangeMock GetSupportedFrameRatesFor(int32_t width, int32_t height) const = 0;
+    virtual bool IsSizeAndRateSupported(int32_t width, int32_t height, double frameRate) const = 0;
+    virtual RangeMock GetPreferredFrameRate(int32_t width, int32_t height) const = 0;
+    virtual std::vector<int32_t> GetSupportedBitrateMode() const = 0;
+    virtual RangeMock GetSupportedQuality() const = 0;
+    virtual RangeMock GetSupportedComplexity() const = 0;
+    virtual bool IsSupportDynamicIframe() const = 0;
 };
 
 class AudioCapsMock : public NoCopyable {
 public:
     virtual ~AudioCapsMock() = default;
-    virtual std::shared_ptr<AVCodecInfoMock> GetCodecInfo();
-    virtual RangeMock GetSupportedBitrate();
-    virtual RangeMock GetSupportedChannel();
-    virtual std::vector<int32_t> GetSupportedFormats();
-    virtual std::vector<int32_t> GetSupportedSampleRates();
-    virtual std::vector<int32_t> GetSupportedProfiles();
-    virtual std::vector<int32_t> GetSupportedLevels();
-    virtual RangeMock GetSupportedComplexity();
+    virtual std::shared_ptr<AVCodecInfoMock> GetCodecInfo() const = 0;
+    virtual RangeMock GetSupportedBitrate() const = 0;
+    virtual RangeMock GetSupportedChannel() const = 0;
+    virtual std::vector<int32_t> GetSupportedFormats() const = 0;
+    virtual std::vector<int32_t> GetSupportedSampleRates() const = 0;
+    virtual std::vector<int32_t> GetSupportedProfiles() const = 0;
+    virtual std::vector<int32_t> GetSupportedLevels() const = 0;
+    virtual RangeMock GetSupportedComplexity() const = 0;
 };
 
 class AVCodecListMock : public NoCopyable {
 public:
     virtual ~AVCodecListMock() = default;
-    virtual std::string FindVideoDecoder(std::shared_ptr<FormatMock> format);
-    virtual std::string FindVideoEncoder(std::shared_ptr<FormatMock> format);
-    virtual std::string FindAudioDecoder(std::shared_ptr<FormatMock> format);
-    virtual std::string FindAudioEncoder(std::shared_ptr<FormatMock> format);
-    virtual std::vector<std::shared_ptr<VideoCapsMock>> GetVideoDecoderCaps();
-    virtual std::vector<std::shared_ptr<VideoCapsMock>> GetVideoEncoderCaps();
-    virtual std::vector<std::shared_ptr<AudioCapsMock>> GetAudioDecoderCaps();
-    virtual std::vector<std::shared_ptr<AudioCapsMock>> GetAudioEncoderCaps();
+    virtual std::string FindVideoDecoder(std::shared_ptr<FormatMock> format) const = 0;
+    virtual std::string FindVideoEncoder(std::shared_ptr<FormatMock> format) const = 0;
+    virtual std::string FindAudioDecoder(std::shared_ptr<FormatMock> format) const = 0;
+    virtual std::string FindAudioEncoder(std::shared_ptr<FormatMock> format) const = 0;
+    virtual std::vector<std::shared_ptr<VideoCapsMock>> GetVideoDecoderCaps() const = 0;
+    virtual std::vector<std::shared_ptr<VideoCapsMock>> GetVideoEncoderCaps() const = 0;
+    virtual std::vector<std::shared_ptr<AudioCapsMock>> GetAudioDecoderCaps() const = 0;
+    virtual std::vector<std::shared_ptr<AudioCapsMock>> GetAudioEncoderCaps() const = 0;
 };
 
 struct AVCodecBufferAttrMock {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,7 @@
 
 namespace OHOS {
 namespace Media {
-std::string AVCodecInfoNativeMock::GetName()
+std::string AVCodecInfoNativeMock::GetName() const
 {
     if (codecInfo_ != nullptr) {
         return codecInfo_->GetName();
@@ -25,7 +25,7 @@ std::string AVCodecInfoNativeMock::GetName()
     return nullptr;
 }
 
-int32_t AVCodecInfoNativeMock::GetType()
+int32_t AVCodecInfoNativeMock::GetType() const
 {
     if (codecInfo_ != nullptr) {
         return codecInfo_->GetType();
@@ -33,15 +33,15 @@ int32_t AVCodecInfoNativeMock::GetType()
     return -1;
 }
 
-std::string AVCodecInfoNativeMock::GetMimeType()
+std::string AVCodecInfoNativeMock::GetMimeType() const
 {
     if (codecInfo_ != nullptr) {
         return codecInfo_->GetMimeType();
     }
-    return nullptr;
+    return "";
 }
 
-bool AVCodecInfoNativeMock::IsHardwareAccelerated()
+bool AVCodecInfoNativeMock::IsHardwareAccelerated() const
 {
     if (codecInfo_ != nullptr) {
         return codecInfo_->IsHardwareAccelerated();
@@ -49,7 +49,7 @@ bool AVCodecInfoNativeMock::IsHardwareAccelerated()
     return false;
 }
 
-bool AVCodecInfoNativeMock::IsSoftwareOnly()
+bool AVCodecInfoNativeMock::IsSoftwareOnly() const
 {
     if (codecInfo_ != nullptr) {
         return codecInfo_->IsSoftwareOnly();
@@ -57,7 +57,7 @@ bool AVCodecInfoNativeMock::IsSoftwareOnly()
     return false;
 }
 
-bool AVCodecInfoNativeMock::IsVendor()
+bool AVCodecInfoNativeMock::IsVendor() const
 {
     if (codecInfo_ != nullptr) {
         return codecInfo_->IsVendor();
@@ -65,7 +65,7 @@ bool AVCodecInfoNativeMock::IsVendor()
     return false;
 }
 
-std::shared_ptr<AVCodecInfoMock> VideoCapsNativeMock::GetCodecInfo()
+std::shared_ptr<AVCodecInfoMock> VideoCapsNativeMock::GetCodecInfo() const
 {
     if (videoCaps_ != nullptr) {
         return std::make_shared<AVCodecInfoNativeMock>(videoCaps_->GetCodecInfo());
@@ -73,16 +73,16 @@ std::shared_ptr<AVCodecInfoMock> VideoCapsNativeMock::GetCodecInfo()
     return nullptr;
 }
 
-RangeMock VideoCapsNativeMock::GetSupportedBitrate()
+RangeMock VideoCapsNativeMock::GetSupportedBitrate() const
 {
-    RangeMock bitrate;
+    RangeMock bitrate = RangeMock();
     if (videoCaps_ != nullptr) {
         bitrate = RangeNativeMock(videoCaps_->GetSupportedBitrate());
     }
     return bitrate;
 }
 
-std::vector<int32_t> VideoCapsNativeMock::GetSupportedFormats()
+std::vector<int32_t> VideoCapsNativeMock::GetSupportedFormats() const
 {
     std::vector<int32_t> formats;
     if (videoCaps_ != nullptr) {
@@ -91,7 +91,7 @@ std::vector<int32_t> VideoCapsNativeMock::GetSupportedFormats()
     return formats;
 }
 
-int32_t VideoCapsNativeMock::GetSupportedHeightAlignment()
+int32_t VideoCapsNativeMock::GetSupportedHeightAlignment() const
 {
     if (videoCaps_ != nullptr) {
         return videoCaps_->GetSupportedHeightAlignment();
@@ -99,7 +99,7 @@ int32_t VideoCapsNativeMock::GetSupportedHeightAlignment()
     return -1;
 }
 
-int32_t VideoCapsNativeMock::GetSupportedWidthAlignment()
+int32_t VideoCapsNativeMock::GetSupportedWidthAlignment() const
 {
     if (videoCaps_ != nullptr) {
         return videoCaps_->GetSupportedWidthAlignment();
@@ -107,25 +107,25 @@ int32_t VideoCapsNativeMock::GetSupportedWidthAlignment()
     return -1;
 }
 
-RangeMock VideoCapsNativeMock::GetSupportedWidth()
+RangeMock VideoCapsNativeMock::GetSupportedWidth() const
 {
-    RangeMock width;
+    RangeMock width = RangeMock();
     if (videoCaps_ != nullptr) {
         width = RangeNativeMock(videoCaps_->GetSupportedWidth());
     }
     return width;
 }
 
-RangeMock VideoCapsNativeMock::GetSupportedHeight()
+RangeMock VideoCapsNativeMock::GetSupportedHeight() const
 {
-    RangeMock height;
+    RangeMock height = RangeMock();
     if (videoCaps_ != nullptr) {
         height = RangeNativeMock(videoCaps_->GetSupportedHeight());
     }
     return height;
 }
 
-std::vector<int32_t> VideoCapsNativeMock::GetSupportedProfiles()
+std::vector<int32_t> VideoCapsNativeMock::GetSupportedProfiles() const
 {
     std::vector<int32_t> profiles;
     if (videoCaps_ != nullptr) {
@@ -134,7 +134,7 @@ std::vector<int32_t> VideoCapsNativeMock::GetSupportedProfiles()
     return profiles;
 }
 
-std::vector<int32_t> VideoCapsNativeMock::GetSupportedLevels()
+std::vector<int32_t> VideoCapsNativeMock::GetSupportedLevels() const
 {
     std::vector<int32_t> levels;
     if (videoCaps_ != nullptr) {
@@ -143,16 +143,16 @@ std::vector<int32_t> VideoCapsNativeMock::GetSupportedLevels()
     return levels;
 }
 
-RangeMock VideoCapsNativeMock::GetSupportedEncodeQuality()
+RangeMock VideoCapsNativeMock::GetSupportedEncodeQuality() const
 {
-    RangeMock quality;
+    RangeMock quality = RangeMock();
     if (videoCaps_ != nullptr) {
         quality = RangeNativeMock(videoCaps_->GetSupportedEncodeQuality());
     }
     return quality;
 }
 
-bool VideoCapsNativeMock::IsSizeSupported(int32_t width, int32_t height)
+bool VideoCapsNativeMock::IsSizeSupported(int32_t width, int32_t height) const
 {
     if (videoCaps_ != nullptr) {
         return videoCaps_->IsSizeSupported(width, height);
@@ -160,25 +160,25 @@ bool VideoCapsNativeMock::IsSizeSupported(int32_t width, int32_t height)
     return false;
 }
 
-RangeMock VideoCapsNativeMock::GetSupportedFrameRate()
+RangeMock VideoCapsNativeMock::GetSupportedFrameRate() const
 {
-    RangeMock frameRates;
+    RangeMock frameRates = RangeMock();
     if (videoCaps_ != nullptr) {
         frameRates = RangeNativeMock(videoCaps_->GetSupportedFrameRate());
     }
     return frameRates;
 }
 
-RangeMock VideoCapsNativeMock::GetSupportedFrameRatesFor(int32_t width, int32_t height)
+RangeMock VideoCapsNativeMock::GetSupportedFrameRatesFor(int32_t width, int32_t height) const
 {
-    RangeMock frameRates;
+    RangeMock frameRates = RangeMock();
     if (videoCaps_ != nullptr) {
         frameRates = RangeNativeMock(videoCaps_->GetSupportedFrameRatesFor(width, height));
     }
     return frameRates;
 }
 
-bool VideoCapsNativeMock::IsSizeAndRateSupported(int32_t width, int32_t height, double frameRate)
+bool VideoCapsNativeMock::IsSizeAndRateSupported(int32_t width, int32_t height, double frameRate) const
 {
     if (videoCaps_ != nullptr) {
         return videoCaps_->IsSizeAndRateSupported(width, height, frameRate);
@@ -186,16 +186,16 @@ bool VideoCapsNativeMock::IsSizeAndRateSupported(int32_t width, int32_t height, 
     return false;
 }
 
-RangeMock VideoCapsNativeMock::GetPreferredFrameRate(int32_t width, int32_t height)
+RangeMock VideoCapsNativeMock::GetPreferredFrameRate(int32_t width, int32_t height) const
 {
-    RangeMock frameRate;
+    RangeMock frameRate = RangeMock();
     if (videoCaps_ != nullptr) {
         frameRate = RangeNativeMock(videoCaps_->GetPreferredFrameRate(width, height));
     }
     return frameRate;
 }
 
-std::vector<int32_t> VideoCapsNativeMock::GetSupportedBitrateMode()
+std::vector<int32_t> VideoCapsNativeMock::GetSupportedBitrateMode() const
 {
     std::vector<int32_t> bitrateMode;
     if (videoCaps_ != nullptr) {
@@ -204,25 +204,25 @@ std::vector<int32_t> VideoCapsNativeMock::GetSupportedBitrateMode()
     return bitrateMode;
 }
 
-RangeMock VideoCapsNativeMock::GetSupportedQuality()
+RangeMock VideoCapsNativeMock::GetSupportedQuality() const
 {
-    RangeMock quality;
+    RangeMock quality = RangeMock();
     if (videoCaps_ != nullptr) {
         quality = RangeNativeMock(videoCaps_->GetSupportedQuality());
     }
     return quality;
 }
 
-RangeMock VideoCapsNativeMock::GetSupportedComplexity()
+RangeMock VideoCapsNativeMock::GetSupportedComplexity() const
 {
-    RangeMock complexity;
+    RangeMock complexity = RangeMock();
     if (videoCaps_ != nullptr) {
         complexity = RangeNativeMock(videoCaps_->GetSupportedComplexity());
     }
     return complexity;
 }
 
-bool VideoCapsNativeMock::IsSupportDynamicIframe()
+bool VideoCapsNativeMock::IsSupportDynamicIframe() const
 {
     if (videoCaps_ != nullptr) {
         return videoCaps_->IsSupportDynamicIframe();
@@ -230,7 +230,7 @@ bool VideoCapsNativeMock::IsSupportDynamicIframe()
     return false;
 }
 
-std::shared_ptr<AVCodecInfoMock> AudioCapsNativeMock::GetCodecInfo()
+std::shared_ptr<AVCodecInfoMock> AudioCapsNativeMock::GetCodecInfo() const
 {
     if (audioCaps_ != nullptr) {
         return std::make_shared<AVCodecInfoNativeMock>(audioCaps_->GetCodecInfo());
@@ -238,25 +238,25 @@ std::shared_ptr<AVCodecInfoMock> AudioCapsNativeMock::GetCodecInfo()
     return nullptr;
 }
 
-RangeMock  AudioCapsNativeMock::GetSupportedBitrate()
+RangeMock AudioCapsNativeMock::GetSupportedBitrate() const
 {
-    RangeMock bitrate;
+    RangeMock bitrate = RangeMock();
     if (audioCaps_ != nullptr) {
         bitrate = RangeNativeMock(audioCaps_->GetSupportedBitrate());
     }
     return bitrate;
 }
 
-RangeMock  AudioCapsNativeMock::GetSupportedChannel()
+RangeMock AudioCapsNativeMock::GetSupportedChannel() const
 {
-    RangeMock channal;
+    RangeMock channal = RangeMock();
     if (audioCaps_ != nullptr) {
         channal = RangeNativeMock(audioCaps_->GetSupportedChannel());
     }
     return channal;
 }
 
-std::vector<int32_t>  AudioCapsNativeMock::GetSupportedFormats()
+std::vector<int32_t> AudioCapsNativeMock::GetSupportedFormats() const
 {
     std::vector<int32_t> formats;
     if (audioCaps_ != nullptr) {
@@ -265,7 +265,7 @@ std::vector<int32_t>  AudioCapsNativeMock::GetSupportedFormats()
     return formats;
 }
 
-std::vector<int32_t>  AudioCapsNativeMock::GetSupportedSampleRates()
+std::vector<int32_t> AudioCapsNativeMock::GetSupportedSampleRates() const
 {
     std::vector<int32_t> sampleRates;
     if (audioCaps_ != nullptr) {
@@ -274,7 +274,7 @@ std::vector<int32_t>  AudioCapsNativeMock::GetSupportedSampleRates()
     return sampleRates;
 }
 
-std::vector<int32_t>  AudioCapsNativeMock::GetSupportedProfiles()
+std::vector<int32_t> AudioCapsNativeMock::GetSupportedProfiles() const
 {
     std::vector<int32_t> profiles;
     if (audioCaps_ != nullptr) {
@@ -283,7 +283,7 @@ std::vector<int32_t>  AudioCapsNativeMock::GetSupportedProfiles()
     return profiles;
 }
 
-std::vector<int32_t>  AudioCapsNativeMock::GetSupportedLevels()
+std::vector<int32_t> AudioCapsNativeMock::GetSupportedLevels() const
 {
     std::vector<int32_t> levels;
     if (audioCaps_ != nullptr) {
@@ -292,9 +292,9 @@ std::vector<int32_t>  AudioCapsNativeMock::GetSupportedLevels()
     return levels;
 }
 
-RangeMock  AudioCapsNativeMock::GetSupportedComplexity()
+RangeMock AudioCapsNativeMock::GetSupportedComplexity() const
 {
-    RangeMock complexity;
+    RangeMock complexity = RangeMock();
     if (audioCaps_ != nullptr) {
         complexity = RangeNativeMock(audioCaps_->GetSupportedComplexity());
     }

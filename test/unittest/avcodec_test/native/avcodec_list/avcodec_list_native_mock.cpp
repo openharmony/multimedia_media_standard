@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,7 @@
 
 namespace OHOS {
 namespace Media {
-std::string AVCodecListNativeMock::FindVideoDecoder(std::shared_ptr<FormatMock> format)
+std::string AVCodecListNativeMock::FindVideoDecoder(std::shared_ptr<FormatMock> format) const
 {
     std::string ret;
     if (avCodecList_ != nullptr && format != nullptr) {
@@ -29,7 +29,7 @@ std::string AVCodecListNativeMock::FindVideoDecoder(std::shared_ptr<FormatMock> 
     return ret;
 }
 
-std::string AVCodecListNativeMock::FindVideoEncoder(std::shared_ptr<FormatMock> format)
+std::string AVCodecListNativeMock::FindVideoEncoder(std::shared_ptr<FormatMock> format) const
 {
     std::string ret;
     if (avCodecList_ != nullptr && format != nullptr) {
@@ -39,7 +39,7 @@ std::string AVCodecListNativeMock::FindVideoEncoder(std::shared_ptr<FormatMock> 
     return ret;
 }
 
-std::string AVCodecListNativeMock::FindAudioDecoder(std::shared_ptr<FormatMock> format)
+std::string AVCodecListNativeMock::FindAudioDecoder(std::shared_ptr<FormatMock> format) const
 {
     std::string ret;
     if (avCodecList_ != nullptr && format != nullptr) {
@@ -49,7 +49,7 @@ std::string AVCodecListNativeMock::FindAudioDecoder(std::shared_ptr<FormatMock> 
     return ret;
 }
 
-std::string AVCodecListNativeMock::FindAudioEncoder(std::shared_ptr<FormatMock> format)
+std::string AVCodecListNativeMock::FindAudioEncoder(std::shared_ptr<FormatMock> format) const
 {
     std::string ret;
     if (avCodecList_ != nullptr && format != nullptr) {
@@ -60,7 +60,7 @@ std::string AVCodecListNativeMock::FindAudioEncoder(std::shared_ptr<FormatMock> 
 }
 
 
-std::vector<std::shared_ptr<VideoCapsMock>> AVCodecListNativeMock::GetVideoDecoderCaps()
+std::vector<std::shared_ptr<VideoCapsMock>> AVCodecListNativeMock::GetVideoDecoderCaps() const
 {
     std::vector<std::shared_ptr<VideoCaps>> videoCapsArray;
     std::vector<std::shared_ptr<VideoCapsMock>> retVideoCapsArray;
@@ -78,7 +78,7 @@ std::vector<std::shared_ptr<VideoCapsMock>> AVCodecListNativeMock::GetVideoDecod
     return retVideoCapsArray;
 }
 
-std::vector<std::shared_ptr<VideoCapsMock>> AVCodecListNativeMock::GetVideoEncoderCaps()
+std::vector<std::shared_ptr<VideoCapsMock>> AVCodecListNativeMock::GetVideoEncoderCaps() const
 {
     std::vector<std::shared_ptr<VideoCaps>> videoCapsArray;
     std::vector<std::shared_ptr<VideoCapsMock>> retVideoCapsArray;
@@ -96,7 +96,7 @@ std::vector<std::shared_ptr<VideoCapsMock>> AVCodecListNativeMock::GetVideoEncod
     return retVideoCapsArray;
 }
 
-std::vector<std::shared_ptr<AudioCapsMock>> AVCodecListNativeMock::GetAudioDecoderCaps()
+std::vector<std::shared_ptr<AudioCapsMock>> AVCodecListNativeMock::GetAudioDecoderCaps() const
 {
     std::vector<std::shared_ptr<AudioCaps>> audioCapsArray;
     std::vector<std::shared_ptr<AudioCapsMock>> retAudioCapsArray;
@@ -114,7 +114,7 @@ std::vector<std::shared_ptr<AudioCapsMock>> AVCodecListNativeMock::GetAudioDecod
     return retAudioCapsArray;
 }
 
-std::vector<std::shared_ptr<AudioCapsMock>> AVCodecListNativeMock::GetAudioEncoderCaps()
+std::vector<std::shared_ptr<AudioCapsMock>> AVCodecListNativeMock::GetAudioEncoderCaps() const
 {
     std::vector<std::shared_ptr<AudioCaps>> audioCapsArray;
     std::vector<std::shared_ptr<AudioCapsMock>> retAudioCapsArray;
