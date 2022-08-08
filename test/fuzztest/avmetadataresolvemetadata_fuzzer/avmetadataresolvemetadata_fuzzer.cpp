@@ -35,7 +35,7 @@ AVMetadataResolveMetadataFuzzer::~AVMetadataResolveMetadataFuzzer()
 
 bool AVMetadataResolveMetadataFuzzer::FuzzAVMetadataResolveMetadata(uint8_t *data, size_t size)
 {
-    constexpr int32_t AVMetadataCodeList = 17;
+    constexpr int32_t AV_METADATA_CODELIST = 17;
 
     avmetadata = AVMetadataHelperFactory::CreateAVMetadataHelper();
     if (avmetadata == nullptr) {
@@ -44,15 +44,15 @@ bool AVMetadataResolveMetadataFuzzer::FuzzAVMetadataResolveMetadata(uint8_t *dat
         return false;
     }
 
-    const string path = "/data/test/resource/H264_AAC.mp4";
-    int32_t retMetadatasetsource = MetaDataSetSource(path);
-    if (retMetadatasetsource != 0) {
+    const string path = "/data/test/media/H264_AAC.mp4";
+    int32_t retMetadataSetsource = MetaDataSetSource(path);
+    if (retMetadataSetsource != 0) {
         cout << "avmetadata SetSource file" << endl;
         avmetadata->Release();
         return false;
     }
 
-    int32_t AVMetadataCodes[AVMetadataCodeList] {
+    int32_t avMetadataCodes[AV_METADATA_CODELIST] {
         AV_KEY_ALBUM,
         AV_KEY_ALBUM_ARTIST,
         AV_KEY_ARTIST,
@@ -71,14 +71,8 @@ bool AVMetadataResolveMetadataFuzzer::FuzzAVMetadataResolveMetadata(uint8_t *dat
         AV_KEY_VIDEO_WIDTH,
         AV_KEY_VIDEO_ORIENTATION
     };
-    int32_t key = AVMetadataCodes[*reinterpret_cast<int64_t *>(data) % AVMetadataCodeList];
-    std::string retResolvemetadata = avmetadata->ResolveMetadata(key);
-    if (retResolvemetadata.empty()) {
-        cout << "expect avmetadata ResolveMetadata fail" << endl;
-        avmetadata->Release();
-        return true;
-    }
-    
+    int32_t keyParameter = avMetadataCodes[*reinterpret_cast<int64_t *>(data) % AV_METADATA_CODELIST];
+    std::string retResolvemetadata = avmetadata->ResolveMetadata(keyParameter);
     avmetadata->Release();
     return true;
 }
