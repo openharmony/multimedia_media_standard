@@ -397,7 +397,7 @@ int32_t PlayerServiceStub::Seek(MessageParcel &data, MessageParcel &reply)
 int32_t PlayerServiceStub::GetCurrentTime(MessageParcel &data, MessageParcel &reply)
 {
     (void)data;
-    int32_t currentTime = 0;
+    int32_t currentTime = -1;
     int32_t ret = GetCurrentTime(currentTime);
     reply.WriteInt32(currentTime);
     reply.WriteInt32(ret);
@@ -453,7 +453,7 @@ int32_t PlayerServiceStub::GetVideoHeight(MessageParcel &data, MessageParcel &re
 int32_t PlayerServiceStub::GetDuration(MessageParcel &data, MessageParcel &reply)
 {
     (void)data;
-    int32_t duration = 0;
+    int32_t duration = -1;
     int32_t ret = GetDuration(duration);
     reply.WriteInt32(duration);
     reply.WriteInt32(ret);
