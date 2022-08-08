@@ -17,7 +17,7 @@
 
 namespace OHOS {
 namespace Media {
-std::string EnumNativeMock::GetMediaDescriptionKey(const MediaDescriptionKeyMock &key)
+std::string EnumNativeMock::GetMediaDescriptionKey(const MediaDescriptionKeyMock &key) const
 {
     std::string ret;
     if (MEDIA_DESCRIPTION_KEY_INFOS.find(key) != MEDIA_DESCRIPTION_KEY_INFOS.end()) {
@@ -26,7 +26,7 @@ std::string EnumNativeMock::GetMediaDescriptionKey(const MediaDescriptionKeyMock
     return ret;
 }
 
-int32_t EnumNativeMock::GetVideoPixelFormat(const VideoPixelFormatMock &key)
+int32_t EnumNativeMock::GetVideoPixelFormat(const VideoPixelFormatMock &key) const
 {
     int32_t ret = 0;
     if (VIDEO_PIXEL_FORMAT_INFOS.find(key) != VIDEO_PIXEL_FORMAT_INFOS.end()) {
@@ -35,7 +35,7 @@ int32_t EnumNativeMock::GetVideoPixelFormat(const VideoPixelFormatMock &key)
     return ret;
 }
 
-std::string EnumNativeMock::GetCodecMimeType(const CodecMimeTypeMock &key)
+std::string EnumNativeMock::GetCodecMimeType(const CodecMimeTypeMock &key) const
 {
     std::string ret;
     if (CODEC_MIME_INFOS.find(key) != CODEC_MIME_INFOS.end()) {

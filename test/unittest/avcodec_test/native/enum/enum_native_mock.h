@@ -21,9 +21,10 @@
 #include "media_description.h"
 #include "av_common.h"
 #include "avcodec_info.h"
+
 namespace OHOS {
 namespace Media {
-const std::map<MediaDescriptionKeyMock, std::string_view>  MEDIA_DESCRIPTION_KEY_INFOS = {
+const std::map<MediaDescriptionKeyMock, std::string_view>MEDIA_DESCRIPTION_KEY_INFOS = {
     {MOCK_MD_KEY_TRACK_INDEX, MediaDescriptionKey::MD_KEY_TRACK_INDEX},
     {MOCK_MD_KEY_TRACK_TYPE, MediaDescriptionKey::MD_KEY_TRACK_TYPE},
     {MOCK_MD_KEY_CODEC_MIME, MediaDescriptionKey::MD_KEY_CODEC_MIME},
@@ -47,28 +48,28 @@ const std::map<VideoPixelFormatMock, VideoPixelFormat> VIDEO_PIXEL_FORMAT_INFOS 
 
 const std::map<CodecMimeTypeMock, std::string_view> CODEC_MIME_INFOS = {
     {VIDEO_H263, CodecMimeType::VIDEO_H263},
-    {VIDEO_AVC,  CodecMimeType::VIDEO_AVC},
-    {VIDEO_MPEG2,  CodecMimeType::VIDEO_MPEG2},
-    {VIDEO_HEVC,  CodecMimeType::VIDEO_HEVC},
-    {VIDEO_MPEG4,  CodecMimeType::VIDEO_MPEG4},
-    {VIDEO_VP8,  CodecMimeType::VIDEO_VP8},
-    {VIDEO_VP9,  CodecMimeType::VIDEO_VP9},
-    {AUDIO_AMR_NB,  CodecMimeType::AUDIO_AMR_NB},
-    {AUDIO_AMR_WB,  CodecMimeType::AUDIO_AMR_WB},
-    {AUDIO_MPEG,  CodecMimeType::AUDIO_MPEG},
-    {AUDIO_AAC,  CodecMimeType::AUDIO_AAC},
-    {AUDIO_VORBIS,  CodecMimeType::AUDIO_VORBIS},
-    {AUDIO_OPUS,  CodecMimeType::AUDIO_OPUS},
-    {AUDIO_FLAC,  CodecMimeType::AUDIO_FLAC},
-    {AUDIO_RAW,  CodecMimeType::AUDIO_RAW},
+    {VIDEO_AVC, CodecMimeType::VIDEO_AVC},
+    {VIDEO_MPEG2, CodecMimeType::VIDEO_MPEG2},
+    {VIDEO_HEVC, CodecMimeType::VIDEO_HEVC},
+    {VIDEO_MPEG4, CodecMimeType::VIDEO_MPEG4},
+    {VIDEO_VP8, CodecMimeType::VIDEO_VP8},
+    {VIDEO_VP9, CodecMimeType::VIDEO_VP9},
+    {AUDIO_AMR_NB, CodecMimeType::AUDIO_AMR_NB},
+    {AUDIO_AMR_WB, CodecMimeType::AUDIO_AMR_WB},
+    {AUDIO_MPEG, CodecMimeType::AUDIO_MPEG},
+    {AUDIO_AAC, CodecMimeType::AUDIO_AAC},
+    {AUDIO_VORBIS, CodecMimeType::AUDIO_VORBIS},
+    {AUDIO_OPUS, CodecMimeType::AUDIO_OPUS},
+    {AUDIO_FLAC, CodecMimeType::AUDIO_FLAC},
+    {AUDIO_RAW, CodecMimeType::AUDIO_RAW},
 };
 
 class EnumNativeMock : public EnumMock {
 public:
     EnumNativeMock() = default;
-    std::string GetMediaDescriptionKey(const MediaDescriptionKeyMock &key);
-    int32_t GetVideoPixelFormat(const VideoPixelFormatMock &key);
-    std::string GetCodecMimeType(const CodecMimeTypeMock &key);
+    std::string GetMediaDescriptionKey(const MediaDescriptionKeyMock &key) const override;
+    int32_t GetVideoPixelFormat(const VideoPixelFormatMock &key) const override;
+    std::string GetCodecMimeType(const CodecMimeTypeMock &key) const override;
 };
 } // Media
 } // OHOS

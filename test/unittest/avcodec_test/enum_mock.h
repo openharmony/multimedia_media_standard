@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef MEDIA_DESCRIPTION_MOCK_H
-#define MEDIA_DESCRIPTION_MOCK_H
+#ifndef ENUM_MOCK_H
+#define ENUM_MOCK_H
 
 #include <string>
 #include "nocopyable.h"
@@ -64,10 +64,10 @@ enum CodecMimeTypeMock : int32_t {
 class EnumMock : public NoCopyable {
 public:
     virtual ~EnumMock() = default;
-    virtual std::string GetMediaDescriptionKey(const MediaDescriptionKeyMock &key) = 0;
-    virtual int32_t GetVideoPixelFormat(const VideoPixelFormatMock &key) = 0;
-    virtual std::string GetCodecMimeType(const CodecMimeTypeMock &key) = 0;
+    virtual std::string GetMediaDescriptionKey(const MediaDescriptionKeyMock &key) const = 0;
+    virtual int32_t GetVideoPixelFormat(const VideoPixelFormatMock &key) const = 0;
+    virtual std::string GetCodecMimeType(const CodecMimeTypeMock &key) const = 0;
 };
 } // Media
 } // OHOS
-#endif // MEDIA_DESCRIPTION_MOCK_H
+#endif // ENUM_MOCK_H
