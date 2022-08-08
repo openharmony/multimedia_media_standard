@@ -43,7 +43,7 @@ bool AVMetadataFileFuzzer::FuzzAVMetadataFile(uint8_t *data, size_t size)
         return false;
     }
 
-    const string path = "/data/test/resource/fuzztest.mp4";
+    const string path = "/data/test/media/fuzztest.mp4";
 
     int32_t retWritefile = WriteDataToFile(path, data, size);
     if (retWritefile != 0) {

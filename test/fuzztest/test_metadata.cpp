@@ -31,26 +31,26 @@ TestMetadata::~TestMetadata()
 
 int32_t TestMetadata::MetaDataSetSource(const string &path)
 {
-    int32_t fd = open(path.c_str(), O_RDONLY);
-    if (fd < 0) {
+    int32_t fdMetaDataSetSource = open(path.c_str(), O_RDONLY);
+    if (fdMetaDataSetSource < 0) {
         cout << "Open file failed" << endl;
-        (void)close(fd);
+        (void)close(fdMetaDataSetSource);
         return -1;
     }
-    int64_t offset = 0;
+    int64_t offsetMetaDataSetSource = 0;
     struct stat64 buffer;
-    if (fstat64(fd, &buffer) != 0) {
+    if (fstat64(fdMetaDataSetSource, &buffer) != 0) {
         cout << "Get file state failed" << endl;
-        (void)close(fd);
+        (void)close(fdMetaDataSetSource);
         return -1;
     }
-    int64_t size = static_cast<int64_t>(buffer.st_size);
-    int32_t usage = AVMetadataUsage::AV_META_USAGE_PIXEL_MAP;
-    cout << "fd : " << fd << "; offset : " << offset << "; size : " << size << ": usage : " << usage << endl;
-    int32_t ret = avmetadata -> SetSource(fd, offset, size, usage);
-    if (ret != 0) {
+    int64_t sizeMetaDataSetSource = static_cast<int64_t>(buffer.st_size);
+    int32_t usageMetaDataSetSource = AVMetadataUsage::AV_META_USAGE_PIXEL_MAP;
+    int32_t retSetSource = avmetadata -> SetSource(fdMetaDataSetSource,
+        offsetMetaDataSetSource, sizeMetaDataSetSource, usageMetaDataSetSource);
+    if (retSetSource != 0) {
         cout << "SetSource fail!" << endl;
-        (void)close(fd);
+        (void)close(fdMetaDataSetSource);
         return -1;
     }
     return 0;
