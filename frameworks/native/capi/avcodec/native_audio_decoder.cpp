@@ -182,7 +182,7 @@ struct AVCodec *OH_AudioDecoder_CreateByName(const char *name)
     struct AudioDecoderObject *object = new(std::nothrow) AudioDecoderObject(audioDecoder);
     CHECK_AND_RETURN_RET_LOG(object != nullptr, nullptr, "failed to new AudioDecoderObject");
 
-    return object; 
+    return object;
 }
 
 AVErrCode OH_AudioDecoder_Destroy(struct AVCodec *codec)

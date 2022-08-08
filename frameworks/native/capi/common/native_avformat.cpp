@@ -49,7 +49,7 @@ struct AVFormat *OH_AVFormat_Create(void)
     return new(std::nothrow) AVFormat();
 }
 
-void OH_AVFormat_Destroy(AVFormat *format)
+void OH_AVFormat_Destroy(struct AVFormat *format)
 {
     delete format;
 }
@@ -108,7 +108,7 @@ bool OH_AVFormat_SetStringValue(struct AVFormat *format, const char *key, const 
     CHECK_AND_RETURN_RET_LOG(key != nullptr, false, "key is nullptr!");
     CHECK_AND_RETURN_RET_LOG(value != nullptr, false, "value is nullptr!");
 
-    return format->format_.PutStringValue(key, value);   
+    return format->format_.PutStringValue(key, value);
 }
 
 bool OH_AVFormat_SetBuffer(struct AVFormat *format, const char *key, const uint8_t *addr, size_t size)
