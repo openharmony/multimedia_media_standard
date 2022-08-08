@@ -44,7 +44,7 @@ AVFormat::~AVFormat()
     }
 }
 
-struct AVFormat* OH_AVFormat_Create(void)
+struct AVFormat *OH_AVFormat_Create(void)
 {
     return new(std::nothrow) AVFormat();
 }

@@ -106,7 +106,7 @@ public:
     }
 
 private:
-    AVMemory* GetInputData(struct AVCodec *codec, uint32_t index)
+    AVMemory *GetInputData(struct AVCodec *codec, uint32_t index)
     {
         CHECK_AND_RETURN_RET_LOG(codec != nullptr, nullptr, "input codec is nullptr!");
         CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_AUDIO_DECODER, nullptr, "magic error!");
@@ -130,7 +130,7 @@ private:
         return reinterpret_cast<AVMemory *>(object.GetRefPtr());
     }
 
-    AVMemory* GetOutputData(struct AVCodec *codec, uint32_t index)
+    AVMemory *GetOutputData(struct AVCodec *codec, uint32_t index)
     {
         CHECK_AND_RETURN_RET_LOG(codec != nullptr, nullptr, "input codec is nullptr!");
         CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_AUDIO_DECODER, nullptr, "magic error!");
@@ -159,7 +159,7 @@ private:
     void *userData_;
 };
 
-struct AVCodec* OH_AudioDecoder_CreateByMime(const char *mime)
+struct AVCodec *OH_AudioDecoder_CreateByMime(const char *mime)
 {
     CHECK_AND_RETURN_RET_LOG(mime != nullptr, nullptr, "input mime is nullptr!");
 
@@ -172,7 +172,7 @@ struct AVCodec* OH_AudioDecoder_CreateByMime(const char *mime)
     return object;
 }
 
-struct AVCodec* OH_AudioDecoder_CreateByName(const char *name)
+struct AVCodec *OH_AudioDecoder_CreateByName(const char *name)
 {
     CHECK_AND_RETURN_RET_LOG(name != nullptr, nullptr, "input name is nullptr!");
 
@@ -343,7 +343,7 @@ AVErrCode OH_AudioDecoder_PushInputData(struct AVCodec *codec, uint32_t index, A
     return AV_ERR_OK;
 }
 
-AVFormat* OH_AudioDecoder_GetOutputDescription(struct AVCodec *codec)
+AVFormat *OH_AudioDecoder_GetOutputDescription(struct AVCodec *codec)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, nullptr, "input codec is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_AUDIO_DECODER, nullptr, "magic error!");
