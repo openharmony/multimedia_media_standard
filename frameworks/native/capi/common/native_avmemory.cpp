@@ -38,7 +38,7 @@ bool AVMemory::IsEqualMemory(const std::shared_ptr<OHOS::Media::AVSharedMemory> 
     return (mem == memory_) ? true : false;
 }
 
-uint8_t *OH_AVMemory_GetAddr(AVMemory *mem)
+uint8_t *OH_AVMemory_GetAddr(struct AVMemory *mem)
 {
     CHECK_AND_RETURN_RET_LOG(mem != nullptr, nullptr, "input mem is nullptr!");
     CHECK_AND_RETURN_RET_LOG(mem->magic_ == AVMagic::MEDIA_MAGIC_SHARED_MEMORY, nullptr, "magic error!");
@@ -46,7 +46,7 @@ uint8_t *OH_AVMemory_GetAddr(AVMemory *mem)
     return mem->memory_->GetBase();
 }
 
-int32_t OH_AVMemory_GetSize(AVMemory *mem)
+int32_t OH_AVMemory_GetSize(struct AVMemory *mem)
 {
     CHECK_AND_RETURN_RET_LOG(mem != nullptr, -1, "input mem is nullptr!");
     CHECK_AND_RETURN_RET_LOG(mem->magic_ == AVMagic::MEDIA_MAGIC_SHARED_MEMORY, -1, "magic error!");
