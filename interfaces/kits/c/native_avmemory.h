@@ -32,7 +32,7 @@ typedef struct AVMemory AVMemory;
  * @since 9
  * @version 1.0
  */
-uint8_t* OH_AVMemory_GetAddr(struct AVMemory *mem);
+uint8_t *OH_AVMemory_GetAddr(struct AVMemory *mem);
 
 /**
  * @brief Get the memory's size

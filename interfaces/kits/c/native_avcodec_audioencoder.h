@@ -35,7 +35,7 @@ extern "C" {
  * @since 9
  * @version 1.0
  */
-AVCodec* OH_AudioEncoder_CreateByMime(const char *mime);
+AVCodec *OH_AudioEncoder_CreateByMime(const char *mime);
 
 /**
  * @brief Create an audio encoder instance through the audio encoder name.
@@ -46,7 +46,7 @@ AVCodec* OH_AudioEncoder_CreateByMime(const char *mime);
  * @since 9
  * @version 1.0
  */
-AVCodec* OH_AudioEncoder_CreateByName(const char *name);
+AVCodec *OH_AudioEncoder_CreateByName(const char *name);
 
 /**
  * @brief Clear the internal resources of the encoder and destroy the encoder instance
@@ -157,7 +157,7 @@ AVErrCode OH_AudioEncoder_Reset(AVCodec *codec);
  * @since 9
  * @version 1.0
  */
-AVFormat* OH_AudioEncoder_GetOutputDescription(AVCodec *codec);
+AVFormat *OH_AudioEncoder_GetOutputDescription(AVCodec *codec);
 
 /**
  * @brief Set dynamic parameters to the encoder. Note: This interface can only be called after the encoder is started.

@@ -35,7 +35,7 @@ extern "C" {
  * @since 9
  * @version 1.0
  */
-AVCodec* OH_VideoDecoder_CreateByMime(const char *mime);
+AVCodec *OH_VideoDecoder_CreateByMime(const char *mime);
 
 /**
  * @brief Create a video decoder instance through the video decoder name.
@@ -46,7 +46,7 @@ AVCodec* OH_VideoDecoder_CreateByMime(const char *mime);
  * @since 9
  * @version 1.0
  */
-AVCodec* OH_VideoDecoder_CreateByName(const char *name);
+AVCodec *OH_VideoDecoder_CreateByName(const char *name);
 
 /**
  * @brief Clear the internal resources of the decoder and destroy the decoder instance
@@ -170,7 +170,7 @@ AVErrCode OH_VideoDecoder_Reset(AVCodec *codec);
  * @since 9
  * @version 1.0
  */
-AVFormat* OH_VideoDecoder_GetOutputDescription(AVCodec *codec);
+AVFormat *OH_VideoDecoder_GetOutputDescription(AVCodec *codec);
 
 /**
  * @brief Set dynamic parameters to the decoder. Note: This interface can only be called after the decoder is started.
