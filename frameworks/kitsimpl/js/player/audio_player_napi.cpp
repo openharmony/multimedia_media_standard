@@ -276,10 +276,6 @@ napi_value AudioPlayerNapi::GetSrc(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
 
-    if (player->uri_.empty()) {
-        return undefinedResult;
-    }
-
     status = napi_create_string_utf8(env, player->uri_.c_str(), NAPI_AUTO_LENGTH, &jsResult);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_create_string_utf8 error");
 
