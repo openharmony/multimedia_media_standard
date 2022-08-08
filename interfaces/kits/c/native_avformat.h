@@ -58,7 +58,7 @@ typedef enum AVPixelFormat {
  * @since 9
  * @version 1.0
  */
-struct AVFormat* OH_AVFormat_Create(void);
+struct AVFormat *OH_AVFormat_Create(void);
 
 /**
  * @brief Destroy the specified AVFormat handle resource

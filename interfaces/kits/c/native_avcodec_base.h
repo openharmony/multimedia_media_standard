@@ -74,7 +74,7 @@ typedef struct AVCodecBufferAttr {
  * @since 9
  * @version 1.0
  */
-typedef void (* AVCodecOnError)(AVCodec *codec, int32_t errorCode, void *userData);
+typedef void (*AVCodecOnError)(AVCodec *codec, int32_t errorCode, void *userData);
 
 /**
  * @brief When the output stream changes, the function pointer will be called to report the new stream description
@@ -87,7 +87,7 @@ typedef void (* AVCodecOnError)(AVCodec *codec, int32_t errorCode, void *userDat
  * @since 9
  * @version 1.0
  */
-typedef void (* AVCodecOnStreamChanged)(AVCodec *codec, AVFormat *format, void *userData);
+typedef void (*AVCodecOnStreamChanged)(AVCodec *codec, AVFormat *format, void *userData);
 
 /**
  * @brief When AVCodec needs new input data during the running process,
@@ -100,7 +100,7 @@ typedef void (* AVCodecOnStreamChanged)(AVCodec *codec, AVFormat *format, void *
  * @since 9
  * @version 1.0
  */
-typedef void (* AVCodecOnNeedInputData)(AVCodec *codec, uint32_t index, AVMemory *data, void *userData);
+typedef void (*AVCodecOnNeedInputData)(AVCodec *codec, uint32_t index, AVMemory *data, void *userData);
 
 /**
  * @brief When new output data is generated during the operation of AVCodec, the function pointer will be
@@ -116,7 +116,7 @@ typedef void (* AVCodecOnNeedInputData)(AVCodec *codec, uint32_t index, AVMemory
  * @since 9
  * @version 1.0
  */
-typedef void (* AVCodecOnNewOutputData)(AVCodec *codec, uint32_t index, AVMemory *data,
+typedef void (*AVCodecOnNewOutputData)(AVCodec *codec, uint32_t index, AVMemory *data,
     AVCodecBufferAttr *attr, void *userData);
 
 /**
@@ -144,8 +144,8 @@ typedef struct AVCodecAsyncCallback {
  * @since 9
  * @version 1.0
  */
-extern const char* AVCODEC_MIME_TYPE_VIDEO_AVC;
-extern const char* AVCODEC_MIME_TYPE_AUDIO_AAC;
+extern const char *AVCODEC_MIME_TYPE_VIDEO_AVC;
+extern const char *AVCODEC_MIME_TYPE_AUDIO_AAC;
 
 /**
  * @brief The extra data's key of surface Buffer
@@ -154,9 +154,9 @@ extern const char* AVCODEC_MIME_TYPE_AUDIO_AAC;
  * @version 1.0
  */
 /* Key for timeStamp in surface's extraData, value type is int64 */
-extern const char* ED_KEY_TIME_STAMP;
+extern const char *ED_KEY_TIME_STAMP;
 /* Key for endOfStream in surface's extraData, value type is bool */
-extern const char* ED_KEY_END_OF_STREAM;
+extern const char *ED_KEY_END_OF_STREAM;
 
 /**
  * @brief Provides the uniform container for storing the media description.
@@ -165,33 +165,33 @@ extern const char* ED_KEY_END_OF_STREAM;
  * @version 1.0
  */
 /* Key for track type, value type is uint8_t, see @OHMediaType. */
-extern const char* MD_KEY_TRACK_TYPE;
+extern const char *MD_KEY_TRACK_TYPE;
 /* Key for codec mime type, value type is string. */
-extern const char* MD_KEY_CODEC_MIME;
+extern const char *MD_KEY_CODEC_MIME;
 /* Key for duration, value type is int64_t. */
-extern const char* MD_KEY_DURATION;
+extern const char *MD_KEY_DURATION;
 /* Key for bitrate, value type is uint32_t. */
-extern const char* MD_KEY_BITRATE;
+extern const char *MD_KEY_BITRATE;
 /* Key for max input size, value type is uint32_t */
-extern const char* MD_KEY_MAX_INPUT_SIZE;
+extern const char *MD_KEY_MAX_INPUT_SIZE;
 /* Key for video width, value type is uint32_t */
-extern const char* MD_KEY_WIDTH;
+extern const char *MD_KEY_WIDTH;
 /* Key for video height, value type is uint32_t */
-extern const char* MD_KEY_HEIGHT;
+extern const char *MD_KEY_HEIGHT;
 /* Key for video pixel format, value type is int32_t, see @AVPixelFormat */
-extern const char* MD_KEY_PIXEL_FORMAT;
+extern const char *MD_KEY_PIXEL_FORMAT;
 /* key for audio raw format, value type is uint32_t , see @AudioSampleFormat */
-extern const char* MD_KEY_AUDIO_SAMPLE_FORMAT;
+extern const char *MD_KEY_AUDIO_SAMPLE_FORMAT;
 /* Key for video frame rate, value type is double. */
-extern const char* MD_KEY_FRAME_RATE;
+extern const char *MD_KEY_FRAME_RATE;
 /* video encode bitrate mode, the value type is int32_t, see @OHVideoEncodeBitrateMode */
-extern const char* MD_KEY_VIDEO_ENCODE_BITRATE_MODE;
+extern const char *MD_KEY_VIDEO_ENCODE_BITRATE_MODE;
 /* encode profile, the value type is number. see @OHAVCProfile, OHAACProfile. */
-extern const char* MD_KEY_PROFILE;
+extern const char *MD_KEY_PROFILE;
 /* Key for audio channel count, value type is uint32_t */
-extern const char* MD_KEY_AUD_CHANNEL_COUNT;
+extern const char *MD_KEY_AUD_CHANNEL_COUNT;
 /* Key for audio sample rate, value type is uint32_t */
-extern const char* MD_KEY_AUD_SAMPLE_RATE;
+extern const char *MD_KEY_AUD_SAMPLE_RATE;
 
 /**
  * @brief Media type.

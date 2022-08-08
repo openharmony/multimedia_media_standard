@@ -35,7 +35,7 @@ extern "C" {
  * @since 9
  * @version 1.0
  */
-AVCodec* OH_VideoEncoder_CreateByMime(const char *mime);
+AVCodec *OH_VideoEncoder_CreateByMime(const char *mime);
 
 /**
  * @brief Create a video encoder instance through the video encoder name. The premise of using this interface is to
@@ -46,7 +46,7 @@ AVCodec* OH_VideoEncoder_CreateByMime(const char *mime);
  * @since 9
  * @version 1.0
  */
-AVCodec* OH_VideoEncoder_CreateByName(const char *name);
+AVCodec *OH_VideoEncoder_CreateByName(const char *name);
 
 /**
  * @brief Clear the internal resources of the encoder and destroy the encoder instance
@@ -156,7 +156,7 @@ AVErrCode OH_VideoEncoder_Reset(AVCodec *codec);
  * @since 9
  * @version 1.0
  */
-AVFormat* OH_VideoEncoder_GetOutputDescription(AVCodec *codec);
+AVFormat *OH_VideoEncoder_GetOutputDescription(AVCodec *codec);
 
 /**
  * @brief Set dynamic parameters to the encoder. Note: This interface can only be called after the encoder is started.
@@ -170,7 +170,6 @@ AVFormat* OH_VideoEncoder_GetOutputDescription(AVCodec *codec);
  * @version 1.0
  */
 AVErrCode OH_VideoEncoder_SetParameter(AVCodec *codec, AVFormat *format);
-
 
 /**
  * @brief Get the input Surface from the video encoder, this interface must be called before Prepare is called.
