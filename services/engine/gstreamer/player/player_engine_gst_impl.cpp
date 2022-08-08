@@ -282,7 +282,7 @@ int32_t PlayerEngineGstImpl::GetCurrentTime(int32_t &currentTime)
 {
     std::unique_lock<std::mutex> lock(mutex_);
 
-    currentTime = 0;
+    currentTime = -1;
     if (playerCtrl_ != nullptr) {
         uint64_t tempTime = playerCtrl_->GetPosition();
         currentTime = static_cast<int32_t>(tempTime);
