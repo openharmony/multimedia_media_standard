@@ -44,14 +44,14 @@ struct AVObjectMagic : public OHOS::RefBase {
 struct AVFormat : public AVObjectMagic {
     AVFormat();
     explicit AVFormat(const OHOS::Media::Format &fmt);
-    ~AVFormat();
+    ~AVFormat() override;
     OHOS::Media::Format format_;
     char *outString_ = nullptr;
 };
 
 struct AVMemory : public AVObjectMagic {
     explicit AVMemory(const std::shared_ptr<OHOS::Media::AVSharedMemory> &mem);
-    ~AVMemory();
+    ~AVMemory() override;
     bool IsEqualMemory(const std::shared_ptr<OHOS::Media::AVSharedMemory> &mem);
     const std::shared_ptr<OHOS::Media::AVSharedMemory> memory_;
 };

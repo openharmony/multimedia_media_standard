@@ -65,7 +65,7 @@ bool OH_AVFormat_Copy(struct AVFormat *to, struct AVFormat *from)
     return true;
 }
 
-bool OH_AVFormat_SetIntValue(AVFormat *format, const char *key, int32_t value)
+bool OH_AVFormat_SetIntValue(struct AVFormat *format, const char *key, int32_t value)
 {
     CHECK_AND_RETURN_RET_LOG(format != nullptr, false, "input format is nullptr!");
     CHECK_AND_RETURN_RET_LOG(format->magic_ == AVMagic::MEDIA_MAGIC_FORMAT, false, "magic error!");
@@ -74,7 +74,7 @@ bool OH_AVFormat_SetIntValue(AVFormat *format, const char *key, int32_t value)
     return format->format_.PutIntValue(key, value);
 }
 
-bool OH_AVFormat_SetLongValue(AVFormat *format, const char *key, int64_t value)
+bool OH_AVFormat_SetLongValue(struct AVFormat *format, const char *key, int64_t value)
 {
     CHECK_AND_RETURN_RET_LOG(format != nullptr, false, "input format is nullptr!");
     CHECK_AND_RETURN_RET_LOG(format->magic_ == AVMagic::MEDIA_MAGIC_FORMAT, false, "magic error!");
@@ -83,7 +83,7 @@ bool OH_AVFormat_SetLongValue(AVFormat *format, const char *key, int64_t value)
     return format->format_.PutLongValue(key, value);
 }
 
-bool OH_AVFormat_SetFloatValue(AVFormat *format, const char *key, float value)
+bool OH_AVFormat_SetFloatValue(struct AVFormat *format, const char *key, float value)
 {
     CHECK_AND_RETURN_RET_LOG(format != nullptr, false, "input format is nullptr!");
     CHECK_AND_RETURN_RET_LOG(format->magic_ == AVMagic::MEDIA_MAGIC_FORMAT, false, "magic error!");
@@ -92,7 +92,7 @@ bool OH_AVFormat_SetFloatValue(AVFormat *format, const char *key, float value)
     return format->format_.PutFloatValue(key, value);
 }
 
-bool OH_AVFormat_SetDoubleValue(AVFormat *format, const char *key, double value)
+bool OH_AVFormat_SetDoubleValue(struct AVFormat *format, const char *key, double value)
 {
     CHECK_AND_RETURN_RET_LOG(format != nullptr, false, "input format is nullptr!");
     CHECK_AND_RETURN_RET_LOG(format->magic_ == AVMagic::MEDIA_MAGIC_FORMAT, false, "magic error!");
@@ -101,7 +101,7 @@ bool OH_AVFormat_SetDoubleValue(AVFormat *format, const char *key, double value)
     return format->format_.PutDoubleValue(key, value);
 }
 
-bool OH_AVFormat_SetStringValue(AVFormat *format, const char *key, const char *value)
+bool OH_AVFormat_SetStringValue(struct AVFormat *format, const char *key, const char *value)
 {
     CHECK_AND_RETURN_RET_LOG(format != nullptr, false, "input format is nullptr!");
     CHECK_AND_RETURN_RET_LOG(format->magic_ == AVMagic::MEDIA_MAGIC_FORMAT, false, "magic error!");
@@ -111,7 +111,7 @@ bool OH_AVFormat_SetStringValue(AVFormat *format, const char *key, const char *v
     return format->format_.PutStringValue(key, value);   
 }
 
-bool OH_AVFormat_SetBuffer(AVFormat *format, const char *key, const uint8_t *addr, size_t size)
+bool OH_AVFormat_SetBuffer(struct AVFormat *format, const char *key, const uint8_t *addr, size_t size)
 {
     CHECK_AND_RETURN_RET_LOG(format != nullptr, false, "input format is nullptr!");
     CHECK_AND_RETURN_RET_LOG(format->magic_ == AVMagic::MEDIA_MAGIC_FORMAT, false, "magic error!");
@@ -122,52 +122,52 @@ bool OH_AVFormat_SetBuffer(AVFormat *format, const char *key, const uint8_t *add
     return format->format_.PutBuffer(key, addr, size);
 }
 
-bool OH_AVFormat_GetIntValue(AVFormat *format, const char *key, int32_t *value)
+bool OH_AVFormat_GetIntValue(struct AVFormat *format, const char *key, int32_t *out)
 {
     CHECK_AND_RETURN_RET_LOG(format != nullptr, false, "input format is nullptr!");
     CHECK_AND_RETURN_RET_LOG(format->magic_ == AVMagic::MEDIA_MAGIC_FORMAT, false, "magic error!");
     CHECK_AND_RETURN_RET_LOG(key != nullptr, false, "key is nullptr!");
-    CHECK_AND_RETURN_RET_LOG(value != nullptr, false, "value is nullptr!");
+    CHECK_AND_RETURN_RET_LOG(out != nullptr, false, "out is nullptr!");
 
-    return format->format_.GetIntValue(key, *value);
+    return format->format_.GetIntValue(key, *out);
 }
 
-bool OH_AVFormat_GetLongValue(AVFormat *format, const char *key, int64_t *value)
+bool OH_AVFormat_GetLongValue(struct AVFormat *format, const char *key, int64_t *out)
 {
     CHECK_AND_RETURN_RET_LOG(format != nullptr, false, "input format is nullptr!");
     CHECK_AND_RETURN_RET_LOG(format->magic_ == AVMagic::MEDIA_MAGIC_FORMAT, false, "magic error!");
     CHECK_AND_RETURN_RET_LOG(key != nullptr, false, "key is nullptr!");
-    CHECK_AND_RETURN_RET_LOG(value != nullptr, false, "value is nullptr!");
+    CHECK_AND_RETURN_RET_LOG(out != nullptr, false, "out is nullptr!");
 
-    return format->format_.GetLongValue(key, *value);
+    return format->format_.GetLongValue(key, *out);
 }
 
-bool OH_AVFormat_GetFloatValue(AVFormat *format, const char *key, float *value)
+bool OH_AVFormat_GetFloatValue(struct AVFormat *format, const char *key, float *out)
 {
     CHECK_AND_RETURN_RET_LOG(format != nullptr, false, "input format is nullptr!");
     CHECK_AND_RETURN_RET_LOG(format->magic_ == AVMagic::MEDIA_MAGIC_FORMAT, false, "magic error!");
     CHECK_AND_RETURN_RET_LOG(key != nullptr, false, "key is nullptr!");
-    CHECK_AND_RETURN_RET_LOG(value != nullptr, false, "value is nullptr!");
+    CHECK_AND_RETURN_RET_LOG(out != nullptr, false, "out is nullptr!");
 
-    return format->format_.GetFloatValue(key, *value);
+    return format->format_.GetFloatValue(key, *out);
 }
 
-bool OH_AVFormat_GetDoubleValue(AVFormat *format, const char *key, double *value)
+bool OH_AVFormat_GetDoubleValue(struct AVFormat *format, const char *key, double *out)
 {
     CHECK_AND_RETURN_RET_LOG(format != nullptr, false, "input format is nullptr!");
     CHECK_AND_RETURN_RET_LOG(format->magic_ == AVMagic::MEDIA_MAGIC_FORMAT, false, "magic error!");
     CHECK_AND_RETURN_RET_LOG(key != nullptr, false, "key is nullptr!");
-    CHECK_AND_RETURN_RET_LOG(value != nullptr, false, "value is nullptr!");
+    CHECK_AND_RETURN_RET_LOG(out != nullptr, false, "out is nullptr!");
 
-    return format->format_.GetDoubleValue(key, *value);
+    return format->format_.GetDoubleValue(key, *out);
 }
 
-bool OH_AVFormat_GetStringValue(AVFormat *format, const char *key, const char **value)
+bool OH_AVFormat_GetStringValue(struct AVFormat *format, const char *key, const char **out)
 {
     CHECK_AND_RETURN_RET_LOG(format != nullptr, false, "input format is nullptr!");
     CHECK_AND_RETURN_RET_LOG(format->magic_ == AVMagic::MEDIA_MAGIC_FORMAT, false, "magic error!");
     CHECK_AND_RETURN_RET_LOG(key != nullptr, false, "key is nullptr!");
-    CHECK_AND_RETURN_RET_LOG(value != nullptr, false, "key is nullptr!");
+    CHECK_AND_RETURN_RET_LOG(out != nullptr, false, "out is nullptr!");
 
     if (format->outString_ != nullptr) {
         free(format->outString_);
@@ -191,11 +191,11 @@ bool OH_AVFormat_GetStringValue(AVFormat *format, const char *key, const char **
         return false;
     }
 
-    *value = format->outString_;
+    *out = format->outString_;
     return true;
 }
 
-bool OH_AVFormat_GetBuffer(AVFormat *format, const char *key, uint8_t **addr, size_t *size)
+bool OH_AVFormat_GetBuffer(struct AVFormat *format, const char *key, uint8_t **addr, size_t *size)
 {
     CHECK_AND_RETURN_RET_LOG(format != nullptr, false, "input format is nullptr!");
     CHECK_AND_RETURN_RET_LOG(format->magic_ == AVMagic::MEDIA_MAGIC_FORMAT, false, "magic error!");
@@ -206,7 +206,7 @@ bool OH_AVFormat_GetBuffer(AVFormat *format, const char *key, uint8_t **addr, si
     return format->format_.GetBuffer(key, addr, *size);
 }
 
-const char* OH_AVFormat_DumpInfo(struct AVFormat *format)
+const char *OH_AVFormat_DumpInfo(struct AVFormat *format)
 {
     return format->format_.Stringify().c_str();
 }
