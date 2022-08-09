@@ -608,6 +608,7 @@ int32_t PlayerServer::GetDuration(int32_t &duration)
         int ret = playerEngine_->GetDuration(duration);
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Engine GetDuration Failed!");
     }
+    MEDIA_LOGD("PlayerServer GetDuration %{public}d", duration);
     return MSERR_OK;
 }
 
