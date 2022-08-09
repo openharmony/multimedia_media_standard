@@ -14,13 +14,15 @@
  */
 
 #include "recorder_profiles_unit_test.h"
+#include "avcodec_info.h"
+#include "avcontainer_common.h"
 #include "media_errors.h"
 
-using namespace OHOS;
-using namespace OHOS::Media;
 using namespace std;
 using namespace testing::ext;
 
+namespace OHOS {
+namespace Media {
 void RecorderProfilesUnitTest::SetUpTestCase(void) {}
 void RecorderProfilesUnitTest::TearDownTestCase(void) {}
 
@@ -41,8 +43,8 @@ void RecorderProfilesUnitTest::TearDown(void)
 HWTEST_F(RecorderProfilesUnitTest, recorder_profile_IsAudioRecoderConfigSupported_0100, TestSize.Level0)
 {
     std::shared_ptr<AudioRecorderProfile> profile  = std::make_shared<AudioRecorderProfile>();
-    profile->containerFormatType = "mp4";
-    profile->audioCodec = "audio/mp4a-latm";
+    profile->containerFormatType = ContainerFormatType::CFT_MPEG_4;
+    profile->audioCodec = CodecMimeType::AUDIO_AAC;
     profile->audioBitrate = 96000;
     profile->audioSampleRate = 48000;
     profile->audioChannels = 2;
@@ -69,10 +71,10 @@ bool RecorderProfilesUnitTest::CheckAudioRecorderCapsArray(
     bool flagAAC = false;
     for (auto iter = audioRecorderArray.begin(); iter != audioRecorderArray.end(); iter++) {
         std::shared_ptr<AudioRecorderCaps> pAudioRecorderCaps = *iter;
-        if ((pAudioRecorderCaps->containerFormatType.compare("m4a") == 0)) {
+        if ((pAudioRecorderCaps->containerFormatType.compare(ContainerFormatType::CFT_MPEG_4A) == 0)) {
             flagM4a = true;
         }
-        if ((pAudioRecorderCaps->mimeType.compare("audio/mp4a-latm") == 0)) {
+        if ((pAudioRecorderCaps->mimeType.compare(CodecMimeType::AUDIO_AAC) == 0)) {
             flagAAC = true;
             EXPECT_GE(pAudioRecorderCaps->bitrate.minVal, 0);
             EXPECT_GE(pAudioRecorderCaps->channels.minVal, 0);
@@ -91,10 +93,10 @@ bool RecorderProfilesUnitTest::CheckVideoRecorderCapsArray(
     bool flagAVC = false;
     for (auto iter =  videoRecorderArray.begin(); iter !=  videoRecorderArray.end(); iter++) {
         std::shared_ptr< VideoRecorderCaps> pVideoRecorderCaps = *iter;
-        if ((pVideoRecorderCaps->containerFormatType.compare("mp4") == 0)) {
+        if ((pVideoRecorderCaps->containerFormatType.compare(ContainerFormatType::CFT_MPEG_4) == 0)) {
             flagMP4 = true;
         }
-        if ((pVideoRecorderCaps->audioEncoderMime.compare("audio/mp4a-latm") == 0)) {
+        if ((pVideoRecorderCaps->audioEncoderMime.compare(CodecMimeType::AUDIO_AAC) == 0)) {
             flagMP4A = true;
         }
         if ((pVideoRecorderCaps->videoEncoderMime.compare("video/mp4v-es") == 0)) {
@@ -109,7 +111,6 @@ bool RecorderProfilesUnitTest::CheckVideoRecorderCapsArray(
         }
         if ((pVideoRecorderCaps->videoEncoderMime.compare("video/avc") == 0)) {
             flagAVC = true;
-            
         }
     }
     return flagMP4 && flagMP4A && flagMP4V && flagAVC;
@@ -153,16 +154,18 @@ HWTEST_F(RecorderProfilesUnitTest, recorder_profile_GetVideoRecorderProfile_0100
     int32_t qualityLevel = RECORDER_QUALITY_LOW;
     std::shared_ptr<VideoRecorderProfile> videoRecorderProfile =
         RecorderProfilesFactory::CreateRecorderProfiles().GetVideoRecorderProfile(sourceId, qualityLevel);
-    EXPECT_EQ("mp4", videoRecorderProfile->containerFormatType);
+    EXPECT_EQ(ContainerFormatType::CFT_MPEG_4, videoRecorderProfile->containerFormatType);
     EXPECT_EQ(96000, videoRecorderProfile->audioBitrate);
     EXPECT_EQ(2, videoRecorderProfile->audioChannels);
-    EXPECT_EQ("audio/mp4a-latm", videoRecorderProfile->audioCodec);
+    EXPECT_EQ(CodecMimeType::AUDIO_AAC, videoRecorderProfile->audioCodec);
     EXPECT_EQ(48000, videoRecorderProfile->audioSampleRate);
     EXPECT_EQ(30, videoRecorderProfile->durationTime);
     EXPECT_EQ(RECORDER_QUALITY_LOW, videoRecorderProfile->qualityLevel);
     EXPECT_EQ(192000, videoRecorderProfile->videoBitrate);
-    EXPECT_EQ("video/mp4v-es", videoRecorderProfile->videoCodec);
+    EXPECT_EQ(CodecMimeType::VIDEO_MPEG4, videoRecorderProfile->videoCodec);
     EXPECT_EQ(176, videoRecorderProfile->videoFrameWidth);
     EXPECT_EQ(144, videoRecorderProfile->videoFrameHeight);
     EXPECT_EQ(30, videoRecorderProfile->videoFrameRate);
 }
+} // namespace Media
+} // namespace OHOS
