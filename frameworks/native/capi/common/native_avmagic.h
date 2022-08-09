@@ -22,7 +22,7 @@
 
 #define AV_MAGIC(a, b, c, d) (((a) << 24) + ((b) << 16) + ((c) << 8) + ((d) << 0))
 
-enum class AVMagic {
+enum AVMagic {
     MEDIA_MAGIC_VIDEO_DECODER = AV_MAGIC('V', 'D', 'E', 'C'),
     MEDIA_MAGIC_VIDEO_ENCODER = AV_MAGIC('V', 'E', 'N', 'C'),
     MEDIA_MAGIC_AUDIO_DECODER = AV_MAGIC('A', 'D', 'E', 'C'),
