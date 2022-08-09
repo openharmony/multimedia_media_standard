@@ -1,0 +1,125 @@
+# Copyright (C) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//build/ohos/ndk/ndk.gni")
+
+MEDIA_ROOT_DIR = "//foundation/multimedia/player_framework"
+
+config("media_capi_config") {
+  include_dirs = [
+    "$MEDIA_ROOT_DIR/interfaces/inner_api/native",
+    "$MEDIA_ROOT_DIR/interfaces/kits/c",
+    "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec",
+    "$MEDIA_ROOT_DIR/frameworks/native/capi/common",
+    "//foundation/graphic/graphic_2d/frameworks/surface/include"
+  ]
+
+  cflags = [
+    "-fno-exceptions",
+    "-Wall",
+    "-fno-common",
+    "-fstack-protector-strong",
+    "-Wshadow",
+    "-FPIC",
+    "-FS",
+    "-O2",
+    "-D_FORTIFY_SOURCE=2",
+    "-Wformat=2",
+    "-Wdate-time",
+  ]
+
+  cflags_cc = [
+    "-std=c++17",
+    "-fno-rtti",
+  ]
+}
+
+ohos_shared_library("media_capi") {
+  install_enable = true
+  sources = [
+    "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_video_decoder.cpp",
+    "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_video_encoder.cpp",
+    "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_audio_decoder.cpp",
+    "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_audio_encoder.cpp",
+    "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_avcodec_base.cpp",
+    "$MEDIA_ROOT_DIR/frameworks/native/capi/common/native_avformat.cpp",
+    "$MEDIA_ROOT_DIR/frameworks/native/capi/common/native_avmemory.cpp",
+  ]
+
+  public_configs = [
+    ":media_capi_config",
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface_public_config",
+  ]
+
+  deps = [
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
+    "//foundation/multimedia/player_framework/services/utils:media_format",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+  ]
+
+  subsystem_name = "multimedia"
+  part_name = "multimedia_player_framework"
+}
+
+ohos_ndk_headers("native_media_header") {
+  dest_dir = "$ndk_headers_out_dir/multimedia/player_framework"
+  sources = [
+    "//foundation/multimedia/player_framework/interfaces/kits/c/native_avcodec_audiodecoder.h",
+    "//foundation/multimedia/player_framework/interfaces/kits/c/native_avcodec_audioencoder.h",
+    "//foundation/multimedia/player_framework/interfaces/kits/c/native_avcodec_base.h",
+    "//foundation/multimedia/player_framework/interfaces/kits/c/native_avcodec_videodecoder.h",
+    "//foundation/multimedia/player_framework/interfaces/kits/c/native_avcodec_videoencoder.h",
+    "//foundation/multimedia/player_framework/interfaces/kits/c/native_averrors.h",
+    "//foundation/multimedia/player_framework/interfaces/kits/c/native_avformat.h",
+    "//foundation/multimedia/player_framework/interfaces/kits/c/native_avmemory.h",
+  ]
+}
+
+ohos_ndk_library("libnative_media_capi") {
+  ndk_description_file = "./libnative_media.capi.json"
+  min_compact_version = "1"
+  output_name = "native_media"
+  output_extension = "so"
+
+  system_capability = [
+    "SystemCapability.Multimedia.Media.Core",
+    "SystemCapability.Multimedia.Media.AudioPlayer",
+    "SystemCapability.Multimedia.Media.VideoPlayer",
+    "SystemCapability.Multimedia.Media.AudioRecorder",
+    "SystemCapability.Multimedia.Media.VideoRecorder",
+    "SystemCapability.Multimedia.Media.AudioDecoder",
+    "SystemCapability.Multimedia.Media.AudioEncoder",
+    "SystemCapability.Multimedia.Media.VideoDecoder",
+    "SystemCapability.Multimedia.Media.VideoEncoder",
+    "SystemCapability.Multimedia.Media.CodecBase",
+    "SystemCapability.Multimedia.Media.Spliter",
+    "SystemCapability.Multimedia.Media.Muxer"
+  ]
+  system_capability_headers = [
+    "native_media/native_avcodec_audiodecoder.h",
+    "native_media/native_avcodec_audioencoder.h",
+    "native_media/native_avcodec_base.h",
+    "native_media/native_avcodec_videodecoder.h",
+    "native_media/native_avcodec_videoencoder.h",
+    "native_media/native_averrors.h",
+    "native_media/native_avformat.h",
+    "native_media/native_avmemory.h",
+  ]
+}
