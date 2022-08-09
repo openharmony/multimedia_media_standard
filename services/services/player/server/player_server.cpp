@@ -343,6 +343,7 @@ int32_t PlayerServer::Stop()
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Stop failed");
 
         lastOpStatus_ = PLAYER_STOPPED;
+        config_.speedMode = SPEED_FORWARD_1_00_X;
         return MSERR_OK;
     } else {
         MEDIA_LOGE("Can not Stop, currentState is %{public}s", GetStatusDescription(lastOpStatus_).c_str());
@@ -382,6 +383,7 @@ int32_t PlayerServer::OnReset()
     (void)idleTask->GetResult();
     (void)taskMgr_.Reset();
     lastOpStatus_ = PLAYER_IDLE;
+    config_.speedMode = SPEED_FORWARD_1_00_X;
 
     return MSERR_OK;
 }
