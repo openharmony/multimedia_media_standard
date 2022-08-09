@@ -180,7 +180,7 @@ struct AVCodec *OH_VideoDecoder_CreateByName(const char *name)
     struct VideoDecoderObject *object = new(std::nothrow) VideoDecoderObject(videoDecoder);
     CHECK_AND_RETURN_RET_LOG(object != nullptr, nullptr, "failed to new VideoDecoderObject");
 
-    return object; 
+    return object;
 }
 
 AVErrCode OH_VideoDecoder_Destroy(struct AVCodec *codec)
