@@ -104,7 +104,8 @@
         ],
         "test": [
             "//foundation/multimedia/player_framework/test/fuzztest:fuzztest",
-            "//foundation/multimedia/player_framework/test:media_unit_test"
+            "//foundation/multimedia/player_framework/test:media_unit_test",
+            "//foundation/multimedia/player_framework/frameworks/native/recorder_profiles/test/unittest:unittest"
         ]
       }
     }
