@@ -894,11 +894,11 @@ napi_value AudioPlayerNapi::GetState(napi_env env, napi_callback_info info)
     return jsResult;
 }
 
-void AudioPlayerNapi::ErrorCallback(MediaServiceExtErrCode errCode)
+void AudioPlayerNapi::ErrorCallback(MediaServiceExtErrCode errCode, std::string errMsg)
 {
     if (callbackNapi_ != nullptr) {
         std::shared_ptr<PlayerCallbackNapi> napiCb = std::static_pointer_cast<PlayerCallbackNapi>(callbackNapi_);
-        napiCb->SendErrorCallback(errCode);
+        napiCb->SendErrorCallback(errCode, errMsg);
     }
 }
 
