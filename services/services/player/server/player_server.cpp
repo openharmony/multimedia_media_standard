@@ -239,10 +239,6 @@ int32_t PlayerServer::HandlePrepare()
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Server Prepare Failed!");
     (void)playerEngine_->SetVolume(config_.leftVolume, config_.rightVolume);
     (void)playerEngine_->SetLooping(config_.looping);
-    if (config_.speedMode != SPEED_FORWARD_1_00_X) {
-        (void)SetPlaybackSpeed(config_.speedMode);
-    }
-
     return MSERR_OK;
 }
 
