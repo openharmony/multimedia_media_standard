@@ -99,7 +99,7 @@ bool RecorderProfilesUnitTest::CheckVideoRecorderCapsArray(
         if ((pVideoRecorderCaps->audioEncoderMime.compare(CodecMimeType::AUDIO_AAC) == 0)) {
             flagMP4A = true;
         }
-        if ((pVideoRecorderCaps->videoEncoderMime.compare("video/mp4v-es") == 0)) {
+        if ((pVideoRecorderCaps->videoEncoderMime.compare(CodecMimeType::VIDEO_MPEG4) == 0)) {
             flagMP4V = true;
             EXPECT_GE(pVideoRecorderCaps->audioBitrateRange.minVal, 0);
             EXPECT_GE(pVideoRecorderCaps->audioChannelRange.minVal, 0);
@@ -109,7 +109,7 @@ bool RecorderProfilesUnitTest::CheckVideoRecorderCapsArray(
             EXPECT_GE(pVideoRecorderCaps->videoHeightRange.minVal, 0);
             EXPECT_GE(pVideoRecorderCaps->audioSampleRates.size(), 0);
         }
-        if ((pVideoRecorderCaps->videoEncoderMime.compare("video/avc") == 0)) {
+        if ((pVideoRecorderCaps->videoEncoderMime.compare(CodecMimeType::VIDEO_AVC) == 0)) {
             flagAVC = true;
         }
     }
