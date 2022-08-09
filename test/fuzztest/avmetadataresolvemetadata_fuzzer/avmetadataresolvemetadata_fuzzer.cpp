@@ -25,6 +25,8 @@ using namespace std;
 using namespace OHOS;
 using namespace Media;
 
+namespace OHOS {
+namespace Media {
 AVMetadataResolveMetadataFuzzer::AVMetadataResolveMetadataFuzzer()
 {
 }
@@ -78,17 +80,19 @@ bool AVMetadataResolveMetadataFuzzer::FuzzAVMetadataResolveMetadata(uint8_t *dat
     cout << "success!" << endl;
     return true;
 }
+}
 
-bool OHOS::Media::FuzzTestAVMetadataResolveMetadata(uint8_t *data, size_t size)
+bool FuzzTestAVMetadataResolveMetadata(uint8_t *data, size_t size)
 {
     AVMetadataResolveMetadataFuzzer metadata;
     return metadata.FuzzAVMetadataResolveMetadata(data, size);
+}
 }
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Media::FuzzTestAVMetadataResolveMetadata(data, size);
+    OHOS::FuzzTestAVMetadataResolveMetadata(data, size);
     return 0;
 }

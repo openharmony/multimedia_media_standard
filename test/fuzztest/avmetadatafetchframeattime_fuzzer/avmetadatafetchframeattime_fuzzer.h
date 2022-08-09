@@ -21,7 +21,6 @@
 
 namespace OHOS {
 namespace Media {
-bool FuzzTestAVMetadataFetchFrameAtTime(uint8_t *data, size_t size);
 class AVMetadataFetchFrameAtTimeFuzzer : public TestMetadata {
 public:
     AVMetadataFetchFrameAtTimeFuzzer();
@@ -29,5 +28,6 @@ public:
     bool FuzzAVMetadataFetchFrameAtTime(uint8_t *data, size_t size);
 };
 }
+bool FuzzTestAVMetadataFetchFrameAtTime(uint8_t *data, size_t size);
 }
 #endif
