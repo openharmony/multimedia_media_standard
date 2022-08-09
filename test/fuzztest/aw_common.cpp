@@ -24,7 +24,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <cstdio.h>
+#include <stdio.h>
 
 using namespace std;
 using namespace OHOS;
