@@ -156,7 +156,7 @@ struct AVCodec *OH_VideoEncoder_CreateByName(const char *name)
     struct VideoEncoderObject *object = new(std::nothrow) VideoEncoderObject(videoEncoder);
     CHECK_AND_RETURN_RET_LOG(object != nullptr, nullptr, "failed to new VideoEncoderObject");
 
-    return object; 
+    return object;
 }
 
 AVErrCode OH_VideoEncoder_Destroy(struct AVCodec *codec)
@@ -303,7 +303,7 @@ AVErrCode OH_VideoEncoder_GetSurface(struct AVCodec *codec, struct NativeWindow 
     CHECK_AND_RETURN_RET_LOG(videoEncObj->videoEncoder_ != nullptr, AV_ERR_INVALID_VAL, "videoEncoder_ is nullptr!");
 
     window->surface = videoEncObj->videoEncoder_->CreateInputSurface();
-    CHECK_AND_RETURN_RET_LOG(window->surface != nullptr, AV_ERR_OPERATE_NOT_PERMIT, "videoEncoder CreateInputSurface failed!");
+    CHECK_AND_RETURN_RET_LOG(window->surface != nullptr, AV_ERR_OPERATE_NOT_PERMIT, "venc createInputSurface failed!");
 
     return AV_ERR_OK;
 }
