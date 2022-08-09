@@ -90,6 +90,7 @@ public:
 
 protected:
     void HandleStateChange(int32_t newState) override;
+    void StateEnter() override;
 };
 
 class PlayerServer::PlayingState : public PlayerServer::BaseState {
