@@ -45,7 +45,7 @@ bool PlayerSeekFuzzer::FuzzSeek(uint8_t* data, size_t size)
     if (ret != 0) {
         cout << "SetPlayerCallback fail" << endl;
     }
-    const string path = "/data/test/resource/H264_AAC.mp4";
+    const string path = "/data/test/media/H264_AAC.mp4";
     if ((SetFdSource(path)) != 0) {
         cout << "SetFdSource fail" << endl;
         return false;
