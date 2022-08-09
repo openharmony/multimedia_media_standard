@@ -52,7 +52,8 @@ enum MediaServiceErrCode : ErrCode {
     MSERR_UNSUPPORT_PROTOCOL_TYPE,                    // unsupport protocol type.
     MSERR_UNSUPPORT_VID_DEC_TYPE,                     // unsupport video decoder type.
     MSERR_UNSUPPORT_AUD_DEC_TYPE,                     // unsupport audio decoder type.
-    MSERR_UNSUPPORT_STREAM,                           // unsupport stream type.
+    MSERR_UNSUPPORT_STREAM,                           // internal data stream error.
+    MSERR_UNSUPPORT_FILE,                             // this appears to be a text file.
     MSERR_UNSUPPORT_SOURCE,                           // unsupport source type.
     MSERR_AUD_ENC_FAILED,                             // audio encode failed.
     MSERR_VID_ENC_FAILED,                             // video encode failed.
