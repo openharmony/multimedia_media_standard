@@ -22,7 +22,7 @@ config("media_capi_config") {
     "$MEDIA_ROOT_DIR/interfaces/kits/c",
     "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec",
     "$MEDIA_ROOT_DIR/frameworks/native/capi/common",
-    "//foundation/graphic/graphic_2d/frameworks/surface/include"
+    "//foundation/graphic/graphic_2d/frameworks/surface/include",
   ]
 
   cflags = [
@@ -48,11 +48,11 @@ config("media_capi_config") {
 ohos_shared_library("media_capi") {
   install_enable = true
   sources = [
-    "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_video_decoder.cpp",
-    "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_video_encoder.cpp",
     "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_audio_decoder.cpp",
     "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_audio_encoder.cpp",
     "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_avcodec_base.cpp",
+    "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_video_decoder.cpp",
+    "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_video_encoder.cpp",
     "$MEDIA_ROOT_DIR/frameworks/native/capi/common/native_avformat.cpp",
     "$MEDIA_ROOT_DIR/frameworks/native/capi/common/native_avmemory.cpp",
   ]
@@ -70,9 +70,7 @@ ohos_shared_library("media_capi") {
     "//utils/native/base:utils",
   ]
 
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-  ]
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
   subsystem_name = "multimedia"
   part_name = "multimedia_player_framework"
@@ -110,7 +108,7 @@ ohos_ndk_library("libnative_media_capi") {
     "SystemCapability.Multimedia.Media.VideoEncoder",
     "SystemCapability.Multimedia.Media.CodecBase",
     "SystemCapability.Multimedia.Media.Spliter",
-    "SystemCapability.Multimedia.Media.Muxer"
+    "SystemCapability.Multimedia.Media.Muxer",
   ]
   system_capability_headers = [
     "native_media/native_avcodec_audiodecoder.h",
