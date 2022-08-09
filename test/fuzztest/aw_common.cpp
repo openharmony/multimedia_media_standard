@@ -19,12 +19,10 @@
 #include "string_ex.h"
 #include "media_errors.h"
 #include "directory_ex.h"
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <cstdio.h>
 
 using namespace std;
 using namespace OHOS;
