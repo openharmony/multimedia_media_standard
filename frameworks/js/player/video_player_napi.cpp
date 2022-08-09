@@ -1377,11 +1377,11 @@ napi_value VideoPlayerNapi::GetHeight(napi_env env, napi_callback_info info)
     return jsResult;
 }
 
-void VideoPlayerNapi::OnErrorCallback(MediaServiceExtErrCode errCode)
+void VideoPlayerNapi::OnErrorCallback(MediaServiceExtErrCode errCode, std::string errMsg)
 {
     if (jsCallback_ != nullptr) {
         auto cb = std::static_pointer_cast<VideoCallbackNapi>(jsCallback_);
-        cb->SendErrorCallback(errCode);
+        cb->SendErrorCallback(errCode, errMsg);
     }
 }
 
