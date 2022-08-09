@@ -609,7 +609,10 @@ static GstFlowReturn gst_audio_server_sink_render(GstBaseSink *basesink, GstBuff
 {
     g_return_val_if_fail(basesink != nullptr, GST_FLOW_ERROR);
     g_return_val_if_fail(buffer != nullptr, GST_FLOW_ERROR);
-    g_return_val_if_fail(gst_buffer_get_size(buffer) != 0, GST_FLOW_OK);
+    if (gst_buffer_get_size(buffer) == 0) {
+        GST_INFO_OBJECT(basesink, "gst_buffer_get_size = 0");
+        return GST_FLOW_OK;
+    }
     GstAudioServerSink *sink = GST_AUDIO_SERVER_SINK(basesink);
     g_return_val_if_fail(sink != nullptr, GST_FLOW_ERROR);
     g_return_val_if_fail(sink->audio_sink != nullptr, GST_FLOW_ERROR);
