@@ -28,6 +28,8 @@ using namespace OHOS;
 using namespace Media;
 using namespace PlayerTestParam;
 
+namespace OHOS {
+namespace Media {
 AVMetadataFetchFrameAtTimeFuzzer::AVMetadataFetchFrameAtTimeFuzzer()
 {
 }
@@ -95,17 +97,19 @@ bool AVMetadataFetchFrameAtTimeFuzzer::FuzzAVMetadataFetchFrameAtTime(uint8_t *d
     cout << "success!" << endl;
     return true;
 }
+}
 
-bool OHOS::Media::FuzzTestAVMetadataFetchFrameAtTime(uint8_t *data, size_t size)
+bool FuzzTestAVMetadataFetchFrameAtTime(uint8_t *data, size_t size)
 {
     AVMetadataFetchFrameAtTimeFuzzer metadata;
     return metadata.FuzzAVMetadataFetchFrameAtTime(data, size);
+}
 }
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Media::FuzzTestAVMetadataFetchFrameAtTime(data, size);
+    OHOS::FuzzTestAVMetadataFetchFrameAtTime(data, size);
     return 0;
 }
