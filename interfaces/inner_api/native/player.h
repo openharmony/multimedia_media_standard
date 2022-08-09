@@ -65,8 +65,8 @@ enum PlayerErrorType : int32_t {
     PLAYER_ERROR,
     /* Unknown error */
     PLAYER_ERROR_UNKNOWN,
-     /** extend error type start,The extension error type agreed upon by the plug-in and
-         the application will be transparently transmitted by the service. */
+    /* extend error type start,The extension error type agreed upon by the plug-in and
+       the application will be transparently transmitted by the service. */
     PLAYER_ERROR_EXTEND_START = 0X10000,
 };
 
@@ -447,7 +447,7 @@ public:
      * @version 1.0
      */
     virtual int32_t SelectBitRate(uint32_t bitRate) = 0;
-    
+
     /**
      * @brief Method to set the surface.
      *
