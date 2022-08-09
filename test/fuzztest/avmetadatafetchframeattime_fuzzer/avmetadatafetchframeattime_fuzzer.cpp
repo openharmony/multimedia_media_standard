@@ -42,6 +42,7 @@ bool AVMetadataFetchFrameAtTimeFuzzer::FuzzAVMetadataFetchFrameAtTime(uint8_t *d
     constexpr int32_t AV_COLOR_FORMAT_LIST = 11;
 
     avmetadata = AVMetadataHelperFactory::CreateAVMetadataHelper();
+    cout << "start!" << endl;
     if (avmetadata == nullptr) {
         cout << "avmetadata is null" << endl;
         avmetadata->Release();
@@ -91,6 +92,7 @@ bool AVMetadataFetchFrameAtTimeFuzzer::FuzzAVMetadataFetchFrameAtTime(uint8_t *d
         }
     }
     avmetadata->Release();
+    cout << "success!" << endl;
     return true;
 }
 

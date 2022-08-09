@@ -38,6 +38,7 @@ bool AVMetadataResolveMetadataFuzzer::FuzzAVMetadataResolveMetadata(uint8_t *dat
     constexpr int32_t AV_METADATA_CODELIST = 17;
 
     avmetadata = AVMetadataHelperFactory::CreateAVMetadataHelper();
+    cout << "start!" << endl;
     if (avmetadata == nullptr) {
         cout << "avmetadata is null" << endl;
         avmetadata->Release();
@@ -74,6 +75,7 @@ bool AVMetadataResolveMetadataFuzzer::FuzzAVMetadataResolveMetadata(uint8_t *dat
     int32_t keyParameter = avMetadataCodes[*reinterpret_cast<int64_t *>(data) % AV_METADATA_CODELIST];
     std::string retResolvemetadata = avmetadata->ResolveMetadata(keyParameter);
     avmetadata->Release();
+    cout << "success!" << endl;
     return true;
 }
 

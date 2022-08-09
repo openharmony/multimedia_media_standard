@@ -37,6 +37,7 @@ AVMetadataFileFuzzer::~AVMetadataFileFuzzer()
 bool AVMetadataFileFuzzer::FuzzAVMetadataFile(uint8_t *data, size_t size)
 {
     avmetadata = OHOS::Media::AVMetadataHelperFactory::CreateAVMetadataHelper();
+    cout << "start!" << endl;
     if (avmetadata == nullptr) {
         cout << "avmetadata is null" << endl;
         avmetadata->Release();
@@ -74,6 +75,7 @@ bool AVMetadataFileFuzzer::FuzzAVMetadataFile(uint8_t *data, size_t size)
     }
     
     avmetadata->Release();
+    cout << "success!" << endl;
     return true;
 }
 
