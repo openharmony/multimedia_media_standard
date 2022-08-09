@@ -239,10 +239,6 @@ int32_t PlayerServer::HandlePrepare()
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Server Prepare Failed!");
     (void)playerEngine_->SetVolume(config_.leftVolume, config_.rightVolume);
     (void)playerEngine_->SetLooping(config_.looping);
-    if (config_.speedMode != SPEED_FORWARD_1_00_X) {
-        (void)SetPlaybackSpeed(config_.speedMode);
-    }
-
     return MSERR_OK;
 }
 
@@ -343,7 +339,6 @@ int32_t PlayerServer::Stop()
         CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "Stop failed");
 
         lastOpStatus_ = PLAYER_STOPPED;
-        config_.speedMode = SPEED_FORWARD_1_00_X;
         return MSERR_OK;
     } else {
         MEDIA_LOGE("Can not Stop, currentState is %{public}s", GetStatusDescription(lastOpStatus_).c_str());
@@ -383,7 +378,6 @@ int32_t PlayerServer::OnReset()
     (void)idleTask->GetResult();
     (void)taskMgr_.Reset();
     lastOpStatus_ = PLAYER_IDLE;
-    config_.speedMode = SPEED_FORWARD_1_00_X;
 
     return MSERR_OK;
 }
