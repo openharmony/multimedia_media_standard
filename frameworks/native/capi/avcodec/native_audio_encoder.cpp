@@ -180,7 +180,7 @@ struct AVCodec *OH_AudioEncoder_CreateByName(const char *name)
     struct AudioEncoderObject *object = new(std::nothrow) AudioEncoderObject(audioEncoder);
     CHECK_AND_RETURN_RET_LOG(object != nullptr, nullptr, "failed to new AudioEncoderObject");
 
-    return object; 
+    return object;
 }
 
 AVErrCode OH_AudioEncoder_Destroy(struct AVCodec *codec)
