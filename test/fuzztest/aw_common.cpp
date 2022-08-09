@@ -32,6 +32,7 @@ using namespace PlayerTestParam;
 
 namespace OHOS {
 namespace Media {
+namespace PlayerTestParam {
 int32_t PlayerTestParam::WriteDataToFile(const string &path, const uint8_t *data, size_t size)
 {
     FILE *file = nullptr;
@@ -58,6 +59,7 @@ int32_t PlayerTestParam::ProduceRandomNumberCrypt()
     }
     close(fd);
     return r;
+}
 }
 }
 }
