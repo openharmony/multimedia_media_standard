@@ -18,6 +18,7 @@
 #include "media_errors.h"
 #include "ui/rs_surface_node.h"
 #include "window_option.h"
+
 using namespace OHOS::Media::PlayerTestParam;
 
 namespace OHOS {
@@ -36,7 +37,6 @@ void PlayerCallbackTest::SetSpeedDoneFlag(bool speedDoneFlag)
 {
     speedDoneFlag_ = speedDoneFlag;
 }
-
 
 void PlayerCallbackTest::SetSeekPosition(int32_t seekPosition)
 {

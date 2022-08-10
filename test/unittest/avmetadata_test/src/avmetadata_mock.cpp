@@ -220,6 +220,7 @@ void AVMetadataMock::SurfaceToFile(std::shared_ptr<AVSharedMemory> frame,
     const uint8_t *data = frame->GetBase();
     EXPECT_NE(data, nullptr);
     int32_t bufferSize = frame->GetSize();
+    uint32_t flag = frame->GetFlags();
     const uint8_t MAX_FILE_PATH_LENGTH = 255;
     char filePath[MAX_FILE_PATH_LENGTH];
     if (access("/data/test/SurfaceBak", 0) != F_OK) {
@@ -227,7 +228,7 @@ void AVMetadataMock::SurfaceToFile(std::shared_ptr<AVSharedMemory> frame,
     }
     auto ret = sprintf_s(filePath, MAX_FILE_PATH_LENGTH, "/data/test/SurfaceBak/%s.pixel", fileName);
     if (ret <= 0) {
-        std::cout << "generate file path failed" << std::endl;
+        std::cout << "generate file path failed, flag:" << flag << std::endl;
         return;
     }
     FILE *desFile = fopen(filePath, "wb");

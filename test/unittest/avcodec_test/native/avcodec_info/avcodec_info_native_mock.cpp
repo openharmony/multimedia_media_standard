@@ -75,9 +75,10 @@ std::shared_ptr<AVCodecInfoMock> VideoCapsNativeMock::GetCodecInfo() const
 
 RangeMock VideoCapsNativeMock::GetSupportedBitrate() const
 {
-    RangeMock bitrate = RangeMock();
+    RangeMock bitrate;
     if (videoCaps_ != nullptr) {
-        bitrate = RangeNativeMock(videoCaps_->GetSupportedBitrate());
+        bitrate.minVal = videoCaps_->GetSupportedBitrate().minVal;
+        bitrate.maxVal = videoCaps_->GetSupportedBitrate().maxVal;
     }
     return bitrate;
 }
@@ -109,18 +110,20 @@ int32_t VideoCapsNativeMock::GetSupportedWidthAlignment() const
 
 RangeMock VideoCapsNativeMock::GetSupportedWidth() const
 {
-    RangeMock width = RangeMock();
+    RangeMock width;
     if (videoCaps_ != nullptr) {
-        width = RangeNativeMock(videoCaps_->GetSupportedWidth());
+        width.minVal = videoCaps_->GetSupportedWidth().minVal;
+        width.maxVal = videoCaps_->GetSupportedWidth().maxVal;
     }
     return width;
 }
 
 RangeMock VideoCapsNativeMock::GetSupportedHeight() const
 {
-    RangeMock height = RangeMock();
+    RangeMock height;
     if (videoCaps_ != nullptr) {
-        height = RangeNativeMock(videoCaps_->GetSupportedHeight());
+        height.minVal = videoCaps_->GetSupportedHeight().minVal;
+        height.maxVal = videoCaps_->GetSupportedHeight().maxVal;
     }
     return height;
 }
@@ -145,9 +148,10 @@ std::vector<int32_t> VideoCapsNativeMock::GetSupportedLevels() const
 
 RangeMock VideoCapsNativeMock::GetSupportedEncodeQuality() const
 {
-    RangeMock quality = RangeMock();
+    RangeMock quality;
     if (videoCaps_ != nullptr) {
-        quality = RangeNativeMock(videoCaps_->GetSupportedEncodeQuality());
+        quality.minVal = videoCaps_->GetSupportedEncodeQuality().minVal;
+        quality.maxVal = videoCaps_->GetSupportedEncodeQuality().maxVal;
     }
     return quality;
 }
@@ -162,18 +166,20 @@ bool VideoCapsNativeMock::IsSizeSupported(int32_t width, int32_t height) const
 
 RangeMock VideoCapsNativeMock::GetSupportedFrameRate() const
 {
-    RangeMock frameRates = RangeMock();
+    RangeMock frameRates;
     if (videoCaps_ != nullptr) {
-        frameRates = RangeNativeMock(videoCaps_->GetSupportedFrameRate());
+        frameRates.minVal = videoCaps_->GetSupportedFrameRate().minVal;
+        frameRates.maxVal = videoCaps_->GetSupportedFrameRate().maxVal;
     }
     return frameRates;
 }
 
 RangeMock VideoCapsNativeMock::GetSupportedFrameRatesFor(int32_t width, int32_t height) const
 {
-    RangeMock frameRates = RangeMock();
+    RangeMock frameRates;
     if (videoCaps_ != nullptr) {
-        frameRates = RangeNativeMock(videoCaps_->GetSupportedFrameRatesFor(width, height));
+        frameRates.minVal = videoCaps_->GetSupportedFrameRatesFor(width, height).minVal;
+        frameRates.maxVal = videoCaps_->GetSupportedFrameRatesFor(width, height).maxVal;
     }
     return frameRates;
 }
@@ -188,9 +194,10 @@ bool VideoCapsNativeMock::IsSizeAndRateSupported(int32_t width, int32_t height, 
 
 RangeMock VideoCapsNativeMock::GetPreferredFrameRate(int32_t width, int32_t height) const
 {
-    RangeMock frameRate = RangeMock();
+    RangeMock frameRate;
     if (videoCaps_ != nullptr) {
-        frameRate = RangeNativeMock(videoCaps_->GetPreferredFrameRate(width, height));
+        frameRate.minVal = videoCaps_->GetPreferredFrameRate(width, height).minVal;
+        frameRate.maxVal = videoCaps_->GetPreferredFrameRate(width, height).maxVal;
     }
     return frameRate;
 }
@@ -206,18 +213,20 @@ std::vector<int32_t> VideoCapsNativeMock::GetSupportedBitrateMode() const
 
 RangeMock VideoCapsNativeMock::GetSupportedQuality() const
 {
-    RangeMock quality = RangeMock();
+    RangeMock quality;
     if (videoCaps_ != nullptr) {
-        quality = RangeNativeMock(videoCaps_->GetSupportedQuality());
+        quality.minVal = videoCaps_->GetSupportedQuality().minVal;
+        quality.maxVal = videoCaps_->GetSupportedQuality().maxVal;
     }
     return quality;
 }
 
 RangeMock VideoCapsNativeMock::GetSupportedComplexity() const
 {
-    RangeMock complexity = RangeMock();
+    RangeMock complexity;
     if (videoCaps_ != nullptr) {
-        complexity = RangeNativeMock(videoCaps_->GetSupportedComplexity());
+        complexity.minVal = videoCaps_->GetSupportedComplexity().minVal;
+        complexity.maxVal = videoCaps_->GetSupportedComplexity().maxVal;
     }
     return complexity;
 }
@@ -240,20 +249,22 @@ std::shared_ptr<AVCodecInfoMock> AudioCapsNativeMock::GetCodecInfo() const
 
 RangeMock AudioCapsNativeMock::GetSupportedBitrate() const
 {
-    RangeMock bitrate = RangeMock();
+    RangeMock bitrate;
     if (audioCaps_ != nullptr) {
-        bitrate = RangeNativeMock(audioCaps_->GetSupportedBitrate());
+        bitrate.minVal = audioCaps_->GetSupportedBitrate().minVal;
+        bitrate.maxVal = audioCaps_->GetSupportedBitrate().maxVal;
     }
     return bitrate;
 }
 
 RangeMock AudioCapsNativeMock::GetSupportedChannel() const
 {
-    RangeMock channal = RangeMock();
+    RangeMock channel;
     if (audioCaps_ != nullptr) {
-        channal = RangeNativeMock(audioCaps_->GetSupportedChannel());
+        channel.minVal = audioCaps_->GetSupportedChannel().minVal;
+        channel.maxVal = audioCaps_->GetSupportedChannel().maxVal;
     }
-    return channal;
+    return channel;
 }
 
 std::vector<int32_t> AudioCapsNativeMock::GetSupportedFormats() const
@@ -294,9 +305,10 @@ std::vector<int32_t> AudioCapsNativeMock::GetSupportedLevels() const
 
 RangeMock AudioCapsNativeMock::GetSupportedComplexity() const
 {
-    RangeMock complexity = RangeMock();
+    RangeMock complexity;
     if (audioCaps_ != nullptr) {
-        complexity = RangeNativeMock(audioCaps_->GetSupportedComplexity());
+        complexity.minVal = audioCaps_->GetSupportedComplexity().minVal;
+        complexity.maxVal = audioCaps_->GetSupportedComplexity().maxVal;
     }
     return complexity;
 }
