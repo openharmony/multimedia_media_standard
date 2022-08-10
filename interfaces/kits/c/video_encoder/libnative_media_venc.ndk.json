@@ -1,0 +1,17 @@
+[
+    { "name": "OH_VideoEncoder_CreateByMime" },
+    { "name": "OH_VideoEncoder_CreateByName" },
+    { "name": "OH_VideoEncoder_Destroy" },
+    { "name": "OH_VideoEncoder_SetCallback" },
+    { "name": "OH_VideoEncoder_Configure" },
+    { "name": "OH_VideoEncoder_Prepare" },
+    { "name": "OH_VideoEncoder_Start" },
+    { "name": "OH_VideoEncoder_Stop" },
+    { "name": "OH_VideoEncoder_Flush" },
+    { "name": "OH_VideoEncoder_Reset" },
+    { "name": "OH_VideoEncoder_GetOutputDescription" },
+    { "name": "OH_VideoEncoder_SetParameter" },
+    { "name": "OH_VideoEncoder_GetSurface" },
+    { "name": "OH_VideoEncoder_FreeOutputData" },
+    { "name": "OH_VideoEncoder_NotifyEndOfStream" }
+]

@@ -1,0 +1,16 @@
+[
+    { "name": "OH_AudioEncoder_CreateByMime" },
+    { "name": "OH_AudioEncoder_CreateByName" },
+    { "name": "OH_AudioEncoder_Destroy" },
+    { "name": "OH_AudioEncoder_SetCallback" },
+    { "name": "OH_AudioEncoder_Configure" },
+    { "name": "OH_AudioEncoder_Prepare" },
+    { "name": "OH_AudioEncoder_Start" },
+    { "name": "OH_AudioEncoder_Stop" },
+    { "name": "OH_AudioEncoder_Flush" },
+    { "name": "OH_AudioEncoder_Reset" },
+    { "name": "OH_AudioEncoder_GetOutputDescription" },
+    { "name": "OH_AudioEncoder_SetParameter" },
+    { "name": "OH_AudioEncoder_PushInputData" },
+    { "name": "OH_AudioEncoder_FreeOutputData" }
+]
