@@ -45,9 +45,9 @@ HWTEST_F(RecorderProfilesUnitTest, recorder_profile_IsAudioRecoderConfigSupporte
     std::shared_ptr<AudioRecorderProfile> profile  = std::make_shared<AudioRecorderProfile>();
     profile->containerFormatType = ContainerFormatType::CFT_MPEG_4;
     profile->audioCodec = CodecMimeType::AUDIO_AAC;
-    profile->audioBitrate = 96000;
-    profile->audioSampleRate = 48000;
-    profile->audioChannels = 2;
+    profile->audioBitrate = 96000; // 96000 common bitrate
+    profile->audioSampleRate = 48000; // 48000 common sample rate
+    profile->audioChannels = 2; // 2 common channels
     EXPECT_TRUE(RecorderProfilesFactory::CreateRecorderProfiles().IsAudioRecoderConfigSupported(*profile));
 }
 
@@ -155,17 +155,17 @@ HWTEST_F(RecorderProfilesUnitTest, recorder_profile_GetVideoRecorderProfile_0100
     std::shared_ptr<VideoRecorderProfile> videoRecorderProfile =
         RecorderProfilesFactory::CreateRecorderProfiles().GetVideoRecorderProfile(sourceId, qualityLevel);
     EXPECT_EQ(ContainerFormatType::CFT_MPEG_4, videoRecorderProfile->containerFormatType);
-    EXPECT_EQ(96000, videoRecorderProfile->audioBitrate);
-    EXPECT_EQ(2, videoRecorderProfile->audioChannels);
+    EXPECT_EQ(96000, videoRecorderProfile->audioBitrate); // 96000 expect audio bitrate
+    EXPECT_EQ(2, videoRecorderProfile->audioChannels); // 2 expect channels
     EXPECT_EQ(CodecMimeType::AUDIO_AAC, videoRecorderProfile->audioCodec);
-    EXPECT_EQ(48000, videoRecorderProfile->audioSampleRate);
-    EXPECT_EQ(30, videoRecorderProfile->durationTime);
+    EXPECT_EQ(48000, videoRecorderProfile->audioSampleRate); // 48000 expect sample rate
+    EXPECT_EQ(30, videoRecorderProfile->durationTime); // 30 expect duration time
     EXPECT_EQ(RECORDER_QUALITY_LOW, videoRecorderProfile->qualityLevel);
-    EXPECT_EQ(192000, videoRecorderProfile->videoBitrate);
+    EXPECT_EQ(192000, videoRecorderProfile->videoBitrate); // 192000 expect video bitrate
     EXPECT_EQ(CodecMimeType::VIDEO_MPEG4, videoRecorderProfile->videoCodec);
-    EXPECT_EQ(176, videoRecorderProfile->videoFrameWidth);
-    EXPECT_EQ(144, videoRecorderProfile->videoFrameHeight);
-    EXPECT_EQ(30, videoRecorderProfile->videoFrameRate);
+    EXPECT_EQ(176, videoRecorderProfile->videoFrameWidth); // 176 expect width
+    EXPECT_EQ(144, videoRecorderProfile->videoFrameHeight); // 144 expect height
+    EXPECT_EQ(30, videoRecorderProfile->videoFrameRate); // 30 expect frame rate
 }
 } // namespace Media
 } // namespace OHOS
