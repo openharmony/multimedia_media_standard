@@ -72,6 +72,7 @@
           "//foundation/multimedia/player_framework/interfaces/kits/js:media",
           "//foundation/multimedia/player_framework/interfaces/kits/js:media_js",
           "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
+          "//foundation/multimedia/player_framework/interfaces/kits/c:media_capi",
           "//foundation/multimedia/player_framework/test/nativedemo:media_demo"
         ],
         "service_group": [
