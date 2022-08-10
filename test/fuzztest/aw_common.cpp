@@ -42,9 +42,9 @@ int32_t WriteDataToFile(const std::string &path, const std::uint8_t *data, std::
         return -1;
     }
     if (fwrite(data, 1, size, file) != size) {
-            cout << "[fuzz] write data failed" << endl;
-            (void)fclose(file);
-            return -1;
+        cout << "[fuzz] write data failed" << endl;
+        (void)fclose(file);
+        return -1;
     }
     (void)fclose(file);
     return 0;
