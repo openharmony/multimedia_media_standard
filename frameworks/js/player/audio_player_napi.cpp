@@ -43,9 +43,6 @@ AudioPlayerNapi::AudioPlayerNapi()
 
 AudioPlayerNapi::~AudioPlayerNapi()
 {
-    if (nativePlayer_ != nullptr) {
-        (void)nativePlayer_->SetPlayerCallback(nullptr);
-    }
     nativePlayer_ = nullptr;
     callbackNapi_ = nullptr;
     dataSrcCallBack_ = nullptr;
@@ -221,16 +218,18 @@ napi_value AudioPlayerNapi::SetSrc(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
+    if (player->nativePlayer_ == nullptr) {
+        player->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
+
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_string) {
-        player->uri_.clear();
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL, "napi_typeof failed, please check the input parameters");
         return undefinedResult;
     }
 
     player->uri_ = CommonNapi::GetStringArgument(env, args[0]);
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
-
     const std::string fdHead = "fd://";
     const std::string httpHead = "http";
     int32_t ret = MSERR_EXT_INVALID_VAL;
@@ -239,7 +238,7 @@ napi_value AudioPlayerNapi::SetSrc(napi_env env, napi_callback_info info)
     if (player->uri_.find(fdHead) != std::string::npos) {
         std::string inputFd = player->uri_.substr(fdHead.size());
         if (!StrToInt(inputFd, fd) || fd < 0) {
-            player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+            player->ErrorCallback(MSERR_EXT_INVALID_VAL, "invalid parameters, please check the input parameters");
             return undefinedResult;
         }
 
@@ -250,13 +249,13 @@ napi_value AudioPlayerNapi::SetSrc(napi_env env, napi_callback_info info)
 
     if (ret != MSERR_OK) {
         MEDIA_LOGE("input url error!");
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to SetSource");
         return undefinedResult;
     }
 
     ret = player->nativePlayer_->PrepareAsync();
     if (ret != MSERR_OK) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to PrepareAsync");
         return undefinedResult;
     }
 
@@ -282,10 +281,6 @@ napi_value AudioPlayerNapi::GetSrc(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
 
-    if (player->uri_.empty()) {
-        return undefinedResult;
-    }
-
     status = napi_create_string_utf8(env, player->uri_.c_str(), NAPI_AUTO_LENGTH, &jsResult);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_create_string_utf8 error");
 
@@ -309,31 +304,35 @@ napi_value AudioPlayerNapi::SetMediaDataSrc(napi_env env, napi_callback_info inf
     AudioPlayerNapi *player = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
+    if (player->nativePlayer_ == nullptr) {
+        player->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
+
     if (player->dataSrcCallBack_ != nullptr) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to set source(Repeat settings)");
         return undefinedResult;
     }
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_object) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL, "napi_typeof failed, please check the input parameters");
         return undefinedResult;
     }
 
     player->dataSrcCallBack_ = MediaDataSourceCallback::Create(env, args[0]);
     if (player->dataSrcCallBack_ == nullptr) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to create datasource");
         return undefinedResult;
     }
     int32_t ret = player->nativePlayer_->SetSource(player->dataSrcCallBack_);
     if (ret != MSERR_OK) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to SetSource dataSrc");
         return undefinedResult;
     }
 
     ret = player->nativePlayer_->PrepareAsync();
     if (ret != MSERR_OK) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to SetSource PrepareAsync");
         return undefinedResult;
     }
     MEDIA_LOGD("SetMediaDataSrc success");
@@ -357,13 +356,15 @@ napi_value AudioPlayerNapi::GetMediaDataSrc(napi_env env, napi_callback_info inf
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
     if (player->dataSrcCallBack_ == nullptr) {
-        player->ErrorCallback(MSERR_EXT_NO_MEMORY);
+        player->ErrorCallback(MSERR_EXT_NO_MEMORY, "data src is nullptr, please set data src again");
         return undefinedResult;
     }
 
     jsResult = player->dataSrcCallBack_->GetDataSrc();
-    CHECK_AND_RETURN_RET_LOG(jsResult != nullptr, undefinedResult, "Failed to get the representation of src object");
-
+    if (jsResult == nullptr) {
+        player->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to GetDataSrc");
+        return undefinedResult;
+    }
     MEDIA_LOGD("GetMediaDataSrc success");
     return jsResult;
 }
@@ -383,29 +384,32 @@ napi_value AudioPlayerNapi::SetFdSrc(napi_env env, napi_callback_info info)
     AudioPlayerNapi *player = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
+    if (player->nativePlayer_ == nullptr) {
+        player->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
 
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_object) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL, "napi_typeof failed, please check the input parameters");
         return undefinedResult;
     }
 
     if (!CommonNapi::GetFdArgument(env, args[0], player->rawFd_)) {
         MEDIA_LOGE("get rawfd argument failed!");
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL, "invalid parameters, please check the input parameters");
         return undefinedResult;
     }
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->SetSource(player->rawFd_.fd, player->rawFd_.offset, player->rawFd_.length);
     if (ret != MSERR_OK) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to SetSource rawFd");
         return undefinedResult;
     }
 
     ret = player->nativePlayer_->PrepareAsync();
     if (ret != MSERR_OK) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to PrepareAsync");
         return undefinedResult;
     }
 
@@ -461,10 +465,13 @@ napi_value AudioPlayerNapi::Play(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
+    if (player->nativePlayer_ == nullptr) {
+        player->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
     int32_t ret = player->nativePlayer_->Play();
     if (ret != MSERR_OK) {
-        player->ErrorCallback(MSERR_EXT_UNKNOWN);
+        player->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to Play");
         return undefinedResult;
     }
     MEDIA_LOGD("Play success");
@@ -488,10 +495,13 @@ napi_value AudioPlayerNapi::Pause(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
+    if (player->nativePlayer_ == nullptr) {
+        player->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
     int32_t ret = player->nativePlayer_->Pause();
     if (ret != MSERR_OK) {
-        player->ErrorCallback(MSERR_EXT_UNKNOWN);
+        player->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to Pause");
         return undefinedResult;
     }
     MEDIA_LOGD("Pause success");
@@ -515,10 +525,13 @@ napi_value AudioPlayerNapi::Stop(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
+    if (player->nativePlayer_ == nullptr) {
+        player->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
     int32_t ret = player->nativePlayer_->Stop();
     if (ret != MSERR_OK) {
-        player->ErrorCallback(MSERR_EXT_UNKNOWN);
+        player->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to Stop");
         return undefinedResult;
     }
     MEDIA_LOGD("Stop success");
@@ -543,13 +556,16 @@ napi_value AudioPlayerNapi::Reset(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
+    if (player->nativePlayer_ == nullptr) {
+        player->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
     if (player->dataSrcCallBack_ != nullptr) {
         player->dataSrcCallBack_->Release();
     }
     int32_t ret = player->nativePlayer_->Reset();
     if (ret != MSERR_OK) {
-        player->ErrorCallback(MSERR_EXT_UNKNOWN);
+        player->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to Reset");
         return undefinedResult;
     }
     player->dataSrcCallBack_ = nullptr;
@@ -574,16 +590,16 @@ napi_value AudioPlayerNapi::Release(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "get player napi error");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
+    if (player->nativePlayer_ == nullptr) {
+        player->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
     if (player->dataSrcCallBack_ != nullptr) {
         player->dataSrcCallBack_->Release();
     }
-    int32_t ret = player->nativePlayer_->Release();
-    if (ret != MSERR_OK) {
-        player->ErrorCallback(MSERR_EXT_UNKNOWN);
-        return undefinedResult;
-    }
+    (void)player->nativePlayer_->Release();
     player->callbackNapi_ = nullptr;
+    player->nativePlayer_ = nullptr;
     player->uri_.clear();
     player->dataSrcCallBack_ = nullptr;
     MEDIA_LOGD("Release success");
@@ -608,24 +624,27 @@ napi_value AudioPlayerNapi::Seek(napi_env env, napi_callback_info info)
     AudioPlayerNapi *player = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
+    if (player->nativePlayer_ == nullptr) {
+        player->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
 
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_number) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL, "napi_typeof failed, please check the input parameters");
         return undefinedResult;
     }
 
     int32_t position = -1;
     status = napi_get_value_int32(env, args[0], &position);
     if (status != napi_ok || position < 0) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL, "invalid parameters, please check the input parameters");
         return undefinedResult;
     }
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->Seek(position, SEEK_PREVIOUS_SYNC);
     if (ret != MSERR_OK) {
-        player->ErrorCallback(MSERR_EXT_UNKNOWN);
+        player->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to Seek");
         return undefinedResult;
     }
 
@@ -652,23 +671,27 @@ napi_value AudioPlayerNapi::SetVolume(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
+    if (player->nativePlayer_ == nullptr) {
+        player->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
+
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_number) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL, "napi_typeof failed, please check the input parameters");
         return undefinedResult;
     }
 
     double volumeLevel;
     status = napi_get_value_double(env, args[0], &volumeLevel);
     if (status != napi_ok || volumeLevel < 0.0f || volumeLevel > 1.0f) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL, "invalid parameters, please check the input parameters");
         return undefinedResult;
     }
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->SetVolume(static_cast<float>(volumeLevel), static_cast<float>(volumeLevel));
     if (ret != MSERR_OK) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to SetVolume");
         return undefinedResult;
     }
     MEDIA_LOGD("SetVolume success");
@@ -698,7 +721,7 @@ napi_value AudioPlayerNapi::On(napi_env env, napi_callback_info info)
     napi_valuetype valueType1 = napi_undefined;
     if (napi_typeof(env, args[0], &valueType0) != napi_ok || valueType0 != napi_string ||
         napi_typeof(env, args[1], &valueType1) != napi_ok || valueType1 != napi_function) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL, "napi_typeof failed, please check the input parameters");
         return undefinedResult;
     }
 
@@ -732,9 +755,14 @@ napi_value AudioPlayerNapi::SetLoop(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
+    if (player->nativePlayer_ == nullptr) {
+        player->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
+
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_boolean) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL, "napi_typeof failed, please check the input parameters");
         return undefinedResult;
     }
 
@@ -742,10 +770,9 @@ napi_value AudioPlayerNapi::SetLoop(napi_env env, napi_callback_info info)
     status = napi_get_value_bool(env, args[0], &loopFlag);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_get_value_bool error");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = player->nativePlayer_->SetLooping(loopFlag);
     if (ret != MSERR_OK) {
-        player->ErrorCallback(MSERR_EXT_UNKNOWN);
+        player->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to SetLooping");
         return undefinedResult;
     }
 
@@ -772,7 +799,10 @@ napi_value AudioPlayerNapi::GetLoop(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
+    if (player->nativePlayer_ == nullptr) {
+        player->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
     bool loopFlag = player->nativePlayer_->IsLooping();
 
     status = napi_get_boolean(env, loopFlag, &jsResult);
@@ -799,13 +829,12 @@ napi_value AudioPlayerNapi::GetCurrentTime(napi_env env, napi_callback_info info
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
-    int32_t currentTime = -1;
-    int32_t ret = player->nativePlayer_->GetCurrentTime(currentTime);
-    if (ret != MSERR_OK || currentTime < 0) {
-        player->ErrorCallback(MSERR_EXT_UNKNOWN);
+    if (player->nativePlayer_ == nullptr) {
+        player->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
         return undefinedResult;
     }
+    int32_t currentTime = -1;
+    (void)player->nativePlayer_->GetCurrentTime(currentTime);
 
     napi_value jsResult = nullptr;
     status = napi_create_int32(env, currentTime, &jsResult);
@@ -833,13 +862,12 @@ napi_value AudioPlayerNapi::GetDuration(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
-    int32_t duration = -1;
-    int32_t ret = player->nativePlayer_->GetDuration(duration);
-    if (ret != MSERR_OK) {
-        player->ErrorCallback(MSERR_EXT_UNKNOWN);
+    if (player->nativePlayer_ == nullptr) {
+        player->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
         return undefinedResult;
     }
+    int32_t duration = -1;
+    (void)player->nativePlayer_->GetDuration(duration);
 
     status = napi_create_int32(env, duration, &jsResult);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_create_int64 error");
@@ -856,12 +884,12 @@ static std::string GetJSState(PlayerStates currentState)
     switch (currentState) {
         case PLAYER_IDLE:
         case PLAYER_INITIALIZED:
+        case PLAYER_PREPARED:
             result = STATE_IDLE;
             break;
         case PLAYER_STARTED:
             result = STATE_PLAYING;
             break;
-        case PLAYER_PREPARED:
         case PLAYER_PAUSED:
             result = STATE_PAUSED;
             break;
@@ -906,11 +934,11 @@ napi_value AudioPlayerNapi::GetState(napi_env env, napi_callback_info info)
     return jsResult;
 }
 
-void AudioPlayerNapi::ErrorCallback(MediaServiceExtErrCode errCode)
+void AudioPlayerNapi::ErrorCallback(MediaServiceExtErrCode errCode, std::string errMsg)
 {
     if (callbackNapi_ != nullptr) {
         std::shared_ptr<PlayerCallbackNapi> napiCb = std::static_pointer_cast<PlayerCallbackNapi>(callbackNapi_);
-        napiCb->SendErrorCallback(errCode);
+        napiCb->SendErrorCallback(errCode, errMsg);
     }
 }
 
@@ -919,8 +947,13 @@ void AudioPlayerNapi::AsyncGetTrackDescription(napi_env env, void *data)
     auto asyncContext = reinterpret_cast<AudioPlayerAsyncContext *>(data);
     CHECK_AND_RETURN_LOG(asyncContext != nullptr, "AudioPlayerAsyncContext is nullptr!");
 
-    if (asyncContext->jsPlayer == nullptr || asyncContext->jsPlayer->nativePlayer_ == nullptr) {
-        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "jsPlayer or nativePlayer is nullptr");
+    if (asyncContext->jsPlayer == nullptr) {
+        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "jsPlayer is destroyed(null), please check js_runtime");
+        return;
+    }
+
+    if (asyncContext->jsPlayer->nativePlayer_ == nullptr) {
+        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "nativePlayer is released(null), please create player again");
         return;
     }
 
@@ -929,12 +962,12 @@ void AudioPlayerNapi::AsyncGetTrackDescription(napi_env env, void *data)
     audioInfo.clear();
     int32_t ret = player->GetAudioTrackInfo(audioInfo);
     if (ret != MSERR_OK) {
-        asyncContext->SignError(MSERR_EXT_UNKNOWN, "failed to operate playback");
+        asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to GetAudioTrackInfo");
         return;
     }
 
     if (audioInfo.empty()) {
-        asyncContext->SignError(MSERR_EXT_UNKNOWN, "audio tranck info is empty");
+        asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "audio track info is empty");
         return;
     }
 
@@ -992,9 +1025,14 @@ napi_value AudioPlayerNapi::SetAudioInterruptMode(napi_env env, napi_callback_in
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
 
+    if (player->nativePlayer_ == nullptr) {
+        player->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
+
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_number) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL, "napi_typeof failed, please check the input parameters");
         return undefinedResult;
     }
 
@@ -1004,16 +1042,16 @@ napi_value AudioPlayerNapi::SetAudioInterruptMode(napi_env env, napi_callback_in
 
     if (interruptMode < AudioStandard::InterruptMode::SHARE_MODE ||
         interruptMode > AudioStandard::InterruptMode::INDEPENDENT_MODE) {
-        player->ErrorCallback(MSERR_EXT_INVALID_VAL);
+        player->ErrorCallback(MSERR_EXT_INVALID_VAL, "invalid parameters, please check the input parameters");
         return undefinedResult;
     }
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
+
     player->interruptMode_ = AudioStandard::InterruptMode(interruptMode);
     Format format;
     (void)format.PutIntValue(PlayerKeys::AUDIO_INTERRUPT_MODE, interruptMode);
     int32_t ret = player->nativePlayer_->SetParameter(format);
     if (ret != MSERR_OK) {
-        player->ErrorCallback(MSERR_EXT_UNKNOWN);
+        player->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to SetParameter");
         return undefinedResult;
     }
 
@@ -1038,8 +1076,6 @@ napi_value AudioPlayerNapi::GetAudioInterruptMode(napi_env env, napi_callback_in
     AudioPlayerNapi *player = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
-
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
 
     status = napi_create_object(env, &jsResult);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "create jsresult object error");

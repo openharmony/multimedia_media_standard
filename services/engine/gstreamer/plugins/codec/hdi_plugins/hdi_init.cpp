@@ -107,7 +107,7 @@ std::string HdiInit::GetCodecMime(AvCodecRole &role)
     return "invalid";
 }
 
-std::vector<int32_t> HdiInit::GetBitrateMode(VideoPortCap &port)
+std::vector<int32_t> HdiInit::GetBitrateMode(CodecVideoPortCap &port)
 {
     int32_t index = 0;
     std::vector<int32_t> bitrate;
@@ -130,7 +130,7 @@ std::vector<int32_t> HdiInit::GetBitrateMode(VideoPortCap &port)
     return bitrate;
 }
 
-std::map<ImgSize, Range> HdiInit::GetMeasuredFrameRate(VideoPortCap &port)
+std::map<ImgSize, Range> HdiInit::GetMeasuredFrameRate(CodecVideoPortCap &port)
 {
     int32_t index = 0;
     std::map<ImgSize, Range> rateMap;
@@ -145,7 +145,7 @@ std::map<ImgSize, Range> HdiInit::GetMeasuredFrameRate(VideoPortCap &port)
     return rateMap;
 }
 
-std::vector<int32_t> HdiInit::GetCodecFormats(VideoPortCap &port)
+std::vector<int32_t> HdiInit::GetCodecFormats(CodecVideoPortCap &port)
 {
     int32_t index = 0;
     std::vector<int32_t> formats;

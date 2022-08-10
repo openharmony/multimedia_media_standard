@@ -27,8 +27,7 @@
 #define gst_surface_src_parent_class parent_class
 using namespace OHOS;
 namespace {
-    constexpr guint MAX_SURFACE_QUEUE_SIZE = 12;
-    constexpr guint DEFAULT_SURFACE_QUEUE_SIZE = 8;
+    constexpr guint DEFAULT_SURFACE_QUEUE_SIZE = 4;
     constexpr int32_t DEFAULT_SURFACE_SIZE = 1024 * 1024;
     constexpr int32_t DEFAULT_VIDEO_WIDTH = 1920;
     constexpr int32_t DEFAULT_VIDEO_HEIGHT = 1080;
@@ -52,7 +51,6 @@ enum {
     PROP_REPEAT,
     PROP_MAX_FRAME_RATE,
     PROP_NOTIFY_EOS,
-    PROP_FLUSH_AT_START,
 };
 
 G_DEFINE_TYPE(GstSurfaceSrc, gst_surface_src, GST_TYPE_MEM_SRC);
@@ -106,10 +104,6 @@ static void gst_surface_src_class_init(GstSurfaceSrcClass *klass)
         g_param_spec_boolean("notify-eos", "notify eos", "Need notify eos",
             FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
 
-    g_object_class_install_property(gobject_class, PROP_FLUSH_AT_START,
-        g_param_spec_boolean("flush-at-start", "flush at start", "The Flush is at start",
-            FALSE, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
-
     gstelement_class->change_state = gst_surface_src_change_state;
     gstelement_class->send_event = gst_surface_src_send_event;
     gstbasesrc_class->fill = gst_surface_src_fill;
@@ -129,7 +123,6 @@ static void gst_surface_src_init(GstSurfaceSrc *surfacesrc)
     surfacesrc->stride = STRIDE_ALIGN;
     surfacesrc->need_flush = FALSE;
     surfacesrc->flushing = FALSE;
-    surfacesrc->flush_at_start = FALSE;
 }
 
 static void gst_surface_src_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
@@ -177,9 +170,6 @@ static void gst_surface_src_set_property(GObject *object, guint prop_id, const G
         case PROP_NOTIFY_EOS:
             g_return_if_fail(src->pool != nullptr);
             g_object_set(src->pool, "notify-eos", g_value_get_boolean(value), nullptr);
-            break;
-        case PROP_FLUSH_AT_START:
-            src->flush_at_start = g_value_get_boolean(value);
             break;
         default:
             break;
@@ -243,6 +233,10 @@ static gboolean gst_surface_src_create_surface(GstSurfaceSrc *surfacesrc)
     surfacesrc->consumerSurface = consumerSurface;
     surfacesrc->producerSurface = producerSurface;
 
+    SurfaceError ret = surfacesrc->consumerSurface->SetQueueSize(DEFAULT_SURFACE_QUEUE_SIZE);
+    if (ret != SURFACE_ERROR_OK) {
+        GST_WARNING_OBJECT(surfacesrc, "set queue size fail");
+    }
     GST_DEBUG_OBJECT(surfacesrc, "create surface");
     return TRUE;
 }
@@ -262,29 +256,14 @@ static gboolean gst_surface_src_send_event(GstElement *element, GstEvent *event)
                 return TRUE;
             }
             surfacesrc->flushing = TRUE;
-            if (surfacesrc->flush_at_start == FALSE) {
-                gst_buffer_pool_set_flushing(surfacesrc->pool, TRUE);
-            } else {
-                GST_INFO_OBJECT(surfacesrc, "No need flush start for flush at start");
-            }
             break;
-        case GST_EVENT_FLUSH_STOP: {
-            gboolean flush_at_start = surfacesrc->flush_at_start;
-            if (surfacesrc->flush_at_start == TRUE) {
-                surfacesrc->flush_at_start = FALSE;
-            }
+        case GST_EVENT_FLUSH_STOP:
             if (surfacesrc->flushing == FALSE) {
                 GST_INFO_OBJECT(surfacesrc, "No flush start");
                 return TRUE;
             }
-            if (flush_at_start == FALSE) {
-                gst_buffer_pool_set_flushing(surfacesrc->pool, FALSE);
-            } else {
-                GST_INFO_OBJECT(surfacesrc, "No need flush start for flush at start");
-            }
             surfacesrc->flushing = FALSE;
             break;
-        }
         default:
             break;
     }
@@ -373,14 +352,15 @@ static void gst_surface_src_init_surface(GstSurfaceSrc *src)
     }
 }
 
-static gboolean gst_surface_src_get_pool(GstSurfaceSrc *surfacesrc, GstQuery *query, GstCaps *outcaps,
-    guint min_buf, guint max_buf)
+static gboolean gst_surface_src_get_pool(GstSurfaceSrc *surfacesrc, GstQuery *query, GstCaps *outcaps)
 {
     g_return_val_if_fail(surfacesrc != nullptr && query != nullptr && surfacesrc->consumerSurface != nullptr, FALSE);
     if (surfacesrc->pool == nullptr) {
         return FALSE;
     }
     GstMemSrc *memsrc = GST_MEM_SRC(surfacesrc);
+    guint min_buf = surfacesrc->consumerSurface->GetQueueSize();
+    guint max_buf = min_buf;
     memsrc->buffer_num = max_buf;
     gboolean is_video = gst_query_find_allocation_meta(query, GST_VIDEO_META_API_TYPE, nullptr);
     if (is_video) {
@@ -393,10 +373,6 @@ static gboolean gst_surface_src_get_pool(GstSurfaceSrc *surfacesrc, GstQuery *qu
         }
     }
     GST_INFO_OBJECT(surfacesrc, "update buffer num %u", memsrc->buffer_num);
-    SurfaceError ret = surfacesrc->consumerSurface->SetQueueSize(memsrc->buffer_num);
-    if (ret != SURFACE_ERROR_OK) {
-        GST_WARNING_OBJECT(surfacesrc, "set queue size fail");
-    }
     GstStructure *config = gst_buffer_pool_get_config(surfacesrc->pool);
     if (is_video) {
         gst_buffer_pool_config_add_option(config, GST_BUFFER_POOL_OPTION_VIDEO_META);
@@ -452,15 +428,7 @@ static gboolean gst_surface_src_decide_allocation(GstBaseSrc *basesrc, GstQuery 
         gst_object_unref(pool);
         pool = nullptr;
     }
-    if (min_buf > MAX_SURFACE_QUEUE_SIZE || max_buf > MAX_SURFACE_QUEUE_SIZE) {
-        min_buf = MAX_SURFACE_QUEUE_SIZE;
-        max_buf = MAX_SURFACE_QUEUE_SIZE;
-    } else if (min_buf > max_buf) {
-        max_buf = min_buf;
-    } else {
-        max_buf = max_buf == 0 ? DEFAULT_SURFACE_QUEUE_SIZE : max_buf;
-    }
-    if (gst_surface_src_get_pool(surfacesrc, query, outcaps, min_buf, max_buf)) {
+    if (gst_surface_src_get_pool(surfacesrc, query, outcaps)) {
         return TRUE;
     }
     return FALSE;

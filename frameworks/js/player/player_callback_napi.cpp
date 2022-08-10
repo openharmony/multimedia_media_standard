@@ -65,8 +65,8 @@ void PlayerCallbackNapi::SendErrorCallback(MediaServiceExtErrCode errCode, const
     CHECK_AND_RETURN_LOG(cb != nullptr, "cb is nullptr");
 
     cb->callback = refMap_.at(ERROR_CALLBACK_NAME);
-    cb->callbackName = info.c_str();
-    cb->errorMsg = MSExtErrorToString(errCode);
+    cb->callbackName = ERROR_CALLBACK_NAME;
+    cb->errorMsg = info;
     cb->errorCode = errCode;
     return OnJsCallBackError(cb);
 }
@@ -78,11 +78,10 @@ PlayerStates PlayerCallbackNapi::GetCurrentState() const
 
 void PlayerCallbackNapi::OnError(PlayerErrorType errorType, int32_t errorCode)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGD("OnError is called, name: %{public}d, message: %{public}d", errorType, errorCode);
-
     MediaServiceExtErrCode err = MSErrorToExtError(static_cast<MediaServiceErrCode>(errorCode));
-    return SendErrorCallback(err);
+    std::string errMsg = MSErrorToString(static_cast<MediaServiceErrCode>(errorCode));
+    return SendErrorCallback(err, errMsg);
 }
 
 void PlayerCallbackNapi::OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody)
@@ -259,9 +258,9 @@ void PlayerCallbackNapi::OnAudioInterruptCb(const Format &infoBody) const
     int32_t eventType = 0;
     int32_t forceType = 0;
     int32_t hintType = 0;
-    (void)infoBody.GetIntValue("eventType", eventType);
-    (void)infoBody.GetIntValue("forceType", forceType);
-    (void)infoBody.GetIntValue("hintType", hintType);
+    (void)infoBody.GetIntValue(PlayerKeys::AUDIO_INTERRUPT_TYPE, eventType);
+    (void)infoBody.GetIntValue(PlayerKeys::AUDIO_INTERRUPT_FORCE, forceType);
+    (void)infoBody.GetIntValue(PlayerKeys::AUDIO_INTERRUPT_HINT, hintType);
     cb->interruptEvent.eventType = AudioStandard::InterruptType(eventType);
     cb->interruptEvent.forceType = AudioStandard::InterruptForceType(forceType);
     cb->interruptEvent.hintType = AudioStandard::InterruptHint(hintType);

@@ -260,6 +260,11 @@ static const gchar **gst_producer_surface_pool_get_options (GstBufferPool *pool)
 
 static gboolean parse_caps_info(GstCaps *caps, GstVideoInfo *info, PixelFormat *format)
 {
+    if (caps == nullptr) {
+        GST_INFO("caps is nullptr");
+        return FALSE;
+    }
+
     if (!gst_video_info_from_caps(info, caps)) {
         GST_ERROR("wrong caps");
         return FALSE;

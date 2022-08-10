@@ -387,9 +387,9 @@ void PlayerEngineGstImpl::HandleInterruptMessage(const PlayBinMessage &msg)
         int32_t hintType = value & 0x000000FF;
         int32_t forceType = (value >> INTERRUPT_EVENT_SHIFT) & 0x000000FF;
         int32_t eventType = value >> (INTERRUPT_EVENT_SHIFT * 2);
-        (void)format.PutIntValue("eventType", eventType);
-        (void)format.PutIntValue("forceType", forceType);
-        (void)format.PutIntValue("hintType", hintType);
+        (void)format.PutIntValue(PlayerKeys::AUDIO_INTERRUPT_TYPE, eventType);
+        (void)format.PutIntValue(PlayerKeys::AUDIO_INTERRUPT_FORCE, forceType);
+        (void)format.PutIntValue(PlayerKeys::AUDIO_INTERRUPT_HINT, hintType);
         notifyObs->OnInfo(INFO_TYPE_INTERRUPT_EVENT, 0, format);
     }
 }
@@ -541,7 +541,7 @@ int32_t PlayerEngineGstImpl::GetCurrentTime(int32_t &currentTime)
 {
     std::unique_lock<std::mutex> lock(mutex_);
 
-    currentTime = 0;
+    currentTime = -1;
     if (playBinCtrler_ != nullptr) {
         int64_t tempTime = playBinCtrler_->GetPosition();
         currentTime = static_cast<int32_t>(tempTime / MSEC_PER_USEC);
@@ -825,7 +825,7 @@ void CodecChangedDetector::SetupCodecCb(const std::string &metaStr, GstElement *
 {
     if (metaStr.find("Codec/Decoder/Video/Hardware") != std::string::npos) {
         isHardwareDec_ = true;
-        g_object_set(G_OBJECT(src), "enable-slice-cat", TRUE, nullptr);
+        g_object_set(G_OBJECT(src), "enable-slice-cat", FALSE, nullptr);
         if (decoder_ != nullptr) {
             gst_object_unref(decoder_);
             decoder_ = nullptr;

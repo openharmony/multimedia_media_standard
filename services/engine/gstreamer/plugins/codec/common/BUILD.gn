@@ -39,12 +39,13 @@ config("gst_codec_plugins_common_config") {
   cflags_cc = [ "-frtti" ]
 
   include_dirs = [
+    "//base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include",
     "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/codec/common/vdec",
     "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/codec/common/venc",
     "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/codec/common/video",
     "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/codec/common",
     "//base/hiviewdfx/interfaces/innerkits/libhilog/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//foundation/multimedia/player_framework/services/utils/include",
     "//foundation/multimedia/player_framework/interfaces/inner_api/native",
     "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common",

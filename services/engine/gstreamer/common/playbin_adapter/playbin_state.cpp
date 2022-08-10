@@ -293,8 +293,6 @@ void PlayBinCtrlerBase::PreparedState::StateEnter()
     msg = { PLAYBIN_MSG_STATE_CHANGE, 0, PLAYBIN_STATE_PREPARED, {} };
     ctrler_.ReportMessage(msg);
 
-    ctrler_.SetupVolumeChangedCb();
-    ctrler_.SetupInterruptEventCb();
     ctrler_.QueryDuration();
 }
 
@@ -495,6 +493,7 @@ void PlayBinCtrlerBase::PlaybackCompletedState::StateEnter()
 
 int32_t PlayBinCtrlerBase::PlaybackCompletedState::Play()
 {
+    ctrler_.isDuration_ = false;
     return ctrler_.SeekInternal(0, IPlayBinCtrler::PlayBinSeekMode::PREV_SYNC);
 }
 
@@ -515,6 +514,7 @@ int32_t PlayBinCtrlerBase::PlaybackCompletedState::Seek(int64_t timeUs, int32_t 
 
 int32_t PlayBinCtrlerBase::PlaybackCompletedState::SetRate(double rate)
 {
+    ctrler_.rate_ = rate;
     PlayBinMessage msg = { PLAYBIN_MSG_SPEEDDONE, 0, rate, {} };
     ctrler_.ReportMessage(msg);
     return MSERR_OK;
@@ -527,6 +527,11 @@ void PlayBinCtrlerBase::PlaybackCompletedState::ProcessStateChange(const InnerMe
         ctrler_.ChangeState(ctrler_.playingState_);
         ctrler_.isSeeking_ = false;
     }
+}
+
+void PlayBinCtrlerBase::PlaybackCompletedState::HandleAsyncDone(const InnerMessage &msg)
+{
+    (void)msg;
 }
 } // namespace Media
 } // namespace OHOS

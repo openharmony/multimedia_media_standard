@@ -80,11 +80,10 @@ void HdiVencParamsMgr::Init(CodecComponentType *handle,
     verInfo_ = verInfo;
     InitParam(inPortDef_, verInfo_);
     InitParam(outPortDef_, verInfo_);
-    InitParam(videoFormat_, verInfo_);
-    InitParam(bitrateConfig_, verInfo_);
+    InitHdiParam(videoFormat_, verInfo_);
     inPortDef_.nPortIndex = portParam.nStartPortNumber;
     outPortDef_.nPortIndex = portParam.nStartPortNumber + 1;
-    videoFormat_.nPortIndex = portParam.nStartPortNumber;
+    videoFormat_.portIndex = portParam.nStartPortNumber;
 }
 
 int32_t HdiVencParamsMgr::SetParameter(GstCodecParamKey key, GstElement *element)
@@ -162,7 +161,7 @@ int32_t HdiVencParamsMgr::SetInputVideoCommon(GstElement *element)
     OMX_CONFIG_FRAMERATETYPE frameRateConfig;
     InitParam(frameRateConfig, verInfo_);
     frameRateConfig.nPortIndex = inPortDef_.nPortIndex;
-    frameRateConfig.xEncodeFramerate = base->frame_rate << OMX_FRAME_RATE_MOVE;
+    frameRateConfig.xEncodeFramerate = (uint32_t)(base->frame_rate) << OMX_FRAME_RATE_MOVE;
     HdiSetConfig(handle_, OMX_IndexConfigVideoFramerate, frameRateConfig);
     CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "HdiSetConfig failed");
     return GST_CODEC_OK;
@@ -182,7 +181,7 @@ int32_t HdiVencParamsMgr::SetOutputVideoCommon(GstElement *element)
     OMX_CONFIG_FRAMERATETYPE frameRateConfig;
     InitParam(frameRateConfig, verInfo_);
     frameRateConfig.nPortIndex = outPortDef_.nPortIndex;
-    frameRateConfig.xEncodeFramerate = base->frame_rate << OMX_FRAME_RATE_MOVE;
+    frameRateConfig.xEncodeFramerate = (uint32_t)(base->frame_rate) << OMX_FRAME_RATE_MOVE;
     HdiSetConfig(handle_, OMX_IndexConfigVideoFramerate, frameRateConfig);
     CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "HdiSetConfig failed");
     return GST_CODEC_OK;
@@ -191,9 +190,9 @@ int32_t HdiVencParamsMgr::SetOutputVideoCommon(GstElement *element)
 int32_t HdiVencParamsMgr::SetVideoFormat(GstElement *element)
 {
     GstVencBase *base = GST_VENC_BASE(element);
-    videoFormat_.eColorFormat = (OMX_COLOR_FORMATTYPE)HdiCodecUtil::FormatGstToOmx(base->format); // need to do
-    videoFormat_.xFramerate = (uint32_t)(base->frame_rate) << OMX_FRAME_RATE_MOVE;
-    auto ret = HdiSetParameter(handle_, OMX_IndexParamVideoPortFormat, videoFormat_);
+    videoFormat_.codecColorFormat = (uint32_t)HdiCodecUtil::FormatGstToHdi(base->format); // need to do
+    videoFormat_.framerate = (uint32_t)(base->frame_rate) << OMX_FRAME_RATE_MOVE;
+    auto ret = HdiSetParameter(handle_, OMX_IndexCodecVideoPortFormat, videoFormat_);
     CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "HdiSetParameter failed");
     return GST_CODEC_OK;
 }
@@ -229,12 +228,12 @@ int32_t HdiVencParamsMgr::GetOutputVideoCommon(GstElement *element)
 int32_t HdiVencParamsMgr::GetVideoFormat(GstElement *element)
 {
     GstVencBase *base = GST_VENC_BASE(element);
-    auto ret = HdiGetParameter(handle_, OMX_IndexParamVideoPortFormat, videoFormat_);
+    auto ret = HdiGetParameter(handle_, OMX_IndexCodecVideoPortFormat, videoFormat_);
     CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "HdiGetParameter failed");
 
-    while (HdiGetParameter(handle_, OMX_IndexParamVideoPortFormat, videoFormat_) == HDF_SUCCESS) {
-        base->formats.push_back(HdiCodecUtil::FormatOmxToGst(videoFormat_.eColorFormat)); // need to do
-        videoFormat_.nIndex++;
+    while (HdiGetParameter(handle_, OMX_IndexCodecVideoPortFormat, videoFormat_) == HDF_SUCCESS) {
+        base->formats.push_back(HdiCodecUtil::FormatHdiToGst((PixelFormat)videoFormat_.codecColorFormat));
+        videoFormat_.portIndex++;
     }
     return GST_CODEC_OK;
 }
@@ -281,19 +280,30 @@ int32_t HdiVencParamsMgr::InitBitRateMode(GstElement *element)
 {
     MEDIA_LOGD("Init bitrate");
     GstVencBase *base = GST_VENC_BASE(element);
-    bitrateConfig_.nPortIndex = outPortDef_.nPortIndex;
-    auto ret = HdiGetParameter(handle_, OMX_IndexParamVideoBitrate, bitrateConfig_);
-    CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "OMX_IndexParamVideoBitrate Failed");
     if (BITRATE_MODE_MAP.find(base->bitrate_mode) == BITRATE_MODE_MAP.end()) {
-        bitrateConfig_.eControlRate = OMX_Video_ControlRateVariable;
+        ControlRateConstantQuality constantQualityConfig_ = {};
+        InitHdiParam(constantQualityConfig_, verInfo_);
+        constantQualityConfig_.portIndex = outPortDef_.nPortIndex;
+        auto ret = HdiGetParameter(handle_, OMX_IndexParamControlRateConstantQuality, constantQualityConfig_);
+        CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "OMX_IndexRateConstantQuality Failed");
+        if (base->bitrate != 0) {
+            constantQualityConfig_.qualityValue = (uint32_t)base->codec_quality;
+        }
+        ret = HdiSetParameter(handle_, OMX_IndexParamControlRateConstantQuality, constantQualityConfig_);
+        CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "OMX_IndexRateConstantQuality Failed");
     } else {
+        OMX_VIDEO_PARAM_BITRATETYPE bitrateConfig_ = {};
+        InitParam(bitrateConfig_, verInfo_);
+        bitrateConfig_.nPortIndex = outPortDef_.nPortIndex;
         bitrateConfig_.eControlRate = BITRATE_MODE_MAP.at(base->bitrate_mode);
+        auto ret = HdiGetParameter(handle_, OMX_IndexParamVideoBitrate, bitrateConfig_);
+        CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "OMX_IndexParamVideoBitrate Failed");
+        if (base->bitrate != 0) {
+            bitrateConfig_.nTargetBitrate = base->bitrate;
+        }
+        ret = HdiSetParameter(handle_, OMX_IndexParamVideoBitrate, bitrateConfig_);
+        CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "OMX_IndexParamVideoBitrate Failed");
     }
-    if (base->bitrate != 0) {
-        bitrateConfig_.nTargetBitrate = base->bitrate;
-    }
-    ret = HdiSetParameter(handle_, OMX_IndexParamVideoBitrate, bitrateConfig_);
-    CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "OMX_IndexParamVideoBitrate Failed");
     return GST_CODEC_OK;
 }
 
@@ -336,7 +346,7 @@ int32_t HdiVencParamsMgr::InitAvcParamters(GstElement *element)
     if (avcType.eProfile == OMX_VIDEO_AVCProfileBaseline) {
         avcType.nBFrames = 0;
         avcType.nRefFrames = 1;
-        avcType.nPFrames = base->frame_rate * base->i_frame_interval_new - 1;
+        avcType.nPFrames = (uint32_t)(base->frame_rate * base->i_frame_interval_new - 1);
         avcType.bEntropyCodingCABAC = OMX_FALSE;
         avcType.bWeightedPPrediction = OMX_FALSE;
         avcType.bconstIpred = OMX_FALSE;
@@ -348,7 +358,7 @@ int32_t HdiVencParamsMgr::InitAvcParamters(GstElement *element)
         avcType.nBFrames = 0;
         // when have b frame default ref frame is 2
         avcType.nRefFrames = avcType.nBFrames == 0 ? 1 : 2;
-        avcType.nPFrames = base->frame_rate * base->i_frame_interval_new / (avcType.nBFrames + 1) - 1;
+        avcType.nPFrames = (uint32_t)(base->frame_rate * base->i_frame_interval_new) / (avcType.nBFrames + 1) - 1;
         avcType.bEntropyCodingCABAC = OMX_TRUE;
         avcType.bWeightedPPrediction = OMX_TRUE;
         avcType.bconstIpred = OMX_TRUE;

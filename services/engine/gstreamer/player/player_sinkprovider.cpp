@@ -144,7 +144,7 @@ bool PlayerSinkProvider::EnableKpiAVSyncLog() const
 PlayBinSinkProvider::SinkPtr PlayerSinkProvider::CreateVideoSink()
 {
     if (producerSurface_ == nullptr) {
-        MEDIA_LOGE("producerSurface_ is nullptr, cannot create video sink!");
+        MEDIA_LOGI("producerSurface_ is nullptr, cannot create video sink!");
         return nullptr;
     }
 

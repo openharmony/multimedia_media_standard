@@ -90,6 +90,7 @@ public:
 
 protected:
     void HandleStateChange(int32_t newState) override;
+    void StateEnter() override;
 };
 
 class PlayerServer::PlayingState : public PlayerServer::BaseState {
@@ -140,6 +141,7 @@ public:
 
     int32_t Play() override;
     int32_t Stop() override;
+    int32_t SetPlaybackSpeed(PlaybackRateMode mode) override;
 
 protected:
     void HandleStateChange(int32_t newState) override;

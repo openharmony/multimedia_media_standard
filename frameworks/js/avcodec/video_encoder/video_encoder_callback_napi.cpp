@@ -63,7 +63,6 @@ void VideoEncoderCallbackNapi::SendErrorCallback(MediaServiceExtErrCode errCode)
 
 void VideoEncoderCallbackNapi::OnError(AVCodecErrorType errorType, int32_t errCode)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGD("OnError is called, name: %{public}d, error message: %{public}d", errorType, errCode);
 
     MediaServiceExtErrCode err = MSErrorToExtError(static_cast<MediaServiceErrCode>(errCode));

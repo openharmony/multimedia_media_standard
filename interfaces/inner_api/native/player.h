@@ -44,6 +44,9 @@ public:
     static constexpr std::string_view RENDERER_FLAG = "renderer_flag";
     static constexpr std::string_view VIDEO_SCALE_TYPE = "video_scale_type";
     static constexpr std::string_view AUDIO_INTERRUPT_MODE = "audio_interrupt_mode";
+    static constexpr std::string_view AUDIO_INTERRUPT_TYPE = "audio_interrupt_type";
+    static constexpr std::string_view AUDIO_INTERRUPT_FORCE = "audio_interrupt_force";
+    static constexpr std::string_view AUDIO_INTERRUPT_HINT = "audio_interrupt_hint";
 };
 
 enum BufferingInfoType : int32_t {
@@ -62,8 +65,8 @@ enum PlayerErrorType : int32_t {
     PLAYER_ERROR,
     /* Unknown error */
     PLAYER_ERROR_UNKNOWN,
-     /** extend error type start,The extension error type agreed upon by the plug-in and
-         the application will be transparently transmitted by the service. */
+    /* extend error type start,The extension error type agreed upon by the plug-in and
+       the application will be transparently transmitted by the service. */
     PLAYER_ERROR_EXTEND_START = 0X10000,
 };
 
@@ -444,7 +447,7 @@ public:
      * @version 1.0
      */
     virtual int32_t SelectBitRate(uint32_t bitRate) = 0;
-    
+
     /**
      * @brief Method to set the surface.
      *

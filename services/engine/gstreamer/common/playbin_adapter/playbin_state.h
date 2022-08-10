@@ -45,7 +45,7 @@ protected:
     void HandleStateChange(const InnerMessage &msg);
     void HandleDurationChange();
     void HandleResolutionChange(const InnerMessage &msg);
-    void HandleAsyncDone(const InnerMessage &msg);
+    virtual void HandleAsyncDone(const InnerMessage &msg);
     void HandleError(const InnerMessage &msg);
     void HandleEos();
     void HandleBuffering(const InnerMessage &msg);
@@ -162,6 +162,7 @@ public:
 protected:
     void ProcessStateChange(const InnerMessage &msg) override;
     void StateEnter() override;
+    void HandleAsyncDone(const InnerMessage &msg) override;
 };
 } // namespace Media
 } // namespace OHOS

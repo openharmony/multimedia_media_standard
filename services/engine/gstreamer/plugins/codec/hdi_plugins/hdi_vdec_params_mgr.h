@@ -41,11 +41,11 @@ protected:
     int32_t GetOutputVideoCommon(GstElement *element);
     int32_t GetVideoFormat(GstElement *element);
 private:
-    CodecComponentType *handle_;
+    CodecComponentType *handle_ = nullptr;
     OMX_PARAM_PORTDEFINITIONTYPE inPortDef_ = {};
     OMX_PARAM_PORTDEFINITIONTYPE outPortDef_ = {};
-    OMX_VIDEO_PARAM_PORTFORMATTYPE videoFormat_ = {};
-    CompVerInfo verInfo_;
+    CodecVideoPortFormatParam videoFormat_ = {};
+    CompVerInfo verInfo_ = {};
 };
 } // namespace Media
 } // namespace OHOS
