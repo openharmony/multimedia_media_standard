@@ -47,7 +47,7 @@ config("media_engine_gst_avmuxer_config") {
     "//foundation/multimedia/player_framework/services/engine/gstreamer/common/message",
     "//foundation/multimedia/player_framework/services/engine/gstreamer/common/utils",
     "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/gst",
     "//third_party/glib",

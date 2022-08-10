@@ -46,6 +46,16 @@ std::shared_ptr<PlayerTrackParse> PlayerTrackParse::Create()
     return trackInfo;
 }
 
+PlayerTrackParse::PlayerTrackParse()
+{
+    MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances create", FAKE_POINTER(this));
+}
+
+PlayerTrackParse::~PlayerTrackParse()
+{
+    MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
+}
+
 int32_t PlayerTrackParse::GetVideoTrackInfo(std::vector<Format> &videoTrack)
 {
     int32_t trackType;

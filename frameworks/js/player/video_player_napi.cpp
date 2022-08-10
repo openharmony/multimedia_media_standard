@@ -47,9 +47,6 @@ VideoPlayerNapi::VideoPlayerNapi()
 
 VideoPlayerNapi::~VideoPlayerNapi()
 {
-    if (nativePlayer_ != nullptr) {
-        (void)nativePlayer_->SetPlayerCallback(nullptr);
-    }
     nativePlayer_ = nullptr;
     jsCallback_ = nullptr;
     dataSrcCallBack_ = nullptr;
@@ -210,15 +207,16 @@ napi_value VideoPlayerNapi::SetUrl(napi_env env, napi_callback_info info)
     VideoPlayerNapi *jsPlayer = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&jsPlayer));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "Failed to retrieve instance");
-    CHECK_AND_RETURN_RET_LOG(jsPlayer->nativePlayer_ != nullptr, undefinedResult, "nativePlayer_ is nullptr");
-
-    // get url from js
-    napi_valuetype valueType = napi_undefined;
-    if (args[0] == nullptr || napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_string) {
-        jsPlayer->url_.clear();
-        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+    if (jsPlayer->nativePlayer_ == nullptr) {
+        jsPlayer->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
         return undefinedResult;
     }
+    napi_valuetype valueType = napi_undefined;
+    if (args[0] == nullptr || napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_string) {
+        jsPlayer->ErrorCallback(MSERR_EXT_INVALID_VAL, "napi_typeof failed, please check the input parameters");
+        return undefinedResult;
+    }
+    // get url from js
     jsPlayer->url_ = CommonNapi::GetStringArgument(env, args[0]);
 
     const std::string fdHead = "fd://";
@@ -229,7 +227,7 @@ napi_value VideoPlayerNapi::SetUrl(napi_env env, napi_callback_info info)
     if (jsPlayer->url_.find(fdHead) != std::string::npos) {
         std::string inputFd = jsPlayer->url_.substr(fdHead.size());
         if (!StrToInt(inputFd, fd) || fd < 0) {
-            jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+            jsPlayer->ErrorCallback(MSERR_EXT_INVALID_VAL, "invalid parameters, please check the input parameters");
             return undefinedResult;
         }
 
@@ -240,7 +238,7 @@ napi_value VideoPlayerNapi::SetUrl(napi_env env, napi_callback_info info)
 
     if (ret != MSERR_OK) {
         MEDIA_LOGE("input url error!");
-        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        jsPlayer->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to set source");
         return undefinedResult;
     }
 
@@ -267,11 +265,6 @@ napi_value VideoPlayerNapi::GetUrl(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&jsPlayer));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "Failed to retrieve instance");
 
-    if (jsPlayer->url_.empty()) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
-        return undefinedResult;
-    }
-
     napi_value jsResult = nullptr;
     status = napi_create_string_utf8(env, jsPlayer->url_.c_str(), NAPI_AUTO_LENGTH, &jsResult);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_create_string_utf8 error");
@@ -296,25 +289,29 @@ napi_value VideoPlayerNapi::SetDataSrc(napi_env env, napi_callback_info info)
     VideoPlayerNapi *jsPlayer = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&jsPlayer));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "get player napi error");
+    if (jsPlayer->nativePlayer_ == nullptr) {
+        jsPlayer->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
 
     if (jsPlayer->dataSrcCallBack_ != nullptr) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        jsPlayer->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to set source(Repeat settings)");
         return undefinedResult;
     }
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_object) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        jsPlayer->ErrorCallback(MSERR_EXT_INVALID_VAL, "napi_typeof failed, please check the input parameters");
         return undefinedResult;
     }
 
     jsPlayer->dataSrcCallBack_ = MediaDataSourceCallback::Create(env, args[0]);
     if (jsPlayer->dataSrcCallBack_ == nullptr) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        jsPlayer->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to create datasource");
         return undefinedResult;
     }
     int32_t ret = jsPlayer->nativePlayer_->SetSource(jsPlayer->dataSrcCallBack_);
     if (ret != MSERR_OK) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        jsPlayer->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to set source");
         return undefinedResult;
     }
     MEDIA_LOGD("SetMediaDataSrc success");
@@ -338,12 +335,15 @@ napi_value VideoPlayerNapi::GetDataSrc(napi_env env, napi_callback_info info)
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "Failed to retrieve instance");
 
     if (jsPlayer->dataSrcCallBack_ == nullptr) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_NO_MEMORY);
+        jsPlayer->ErrorCallback(MSERR_EXT_NO_MEMORY, "data src is nullptr, please set data src again");
         return undefinedResult;
     }
 
     jsResult = jsPlayer->dataSrcCallBack_->GetDataSrc();
-    CHECK_AND_RETURN_RET_LOG(jsResult != nullptr, undefinedResult, "Failed to get the representation of src object");
+    if (jsResult == nullptr) {
+        jsPlayer->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to GetDataSrc");
+        return undefinedResult;
+    }
 
     MEDIA_LOGD("GetDataSrc success");
     return jsResult;
@@ -368,18 +368,20 @@ napi_value VideoPlayerNapi::SetFdSrc(napi_env env, napi_callback_info info)
     VideoPlayerNapi *jsPlayer = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&jsPlayer));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "Failed to retrieve instance");
-    CHECK_AND_RETURN_RET_LOG(jsPlayer->nativePlayer_ != nullptr, undefinedResult, "nativePlayer_ is nullptr");
-
+    if (jsPlayer->nativePlayer_ == nullptr) {
+        jsPlayer->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
     // get url from js
     napi_valuetype valueType = napi_undefined;
     if (args[0] == nullptr || napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_object) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        jsPlayer->ErrorCallback(MSERR_EXT_INVALID_VAL, "napi_typeof failed, please check the input parameters");
         return undefinedResult;
     }
 
     if (!CommonNapi::GetFdArgument(env, args[0], jsPlayer->rawFd_)) {
         MEDIA_LOGE("get rawfd argument failed!");
-        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        jsPlayer->ErrorCallback(MSERR_EXT_INVALID_VAL, "invalid parameters, please check the input parameters");
         return undefinedResult;
     }
 
@@ -387,7 +389,7 @@ napi_value VideoPlayerNapi::SetFdSrc(napi_env env, napi_callback_info info)
     int32_t ret = jsPlayer->nativePlayer_->SetSource(jsPlayer->rawFd_.fd, jsPlayer->rawFd_.offset,
         jsPlayer->rawFd_.length);
     if (ret != MSERR_OK) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        jsPlayer->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to SetSource");
         return undefinedResult;
     }
 
@@ -442,9 +444,13 @@ void VideoPlayerNapi::AsyncSetDisplaySurface(napi_env env, void *data)
     auto asyncContext = reinterpret_cast<VideoPlayerAsyncContext *>(data);
     CHECK_AND_RETURN_LOG(asyncContext != nullptr, "VideoPlayerAsyncContext is nullptr!");
 
-    if (asyncContext->jsPlayer == nullptr ||
-        asyncContext->jsPlayer->nativePlayer_ == nullptr) {
-        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "jsPlayer or nativePlayer is nullptr");
+    if (asyncContext->jsPlayer == nullptr) {
+        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "jsPlayer is destroyed(null), please check js_runtime");
+        return;
+    }
+
+    if (asyncContext->jsPlayer->nativePlayer_ == nullptr) {
+        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "nativePlayer is released(null), please create player again");
         return;
     }
 
@@ -464,7 +470,7 @@ void VideoPlayerNapi::AsyncSetDisplaySurface(napi_env env, void *data)
             asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to SetVideoSurface");
         }
     } else {
-        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "failed to get surface");
+        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "failed to get surface from SurfaceUtils");
     }
     MEDIA_LOGD("AsyncSetDisplaySurface Out");
 }
@@ -538,7 +544,7 @@ int32_t VideoPlayerNapi::ProcessWork(napi_env env, napi_status status, void *dat
         uint32_t bitRate = static_cast<uint32_t>(asyncContext->bitRate);
         ret = player->SelectBitRate(bitRate);
     } else {
-        asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to operate playback", false);
+        asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "invalid operate playback", false);
         MediaAsyncContext::CompleteCallback(env, status, data);
         cb->ClearAsyncWork();
     }
@@ -556,9 +562,12 @@ void VideoPlayerNapi::CompleteAsyncWork(napi_env env, napi_status status, void *
         return MediaAsyncContext::CompleteCallback(env, status, data);
     }
 
-    if (asyncContext->jsPlayer == nullptr || asyncContext->jsPlayer->nativePlayer_ == nullptr ||
-        asyncContext->jsPlayer->jsCallback_ == nullptr) {
-        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "jsPlayer or nativePlayer or jsCallback is nullptr");
+    if (asyncContext->jsPlayer == nullptr) {
+        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "jsPlayer is destroyed(null), please check js_runtime");
+        return MediaAsyncContext::CompleteCallback(env, status, data);
+    }
+    if (asyncContext->jsPlayer->nativePlayer_ == nullptr || asyncContext->jsPlayer->jsCallback_ == nullptr) {
+        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "nativePlayer is released(null), please create player again");
         return MediaAsyncContext::CompleteCallback(env, status, data);
     }
 
@@ -758,16 +767,15 @@ napi_value VideoPlayerNapi::Release(napi_env env, napi_callback_info info)
 
     // get jsPlayer
     (void)napi_unwrap(env, jsThis, reinterpret_cast<void **>(&asyncContext->jsPlayer));
-    if (asyncContext->jsPlayer == nullptr || asyncContext->jsPlayer->nativePlayer_ == nullptr) {
-        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "jsPlayer or nativePlayer_ is nullptr");
+    if (asyncContext->jsPlayer == nullptr) {
+        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "jsPlayer is destroyed(null), please check js_runtime");
+    } else if (asyncContext->jsPlayer->nativePlayer_ == nullptr) {
+        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "nativePlayer is released(null), please create player again");
     } else {
         asyncContext->jsPlayer->ReleaseDataSource(asyncContext->jsPlayer->dataSrcCallBack_);
-        int32_t ret = asyncContext->jsPlayer->nativePlayer_->Release();
-        if (ret != MSERR_OK) {
-            asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to release");
-        }
-
+        (void)asyncContext->jsPlayer->nativePlayer_->Release();
         asyncContext->jsPlayer->jsCallback_ = nullptr;
+        asyncContext->jsPlayer->nativePlayer_ = nullptr;
         asyncContext->jsPlayer->url_.clear();
     }
 
@@ -931,8 +939,13 @@ void VideoPlayerNapi::AsyncGetTrackDescription(napi_env env, void *data)
     auto asyncContext = reinterpret_cast<VideoPlayerAsyncContext *>(data);
     CHECK_AND_RETURN_LOG(asyncContext != nullptr, "VideoPlayerAsyncContext is nullptr!");
 
-    if (asyncContext->jsPlayer == nullptr || asyncContext->jsPlayer->nativePlayer_ == nullptr) {
-        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "jsPlayer or nativePlayer is nullptr");
+    if (asyncContext->jsPlayer == nullptr) {
+        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "jsPlayer is destroyed(null), please check js_runtime");
+        return;
+    }
+
+    if (asyncContext->jsPlayer->nativePlayer_ == nullptr) {
+        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "nativePlayer is released(null), please create player again");
         return;
     }
 
@@ -941,18 +954,18 @@ void VideoPlayerNapi::AsyncGetTrackDescription(napi_env env, void *data)
     videoInfo.clear();
     int32_t ret = player->GetVideoTrackInfo(videoInfo);
     if (ret != MSERR_OK) {
-        asyncContext->SignError(MSERR_EXT_UNKNOWN, "failed to operate playback");
+        asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to GetVideoTrackInfo");
         return;
     }
 
     ret = player->GetAudioTrackInfo(videoInfo);
     if (ret != MSERR_OK) {
-        asyncContext->SignError(MSERR_EXT_UNKNOWN, "failed to operate playback");
+        asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to GetAudioTrackInfo");
         return;
     }
 
     if (videoInfo.empty()) {
-        asyncContext->SignError(MSERR_EXT_UNKNOWN, "video tranck info is empty");
+        asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "video/audio track info is empty");
         return;
     }
 
@@ -1056,7 +1069,7 @@ napi_value VideoPlayerNapi::On(napi_env env, napi_callback_info info)
     napi_valuetype valueType1 = napi_undefined;
     if (napi_typeof(env, args[0], &valueType0) != napi_ok || valueType0 != napi_string ||
         napi_typeof(env, args[1], &valueType1) != napi_ok || valueType1 != napi_function) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        jsPlayer->ErrorCallback(MSERR_EXT_INVALID_VAL, "napi_typeof failed, please check the input parameters");
         return undefinedResult;
     }
 
@@ -1090,10 +1103,13 @@ napi_value VideoPlayerNapi::SetLoop(napi_env env, napi_callback_info info)
     VideoPlayerNapi *jsPlayer = nullptr;
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&jsPlayer));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "Failed to retrieve instance");
-
+    if (jsPlayer->nativePlayer_ == nullptr) {
+        jsPlayer->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_boolean) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        jsPlayer->ErrorCallback(MSERR_EXT_INVALID_VAL, "napi_typeof failed, please check the input parameters");
         return undefinedResult;
     }
 
@@ -1101,10 +1117,9 @@ napi_value VideoPlayerNapi::SetLoop(napi_env env, napi_callback_info info)
     status = napi_get_value_bool(env, args[0], &loopFlag);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_get_value_bool error");
 
-    CHECK_AND_RETURN_RET_LOG(jsPlayer->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = jsPlayer->nativePlayer_->SetLooping(loopFlag);
     if (ret != MSERR_OK) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_UNKNOWN);
+        jsPlayer->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to SetLooping");
         return undefinedResult;
     }
     MEDIA_LOGD("SetLoop success");
@@ -1128,7 +1143,10 @@ napi_value VideoPlayerNapi::GetLoop(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&jsPlayer));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "Failed to retrieve instance");
 
-    CHECK_AND_RETURN_RET_LOG(jsPlayer->nativePlayer_ != nullptr, undefinedResult, "No memory");
+    if (jsPlayer->nativePlayer_ == nullptr) {
+        jsPlayer->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
     bool loopFlag = jsPlayer->nativePlayer_->IsLooping();
 
     napi_value jsResult = nullptr;
@@ -1157,9 +1175,14 @@ napi_value VideoPlayerNapi::SetVideoScaleType(napi_env env, napi_callback_info i
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&jsPlayer));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "Failed to retrieve instance");
 
+    if (jsPlayer->nativePlayer_ == nullptr) {
+        jsPlayer->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
+
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_number) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        jsPlayer->ErrorCallback(MSERR_EXT_INVALID_VAL, "napi_typeof failed, please check the input parameters");
         return undefinedResult;
     }
 
@@ -1167,20 +1190,19 @@ napi_value VideoPlayerNapi::SetVideoScaleType(napi_env env, napi_callback_info i
     status = napi_get_value_int32(env, args[0], &videoScaleType);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_get_value_int32 error");
     if (videoScaleType > VIDEO_SCALE_TYPE_FIT_CROP || videoScaleType < VIDEO_SCALE_TYPE_FIT) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        jsPlayer->ErrorCallback(MSERR_EXT_INVALID_VAL, "invalid parameters, please check the input parameters");
         return undefinedResult;
     }
     if (jsPlayer->url_.empty()) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_INVALID_STATE);
+        jsPlayer->ErrorCallback(MSERR_EXT_INVALID_STATE, "invalid state, please input parameters after setSrc");
         return undefinedResult;
     }
     jsPlayer->videoScaleType_ = videoScaleType;
     Format format;
     (void)format.PutIntValue(PlayerKeys::VIDEO_SCALE_TYPE, videoScaleType);
-    CHECK_AND_RETURN_RET_LOG(jsPlayer->nativePlayer_ != nullptr, undefinedResult, "No memory");
     int32_t ret = jsPlayer->nativePlayer_->SetParameter(format);
     if (ret != MSERR_OK) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_UNKNOWN);
+        jsPlayer->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to SetParameter");
         return undefinedResult;
     }
     MEDIA_LOGD("SetVideoScaleType success");
@@ -1204,8 +1226,6 @@ napi_value VideoPlayerNapi::GetVideoScaleType(napi_env env, napi_callback_info i
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&jsPlayer));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "Failed to retrieve instance");
 
-    CHECK_AND_RETURN_RET_LOG(jsPlayer->nativePlayer_ != nullptr, undefinedResult, "No memory");
-    
     napi_value jsResult = nullptr;
     status = napi_create_int32(env, jsPlayer->videoScaleType_, &jsResult);
     CHECK_AND_RETURN_RET_LOG(status == napi_ok, undefinedResult, "napi_create_int32 error");
@@ -1230,13 +1250,12 @@ napi_value VideoPlayerNapi::GetCurrentTime(napi_env env, napi_callback_info info
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&jsPlayer));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "Failed to retrieve instance");
 
-    CHECK_AND_RETURN_RET_LOG(jsPlayer->nativePlayer_ != nullptr, undefinedResult, "No memory");
-    int32_t currentTime = -1;
-    int32_t ret = jsPlayer->nativePlayer_->GetCurrentTime(currentTime);
-    if (ret != MSERR_OK || currentTime < 0) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_UNKNOWN);
+    if (jsPlayer->nativePlayer_ == nullptr) {
+        jsPlayer->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
         return undefinedResult;
     }
+    int32_t currentTime = -1;
+    (void)jsPlayer->nativePlayer_->GetCurrentTime(currentTime);
 
     napi_value jsResult = nullptr;
     status = napi_create_int32(env, currentTime, &jsResult);
@@ -1262,13 +1281,12 @@ napi_value VideoPlayerNapi::GetDuration(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&jsPlayer));
     CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "Failed to retrieve instance");
 
-    CHECK_AND_RETURN_RET_LOG(jsPlayer->nativePlayer_ != nullptr, undefinedResult, "No memory");
-    int32_t duration = -1;
-    int32_t ret = jsPlayer->nativePlayer_->GetDuration(duration);
-    if (ret != MSERR_OK) {
-        jsPlayer->OnErrorCallback(MSERR_EXT_UNKNOWN);
+    if (jsPlayer->nativePlayer_ == nullptr) {
+        jsPlayer->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
         return undefinedResult;
     }
+    int32_t duration = -1;
+    (void)jsPlayer->nativePlayer_->GetDuration(duration);
 
     napi_value jsResult = nullptr;
     status = napi_create_int32(env, duration, &jsResult);
@@ -1390,11 +1408,11 @@ napi_value VideoPlayerNapi::GetHeight(napi_env env, napi_callback_info info)
     return jsResult;
 }
 
-void VideoPlayerNapi::OnErrorCallback(MediaServiceExtErrCode errCode)
+void VideoPlayerNapi::ErrorCallback(MediaServiceExtErrCode errCode, std::string errMsg)
 {
     if (jsCallback_ != nullptr) {
         auto cb = std::static_pointer_cast<VideoCallbackNapi>(jsCallback_);
-        cb->SendErrorCallback(errCode);
+        cb->SendErrorCallback(errCode, errMsg);
     }
 }
 
@@ -1413,13 +1431,18 @@ napi_value VideoPlayerNapi::SetAudioInterruptMode(napi_env env, napi_callback_in
         return undefinedResult;
     }
 
-    VideoPlayerNapi *player = nullptr;
-    status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&player));
-    CHECK_AND_RETURN_RET_LOG(status == napi_ok && player != nullptr, undefinedResult, "Failed to retrieve instance");
+    VideoPlayerNapi *jsPlayer = nullptr;
+    status = napi_unwrap(env, jsThis, reinterpret_cast<void **>(&jsPlayer));
+    CHECK_AND_RETURN_RET_LOG(status == napi_ok && jsPlayer != nullptr, undefinedResult, "Failed to retrieve instance");
+
+    if (jsPlayer->nativePlayer_ == nullptr) {
+        jsPlayer->ErrorCallback(MSERR_EXT_NO_MEMORY, "player is released(null), please create player again");
+        return undefinedResult;
+    }
 
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, args[0], &valueType) != napi_ok || valueType != napi_number) {
-        player->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        jsPlayer->ErrorCallback(MSERR_EXT_INVALID_VAL, "napi_typeof failed, please check the input parameters");
         return undefinedResult;
     }
 
@@ -1429,16 +1452,16 @@ napi_value VideoPlayerNapi::SetAudioInterruptMode(napi_env env, napi_callback_in
 
     if (interruptMode < AudioStandard::InterruptMode::SHARE_MODE ||
         interruptMode > AudioStandard::InterruptMode::INDEPENDENT_MODE) {
-        player->OnErrorCallback(MSERR_EXT_INVALID_VAL);
+        jsPlayer->ErrorCallback(MSERR_EXT_INVALID_VAL, "invalid parameters, please check the input parameters");
         return undefinedResult;
     }
-    CHECK_AND_RETURN_RET_LOG(player->nativePlayer_ != nullptr, undefinedResult, "No memory");
-    player->interruptMode_ = AudioStandard::InterruptMode(interruptMode);
+
+    jsPlayer->interruptMode_ = AudioStandard::InterruptMode(interruptMode);
     Format format;
     (void)format.PutIntValue(PlayerKeys::AUDIO_INTERRUPT_MODE, interruptMode);
-    int32_t ret = player->nativePlayer_->SetParameter(format);
+    int32_t ret = jsPlayer->nativePlayer_->SetParameter(format);
     if (ret != MSERR_OK) {
-        player->OnErrorCallback(MSERR_EXT_UNKNOWN);
+        jsPlayer->ErrorCallback(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to SetParameter");
         return undefinedResult;
     }
 

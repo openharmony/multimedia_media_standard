@@ -1,0 +1,118 @@
+# Copyright (C) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+
+config("gst_codec_plugin_hdi_config") {
+  visibility = [ ":*" ]
+  cflags = [
+    "-std=c++17",
+    "-fno-rtti",
+    "-fno-exceptions",
+    "-Wall",
+    "-fno-common",
+    "-fstack-protector-strong",
+    "-FPIC",
+    "-FS",
+    "-O2",
+    "-D_FORTIFY_SOURCE=2",
+    "-fvisibility=hidden",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
+  ]
+
+  include_dirs = [
+    "//foundation/multimedia/player_framework/services/engine/common/avcodeclist",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/codec/common/vdec",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/codec/common/venc",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/codec/common/video",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/codec/common",
+    "//base/hiviewdfx/interfaces/innerkits/libhilog/include",
+    "//utils/native/base/include",
+    "//foundation/multimedia/player_framework/services/utils/include",
+    "//foundation/multimedia/player_framework/interfaces/innerkits/native/media/include",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common",
+    "//third_party/gstreamer/gstreamer",
+    "//third_party/gstreamer/gstreamer/libs",
+    "//third_party/gstreamer/gstplugins_base",
+    "//third_party/gstreamer/gstplugins_base/gst-libs",
+    "//third_party/glib/glib",
+    "//third_party/glib",
+    "//third_party/glib/gmodule",
+    "//drivers/peripheral/base",
+    "//drivers/peripheral/codec/interfaces/include",
+    "//drivers/peripheral/codec/hal/include",
+    "//drivers/framework/include/utils",
+    "//drivers/hdf_core/framework/include/utils",
+    "//drivers/hdf_core/adapter/uhdf2/osal/include",
+    "//third_party/openmax/api/1.1.2",
+    "//drivers/peripheral/display/interfaces/include",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/codec/hdi_plugins",
+  ]
+}
+
+ohos_shared_library("gst_codec_plugin_hdi") {
+  install_enable = true
+
+  sources = [
+    "gst_hdi_factory.cpp",
+    "hdi_buffer_mgr.cpp",
+    "hdi_codec.cpp",
+    "hdi_codec_util.cpp",
+    "hdi_in_buffer_mgr.cpp",
+    "hdi_init.cpp",
+    "hdi_out_buffer_mgr.cpp",
+    "hdi_vdec_in_buffer_mgr.cpp",
+    "hdi_vdec_out_buffer_mgr.cpp",
+    "hdi_vdec_params_mgr.cpp",
+    "hdi_venc_in_buffer_mgr.cpp",
+    "hdi_venc_out_buffer_mgr.cpp",
+    "hdi_venc_params_mgr.cpp",
+  ]
+
+  configs = [
+    ":gst_codec_plugin_hdi_config",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config",
+  ]
+
+  deps = [
+    "//drivers/peripheral/codec/hal:libcodec_hdi_omx_client",
+    "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
+    "//foundation/multimedia/player_framework/services/engine/common:media_engine_common",
+    "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common:gst_media_common",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
+    "//third_party/glib:glib",
+    "//third_party/glib:gmodule",
+    "//third_party/glib:gobject",
+    "//third_party/gstreamer/gstplugins_base:gstvideo",
+    "//third_party/gstreamer/gstreamer:gstbase",
+    "//third_party/gstreamer/gstreamer:gstreamer",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
+
+  relative_install_dir = "media/plugins"
+  subsystem_name = "multimedia"
+  part_name = "multimedia_player_framework"
+}

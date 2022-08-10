@@ -39,7 +39,7 @@ config("media_engine_gst_factory_config") {
   ]
 
   include_dirs = [
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//foundation/multimedia/player_framework/services/include",
     "//foundation/multimedia/player_framework/services/services/engine_intf",
     "//foundation/multimedia/player_framework/services/engine/common/avcodeclist",
@@ -80,10 +80,10 @@ ohos_static_library("media_engine_gst_factory") {
   deps = [
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]

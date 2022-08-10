@@ -45,10 +45,10 @@ void HdiVdecParamsMgr::Init(CodecComponentType *handle,
     verInfo_ = verInfo;
     InitParam(inPortDef_, verInfo_);
     InitParam(outPortDef_, verInfo_);
-    InitParam(videoFormat_, verInfo_);
+    InitHdiParam(videoFormat_, verInfo_);
     inPortDef_.nPortIndex = portParam.nStartPortNumber;
     outPortDef_.nPortIndex = portParam.nStartPortNumber + 1;
-    videoFormat_.nPortIndex = portParam.nStartPortNumber + 1;
+    videoFormat_.portIndex = portParam.nStartPortNumber + 1;
 }
 
 int32_t HdiVdecParamsMgr::SetParameter(GstCodecParamKey key, GstElement *element)
@@ -105,9 +105,9 @@ int32_t HdiVdecParamsMgr::SetVideoFormat(GstElement *element)
 {
     MEDIA_LOGD("SetVideoFormat");
     GstVdecBase *base = GST_VDEC_BASE(element);
-    videoFormat_.eColorFormat = (OMX_COLOR_FORMATTYPE)HdiCodecUtil::FormatGstToOmx(base->format); // need to do
-    MEDIA_LOGD("videoFormat_.eColorFormat %{public}d", videoFormat_.eColorFormat);
-    auto ret = HdiSetParameter(handle_, OMX_IndexParamVideoPortFormat, videoFormat_);
+    videoFormat_.codecColorFormat = (OMX_COLOR_FORMATTYPE)HdiCodecUtil::FormatGstToHdi(base->format); // need to do
+    MEDIA_LOGD("videoFormat_.codecColorFormat %{public}d", videoFormat_.codecColorFormat);
+    auto ret = HdiSetParameter(handle_, OMX_IndexCodecVideoPortFormat, videoFormat_);
     CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "HdiSetParameter failed");
     return GST_CODEC_OK;
 }
@@ -153,12 +153,12 @@ int32_t HdiVdecParamsMgr::GetVideoFormat(GstElement *element)
 {
     MEDIA_LOGD("GetVideoFormat");
     GstVdecBase *base = GST_VDEC_BASE(element);
-    auto ret = HdiGetParameter(handle_, OMX_IndexParamVideoPortFormat, videoFormat_);
+    auto ret = HdiGetParameter(handle_, OMX_IndexCodecVideoPortFormat, videoFormat_);
     CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "HdiGetParameter failed");
 
-    while (HdiGetParameter(handle_, OMX_IndexParamVideoPortFormat, videoFormat_) == HDF_SUCCESS) {
-        base->formats.push_back(HdiCodecUtil::FormatOmxToGst(videoFormat_.eColorFormat)); // need to do
-        videoFormat_.nIndex++;
+    while (HdiGetParameter(handle_, OMX_IndexCodecVideoPortFormat, videoFormat_) == HDF_SUCCESS) {
+        base->formats.push_back(HdiCodecUtil::FormatHdiToGst((PixelFormat)videoFormat_.codecColorFormat));
+        videoFormat_.portIndex++;
     }
     return GST_CODEC_OK;
 }
@@ -169,7 +169,7 @@ int32_t HdiVdecParamsMgr::VideoSurfaceInit(GstElement *element)
     SupportBufferType supportBufferTypes;
     InitHdiParam(supportBufferTypes, verInfo_);
     supportBufferTypes.portIndex = outPortDef_.nPortIndex;
-    auto ret = HdiGetParameter(handle_, OMX_IndexParamSupportBufferType, supportBufferTypes); // need to do
+    auto ret = HdiGetParameter(handle_, OMX_IndexParamSupportBufferType, supportBufferTypes);
     CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "HdiGetParameter failed");
     if (!(supportBufferTypes.bufferTypes & CODEC_BUFFER_TYPE_HANDLE)) {
         MEDIA_LOGD("No CODEC_BUFFER_TYPE_HANDLE, support bufferType %{public}d", supportBufferTypes.bufferTypes);
@@ -190,7 +190,7 @@ int32_t HdiVdecParamsMgr::VideoSurfaceInit(GstElement *element)
     CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "HdiSetParameter failed");
 
     GstVdecBase *base = GST_VDEC_BASE(element);
-    base->usage = usageParams.usage;
+    base->usage = (int32_t)usageParams.usage;
     MEDIA_LOGD("Usage %{public}d", base->usage);
     return GST_CODEC_OK;
 }

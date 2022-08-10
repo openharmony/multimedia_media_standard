@@ -25,6 +25,7 @@
 #include "scope_guard.h"
 #include "playbin_state.h"
 #include "gst_utils.h"
+#include "media_dfx.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayBinCtrlerBase"};
@@ -404,17 +405,19 @@ int32_t PlayBinCtrlerBase::SetAudioRendererInfo(const uint32_t rendererInfo, con
     std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
     rendererInfo_ = rendererInfo;
     rendererFlag_ = rendererFlag;
-    CHECK_AND_RETURN_RET_LOG(audioSink_ != nullptr, MSERR_INVALID_VAL, "audioSink_ is nullptr");
-    g_object_set(audioSink_, "audio-renderer-desc", rendererInfo, nullptr);
-    g_object_set(audioSink_, "audio-renderer-flag", rendererFlag, nullptr);
+    if (audioSink_ != nullptr) {
+        g_object_set(audioSink_, "audio-renderer-desc", rendererInfo, nullptr);
+        g_object_set(audioSink_, "audio-renderer-flag", rendererFlag, nullptr);
+    }
     return MSERR_OK;
 }
 
 void PlayBinCtrlerBase::SetAudioInterruptMode(const int32_t interruptMode)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    CHECK_AND_RETURN_LOG(audioSink_ != nullptr, "audioSink_ is nullptr");
-    g_object_set(audioSink_, "audio-interrupt-mode", interruptMode, nullptr);
+    if (audioSink_ != nullptr) {
+        g_object_set(audioSink_, "audio-interrupt-mode", interruptMode, nullptr);
+    }
 }
 
 int32_t PlayBinCtrlerBase::SelectBitRate(uint32_t bitRate)
@@ -516,7 +519,7 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
     if (isInitialized_) {
         return MSERR_OK;
     }
-
+    MediaTrace("PlayBinCtrlerBase::InitializedState");
     MEDIA_LOGD("EnterInitializedState enter");
 
     ON_SCOPE_EXIT(0) {
@@ -566,6 +569,7 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
 
     CANCEL_SCOPE_EXIT_GUARD(0);
     MEDIA_LOGD("EnterInitializedState exit");
+
     return MSERR_OK;
 }
 
@@ -637,7 +641,7 @@ int32_t PlayBinCtrlerBase::SeekInternal(int64_t timeUs, int32_t seekOption)
     int64_t timeNs = timeUs * usecToNanoSec;
     seekPos_ = timeUs;
     isSeeking_ = true;
-    GstEvent *event = gst_event_new_seek(1.0, GST_FORMAT_TIME, static_cast<GstSeekFlags>(seekFlags),
+    GstEvent *event = gst_event_new_seek(rate_, GST_FORMAT_TIME, static_cast<GstSeekFlags>(seekFlags),
         GST_SEEK_TYPE_SET, timeNs, GST_SEEK_TYPE_SET, GST_CLOCK_TIME_NONE);
     CHECK_AND_RETURN_RET_LOG(event != nullptr, MSERR_NO_MEMORY, "seek failed");
 
@@ -672,6 +676,8 @@ void PlayBinCtrlerBase::SetupCustomElement()
         audioSink_ = sinkProvider_->CreateAudioSink();
         if (audioSink_ != nullptr) {
             g_object_set(playbin_, "audio-sink", audioSink_, nullptr);
+            SetupVolumeChangedCb();
+            SetupInterruptEventCb();
         }
         videoSink_ = sinkProvider_->CreateVideoSink();
         if (videoSink_ != nullptr) {
@@ -744,11 +750,11 @@ void PlayBinCtrlerBase::QueryDuration()
     auto state = GetCurrState();
     if (state != preparedState_ && state != playingState_ && state != pausedState_ &&
         state != playbackCompletedState_) {
-        MEDIA_LOGD("reuse the last query result: %{public}" PRIi64 " microsecond", duration_);
+        MEDIA_LOGE("reuse the last query result: %{public}" PRIi64 " microsecond", duration_);
         return;
     }
 
-    gint64 duration = 0;
+    gint64 duration = -1;
     gboolean ret = gst_element_query_duration(GST_ELEMENT_CAST(playbin_), GST_FORMAT_TIME, &duration);
     CHECK_AND_RETURN_LOG(ret, "query duration failed");
 
@@ -787,7 +793,7 @@ int64_t PlayBinCtrlerBase::QueryPositionInternal(bool isSeekDone)
         if (isSeekDone) {
             position = seekPos_ * NANO_SEC_PER_USEC;
         } else {
-            MEDIA_LOGE("query position failed");
+            MEDIA_LOGW("query position failed");
             return lastTime_;
         }
     }
@@ -1029,7 +1035,7 @@ void PlayBinCtrlerBase::OnVolumeChangedCb(const GstElement *playbin, GstElement 
     }
 
     auto thizStrong = PlayBinCtrlerWrapper::TakeStrongThiz(userdata);
-    if (thizStrong != nullptr) {
+    if (thizStrong != nullptr && thizStrong->GetCurrState() != thizStrong->preparingState_) {
         PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_VOLUME_CHANGE, 0, 0, {} };
         thizStrong->ReportMessage(msg);
     }
@@ -1117,3 +1123,4 @@ void PlayBinCtrlerBase::ReportMessage(const PlayBinMessage &msg)
 }
 } // namespace Media
 } // namespace OHOS
+

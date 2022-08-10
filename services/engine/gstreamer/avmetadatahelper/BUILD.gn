@@ -57,7 +57,7 @@ config("media_engine_gst_avmeta_config") {
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
     "//drivers/peripheral/base",
     "//drivers/peripheral/display/interfaces/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/gstreamer/gstplugins_base/gst-libs",

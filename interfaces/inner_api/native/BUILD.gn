@@ -61,7 +61,7 @@ config("media_client_public_config") {
     "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
     "//utils/system/safwk/native/include",
     "//third_party/bounds_checking_function/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//foundation/multimedia/image_standard/interfaces/innerkits/include",
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiocommon/include",
     "//foundation/multimedia/audio_framework/interfaces/kits/js/audio_capturer/include",
@@ -131,10 +131,10 @@ ohos_shared_library("media_client") {
       "//foundation/graphic/graphic_2d/frameworks/surface:surface",
       "//foundation/multimedia/image_standard/interfaces/innerkits:image_native",
       "//third_party/bounds_checking_function:libsec_static",
-      "//utils/native/base:utils",
     ]
 
     external_deps = [
+      "c_utils:utils",
       "hiviewdfx_hilog_native:libhilog",
       "ipc:ipc_core",
     ]
@@ -192,13 +192,13 @@ ohos_shared_library("media_client") {
       "//foundation/multimedia/player_framework/services/utils:media_format",
       "//foundation/multimedia/player_framework/services/utils:media_service_utils",
       "//third_party/bounds_checking_function:libsec_static",
-      "//utils/native/base:utils",
     ]
 
     external_deps = [
+      "c_utils:utils",
       "hiviewdfx_hilog_native:libhilog",
       "ipc:ipc_core",
-      "samgr_standard:samgr_proxy",
+      "samgr:samgr_proxy",
     ]
   }
 

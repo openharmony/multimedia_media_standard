@@ -1,13 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration ver="2.0">
+    <target name="PlayerFileFuzzTest">
+        <preparer>
+            <option name="push" value="fuzztest.mp4 -> /data/test/media" src="res"/>
+        </preparer>
+    </target>
     <target name="PlayerSeekFuzzTest">
         <preparer>
-            <option name="push" value="H264_AAC.mp4 -> /data/test/resource" src="res"/>
+            <option name="push" value="H264_AAC.mp4 -> /data/test/media" src="res"/>
         </preparer>
     </target>
     <target name="PlayerSetVolumeFuzzTest">
         <preparer>
-            <option name="push" value="H264_AAC.mp4 -> /data/test/resource" src="res"/>
+            <option name="push" value="H264_AAC.mp4 -> /data/test/media" src="res"/>
+        </preparer>
+    </target>
+    <target name="AVmetadataFetchFrameAtTimeFuzzTest">
+        <preparer>
+            <option name="push" value="H264_AAC.mp4 -> /data/test/media" src="res"/>
+        </preparer>
+    </target>
+    <target name="AVmetadataResolveMetadataFuzzTest">
+        <preparer>
+            <option name="push" value="H264_AAC.mp4 -> /data/test/media" src="res"/>
+        </preparer>
+    </target>
+    <target name="AVmetadataFileFuzzTest">
+        <preparer>
+            <option name="push" value="fuzztest.mp4 -> /data/test/media" src="res"/>
+        </preparer>
+    </target>
+    <target name="AVmetadataSetSource">
+        <preparer>
+            <option name="push" value="H264_AAC.mp4 -> /data/test/media" src="res"/>
         </preparer>
     </target>
 </configuration>

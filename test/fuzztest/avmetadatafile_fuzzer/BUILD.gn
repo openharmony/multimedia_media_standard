@@ -1,0 +1,71 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#####################hydra-fuzz###################
+import("//build/config/features.gni")
+import("//build/test.gni")
+module_output_path = "player_framework/avmetadata"
+
+##############################fuzztest##########################################
+ohos_fuzztest("AVmetadataFileFuzzTest") {
+  module_out_path = module_output_path
+  fuzz_config_file = "//foundation//multimedia/player_framework/test/fuzztest/avmetadatafile_fuzzer"
+
+  resource_config_file = "//foundation/multimedia/player_framework/test/fuzztest/resource/ohos_test.xml"
+
+  include_dirs = [
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
+    "//foundation/multimedia/player_framework/services/utils/include",
+    "//foundation/multimedia/player_framework/test/fuzztest/",
+    "//foundation/windowmanager/interfaces/innerkits/wm",
+    "//graphic/graphic_2d/interfaces/innerkits/surface",
+  ]
+  cflags = [
+    "-std=c++17",
+    "-fno-rtti",
+    "-fno-exceptions",
+    "-Wall",
+    "-fno-common",
+    "-fstack-protector-strong",
+    "-Wshadow",
+    "-FPIC",
+    "-FS",
+    "-O2",
+    "-D_FORTIFY_SOURCE=2",
+    "-fvisibility=hidden",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wdate-time",
+    "-Werror",
+    "-Wextra",
+    "-Wimplicit-fallthrough",
+    "-Wsign-compare",
+    "-Wunused-parameter",
+  ]
+  sources = [
+    "../aw_common.cpp",
+    "../test_metadata.cpp",
+    "avmetadatafile_fuzzer.cpp",
+  ]
+  deps = [
+    "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/window/window_manager/wm:libwm",
+  ]
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "multimedia_player_framework:media_client",
+  ]
+}

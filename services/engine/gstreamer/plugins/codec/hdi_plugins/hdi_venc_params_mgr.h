@@ -47,12 +47,11 @@ protected:
     int32_t InitAvcParamters(GstElement *element);
     void InitAvcCommonParamters(GstElement *element, OMX_VIDEO_PARAM_AVCTYPE &avcType);
 private:
-    CodecComponentType *handle_;
+    CodecComponentType *handle_ = nullptr;
     OMX_PARAM_PORTDEFINITIONTYPE inPortDef_ = {};
     OMX_PARAM_PORTDEFINITIONTYPE outPortDef_ = {};
-    OMX_VIDEO_PARAM_PORTFORMATTYPE videoFormat_ = {};
-    OMX_VIDEO_PARAM_BITRATETYPE bitrateConfig_ = {};
-    CompVerInfo verInfo_;
+    CodecVideoPortFormatParam videoFormat_ = {};
+    CompVerInfo verInfo_ = {};
 };
 } // namespace Media
 } // namespace OHOS

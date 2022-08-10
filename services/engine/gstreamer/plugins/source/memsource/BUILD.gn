@@ -40,7 +40,7 @@ config("gst_mem_src_config") {
 
   include_dirs = [
     "//drivers/peripheral/display/interfaces/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//foundation/multimedia/player_framework/services/utils/include",
     "//foundation/multimedia/player_framework/interfaces/inner_api/native",
     "//foundation/multimedia/player_framework/services/engine/gstreamer/plugins/common",
@@ -55,6 +55,7 @@ config("gst_mem_src_config") {
     "//third_party/glib/gmodule",
     "//foundation/graphic/graphic_2d/interfaces/innerkits/common",
     "//foundation/graphic/graphic_2d/utils/sync_fence/export",
+    "//base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include",
   ]
 }
 

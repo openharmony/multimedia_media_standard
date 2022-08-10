@@ -53,6 +53,8 @@ static const std::unordered_map<int32_t, MediaServiceErrCode> STREAM_TO_SERVICE_
     */
     { GST_STREAM_ERROR_CODEC_NOT_FOUND, MSERR_UNSUPPORT_VID_DEC_TYPE },
     { GST_STREAM_ERROR_DEMUX, MSERR_DEMUXER_FAILED },
+    { GST_STREAM_ERROR_WRONG_TYPE, MSERR_UNSUPPORT_FILE },
+    { GST_STREAM_ERROR_FAILED, MSERR_UNSUPPORT_STREAM },
 };
 static const std::unordered_map<int32_t, MediaServiceErrCode> RESOURCE_TO_SERVICE_ERR_TABLE = {
     { GST_RESOURCE_ERROR_NOT_FOUND, MSERR_OPEN_FILE_FAILED },
@@ -64,8 +66,8 @@ static const std::unordered_map<int32_t, MediaServiceErrCode> RESOURCE_TO_SERVIC
 
 static int32_t StreamErrorParse(const gchar *name, const GError *error)
 {
-    CHECK_AND_RETURN_RET_LOG(name != nullptr, MSERR_UNKNOWN, "name is nullptr");
-    MEDIA_LOGE("domain: GST_STREAM_ERROR");
+    CHECK_AND_RETURN_RET_LOG(name != nullptr, MSERR_UNSUPPORT_STREAM, "name is nullptr");
+    MEDIA_LOGE("domain: GST_STREAM_ERROR(%{public}d)", error->code);
     auto streamIter = STREAM_TO_SERVICE_ERR_TABLE.find(error->code);
     if (streamIter != STREAM_TO_SERVICE_ERR_TABLE.end()) {
         return streamIter->second;
@@ -75,7 +77,7 @@ static int32_t StreamErrorParse(const gchar *name, const GError *error)
         return streamFuncIter->second(name);
     }
 
-    return MSERR_UNKNOWN;
+    return MSERR_UNSUPPORT_STREAM;
 }
 
 static int32_t ResourceErrorParse(const GError *error)
@@ -83,7 +85,7 @@ static int32_t ResourceErrorParse(const GError *error)
     MEDIA_LOGE("domain: GST_RESOURCE_ERROR");
     auto resIter = RESOURCE_TO_SERVICE_ERR_TABLE.find(error->code);
     if (resIter == RESOURCE_TO_SERVICE_ERR_TABLE.end()) {
-        return MSERR_UNKNOWN;
+        return MSERR_UNSUPPORT_SOURCE;
     }
     return resIter->second;
 }

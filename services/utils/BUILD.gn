@@ -14,27 +14,20 @@
 import("//build/ohos.gni")
 
 ohos_static_library("media_format") {
-  sources = [
-    "format.cpp",
-    "xml_parse.cpp",
-  ]
+  sources = [ "format.cpp" ]
 
   include_dirs = [
     "//foundation/multimedia/player_framework/interfaces/inner_api/native",
     "//foundation/multimedia/player_framework/services/utils/include",
-    "//utils/native/base/include",
-    "//third_party/libxml2/include",
+    "//commonlibrary/c_utils/base/include",
   ]
 
-  configs = [ "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config" ]
+  deps = [ "//foundation/multimedia/player_framework/services/utils:media_service_utils" ]
 
-  deps = [
-    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
-    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
-    "//third_party/libxml2:xml2",
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
   ]
-
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
   subsystem_name = "multimedia"
   part_name = "multimedia_player_framework"
@@ -62,7 +55,7 @@ ohos_shared_library("media_service_utils") {
   ]
 
   include_dirs = [
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//foundation/multimedia/player_framework/interfaces/inner_api/native",
     "//third_party/libxml2/include",
   ]
@@ -90,18 +83,12 @@ ohos_shared_library("media_service_utils") {
     "-Wunused-parameter",
   ]
 
-  configs = [
-    ":media_service_utils_public_config",
-    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx_public_config",
-  ]
+  configs = [ ":media_service_utils_public_config" ]
 
-  deps = [
-    "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
-    "//third_party/libxml2:xml2",
-    "//utils/native/base:utils",
-  ]
+  deps = [ "//third_party/libxml2:xml2" ]
 
   external_deps = [
+    "c_utils:utils",
     "hisysevent_native:libhisysevent",
     "hitrace_native:hitrace_meter",
     "hiviewdfx_hilog_native:libhilog",

@@ -21,6 +21,8 @@
 #include "scope_guard.h"
 #include "gst_codec_video_common.h"
 #include "param_wrapper.h"
+#include "media_dfx.h"
+#include "media_log.h"
 
 using namespace OHOS;
 using namespace OHOS::Media;
@@ -642,6 +644,7 @@ static void gst_vdec_base_remove_reconfig_flag(GstVideoDecoder *decoder)
 
 static gboolean gst_vdec_base_negotiate(GstVdecBase *self)
 {
+    MediaTrace::TraceBegin("VdecBace::Negotiate", FAKE_POINTER(self));
     GST_DEBUG_OBJECT(self, "Negotiate");
     g_return_val_if_fail(self != nullptr, FALSE);
     g_return_val_if_fail(GST_VIDEO_DECODER_SRC_PAD(self) != nullptr, FALSE);
@@ -650,6 +653,7 @@ static gboolean gst_vdec_base_negotiate(GstVdecBase *self)
     g_return_val_if_fail(gst_video_decoder_negotiate(GST_VIDEO_DECODER(self)), FALSE);
     gst_vdec_base_remove_reconfig_flag(GST_VIDEO_DECODER(self));
     GST_WARNING_OBJECT(self, "KPI-TRACE-VDEC: negotiate end");
+    MediaTrace::TraceEnd("VdecBace::Negotiate", FAKE_POINTER(self));
     return TRUE;
 }
 
@@ -712,6 +716,7 @@ static gboolean gst_vdec_base_update_out_port_def(GstVdecBase *self, guint *size
 
 static gboolean gst_vdec_base_allocate_out_buffers(GstVdecBase *self)
 {
+    MediaTrace::TraceBegin("VdecBase::AllocateOutPutBuffer", FAKE_POINTER(self));
     GST_DEBUG_OBJECT(self, "Allocate output buffers");
     g_return_val_if_fail(self != nullptr, FALSE);
     g_return_val_if_fail(self->decoder != nullptr, FALSE);
@@ -729,6 +734,7 @@ static gboolean gst_vdec_base_allocate_out_buffers(GstVdecBase *self)
     // give buffer ref to decoder
     gint ret = self->decoder->UseOutputBuffers(buffers);
     g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "usebuffer", TRUE), FALSE);
+    MediaTrace::TraceEnd("VdecBase::AllocateOutPutBuffer", FAKE_POINTER(self));
     return TRUE;
 }
 
@@ -947,6 +953,11 @@ static GstFlowReturn gst_vdec_base_push_input_buffer(GstVideoDecoder *decoder, G
         gst_buffer_ref(buf);
     }
 
+    if (buf == nullptr) {
+        GST_DEBUG_OBJECT(self, "buffer is null");
+        return GST_FLOW_OK;
+    }
+
     GST_VIDEO_DECODER_STREAM_UNLOCK(self);
 
     gint codec_ret = GST_CODEC_OK;
@@ -1128,6 +1139,7 @@ static void gst_vdec_base_post_resolution_changed_message(GstVdecBase *self)
 
 static GstFlowReturn push_output_buffer(GstVdecBase *self, GstBuffer *buffer)
 {
+    MediaTrace::TraceBegin("VdecBase::FinishFrame", FAKE_POINTER(self));
     GST_DEBUG_OBJECT(self, "Push output buffer");
     g_return_val_if_fail(self != nullptr, GST_FLOW_ERROR);
     g_return_val_if_fail(buffer != nullptr, GST_FLOW_ERROR);
@@ -1146,6 +1158,7 @@ static GstFlowReturn push_output_buffer(GstVdecBase *self, GstBuffer *buffer)
     gst_vdec_base_dump_output_buffer(self, buffer);
     copy_to_no_stride_buffer(self, frame);
     GstFlowReturn flow_ret = gst_video_decoder_finish_frame(GST_VIDEO_DECODER(self), frame);
+    MediaTrace::TraceEnd("VdecBase::FinishFrame", FAKE_POINTER(self));
     return flow_ret;
 }
 
@@ -1185,6 +1198,7 @@ static void gst_vdec_base_get_real_stride(GstVdecBase *self)
 
 static GstFlowReturn gst_vdec_base_format_change(GstVdecBase *self)
 {
+    MediaTrace::TraceBegin("VdecBase::FormatChange", FAKE_POINTER(self));
     GST_WARNING_OBJECT(self, "KPI-TRACE-VDEC: format change start");
     g_return_val_if_fail(self != nullptr, GST_FLOW_ERROR);
     g_return_val_if_fail(self->decoder != nullptr, GST_FLOW_ERROR);
@@ -1214,6 +1228,7 @@ static GstFlowReturn gst_vdec_base_format_change(GstVdecBase *self)
     ret = self->decoder->Start();
     g_return_val_if_fail(gst_codec_return_is_ok(self, ret, "Start", TRUE), GST_FLOW_ERROR);
     GST_WARNING_OBJECT(self, "KPI-TRACE-VDEC: format change end");
+    MediaTrace::TraceEnd("VdecBase::FormatChange", FAKE_POINTER(self));
     return GST_FLOW_OK;
 }
 
@@ -1287,8 +1302,7 @@ static gboolean gst_vdec_base_push_out_buffers(GstVdecBase *self)
 static void gst_vdec_base_loop(GstVdecBase *self)
 {
     GST_DEBUG_OBJECT(self, "Loop in");
-    g_return_if_fail(self != nullptr);
-    g_return_if_fail(self->decoder != nullptr);
+    g_return_if_fail(self != nullptr || self->decoder != nullptr);
 
     GstBuffer *gst_buffer = nullptr;
     if (gst_vdec_base_push_out_buffers(self) != TRUE) {
@@ -1296,7 +1310,9 @@ static void gst_vdec_base_loop(GstVdecBase *self)
         return;
     }
     GST_DEBUG_OBJECT(self, "coding buffers %u", self->coding_outbuf_cnt);
+    MediaTrace::TraceBegin("VdecBase::PullOutputBuffer", FAKE_POINTER(self));
     gint codec_ret = self->decoder->PullOutputBuffer(&gst_buffer);
+    MediaTrace::TraceEnd("VdecBase::PullOutputBuffer", FAKE_POINTER(self));
     gint flow_ret = GST_FLOW_OK;
     GST_DEBUG_OBJECT(self, "Pull ret %d", codec_ret);
     switch (codec_ret) {
@@ -1691,6 +1707,7 @@ static gboolean gst_vdec_base_decide_allocation(GstVideoDecoder *decoder, GstQue
 
 static gboolean gst_vdec_base_check_allocate_input(GstVdecBase *self)
 {
+    MediaTrace::TraceBegin("VdecBase::AllocateInputBuffer", FAKE_POINTER(self));
     g_return_val_if_fail(self != nullptr, FALSE);
     if (self->inpool == nullptr) {
         self->inpool = gst_vdec_base_new_in_shmem_pool(self, self->input_state->caps, self->input.buffer_size,
@@ -1699,6 +1716,7 @@ static gboolean gst_vdec_base_check_allocate_input(GstVdecBase *self)
         g_return_val_if_fail(self->inpool != nullptr, FALSE);
         g_return_val_if_fail(gst_vdec_base_allocate_in_buffers(self), FALSE);
     }
+    MediaTrace::TraceEnd("VdecBase::AllocateInputBuffer", FAKE_POINTER(self));
     return TRUE;
 }
 

@@ -27,12 +27,12 @@ bool AVFormatNativeMock::GetIntValue(const std::string_view &key, int32_t &value
     return format_.GetIntValue(key, value);
 }
 
-bool PutStringValue(const std::string_view &key, const std::string_view &value)
+bool AVFormatNativeMock::PutStringValue(const std::string_view &key, const std::string_view &value)
 {
     return format_.PutStringValue(key, value);
 }
 
-bool GetStringValue(const std::string_view &key, std::string &value)
+bool AVFormatNativeMock::GetStringValue(const std::string_view &key, std::string &value)
 {
     return format_.GetStringValue(key, value);
 }

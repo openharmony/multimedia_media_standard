@@ -58,7 +58,7 @@ private:
     static napi_value GetAudioInterruptMode(napi_env env, napi_callback_info info);
     static napi_value SetAudioInterruptMode(napi_env env, napi_callback_info info);
     static void AsyncGetTrackDescription(napi_env env, void *data);
-    void ErrorCallback(MediaServiceExtErrCode errCode);
+    void ErrorCallback(MediaServiceExtErrCode errCode, std::string errMsg = "unknown");
     void SetCallbackReference(const std::string &callbackName, std::shared_ptr<AutoRef> ref);
     AudioPlayerNapi();
     ~AudioPlayerNapi();
