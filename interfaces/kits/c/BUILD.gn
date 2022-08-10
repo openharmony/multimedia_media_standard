@@ -12,8 +12,6 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//build/ohos/ndk/ndk.gni")
-
 MEDIA_ROOT_DIR = "//foundation/multimedia/player_framework"
 
 config("media_capi_config") {
@@ -74,50 +72,4 @@ ohos_shared_library("media_capi") {
 
   subsystem_name = "multimedia"
   part_name = "multimedia_player_framework"
-}
-
-ohos_ndk_headers("native_media_header") {
-  dest_dir = "$ndk_headers_out_dir/multimedia/player_framework"
-  sources = [
-    "//foundation/multimedia/player_framework/interfaces/kits/c/native_avcodec_audiodecoder.h",
-    "//foundation/multimedia/player_framework/interfaces/kits/c/native_avcodec_audioencoder.h",
-    "//foundation/multimedia/player_framework/interfaces/kits/c/native_avcodec_base.h",
-    "//foundation/multimedia/player_framework/interfaces/kits/c/native_avcodec_videodecoder.h",
-    "//foundation/multimedia/player_framework/interfaces/kits/c/native_avcodec_videoencoder.h",
-    "//foundation/multimedia/player_framework/interfaces/kits/c/native_averrors.h",
-    "//foundation/multimedia/player_framework/interfaces/kits/c/native_avformat.h",
-    "//foundation/multimedia/player_framework/interfaces/kits/c/native_avmemory.h",
-  ]
-}
-
-ohos_ndk_library("libnative_media_capi") {
-  ndk_description_file = "./libnative_media.capi.json"
-  min_compact_version = "1"
-  output_name = "native_media"
-  output_extension = "so"
-
-  system_capability = [
-    "SystemCapability.Multimedia.Media.Core",
-    "SystemCapability.Multimedia.Media.AudioPlayer",
-    "SystemCapability.Multimedia.Media.VideoPlayer",
-    "SystemCapability.Multimedia.Media.AudioRecorder",
-    "SystemCapability.Multimedia.Media.VideoRecorder",
-    "SystemCapability.Multimedia.Media.AudioDecoder",
-    "SystemCapability.Multimedia.Media.AudioEncoder",
-    "SystemCapability.Multimedia.Media.VideoDecoder",
-    "SystemCapability.Multimedia.Media.VideoEncoder",
-    "SystemCapability.Multimedia.Media.CodecBase",
-    "SystemCapability.Multimedia.Media.Spliter",
-    "SystemCapability.Multimedia.Media.Muxer",
-  ]
-  system_capability_headers = [
-    "native_media/native_avcodec_audiodecoder.h",
-    "native_media/native_avcodec_audioencoder.h",
-    "native_media/native_avcodec_base.h",
-    "native_media/native_avcodec_videodecoder.h",
-    "native_media/native_avcodec_videoencoder.h",
-    "native_media/native_averrors.h",
-    "native_media/native_avformat.h",
-    "native_media/native_avmemory.h",
-  ]
 }

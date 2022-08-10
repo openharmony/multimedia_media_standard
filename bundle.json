@@ -18,7 +18,11 @@
         "SystemCapability.Multimedia.Media.VideoPlayer",
         "SystemCapability.Multimedia.Media.AudioRecorder",
         "SystemCapability.Multimedia.Media.VideoRecorder",
-        "SystemCapability.Multimedia.Media.Codec",
+        "SystemCapability.Multimedia.Media.AudioDecoder",
+        "SystemCapability.Multimedia.Media.AudioEncoder",
+        "SystemCapability.Multimedia.Media.VideoDecoder",
+        "SystemCapability.Multimedia.Media.VideoEncoder",
+        "SystemCapability.Multimedia.Media.CodecBase",
         "SystemCapability.Multimedia.Media.Spliter",
         "SystemCapability.Multimedia.Media.Muxer"
       ],
@@ -67,8 +71,10 @@
           "//foundation/multimedia/player_framework/sa_profile:media_service_sa_profile",
           "//foundation/multimedia/player_framework/interfaces/kits/js:media",
           "//foundation/multimedia/player_framework/interfaces/kits/js:media_js",
+          "//foundation/multimedia/player_framework/interfaces/kits/c:media_capi",
           "//foundation/multimedia/player_framework/frameworks/videodisplaymanager:videodisplaymanager",
           "//foundation/multimedia/player_framework/test/nativedemo:media_demo",
+          "//foundation/multimedia/player_framework/test/capi:media_capi_sample",
           "//foundation/multimedia/player_framework/test/jsdemo:media_demo_js",
           "//foundation/multimedia/player_framework/test/jsdemo:mediademo"
         ],

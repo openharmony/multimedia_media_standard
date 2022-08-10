@@ -1,0 +1,16 @@
+[
+    { "name": "OH_AudioDecoder_CreateByMime" },
+    { "name": "OH_AudioDecoder_CreateByName" },
+    { "name": "OH_AudioDecoder_Destroy" },
+    { "name": "OH_AudioDecoder_SetCallback" },
+    { "name": "OH_AudioDecoder_Configure" },
+    { "name": "OH_AudioDecoder_Prepare" },
+    { "name": "OH_AudioDecoder_Start" },
+    { "name": "OH_AudioDecoder_Stop" },
+    { "name": "OH_AudioDecoder_Flush" },
+    { "name": "OH_AudioDecoder_Reset" },
+    { "name": "OH_AudioDecoder_GetOutputDescription" },
+    { "name": "OH_AudioDecoder_SetParameter" },
+    { "name": "OH_AudioDecoder_PushInputData" },
+    { "name": "OH_AudioDecoder_FreeOutputData" }
+]
