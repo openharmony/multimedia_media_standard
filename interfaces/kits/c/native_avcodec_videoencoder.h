@@ -214,14 +214,14 @@ OH_AVErrCode OH_VideoEncoder_NotifyEndOfStream(OH_AVCodec *codec);
  * @since 9
  * @version 1.0
  */
-typedef enum OHVideoEncodeBitrateMode {
+typedef enum OH_VideoEncodeBitrateMode {
     /* constant bit rate mode. */
     CBR = 0,
     /* variable bit rate mode. */
     VBR = 1,
     /* constant quality mode. */
     CQ = 2,
-} OHVideoEncodeBitrateMode;
+} OH_VideoEncodeBitrateMode;
 
 #ifdef __cplusplus
 }
