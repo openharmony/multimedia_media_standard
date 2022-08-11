@@ -20,7 +20,7 @@
 #include "acodec_mock.h"
 namespace OHOS {
 namespace Media {
-class AudioCodecUnitTest : public testing::Test {
+class ACodecUnitTest : public testing::Test {
 public:
     // SetUpTestCase: Called before all test cases
     static void SetUpTestCase(void);

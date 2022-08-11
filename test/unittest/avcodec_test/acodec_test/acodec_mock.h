@@ -80,7 +80,7 @@ private:
 };
 
 class ACodecMock : public NoCopyable {
-public:    
+public: 
     ACodecMock(std::shared_ptr<ACodecSignal> signal);
     ~ACodecMock();
 
@@ -118,6 +118,8 @@ public:
     void SetOutPath(const std::string &path);
 
 private:
+    void clearIntqueue (std::queue<uint32_t>& q);
+    void clearBufferqueue (std::queue<std::shared_ptr<AVMemoryMock>>& q);
     std::shared_ptr<AudioDecMock> audioDec_;
     std::shared_ptr<ACodecSignal> acodecSignal_;
     void InputFuncDec();
@@ -144,7 +146,6 @@ private:
     uint32_t encOutCnt_ = 0;
     std::string outPath_ = "/data/test/media/out.es";
 };
-
 }
 }
 #endif // ACODEC_MOCK_H
