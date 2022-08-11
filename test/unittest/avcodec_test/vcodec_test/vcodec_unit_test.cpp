@@ -44,7 +44,7 @@ void VCodecUnitTest::SetUp(void)
     EXPECT_EQ(MSERR_OK, videoEnc_->SetCallback(vencCallback_));
 
     testInfo_ = ::testing::UnitTest::GetInstance()->current_test_info();
-    string prefix = "/data/test/media";
+    string prefix = "/data/test/media/";
     string fileName = testInfo_->name();
     string suffix = ".es";
     videoEnc_->SetOutPath(prefix + fileName + suffix);
