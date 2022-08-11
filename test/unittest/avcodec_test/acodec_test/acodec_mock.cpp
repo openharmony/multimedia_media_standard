@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include <string>
 #include <sync_fence.h>
 #include "avcodec_common.h"
 #include "media_errors.h"
@@ -85,7 +84,6 @@ AEncCallbackTest::AEncCallbackTest(std::shared_ptr<ACodecSignal> signal)
 
 AEncCallbackTest::~AEncCallbackTest()
 {
-
 }
 
 void AEncCallbackTest::OnError(int32_t errorCode)
@@ -128,13 +126,13 @@ void AEncCallbackTest::OnNewOutputData(uint32_t index, std::shared_ptr<AVMemoryM
     acodecSignal_->outCondEnc_.notify_all();
 }
 
-void ACodecMock::clearIntqueue (std::queue<uint32_t>& q)
+void ACodecMock::clearIntQueue (std::queue<uint32_t>& q)
 {
     std::queue<uint32_t> empty;
     swap(empty, q);
 }
 
-void ACodecMock::clearBufferqueue (std::queue<std::shared_ptr<AVMemoryMock>>& q)
+void ACodecMock::clearBufferQueue (std::queue<std::shared_ptr<AVMemoryMock>>& q)
 {
     std::queue<std::shared_ptr<AVMemoryMock>> empty;
     swap(empty, q);
@@ -216,14 +214,14 @@ int32_t ACodecMock::StopDec()
     lock2.unlock();
     int32_t ret = audioDec_->Stop();
     unique_lock<mutex> lockIn(acodecSignal_->inMutexDec_);
-    clearIntqueue(acodecSignal_->inQueueDec_);
-    clearBufferqueue(acodecSignal_->inBufferQueueDec_);
+    clearIntQueue(acodecSignal_->inQueueDec_);
+    clearBufferQueue(acodecSignal_->inBufferQueueDec_);
     acodecSignal_->inCondDec_.notify_all();
     unique_lock<mutex> lockOut(acodecSignal_->inMutexEnc_);
-    clearIntqueue(acodecSignal_->outQueueDec_);
-    clearIntqueue(acodecSignal_->sizeQueueDec_);
-    clearIntqueue(acodecSignal_->flagQueueDec_);
-    clearBufferqueue(acodecSignal_->outBufferQueueDec_);
+    clearIntQueue(acodecSignal_->outQueueDec_);
+    clearIntQueue(acodecSignal_->sizeQueueDec_);
+    clearIntQueue(acodecSignal_->flagQueueDec_);
+    clearBufferQueue(acodecSignal_->outBufferQueueDec_);
     acodecSignal_->inCondEnc_.notify_all();
     acodecSignal_->isFlushing_.store(false);
     lockIn.unlock();
@@ -243,14 +241,14 @@ int32_t ACodecMock::FlushDec()
     lock2.unlock();
     int32_t ret = audioDec_->Flush();
     unique_lock<mutex> lockIn(acodecSignal_->inMutexDec_);
-    clearIntqueue(acodecSignal_->inQueueDec_);
-    clearBufferqueue(acodecSignal_->inBufferQueueDec_);
+    clearIntQueue(acodecSignal_->inQueueDec_);
+    clearBufferQueue(acodecSignal_->inBufferQueueDec_);
     acodecSignal_->inCondDec_.notify_all();
     unique_lock<mutex> lockOut(acodecSignal_->inMutexEnc_);
-    clearIntqueue(acodecSignal_->outQueueDec_);
-    clearIntqueue(acodecSignal_->sizeQueueDec_);
-    clearIntqueue(acodecSignal_->flagQueueDec_);
-    clearBufferqueue(acodecSignal_->outBufferQueueDec_);
+    clearIntQueue(acodecSignal_->outQueueDec_);
+    clearIntQueue(acodecSignal_->sizeQueueDec_);
+    clearIntQueue(acodecSignal_->flagQueueDec_);
+    clearBufferQueue(acodecSignal_->outBufferQueueDec_);
     acodecSignal_->inCondEnc_.notify_all();
     acodecSignal_->isFlushing_.store(false);
     lockIn.unlock();
@@ -270,14 +268,14 @@ int32_t ACodecMock::ResetDec()
     lock2.unlock();
     int32_t ret = audioDec_->Reset();
     unique_lock<mutex> lockIn(acodecSignal_->inMutexDec_);
-    clearIntqueue(acodecSignal_->inQueueDec_);
-    clearBufferqueue(acodecSignal_->inBufferQueueDec_);
+    clearIntQueue(acodecSignal_->inQueueDec_);
+    clearBufferQueue(acodecSignal_->inBufferQueueDec_);
     acodecSignal_->inCondDec_.notify_all();
     unique_lock<mutex> lockOut(acodecSignal_->inMutexEnc_);
-    clearIntqueue(acodecSignal_->outQueueDec_);
-    clearIntqueue(acodecSignal_->sizeQueueDec_);
-    clearIntqueue(acodecSignal_->flagQueueDec_);
-    clearBufferqueue(acodecSignal_->outBufferQueueDec_);
+    clearIntQueue(acodecSignal_->outQueueDec_);
+    clearIntQueue(acodecSignal_->sizeQueueDec_);
+    clearIntQueue(acodecSignal_->flagQueueDec_);
+    clearBufferQueue(acodecSignal_->outBufferQueueDec_);
     acodecSignal_->inCondEnc_.notify_all();
     acodecSignal_->isFlushing_.store(false);
     lockIn.unlock();
@@ -340,6 +338,54 @@ void ACodecMock::SetOutPath(const std::string &path)
     outPath_ = path;
 }
 
+void ACodecMock::PopOutQueueDec()
+{
+    if (acodecSignal_ == nullptr) {
+        return;
+    }
+    acodecSignal_->outQueueDec_.pop();
+    acodecSignal_->sizeQueueDec_.pop();
+    acodecSignal_->flagQueueDec_.pop();
+    acodecSignal_->outBufferQueueDec_.pop();
+}
+
+void ACodecMock::PopInQueueDec()
+{
+    if (acodecSignal_ == nullptr) {
+        return;
+    }
+    acodecSignal_->inQueueDec_.pop();
+    acodecSignal_->inBufferQueueDec_.pop();
+}
+
+int32_t ACodecMock::PushInputDataDecInner(uint32_t index, uint32_t bufferSize)
+{
+    if (audioDec_ == nullptr) {
+        return MSERR_INVALID_VAL;
+    }
+    struct AVCodecBufferAttrMock attr;
+    attr.offset = 0;
+    attr.flags = AVCODEC_BUFFER_FLAG_NONE;
+    if (decInCnt_ == ES_LENGTH) {
+        cout << "DEC input: set EOS" << endl;
+        attr.flags = AVCODEC_BUFFER_FLAG_EOS;
+        attr.pts = 0;
+        attr.size = 0;
+        attr.offset = 0;
+        isDecInputEOS_ = true;
+    } else {
+        attr.pts = timeStampDec_;
+        attr.size = bufferSize;
+        attr.offset = 0;
+        if (decInCnt_ == 0 && MIME_TYPE == "audio/vorbis") {
+            attr.flags = AVCODEC_BUFFER_FLAG_CODEC_DATA;
+        } else {
+            attr.flags = AVCODEC_BUFFER_FLAG_NONE;
+        }
+    }
+    return audioDec_->PushInputData(index, attr);
+}
+
 void ACodecMock::InputFuncDec()
 {
     if (acodecSignal_ == nullptr || audioDec_ == nullptr) {
@@ -356,24 +402,16 @@ void ACodecMock::InputFuncDec()
         if (!isDecRunning_.load()) {
             break;
         }
-        if (acodecSignal_->isFlushing_.load() || isDecInputEOS_) {
-            acodecSignal_->inQueueDec_.pop();
-            acodecSignal_->inBufferQueueDec_.pop();
-            continue;
-        }
 
         uint32_t index = acodecSignal_->inQueueDec_.front();
         std::shared_ptr<AVMemoryMock> buffer = acodecSignal_->inBufferQueueDec_.front();
-        if (buffer == nullptr) {
-            cout << "DEC input Fatal: GetInputBuffer fail" << endl;
-            acodecSignal_->inQueueDec_.pop();
-            acodecSignal_->inBufferQueueDec_.pop();
+        if (acodecSignal_->isFlushing_.load() || isDecInputEOS_ || buffer == nullptr) {
+            PopInQueueDec();
             continue;
         }
         UNITTEST_CHECK_AND_RETURN_LOG(testFile_ != nullptr && testFile_->is_open(), "Fatal: open file fail");
 
         uint32_t bufferSize = 0; // replace with the actual size
-
         if (decInCnt_ < ES_LENGTH) {
             bufferSize = ES[decInCnt_];
             char *fileBuffer = (char *)malloc(sizeof(char) * bufferSize + 1);
@@ -382,50 +420,22 @@ void ACodecMock::InputFuncDec()
             (void)testFile_->read(fileBuffer, bufferSize);
             if (testFile_->eof()) {
                 free(fileBuffer);
-                cout << "Finish" << endl;
                 break;
             }
-
             if (memcpy_s(buffer->GetAddr(), buffer->GetSize(), fileBuffer, bufferSize) != EOK) {
                 free(fileBuffer);
-                cout << "DEC input Fatal: memcpy fail" << endl;
-                acodecSignal_->inQueueDec_.pop();
-                acodecSignal_->inBufferQueueDec_.pop();
+                PopInQueueDec();
                 break;
             }
             free(fileBuffer);
-        } 
-
-        struct AVCodecBufferAttrMock attr;
-        attr.offset = 0;
-        attr.flags = AVCODEC_BUFFER_FLAG_NONE;
-        if (decInCnt_ == ES_LENGTH) {
-            cout << "DEC input: set EOS" << endl;
-            attr.flags = AVCODEC_BUFFER_FLAG_EOS;
-            attr.pts = 0;
-            attr.size = 0;
-            attr.offset = 0;
-            isDecInputEOS_ = true;
-        } else {
-            attr.pts = timeStampDec_;
-            attr.size = bufferSize;
-            attr.offset = 0;
-            if (decInCnt_ == 0 && MIME_TYPE == "audio/vorbis") {
-                attr.flags = AVCODEC_BUFFER_FLAG_CODEC_DATA;
-            } else {
-                attr.flags = AVCODEC_BUFFER_FLAG_NONE;
-            }
         }
-
-        if (audioDec_->PushInputData(index, attr) != MSERR_OK) {
-            cout << "Fatal: PushInputData fail, exit" << endl;
+        if (PushInputDataDecInner(index, bufferSize) != MSERR_OK) {
             acodecSignal_->errorNum_ += 1;
         } else {
             decInCnt_ ++;
         }
         timeStampDec_ += SAMPLE_DURATION_US;
-        acodecSignal_->inQueueDec_.pop();
-        acodecSignal_->inBufferQueueDec_.pop();
+        PopInQueueDec();
     }
 }
 
@@ -434,11 +444,13 @@ bool ACodecMock::CreateAudioEncMockByMine(const std::string &mime)
     audioEnc_ = AVCodecMockFactory::CreateAudioEncMockByMine(mime);
     return audioEnc_ != nullptr;
 }
+
 bool ACodecMock::CreateAudioEncMockByName(const std::string &name)
 {
     audioEnc_ = AVCodecMockFactory::CreateAudioEncMockByName(name);
     return audioEnc_ != nullptr;
 }
+
 int32_t ACodecMock::SetCallbackEnc(std::shared_ptr<AVCodecCallbackMock> cb)
 {
     if (audioEnc_ == nullptr) {
@@ -481,6 +493,7 @@ int32_t ACodecMock::StartEnc()
     }
     return audioEnc_->Start();
 }
+
 int32_t ACodecMock::StopEnc()
 {
     if (acodecSignal_ == nullptr || audioEnc_ == nullptr) {
@@ -493,14 +506,14 @@ int32_t ACodecMock::StopEnc()
     lock2.unlock();
     int32_t ret = audioEnc_->Stop();
     unique_lock<mutex> lockIn(acodecSignal_->outMutexEnc_);
-    clearIntqueue(acodecSignal_->outQueueEnc_);
-    clearIntqueue(acodecSignal_->sizeQueueEnc_);
-    clearIntqueue(acodecSignal_->flagQueueEnc_);
-    clearBufferqueue(acodecSignal_->outBufferQueueEnc_);
+    clearIntQueue(acodecSignal_->outQueueEnc_);
+    clearIntQueue(acodecSignal_->sizeQueueEnc_);
+    clearIntQueue(acodecSignal_->flagQueueEnc_);
+    clearBufferQueue(acodecSignal_->outBufferQueueEnc_);
     acodecSignal_->outCondEnc_.notify_all();
     unique_lock<mutex> lockOut(acodecSignal_->inMutexEnc_);
-    clearIntqueue(acodecSignal_->inQueueEnc_);
-    clearBufferqueue(acodecSignal_->inBufferQueueEnc_);
+    clearIntQueue(acodecSignal_->inQueueEnc_);
+    clearBufferQueue(acodecSignal_->inBufferQueueEnc_);
     acodecSignal_->inCondEnc_.notify_all();
     acodecSignal_->isFlushing_.store(false);
     lockIn.unlock();
@@ -520,14 +533,14 @@ int32_t ACodecMock::FlushEnc()
     lock2.unlock();
     int32_t ret = audioEnc_->Flush();
     unique_lock<mutex> lockIn(acodecSignal_->outMutexEnc_);
-    clearIntqueue(acodecSignal_->outQueueEnc_);
-    clearIntqueue(acodecSignal_->sizeQueueEnc_);
-    clearIntqueue(acodecSignal_->flagQueueEnc_);
-    clearBufferqueue(acodecSignal_->outBufferQueueEnc_);
+    clearIntQueue(acodecSignal_->outQueueEnc_);
+    clearIntQueue(acodecSignal_->sizeQueueEnc_);
+    clearIntQueue(acodecSignal_->flagQueueEnc_);
+    clearBufferQueue(acodecSignal_->outBufferQueueEnc_);
     acodecSignal_->outCondEnc_.notify_all();
     unique_lock<mutex> lockOut(acodecSignal_->inMutexEnc_);
-    clearIntqueue(acodecSignal_->inQueueEnc_);
-    clearBufferqueue(acodecSignal_->inBufferQueueEnc_);
+    clearIntQueue(acodecSignal_->inQueueEnc_);
+    clearBufferQueue(acodecSignal_->inBufferQueueEnc_);
     acodecSignal_->inCondEnc_.notify_all();
     acodecSignal_->isFlushing_.store(false);
     lockIn.unlock();
@@ -547,14 +560,14 @@ int32_t ACodecMock::ResetEnc()
     lock2.unlock();
     int32_t ret = audioEnc_->Reset();
     unique_lock<mutex> lockIn(acodecSignal_->outMutexEnc_);
-    clearIntqueue(acodecSignal_->outQueueEnc_);
-    clearIntqueue(acodecSignal_->sizeQueueEnc_);
-    clearIntqueue(acodecSignal_->flagQueueEnc_);
-    clearBufferqueue(acodecSignal_->outBufferQueueEnc_);
+    clearIntQueue(acodecSignal_->outQueueEnc_);
+    clearIntQueue(acodecSignal_->sizeQueueEnc_);
+    clearIntQueue(acodecSignal_->flagQueueEnc_);
+    clearBufferQueue(acodecSignal_->outBufferQueueEnc_);
     acodecSignal_->outCondEnc_.notify_all();
     unique_lock<mutex> lockOut(acodecSignal_->inMutexEnc_);
-    clearIntqueue(acodecSignal_->inQueueEnc_);
-    clearBufferqueue(acodecSignal_->inBufferQueueEnc_);
+    clearIntQueue(acodecSignal_->inQueueEnc_);
+    clearBufferQueue(acodecSignal_->inBufferQueueEnc_);
     acodecSignal_->inCondEnc_.notify_all();
     acodecSignal_->isFlushing_.store(false);
     lockIn.unlock();
@@ -620,6 +633,56 @@ int32_t ACodecMock::FreeOutputDataEnc(uint32_t index)
     return audioEnc_->FreeOutputData(index);
 }
 
+void ACodecMock::PopInQueueEnc()
+{
+    if (acodecSignal_ == nullptr) {
+        return;
+    }
+    acodecSignal_->inQueueEnc_.pop();
+    acodecSignal_->inBufferQueueEnc_.pop();
+}
+
+int32_t ACodecMock::PushInputDataEncInner()
+{
+    uint32_t indexEnc = acodecSignal_->inQueueEnc_.front();
+    std::shared_ptr<AVMemoryMock> bufferEnc = acodecSignal_->inBufferQueueEnc_.front();
+    UNITTEST_CHECK_AND_RETURN_RET_LOG(bufferEnc != nullptr, MSERR_INVALID_VAL, "Fatal: GetEncInputBuffer fail");
+
+    uint32_t indexDec = acodecSignal_->outQueueDec_.front();
+    std::shared_ptr<AVMemoryMock> bufferDec = acodecSignal_->outBufferQueueDec_.front();
+    uint32_t sizeDecOut = acodecSignal_->sizeQueueDec_.front();
+    uint32_t flagDecOut = acodecSignal_->flagQueueDec_.front();
+    struct AVCodecBufferAttrMock attr;
+    attr.offset = 0;
+    attr.size = sizeDecOut;
+    attr.pts = timeStampEnc_;
+    attr.flags = 0;
+    if (flagDecOut == 1) {
+        cout << "DEC output EOS " << endl;
+        isDecOutputEOS_ = true;
+        isEncInputEOS_ = true;
+        attr.flags = 1;
+    } else {
+        if (memcpy_s(bufferEnc->GetAddr(), bufferEnc->GetSize(), bufferDec->GetAddr(), sizeDecOut) != MSERR_OK) {
+            cout << "Fatal: memcpy fail" << endl;
+            acodecSignal_->errorNum_ += 1;
+            PopOutQueueDec();
+            PopInQueueEnc();
+            return MSERR_INVALID_VAL;
+        }
+        if (audioDec_->FreeOutputData(indexDec) != MSERR_OK) {
+            cout << "Fatal: FreeOutputData fail" << endl;
+            acodecSignal_->errorNum_ += 1;
+        } else {
+            decOutCnt_ += 1;
+        }
+    }
+
+    PopOutQueueDec();
+    PopInQueueEnc();
+    return audioEnc_->PushInputData(indexEnc, attr);
+}
+
 void ACodecMock::InputFuncEnc()
 {
     if (acodecSignal_ == nullptr || audioEnc_ == nullptr) {
@@ -638,69 +701,16 @@ void ACodecMock::InputFuncEnc()
             break;
         }
         if (acodecSignal_->isFlushing_.load() || isDecOutputEOS_) {
-            acodecSignal_->outQueueDec_.pop();
-            acodecSignal_->sizeQueueDec_.pop();
-            acodecSignal_->flagQueueDec_.pop();
-            acodecSignal_->outBufferQueueDec_.pop();
-            acodecSignal_->inQueueEnc_.pop();
-            acodecSignal_->inBufferQueueEnc_.pop();
+            PopOutQueueDec();
+            PopInQueueEnc();
             continue;
         }
-
-        uint32_t indexEnc = acodecSignal_->inQueueEnc_.front();
-        std::shared_ptr<AVMemoryMock> bufferEnc = acodecSignal_->inBufferQueueEnc_.front();
-        UNITTEST_CHECK_AND_RETURN_LOG(bufferEnc != nullptr, "Fatal: GetEncInputBuffer fail");
-
-        uint32_t indexDec = acodecSignal_->outQueueDec_.front();
-        std::shared_ptr<AVMemoryMock> bufferDec = acodecSignal_->outBufferQueueDec_.front();
-        uint32_t sizeDecOut = acodecSignal_->sizeQueueDec_.front();
-        uint32_t flagDecOut = acodecSignal_->flagQueueDec_.front();
-        struct AVCodecBufferAttrMock attr;
-        attr.offset = 0;
-        attr.size = sizeDecOut;
-        attr.pts = timeStampEnc_;
-        attr.flags = 0;
-        if (flagDecOut == 1) {
-            cout << "DEC output EOS " << endl;
-            isDecOutputEOS_ = true;
-            if (setEos) {
-            isEncInputEOS_ = true;
-                attr.flags = 1;
-            }
-        } else {
-            if (memcpy_s(bufferEnc->GetAddr(), bufferEnc->GetSize(), bufferDec->GetAddr(), sizeDecOut) != MSERR_OK) {
-                cout << "Fatal: memcpy fail" << endl;
-                acodecSignal_->errorNum_ += 1;
-                acodecSignal_->outQueueDec_.pop();
-                acodecSignal_->sizeQueueDec_.pop();
-                acodecSignal_->flagQueueDec_.pop();
-                acodecSignal_->outBufferQueueDec_.pop();
-                acodecSignal_->inQueueEnc_.pop();
-                acodecSignal_->inBufferQueueEnc_.pop();
-                break;
-            }
-            if (audioDec_->FreeOutputData(indexDec) != MSERR_OK) {
-                cout << "Fatal: FreeOutputData fail" << endl;
-                acodecSignal_->errorNum_ += 1;
-            } else {
-                decOutCnt_ += 1;
-            }
-        }
-
-        acodecSignal_->outQueueDec_.pop();
-        acodecSignal_->sizeQueueDec_.pop();
-        acodecSignal_->flagQueueDec_.pop();
-        acodecSignal_->outBufferQueueDec_.pop();
-        if (audioEnc_->PushInputData(indexEnc, attr)!= MSERR_OK) {
-            cout << "Fatal error, exit" << endl;
+        if (PushInputDataEncInner() != MSERR_OK) {
+            cout << "Fatal: PushInputData fail, exit" << endl;
             acodecSignal_->errorNum_ += 1;
             break;
-        } else {
-            encInCnt_ ++;
         }
         timeStampEnc_ += SAMPLE_DURATION_US;
-        acodecSignal_->inQueueEnc_.pop();
-        acodecSignal_->inBufferQueueEnc_.pop();
     }
 }
 
@@ -715,7 +725,7 @@ void ACodecMock::OutputFuncEnc()
         }
 
         unique_lock<mutex> lock(acodecSignal_->outMutexEnc_);
-        acodecSignal_->outCondEnc_.wait(lock, [this](){ return acodecSignal_->outQueueEnc_.size() > 0; });
+        acodecSignal_->outCondEnc_.wait(lock, [this]() { return acodecSignal_->outQueueEnc_.size() > 0; });
 
         if (!isEncRunning_.load()) {
             break;
@@ -735,22 +745,19 @@ void ACodecMock::OutputFuncEnc()
             cout << "ENC get output EOS" << endl;
             isEncOutputEOS_ = true;
         } else {
-            if (NEED_DUMP) {
-                FILE *outFile;
-                const char *savepath = outPath_.c_str();
-                outFile = fopen(savepath, "a");
-                if (outFile == nullptr) {
-                    cout << "dump data fail" << endl;
-                } else {
-                    fwrite(buffer->GetAddr(), 1, size, outFile);
-                }
-                fclose(outFile);
+            FILE *outFile;
+            const char *savepath = outPath_.c_str();
+            outFile = fopen(savepath, "a");
+            if (outFile == nullptr) {
+                cout << "dump data fail" << endl;
+            } else {
+                fwrite(buffer->GetAddr(), 1, size, outFile);
             }
+            fclose(outFile);
+
             if (audioEnc_->FreeOutputData(index) != MSERR_OK) {
                 cout << "Fatal: FreeOutputData fail" << endl;
                 acodecSignal_->errorNum_ += 1;
-            } else {
-                encOutCnt_ += 1;
             }
         }
         acodecSignal_->outQueueEnc_.pop();
