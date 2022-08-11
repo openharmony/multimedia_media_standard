@@ -31,9 +31,8 @@ enum AVCodecTypeMock : int32_t {
 };
 
 struct RangeMock {
-    int32_t minVal;
-    int32_t maxVal;
-    RangeMock() : minVal(0), maxVal(0) {}
+    int32_t minVal = 0;
+    int32_t maxVal = 0;
 };
 
 class SurfaceMock : public NoCopyable {

@@ -29,14 +29,6 @@ const std::map<AVCodecTypeMock, AVCodecType> AVCODEC_TYPE_INFOS = {
     {AVCODEC_TYPE_MOCK_AUDIO_DECODER, AVCODEC_TYPE_AUDIO_DECODER},
 };
 
-struct RangeNativeMock : RangeMock {
-    explicit RangeNativeMock(Range const &range) : range_(range) {}
-    int32_t minVal;
-    int32_t maxVal;
-    RangeNativeMock() : minVal(0), maxVal(0) {}
-    Range range_;
-};
-
 class AVCodecInfoNativeMock : public AVCodecInfoMock {
 public:
     explicit AVCodecInfoNativeMock(std::shared_ptr<AVCodecInfo> codecInfo) : codecInfo_(codecInfo) {}
