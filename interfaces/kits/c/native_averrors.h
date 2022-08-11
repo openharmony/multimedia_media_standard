@@ -25,7 +25,7 @@ extern "C" {
  * @since 9
  * @version 1.0
  */
-typedef enum AVErrCode {
+typedef enum OH_AVErrCode {
     /**
      * the operation completed successfully.
      */
@@ -70,7 +70,7 @@ typedef enum AVErrCode {
      * extend err start.
      */
     AV_ERR_EXTEND_START = 100,
-} AVErrCode;
+} OH_AVErrCode;
 
 #ifdef __cplusplus
 }

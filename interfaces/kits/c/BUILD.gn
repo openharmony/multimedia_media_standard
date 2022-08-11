@@ -43,7 +43,7 @@ config("media_capi_config") {
   ]
 }
 
-ohos_shared_library("media_capi") {
+ohos_shared_library("native_media") {
   install_enable = true
   sources = [
     "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_audio_decoder.cpp",
