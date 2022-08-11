@@ -41,23 +41,23 @@ struct AVObjectMagic : public OHOS::RefBase {
     enum AVMagic magic_;
 };
 
-struct AVFormat : public AVObjectMagic {
-    AVFormat();
-    explicit AVFormat(const OHOS::Media::Format &fmt);
-    ~AVFormat() override;
+struct OH_AVFormat : public AVObjectMagic {
+    OH_AVFormat();
+    explicit OH_AVFormat(const OHOS::Media::Format &fmt);
+    ~OH_AVFormat() override;
     OHOS::Media::Format format_;
     char *outString_ = nullptr;
 };
 
-struct AVMemory : public AVObjectMagic {
-    explicit AVMemory(const std::shared_ptr<OHOS::Media::AVSharedMemory> &mem);
-    ~AVMemory() override;
+struct OH_AVMemory : public AVObjectMagic {
+    explicit OH_AVMemory(const std::shared_ptr<OHOS::Media::AVSharedMemory> &mem);
+    ~OH_AVMemory() override;
     bool IsEqualMemory(const std::shared_ptr<OHOS::Media::AVSharedMemory> &mem);
     const std::shared_ptr<OHOS::Media::AVSharedMemory> memory_;
 };
 
-struct AVCodec : public AVObjectMagic {
-    explicit AVCodec(enum AVMagic m) : AVObjectMagic(m) {}
-    virtual ~AVCodec() = default;
+struct OH_AVCodec : public AVObjectMagic {
+    explicit OH_AVCodec(enum AVMagic m) : AVObjectMagic(m) {}
+    virtual ~OH_AVCodec() = default;
 };
 #endif // NATIVE_AVMAGIC_H

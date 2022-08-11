@@ -24,7 +24,7 @@
 extern "C" {
 #endif
 
-typedef struct AVFormat AVFormat;
+typedef struct OH_AVFormat OH_AVFormat;
 
 /**
  * @brief Enumerates AVPixel Format.
@@ -32,7 +32,7 @@ typedef struct AVFormat AVFormat;
  * @since 9
  * @version 1.0
  */
-typedef enum AVPixelFormat {
+typedef enum OH_AVPixelFormat {
     /**
      * yuv 420 planar.
      */
@@ -49,102 +49,102 @@ typedef enum AVPixelFormat {
      * format from surface.
      */
     AV_PIXEL_FORMAT_SURFACE_FORMAT = 4,
-} AVPixelFormat;
+} OH_AVPixelFormat;
 
 /**
- * @briefCreate an AVFormat handle pointer to read and write data
+ * @briefCreate an OH_AVFormat handle pointer to read and write data
  * @syscap SystemCapability.Multimedia.Media.Core
- * @return Returns a pointer to an AVFormat instance
+ * @return Returns a pointer to an OH_AVFormat instance
  * @since 9
  * @version 1.0
  */
-struct AVFormat *OH_AVFormat_Create(void);
+struct OH_AVFormat *OH_AVFormat_Create(void);
 
 /**
- * @brief Destroy the specified AVFormat handle resource
+ * @brief Destroy the specified OH_AVFormat handle resource
  * @syscap SystemCapability.Multimedia.Media.Core
- * @param format pointer to an AVFormat instance
+ * @param format pointer to an OH_AVFormat instance
  * @return void
  * @since 9
  * @version 1.0
  */
-void OH_AVFormat_Destroy(struct AVFormat *format);
+void OH_AVFormat_Destroy(struct OH_AVFormat *format);
 
 /**
- * @brief Copy AVFormat handle resource
+ * @brief Copy OH_AVFormat handle resource
  * @syscap SystemCapability.Multimedia.Media.Core
- * @param to AVFormat handle pointer to receive data
- * @param from pointer to the AVFormat handle of the copied data
+ * @param to OH_AVFormat handle pointer to receive data
+ * @param from pointer to the OH_AVFormat handle of the copied data
  * @return The return value is TRUE for success, FALSE for failure
  * @since 9
  * @version 1.0
  */
-bool OH_AVFormat_Copy(struct AVFormat *to, struct AVFormat *from);
+bool OH_AVFormat_Copy(struct OH_AVFormat *to, struct OH_AVFormat *from);
 
 /**
- * @brief Write Int data to AVFormat
+ * @brief Write Int data to OH_AVFormat
  * @syscap SystemCapability.Multimedia.Media.Core
- * @param format pointer to an AVFormat instance
+ * @param format pointer to an OH_AVFormat instance
  * @param key key to write data
  * @param value written data
  * @return The return value is TRUE for success, FALSE for failure
  * @since 9
  * @version 1.0
  */
-bool OH_AVFormat_SetIntValue(struct AVFormat *format, const char *key, int32_t value);
+bool OH_AVFormat_SetIntValue(struct OH_AVFormat *format, const char *key, int32_t value);
 
 /**
- * @brief Write Long data to AVFormat
+ * @brief Write Long data to OH_AVFormat
  * @syscap SystemCapability.Multimedia.Media.Core
- * @param format pointer to an AVFormat instance
+ * @param format pointer to an OH_AVFormat instance
  * @param key key to write data
  * @param value written data
  * @return The return value is TRUE for success, FALSE for failure
  * @since 9
  * @version 1.0
  */
-bool OH_AVFormat_SetLongValue(struct AVFormat *format, const char *key, int64_t value);
+bool OH_AVFormat_SetLongValue(struct OH_AVFormat *format, const char *key, int64_t value);
 
 /**
- * @brief Write Float data to AVFormat
+ * @brief Write Float data to OH_AVFormat
  * @syscap SystemCapability.Multimedia.Media.Core
- * @param format pointer to an AVFormat instance
+ * @param format pointer to an OH_AVFormat instance
  * @param key key to write data
  * @param value written data
  * @return The return value is TRUE for success, FALSE for failure
  * @since 9
  * @version 1.0
  */
-bool OH_AVFormat_SetFloatValue(struct AVFormat *format, const char *key, float value);
+bool OH_AVFormat_SetFloatValue(struct OH_AVFormat *format, const char *key, float value);
 
 /**
- * @brief Write Double data to AVFormat
+ * @brief Write Double data to OH_AVFormat
  * @syscap SystemCapability.Multimedia.Media.Core
- * @param format pointer to an AVFormat instance
+ * @param format pointer to an OH_AVFormat instance
  * @param key key to write data
  * @param value written data
  * @return The return value is TRUE for success, FALSE for failure
  * @since 9
  * @version 1.0
  */
-bool OH_AVFormat_SetDoubleValue(struct AVFormat *format, const char *key, double value);
+bool OH_AVFormat_SetDoubleValue(struct OH_AVFormat *format, const char *key, double value);
 
 /**
- * @brief Write String data to AVFormat
+ * @brief Write String data to OH_AVFormat
  * @syscap SystemCapability.Multimedia.Media.Core
- * @param format pointer to an AVFormat instance
+ * @param format pointer to an OH_AVFormat instance
  * @param key key to write data
  * @param value written data
  * @return The return value is TRUE for success, FALSE for failure
  * @since 9
  * @version 1.0
  */
-bool OH_AVFormat_SetStringValue(struct AVFormat *format, const char *key, const char *value);
+bool OH_AVFormat_SetStringValue(struct OH_AVFormat *format, const char *key, const char *value);
 
 /**
- * @brief Writes a block of data of a specified length to AVFormat
+ * @brief Writes a block of data of a specified length to OH_AVFormat
  * @syscap SystemCapability.Multimedia.Media.Core
- * @param format pointer to an AVFormat instance
+ * @param format pointer to an OH_AVFormat instance
  * @param key key to write data
  * @param addr written data addr
  * @param size written data length
@@ -152,60 +152,60 @@ bool OH_AVFormat_SetStringValue(struct AVFormat *format, const char *key, const 
  * @since 9
  * @version 1.0
  */
-bool OH_AVFormat_SetBuffer(struct AVFormat *format, const char *key, const uint8_t *addr, size_t size);
+bool OH_AVFormat_SetBuffer(struct OH_AVFormat *format, const char *key, const uint8_t *addr, size_t size);
 
 /**
- * @brief Read Int data from AVFormat
+ * @brief Read Int data from OH_AVFormat
  * @syscap SystemCapability.Multimedia.Media.Core
- * @param format pointer to an AVFormat instance
+ * @param format pointer to an OH_AVFormat instance
  * @param key read key value
  * @param out read data
  * @return The return value is TRUE for success, FALSE for failure
  * @since 9
  * @version 1.0
  */
-bool OH_AVFormat_GetIntValue(struct AVFormat *format, const char *key, int32_t *out);
+bool OH_AVFormat_GetIntValue(struct OH_AVFormat *format, const char *key, int32_t *out);
 
 /**
- * @brief Read Long data from AVFormat
+ * @brief Read Long data from OH_AVFormat
  * @syscap SystemCapability.Multimedia.Media.Core
- * @param format pointer to an AVFormat instance
+ * @param format pointer to an OH_AVFormat instance
  * @param key read key value
  * @param out read data
  * @return The return value is TRUE for success, FALSE for failure
  * @since 9
  * @version 1.0
  */
-bool OH_AVFormat_GetLongValue(struct AVFormat *format, const char *key, int64_t *out);
+bool OH_AVFormat_GetLongValue(struct OH_AVFormat *format, const char *key, int64_t *out);
 
 /**
- * @brief Read Float data from AVFormat
+ * @brief Read Float data from OH_AVFormat
  * @syscap SystemCapability.Multimedia.Media.Core
- * @param format pointer to an AVFormat instance
+ * @param format pointer to an OH_AVFormat instance
  * @param key read key value
  * @param out read data
  * @return The return value is TRUE for success, FALSE for failure
  * @since 9
  * @version 1.0
  */
-bool OH_AVFormat_GetFloatValue(struct AVFormat *format, const char *key, float *out);
+bool OH_AVFormat_GetFloatValue(struct OH_AVFormat *format, const char *key, float *out);
 
 /**
- * @brief Read Double data from AVFormat
+ * @brief Read Double data from OH_AVFormat
  * @syscap SystemCapability.Multimedia.Media.Core
- * @param format pointer to an AVFormat instance
+ * @param format pointer to an OH_AVFormat instance
  * @param key read key value
  * @param out read data
  * @return The return value is TRUE for success, FALSE for failure
  * @since 9
  * @version 1.0
  */
-bool OH_AVFormat_GetDoubleValue(struct AVFormat *format, const char *key, double *out);
+bool OH_AVFormat_GetDoubleValue(struct OH_AVFormat *format, const char *key, double *out);
 
 /**
- * @brief Read Double data from AVFormat
+ * @brief Read Double data from OH_AVFormat
  * @syscap SystemCapability.Multimedia.Media.Core
- * @param format pointer to an AVFormat instance
+ * @param format pointer to an OH_AVFormat instance
  * @param key read key value
  * @param out The read string pointer, the data life cycle pointed to is updated with GetString,
  * and Format is destroyed. If the caller needs to hold it for a long time, it must copy the memory
@@ -213,12 +213,12 @@ bool OH_AVFormat_GetDoubleValue(struct AVFormat *format, const char *key, double
  * @since 9
  * @version 1.0
  */
-bool OH_AVFormat_GetStringValue(struct AVFormat *format, const char *key, const char **out);
+bool OH_AVFormat_GetStringValue(struct OH_AVFormat *format, const char *key, const char **out);
 
 /**
- * @brief Read a block of data of specified length from AVFormat
+ * @brief Read a block of data of specified length from OH_AVFormat
  * @syscap SystemCapability.Multimedia.Media.Core
- * @param format pointer to an AVFormat instance
+ * @param format pointer to an OH_AVFormat instance
  * @param key Key value for reading and writing data
  * @param addr The life cycle is held by the format, with the destruction of the format,
  * if the caller needs to hold it for a long time, it must copy the memory
@@ -227,17 +227,17 @@ bool OH_AVFormat_GetStringValue(struct AVFormat *format, const char *key, const 
  * @since 9
  * @version 1.0
  */
-bool OH_AVFormat_GetBuffer(struct AVFormat *format, const char *key, uint8_t **addr, size_t *size);
+bool OH_AVFormat_GetBuffer(struct OH_AVFormat *format, const char *key, uint8_t **addr, size_t *size);
 
 /**
- * @brief Output the information contained in AVFormat as a string.
+ * @brief Output the information contained in OH_AVFormat as a string.
  * @syscap SystemCapability.Multimedia.Media.Core
- * @param format pointer to an AVFormat instance
+ * @param format pointer to an OH_AVFormat instance
  * @return Returns a string consisting of key and data
  * @since 9
  * @version 1.0
  */
-const char *OH_AVFormat_DumpInfo(struct AVFormat *format);
+const char *OH_AVFormat_DumpInfo(struct OH_AVFormat *format);
 
 #ifdef __cplusplus
 }
