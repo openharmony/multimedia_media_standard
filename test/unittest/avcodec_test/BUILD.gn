@@ -93,6 +93,42 @@ ohos_unittest("vcodec_native_unit_test") {
 }
 
 ##################################################################################################################
+ohos_unittest("acodec_native_unit_test") {
+  module_out_path = module_output_path
+  include_dirs = avcodec_unittest_native_include_dirs
+  include_dirs += [
+    "./",
+    "./acodec_test",
+  ]
+
+  cflags = avcodec_unittest_cflags
+
+  sources = [
+    "./acodec_test/acodec_mock.cpp",
+    "./acodec_test/acodec_unit_test.cpp",
+    "./native/audiodecoder/audiodec_native_mock.cpp",
+    "./native/audioencoder/audioenc_native_mock.cpp",
+    "./native/avcodec_info/avcodec_info_native_mock.cpp",
+    "./native/avcodec_list/avcodec_list_native_mock.cpp",
+    "./native/avcodec_mock_factory.cpp",
+    "./native/avformat/avformat_native_mock.cpp",
+    "./native/avmemory/avmemory_native_mock.cpp",
+    "./native/enum/enum_native_mock.cpp",
+    "./native/surface/surface_native_mock.cpp",
+  ]
+
+  deps = [
+    "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
+    "//foundation/window/window_manager/wm:libwm",
+  ]
+
+  resource_config_file = "//foundation/multimedia/player_framework/test/unittest/resources/ohos_test.xml"
+}
+
+##################################################################################################################
 ohos_unittest("avcodec_list_native_unit_test") {
   module_out_path = module_output_path
   include_dirs = avcodec_unittest_native_include_dirs
