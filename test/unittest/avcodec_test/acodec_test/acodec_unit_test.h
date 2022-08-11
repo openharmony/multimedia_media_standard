@@ -37,6 +37,7 @@ protected:
     std::shared_ptr<AEncCallbackTest> aencCallback_ = nullptr;
     bool createByMineFlag_ = true;
     const ::testing::TestInfo *testInfo_ = nullptr;
+    std::shared_ptr<FormatMock> defaultFormat_ = nullptr;
 };
 } // namespace Media
 } // namespace OHOS

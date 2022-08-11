@@ -80,7 +80,7 @@ private:
 };
 
 class ACodecMock : public NoCopyable {
-public: 
+public:
     ACodecMock(std::shared_ptr<ACodecSignal> signal);
     ~ACodecMock();
 
@@ -114,15 +114,17 @@ public:
     int32_t FreeOutputDataEnc(uint32_t index);
     void InputLoopFunc();
     void OutputLoopFunc();
-    bool setEos = true;
     void SetOutPath(const std::string &path);
 
 private:
-    void clearIntqueue (std::queue<uint32_t>& q);
-    void clearBufferqueue (std::queue<std::shared_ptr<AVMemoryMock>>& q);
+    void clearIntQueue (std::queue<uint32_t>& q);
+    void clearBufferQueue (std::queue<std::shared_ptr<AVMemoryMock>>& q);
     std::shared_ptr<AudioDecMock> audioDec_;
     std::shared_ptr<ACodecSignal> acodecSignal_;
     void InputFuncDec();
+    void PopOutQueueDec();
+    void PopInQueueDec();
+    int32_t PushInputDataDecInner(uint32_t index, uint32_t bufferSize);
     std::atomic<bool> isDecRunning_ = false;
     std::unique_ptr<std::ifstream> testFile_;
     std::unique_ptr<std::thread> inputLoopDec_;
@@ -134,6 +136,8 @@ private:
     std::shared_ptr<AudioEncMock> audioEnc_ = nullptr;
     void InputFuncEnc();
     void OutputFuncEnc();
+    int32_t PushInputDataEncInner();
+    void PopInQueueEnc();
     std::atomic<bool> isEncRunning_ = false;
     std::unique_ptr<std::thread> inputLoopEnc_;
     std::unique_ptr<std::thread> outputLoopEnc_;
@@ -142,8 +146,6 @@ private:
     bool isDecOutputEOS_ = false;
     bool isEncOutputEOS_ = false;
     int64_t timeStampEnc_ = 0;
-    uint32_t encInCnt_ = 0;
-    uint32_t encOutCnt_ = 0;
     std::string outPath_ = "/data/test/media/out.es";
 };
 }
