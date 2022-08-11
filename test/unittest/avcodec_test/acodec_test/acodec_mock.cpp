@@ -16,8 +16,8 @@
 #include <string>
 #include <sync_fence.h>
 #include "avcodec_common.h"
-#include "acodec_mock.h"
 #include "media_errors.h"
+#include "acodec_mock.h"
 
 using namespace std;
 using namespace OHOS::Media::ACodecTestParam;
@@ -31,7 +31,6 @@ ADecCallbackTest::ADecCallbackTest(std::shared_ptr<ACodecSignal> signal)
 
 ADecCallbackTest::~ADecCallbackTest()
 {
-
 }
 
 void ADecCallbackTest::OnError(int32_t errorCode)
@@ -129,12 +128,14 @@ void AEncCallbackTest::OnNewOutputData(uint32_t index, std::shared_ptr<AVMemoryM
     acodecSignal_->outCondEnc_.notify_all();
 }
 
-void clearIntqueue (std::queue<uint32_t>& q) {
+void ACodecMock::clearIntqueue (std::queue<uint32_t>& q)
+{
     std::queue<uint32_t> empty;
     swap(empty, q);
 }
 
-void clearBufferqueue (std::queue<std::shared_ptr<AVMemoryMock>>& q) {
+void ACodecMock::clearBufferqueue (std::queue<std::shared_ptr<AVMemoryMock>>& q)
+{
     std::queue<std::shared_ptr<AVMemoryMock>> empty;
     swap(empty, q);
 }
@@ -146,7 +147,6 @@ ACodecMock::ACodecMock(std::shared_ptr<ACodecSignal> signal)
 
 ACodecMock::~ACodecMock()
 {
-
 }
 
 bool ACodecMock::CreateAudioDecMockByMine(const std::string &mime)
@@ -294,7 +294,7 @@ int32_t ACodecMock::ReleaseDec()
     isEncRunning_.store(false);
     if (inputLoopDec_ != nullptr && inputLoopDec_->joinable()) {
         unique_lock<mutex> lock(acodecSignal_->inMutexDec_);
-        acodecSignal_->inQueueDec_.push(10000);
+        acodecSignal_->inQueueDec_.push(10000); // push 10000 to stop queue
         acodecSignal_->inCondDec_.notify_all();
         lock.unlock();
         inputLoopDec_->join();
@@ -345,13 +345,13 @@ void ACodecMock::InputFuncDec()
     if (acodecSignal_ == nullptr || audioDec_ == nullptr) {
         return;
     }
-    while(true) {
+    while (true) {
         if (!isDecRunning_.load()) {
             break;
         }
 
         unique_lock<mutex> lock(acodecSignal_->inMutexDec_);
-        acodecSignal_->inCondDec_.wait(lock, [this](){ return acodecSignal_->inQueueDec_.size() > 0; });
+        acodecSignal_->inCondDec_.wait(lock, [this]() { return acodecSignal_->inQueueDec_.size() > 0; });
 
         if (!isDecRunning_.load()) {
             break;
@@ -394,7 +394,6 @@ void ACodecMock::InputFuncDec()
                 break;
             }
             free(fileBuffer);
-
         } 
 
         struct AVCodecBufferAttrMock attr;
@@ -407,7 +406,6 @@ void ACodecMock::InputFuncDec()
             attr.size = 0;
             attr.offset = 0;
             isDecInputEOS_ = true;
-            // isDecRunning_.store(false);
         } else {
             attr.pts = timeStampDec_;
             attr.size = bufferSize;
@@ -424,7 +422,6 @@ void ACodecMock::InputFuncDec()
             acodecSignal_->errorNum_ += 1;
         } else {
             decInCnt_ ++;
-            // cout << "DEC input success , decInCnt_ = " << decInCnt_ << endl;
         }
         timeStampDec_ += SAMPLE_DURATION_US;
         acodecSignal_->inQueueDec_.pop();
@@ -482,7 +479,7 @@ int32_t ACodecMock::StartEnc()
         outputLoopEnc_ = make_unique<thread>(&ACodecMock::OutputFuncEnc, this);
         UNITTEST_CHECK_AND_RETURN_RET_LOG(outputLoopEnc_ != nullptr, MSERR_OK, "Fatal: No memory");
     }
-    return audioEnc_->Start();  
+    return audioEnc_->Start();
 }
 int32_t ACodecMock::StopEnc()
 {
@@ -573,8 +570,8 @@ int32_t ACodecMock::ReleaseEnc()
     isEncRunning_.store(false);
     if (inputLoopEnc_ != nullptr && inputLoopEnc_->joinable()) {
         unique_lock<mutex> lock(acodecSignal_->inMutexEnc_);
-        acodecSignal_->outQueueDec_.push(10000);
-        acodecSignal_->inQueueEnc_.push(10000);
+        acodecSignal_->outQueueDec_.push(10000); // push 10000 to stop queue
+        acodecSignal_->inQueueEnc_.push(10000); // push 10000 to stop queue
         acodecSignal_->inCondEnc_.notify_all();
         lock.unlock();
         inputLoopEnc_->join();
@@ -582,7 +579,7 @@ int32_t ACodecMock::ReleaseEnc()
     }
     if (outputLoopEnc_ != nullptr && outputLoopEnc_->joinable()) {
         unique_lock<mutex> lock(acodecSignal_->outMutexEnc_);
-        acodecSignal_->outQueueEnc_.push(10000);
+        acodecSignal_->outQueueEnc_.push(10000); // push 10000 to stop queue
         acodecSignal_->outCondEnc_.notify_all();
         lock.unlock();
         outputLoopEnc_->join();
@@ -628,14 +625,14 @@ void ACodecMock::InputFuncEnc()
     if (acodecSignal_ == nullptr || audioEnc_ == nullptr) {
         return;
     }
-    while(true) {
+    while (true) {
         if (!isEncRunning_.load()) {
             break;
         }
 
         unique_lock<mutex> lock(acodecSignal_->inMutexEnc_);
-        acodecSignal_->inCondEnc_.wait(lock, [this](){ return acodecSignal_->inQueueEnc_.size() > 0; });
-        acodecSignal_->inCondEnc_.wait(lock, [this](){ return acodecSignal_->outQueueDec_.size() > 0; });
+        acodecSignal_->inCondEnc_.wait(lock, [this]() { return acodecSignal_->inQueueEnc_.size() > 0; });
+        acodecSignal_->inCondEnc_.wait(lock, [this]() { return acodecSignal_->outQueueDec_.size() > 0; });
 
         if (!isEncRunning_.load()) {
             break;
@@ -725,7 +722,7 @@ void ACodecMock::OutputFuncEnc()
         }
         if (acodecSignal_->isFlushing_.load() || isEncOutputEOS_) {
             acodecSignal_->outQueueEnc_.pop();
-            acodecSignal_->sizeQueueEnc_.pop();        
+            acodecSignal_->sizeQueueEnc_.pop();
             acodecSignal_->flagQueueEnc_.pop();
             acodecSignal_->outBufferQueueEnc_.pop();
             continue;

@@ -23,11 +23,11 @@ using namespace OHOS::Media;
 using namespace testing::ext;
 using namespace OHOS::Media::ACodecTestParam;
 
-void AudioCodecUnitTest::SetUpTestCase(void) {}
+void ACodecUnitTest::SetUpTestCase(void) {}
 
-void AudioCodecUnitTest::TearDownTestCase(void) {}
+void ACodecUnitTest::TearDownTestCase(void) {}
 
-void AudioCodecUnitTest::SetUp(void)
+void ACodecUnitTest::SetUp(void)
 {
     std::shared_ptr<ACodecSignal> acodecSignal = std::make_shared<ACodecSignal>();
     adecCallback_ = std::make_shared<ADecCallbackTest>(acodecSignal);
@@ -56,7 +56,7 @@ void AudioCodecUnitTest::SetUp(void)
     audioCodec_->SetOutPath(prefix + fileName + suffix);
 }
 
-void AudioCodecUnitTest::TearDown(void)
+void ACodecUnitTest::TearDown(void)
 {
     if (audioCodec_ != nullptr) {
         EXPECT_EQ(MSERR_OK, audioCodec_->ReleaseDec());
@@ -70,7 +70,7 @@ void AudioCodecUnitTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AudioCodecUnitTest, audio_codec_Configure_0100, TestSize.Level0)
+HWTEST_F(ACodecUnitTest, audio_codec_Configure_0100, TestSize.Level0)
 {
     std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
     ASSERT_NE(nullptr, format);
@@ -87,7 +87,7 @@ HWTEST_F(AudioCodecUnitTest, audio_codec_Configure_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AudioCodecUnitTest, audio_codec_0100, TestSize.Level0)
+HWTEST_F(ACodecUnitTest, audio_codec_0100, TestSize.Level0)
 {
     std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
     ASSERT_NE(nullptr, format);
@@ -111,7 +111,7 @@ HWTEST_F(AudioCodecUnitTest, audio_codec_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AudioCodecUnitTest, audio_decodec_flush_0100, TestSize.Level0)
+HWTEST_F(ACodecUnitTest, audio_decodec_flush_0100, TestSize.Level0)
 {
     std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
     ASSERT_NE(nullptr, format);
@@ -137,7 +137,7 @@ HWTEST_F(AudioCodecUnitTest, audio_decodec_flush_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AudioCodecUnitTest, audio_encodec_flush_0100, TestSize.Level0)
+HWTEST_F(ACodecUnitTest, audio_encodec_flush_0100, TestSize.Level0)
 {
     std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
     ASSERT_NE(nullptr, format);
@@ -163,7 +163,7 @@ HWTEST_F(AudioCodecUnitTest, audio_encodec_flush_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AudioCodecUnitTest, audio_codec_reset_0100, TestSize.Level0)
+HWTEST_F(ACodecUnitTest, audio_codec_reset_0100, TestSize.Level0)
 {
     std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
     ASSERT_NE(nullptr, format);
@@ -187,7 +187,7 @@ HWTEST_F(AudioCodecUnitTest, audio_codec_reset_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AudioCodecUnitTest, audio_codec_reset_0200, TestSize.Level0)
+HWTEST_F(ACodecUnitTest, audio_codec_reset_0200, TestSize.Level0)
 {
     std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
     ASSERT_NE(nullptr, format);
@@ -211,7 +211,7 @@ HWTEST_F(AudioCodecUnitTest, audio_codec_reset_0200, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AudioCodecUnitTest, audio_codec_SetParameter_0100, TestSize.Level0)
+HWTEST_F(ACodecUnitTest, audio_codec_SetParameter_0100, TestSize.Level0)
 {
     std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
     ASSERT_NE(nullptr, format);
@@ -237,7 +237,7 @@ HWTEST_F(AudioCodecUnitTest, audio_codec_SetParameter_0100, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AudioCodecUnitTest, audio_codec_GetOutputMediaDescription_0100, TestSize.Level0)
+HWTEST_F(ACodecUnitTest, audio_codec_GetOutputMediaDescription_0100, TestSize.Level0)
 {
     std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
     ASSERT_NE(nullptr, format);
