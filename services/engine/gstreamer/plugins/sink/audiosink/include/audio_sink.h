@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <gst/gst.h>
 #include <gst/base/gstbasesink.h>
+#include <string>
 
 namespace OHOS {
 namespace Media {
@@ -49,7 +50,10 @@ public:
     virtual int32_t SetRendererInfo(int32_t desc, int32_t rendererFlags) = 0;
     virtual void SetAudioInterruptMode(int32_t interruptMode) = 0;
     virtual bool Writeable() const;
-    virtual void SetAudioSinkInterruptCb(void (*interruptCb)(GstBaseSink *, guint, guint, guint)) = 0;
+    virtual void SetAudioSinkCb(void (*interruptCb)(GstBaseSink *, guint, guint, guint),
+                                void (*stateCb)(GstBaseSink *, guint),
+                                void (*errorCb)(GstBaseSink *, std::string)) = 0;
+    virtual void OnError(std::string errMsg);
 };
 } // namespace Media
 } // namespace OHOS
