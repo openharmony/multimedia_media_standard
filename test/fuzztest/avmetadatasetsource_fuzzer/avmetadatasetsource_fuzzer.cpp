@@ -41,6 +41,7 @@ bool AVMetadataSetSourceFuzzer::FuzzAVMetadataSetSource(uint8_t *data, size_t si
 {
     constexpr int32_t USAGE_LIST = 2;
     avmetadata = AVMetadataHelperFactory::CreateAVMetadataHelper();
+    cout << "start!" << endl;
     if (avmetadata == nullptr) {
         cout << "avmetadata is null" << endl;
         avmetadata->Release();
@@ -85,6 +86,7 @@ bool AVMetadataSetSourceFuzzer::FuzzAVMetadataSetSource(uint8_t *data, size_t si
     }
     
     avmetadata->Release();
+    cout << "success!" << endl;
     return true;
 }
 }
