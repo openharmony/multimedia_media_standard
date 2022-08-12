@@ -19,26 +19,26 @@
 #include "media_errors.h"
 
 namespace {
-constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "AVMemory"};
+constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "OH_AVMemory"};
 }
 
 using namespace OHOS::Media;
 
-AVMemory::AVMemory(const std::shared_ptr<OHOS::Media::AVSharedMemory> &mem)
+OH_AVMemory::OH_AVMemory(const std::shared_ptr<OHOS::Media::AVSharedMemory> &mem)
     : AVObjectMagic(AVMagic::MEDIA_MAGIC_SHARED_MEMORY), memory_(mem)
 {
 }
 
-AVMemory::~AVMemory()
+OH_AVMemory::~OH_AVMemory()
 {
 }
 
-bool AVMemory::IsEqualMemory(const std::shared_ptr<OHOS::Media::AVSharedMemory> &mem)
+bool OH_AVMemory::IsEqualMemory(const std::shared_ptr<OHOS::Media::AVSharedMemory> &mem)
 {
     return (mem == memory_) ? true : false;
 }
 
-uint8_t *OH_AVMemory_GetAddr(struct AVMemory *mem)
+uint8_t *OH_AVMemory_GetAddr(struct OH_AVMemory *mem)
 {
     CHECK_AND_RETURN_RET_LOG(mem != nullptr, nullptr, "input mem is nullptr!");
     CHECK_AND_RETURN_RET_LOG(mem->magic_ == AVMagic::MEDIA_MAGIC_SHARED_MEMORY, nullptr, "magic error!");
@@ -46,7 +46,7 @@ uint8_t *OH_AVMemory_GetAddr(struct AVMemory *mem)
     return mem->memory_->GetBase();
 }
 
-int32_t OH_AVMemory_GetSize(struct AVMemory *mem)
+int32_t OH_AVMemory_GetSize(struct OH_AVMemory *mem)
 {
     CHECK_AND_RETURN_RET_LOG(mem != nullptr, -1, "input mem is nullptr!");
     CHECK_AND_RETURN_RET_LOG(mem->magic_ == AVMagic::MEDIA_MAGIC_SHARED_MEMORY, -1, "magic error!");

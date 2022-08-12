@@ -22,27 +22,27 @@
 extern "C" {
 #endif
 
-typedef struct AVMemory AVMemory;
+typedef struct OH_AVMemory OH_AVMemory;
 
 /**
  * @brief Get the memory's virtual address
  * @syscap SystemCapability.Multimedia.Media.Core
- * @param mem Encapsulate AVMemory structure instance pointer
+ * @param mem Encapsulate OH_AVMemory structure instance pointer
  * @return the memory's virtual address if the memory is valid, otherwise nullptr.
  * @since 9
  * @version 1.0
  */
-uint8_t *OH_AVMemory_GetAddr(struct AVMemory *mem);
+uint8_t *OH_AVMemory_GetAddr(struct OH_AVMemory *mem);
 
 /**
  * @brief Get the memory's size
  * @syscap SystemCapability.Multimedia.Media.Core
- * @param mem Encapsulate AVMemory structure instance pointer
+ * @param mem Encapsulate OH_AVMemory structure instance pointer
  * @return the memory's size if the memory is valid, otherwise -1.
  * @since 9
  * @version 1.0
  */
-int32_t OH_AVMemory_GetSize(struct AVMemory *mem);
+int32_t OH_AVMemory_GetSize(struct OH_AVMemory *mem);
 
 #ifdef __cplusplus
 }

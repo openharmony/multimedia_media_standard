@@ -29,13 +29,13 @@ constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "NativeVide
 
 using namespace OHOS::Media;
 
-struct VideoDecoderObject : public AVCodec {
+struct VideoDecoderObject : public OH_AVCodec {
     explicit VideoDecoderObject(const std::shared_ptr<AVCodecVideoDecoder> &decoder)
-        : AVCodec(AVMagic::MEDIA_MAGIC_VIDEO_DECODER), videoDecoder_(decoder) {}
+        : OH_AVCodec(AVMagic::MEDIA_MAGIC_VIDEO_DECODER), videoDecoder_(decoder) {}
     ~VideoDecoderObject() = default;
 
     const std::shared_ptr<AVCodecVideoDecoder> videoDecoder_;
-    std::list<OHOS::sptr<AVMemory>> memoryObjList_;
+    std::list<OHOS::sptr<OH_AVMemory>> memoryObjList_;
     std::shared_ptr<AVCodecCallback> callback_ = nullptr;
     std::atomic<bool> isFlushing_ = false;
     std::atomic<bool> isStop_ = false;
@@ -44,7 +44,7 @@ struct VideoDecoderObject : public AVCodec {
 
 class NativeVideoDecoderCallback : public AVCodecCallback {
 public:
-    NativeVideoDecoderCallback(AVCodec *codec, struct AVCodecAsyncCallback cb, void *userData)
+    NativeVideoDecoderCallback(OH_AVCodec *codec, struct OH_AVCodecAsyncCallback cb, void *userData)
         : codec_(codec), callback_(cb), userData_(userData) {}
     virtual ~NativeVideoDecoderCallback() = default;
 
@@ -60,9 +60,9 @@ public:
     void OnOutputFormatChanged(const Format &format) override
     {
         if (codec_ != nullptr) {
-            OHOS::sptr<AVFormat> object = new(std::nothrow) AVFormat(format);
+            OHOS::sptr<OH_AVFormat> object = new(std::nothrow) OH_AVFormat(format);
             // The object lifecycle is controlled by the current function stack
-            callback_.onStreamChanged(codec_, reinterpret_cast<AVFormat *>(object.GetRefPtr()), userData_);
+            callback_.onStreamChanged(codec_, reinterpret_cast<OH_AVFormat *>(object.GetRefPtr()), userData_);
         }
     }
 
@@ -76,7 +76,7 @@ public:
                 MEDIA_LOGD("At flush, eos or stop, no buffer available");
                 return;
             }
-            AVMemory *data = GetInputData(codec_, index);
+            OH_AVMemory *data = GetInputData(codec_, index);
             if (data != nullptr) {
                 callback_.onNeedInputData(codec_, index, data, userData_);
             }
@@ -93,7 +93,7 @@ public:
                 MEDIA_LOGD("At flush or stop, ignore");
                 return;
             }
-            struct AVCodecBufferAttr bufferAttr;
+            struct OH_AVCodecBufferAttr bufferAttr;
             bufferAttr.pts = info.presentationTimeUs;
             bufferAttr.size = info.size;
             bufferAttr.offset = info.offset;
@@ -104,7 +104,7 @@ public:
     }
 
 private:
-    AVMemory *GetInputData(struct AVCodec *codec, uint32_t index)
+    OH_AVMemory *GetInputData(struct OH_AVCodec *codec, uint32_t index)
     {
         CHECK_AND_RETURN_RET_LOG(codec != nullptr, nullptr, "input codec is nullptr!");
         CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_DECODER, nullptr, "magic error!");
@@ -117,18 +117,18 @@ private:
 
         for (auto &memoryObj : videoDecObj->memoryObjList_) {
             if (memoryObj->IsEqualMemory(memory)) {
-                return reinterpret_cast<AVMemory *>(memoryObj.GetRefPtr());
+                return reinterpret_cast<OH_AVMemory *>(memoryObj.GetRefPtr());
             }
         }
 
-        OHOS::sptr<AVMemory> object = new(std::nothrow) AVMemory(memory);
-        CHECK_AND_RETURN_RET_LOG(object != nullptr, nullptr, "failed to new AVMemory");
+        OHOS::sptr<OH_AVMemory> object = new(std::nothrow) OH_AVMemory(memory);
+        CHECK_AND_RETURN_RET_LOG(object != nullptr, nullptr, "failed to new OH_AVMemory");
 
         videoDecObj->memoryObjList_.push_back(object);
-        return reinterpret_cast<AVMemory *>(object.GetRefPtr());
+        return reinterpret_cast<OH_AVMemory *>(object.GetRefPtr());
     }
 
-    AVMemory *GetOutputData(struct AVCodec *codec, uint32_t index)
+    OH_AVMemory *GetOutputData(struct OH_AVCodec *codec, uint32_t index)
     {
         CHECK_AND_RETURN_RET_LOG(codec != nullptr, nullptr, "input codec is nullptr!");
         CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_DECODER, nullptr, "magic error!");
@@ -141,23 +141,23 @@ private:
 
         for (auto &memoryObj : videoDecObj->memoryObjList_) {
             if (memoryObj->IsEqualMemory(memory)) {
-                return reinterpret_cast<AVMemory *>(memoryObj.GetRefPtr());
+                return reinterpret_cast<OH_AVMemory *>(memoryObj.GetRefPtr());
             }
         }
 
-        OHOS::sptr<AVMemory> object = new(std::nothrow) AVMemory(memory);
-        CHECK_AND_RETURN_RET_LOG(object != nullptr, nullptr, "failed to new AVMemory");
+        OHOS::sptr<OH_AVMemory> object = new(std::nothrow) OH_AVMemory(memory);
+        CHECK_AND_RETURN_RET_LOG(object != nullptr, nullptr, "failed to new OH_AVMemory");
 
         videoDecObj->memoryObjList_.push_back(object);
-        return reinterpret_cast<AVMemory *>(object.GetRefPtr());
+        return reinterpret_cast<OH_AVMemory *>(object.GetRefPtr());
     }
 
-    struct AVCodec *codec_;
-    struct AVCodecAsyncCallback callback_;
+    struct OH_AVCodec *codec_;
+    struct OH_AVCodecAsyncCallback callback_;
     void *userData_;
 };
 
-struct AVCodec *OH_VideoDecoder_CreateByMime(const char *mime)
+struct OH_AVCodec *OH_VideoDecoder_CreateByMime(const char *mime)
 {
     CHECK_AND_RETURN_RET_LOG(mime != nullptr, nullptr, "input mime is nullptr!");
 
@@ -170,7 +170,7 @@ struct AVCodec *OH_VideoDecoder_CreateByMime(const char *mime)
     return object;
 }
 
-struct AVCodec *OH_VideoDecoder_CreateByName(const char *name)
+struct OH_AVCodec *OH_VideoDecoder_CreateByName(const char *name)
 {
     CHECK_AND_RETURN_RET_LOG(name != nullptr, nullptr, "input name is nullptr!");
 
@@ -183,7 +183,7 @@ struct AVCodec *OH_VideoDecoder_CreateByName(const char *name)
     return object;
 }
 
-AVErrCode OH_VideoDecoder_Destroy(struct AVCodec *codec)
+OH_AVErrCode OH_VideoDecoder_Destroy(struct OH_AVCodec *codec)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, AV_ERR_INVALID_VAL, "input codec is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_DECODER, AV_ERR_INVALID_VAL, "magic error!");
@@ -207,7 +207,7 @@ AVErrCode OH_VideoDecoder_Destroy(struct AVCodec *codec)
     return AV_ERR_OK;
 }
 
-AVErrCode OH_VideoDecoder_Configure(struct AVCodec *codec, struct AVFormat *format)
+OH_AVErrCode OH_VideoDecoder_Configure(struct OH_AVCodec *codec, struct OH_AVFormat *format)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, AV_ERR_INVALID_VAL, "input codec is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_DECODER, AV_ERR_INVALID_VAL, "magic error!");
@@ -223,7 +223,7 @@ AVErrCode OH_VideoDecoder_Configure(struct AVCodec *codec, struct AVFormat *form
     return AV_ERR_OK;
 }
 
-AVErrCode OH_VideoDecoder_Prepare(struct AVCodec *codec)
+OH_AVErrCode OH_VideoDecoder_Prepare(struct OH_AVCodec *codec)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, AV_ERR_INVALID_VAL, "input codec is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_DECODER, AV_ERR_INVALID_VAL, "magic error!");
@@ -237,7 +237,7 @@ AVErrCode OH_VideoDecoder_Prepare(struct AVCodec *codec)
     return AV_ERR_OK;
 }
 
-AVErrCode OH_VideoDecoder_Start(struct AVCodec *codec)
+OH_AVErrCode OH_VideoDecoder_Start(struct OH_AVCodec *codec)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, AV_ERR_INVALID_VAL, "input codec is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_DECODER, AV_ERR_INVALID_VAL, "magic error!");
@@ -252,7 +252,7 @@ AVErrCode OH_VideoDecoder_Start(struct AVCodec *codec)
     return AV_ERR_OK;
 }
 
-AVErrCode OH_VideoDecoder_Stop(struct AVCodec *codec)
+OH_AVErrCode OH_VideoDecoder_Stop(struct OH_AVCodec *codec)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, AV_ERR_INVALID_VAL, "input codec is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_DECODER, AV_ERR_INVALID_VAL, "magic error!");
@@ -274,7 +274,7 @@ AVErrCode OH_VideoDecoder_Stop(struct AVCodec *codec)
     return AV_ERR_OK;
 }
 
-AVErrCode OH_VideoDecoder_Flush(struct AVCodec *codec)
+OH_AVErrCode OH_VideoDecoder_Flush(struct OH_AVCodec *codec)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, AV_ERR_INVALID_VAL, "input codec is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_DECODER, AV_ERR_INVALID_VAL, "magic error!");
@@ -298,7 +298,7 @@ AVErrCode OH_VideoDecoder_Flush(struct AVCodec *codec)
     return AV_ERR_OK;
 }
 
-AVErrCode OH_VideoDecoder_Reset(struct AVCodec *codec)
+OH_AVErrCode OH_VideoDecoder_Reset(struct OH_AVCodec *codec)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, AV_ERR_INVALID_VAL, "input codec is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_DECODER, AV_ERR_INVALID_VAL, "magic error!");
@@ -318,7 +318,7 @@ AVErrCode OH_VideoDecoder_Reset(struct AVCodec *codec)
     return AV_ERR_OK;
 }
 
-AVErrCode OH_VideoDecoder_SetSurface(struct AVCodec *codec, struct NativeWindow *window)
+OH_AVErrCode OH_VideoDecoder_SetSurface(struct OH_AVCodec *codec, struct NativeWindow *window)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, AV_ERR_INVALID_VAL, "input codec is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_DECODER, AV_ERR_INVALID_VAL, "magic error!");
@@ -334,7 +334,7 @@ AVErrCode OH_VideoDecoder_SetSurface(struct AVCodec *codec, struct NativeWindow 
     return AV_ERR_OK;
 }
 
-AVErrCode OH_VideoDecoder_PushInputData(struct AVCodec *codec, uint32_t index, AVCodecBufferAttr attr)
+OH_AVErrCode OH_VideoDecoder_PushInputData(struct OH_AVCodec *codec, uint32_t index, OH_AVCodecBufferAttr attr)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, AV_ERR_INVALID_VAL, "input codec is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_DECODER, AV_ERR_INVALID_VAL, "magic error!");
@@ -357,7 +357,7 @@ AVErrCode OH_VideoDecoder_PushInputData(struct AVCodec *codec, uint32_t index, A
     return AV_ERR_OK;
 }
 
-AVFormat *OH_VideoDecoder_GetOutputDescription(struct AVCodec *codec)
+OH_AVFormat *OH_VideoDecoder_GetOutputDescription(struct OH_AVCodec *codec)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, nullptr, "input codec is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_DECODER, nullptr, "magic error!");
@@ -369,13 +369,13 @@ AVFormat *OH_VideoDecoder_GetOutputDescription(struct AVCodec *codec)
     int32_t ret = videoDecObj->videoDecoder_->GetOutputFormat(format);
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, nullptr, "videoDecoder GetOutputFormat failed!");
 
-    AVFormat *avFormat = OH_AVFormat_Create();
+    OH_AVFormat *avFormat = OH_AVFormat_Create();
     avFormat->format_ = format;
 
     return avFormat;
 }
 
-AVErrCode OH_VideoDecoder_RenderOutputData(struct AVCodec *codec, uint32_t index)
+OH_AVErrCode OH_VideoDecoder_RenderOutputData(struct OH_AVCodec *codec, uint32_t index)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, AV_ERR_INVALID_VAL, "input codec is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_DECODER, AV_ERR_INVALID_VAL, "magic error!");
@@ -389,7 +389,7 @@ AVErrCode OH_VideoDecoder_RenderOutputData(struct AVCodec *codec, uint32_t index
     return AV_ERR_OK;
 }
 
-AVErrCode OH_VideoDecoder_FreeOutputData(struct AVCodec *codec, uint32_t index)
+OH_AVErrCode OH_VideoDecoder_FreeOutputData(struct OH_AVCodec *codec, uint32_t index)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, AV_ERR_INVALID_VAL, "input codec is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_DECODER, AV_ERR_INVALID_VAL, "magic error!");
@@ -403,7 +403,7 @@ AVErrCode OH_VideoDecoder_FreeOutputData(struct AVCodec *codec, uint32_t index)
     return AV_ERR_OK;
 }
 
-AVErrCode OH_VideoDecoder_SetParameter(struct AVCodec *codec, struct AVFormat *format)
+OH_AVErrCode OH_VideoDecoder_SetParameter(struct OH_AVCodec *codec, struct OH_AVFormat *format)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, AV_ERR_INVALID_VAL, "input codec is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_DECODER, AV_ERR_INVALID_VAL, "magic error!");
@@ -419,7 +419,8 @@ AVErrCode OH_VideoDecoder_SetParameter(struct AVCodec *codec, struct AVFormat *f
     return AV_ERR_OK;
 }
 
-AVErrCode OH_VideoDecoder_SetCallback(struct AVCodec *codec, struct AVCodecAsyncCallback callback, void *userData)
+OH_AVErrCode OH_VideoDecoder_SetCallback(
+    struct OH_AVCodec *codec, struct OH_AVCodecAsyncCallback callback, void *userData)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, AV_ERR_INVALID_VAL, "input codec is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_DECODER, AV_ERR_INVALID_VAL, "magic error!");

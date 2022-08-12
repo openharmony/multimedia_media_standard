@@ -22,9 +22,7 @@
         "SystemCapability.Multimedia.Media.AudioEncoder",
         "SystemCapability.Multimedia.Media.VideoDecoder",
         "SystemCapability.Multimedia.Media.VideoEncoder",
-        "SystemCapability.Multimedia.Media.CodecBase",
-        "SystemCapability.Multimedia.Media.Spliter",
-        "SystemCapability.Multimedia.Media.Muxer"
+        "SystemCapability.Multimedia.Media.CodecBase"
       ],
       "features": [],
       "adapted_system_type": [ "standard" ],
@@ -72,7 +70,7 @@
             "//foundation/multimedia/player_framework/interfaces/kits/js:media",
             "//foundation/multimedia/player_framework/interfaces/kits/js:media_js",
             "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
-            "//foundation/multimedia/player_framework/interfaces/kits/c:media_capi",
+            "//foundation/multimedia/player_framework/interfaces/kits/c:native_media",
             "//foundation/multimedia/player_framework/test/nativedemo:media_demo"
           ],
           "service_group": [
