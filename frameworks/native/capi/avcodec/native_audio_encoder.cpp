@@ -386,7 +386,8 @@ OH_AVErrCode OH_AudioEncoder_SetParameter(struct OH_AVCodec *codec, struct OH_AV
     return AV_ERR_OK;
 }
 
-OH_AVErrCode OH_AudioEncoder_SetCallback(struct OH_AVCodec *codec, struct OH_AVCodecAsyncCallback callback, void *userData)
+OH_AVErrCode OH_AudioEncoder_SetCallback(
+    struct OH_AVCodec *codec, struct OH_AVCodecAsyncCallback callback, void *userData)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, AV_ERR_INVALID_VAL, "input codec is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_AUDIO_ENCODER, AV_ERR_INVALID_VAL, "magic error!");

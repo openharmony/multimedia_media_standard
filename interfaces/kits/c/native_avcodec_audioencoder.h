@@ -176,7 +176,7 @@ OH_AVErrCode OH_AudioEncoder_SetParameter(OH_AVCodec *codec, OH_AVFormat *format
  * @brief Submit the input buffer filled with data to the audio encoder. The {@link OH_AVCodecOnNeedInputData}
  * callback will report the available input buffer and the corresponding index value. Once the buffer with the
  * specified index is submitted to the audio encoder, the buffer cannot be accessed again until the
- * {@link OH_AVCodecOnNeedInputData} callback is received again reporting that the buffer with the same index is available
+ * callback is received again reporting that the buffer with the same index is available
  * @syscap SystemCapability.Multimedia.Media.AudioEncoder
  * @param codec Pointer to an OH_AVCodec instance
  * @param index Enter the index value corresponding to the Buffer
