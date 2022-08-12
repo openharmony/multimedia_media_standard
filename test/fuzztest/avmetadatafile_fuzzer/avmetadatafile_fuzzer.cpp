@@ -26,6 +26,8 @@ using namespace OHOS;
 using namespace Media;
 using namespace PlayerTestParam;
 
+namespace OHOS {
+namespace Media {
 AVMetadataFileFuzzer::AVMetadataFileFuzzer()
 {
 }
@@ -37,6 +39,7 @@ AVMetadataFileFuzzer::~AVMetadataFileFuzzer()
 bool AVMetadataFileFuzzer::FuzzAVMetadataFile(uint8_t *data, size_t size)
 {
     avmetadata = OHOS::Media::AVMetadataHelperFactory::CreateAVMetadataHelper();
+    cout << "start!" << endl;
     if (avmetadata == nullptr) {
         cout << "avmetadata is null" << endl;
         avmetadata->Release();
@@ -74,19 +77,22 @@ bool AVMetadataFileFuzzer::FuzzAVMetadataFile(uint8_t *data, size_t size)
     }
     
     avmetadata->Release();
+    cout << "success!" << endl;
     return true;
 }
+}
 
-bool OHOS::Media::FuzzTestavMetadataFile(uint8_t *data, size_t size)
+bool FuzzTestavMetadataFile(uint8_t *data, size_t size)
 {
     AVMetadataFileFuzzer metadata;
     return metadata.FuzzAVMetadataFile(data, size);
+}
 }
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Media::FuzzTestavMetadataFile(data, size);
+    OHOS::FuzzTestavMetadataFile(data, size);
     return 0;
 }
