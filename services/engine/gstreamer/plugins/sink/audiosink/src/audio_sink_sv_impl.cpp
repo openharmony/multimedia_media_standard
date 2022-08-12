@@ -31,9 +31,14 @@ AudioRendererMediaCallback::AudioRendererMediaCallback(GstBaseSink *audioSink)
     audioSink_ = audioSink;
 }
 
-void AudioRendererMediaCallback::SaveCallback(void (*interruptCb)(GstBaseSink *, guint, guint, guint))
+void AudioRendererMediaCallback::SaveInterruptCallback(InterruptCbFunc interruptCb)
 {
     interruptCb_ = interruptCb;
+}
+
+void AudioRendererMediaCallback::SaveStateCallback(StateCbFunc stateCb)
+{
+    stateCb_ = stateCb;
 }
 
 void AudioRendererMediaCallback::OnInterrupt(const AudioStandard::InterruptEvent &interruptEvent)
@@ -45,11 +50,14 @@ void AudioRendererMediaCallback::OnInterrupt(const AudioStandard::InterruptEvent
 
 void AudioRendererMediaCallback::OnStateChange(const AudioStandard::RendererState state)
 {
-    MEDIA_LOGD("RenderState is %{public}d", static_cast<uint32_t>(state));
+    MEDIA_LOGD("RenderState is %{public}d", static_cast<int32_t>(state));
+    if (stateCb_ != nullptr) {
+        stateCb_(audioSink_, static_cast<guint>(state));
+    }
 }
 
 AudioSinkSvImpl::AudioSinkSvImpl(GstBaseSink *sink)
-    : audioRenderer_(nullptr)
+    : audioSink_(sink)
 {
     audioRendererMediaCallback_ = std::make_shared<AudioRendererMediaCallback>(sink);
 }
@@ -111,9 +119,9 @@ int32_t AudioSinkSvImpl::SetVolume(float volume)
 {
     MediaTrace trace("AudioSink::SetVolume");
     MEDIA_LOGD("audioRenderer SetVolume(%{public}lf) In", volume);
-    CHECK_AND_RETURN_RET_LOG(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION, "audioRenderer_ is nullptr");
+    CHECK_AND_RETURN_RET_LOG(audioRenderer_ != nullptr, MSERR_AUD_RENDER_FAILED, "audioRenderer_ is nullptr");
     int32_t ret = audioRenderer_->SetVolume(volume);
-    CHECK_AND_RETURN_RET_LOG(ret == AudioStandard::SUCCESS, MSERR_UNKNOWN, "audio server setvolume failed!");
+    CHECK_AND_RETURN_RET_LOG(ret == AudioStandard::SUCCESS, MSERR_AUD_RENDER_FAILED, "audio server setvolume failed!");
     MEDIA_LOGD("audioRenderer SetVolume(%{public}lf) Out", volume);
     return MSERR_OK;
 }
@@ -131,7 +139,7 @@ int32_t AudioSinkSvImpl::SetRendererInfo(int32_t desc, int32_t rendererFlags)
 int32_t AudioSinkSvImpl::GetVolume(float &volume)
 {
     MEDIA_LOGD("GetVolume");
-    CHECK_AND_RETURN_RET_LOG(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION, "audioRenderer_ is nullptr");
+    CHECK_AND_RETURN_RET_LOG(audioRenderer_ != nullptr, MSERR_AUD_RENDER_FAILED, "audioRenderer_ is nullptr");
     volume = audioRenderer_->GetVolume();
     return MSERR_OK;
 }
@@ -162,7 +170,7 @@ int32_t AudioSinkSvImpl::Prepare(int32_t appUid, int32_t appPid)
     rendererOptions_.streamInfo.format = AudioStandard::SAMPLE_S16LE;
     rendererOptions_.streamInfo.channels = AudioStandard::MONO;
     audioRenderer_ = AudioStandard::AudioRenderer::Create(rendererOptions_, appInfo);
-    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_AUD_RENDER_FAILED);
     MEDIA_LOGD("audioRenderer Prepare Out");
     return MSERR_OK;
 }
@@ -171,7 +179,7 @@ int32_t AudioSinkSvImpl::Start()
 {
     MediaTrace trace("AudioSink::Start");
     MEDIA_LOGD("audioRenderer Start In");
-    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_AUD_RENDER_FAILED);
     (void)audioRenderer_->Start();
     MEDIA_LOGD("audioRenderer Start Out");
     return MSERR_OK;
@@ -181,7 +189,7 @@ int32_t AudioSinkSvImpl::Stop()
 {
     MediaTrace trace("AudioSink::Stop");
     MEDIA_LOGD("audioRenderer Stop In");
-    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_AUD_RENDER_FAILED);
     (void)audioRenderer_->Stop();
     MEDIA_LOGD("audioRenderer Stop Out");
     return MSERR_OK;
@@ -191,9 +199,9 @@ int32_t AudioSinkSvImpl::Pause()
 {
     MediaTrace trace("AudioSink::Pause");
     MEDIA_LOGD("audioRenderer Pause In");
-    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_AUD_RENDER_FAILED);
     if (audioRenderer_->GetStatus() == OHOS::AudioStandard::RENDERER_RUNNING) {
-        CHECK_AND_RETURN_RET(audioRenderer_->Pause() == true, MSERR_UNKNOWN);
+        CHECK_AND_RETURN_RET(audioRenderer_->Pause() == true, MSERR_AUD_RENDER_FAILED);
     }
     MEDIA_LOGD("audioRenderer Pause Out");
     return MSERR_OK;
@@ -203,18 +211,18 @@ int32_t AudioSinkSvImpl::Drain()
 {
     MediaTrace trace("AudioSink::Drain");
     MEDIA_LOGD("Drain");
-    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
-    CHECK_AND_RETURN_RET(audioRenderer_->Drain() == true, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_AUD_RENDER_FAILED);
+    CHECK_AND_RETURN_RET(audioRenderer_->Drain() == true, MSERR_AUD_RENDER_FAILED);
     return MSERR_OK;
 }
 
 int32_t AudioSinkSvImpl::Flush()
 {
     MediaTrace trace("AudioSink::Flush");
-    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_AUD_RENDER_FAILED);
     if (audioRenderer_->GetStatus() == OHOS::AudioStandard::RENDERER_RUNNING) {
         MEDIA_LOGD("Flush");
-        CHECK_AND_RETURN_RET(audioRenderer_->Flush() == true, MSERR_UNKNOWN);
+        CHECK_AND_RETURN_RET(audioRenderer_->Flush() == true, MSERR_AUD_RENDER_FAILED);
     }
     
     return MSERR_OK;
@@ -224,7 +232,7 @@ int32_t AudioSinkSvImpl::Release()
 {
     MediaTrace trace("AudioSink::Release");
     MEDIA_LOGD("audioRenderer Release In");
-    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_AUD_RENDER_FAILED);
     (void)audioRenderer_->Release();
     audioRenderer_ = nullptr;
     MEDIA_LOGD("audioRenderer Release Out");
@@ -236,15 +244,15 @@ int32_t AudioSinkSvImpl::SetParameters(uint32_t bitsPerSample, uint32_t channels
     MediaTrace trace("AudioSink::SetParameters");
     (void)bitsPerSample;
     MEDIA_LOGD("SetParameters in, channels:%{public}d, sampleRate:%{public}d", channels, sampleRate);
-    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_AUD_RENDER_FAILED);
 
     AudioStandard::AudioRendererParams params;
     std::vector<AudioStandard::AudioSamplingRate> supportedSampleList = AudioStandard::
                                                                         AudioRenderer::GetSupportedSamplingRates();
-    CHECK_AND_RETURN_RET(supportedSampleList.size() > 0, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(supportedSampleList.size() > 0, MSERR_AUD_RENDER_FAILED);
     bool isValidSampleRate = false;
     for (auto iter = supportedSampleList.cbegin(); iter != supportedSampleList.end(); ++iter) {
-        CHECK_AND_RETURN_RET(static_cast<int32_t>(*iter) > 0, MSERR_UNKNOWN);
+        CHECK_AND_RETURN_RET(static_cast<int32_t>(*iter) > 0, MSERR_AUD_RENDER_FAILED);
         uint32_t supportedSampleRate = static_cast<uint32_t>(*iter);
         if (sampleRate <= supportedSampleRate) {
             params.sampleRate = *iter;
@@ -256,10 +264,10 @@ int32_t AudioSinkSvImpl::SetParameters(uint32_t bitsPerSample, uint32_t channels
 
     std::vector<AudioStandard::AudioChannel> supportedChannelsList = AudioStandard::
                                                                      AudioRenderer::GetSupportedChannels();
-    CHECK_AND_RETURN_RET(supportedChannelsList.size() > 0, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(supportedChannelsList.size() > 0, MSERR_AUD_RENDER_FAILED);
     bool isValidChannels = false;
     for (auto iter = supportedChannelsList.cbegin(); iter != supportedChannelsList.end(); ++iter) {
-        CHECK_AND_RETURN_RET(static_cast<int32_t>(*iter) > 0, MSERR_UNKNOWN);
+        CHECK_AND_RETURN_RET(static_cast<int32_t>(*iter) > 0, MSERR_AUD_RENDER_FAILED);
         uint32_t supportedChannels = static_cast<uint32_t>(*iter);
         if (channels == supportedChannels) {
             params.channelCount = *iter;
@@ -273,7 +281,7 @@ int32_t AudioSinkSvImpl::SetParameters(uint32_t bitsPerSample, uint32_t channels
     params.encodingType = AudioStandard::ENCODING_PCM;
     MEDIA_LOGD("SetParameters out, channels:%{public}d, sampleRate:%{public}d", params.channelCount, params.sampleRate);
     MEDIA_LOGD("audioRenderer SetParams In");
-    CHECK_AND_RETURN_RET(audioRenderer_->SetParams(params) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(audioRenderer_->SetParams(params) == AudioStandard::SUCCESS, MSERR_AUD_RENDER_FAILED);
     MEDIA_LOGD("audioRenderer SetParams Out");
     return MSERR_OK;
 }
@@ -282,9 +290,9 @@ int32_t AudioSinkSvImpl::GetParameters(uint32_t &bitsPerSample, uint32_t &channe
 {
     (void)bitsPerSample;
     MEDIA_LOGD("GetParameters");
-    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_AUD_RENDER_FAILED);
     AudioStandard::AudioRendererParams params;
-    CHECK_AND_RETURN_RET(audioRenderer_->GetParams(params) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(audioRenderer_->GetParams(params) == AudioStandard::SUCCESS, MSERR_AUD_RENDER_FAILED);
     channels = params.channelCount;
     sampleRate = params.sampleRate;
     return MSERR_OK;
@@ -293,10 +301,10 @@ int32_t AudioSinkSvImpl::GetParameters(uint32_t &bitsPerSample, uint32_t &channe
 int32_t AudioSinkSvImpl::GetMinimumBufferSize(uint32_t &bufferSize)
 {
     MEDIA_LOGD("GetMinimumBufferSize");
-    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_AUD_RENDER_FAILED);
     size_t size = 0;
-    CHECK_AND_RETURN_RET(audioRenderer_->GetBufferSize(size) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
-    CHECK_AND_RETURN_RET(size > 0, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(audioRenderer_->GetBufferSize(size) == AudioStandard::SUCCESS, MSERR_AUD_RENDER_FAILED);
+    CHECK_AND_RETURN_RET(size > 0, MSERR_AUD_RENDER_FAILED);
     bufferSize = static_cast<uint32_t>(size);
     return MSERR_OK;
 }
@@ -304,10 +312,10 @@ int32_t AudioSinkSvImpl::GetMinimumBufferSize(uint32_t &bufferSize)
 int32_t AudioSinkSvImpl::GetMinimumFrameCount(uint32_t &frameCount)
 {
     MEDIA_LOGD("GetMinimumFrameCount");
-    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_AUD_RENDER_FAILED);
     uint32_t count = 0;
-    CHECK_AND_RETURN_RET(audioRenderer_->GetFrameCount(count) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
-    CHECK_AND_RETURN_RET(count > 0, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(audioRenderer_->GetFrameCount(count) == AudioStandard::SUCCESS, MSERR_AUD_RENDER_FAILED);
+    CHECK_AND_RETURN_RET(count > 0, MSERR_AUD_RENDER_FAILED);
     frameCount = count;
     return MSERR_OK;
 }
@@ -318,18 +326,30 @@ bool AudioSinkSvImpl::Writeable() const
     return audioRenderer_->GetStatus() == AudioStandard::RENDERER_RUNNING;
 }
 
+void AudioSinkSvImpl::OnError(std::string errMsg)
+{
+    if (errorCb_ != nullptr) {
+        errorCb_(audioSink_, errMsg);
+    }
+}
+
 int32_t AudioSinkSvImpl::Write(uint8_t *buffer, size_t size)
 {
     MediaTrace trace("AudioSink::Write");
-    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
-    CHECK_AND_RETURN_RET(buffer != nullptr, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_AUD_RENDER_FAILED);
+    CHECK_AND_RETURN_RET(buffer != nullptr, MSERR_AUD_RENDER_FAILED);
+    CHECK_AND_RETURN_RET(size > 0, MSERR_AUD_RENDER_FAILED);
+
     size_t bytesWritten = 0;
     int32_t bytesSingle = 0;
     while (bytesWritten < size) {
         bytesSingle = audioRenderer_->Write(buffer + bytesWritten, size - bytesWritten);
-        CHECK_AND_RETURN_RET(bytesSingle > 0, MSERR_UNKNOWN);
+        if (bytesSingle <= 0) {
+            OnError("[AudioSinkSvImpl] audioRenderer write failed");
+            return MSERR_AUD_RENDER_FAILED;
+        }
         bytesWritten += static_cast<size_t>(bytesSingle);
-        CHECK_AND_RETURN_RET(bytesWritten >= static_cast<size_t>(bytesSingle), MSERR_UNKNOWN);
+        CHECK_AND_RETURN_RET(bytesWritten >= static_cast<size_t>(bytesSingle), MSERR_AUD_RENDER_FAILED);
     }
     return MSERR_OK;
 }
@@ -337,10 +357,10 @@ int32_t AudioSinkSvImpl::Write(uint8_t *buffer, size_t size)
 int32_t AudioSinkSvImpl::GetAudioTime(uint64_t &time)
 {
     MediaTrace trace("AudioSink::GetAudioTime");
-    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
+    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_AUD_RENDER_FAILED);
     AudioStandard::Timestamp timeStamp;
     bool ret = audioRenderer_->GetAudioTime(timeStamp, AudioStandard::Timestamp::Timestampbase::MONOTONIC);
-    CHECK_AND_RETURN_RET(ret == true, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(ret == true, MSERR_AUD_RENDER_FAILED);
     time = static_cast<uint64_t>(timeStamp.time.tv_nsec);
     return MSERR_OK;
 }
@@ -348,15 +368,19 @@ int32_t AudioSinkSvImpl::GetAudioTime(uint64_t &time)
 int32_t AudioSinkSvImpl::GetLatency(uint64_t &latency) const
 {
     MediaTrace trace("AudioSink::GetLatency");
-    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_INVALID_OPERATION);
-    CHECK_AND_RETURN_RET(audioRenderer_->GetLatency(latency) == AudioStandard::SUCCESS, MSERR_UNKNOWN);
+    CHECK_AND_RETURN_RET(audioRenderer_ != nullptr, MSERR_AUD_RENDER_FAILED);
+    CHECK_AND_RETURN_RET(audioRenderer_->GetLatency(latency) == AudioStandard::SUCCESS, MSERR_AUD_RENDER_FAILED);
     return MSERR_OK;
 }
 
-void AudioSinkSvImpl::SetAudioSinkInterruptCb(void (*interruptCb)(GstBaseSink *, guint, guint, guint))
+void AudioSinkSvImpl::SetAudioSinkCb(void (*interruptCb)(GstBaseSink *, guint, guint, guint),
+                                     void (*stateCb)(GstBaseSink *, guint),
+                                     void (*errorCb)(GstBaseSink *, std::string))
 {
     CHECK_AND_RETURN(audioRendererMediaCallback_ != nullptr);
-    audioRendererMediaCallback_->SaveCallback(interruptCb);
+    errorCb_ = errorCb;
+    audioRendererMediaCallback_->SaveInterruptCallback(interruptCb);
+    audioRendererMediaCallback_->SaveStateCallback(stateCb);
     audioRenderer_->SetRendererCallback(audioRendererMediaCallback_);
 }
 

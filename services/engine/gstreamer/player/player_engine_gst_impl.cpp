@@ -167,7 +167,7 @@ void PlayerEngineGstImpl::HandleErrorMessage(const PlayBinMessage &msg)
 {
     MEDIA_LOGE("error happended, cancel inprocessing job");
 
-    PlayerErrorType errorType = PLAYER_ERROR_UNKNOWN;
+    PlayerErrorType errorType = PLAYER_ERROR;
     int32_t errorCode = msg.code;
     std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
     if (notifyObs != nullptr) {
@@ -355,13 +355,52 @@ void PlayerEngineGstImpl::HandleSubTypeMessage(const PlayBinMessage &msg)
             HandleBitRateCollect(msg);
             break;
         }
+        default: {
+            break;
+        }
+    }
+}
+
+void PlayerEngineGstImpl::HandleAudioSinkMessage(const PlayBinMessage &msg)
+{
+    switch (msg.subType) {
         case PLAYBIN_MSG_INTERRUPT_EVENT: {
             HandleInterruptMessage(msg);
+            break;
+        }
+        case PLAYBIN_MSG_AUDIO_STATE_EVENT: {
+            HandleAudioStateMessage(msg);
+            break;
+        }
+        case PLAYBIN_MSG_AUDIO_ERROR_EVENT: {
+            HandleAudioErrorMessage(msg);
+            break;
+        }
+        case PLAYBIN_MSG_VOLUME_CHANGE: {
+            HandleVolumeChangedMessage(msg);
             break;
         }
         default: {
             break;
         }
+    }
+}
+
+void PlayerEngineGstImpl::HandleAudioStateMessage(const PlayBinMessage &msg)
+{
+    int32_t value = std::any_cast<int32_t>(msg.extra);
+    MEDIA_LOGI("HandleAudioStateMessage:%{public}d", value);
+}
+
+void PlayerEngineGstImpl::HandleAudioErrorMessage(const PlayBinMessage &msg)
+{
+    std::pair<int32_t, std::string> errorPair = std::any_cast<std::pair<int32_t, std::string>>(msg.extra);
+    MEDIA_LOGE("HandleAudioErrorMessage:%{public}d, %{public}s", errorPair.first, errorPair.second.c_str());
+    PlayerErrorType errorType = PLAYER_ERROR;
+    int32_t errorCode = errorPair.first;
+    std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
+    if (notifyObs != nullptr) {
+        notifyObs->OnError(errorType, errorCode);
     }
 }
 
@@ -379,7 +418,7 @@ void PlayerEngineGstImpl::HandleVolumeChangedMessage(const PlayBinMessage &msg)
 
 void PlayerEngineGstImpl::HandleInterruptMessage(const PlayBinMessage &msg)
 {
-    MEDIA_LOGI("interrupt event in");
+    MEDIA_LOGI("Audio interrupt event in");
     uint32_t value = std::any_cast<uint32_t>(msg.extra);
     std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
     if (notifyObs != nullptr) {
@@ -418,8 +457,7 @@ void PlayerEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
         { PLAYBIN_MSG_EOS, std::bind(&PlayerEngineGstImpl::HandleInfoMessage, this, std::placeholders::_1) },
         { PLAYBIN_MSG_STATE_CHANGE, std::bind(&PlayerEngineGstImpl::HandleInfoMessage, this, std::placeholders::_1) },
         { PLAYBIN_MSG_SUBTYPE, std::bind(&PlayerEngineGstImpl::HandleSubTypeMessage, this, std::placeholders::_1) },
-        { PLAYBIN_MSG_VOLUME_CHANGE, std::bind(&PlayerEngineGstImpl::HandleVolumeChangedMessage, this,
-            std::placeholders::_1) },
+        { PLAYBIN_MSG_AUDIO_SINK, std::bind(&PlayerEngineGstImpl::HandleAudioSinkMessage, this, std::placeholders::_1) },
         { PLAYBIN_MSG_POSITION_UPDATE, std::bind(&PlayerEngineGstImpl::HandlePositionUpdateMessage, this,
             std::placeholders::_1) },
     };
@@ -779,7 +817,6 @@ int32_t PlayerEngineGstImpl::SetAudioInterruptMode(const int32_t interruptMode)
 void PlayerEngineGstImpl::OnNotifyElemSetup(GstElement &elem)
 {
     std::unique_lock<std::mutex> lock(trackParseMutex_);
-    CHECK_AND_RETURN_LOG(trackParse_ != nullptr, "trackParse_ is null");
 
     const gchar *metadata = gst_element_get_metadata(&elem, GST_ELEMENT_METADATA_KLASS);
     CHECK_AND_RETURN_LOG(metadata != nullptr, "gst_element_get_metadata return nullptr");
@@ -787,30 +824,35 @@ void PlayerEngineGstImpl::OnNotifyElemSetup(GstElement &elem)
     MEDIA_LOGD("get element_name %{public}s, get metadata %{public}s", GST_ELEMENT_NAME(&elem), metadata);
     std::string metaStr(metadata);
 
-    if (metaStr.find("Codec/Demuxer") != std::string::npos || metaStr.find("Codec/Parser") != std::string::npos) {
-        if (trackParse_->GetDemuxerElementFind() == false) {
-            gulong signalId = g_signal_connect(&elem, "pad-added",
-                G_CALLBACK(PlayerTrackParse::OnPadAddedCb), trackParse_.get());
-            CHECK_AND_RETURN_LOG(signalId != 0, "listen to pad-added failed");
-            (void)signalIds_.emplace(&elem, signalId);
+    if (trackParse_ != nullptr) {
+        if (metaStr.find("Codec/Demuxer") != std::string::npos || metaStr.find("Codec/Parser") != std::string::npos) {
+            if (trackParse_->GetDemuxerElementFind() == false) {
+                gulong signalId = g_signal_connect(&elem, "pad-added",
+                    G_CALLBACK(PlayerTrackParse::OnPadAddedCb), trackParse_.get());
+                CHECK_AND_RETURN_LOG(signalId != 0, "listen to pad-added failed");
+                (void)signalIds_.emplace(&elem, signalId);
 
-            trackParse_->SetDemuxerElementFind(true);
+                trackParse_->SetDemuxerElementFind(true);
+            }
         }
     }
 
-    CHECK_AND_RETURN_LOG(sinkProvider_ != nullptr, "sinkProvider_ is nullptr");
-    GstElement *videoSink = sinkProvider_->GetVideoSink();
-    CHECK_AND_RETURN_LOG(videoSink != nullptr, "videoSink is nullptr");
-    codecChangedDetector_->DetectCodecSetup(metaStr, &elem, videoSink);
+    if (producerSurface_ != nullptr) {
+        CHECK_AND_RETURN_LOG(sinkProvider_ != nullptr, "sinkProvider_ is nullptr");
+        GstElement *videoSink = sinkProvider_->GetVideoSink();
+        CHECK_AND_RETURN_LOG(videoSink != nullptr, "videoSink is nullptr");
+        codecChangedDetector_->DetectCodecSetup(metaStr, &elem, videoSink);
+    }
 }
 
 void PlayerEngineGstImpl::OnNotifyElemUnSetup(GstElement &elem)
 {
-    CHECK_AND_RETURN_LOG(sinkProvider_ != nullptr, "sinkProvider_ is nullptr");
-    GstElement *videoSink = sinkProvider_->GetVideoSink();
-    CHECK_AND_RETURN_LOG(videoSink != nullptr, "videoSink is nullptr");
-
-    codecChangedDetector_->DetectCodecUnSetup(&elem, videoSink);
+    if (producerSurface_ != nullptr) {
+        CHECK_AND_RETURN_LOG(sinkProvider_ != nullptr, "sinkProvider_ is nullptr");
+        GstElement *videoSink = sinkProvider_->GetVideoSink();
+        CHECK_AND_RETURN_LOG(videoSink != nullptr, "videoSink is nullptr");
+        codecChangedDetector_->DetectCodecUnSetup(&elem, videoSink);
+    }
 }
 
 CodecChangedDetector::~CodecChangedDetector()

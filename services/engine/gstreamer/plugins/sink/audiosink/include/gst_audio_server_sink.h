@@ -52,9 +52,6 @@ struct _GstAudioServerSink {
     gfloat min_volume;
     guint min_buffer_size;
     guint min_frame_count;
-    GstBuffer *cache_buffer;
-    guint cache_size;
-    gboolean enable_cache;
     gboolean frame_after_segment;
     GMutex render_lock;
     std::mutex mutex_;
