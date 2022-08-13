@@ -104,8 +104,6 @@ ohos_unittest("acodec_native_unit_test") {
   cflags = avcodec_unittest_cflags
 
   sources = [
-    "./acodec_test/acodec_mock.cpp",
-    "./acodec_test/acodec_unit_test.cpp",
     "./native/audiodecoder/audiodec_native_mock.cpp",
     "./native/audioencoder/audioenc_native_mock.cpp",
     "./native/avcodec_info/avcodec_info_native_mock.cpp",
