@@ -103,12 +103,16 @@ private:
     static void OnVolumeChangedCb(const GstElement *playbin, GstElement *elem, gpointer userdata);
     static void OnBitRateParseCompleteCb(const GstElement *playbin, uint32_t *bitrateInfo,
         uint32_t bitrateNum, gpointer userdata);
-    static void OnInterruptEventCb(const GstElement *audioSink, const uint32_t eventType, const uint32_t forceType,
-        const uint32_t hintType, gpointer userdata);
     static GValueArray *OnDecodeBinTryAddNewElem(const GstElement *uriDecoder, GstPad *pad, GstCaps *caps,
         GValueArray *factories, gpointer userdata);
+    static void OnInterruptEventCb(const GstElement *audioSink, const uint32_t eventType, const uint32_t forceType,
+        const uint32_t hintType, gpointer userdata);
+    static void OnAudioStateEventCb(const GstElement *audioSink, const uint32_t audioState, gpointer userdata);
+    static void OnAudioErrorEventCb(const GstElement *audioSink, const gchar *errMsg, gpointer userdata);
     void SetupVolumeChangedCb();
     void SetupInterruptEventCb();
+    void SetupAudioStateEventCb();
+    void SetupAudioErrorEventCb();
     void OnElementSetup(GstElement &elem);
     void OnElementUnSetup(GstElement &elem);
     void OnSourceSetup(const GstElement *playbin, GstElement *src,
@@ -138,7 +142,12 @@ private:
     std::shared_ptr<PlayBinSinkProvider> sinkProvider_;
     std::unique_ptr<GstMsgProcessor> msgProcessor_;
     std::string uri_;
-    std::unordered_map<GstElement *, gulong> signalIds_;
+
+    struct SignalInfo {
+        GstElement *element;
+        gulong signalId;
+    };
+    std::vector<SignalInfo> signalIds_;
     std::vector<uint32_t> bitRateVec_;
     bool isInitialized_ = false;
 
