@@ -842,15 +842,17 @@ int32_t PlayBinCtrlerBase::DoInitializeForDataSource()
 
 void PlayBinCtrlerBase::HandleCacheCtrl(const InnerMessage &msg)
 {
-    PlayBinMessage playBinMsg = { PLAYBIN_MSG_SUBTYPE, PLAYBIN_SUB_MSG_BUFFERING_PERCENT, msg.detail1, {} };
-    ReportMessage(playBinMsg);
+    if (isNetWorkPlay_) {
+        PlayBinMessage playBinMsg = { PLAYBIN_MSG_SUBTYPE, PLAYBIN_SUB_MSG_BUFFERING_PERCENT, msg.detail1, {} };
+        ReportMessage(playBinMsg);
 
-    int32_t percent = msg.detail1;
-    MEDIA_LOGI("HandleCacheCtrl percent is %{public}d", percent);
-    if (!isBuffering_) {
-        HandleCacheCtrlWhenNoBuffering(percent);
-    } else if (isBuffering_) {
-        HandleCacheCtrlWhenBuffering(percent);
+        int32_t percent = msg.detail1;
+        MEDIA_LOGI("HandleCacheCtrl percent is %{public}d", percent);
+        if (!isBuffering_) {
+            HandleCacheCtrlWhenNoBuffering(percent);
+        } else if (isBuffering_) {
+            HandleCacheCtrlWhenBuffering(percent);
+        }
     }
 }
 
