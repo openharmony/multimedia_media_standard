@@ -509,9 +509,10 @@ void PlayBinCtrlerBase::DoInitializeForHttp()
     PlayBinCtrlerWrapper *wrapper = new(std::nothrow) PlayBinCtrlerWrapper(shared_from_this());
     CHECK_AND_RETURN_LOG(wrapper != nullptr, "can not create this wrapper");
 
-    (void)signalIds_.emplace(GST_ELEMENT_CAST(playbin_), g_signal_connect_data(playbin_, "bitrate-parse-complete",
+    gulong id = g_signal_connect_data(playbin_, "bitrate-parse-complete",
         G_CALLBACK(&PlayBinCtrlerBase::OnBitRateParseCompleteCb), wrapper,
-        (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory, static_cast<GConnectFlags>(0)));
+        (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory, static_cast<GConnectFlags>(0));
+    (void)signalIds_.emplace_back(SignalInfo { GST_ELEMENT_CAST(playbin_), id });
 }
 
 int32_t PlayBinCtrlerBase::EnterInitializedState()
@@ -589,8 +590,8 @@ void PlayBinCtrlerBase::ExitInitializedState()
     }
     mutex_.lock();
 
-    for (auto &[elem, signalId] : signalIds_) {
-        g_signal_handler_disconnect(elem, signalId);
+    for (auto &item : signalIds_) {
+        g_signal_handler_disconnect(item.element, item.signalId);
     }
     signalIds_.clear();
 
@@ -655,18 +656,44 @@ void PlayBinCtrlerBase::SetupVolumeChangedCb()
 {
     PlayBinCtrlerWrapper *wrapper = new(std::nothrow) PlayBinCtrlerWrapper(shared_from_this());
     CHECK_AND_RETURN_LOG(wrapper != nullptr, "can not create this wrapper");
-    (void)signalIds_.emplace(audioSink_, g_signal_connect_data(audioSink_, "notify::volume",
+
+    gulong id = g_signal_connect_data(audioSink_, "notify::volume",
         G_CALLBACK(&PlayBinCtrlerBase::OnVolumeChangedCb), wrapper,
-        (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory, static_cast<GConnectFlags>(0)));
+        (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory, static_cast<GConnectFlags>(0));
+    (void)signalIds_.emplace_back(SignalInfo { GST_ELEMENT_CAST(audioSink_), id });
 }
 
 void PlayBinCtrlerBase::SetupInterruptEventCb()
 {
     PlayBinCtrlerWrapper *wrapper = new(std::nothrow) PlayBinCtrlerWrapper(shared_from_this());
     CHECK_AND_RETURN_LOG(wrapper != nullptr, "can not create this wrapper");
-    (void)signalIds_.emplace(audioSink_, g_signal_connect_data(audioSink_, "interrupt-event",
+
+    gulong id = g_signal_connect_data(audioSink_, "interrupt-event",
         G_CALLBACK(&PlayBinCtrlerBase::OnInterruptEventCb), wrapper,
-        (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory, static_cast<GConnectFlags>(0)));
+        (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory, static_cast<GConnectFlags>(0));
+    (void)signalIds_.emplace_back(SignalInfo { GST_ELEMENT_CAST(audioSink_), id });
+}
+
+void PlayBinCtrlerBase::SetupAudioStateEventCb()
+{
+    PlayBinCtrlerWrapper *wrapper = new(std::nothrow) PlayBinCtrlerWrapper(shared_from_this());
+    CHECK_AND_RETURN_LOG(wrapper != nullptr, "can not create this wrapper");
+
+    gulong id = g_signal_connect_data(audioSink_, "audio-state-event",
+        G_CALLBACK(&PlayBinCtrlerBase::OnAudioStateEventCb), wrapper,
+        (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory, static_cast<GConnectFlags>(0));
+    (void)signalIds_.emplace_back(SignalInfo { GST_ELEMENT_CAST(audioSink_), id });
+}
+
+void PlayBinCtrlerBase::SetupAudioErrorEventCb()
+{
+    PlayBinCtrlerWrapper *wrapper = new(std::nothrow) PlayBinCtrlerWrapper(shared_from_this());
+    CHECK_AND_RETURN_LOG(wrapper != nullptr, "can not create this wrapper");
+
+    gulong id = g_signal_connect_data(audioSink_, "audio-error-event",
+        G_CALLBACK(&PlayBinCtrlerBase::OnAudioErrorEventCb), wrapper,
+        (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory, static_cast<GConnectFlags>(0));
+    (void)signalIds_.emplace_back(SignalInfo { GST_ELEMENT_CAST(audioSink_), id });
 }
 
 void PlayBinCtrlerBase::SetupCustomElement()
@@ -678,6 +705,8 @@ void PlayBinCtrlerBase::SetupCustomElement()
             g_object_set(playbin_, "audio-sink", audioSink_, nullptr);
             SetupVolumeChangedCb();
             SetupInterruptEventCb();
+            SetupAudioStateEventCb();
+            SetupAudioErrorEventCb();
         }
         videoSink_ = sinkProvider_->CreateVideoSink();
         if (videoSink_ != nullptr) {
@@ -708,9 +737,10 @@ int32_t PlayBinCtrlerBase::SetupSignalMessage()
     PlayBinCtrlerWrapper *wrapper = new(std::nothrow) PlayBinCtrlerWrapper(shared_from_this());
     CHECK_AND_RETURN_RET_LOG(wrapper != nullptr, MSERR_NO_MEMORY, "can not create this wrapper");
 
-    (void)signalIds_.emplace(GST_ELEMENT_CAST(playbin_), g_signal_connect_data(playbin_, "element-setup",
+    gulong id = g_signal_connect_data(playbin_, "element-setup",
         G_CALLBACK(&PlayBinCtrlerBase::ElementSetup), wrapper, (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory,
-        static_cast<GConnectFlags>(0)));
+        static_cast<GConnectFlags>(0));
+    (void)signalIds_.emplace_back(SignalInfo { GST_ELEMENT_CAST(playbin_), id });
 
     GstBus *bus = gst_pipeline_get_bus(playbin_);
     CHECK_AND_RETURN_RET_LOG(bus != nullptr, MSERR_UNKNOWN, "can not get bus");
@@ -738,9 +768,10 @@ int32_t PlayBinCtrlerBase::SetupElementUnSetupSignal()
     PlayBinCtrlerWrapper *wrapper = new(std::nothrow) PlayBinCtrlerWrapper(shared_from_this());
     CHECK_AND_RETURN_RET_LOG(wrapper != nullptr, MSERR_NO_MEMORY, "can not create this wrapper");
 
-    (void)signalIds_.emplace(GST_ELEMENT_CAST(playbin_), g_signal_connect_data(playbin_, "deep-element-removed",
+    gulong id = g_signal_connect_data(playbin_, "deep-element-removed",
         G_CALLBACK(&PlayBinCtrlerBase::ElementUnSetup), wrapper, (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory,
-        static_cast<GConnectFlags>(0)));
+        static_cast<GConnectFlags>(0));
+    (void)signalIds_.emplace_back(SignalInfo { GST_ELEMENT_CAST(playbin_), id });
 
     return MSERR_OK;
 }
@@ -831,9 +862,10 @@ int32_t PlayBinCtrlerBase::DoInitializeForDataSource()
         PlayBinCtrlerWrapper *wrapper = new(std::nothrow) PlayBinCtrlerWrapper(shared_from_this());
         CHECK_AND_RETURN_RET_LOG(wrapper != nullptr, MSERR_NO_MEMORY, "can not create this wrapper");
 
-        (void)signalIds_.emplace(GST_ELEMENT_CAST(playbin_), g_signal_connect_data(playbin_, "source-setup",
+        gulong id = g_signal_connect_data(playbin_, "source-setup",
             G_CALLBACK(&PlayBinCtrlerBase::SourceSetup), wrapper, (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory,
-            static_cast<GConnectFlags>(0)));
+            static_cast<GConnectFlags>(0));
+        (void)signalIds_.emplace_back(SignalInfo { GST_ELEMENT_CAST(playbin_), id });
 
         g_object_set(playbin_, "uri", "appsrc://", nullptr);
     }
@@ -996,9 +1028,10 @@ void PlayBinCtrlerBase::OnElementSetup(GstElement &elem)
     if (isNetWorkPlay_ == false && elementName.find("uridecodebin") != std::string::npos) {
         PlayBinCtrlerWrapper *wrapper = new(std::nothrow) PlayBinCtrlerWrapper(shared_from_this());
         CHECK_AND_RETURN_LOG(wrapper != nullptr, "can not create this wrapper");
-        (void)signalIds_.emplace(&elem, g_signal_connect_data(&elem, "autoplug-sort",
+        gulong id = g_signal_connect_data(&elem, "autoplug-sort",
             G_CALLBACK(&PlayBinCtrlerBase::OnDecodeBinTryAddNewElem), wrapper,
-            (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory, static_cast<GConnectFlags>(0)));
+            (GClosureNotify)&PlayBinCtrlerWrapper::OnDestory, static_cast<GConnectFlags>(0));
+        (void)signalIds_.emplace_back(SignalInfo { &elem, id });
     }
 
     decltype(elemSetupListener_) listener = nullptr;
@@ -1036,7 +1069,7 @@ void PlayBinCtrlerBase::OnVolumeChangedCb(const GstElement *playbin, GstElement 
 
     auto thizStrong = PlayBinCtrlerWrapper::TakeStrongThiz(userdata);
     if (thizStrong != nullptr && thizStrong->GetCurrState() != thizStrong->preparingState_) {
-        PlayBinMessage msg { PlayBinMsgType::PLAYBIN_MSG_VOLUME_CHANGE, 0, 0, {} };
+        PlayBinMessage msg { PLAYBIN_MSG_AUDIO_SINK, PLAYBIN_MSG_VOLUME_CHANGE, 0, {} };
         thizStrong->ReportMessage(msg);
     }
 }
@@ -1052,10 +1085,39 @@ void PlayBinCtrlerBase::OnInterruptEventCb(const GstElement *audioSink, const ui
     if (thizStrong != nullptr) {
         uint32_t value = 0;
         value = (((eventType << INTERRUPT_EVENT_SHIFT) | forceType) << INTERRUPT_EVENT_SHIFT) | hintType;
-        PlayBinMessage msg { PLAYBIN_MSG_SUBTYPE, PLAYBIN_MSG_INTERRUPT_EVENT, 0, value };
+        PlayBinMessage msg { PLAYBIN_MSG_AUDIO_SINK, PLAYBIN_MSG_INTERRUPT_EVENT, 0, value };
         thizStrong->ReportMessage(msg);
     }
 }
+
+void PlayBinCtrlerBase::OnAudioStateEventCb(const GstElement *audioSink, const uint32_t audioState, gpointer userdata)
+{
+    (void)audioSink;
+    if (userdata == nullptr) {
+        return;
+    }
+    auto thizStrong = PlayBinCtrlerWrapper::TakeStrongThiz(userdata);
+    if (thizStrong != nullptr) {
+        int32_t value = static_cast<int32_t>(audioState);
+        PlayBinMessage msg { PLAYBIN_MSG_AUDIO_SINK, PLAYBIN_MSG_AUDIO_STATE_EVENT, 0, value };
+        thizStrong->ReportMessage(msg);
+    }
+}
+
+void PlayBinCtrlerBase::OnAudioErrorEventCb(const GstElement *audioSink, const gchar *errMsg, gpointer userdata)
+{
+    (void)audioSink;
+    if (userdata == nullptr) {
+        return;
+    }
+    auto thizStrong = PlayBinCtrlerWrapper::TakeStrongThiz(userdata);
+    if (thizStrong != nullptr) {
+        std::pair<int32_t, std::string> errorPair = { MSERR_AUD_RENDER_FAILED, errMsg };
+        PlayBinMessage msg { PLAYBIN_MSG_AUDIO_SINK, PLAYBIN_MSG_AUDIO_ERROR_EVENT, 0, errorPair };
+        thizStrong->ReportMessage(msg);
+    }
+}
+
 void PlayBinCtrlerBase::OnBitRateParseCompleteCb(const GstElement *playbin, uint32_t *bitrateInfo,
     uint32_t bitrateNum, gpointer userdata)
 {
