@@ -361,7 +361,7 @@ void PlayerEngineGstImpl::HandleSubTypeMessage(const PlayBinMessage &msg)
     }
 }
 
-void PlayerEngineGstImpl::HandleAudioSinkMessage(const PlayBinMessage &msg)
+void PlayerEngineGstImpl::HandleAudioMessage(const PlayBinMessage &msg)
 {
     switch (msg.subType) {
         case PLAYBIN_MSG_INTERRUPT_EVENT: {
@@ -457,7 +457,7 @@ void PlayerEngineGstImpl::OnNotifyMessage(const PlayBinMessage &msg)
         { PLAYBIN_MSG_EOS, std::bind(&PlayerEngineGstImpl::HandleInfoMessage, this, std::placeholders::_1) },
         { PLAYBIN_MSG_STATE_CHANGE, std::bind(&PlayerEngineGstImpl::HandleInfoMessage, this, std::placeholders::_1) },
         { PLAYBIN_MSG_SUBTYPE, std::bind(&PlayerEngineGstImpl::HandleSubTypeMessage, this, std::placeholders::_1) },
-        { PLAYBIN_MSG_AUDIO_SINK, std::bind(&PlayerEngineGstImpl::HandleAudioSinkMessage, this, std::placeholders::_1) },
+        { PLAYBIN_MSG_AUDIO_SINK, std::bind(&PlayerEngineGstImpl::HandleAudioMessage, this, std::placeholders::_1) },
         { PLAYBIN_MSG_POSITION_UPDATE, std::bind(&PlayerEngineGstImpl::HandlePositionUpdateMessage, this,
             std::placeholders::_1) },
     };

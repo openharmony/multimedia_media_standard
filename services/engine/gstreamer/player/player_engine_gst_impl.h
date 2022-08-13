@@ -101,7 +101,7 @@ private:
     void HandleVideoRenderingStart();
     void HandleVideoSizeChanged(const PlayBinMessage &msg);
     void HandleBitRateCollect(const PlayBinMessage &msg);
-    void HandleAudioSinkMessage(const PlayBinMessage &msg);
+    void HandleAudioMessage(const PlayBinMessage &msg);
     void HandleVolumeChangedMessage(const PlayBinMessage &msg);
     void HandleInterruptMessage(const PlayBinMessage &msg);
     void HandleAudioStateMessage(const PlayBinMessage &msg);
