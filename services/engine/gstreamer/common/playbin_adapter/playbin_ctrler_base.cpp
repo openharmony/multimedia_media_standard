@@ -116,9 +116,10 @@ PlayBinCtrlerBase::PlayBinCtrlerBase(const PlayBinCreateParam &createParam)
 PlayBinCtrlerBase::~PlayBinCtrlerBase()
 {
     MEDIA_LOGD("enter dtor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
-    Reset();
-    sinkProvider_ = nullptr;
-    notifier_ = nullptr;
+    if (Reset() == MSERR_OK) {
+        sinkProvider_ = nullptr;
+        notifier_ = nullptr;
+    }
 }
 
 int32_t PlayBinCtrlerBase::Init()
@@ -436,7 +437,7 @@ int32_t PlayBinCtrlerBase::SelectBitRate(uint32_t bitRate)
     return MSERR_OK;
 }
 
-void PlayBinCtrlerBase::Reset() noexcept
+int32_t PlayBinCtrlerBase::Reset() noexcept
 {
     MEDIA_LOGD("enter");
 
@@ -448,14 +449,14 @@ void PlayBinCtrlerBase::Reset() noexcept
     }
     isStopFinish_ = false;
     int32_t ret = StopInternal();
-    CHECK_AND_RETURN(ret == MSERR_OK);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "StopInternal failed");
     {
         std::unique_lock<std::mutex> condLock(stopCondMutex_);
         stopCond_.wait_for(condLock, std::chrono::seconds(STOP_TIMEOUT), [this]() {
             return isStopFinish_;
         });
     }
-    CHECK_AND_RETURN(isStopFinish_);
+    CHECK_AND_RETURN_RET_LOG(isStopFinish_, MSERR_INVALID_OPERATION, "not recv stop done msg");
     // Do it here before the ChangeState to IdleState, for avoding the deadlock when msg handler
     // try to call the ChangeState.
     ExitInitializedState();
@@ -482,6 +483,7 @@ void PlayBinCtrlerBase::Reset() noexcept
     isDuration_ = false;
 
     MEDIA_LOGD("exit");
+    return MSERR_OK;
 }
 
 void PlayBinCtrlerBase::SetElemSetupListener(ElemSetupListener listener)
