@@ -122,7 +122,7 @@ private:
     void OnMessageReceived(const InnerMessage &msg);
     void OnSinkMessageReceived(const PlayBinMessage &msg);
     void ReportMessage(const PlayBinMessage &msg);
-    void Reset() noexcept;
+    int32_t Reset() noexcept;
     bool IsLiveSource() const;
     int32_t DoInitializeForDataSource();
     void DoInitializeForHttp();
