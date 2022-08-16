@@ -57,6 +57,9 @@ void VideoCallbackNapi::ClearAsyncWork(bool error, const std::string &msg)
     for (auto it = contextMap_.begin(); it != contextMap_.end(); it++) {
         auto &contextQue = it->second;
         VideoPlayerAsyncContext *context = contextQue.front();
+        if (context == nullptr) {
+            continue;
+        }
         contextQue.pop();
         if (error) {
             context->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, msg);
