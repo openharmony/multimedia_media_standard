@@ -1,0 +1,6 @@
+[
+    { "name": "OH_AVCodecOnError" },
+    { "name": "OH_AVCodecOnStreamChanged" },
+    { "name": "OH_AVCodecOnNeedInputData" },
+    { "name": "OH_AVCodecOnNewOutputData" }
+]
