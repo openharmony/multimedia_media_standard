@@ -16,9 +16,7 @@ import("//build/ohos/ndk/ndk.gni")
 
 ohos_ndk_headers("native_media_codecbase_header") {
   dest_dir = "$ndk_headers_out_dir/multimedia/player_framework"
-  sources = [
-    "//foundation/multimedia/player_framework/interfaces/kits/c/native_avcodec_base.h",
-  ]
+  sources = [ "//foundation/multimedia/player_framework/interfaces/kits/c/native_avcodec_base.h" ]
 }
 
 ohos_ndk_library("libnative_media_codecbase") {
@@ -28,7 +26,5 @@ ohos_ndk_library("libnative_media_codecbase") {
   output_extension = "so"
 
   system_capability = "SystemCapability.Multimedia.Media.CodecBase"
-  system_capability_headers = [
-    "native_media_codecbase/native_avcodec_base.h",
-  ]
+  system_capability_headers = [ "native_media_codecbase/native_avcodec_base.h" ]
 }

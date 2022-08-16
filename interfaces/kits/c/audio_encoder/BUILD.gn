@@ -26,5 +26,6 @@ ohos_ndk_library("libnative_media_aenc") {
   output_extension = "so"
 
   system_capability = "SystemCapability.Multimedia.Media.AudioEncoder"
-  system_capability_headers = [ "native_media_aenc/native_avcodec_audioencoder.h" ]
+  system_capability_headers =
+      [ "native_media_aenc/native_avcodec_audioencoder.h" ]
 }

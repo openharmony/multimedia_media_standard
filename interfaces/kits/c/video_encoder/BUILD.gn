@@ -26,5 +26,6 @@ ohos_ndk_library("libnative_media_venc") {
   output_extension = "so"
 
   system_capability = "SystemCapability.Multimedia.Media.VideoEncoder"
-  system_capability_headers = [ "native_media_venc/native_avcodec_videoencoder.h" ]
+  system_capability_headers =
+      [ "native_media_venc/native_avcodec_videoencoder.h" ]
 }
