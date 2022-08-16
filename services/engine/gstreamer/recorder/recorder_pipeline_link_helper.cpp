@@ -49,7 +49,7 @@ GstPad *RecorderPipelineLinkHelper::GetGstPad(
         pad = gst_element_get_static_pad(elem->gstElem_, padName.c_str());
     } else {
         MEDIA_LOGI("request pad %{public}s from element  %{public}s", padName.c_str(), elem->GetName().c_str());
-        pad = gst_element_request_pad_simple(elem->gstElem_, padName.c_str());
+        pad = gst_element_get_request_pad(elem->gstElem_, padName.c_str());
     }
 
     if (pad == nullptr)  {
