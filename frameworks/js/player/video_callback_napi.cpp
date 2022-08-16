@@ -125,7 +125,7 @@ void VideoCallbackNapi::OnSeekDoneCb(int32_t position)
     CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
     contextQue.pop();
 
-    context->JsResult = std::make_unique<MediaJsResultInt>(context->speedMode);
+    context->JsResult = std::make_unique<MediaJsResultInt>(position);
     // Switch Napi threads
     VideoCallbackNapi::OnJsCallBack(context);
 }
@@ -163,6 +163,7 @@ void VideoCallbackNapi::OnBitRateDoneCb(int32_t bitRate)
     CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
     contextQue.pop();
 
+    context->jsResult = std::make_unique<MediaJsResultInt>(bitRate);
     // Switch Napi threads
     VideoCallbackNapi::OnJsCallBack(context);
 }
