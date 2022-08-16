@@ -436,8 +436,8 @@ void RecorderPipeline::StopForError(const RecorderMessage &msg)
                msg.code, msg.detail);
 
     errorState_.store(true);
-    DrainBuffer(false);
     (void)DoElemAction(&RecorderElement::Stop, false);
+    DrainBuffer(false);
     (void)SyncWaitChangeState(GST_STATE_NULL);
 
     isStarted_ = false;
