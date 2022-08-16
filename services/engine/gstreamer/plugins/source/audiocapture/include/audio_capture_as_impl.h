@@ -70,6 +70,8 @@ private:
         RECORDER_STOP,
     };
 
+    static constexpr int MAX_QUEUE_SIZE = 100;
+
     void GetAudioCaptureBuffer();
     std::unique_ptr<AudioCacheCtrl> audioCacheCtrl_;
     std::unique_ptr<std::thread> captureLoop_;
