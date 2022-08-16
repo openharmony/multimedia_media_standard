@@ -120,10 +120,9 @@ void VideoCallbackNapi::OnSeekDoneCb(int32_t position)
         return;
     }
 
-    auto contextQue = contextMap_.at(AsyncWorkType::ASYNC_WORK_SEEK);
-    VideoPlayerAsyncContext *context = contextQue.front();
+    VideoPlayerAsyncContext *context = contextMap_.at(AsyncWorkType::ASYNC_WORK_SEEK).front();
     CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
-    contextQue.pop();
+    contextMap_.at(AsyncWorkType::ASYNC_WORK_SEEK).pop();
 
     context->JsResult = std::make_unique<MediaJsResultInt>(position);
     // Switch Napi threads
@@ -141,10 +140,9 @@ void VideoCallbackNapi::OnSpeedDoneCb(int32_t speedMode)
         return;
     }
 
-    auto contextQue = contextMap_.at(AsyncWorkType::ASYNC_WORK_SPEED);
-    VideoPlayerAsyncContext *context = contextQue.front();
+    VideoPlayerAsyncContext *context = contextMap_.at(AsyncWorkType::ASYNC_WORK_SPEED).front();
     CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
-    contextQue.pop();
+    contextMap_.at(AsyncWorkType::ASYNC_WORK_SPEED).pop();
 
     context->JsResult = std::make_unique<MediaJsResultInt>(context->speedMode);
     // Switch Napi threads
@@ -158,10 +156,9 @@ void VideoCallbackNapi::OnBitRateDoneCb(int32_t bitRate)
         return;
     }
 
-    auto contextQue = contextMap_.at(AsyncWorkType::ASYNC_WORK_BITRATE);
-    VideoPlayerAsyncContext *context = contextQue.front();
+    VideoPlayerAsyncContext *context = contextMap_.at(AsyncWorkType::ASYNC_WORK_BITRATE).front();
     CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
-    contextQue.pop();
+    contextMap_.at(AsyncWorkType::ASYNC_WORK_BITRATE).pop();
 
     context->JsResult = std::make_unique<MediaJsResultInt>(bitRate);
     // Switch Napi threads
@@ -175,10 +172,9 @@ void VideoCallbackNapi::OnVolumeDoneCb()
         return;
     }
 
-    auto contextQue = contextMap_.at(AsyncWorkType::ASYNC_WORK_VOLUME);
-    VideoPlayerAsyncContext *context = contextQue.front();
+    VideoPlayerAsyncContext *context = contextMap_.at(AsyncWorkType::ASYNC_WORK_VOLUME).front();
     CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
-    contextQue.pop();
+    contextMap_.at(AsyncWorkType::ASYNC_WORK_VOLUME).pop();
 
     // Switch Napi threads
     VideoCallbackNapi::OnJsCallBack(context);
@@ -264,11 +260,10 @@ void VideoCallbackNapi::DequeueAsyncWork()
         return;
     }
 
-    auto contextQue = contextMap_.at(asyncWork);
-    VideoPlayerAsyncContext *context = contextQue.front();
+    VideoPlayerAsyncContext *context = contextMap_.at(asyncWork).front();
     CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
 
-    contextQue.pop();
+    contextMap_.at(asyncWork).pop();
     VideoCallbackNapi::OnJsCallBack(context);
 }
 
