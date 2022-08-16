@@ -49,5 +49,11 @@
             <option name="shell" value="restorecon /data/test/media"/>
         </preparer>
     </target>
+    <target name="acodec_native_unit_test">
+        <preparer>
+            <option name="push" value="res_codec/AAC_48000_32_1.aac -> /data/test/media" src="res"/>
+            <option name="shell" value="restorecon /data/test/media"/>
+        </preparer>
+    </target>
 </configuration>
 
