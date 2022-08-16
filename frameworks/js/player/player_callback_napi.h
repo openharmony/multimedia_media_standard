@@ -37,7 +37,7 @@ public:
     void SaveCallbackReference(const std::string &name, std::weak_ptr<AutoRef> ref);
     void SendErrorCallback(MediaServiceExtErrCode errCode, const std::string &info = "error");
     virtual PlayerStates GetCurrentState() const;
-    void OnError(PlayerErrorType errName, int32_t errMsg) override;
+    void OnError(PlayerErrorType errType, int32_t errCode) override;
     void OnInfo(PlayerOnInfoType type, int32_t extra, const Format &infoBody) override;
 
 protected:

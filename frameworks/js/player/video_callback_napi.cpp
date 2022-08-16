@@ -41,64 +41,27 @@ VideoCallbackNapi::~VideoCallbackNapi()
 void VideoCallbackNapi::QueueAsyncWork(VideoPlayerAsyncContext *context)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    switch (context->asyncWorkType) {
-        case AsyncWorkType::ASYNC_WORK_PREPARE:
-        case AsyncWorkType::ASYNC_WORK_PLAY:
-        case AsyncWorkType::ASYNC_WORK_PAUSE:
-        case AsyncWorkType::ASYNC_WORK_STOP:
-        case AsyncWorkType::ASYNC_WORK_RESET:
-            contextStateQue_.push(context);
-            break;
-        case AsyncWorkType::ASYNC_WORK_SEEK:
-            contextSeekQue_.push(context);
-            break;
-        case AsyncWorkType::ASYNC_WORK_SPEED:
-            contextSpeedQue_.push(context);
-            break;
-        case AsyncWorkType::ASYNC_WORK_VOLUME:
-            contextVolumeQue_.push(context);
-            break;
-        case AsyncWorkType::ASYNC_WORK_BITRATE:
-            contextBitRateQue_.push(context);
-            break;
-        default:
-            MEDIA_LOGE("QueueAsyncWork type:%{public}d error", context->asyncWorkType);
-            break;
+    if (contextMap_.find(context->asyncWorkType) == contextMap_.end())  {
+        std::queue<VideoPlayerAsyncContext *> contextQue;
+        contextQue.push(context);
+        contextMap_[context->asyncWorkType] = contextQue;
+    } else {
+        contextMap_.at(context->asyncWorkType).push(context);
     }
 }
 
-void VideoCallbackNapi::ClearAsyncWork()
+void VideoCallbackNapi::ClearAsyncWork(bool error, const std::string &msg)
 {
+    MEDIA_LOGD("%{public}s", msg.c_str());
     std::lock_guard<std::mutex> lock(mutex_);
-    while (!contextStateQue_.empty()) {
-        VideoPlayerAsyncContext *context = contextStateQue_.front();
-        contextStateQue_.pop();
-        delete context;
-        context = nullptr;
-    }
-    while (!contextSeekQue_.empty()) {
-        VideoPlayerAsyncContext *context = contextSeekQue_.front();
-        contextSeekQue_.pop();
-        delete context;
-        context = nullptr;
-    }
-    while (!contextSpeedQue_.empty()) {
-        VideoPlayerAsyncContext *context = contextSpeedQue_.front();
-        contextSpeedQue_.pop();
-        delete context;
-        context = nullptr;
-    }
-    while (!contextVolumeQue_.empty()) {
-        VideoPlayerAsyncContext *context = contextVolumeQue_.front();
-        contextVolumeQue_.pop();
-        delete context;
-        context = nullptr;
-    }
-    while (!contextBitRateQue_.empty()) {
-        VideoPlayerAsyncContext *context = contextBitRateQue_.front();
-        contextBitRateQue_.pop();
-        delete context;
-        context = nullptr;
+    for (auto it = contextMap_.begin(); it != contextMap_.end(); it++) {
+        auto &contextQue = it->second;
+        VideoPlayerAsyncContext *context = contextQue.front();
+        contextQue.pop();
+        if (error) {
+            context->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, msg);
+        }
+        VideoCallbackNapi::OnJsCallBack(context);
     }
 }
 
@@ -141,36 +104,44 @@ void VideoCallbackNapi::OnInfo(PlayerOnInfoType type, int32_t extra, const Forma
     MEDIA_LOGD("send OnInfo callback success");
 }
 
+void VideoCallbackNapi::OnError(PlayerErrorType errType, int32_t errCode)
+{
+    ClearAsyncWork(true, "The request was aborted because en error occurred, please check event(error)");
+    return PlayerCallbackNapi::OnError(errType, errCode);
+}
+
 void VideoCallbackNapi::OnSeekDoneCb(int32_t position)
 {
-    if (contextSeekQue_.empty()) {
-        MEDIA_LOGD("OnSeekDoneCb is called, But contextSeekQue_ is empty");
+    if (contextMap_.find(AsyncWorkType::ASYNC_WORK_SEEK) == contextMap_.end())  {
+        MEDIA_LOGE("OnSpeedDoneCb is called, But context is empty");
         return;
     }
 
-    VideoPlayerAsyncContext *context = contextSeekQue_.front();
+    auto contextQue = contextMap_.at(AsyncWorkType::ASYNC_WORK_SEEK);
+    VideoPlayerAsyncContext *context = contextQue.front();
     CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
-    contextSeekQue_.pop();
-    context->JsResult = std::make_unique<MediaJsResultInt>(position);
+    contextQue.pop();
 
+    context->JsResult = std::make_unique<MediaJsResultInt>(context->speedMode);
     // Switch Napi threads
     VideoCallbackNapi::OnJsCallBack(context);
 }
 
 void VideoCallbackNapi::OnSpeedDoneCb(int32_t speedMode)
 {
-    if (contextSpeedQue_.empty()) {
-        MEDIA_LOGD("OnSpeedDoneCb is called, But contextSpeedQue_ is empty");
-        return;
-    }
-
-    VideoPlayerAsyncContext *context = contextSpeedQue_.front();
-    CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
-    contextSpeedQue_.pop();
-
     if (speedMode < SPEED_FORWARD_0_75_X || speedMode > SPEED_FORWARD_2_00_X) {
         MEDIA_LOGE("OnSpeedDoneCb mode:%{public}d error", speedMode);
     }
+
+    if (contextMap_.find(AsyncWorkType::ASYNC_WORK_SPEED) == contextMap_.end())  {
+        MEDIA_LOGE("OnSpeedDoneCb is called, But context is empty");
+        return;
+    }
+
+    auto contextQue = contextMap_.at(AsyncWorkType::ASYNC_WORK_SPEED);
+    VideoPlayerAsyncContext *context = contextQue.front();
+    CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
+    contextQue.pop();
 
     context->JsResult = std::make_unique<MediaJsResultInt>(context->speedMode);
     // Switch Napi threads
@@ -179,30 +150,31 @@ void VideoCallbackNapi::OnSpeedDoneCb(int32_t speedMode)
 
 void VideoCallbackNapi::OnBitRateDoneCb(int32_t bitRate)
 {
-    if (contextBitRateQue_.empty()) {
-        MEDIA_LOGD("OnBitRateDoneCb is called, But contextBitRateQue_ is empty");
+    if (contextMap_.find(AsyncWorkType::ASYNC_WORK_BITRATE) == contextMap_.end())  {
+        MEDIA_LOGE("OnBitRateDoneCb is called, But context is empty");
         return;
     }
 
-    VideoPlayerAsyncContext *context = contextBitRateQue_.front();
+    auto contextQue = contextMap_.at(AsyncWorkType::ASYNC_WORK_BITRATE);
+    VideoPlayerAsyncContext *context = contextQue.front();
     CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
-    contextBitRateQue_.pop();
+    contextQue.pop();
 
-    context->JsResult = std::make_unique<MediaJsResultInt>(bitRate);
     // Switch Napi threads
     VideoCallbackNapi::OnJsCallBack(context);
 }
 
 void VideoCallbackNapi::OnVolumeDoneCb()
 {
-    if (contextVolumeQue_.empty()) {
-        MEDIA_LOGD("OnVolumeDoneCb is called, But contextVolumeQue_ is empty");
+    if (contextMap_.find(AsyncWorkType::ASYNC_WORK_VOLUME) == contextMap_.end())  {
+        MEDIA_LOGE("OnVolumeDoneCb is called, But context is empty");
         return;
     }
 
-    VideoPlayerAsyncContext *context = contextVolumeQue_.front();
+    auto contextQue = contextMap_.at(AsyncWorkType::ASYNC_WORK_VOLUME);
+    VideoPlayerAsyncContext *context = contextQue.front();
     CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
-    contextVolumeQue_.pop();
+    contextQue.pop();
 
     // Switch Napi threads
     VideoCallbackNapi::OnJsCallBack(context);
@@ -262,42 +234,38 @@ PlayerStates VideoCallbackNapi::GetCurrentState() const
 
 void VideoCallbackNapi::DequeueAsyncWork()
 {
-    if (contextStateQue_.empty()) {
-        MEDIA_LOGW("OnStateChanged is called, But contextStateQue_ is empty");
-        return;
-    }
-
-    VideoPlayerAsyncContext *context = contextStateQue_.front();
-    CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
-
-    bool needCb = false;
+    AsyncWorkType asyncWork = AsyncWorkType::ASYNC_WORK_INVALID;
     switch (currentState_) {
         case PLAYER_PREPARED:
-            needCb = context->asyncWorkType == AsyncWorkType::ASYNC_WORK_PREPARE ? true : false;
+            asyncWork = AsyncWorkType::ASYNC_WORK_PREPARE;
             break;
         case PLAYER_STARTED:
-            needCb = context->asyncWorkType == AsyncWorkType::ASYNC_WORK_PLAY ? true : false;
+            asyncWork = AsyncWorkType::ASYNC_WORK_PLAY;
             break;
         case PLAYER_PAUSED:
-            needCb = context->asyncWorkType == AsyncWorkType::ASYNC_WORK_PAUSE ? true : false;
+            asyncWork = AsyncWorkType::ASYNC_WORK_PAUSE;
             break;
         case PLAYER_STOPPED:
-            needCb = context->asyncWorkType == AsyncWorkType::ASYNC_WORK_STOP ? true : false;
+            asyncWork = AsyncWorkType::ASYNC_WORK_STOP;
             break;
         case PLAYER_IDLE:
-            needCb = context->asyncWorkType == AsyncWorkType::ASYNC_WORK_RESET ? true : false;
+            asyncWork = AsyncWorkType::ASYNC_WORK_RESET;
             break;
         default:
             break;
     }
 
-    if (needCb) {
-        contextStateQue_.pop();
-        // Switch Napi threads
-        VideoCallbackNapi::OnJsCallBack(context);
-    } else {
-        MEDIA_LOGD("state:%{public}d is called, But context is empty", currentState_);
+    if (contextMap_.find(asyncWork) == contextMap_.end()) {
+        MEDIA_LOGE("OnStateChanged(%{public}d) is called, But contextState is empty", currentState_);
+        return;
     }
+
+    auto contextQue = contextMap_.at(asyncWork);
+    VideoPlayerAsyncContext *context = contextQue.front();
+    CHECK_AND_RETURN_LOG(context != nullptr, "context is nullptr");
+
+    contextQue.pop();
+    VideoCallbackNapi::OnJsCallBack(context);
 }
 
 void VideoCallbackNapi::OnStateChangeCb(PlayerStates state)

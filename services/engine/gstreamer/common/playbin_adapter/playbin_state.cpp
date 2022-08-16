@@ -93,6 +93,17 @@ int32_t PlayBinCtrlerBase::BaseState::ChangePlayBinState(GstState targetState)
         return MSERR_INVALID_OPERATION;
     }
 
+    if (ret == GST_STATE_CHANGE_ASYNC) {
+        GstState state = GST_STATE_NULL;
+        GstStateChangeReturn stateRet = gst_element_get_state(GST_ELEMENT_CAST(ctrler_.playbin_), &state,
+            nullptr, GST_CLOCK_TIME_NONE);
+        if (stateRet == GST_STATE_CHANGE_FAILURE) {
+            MEDIA_LOGE("failed to change playbin's state to %{public}s", gst_element_state_get_name(targetState));
+            return MSERR_INVALID_OPERATION;
+        } else if (stateRet == GST_STATE_CHANGE_SUCCESS) {
+            MEDIA_LOGD("STATE CHANGE SUCCESS");
+        }
+    }
     return MSERR_OK;
 }
 
