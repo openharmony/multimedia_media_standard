@@ -56,15 +56,14 @@ void VideoCallbackNapi::ClearAsyncWork(bool error, const std::string &msg)
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto it = contextMap_.begin(); it != contextMap_.end(); it++) {
         auto &contextQue = it->second;
-        VideoPlayerAsyncContext *context = contextQue.front();
-        if (context == nullptr) {
-            continue;
+        while (!contextQue.empty()) {
+            VideoPlayerAsyncContext *context = contextQue.front();
+            contextQue.pop();
+            if (error) {
+                context->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, msg);
+            }
+            VideoCallbackNapi::OnJsCallBack(context);
         }
-        contextQue.pop();
-        if (error) {
-            context->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, msg);
-        }
-        VideoCallbackNapi::OnJsCallBack(context);
     }
 }
 
