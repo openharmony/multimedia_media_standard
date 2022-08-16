@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//build/ohos/ndk/ndk.gni")
 
 ohos_ndk_headers("native_media_aenc_header") {
-  dest_dir = "$ndk_headers_out_dir/multimedia/player_framework/audio_encoder"
+  dest_dir = "$ndk_headers_out_dir/multimedia/player_framework"
   sources = [ "//foundation/multimedia/player_framework/interfaces/kits/c/native_avcodec_audiodecoder.h" ]
 }
 
@@ -26,5 +26,5 @@ ohos_ndk_library("libnative_media_aenc") {
   output_extension = "so"
 
   system_capability = "SystemCapability.Multimedia.Media.AudioEncoder"
-  system_capability_headers = [ "native_media/native_avcodec_audioencoder.h" ]
+  system_capability_headers = [ "native_media_aenc/native_avcodec_audioencoder.h" ]
 }
