@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
+#include "acodec_mock.h"
 #include <sync_fence.h>
 #include "avcodec_common.h"
 #include "media_errors.h"
-#include "acodec_mock.h"
 
 using namespace std;
 using namespace OHOS::Media::ACodecTestParam;
