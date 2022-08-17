@@ -527,9 +527,6 @@ int32_t VideoPlayerNapi::ProcessWork(napi_env env, napi_status status, void *dat
         ret = player->Pause();
     } else if (asyncContext->asyncWorkType == AsyncWorkType::ASYNC_WORK_STOP) {
         ret = player->Stop();
-    } else if (asyncContext->asyncWorkType == AsyncWorkType::ASYNC_WORK_RESET) {
-        asyncContext->jsPlayer->ReleaseDataSource(asyncContext->jsPlayer->dataSrcCallBack_);
-        ret = player->Reset();
     } else if (asyncContext->asyncWorkType == AsyncWorkType::ASYNC_WORK_VOLUME) {
         float volume = static_cast<float>(asyncContext->volume);
         ret = player->SetVolume(volume, volume);
@@ -544,9 +541,7 @@ int32_t VideoPlayerNapi::ProcessWork(napi_env env, napi_status status, void *dat
         uint32_t bitRate = static_cast<uint32_t>(asyncContext->bitRate);
         ret = player->SelectBitRate(bitRate);
     } else {
-        asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "invalid operate playback", false);
-        MediaAsyncContext::CompleteCallback(env, status, data);
-        cb->ClearAsyncWork();
+        MEDIA_LOGW("invalid operate playback!");
     }
 
     return ret;
@@ -570,16 +565,28 @@ void VideoPlayerNapi::CompleteAsyncWork(napi_env env, napi_status status, void *
         asyncContext->SignError(MSERR_EXT_NO_MEMORY, "nativePlayer is released(null), please create player again");
         return MediaAsyncContext::CompleteCallback(env, status, data);
     }
+    if (asyncContext->asyncWorkType < AsyncWorkType::ASYNC_WORK_PREPARE ||
+        asyncContext->asyncWorkType >= AsyncWorkType::ASYNC_WORK_INVALID) {
+        asyncContext->SignError(MSERR_EXT_NO_MEMORY, "invalid asyncWorkType, please check player code");
+        return MediaAsyncContext::CompleteCallback(env, status, data);
+    }
 
     asyncContext->env = env;
     auto cb = std::static_pointer_cast<VideoCallbackNapi>(asyncContext->jsPlayer->jsCallback_);
-    cb->QueueAsyncWork(asyncContext);
 
-    int32_t ret = ProcessWork(env, status, data);
+    int32_t ret = MSERR_OK;
+    if (asyncContext->asyncWorkType == AsyncWorkType::ASYNC_WORK_RESET) {
+        cb->ClearAsyncWork(false, "the requests was aborted because user called reset");
+        cb->QueueAsyncWork(asyncContext);
+        asyncContext->jsPlayer->ReleaseDataSource(asyncContext->jsPlayer->dataSrcCallBack_);
+        ret = asyncContext->jsPlayer->nativePlayer_->Reset();
+    } else {
+        cb->QueueAsyncWork(asyncContext);
+        ret = ProcessWork(env, status, data);
+    }
+
     if (ret != MSERR_OK) {
-        asyncContext->SignError(MSERR_EXT_OPERATE_NOT_PERMIT, "failed to operate playback", false);
-        MediaAsyncContext::CompleteCallback(env, status, data);
-        cb->ClearAsyncWork();
+        cb->ClearAsyncWork(true, "the request was aborted because videoplayer ProcessWork error");
     }
 }
 
