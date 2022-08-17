@@ -235,7 +235,7 @@ int32_t PlayerServer::OnPrepare()
 
 int32_t PlayerServer::HandlePrepare()
 {
-    int32_t ret = playerEngine_->Prepare();
+    int32_t ret = playerEngine_->PrepareAsync();
     CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "Server Prepare Failed!");
     (void)playerEngine_->SetVolume(config_.leftVolume, config_.rightVolume);
     (void)playerEngine_->SetLooping(config_.looping);
@@ -900,21 +900,20 @@ int32_t PlayerServerStateMachine::HandleMessage(PlayerOnInfoType type, int32_t e
 
 void PlayerServerStateMachine::ChangeState(const std::shared_ptr<PlayerServerState> &state)
 {
-    {
-        std::unique_lock<std::recursive_mutex> lock(recMutex_);
+    std::unique_lock<std::recursive_mutex> lock(recMutex_);
 
-        if (state == nullptr || (state == currState_)) {
-            return;
-        }
-
-        if (currState_) {
-            MEDIA_LOGD("exit state %{public}s", currState_->name_.c_str());
-            currState_->StateExit();
-        }
-
-        MEDIA_LOGI("change state to %{public}s", state->name_.c_str());
-        currState_ = state;
+    if (state == nullptr || (state == currState_)) {
+        return;
     }
+
+    if (currState_) {
+        MEDIA_LOGD("exit state %{public}s", currState_->name_.c_str());
+        currState_->StateExit();
+    }
+
+    MEDIA_LOGI("change state to %{public}s", state->name_.c_str());
+    currState_ = state;
+
     state->StateEnter();
 }
 
