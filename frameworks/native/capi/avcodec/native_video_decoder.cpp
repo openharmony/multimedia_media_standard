@@ -318,7 +318,7 @@ OH_AVErrCode OH_VideoDecoder_Reset(struct OH_AVCodec *codec)
     return AV_ERR_OK;
 }
 
-OH_AVErrCode OH_VideoDecoder_SetSurface(struct OH_AVCodec *codec, struct NativeWindow *window)
+OH_AVErrCode OH_VideoDecoder_SetSurface(OH_AVCodec *codec, OHNativeWindow *window)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, AV_ERR_INVALID_VAL, "input codec is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_DECODER, AV_ERR_INVALID_VAL, "magic error!");
