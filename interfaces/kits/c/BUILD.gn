@@ -41,6 +41,7 @@ config("media_capi_config") {
     "-std=c++17",
     "-fno-rtti",
   ]
+  output_extension = "so"
 }
 
 ohos_shared_library("native_media_core") {
