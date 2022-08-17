@@ -78,13 +78,13 @@ OH_AVErrCode OH_VideoDecoder_SetCallback(OH_AVCodec *codec, OH_AVCodecAsyncCallb
  * this interface must be called before Prepare is called
  * @syscap SystemCapability.Multimedia.Media.VideoDecoder
  * @param codec Pointer to an OH_AVCodec instance
- * @param window A pointer to a NativeWindow instance, see {@link NativeWindow}
+ * @param window A pointer to a OHNativeWindow instance, see {@link OHNativeWindow}
  * @return Returns AV_ERR_OK if the execution is successful,
  * otherwise returns a specific error code, refer to {@link OH_AVErrCode}
  * @since 9
  * @version 1.0
  */
-OH_AVErrCode OH_VideoDecoder_SetSurface(OH_AVCodec *codec, NativeWindow *window);
+OH_AVErrCode OH_VideoDecoder_SetSurface(OH_AVCodec *codec, OHNativeWindow *window);
 
 /**
  * @brief To configure the video decoder, typically, you need to configure the description information of the decoded
