@@ -17,7 +17,6 @@
 #include "native_avcodec_base.h"
 #include "native_avcodec_audiodecoder.h"
 #include "native_avmagic.h"
-#include "native_window.h"
 #include "avcodec_audio_decoder.h"
 #include "avsharedmemory.h"
 #include "media_log.h"
@@ -40,7 +39,6 @@ struct AudioDecoderObject : public OH_AVCodec {
     std::atomic<bool> isFlushing_ = false;
     std::atomic<bool> isStop_ = false;
     std::atomic<bool> isEOS_ = false;
-    std::mutex mutex_;
 };
 
 class NativeAudioDecoderCallback : public AVCodecCallback {
