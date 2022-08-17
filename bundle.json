@@ -80,7 +80,7 @@
         },
         "inner_kits": [
           {
-            "type": "none",
+            "type": "so",
             "name": "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
             "header": {
               "header_files": [
