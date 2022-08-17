@@ -303,7 +303,6 @@ static GstFlowReturn gst_surface_do_render_buffer(GstMemSink *memsink, GstBuffer
         }
 
         GstSurfaceMemory *surface_mem = reinterpret_cast<GstSurfaceMemory *>(memory);
-        surface_mem->need_render = TRUE;
 
         gboolean needFlush = gst_surface_mem_sink_need_flush(surface_sink, buffer, is_preroll);
         if (needFlush) {
@@ -315,6 +314,7 @@ static GstFlowReturn gst_surface_do_render_buffer(GstMemSink *memsink, GstBuffer
             gst_surface_mem_sink_dump_buffer(surface_sink, buffer);
             {
                 MediaTrace trace("Surface::FlushBuffer");
+                surface_mem->need_render = TRUE;
                 OHOS::SurfaceError ret = priv->surface->FlushBuffer(surface_mem->buf, surface_mem->fence, flushConfig);
                 if (ret != OHOS::SurfaceError::SURFACE_ERROR_OK) {
                     surface_mem->need_render = FALSE;
