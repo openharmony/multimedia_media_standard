@@ -132,6 +132,7 @@ private:
     void RemoveGstPlaySinkVideoConvertPlugin();
 
     std::mutex mutex_;
+    std::mutex cacheCtrlMutex_;
     std::mutex listenerMutex_;
     std::mutex appsrcMutex_;
     std::unique_ptr<TaskQueue> msgQueue_;
@@ -171,11 +172,11 @@ private:
     bool isRating_ = false;
     bool isBuffering_ = false;
     bool isNetWorkPlay_ = false;
-    bool isDuration_ = false;
     uint32_t rendererInfo_ = 0;
     int32_t rendererFlag_ = 0;
 
-    bool enableLooping_ = false;
+    std::atomic<bool> isDuration_ = false;
+    std::atomic<bool> enableLooping_ = false;
     bool isPlaySinkFlagsSet_ = false;
     std::shared_ptr<GstAppsrcWrap> appsrcWrap_ = nullptr;
 
