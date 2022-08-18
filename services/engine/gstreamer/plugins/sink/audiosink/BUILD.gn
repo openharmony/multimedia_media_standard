@@ -46,8 +46,7 @@ config("gst_audio_server_sink_config") {
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiocommon/include",
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiomanager/include",
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiorenderer/include",
-    "//foundation/multimedia/audio_framework/services/include",
-    "//foundation/multimedia/audio_framework/services/include/client",
+    "//foundation/multimedia/audio_framework/services/audio_service/client/include",
     "//third_party/gstreamer/gstreamer",
     "//third_party/gstreamer/gstreamer/libs",
     "//third_party/gstreamer/gstplugins_base",
@@ -74,7 +73,6 @@ ohos_shared_library("gst_audio_server_sink") {
   ]
 
   deps = [
-    "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiomanager:audio_client",
     "//foundation/multimedia/audio_framework/interfaces/inner_api/native/audiorenderer:audio_renderer",
     "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
     "//foundation/multimedia/player_framework/services/utils:media_service_utils",
@@ -85,7 +83,10 @@ ohos_shared_library("gst_audio_server_sink") {
     "//third_party/gstreamer/gstreamer:gstreamer",
   ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "multimedia_audio_framework:audio_client",
+  ]
 
   relative_install_dir = "media/plugins"
   subsystem_name = "multimedia"
