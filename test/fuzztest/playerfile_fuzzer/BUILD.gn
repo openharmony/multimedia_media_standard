@@ -20,6 +20,7 @@ module_output_path = "player_framework/fuzztest"
 ohos_fuzztest("PlayerFileFuzzTest") {
   module_out_path = module_output_path
   fuzz_config_file = "//foundation//multimedia/player_framework/test/fuzztest/playerfile_fuzzer"
+  resource_config_file = "//foundation/multimedia/player_framework/test/fuzztest/resource/ohos_test.xml"
 
   include_dirs = [
     "//foundation/multimedia/player_framework/interfaces/inner_api/native",

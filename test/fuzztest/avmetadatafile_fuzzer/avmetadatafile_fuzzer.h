@@ -21,7 +21,6 @@
 
 namespace OHOS {
 namespace Media {
-bool FuzzTestavMetadataFile(uint8_t *data, size_t size);
 class AVMetadataFileFuzzer : public TestMetadata {
 public:
     AVMetadataFileFuzzer();
@@ -29,5 +28,6 @@ public:
     bool FuzzAVMetadataFile(uint8_t *data, size_t size);
 };
 }
+bool FuzzTestavMetadataFile(uint8_t *data, size_t size);
 }
 #endif

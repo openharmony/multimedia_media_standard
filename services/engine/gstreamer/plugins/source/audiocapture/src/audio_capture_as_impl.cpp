@@ -153,6 +153,12 @@ void AudioCaptureAsImpl::GetAudioCaptureBuffer()
             break;
         }
 
+        if (audioCacheCtrl_->captureQueue_.size() >= MAX_QUEUE_SIZE) {
+            MEDIA_LOGD("audio cache queue size is %{public}zu", audioCacheCtrl_->captureQueue_.size());
+            audioCacheCtrl_->captureCond_.notify_all();
+            continue;
+        }
+
         CHECK_AND_BREAK(audioCapturer_ != nullptr);
         std::shared_ptr<AudioBuffer> tempBuffer = std::make_shared<AudioBuffer>();
         CHECK_AND_BREAK(bufferSize_ > 0 && bufferSize_ < MAXIMUM_BUFFER_SIZE);

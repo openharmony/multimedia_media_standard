@@ -13,15 +13,14 @@
  * limitations under the License.
  */
 
-#ifndef AVMETADATASetSource_FUZZER
-#define AVMETADATASetSource_FUZZER
+#ifndef AVMETADATASETSOURCE_FUZZER
+#define AVMETADATASETSOURCE_FUZZER
 
 #define FUZZ_PROJECT_NAME "avmetadatasetsource_fuzzer"
 #include "test_metadata.h"
 
 namespace OHOS {
 namespace Media {
-bool FuzzTestAVMetadataSetSource(uint8_t *data, size_t size);
 class AVMetadataSetSourceFuzzer : public TestMetadata {
 public:
     AVMetadataSetSourceFuzzer();
@@ -29,5 +28,6 @@ public:
     bool FuzzAVMetadataSetSource(uint8_t *data, size_t size);
 };
 }
+bool FuzzTestAVMetadataSetSource(uint8_t *data, size_t size);
 }
 #endif

@@ -60,15 +60,15 @@ static OHOS::ScalingMode gst_surface_allocator_get_scale_type(GstSurfaceAllocPar
     return SCALEMODE_MAP.at(static_cast<VideoScaleType>(param.scale_type));
 }
 
-static bool gst_surface_request_buffer(GstSurfaceAllocator *allocator, GstSurfaceAllocParam param,
+static bool gst_surface_request_buffer(const GstSurfaceAllocator *allocator, GstSurfaceAllocParam param,
     OHOS::sptr<OHOS::SurfaceBuffer> &buffer)
 {
     MediaTrace trace("Surface::RequestBuffer");
     static constexpr int32_t stride_alignment = 8;
     int32_t wait_time = param.dont_wait ? 0 : INT_MAX; // wait forever or no wait.
     OHOS::BufferRequestConfig request_config = {
-        param.width, param.height, stride_alignment, param.format, static_cast<uint32_t>(param.usage) |
-        HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA, wait_time
+        param.width, param.height, stride_alignment, param.format,
+        static_cast<uint32_t>(param.usage) | HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA, wait_time
     };
     int32_t release_fence = -1;
     OHOS::SurfaceError ret = allocator->surface->RequestBuffer(buffer, release_fence, request_config);

@@ -161,7 +161,7 @@ int32_t HdiVencParamsMgr::SetInputVideoCommon(GstElement *element)
     OMX_CONFIG_FRAMERATETYPE frameRateConfig;
     InitParam(frameRateConfig, verInfo_);
     frameRateConfig.nPortIndex = inPortDef_.nPortIndex;
-    frameRateConfig.xEncodeFramerate = base->frame_rate << OMX_FRAME_RATE_MOVE;
+    frameRateConfig.xEncodeFramerate = (uint32_t)(base->frame_rate) << OMX_FRAME_RATE_MOVE;
     HdiSetConfig(handle_, OMX_IndexConfigVideoFramerate, frameRateConfig);
     CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "HdiSetConfig failed");
     return GST_CODEC_OK;
@@ -181,7 +181,7 @@ int32_t HdiVencParamsMgr::SetOutputVideoCommon(GstElement *element)
     OMX_CONFIG_FRAMERATETYPE frameRateConfig;
     InitParam(frameRateConfig, verInfo_);
     frameRateConfig.nPortIndex = outPortDef_.nPortIndex;
-    frameRateConfig.xEncodeFramerate = base->frame_rate << OMX_FRAME_RATE_MOVE;
+    frameRateConfig.xEncodeFramerate = (uint32_t)(base->frame_rate) << OMX_FRAME_RATE_MOVE;
     HdiSetConfig(handle_, OMX_IndexConfigVideoFramerate, frameRateConfig);
     CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "HdiSetConfig failed");
     return GST_CODEC_OK;
@@ -287,7 +287,7 @@ int32_t HdiVencParamsMgr::InitBitRateMode(GstElement *element)
         auto ret = HdiGetParameter(handle_, OMX_IndexParamControlRateConstantQuality, constantQualityConfig_);
         CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "OMX_IndexRateConstantQuality Failed");
         if (base->bitrate != 0) {
-            constantQualityConfig_.qualityValue = base->codec_quality;
+            constantQualityConfig_.qualityValue = (uint32_t)base->codec_quality;
         }
         ret = HdiSetParameter(handle_, OMX_IndexParamControlRateConstantQuality, constantQualityConfig_);
         CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "OMX_IndexRateConstantQuality Failed");
@@ -346,7 +346,7 @@ int32_t HdiVencParamsMgr::InitAvcParamters(GstElement *element)
     if (avcType.eProfile == OMX_VIDEO_AVCProfileBaseline) {
         avcType.nBFrames = 0;
         avcType.nRefFrames = 1;
-        avcType.nPFrames = base->frame_rate * base->i_frame_interval_new - 1;
+        avcType.nPFrames = (uint32_t)(base->frame_rate * base->i_frame_interval_new - 1);
         avcType.bEntropyCodingCABAC = OMX_FALSE;
         avcType.bWeightedPPrediction = OMX_FALSE;
         avcType.bconstIpred = OMX_FALSE;
@@ -358,7 +358,7 @@ int32_t HdiVencParamsMgr::InitAvcParamters(GstElement *element)
         avcType.nBFrames = 0;
         // when have b frame default ref frame is 2
         avcType.nRefFrames = avcType.nBFrames == 0 ? 1 : 2;
-        avcType.nPFrames = base->frame_rate * base->i_frame_interval_new / (avcType.nBFrames + 1) - 1;
+        avcType.nPFrames = (uint32_t)(base->frame_rate * base->i_frame_interval_new) / (avcType.nBFrames + 1) - 1;
         avcType.bEntropyCodingCABAC = OMX_TRUE;
         avcType.bWeightedPPrediction = OMX_TRUE;
         avcType.bconstIpred = OMX_TRUE;

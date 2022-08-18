@@ -25,6 +25,7 @@
 #include "scope_guard.h"
 #include "playbin_state.h"
 #include "gst_utils.h"
+#include "media_dfx.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayBinCtrlerBase"};
@@ -115,9 +116,10 @@ PlayBinCtrlerBase::PlayBinCtrlerBase(const PlayBinCreateParam &createParam)
 PlayBinCtrlerBase::~PlayBinCtrlerBase()
 {
     MEDIA_LOGD("enter dtor, instance: 0x%{public}06" PRIXPTR "", FAKE_POINTER(this));
-    Reset();
-    sinkProvider_ = nullptr;
-    notifier_ = nullptr;
+    if (Reset() == MSERR_OK) {
+        sinkProvider_ = nullptr;
+        notifier_ = nullptr;
+    }
 }
 
 int32_t PlayBinCtrlerBase::Init()
@@ -436,7 +438,7 @@ int32_t PlayBinCtrlerBase::SelectBitRate(uint32_t bitRate)
     return MSERR_OK;
 }
 
-void PlayBinCtrlerBase::Reset() noexcept
+int32_t PlayBinCtrlerBase::Reset() noexcept
 {
     MEDIA_LOGD("enter");
 
@@ -448,14 +450,14 @@ void PlayBinCtrlerBase::Reset() noexcept
     }
     isStopFinish_ = false;
     int32_t ret = StopInternal();
-    CHECK_AND_RETURN(ret == MSERR_OK);
+    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, ret, "StopInternal failed");
     {
         std::unique_lock<std::mutex> condLock(stopCondMutex_);
         stopCond_.wait_for(condLock, std::chrono::seconds(STOP_TIMEOUT), [this]() {
             return isStopFinish_;
         });
     }
-    CHECK_AND_RETURN(isStopFinish_);
+    CHECK_AND_RETURN_RET_LOG(isStopFinish_, MSERR_INVALID_OPERATION, "not recv stop done msg");
     // Do it here before the ChangeState to IdleState, for avoding the deadlock when msg handler
     // try to call the ChangeState.
     ExitInitializedState();
@@ -482,6 +484,7 @@ void PlayBinCtrlerBase::Reset() noexcept
     isDuration_ = false;
 
     MEDIA_LOGD("exit");
+    return MSERR_OK;
 }
 
 void PlayBinCtrlerBase::SetElemSetupListener(ElemSetupListener listener)
@@ -520,7 +523,7 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
     if (isInitialized_) {
         return MSERR_OK;
     }
-
+    MediaTrace("PlayBinCtrlerBase::InitializedState");
     MEDIA_LOGD("EnterInitializedState enter");
 
     ON_SCOPE_EXIT(0) {
@@ -570,6 +573,7 @@ int32_t PlayBinCtrlerBase::EnterInitializedState()
 
     CANCEL_SCOPE_EXIT_GUARD(0);
     MEDIA_LOGD("EnterInitializedState exit");
+
     return MSERR_OK;
 }
 
@@ -872,15 +876,17 @@ int32_t PlayBinCtrlerBase::DoInitializeForDataSource()
 
 void PlayBinCtrlerBase::HandleCacheCtrl(const InnerMessage &msg)
 {
-    PlayBinMessage playBinMsg = { PLAYBIN_MSG_SUBTYPE, PLAYBIN_SUB_MSG_BUFFERING_PERCENT, msg.detail1, {} };
-    ReportMessage(playBinMsg);
+    if (isNetWorkPlay_) {
+        PlayBinMessage playBinMsg = { PLAYBIN_MSG_SUBTYPE, PLAYBIN_SUB_MSG_BUFFERING_PERCENT, msg.detail1, {} };
+        ReportMessage(playBinMsg);
 
-    int32_t percent = msg.detail1;
-    MEDIA_LOGI("HandleCacheCtrl percent is %{public}d", percent);
-    if (!isBuffering_) {
-        HandleCacheCtrlWhenNoBuffering(percent);
-    } else if (isBuffering_) {
-        HandleCacheCtrlWhenBuffering(percent);
+        int32_t percent = msg.detail1;
+        MEDIA_LOGI("HandleCacheCtrl percent is %{public}d", percent);
+        if (!isBuffering_) {
+            HandleCacheCtrlWhenNoBuffering(percent);
+        } else if (isBuffering_) {
+            HandleCacheCtrlWhenBuffering(percent);
+        }
     }
 }
 

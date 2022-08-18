@@ -196,6 +196,9 @@ static void gst_audio_capture_src_set_property(GObject *object, guint prop_id,
             break;
         case PROP_BYPASS_AUDIO_SERVICE:
             src->bypass_audio = g_value_get_boolean(value);
+            if (src->bypass_audio) {
+                src->audio_capture->WakeUpAudioThreads();
+            }
             break;
         default:
             break;

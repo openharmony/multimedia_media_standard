@@ -20,6 +20,7 @@
 #include "media_log.h"
 #include "i_recorder_engine.h"
 #include "recorder_private_param.h"
+#include "scope_guard.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "RecorderPipeline"};
@@ -211,6 +212,13 @@ int32_t RecorderPipeline::SyncWaitChangeState(GstState targetState)
 
 void RecorderPipeline::DrainBuffer(bool isDrainAll)
 {
+    if (inDrainBuffer_.load()) {
+        return;
+    }
+
+    inDrainBuffer_.store(true);
+    ON_SCOPE_EXIT(0) { inDrainBuffer_.store(false); };
+
     if (currState_ == GST_STATE_PAUSED) {
         if (isStarted_) {
             (void)SyncWaitChangeState(GST_STATE_PLAYING);
@@ -428,8 +436,8 @@ void RecorderPipeline::StopForError(const RecorderMessage &msg)
                msg.code, msg.detail);
 
     errorState_.store(true);
-    DrainBuffer(false);
     (void)DoElemAction(&RecorderElement::Stop, false);
+    DrainBuffer(false);
     (void)SyncWaitChangeState(GST_STATE_NULL);
 
     isStarted_ = false;

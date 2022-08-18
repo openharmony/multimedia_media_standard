@@ -35,6 +35,7 @@ public:
     std::queue<std::shared_ptr<AVMemoryMock>> outBufferQueue_;
     std::queue<uint32_t> outIndexQueue_;
     std::queue<uint32_t> outSizeQueue_;
+    std::atomic<bool> isRunning_ = false;
 };
 
 class VEncCallbackTest : public AVCodecCallbackMock {
@@ -71,7 +72,7 @@ public:
     void SetOutPath(const std::string &path);
     void OutLoopFunc();
 private:
-    std::atomic<bool> isRunning_ = false;
+    void FlushInner();
     std::unique_ptr<std::thread> outLoop_;
     std::shared_ptr<VideoEncMock> videoEnc_ = nullptr;
     std::shared_ptr<VEncSignal> signal_ = nullptr;
