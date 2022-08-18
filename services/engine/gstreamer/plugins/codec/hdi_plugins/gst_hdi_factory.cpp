@@ -46,7 +46,6 @@ namespace {
         { YUVI420, "I420" },
     };
     const char *GST_CODEC_NAME = "codec_name";
-    constexpr int32_t HDI_DEFAULT_SCORE = 2;
 }
 
 namespace OHOS {
