@@ -327,12 +327,15 @@ gboolean GstHdiFactory::PluginInit(GstPlugin *plugin)
     // hdi recommand
     MEDIA_LOGD("Plugin init");
     std::vector<CapabilityData> &&capDatas = HdiInit::GetInstance().GetCapabilitys();
+    std::vector<CapabilityData> newCapDatas;
     for (auto &capData : capDatas) {
         if (HdiClassRegister(plugin, capData) != TRUE) {
             MEDIA_LOGD("Cant register %{public}s ", capData.codecName.c_str());
+            continue;
         }
+        newCapDatas.push_back(capData);
     }
-    AVCodecAbilitySingleton::GetInstance().RegisterHdiCapability(capDatas);
+    AVCodecAbilitySingleton::GetInstance().RegisterHdiCapability(newCapDatas);
     return TRUE;
 }
 }
