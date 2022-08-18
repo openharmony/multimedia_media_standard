@@ -13,25 +13,27 @@
  * limitations under the License.
  */
 
-#include "aw_common.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <iostream>
 #include <fstream>
 #include "string_ex.h"
 #include "media_errors.h"
 #include "directory_ex.h"
+#include "aw_common.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <cstdio.h>
 
 using namespace std;
 using namespace OHOS;
 using namespace Media;
 using namespace PlayerTestParam;
 
-int32_t PlayerTestParam::WriteDataToFile(const string &path, const uint8_t *data, size_t size)
+namespace OHOS {
+namespace Media {
+namespace PlayerTestParam {
+int32_t WriteDataToFile(const std::string &path, const std::uint8_t *data, std::size_t size)
 {
     FILE *file = nullptr;
     file = fopen(path.c_str(), "w+");
@@ -40,15 +42,15 @@ int32_t PlayerTestParam::WriteDataToFile(const string &path, const uint8_t *data
         return -1;
     }
     if (fwrite(data, 1, size, file) != size) {
-            cout << "[fuzz] write data failed" << endl;
-            (void)fclose(file);
-            return -1;
+        cout << "[fuzz] write data failed" << endl;
+        (void)fclose(file);
+        return -1;
     }
     (void)fclose(file);
     return 0;
 }
 
-int32_t PlayerTestParam::ProduceRandomNumberCrypt()
+int32_t ProduceRandomNumberCrypt(void)
 {
     int32_t r = 0;
     int fd = open("/dev/random", O_RDONLY);
@@ -57,4 +59,7 @@ int32_t PlayerTestParam::ProduceRandomNumberCrypt()
     }
     close(fd);
     return r;
+}
+}
+}
 }

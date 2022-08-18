@@ -27,6 +27,8 @@ using namespace OHOS;
 using namespace Media;
 using namespace PlayerTestParam;
 
+namespace OHOS {
+namespace Media {
 AVMetadataSetSourceFuzzer::AVMetadataSetSourceFuzzer()
 {
 }
@@ -37,15 +39,16 @@ AVMetadataSetSourceFuzzer::~AVMetadataSetSourceFuzzer()
 
 bool AVMetadataSetSourceFuzzer::FuzzAVMetadataSetSource(uint8_t *data, size_t size)
 {
-    constexpr int32_t usageList = 2;
+    constexpr int32_t USAGE_LIST = 2;
     avmetadata = AVMetadataHelperFactory::CreateAVMetadataHelper();
+    cout << "start!" << endl;
     if (avmetadata == nullptr) {
         cout << "avmetadata is null" << endl;
         avmetadata->Release();
         return false;
     }
 
-    const string path = "/data/test/resource/H264_AAC.mp4";
+    const string path = "/data/test/media/H264_AAC.mp4";
     int32_t setsourcefd = open(path.c_str(), O_RDONLY);
     if (setsourcefd < 0) {
         cout << "Open file failed" << endl;
@@ -62,9 +65,9 @@ bool AVMetadataSetSourceFuzzer::FuzzAVMetadataSetSource(uint8_t *data, size_t si
         return false;
     }
     int64_t setsourcesize = static_cast<int64_t>(buffer.st_size);
-    AVMetadataUsage usage[usageList] {AVMetadataUsage::AV_META_USAGE_META_ONLY,
+    AVMetadataUsage usage[USAGE_LIST] {AVMetadataUsage::AV_META_USAGE_META_ONLY,
                                     AVMetadataUsage::AV_META_USAGE_PIXEL_MAP};
-    int32_t setsourceusage = usage[ProduceRandomNumberCrypt() % usageList];
+    int32_t setsourceusage = usage[ProduceRandomNumberCrypt() % USAGE_LIST];
     int32_t retSetsource = avmetadata->SetSource(setsourcefd,
         *reinterpret_cast<int64_t *>(data), setsourcesize, setsourceusage);
     if (retSetsource != 0) {
@@ -83,19 +86,22 @@ bool AVMetadataSetSourceFuzzer::FuzzAVMetadataSetSource(uint8_t *data, size_t si
     }
     
     avmetadata->Release();
+    cout << "success!" << endl;
     return true;
 }
+}
 
-bool OHOS::Media::FuzzTestAVMetadataSetSource(uint8_t *data, size_t size)
+bool FuzzTestAVMetadataSetSource(uint8_t *data, size_t size)
 {
     AVMetadataSetSourceFuzzer metadata;
     return metadata.FuzzAVMetadataSetSource(data, size);
+}
 }
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(uint8_t *data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Media::FuzzTestAVMetadataSetSource(data, size);
+    OHOS::FuzzTestAVMetadataSetSource(data, size);
     return 0;
 }

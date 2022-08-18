@@ -39,6 +39,7 @@ public:
     std::queue<uint32_t>  outSizeQueue_;
     std::queue<std::shared_ptr<AVMemoryMock>> inBufferQueue_;
     std::queue<std::shared_ptr<AVMemoryMock>> outBufferQueue_;
+    std::atomic<bool> isRunning_ = false;
 };
 
 class VDecCallbackTest : public AVCodecCallbackMock {
@@ -74,7 +75,7 @@ public:
     int32_t RenderOutputData(uint32_t index);
     int32_t FreeOutputData(uint32_t index);
 private:
-    std::atomic<bool> isRunning_ = false;
+    void FlushInner();
     std::unique_ptr<std::ifstream> testFile_;
     std::unique_ptr<std::thread> inputLoop_;
     std::unique_ptr<std::thread> outputLoop_;

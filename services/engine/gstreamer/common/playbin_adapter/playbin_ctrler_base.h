@@ -122,7 +122,7 @@ private:
     void OnMessageReceived(const InnerMessage &msg);
     void OnSinkMessageReceived(const PlayBinMessage &msg);
     void ReportMessage(const PlayBinMessage &msg);
-    void Reset() noexcept;
+    int32_t Reset() noexcept;
     bool IsLiveSource() const;
     int32_t DoInitializeForDataSource();
     void DoInitializeForHttp();
@@ -172,6 +172,7 @@ private:
     bool isRating_ = false;
     bool isBuffering_ = false;
     bool isNetWorkPlay_ = false;
+    bool isUserSetPause_ = false;
     uint32_t rendererInfo_ = 0;
     int32_t rendererFlag_ = 0;
 

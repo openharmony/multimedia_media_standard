@@ -42,7 +42,13 @@ void VDecCallbackTest::OnStreamChanged(std::shared_ptr<FormatMock> format)
 
 void VDecCallbackTest::OnNeedInputData(uint32_t index, std::shared_ptr<AVMemoryMock> data)
 {
+    if (signal_ == nullptr) {
+        return;
+    }
     unique_lock<mutex> lock(signal_->inMutex_);
+    if (!signal_->isRunning_.load()) {
+        return;
+    }
     signal_->inIndexQueue_.push(index);
     signal_->inBufferQueue_.push(data);
     signal_->inCond_.notify_all();
@@ -50,7 +56,13 @@ void VDecCallbackTest::OnNeedInputData(uint32_t index, std::shared_ptr<AVMemoryM
 
 void VDecCallbackTest::OnNewOutputData(uint32_t index, std::shared_ptr<AVMemoryMock> data, AVCodecBufferAttrMock attr)
 {
+    if (signal_ == nullptr) {
+        return;
+    }
     unique_lock<mutex> lock(signal_->outMutex_);
+    if (!signal_->isRunning_.load()) {
+        return;
+    }
     signal_->outIndexQueue_.push(index);
 
     signal_->outSizeQueue_.push(attr.size);
@@ -80,27 +92,42 @@ bool VDecMock::CreateVideoDecMockByName(const std::string &name)
 
 int32_t VDecMock::SetCallback(std::shared_ptr<AVCodecCallbackMock> cb)
 {
+    if (videoDec_ == nullptr) {
+        return MSERR_INVALID_VAL;
+    }
     return videoDec_->SetCallback(cb);
 }
 
 int32_t VDecMock::SetOutputSurface(std::shared_ptr<SurfaceMock> surface)
 {
+    if (videoDec_ == nullptr) {
+        return MSERR_INVALID_VAL;
+    }
     return videoDec_->SetOutputSurface(surface);
 }
 
 int32_t VDecMock::Configure(std::shared_ptr<FormatMock> format)
 {
+    if (videoDec_ == nullptr) {
+        return MSERR_INVALID_VAL;
+    }
     return videoDec_->Configure(format);
 }
 
 int32_t VDecMock::Prepare()
 {
+    if (videoDec_ == nullptr) {
+        return MSERR_INVALID_VAL;
+    }
     return videoDec_->Prepare();
 }
 
 int32_t VDecMock::Start()
 {
-    isRunning_.store(true);
+    if (signal_ == nullptr || videoDec_ == nullptr) {
+        return MSERR_INVALID_VAL;
+    }
+    signal_->isRunning_.store(true);
 
     testFile_ = std::make_unique<std::ifstream>();
     UNITTEST_CHECK_AND_RETURN_RET_LOG(testFile_ != nullptr, MSERR_OK, "Fatal: No memory");
@@ -114,9 +141,12 @@ int32_t VDecMock::Start()
     return videoDec_->Start();
 }
 
-int32_t VDecMock::Stop()
+void VDecMock::FlushInner()
 {
-    isRunning_.store(false);
+    if (signal_ == nullptr) {
+        return;
+    }
+    signal_->isRunning_.store(false);
     if (inputLoop_ != nullptr && inputLoop_->joinable()) {
         unique_lock<mutex> queueLock(signal_->inMutex_);
         signal_->inIndexQueue_.push(10000);  // push 10000 to stop queue
@@ -124,6 +154,8 @@ int32_t VDecMock::Stop()
         queueLock.unlock();
         inputLoop_->join();
         inputLoop_.reset();
+        std::queue<uint32_t> temp;
+        std::swap(temp, signal_->inIndexQueue_);
     }
     if (outputLoop_ != nullptr && outputLoop_->joinable()) {
         unique_lock<mutex> lock(signal_->outMutex_);
@@ -132,69 +164,91 @@ int32_t VDecMock::Stop()
         lock.unlock();
         outputLoop_->join();
         outputLoop_.reset();
+        std::queue<uint32_t> temp;
+        std::swap(temp, signal_->outIndexQueue_);
+    }
+}
+
+int32_t VDecMock::Stop()
+{
+    FlushInner();
+    if (videoDec_ == nullptr) {
+        return MSERR_INVALID_VAL;
     }
     return videoDec_->Stop();
 }
 
 int32_t VDecMock::Flush()
 {
+    FlushInner();
+    if (videoDec_ == nullptr) {
+        return MSERR_INVALID_VAL;
+    }
     return videoDec_->Flush();
 }
 
 int32_t VDecMock::Reset()
 {
-    isRunning_.store(false);
-    if (inputLoop_ != nullptr && inputLoop_->joinable()) {
-        unique_lock<mutex> queueLock(signal_->inMutex_);
-        signal_->inIndexQueue_.push(10000); // push 10000 to stop queue
-        signal_->inCond_.notify_all();
-        queueLock.unlock();
-        inputLoop_->join();
-        inputLoop_.reset();
-    }
-    if (outputLoop_ != nullptr && outputLoop_->joinable()) {
-        unique_lock<mutex> lock(signal_->outMutex_);
-        signal_->outIndexQueue_.push(10000);  // push 10000 to stop queue
-        signal_->outCond_.notify_all();
-        lock.unlock();
-        outputLoop_->join();
-        outputLoop_.reset();
+    FlushInner();
+    if (videoDec_ == nullptr) {
+        return MSERR_INVALID_VAL;
     }
     return videoDec_->Reset();
 }
 
 int32_t VDecMock::Release()
 {
+    if (videoDec_ == nullptr) {
+        return MSERR_INVALID_VAL;
+    }
     return videoDec_->Release();
 }
 
 std::shared_ptr<FormatMock> VDecMock::GetOutputMediaDescription()
 {
+    if (videoDec_ == nullptr) {
+        return nullptr;
+    }
     return videoDec_->GetOutputMediaDescription();
 }
 
 int32_t VDecMock::SetParameter(std::shared_ptr<FormatMock> format)
 {
+    if (videoDec_ == nullptr) {
+        return MSERR_INVALID_VAL;
+    }
     return videoDec_->SetParameter(format);
 }
 
 int32_t VDecMock::PushInputData(uint32_t index, AVCodecBufferAttrMock &attr)
 {
+    if (videoDec_ == nullptr) {
+        return MSERR_INVALID_VAL;
+    }
     return videoDec_->PushInputData(index, attr);
 }
 
 int32_t VDecMock::RenderOutputData(uint32_t index)
 {
+    if (videoDec_ == nullptr) {
+        return MSERR_INVALID_VAL;
+    }
     return videoDec_->RenderOutputData(index);
 }
 
 int32_t VDecMock::FreeOutputData(uint32_t index)
 {
+    if (videoDec_ == nullptr) {
+        return MSERR_INVALID_VAL;
+    }
     return videoDec_->FreeOutputData(index);
 }
 
 int32_t VDecMock::PushInputDataMock(uint32_t index, uint32_t bufferSize)
 {
+    if (videoDec_ == nullptr) {
+        return MSERR_INVALID_VAL;
+    }
     struct AVCodecBufferAttrMock attr;
     attr.offset = 0;
     if (frameCount_ == ES_LENGTH) {
@@ -202,7 +256,7 @@ int32_t VDecMock::PushInputDataMock(uint32_t index, uint32_t bufferSize)
         attr.size = 0;
         attr.pts = 0;
         cout << "EOS Frame, frameCount = " << frameCount_ << endl;
-        isRunning_.store(false);
+        signal_->isRunning_.store(false);
     } else {
         if (isFirstFrame_) {
             attr.flags = AVCODEC_BUFFER_FLAG_CODEC_DATA;
@@ -218,15 +272,18 @@ int32_t VDecMock::PushInputDataMock(uint32_t index, uint32_t bufferSize)
 
 void VDecMock::InpLoopFunc()
 {
+    if (signal_ == nullptr || videoDec_ == nullptr) {
+        return;
+    }
     while (true) {
-        if (!isRunning_.load()) {
+        if (!signal_->isRunning_.load()) {
             break;
         }
 
         unique_lock<mutex> lock(signal_->inMutex_);
         signal_->inCond_.wait(lock, [this]() { return signal_->inIndexQueue_.size() > 0; });
 
-        if (!isRunning_.load()) {
+        if (!signal_->isRunning_.load()) {
             break;
         }
         uint32_t index = signal_->inIndexQueue_.front();
@@ -266,13 +323,16 @@ void VDecMock::InpLoopFunc()
 
 void VDecMock::OutLoopFunc()
 {
+    if (signal_ == nullptr || videoDec_ == nullptr) {
+        return;
+    }
     while (true) {
-        if (!isRunning_.load()) {
+        if (!signal_->isRunning_.load()) {
             break;
         }
         unique_lock<mutex> lock(signal_->outMutex_);
         signal_->outCond_.wait(lock, [this]() { return signal_->outIndexQueue_.size() > 0; });
-        if (!isRunning_.load()) {
+        if (!signal_->isRunning_.load()) {
             break;
         }
         uint32_t index = signal_->outIndexQueue_.front();

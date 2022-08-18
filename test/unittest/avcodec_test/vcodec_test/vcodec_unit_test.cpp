@@ -40,11 +40,11 @@ void VCodecUnitTest::SetUp(void)
     vencCallback_ = std::make_shared<VEncCallbackTest>(vencSignal);
     ASSERT_NE(nullptr, vencCallback_);
     videoEnc_ = std::make_shared<VEncMock>(vencSignal);
-    ASSERT_TRUE(videoEnc_->CreateVideoEncMockByMine("video/mp4v-es"));
+    ASSERT_TRUE(videoEnc_->CreateVideoEncMockByMine("video/avc"));
     EXPECT_EQ(MSERR_OK, videoEnc_->SetCallback(vencCallback_));
 
     testInfo_ = ::testing::UnitTest::GetInstance()->current_test_info();
-    string prefix = "/data/test/media";
+    string prefix = "/data/test/media/";
     string fileName = testInfo_->name();
     string suffix = ".es";
     videoEnc_->SetOutPath(prefix + fileName + suffix);
@@ -165,6 +165,77 @@ HWTEST_F(VCodecUnitTest, video_codec_0100, TestSize.Level0)
     EXPECT_EQ(MSERR_OK, videoDec_->Stop());
     EXPECT_EQ(MSERR_OK, videoEnc_->Stop());
 }
+
+/**
+ * @tc.name: video_decode_Flush_0100
+ * @tc.desc: video decodec flush
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(VCodecUnitTest, video_decode_Flush_0100, TestSize.Level0)
+{
+    std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
+    ASSERT_NE(nullptr, format);
+    string width = "width";
+    string height = "height";
+    string pixelFormat = "pixel_format";
+    string frame_rate = "frame_rate";
+    (void)format->PutIntValue(width.c_str(), DEFAULT_WIDTH);
+    (void)format->PutIntValue(height.c_str(), DEFAULT_HEIGHT);
+    (void)format->PutIntValue(pixelFormat.c_str(), NV12);
+    (void)format->PutIntValue(frame_rate.c_str(), DEFAULT_FRAME_RATE);
+    ASSERT_EQ(MSERR_OK, videoEnc_->Configure(format));
+    ASSERT_EQ(MSERR_OK, videoDec_->Configure(format));
+    std::shared_ptr<SurfaceMock> surface = videoEnc_->GetInputSurface();
+    ASSERT_NE(nullptr, surface);
+    ASSERT_EQ(MSERR_OK, videoDec_->SetOutputSurface(surface));
+
+    EXPECT_EQ(MSERR_OK, videoDec_->Prepare());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Prepare());
+    EXPECT_EQ(MSERR_OK, videoDec_->Start());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Start());
+    sleep(3); // start run 3s
+    EXPECT_EQ(MSERR_OK, videoDec_->Flush());
+    sleep(7); // start run 7s
+    EXPECT_EQ(MSERR_OK, videoDec_->Stop());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Stop());
+}
+
+/**
+ * @tc.name: video_encode_Flush_0100
+ * @tc.desc: video encodec flush
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(VCodecUnitTest, video_encode_Flush_0100, TestSize.Level0)
+{
+    std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
+    ASSERT_NE(nullptr, format);
+    string width = "width";
+    string height = "height";
+    string pixelFormat = "pixel_format";
+    string frame_rate = "frame_rate";
+    (void)format->PutIntValue(width.c_str(), DEFAULT_WIDTH);
+    (void)format->PutIntValue(height.c_str(), DEFAULT_HEIGHT);
+    (void)format->PutIntValue(pixelFormat.c_str(), NV12);
+    (void)format->PutIntValue(frame_rate.c_str(), DEFAULT_FRAME_RATE);
+    ASSERT_EQ(MSERR_OK, videoEnc_->Configure(format));
+    ASSERT_EQ(MSERR_OK, videoDec_->Configure(format));
+    std::shared_ptr<SurfaceMock> surface = videoEnc_->GetInputSurface();
+    ASSERT_NE(nullptr, surface);
+    ASSERT_EQ(MSERR_OK, videoDec_->SetOutputSurface(surface));
+
+    EXPECT_EQ(MSERR_OK, videoDec_->Prepare());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Prepare());
+    EXPECT_EQ(MSERR_OK, videoDec_->Start());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Start());
+    sleep(3); // start run 3s
+    EXPECT_EQ(MSERR_OK, videoEnc_->Flush());
+    sleep(7); // start run 7s
+    EXPECT_EQ(MSERR_OK, videoDec_->Stop());
+    EXPECT_EQ(MSERR_OK, videoEnc_->Stop());
+}
+
 /**
  * @tc.name: video_codec_SetParameter_0100
  * @tc.desc: video codec SetParameter
