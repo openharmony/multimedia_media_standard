@@ -46,6 +46,7 @@ namespace {
         { YUVI420, "I420" },
     };
     const char *GST_CODEC_NAME = "codec_name";
+    constexpr int32_t HDI_DEFAULT_SCORE = 2;
 }
 
 namespace OHOS {
@@ -319,7 +320,7 @@ gboolean GstHdiFactory::HdiClassRegister(GstPlugin *plugin, CapabilityData &capD
     // In register, will GstHdiCodecClassInit.
     GType subtype = g_type_register_static(type, typeName.c_str(), &typeInfo, static_cast<GTypeFlags>(0));
     CHECK_AND_RETURN_RET_LOG(subtype != 0, FALSE, "Type register failed");
-    return gst_element_register(plugin, typeName.c_str(), GST_RANK_NONE, subtype);
+    return gst_element_register(plugin, typeName.c_str(), GST_RANK_PRIMARY + HDI_DEFAULT_SCORE, subtype);
 }
 
 gboolean GstHdiFactory::PluginInit(GstPlugin *plugin)
@@ -327,12 +328,15 @@ gboolean GstHdiFactory::PluginInit(GstPlugin *plugin)
     // hdi recommand
     MEDIA_LOGD("Plugin init");
     std::vector<CapabilityData> &&capDatas = HdiInit::GetInstance().GetCapabilitys();
+    std::vector<CapabilityData> newCapDatas;
     for (auto &capData : capDatas) {
         if (HdiClassRegister(plugin, capData) != TRUE) {
             MEDIA_LOGD("Cant register %{public}s ", capData.codecName.c_str());
+            continue;
         }
+        newCapDatas.push_back(capData);
     }
-    AVCodecAbilitySingleton::GetInstance().RegisterHdiCapability(capDatas);
+    AVCodecAbilitySingleton::GetInstance().RegisterHdiCapability(newCapDatas);
     return TRUE;
 }
 }
