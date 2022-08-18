@@ -1,10 +1,4 @@
 [
-    { "name": "OH_AVCodecBufferAttr" },
-    { "name": "OH_AVCodecOnError" },
-    { "name": "OH_AVCodecOnStreamChanged" },
-    { "name": "OH_AVCodecOnNeedInputData" },
-    { "name": "OH_AVCodecOnNewOutputData" },
-    { "name": "OH_AVCodecAsyncCallback" },
     { "name": "OH_AVCODEC_MIMETYPE_VIDEO_AVC" },
     { "name": "OH_AVCODEC_MIMETYPE_AUDIO_AAC" },
     { "name": "OH_ED_KEY_TIME_STAMP" },
