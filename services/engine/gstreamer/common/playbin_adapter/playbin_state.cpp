@@ -186,7 +186,7 @@ void PlayBinCtrlerBase::BaseState::HandleEos()
     int32_t tickType = INNER_MSG_POSITION_UPDATE;
     ctrler_.msgProcessor_->RemoveTickSource(tickType);
 
-    PlayBinMessage playBinMsg = { PLAYBIN_MSG_EOS, 0, static_cast<int32_t>(ctrler_.enableLooping_), {} };
+    PlayBinMessage playBinMsg = { PLAYBIN_MSG_EOS, 0, static_cast<int32_t>(ctrler_.enableLooping_.load()), {} };
     ctrler_.ReportMessage(playBinMsg);
 }
 
