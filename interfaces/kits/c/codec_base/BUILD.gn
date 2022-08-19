@@ -14,25 +14,17 @@
 import("//build/ohos.gni")
 import("//build/ohos/ndk/ndk.gni")
 
-ohos_ndk_headers("native_media_core_header") {
+ohos_ndk_headers("native_media_codecbase_header") {
   dest_dir = "$ndk_headers_out_dir/multimedia/player_framework"
-  sources = [
-    "//foundation/multimedia/player_framework/interfaces/kits/c/native_averrors.h",
-    "//foundation/multimedia/player_framework/interfaces/kits/c/native_avformat.h",
-    "//foundation/multimedia/player_framework/interfaces/kits/c/native_avmemory.h",
-  ]
+  sources = [ "//foundation/multimedia/player_framework/interfaces/kits/c/native_avcodec_base.h" ]
 }
 
-ohos_ndk_library("libnative_media_core") {
-  ndk_description_file = "./libnative_media_core.ndk.json"
+ohos_ndk_library("libnative_media_codecbase") {
+  ndk_description_file = "./libnative_media_codecbase.ndk.json"
   min_compact_version = "1"
-  output_name = "native_media_core"
+  output_name = "native_media_codecbase"
   output_extension = "so"
 
-  system_capability = "SystemCapability.Multimedia.Media.Core"
-  system_capability_headers = [
-    "native_media_core/native_averrors.h",
-    "native_media_core/native_avformat.h",
-    "native_media_core/native_avmemory.h",
-  ]
+  system_capability = "SystemCapability.Multimedia.Media.CodecBase"
+  system_capability_headers = [ "native_media_codecbase/native_avcodec_base.h" ]
 }
