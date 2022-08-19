@@ -197,8 +197,7 @@ OH_AVErrCode OH_VideoEncoder_FreeOutputData(OH_AVCodec *codec, uint32_t index);
 
 /**
  * @brief Notifies the video encoder that the input stream has ended. It is recommended to use this interface to notify
- * the encoder of the end of the stream in surface mode, and it is recommended to use the
- * OH_AVCODEC_VideoEncoderPushInputData interface to notify the encoder of the end of the stream in bytebuffer mode.
+ * the encoder of the end of the stream in surface mode
  * @syscap SystemCapability.Multimedia.Media.VideoEncoder
  * @param codec Pointer to an OH_AVCodec instance
  * @return Returns AV_ERR_OK if the execution is successful,
