@@ -37,20 +37,21 @@ void StateMachine::HandleMessage(const InnerMessage &msg)
 
 void StateMachine::ChangeState(const std::shared_ptr<State> &state)
 {
-    std::unique_lock<std::recursive_mutex> lock(recMutex_);
+    {
+        std::unique_lock<std::recursive_mutex> lock(recMutex_);
 
-    if (state == nullptr || (state == currState_)) {
-        return;
+        if (state == nullptr || (state == currState_)) {
+            return;
+        }
+
+        if (currState_) {
+            MEDIA_LOGD("exit state %{public}s", currState_->name_.c_str());
+            currState_->StateExit();
+        }
+
+        MEDIA_LOGI("change state to %{public}s", state->name_.c_str());
+        currState_ = state;
     }
-
-    if (currState_) {
-        MEDIA_LOGD("exit state %{public}s", currState_->name_.c_str());
-        currState_->StateExit();
-    }
-
-    MEDIA_LOGI("change state to %{public}s", state->name_.c_str());
-    currState_ = state;
-
     state->StateEnter();
 }
 
