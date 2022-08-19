@@ -40,6 +40,7 @@ static const std::unordered_map<int32_t, std::string_view> AVMETA_KEY_TO_X_MAP =
     AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_AUTHOR, INNER_META_KEY_AUTHOR),
     AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_COMPOSER, INNER_META_KEY_COMPOSER),
     AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_DATE_TIME, INNER_META_KEY_DATE_TIME),
+    AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_DATE_TIME_FORMAT, ""),
     /**
      * The most of gst plugins don't send the GST_TAG_DURATION, we obtain this
      * information from duration query.
@@ -61,11 +62,49 @@ static const std::unordered_map<int32_t, std::string_view> AVMETA_KEY_TO_X_MAP =
     AVMETA_KEY_TO_X_MAP_ITEM(AV_KEY_VIDEO_ORIENTATION, INNER_META_KEY_VIDEO_ORIENTATION),
 };
 
+std::string FormatDataTime(std::string &dataTime)
+{
+    std::string::size_type position = dataTime.find(" ");
+    std::string data = "";
+    std::string time = "";
+    if (position == dataTime.npos) {
+        data = dataTime;
+        if (data.find("-") == data.npos) {
+            data += "-01-01";
+        } else if (data.find_first_of("-") == data.find_last_of("-")) {
+            data += "-01";
+        }
+        time += " 00:00:00";
+    } else {
+        data = dataTime.substr(0, position);
+        time = dataTime.substr(position);
+        if (data.find("-") == data.npos) {
+            data += "-01-01";
+        } else if (data.find_first_of("-") == data.find_last_of("-")) {
+            data += "-01";
+        }
+        if (time.find(":") == data.npos) {
+            time += ":00:00";
+        } else if (time.find_first_of(":") == time.find_last_of(":")) {
+            time += ":00";
+        } else {
+            time = time.substr(0, time.find("."));
+        }
+    }
+    MEDIA_LOGD("AV_KEY_DATE_TIME_FORMAT is: %{public}s%{public}s", data.c_str(), time.c_str());
+    return data + time;
+}
+
 void PopulateMeta(Metadata &meta)
 {
     for (auto &item : AVMETA_KEY_TO_X_MAP) {
         if (!meta.HasMeta(item.first)) {
-            meta.SetMeta(item.first, "");
+            if (item.first == AV_KEY_DATE_TIME_FORMAT && meta.HasMeta(AV_KEY_DATE_TIME)) {
+                std::string dataTime = meta.GetMeta(AV_KEY_DATE_TIME);
+                meta.SetMeta(item.first, FormatDataTime(dataTime));
+            } else {
+                meta.SetMeta(item.first, "");
+            }
         }
     }
 }
