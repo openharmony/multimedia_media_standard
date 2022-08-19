@@ -222,6 +222,7 @@ static void gst_vdec_base_property_init(GstVdecBase *self)
     self->enable_slice_cat = FALSE;
     self->resolution_changed = FALSE;
     self->input_need_ashmem = FALSE;
+    self->has_set_format = FALSE;
 }
 
 static void gst_vdec_base_init(GstVdecBase *self)
@@ -424,6 +425,7 @@ static void gst_vdec_base_stop_after(GstVdecBase *self)
     self->pre_init_pool = FALSE;
     self->performance_mode = FALSE;
     self->resolution_changed = FALSE;
+    self->has_set_format = FALSE;
     gst_vdec_base_set_flushing(self, FALSE);
     if (self->input.dump_file != nullptr) {
         fclose(self->input.dump_file);
@@ -1413,7 +1415,7 @@ static gboolean gst_vdec_base_set_format(GstVideoDecoder *decoder, GstVideoCodec
 {
     GstVdecBase *self = GST_VDEC_BASE(decoder);
     g_return_val_if_fail(self != nullptr, FALSE);
-    if (self->prepared) {
+    if (self->prepared || self->has_set_format) {
         return TRUE;
     }
     g_return_val_if_fail(self->decoder != nullptr, FALSE);
@@ -1450,6 +1452,7 @@ static gboolean gst_vdec_base_set_format(GstVideoDecoder *decoder, GstVideoCodec
     if (self->performance_mode) {
         g_return_val_if_fail(gst_vdec_base_pre_init_surface(self) != FALSE, FALSE);
     }
+    self->has_set_format = TRUE;
 
     return TRUE;
 }
