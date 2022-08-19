@@ -309,30 +309,6 @@ OH_AVErrCode OH_VideoEncoder_GetSurface(OH_AVCodec *codec, OHNativeWindow **wind
     return AV_ERR_OK;
 }
 
-OH_AVErrCode OH_AVCODEC_VideoEncoderPushInputData(struct OH_AVCodec *codec, uint32_t index, OH_AVCodecBufferAttr attr)
-{
-    CHECK_AND_RETURN_RET_LOG(codec != nullptr, AV_ERR_INVALID_VAL, "input codec is nullptr!");
-    CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_ENCODER, AV_ERR_INVALID_VAL, "magic error!");
-
-    struct VideoEncoderObject *videoEncObj = reinterpret_cast<VideoEncoderObject *>(codec);
-    CHECK_AND_RETURN_RET_LOG(videoEncObj->videoEncoder_ != nullptr, AV_ERR_INVALID_VAL, "videoEncoder_ is nullptr!");
-
-    struct AVCodecBufferInfo bufferInfo;
-    bufferInfo.presentationTimeUs = attr.pts;
-    bufferInfo.size = attr.size;
-    bufferInfo.offset = attr.offset;
-    enum AVCodecBufferFlag bufferFlag = static_cast<enum AVCodecBufferFlag>(attr.flags);
-
-    int32_t ret = videoEncObj->videoEncoder_->QueueInputBuffer(index, bufferInfo, bufferFlag);
-    CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, AV_ERR_OPERATE_NOT_PERMIT, "videoEncoder QueueInputBuffer failed!");
-    if (bufferFlag == AVCODEC_BUFFER_FLAG_EOS) {
-        videoEncObj->isEOS_.store(true);
-        MEDIA_LOGD("Set eos status to true");
-    }
-
-    return AV_ERR_OK;
-}
-
 OH_AVFormat *OH_VideoEncoder_GetOutputDescription(struct OH_AVCodec *codec)
 {
     CHECK_AND_RETURN_RET_LOG(codec != nullptr, nullptr, "input codec is nullptr!");
