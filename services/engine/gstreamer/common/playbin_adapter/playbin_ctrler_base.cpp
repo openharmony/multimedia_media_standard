@@ -262,6 +262,7 @@ int32_t PlayBinCtrlerBase::Seek(int64_t timeUs, int32_t seekOption)
     }
 
     std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<std::mutex> cacheLock(cacheCtrlMutex_);
 
     auto currState = std::static_pointer_cast<BaseState>(GetCurrState());
     int32_t ret = currState->Seek(timeUs, seekOption);
@@ -333,7 +334,7 @@ int32_t PlayBinCtrlerBase::SetRateInternal(double rate)
 
     gint64 position;
     gboolean ret;
-    if (isDuration_) {
+    if (isDuration_.load()) {
         position = duration_ * NANO_SEC_PER_USEC;
     } else {
         ret = gst_element_query_position(GST_ELEMENT_CAST(playbin_), GST_FORMAT_TIME, &position);
@@ -841,14 +842,13 @@ int64_t PlayBinCtrlerBase::QueryPositionInternal(bool isSeekDone)
 void PlayBinCtrlerBase::ProcessEndOfStream()
 {
     MEDIA_LOGD("End of stream");
-    std::unique_lock<std::mutex> lock(mutex_);
     isDuration_ = true;
     if (IsLiveSource()) {
         MEDIA_LOGD("appsrc livemode, can not loop");
         return;
     }
 
-    if (!enableLooping_) {
+    if (!enableLooping_.load()) {
         ChangeState(playbackCompletedState_);
     }
 }
@@ -898,7 +898,7 @@ void PlayBinCtrlerBase::HandleCacheCtrlWhenNoBuffering(int32_t percent)
         BUFFER_PERCENT_THRESHOLD && !isSeeking_ && !isRating_ && state != GST_STATE_PAUSED) {
         isBuffering_ = true;
         {
-            std::unique_lock<std::mutex> lock(mutex_);
+            std::unique_lock<std::mutex> lock(cacheCtrlMutex_);
             g_object_set(playbin_, "state-change", GST_PLAYER_STATUS_BUFFERING, nullptr);
         }
         if (GetCurrState() == playingState_) {
@@ -920,7 +920,7 @@ void PlayBinCtrlerBase::HandleCacheCtrlWhenBuffering(int32_t percent)
         isBuffering_ = false;
         if (GetCurrState() == playingState_) {
             {
-                std::unique_lock<std::mutex> lock(mutex_);
+                std::unique_lock<std::mutex> lock(cacheCtrlMutex_);
                 g_object_set(playbin_, "state-change", GST_PLAYER_STATUS_PLAYING, nullptr);
             }
             GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(playbin_), GST_STATE_PLAYING);
@@ -929,7 +929,7 @@ void PlayBinCtrlerBase::HandleCacheCtrlWhenBuffering(int32_t percent)
                 return;
             }
         } else {
-            std::unique_lock<std::mutex> lock(mutex_);
+            std::unique_lock<std::mutex> lock(cacheCtrlMutex_);
             g_object_set(playbin_, "state-change", GST_PLAYER_STATUS_PAUSED, nullptr);
         }
 
