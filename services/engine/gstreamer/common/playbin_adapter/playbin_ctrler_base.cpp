@@ -482,6 +482,7 @@ int32_t PlayBinCtrlerBase::Reset() noexcept
     isRating_ = false;
     isBuffering_ = false;
     isDuration_ = false;
+    isUserSetPause_ = false;
 
     MEDIA_LOGD("exit");
     return MSERR_OK;
@@ -892,16 +893,15 @@ void PlayBinCtrlerBase::HandleCacheCtrl(const InnerMessage &msg)
 
 void PlayBinCtrlerBase::HandleCacheCtrlWhenNoBuffering(int32_t percent)
 {
-    GstState state = GST_STATE_NULL;
-    gst_element_get_state(GST_ELEMENT_CAST(playbin_), &state, nullptr, static_cast<GstClockTime>(0));
     if (percent < static_cast<float>(BUFFER_LOW_PERCENT_DEFAULT) / BUFFER_HIGH_PERCENT_DEFAULT *
-        BUFFER_PERCENT_THRESHOLD && !isSeeking_ && !isRating_ && state != GST_STATE_PAUSED) {
+        BUFFER_PERCENT_THRESHOLD && !isSeeking_ && !isRating_ && !isUserSetPause_) {
         isBuffering_ = true;
         {
             std::unique_lock<std::mutex> lock(cacheCtrlMutex_);
             g_object_set(playbin_, "state-change", GST_PLAYER_STATUS_BUFFERING, nullptr);
         }
         if (GetCurrState() == playingState_) {
+            MEDIA_LOGI("HandleCacheCtrl percent is %{public}d, begin set to paused", percent);
             GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(playbin_), GST_STATE_PAUSED);
             if (ret == GST_STATE_CHANGE_FAILURE) {
                 MEDIA_LOGE("Failed to change playbin's state to GST_STATE_PAUSED");
@@ -923,6 +923,7 @@ void PlayBinCtrlerBase::HandleCacheCtrlWhenBuffering(int32_t percent)
                 std::unique_lock<std::mutex> lock(cacheCtrlMutex_);
                 g_object_set(playbin_, "state-change", GST_PLAYER_STATUS_PLAYING, nullptr);
             }
+            MEDIA_LOGI("HandleCacheCtrl percent is %{public}d, begin set to playing", percent);
             GstStateChangeReturn ret = gst_element_set_state(GST_ELEMENT_CAST(playbin_), GST_STATE_PLAYING);
             if (ret == GST_STATE_CHANGE_FAILURE) {
                 MEDIA_LOGE("Failed to change playbin's state to GST_STATE_PLAYING");
