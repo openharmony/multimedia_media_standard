@@ -135,9 +135,14 @@ int32_t PlayerServer::PreparingState::Stop()
 
 void PlayerServer::PreparingState::HandleStateChange(int32_t newState)
 {
-    if (newState == PLAYER_PREPARED) {
+    if (newState == PLAYER_PREPARED || newState == PLAYER_STATE_ERROR) {
         MediaTrace::TraceEnd("PlayerServer::PrepareAsync", FAKE_POINTER(&server_));
-        server_.ChangeState(server_.preparedState_);
+        if (newState == PLAYER_STATE_ERROR) {
+            server_.lastOpStatus_ = PLAYER_STATE_ERROR;
+            server_.ChangeState(server_.initializedState_);
+        } else {
+            server_.ChangeState(server_.preparedState_);
+        }
         server_.stateCond_.notify_one(); // awake the stateCond_'s waiter in Prepare()
         (void)server_.taskMgr_.MarkTaskDone();
     }
