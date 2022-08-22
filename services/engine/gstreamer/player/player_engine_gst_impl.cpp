@@ -170,8 +170,10 @@ void PlayerEngineGstImpl::HandleErrorMessage(const PlayBinMessage &msg)
     PlayerErrorType errorType = PLAYER_ERROR;
     int32_t errorCode = msg.code;
     std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
+    Format format;
     if (notifyObs != nullptr) {
         notifyObs->OnError(errorType, errorCode);
+        notifyObs->OnInfo(INFO_TYPE_STATE_CHANGE, PLAYER_STATE_ERROR, format);
     }
 }
 
