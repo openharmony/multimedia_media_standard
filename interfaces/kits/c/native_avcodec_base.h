@@ -26,7 +26,7 @@
 extern "C" {
 #endif
 
-typedef struct NativeWindow NativeWindow;
+typedef struct NativeWindow OHNativeWindow;
 typedef struct OH_AVCodec OH_AVCodec;
 
 /**

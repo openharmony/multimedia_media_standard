@@ -43,16 +43,95 @@ config("media_capi_config") {
   ]
 }
 
-ohos_shared_library("native_media") {
+ohos_shared_library("native_media_core") {
+  install_enable = true
+  sources = [
+    "$MEDIA_ROOT_DIR/frameworks/native/capi/common/native_avformat.cpp",
+    "$MEDIA_ROOT_DIR/frameworks/native/capi/common/native_avmemory.cpp",
+  ]
+
+  public_configs = [ ":media_capi_config" ]
+
+  deps = [
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
+    "//foundation/multimedia/player_framework/services/utils:media_format",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  output_extension = "so"
+  subsystem_name = "multimedia"
+  part_name = "multimedia_player_framework"
+}
+
+ohos_shared_library("native_media_codecbase") {
+  install_enable = true
+  sources = [
+    "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_avcodec_base.cpp",
+  ]
+
+  public_configs = [ ":media_capi_config" ]
+
+  deps = [
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  output_extension = "so"
+  subsystem_name = "multimedia"
+  part_name = "multimedia_player_framework"
+}
+
+ohos_shared_library("native_media_adec") {
   install_enable = true
   sources = [
     "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_audio_decoder.cpp",
+  ]
+
+  public_configs = [ ":media_capi_config" ]
+
+  deps = [
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_codecbase",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_core",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  output_extension = "so"
+  subsystem_name = "multimedia"
+  part_name = "multimedia_player_framework"
+}
+
+ohos_shared_library("native_media_aenc") {
+  install_enable = true
+  sources = [
     "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_audio_encoder.cpp",
-    "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_avcodec_base.cpp",
+  ]
+
+  public_configs = [ ":media_capi_config" ]
+
+  deps = [
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_codecbase",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_core",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  output_extension = "so"
+  subsystem_name = "multimedia"
+  part_name = "multimedia_player_framework"
+}
+
+ohos_shared_library("native_media_vdec") {
+  install_enable = true
+  sources = [
     "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_video_decoder.cpp",
-    "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_video_encoder.cpp",
-    "$MEDIA_ROOT_DIR/frameworks/native/capi/common/native_avformat.cpp",
-    "$MEDIA_ROOT_DIR/frameworks/native/capi/common/native_avmemory.cpp",
   ]
 
   public_configs = [
@@ -63,13 +142,40 @@ ohos_shared_library("native_media") {
   deps = [
     "//foundation/graphic/graphic_2d/frameworks/surface:surface",
     "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
-    "//foundation/multimedia/player_framework/services/utils:media_format",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_codecbase",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_core",
     "//foundation/multimedia/player_framework/services/utils:media_service_utils",
     "//utils/native/base:utils",
   ]
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  output_extension = "so"
+  subsystem_name = "multimedia"
+  part_name = "multimedia_player_framework"
+}
 
+ohos_shared_library("native_media_venc") {
+  install_enable = true
+  sources = [
+    "$MEDIA_ROOT_DIR/frameworks/native/capi/avcodec/native_video_encoder.cpp",
+  ]
+
+  public_configs = [
+    ":media_capi_config",
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface_public_config",
+  ]
+
+  deps = [
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_codecbase",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_core",
+    "//foundation/multimedia/player_framework/services/utils:media_service_utils",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  output_extension = "so"
   subsystem_name = "multimedia"
   part_name = "multimedia_player_framework"
 }

@@ -17,7 +17,6 @@
 #include "native_avcodec_base.h"
 #include "native_avcodec_audioencoder.h"
 #include "native_avmagic.h"
-#include "native_window.h"
 #include "avcodec_audio_encoder.h"
 #include "avsharedmemory.h"
 #include "media_log.h"
