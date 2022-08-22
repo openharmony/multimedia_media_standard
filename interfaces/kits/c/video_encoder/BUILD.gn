@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//build/ohos/ndk/ndk.gni")
 
 ohos_ndk_headers("native_media_venc_header") {
-  dest_dir = "$ndk_headers_out_dir/multimedia/player_framework/video_encoder"
+  dest_dir = "$ndk_headers_out_dir/multimedia/player_framework"
   sources = [ "//foundation/multimedia/player_framework/interfaces/kits/c/native_avcodec_videoencoder.h" ]
 }
 
@@ -26,5 +26,6 @@ ohos_ndk_library("libnative_media_venc") {
   output_extension = "so"
 
   system_capability = "SystemCapability.Multimedia.Media.VideoEncoder"
-  system_capability_headers = [ "native_media/native_avcodec_videoencoder.h" ]
+  system_capability_headers =
+      [ "native_media_venc/native_avcodec_videoencoder.h" ]
 }

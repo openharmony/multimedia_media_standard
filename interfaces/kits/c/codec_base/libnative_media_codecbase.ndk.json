@@ -1,0 +1,20 @@
+[
+    { "name": "OH_AVCODEC_MIMETYPE_VIDEO_AVC" },
+    { "name": "OH_AVCODEC_MIMETYPE_AUDIO_AAC" },
+    { "name": "OH_ED_KEY_TIME_STAMP" },
+    { "name": "OH_ED_KEY_EOS" },
+    { "name": "OH_MD_KEY_TRACK_TYPE" },
+    { "name": "OH_MD_KEY_CODEC_MIME" },
+    { "name": "OH_MD_KEY_DURATION" },
+    { "name": "OH_MD_KEY_BITRATE" },
+    { "name": "OH_MD_KEY_MAX_INPUT_SIZE" },
+    { "name": "OH_MD_KEY_WIDTH" },
+    { "name": "OH_MD_KEY_HEIGHT" },
+    { "name": "OH_MD_KEY_PIXEL_FORMAT" },
+    { "name": "OH_MD_KEY_AUDIO_SAMPLE_FORMAT" },
+    { "name": "OH_MD_KEY_FRAME_RATE" },
+    { "name": "OH_MD_KEY_VIDEO_ENCODE_BITRATE_MODE" },
+    { "name": "OH_MD_KEY_PROFILE" },
+    { "name": "OH_MD_KEY_AUD_CHANNEL_COUNT" },
+    { "name": "OH_MD_KEY_AUD_SAMPLE_RATE" }
+]

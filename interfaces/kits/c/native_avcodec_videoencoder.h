@@ -175,13 +175,13 @@ OH_AVErrCode OH_VideoEncoder_SetParameter(OH_AVCodec *codec, OH_AVFormat *format
  * @brief Get the input Surface from the video encoder, this interface must be called before Prepare is called.
  * @syscap SystemCapability.Multimedia.Media.VideoEncoder
  * @param codec Pointer to an OH_AVCodec instance
- * @param window A pointer to a NativeWindow instance, see {@link NativeWindow}
+ * @param window A pointer to a OHNativeWindow instance, see {@link OHNativeWindow}
  * @return Returns AV_ERR_OK if the execution is successful,
  * otherwise returns a specific error code, refer to {@link OH_AVErrCode}
  * @since 9
  * @version 1.0
  */
-OH_AVErrCode OH_VideoEncoder_GetSurface(OH_AVCodec *codec, NativeWindow **window);
+OH_AVErrCode OH_VideoEncoder_GetSurface(OH_AVCodec *codec, OHNativeWindow **window);
 
 /**
  * @brief Return the processed output Buffer to the encoder.
@@ -197,8 +197,7 @@ OH_AVErrCode OH_VideoEncoder_FreeOutputData(OH_AVCodec *codec, uint32_t index);
 
 /**
  * @brief Notifies the video encoder that the input stream has ended. It is recommended to use this interface to notify
- * the encoder of the end of the stream in surface mode, and it is recommended to use the
- * OH_AVCODEC_VideoEncoderPushInputData interface to notify the encoder of the end of the stream in bytebuffer mode.
+ * the encoder of the end of the stream in surface mode
  * @syscap SystemCapability.Multimedia.Media.VideoEncoder
  * @param codec Pointer to an OH_AVCodec instance
  * @return Returns AV_ERR_OK if the execution is successful,
