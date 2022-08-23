@@ -42,6 +42,7 @@ public:
 
 private:
     void OnNotifyMessage(const PlayBinMessage &msg);
+    GValueArray *OnNotifyAutoPlugSort(GValueArray &factories);
     int32_t SetSourceInternel(const std::string &uri, int32_t usage);
     int32_t InitConverter(const OutputConfiguration &config);
     int32_t PrepareInternel(bool async);

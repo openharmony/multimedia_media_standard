@@ -82,6 +82,7 @@ private:
     void OnNotifyMessage(const PlayBinMessage &msg);
     void OnNotifyElemSetup(GstElement &elem);
     void OnNotifyElemUnSetup(GstElement &elem);
+    GValueArray *OnNotifyAutoPlugSort(GValueArray &factories);
     double ChangeModeToSpeed(const PlaybackRateMode &mode) const;
     PlaybackRateMode ChangeSpeedToMode(double rate) const;
     int32_t PlayBinCtrlerInit();
@@ -131,6 +132,7 @@ private:
     int32_t contentType_ = 0;
     int32_t streamUsage_ = 0;
     int32_t rendererFlag_ = 0;
+    bool isPlaySinkFlagsSet_ = false;
 };
 } // namespace Media
 } // namespace OHOS
