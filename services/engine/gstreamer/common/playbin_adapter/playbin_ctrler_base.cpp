@@ -594,6 +594,9 @@ void PlayBinCtrlerBase::ExitInitializedState()
     }
     mutex_.lock();
 
+    if (sinkProvider_ != nullptr) {
+        sinkProvider_->SetMsgNotifier(nullptr);
+    }
     for (auto &item : signalIds_) {
         g_signal_handler_disconnect(item.element, item.signalId);
     }
