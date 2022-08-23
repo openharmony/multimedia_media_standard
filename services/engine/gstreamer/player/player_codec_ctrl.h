@@ -16,6 +16,7 @@
 #ifndef PLAYER_CODEC_CTRL_H
 #define PLAYER_CODEC_CTRL_H
 
+#include <mutex>
 #include <string>
 #include <list>
 #include <gst/gst.h>
@@ -39,6 +40,7 @@ private:
     bool isHardwareDec_ = false;
     GstElement *decoder_ = nullptr;
     std::list<bool> codecTypeList_;
+    std::mutex mutex_;
 };
 } // Media
 } // OHOS
