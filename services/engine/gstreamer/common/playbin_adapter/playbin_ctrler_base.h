@@ -126,7 +126,8 @@ private:
     bool IsLiveSource() const;
     int32_t DoInitializeForDataSource();
     void DoInitializeForHttp();
-    void HandleCacheCtrl(const InnerMessage &msg);
+    void HandleCacheCtrl(int32_t percent);
+    void HandleCacheCtrlCb(const InnerMessage &msg);
     void HandleCacheCtrlWhenNoBuffering(int32_t percent);
     void HandleCacheCtrlWhenBuffering(int32_t percent);
     void RemoveGstPlaySinkVideoConvertPlugin();
@@ -175,6 +176,7 @@ private:
     bool isUserSetPause_ = false;
     uint32_t rendererInfo_ = 0;
     int32_t rendererFlag_ = 0;
+    int32_t cachePercent_ = 100; // 100% cache percent
 
     std::atomic<bool> isDuration_ = false;
     std::atomic<bool> enableLooping_ = false;
