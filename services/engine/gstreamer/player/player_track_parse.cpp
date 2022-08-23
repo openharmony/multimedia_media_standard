@@ -58,6 +58,7 @@ PlayerTrackParse::~PlayerTrackParse()
 
 int32_t PlayerTrackParse::GetVideoTrackInfo(std::vector<Format> &videoTrack)
 {
+    std::unique_lock<std::mutex> lock(trackInfoMutex_);
     int32_t trackType;
     for (auto &[pad, innerMeta] : trackInfos_) {
         if (innerMeta.GetIntValue(INNER_META_KEY_TRACK_TYPE, trackType) && trackType == MediaType::MEDIA_TYPE_VID) {
@@ -71,6 +72,7 @@ int32_t PlayerTrackParse::GetVideoTrackInfo(std::vector<Format> &videoTrack)
 
 int32_t PlayerTrackParse::GetAudioTrackInfo(std::vector<Format> &audioTrack)
 {
+    std::unique_lock<std::mutex> lock(trackInfoMutex_);
     int32_t trackType;
     for (auto &[pad, innerMeta] : trackInfos_) {
         if (innerMeta.GetIntValue(INNER_META_KEY_TRACK_TYPE, trackType) && trackType == MediaType::MEDIA_TYPE_AUD) {
@@ -115,8 +117,14 @@ GstPadProbeReturn PlayerTrackParse::ProbeCallback(GstPad *pad, GstPadProbeInfo *
     }
 
     auto playerTrackParse = reinterpret_cast<PlayerTrackParse *>(userdata);
-    auto it = playerTrackParse->trackInfos_.find(pad);
-    CHECK_AND_RETURN_RET_LOG(it != playerTrackParse->trackInfos_.end(), GST_PAD_PROBE_OK,
+    return playerTrackParse->GetTrackParse(pad, info);
+}
+
+GstPadProbeReturn PlayerTrackParse::GetTrackParse(GstPad *pad, GstPadProbeInfo *info)
+{
+    std::unique_lock<std::mutex> lock(trackInfoMutex_);
+    auto it = trackInfos_.find(pad);
+    CHECK_AND_RETURN_RET_LOG(it != trackInfos_.end(), GST_PAD_PROBE_OK,
         "unrecognized pad %{public}s", PAD_NAME(pad));
 
     if (static_cast<unsigned int>(info->type) & GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM) {
@@ -135,8 +143,8 @@ GstPadProbeReturn PlayerTrackParse::ProbeCallback(GstPad *pad, GstPadProbeInfo *
             CHECK_AND_RETURN_RET_LOG(caps != nullptr, GST_PAD_PROBE_OK, "caps is nullptr")
             MEDIA_LOGI("catch caps at pad %{public}s", PAD_NAME(pad));
             GstMetaParser::ParseStreamCaps(*caps, it->second);
-            it->second.PutIntValue(INNER_META_KEY_TRACK_INDEX, playerTrackParse->trackcount_);
-            playerTrackParse->trackcount_++;
+            it->second.PutIntValue(INNER_META_KEY_TRACK_INDEX, trackcount_);
+            trackcount_++;
         }
     }
 
@@ -145,16 +153,21 @@ GstPadProbeReturn PlayerTrackParse::ProbeCallback(GstPad *pad, GstPadProbeInfo *
 
 void PlayerTrackParse::AddProbeToPad(GstPad *pad)
 {
-    gulong probeId = gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM, ProbeCallback, this, nullptr);
-    if (probeId == 0) {
-        MEDIA_LOGE("add probe for %{public}s's pad %{public}s failed",
-            GST_ELEMENT_NAME(GST_PAD_PARENT(pad)), PAD_NAME(pad));
-        return;
+    {
+        std::unique_lock<std::mutex> lock(padProbeMutex_);
+        gulong probeId = gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM, ProbeCallback, this, nullptr);
+        if (probeId == 0) {
+            MEDIA_LOGE("add probe for %{public}s's pad %{public}s failed",
+                GST_ELEMENT_NAME(GST_PAD_PARENT(pad)), PAD_NAME(pad));
+            return;
+        }
+        (void)padProbes_.emplace_back(PadInfo { pad, probeId });
     }
-    (void)padProbes_.emplace(pad, probeId);
-
-    Format innerMeta;
-    (void)trackInfos_.emplace(pad, innerMeta);
+    {
+        std::unique_lock<std::mutex> lock(trackInfoMutex_);
+        Format innerMeta;
+        (void)trackInfos_.emplace(pad, innerMeta);
+    }
 }
 
 void PlayerTrackParse::OnPadAddedCb(const GstElement *element, GstPad *pad, gpointer userdata)
@@ -176,6 +189,38 @@ void PlayerTrackParse::SetDemuxerElementFind(bool isFind)
 bool PlayerTrackParse::GetDemuxerElementFind() const
 {
     return demuxerElementFind_;
+}
+
+void PlayerTrackParse::SetUpDemuxerElementCb(GstElement &elem)
+{
+    std::unique_lock<std::mutex> lock(signalIdMutex_);
+    gulong signalId = g_signal_connect(&elem, "pad-added", G_CALLBACK(PlayerTrackParse::OnPadAddedCb), this);
+    CHECK_AND_RETURN_LOG(signalId != 0, "listen to pad-added failed");
+    (void)signalIds_.emplace_back(SignalInfo { &elem, signalId });
+}
+
+void PlayerTrackParse::Stop()
+{
+    {
+        std::unique_lock<std::mutex> lock(trackInfoMutex_);
+        trackInfos_.clear();
+    }
+    {
+        std::unique_lock<std::mutex> lock(padProbeMutex_);
+        // PlayerTrackParse::ProbeCallback
+        for (auto &item : padProbes_) {
+            gst_pad_remove_probe(item.pad, item.probeId);
+        }
+        padProbes_.clear();
+    }
+    {
+        std::unique_lock<std::mutex> lock(signalIdMutex_);
+        // PlayerTrackParse::OnPadAddedCb
+        for (auto &item : signalIds_) {
+            g_signal_handler_disconnect(item.element, item.signalId);
+        }
+        signalIds_.clear();
+    }
 }
 }
 }
