@@ -201,11 +201,19 @@ void PlayerSinkProvider::FirstRenderFrame(gpointer userData)
     CHECK_AND_RETURN_LOG(userData != nullptr, "input userData is nullptr..");
     PlayerSinkProvider *sinkProvider = reinterpret_cast<PlayerSinkProvider *>(userData);
 
-    if (sinkProvider->GetFirstRenderFrameFlag()) {
-        PlayBinMessage msg { PLAYBIN_MSG_SUBTYPE, PLAYBIN_SUB_MSG_VIDEO_RENDERING_START, 0, {} };
-        sinkProvider->notifier_(msg);
-        sinkProvider->SetFirstRenderFrameFlag(false);
-        MEDIA_LOGW("KPI-TRACE: FIRST-VIDEO-FRAME rendered");
+    sinkProvider->OnFirstRenderFrame();
+}
+
+void PlayerSinkProvider::OnFirstRenderFrame()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (notifier_ != nullptr) {
+        if (GetFirstRenderFrameFlag()) {
+            PlayBinMessage msg { PLAYBIN_MSG_SUBTYPE, PLAYBIN_SUB_MSG_VIDEO_RENDERING_START, 0, {} };
+            notifier_(msg);
+            SetFirstRenderFrameFlag(false);
+            MEDIA_LOGW("KPI-TRACE: FIRST-VIDEO-FRAME rendered");
+        }
     }
 }
 
@@ -256,6 +264,7 @@ GstPadProbeReturn PlayerSinkProvider::SinkPadProbeCb(GstPad *pad, GstPadProbeInf
 
 void PlayerSinkProvider::SetMsgNotifier(PlayBinMsgNotifier notifier)
 {
+    std::unique_lock<std::mutex> lock(mutex_);
     notifier_ = notifier;
 }
 

@@ -16,6 +16,7 @@
 #ifndef PLAYER_TRACK_PARSE_H
 #define PLAYER_TRACK_PARSE_H
 
+#include <mutex>
 #include <vector>
 #include <unordered_map>
 #include <gst/gst.h>
@@ -31,18 +32,33 @@ public:
     int32_t GetAudioTrackInfo(std::vector<Format> &audioTrack);
     void SetDemuxerElementFind(bool isFind);
     bool GetDemuxerElementFind() const;
+    void SetUpDemuxerElementCb(GstElement &elem);
+    void Stop();
     static void OnPadAddedCb(const GstElement *element, GstPad *pad, gpointer userdata);
     PlayerTrackParse();
     ~PlayerTrackParse();
 
 private:
+    GstPadProbeReturn GetTrackParse(GstPad *pad, GstPadProbeInfo *info);
     void ConvertToPlayerKeys(const Format &innerMeta, Format &outMeta) const;
     void AddProbeToPad(GstPad *pad);
     static GstPadProbeReturn ProbeCallback(GstPad *pad, GstPadProbeInfo *info, gpointer usrdata);
     bool demuxerElementFind_ = false;
-    std::unordered_map<GstPad *, gulong> padProbes_;
     std::unordered_map<GstPad *, Format> trackInfos_;
     int32_t trackcount_ = 0;
+    struct SignalInfo {
+        GstElement *element;
+        gulong signalId;
+    };
+    std::vector<SignalInfo> signalIds_;
+    struct PadInfo {
+        GstPad *pad;
+        gulong probeId;
+    };
+    std::vector<PadInfo> padProbes_;
+    std::mutex signalIdMutex_;
+    std::mutex padProbeMutex_;
+    std::mutex trackInfoMutex_;
 };
 }
 }
