@@ -75,6 +75,7 @@ void PlayerCodecCtrl::SetupCodecCb(const std::string &metaStr, GstElement *src, 
 
 void PlayerCodecCtrl::DetectCodecSetup(const std::string &metaStr, GstElement *src, GstElement *videoSink)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     MEDIA_LOGD("Codec Setup");
     SetupCodecCb(metaStr, src, videoSink);
     SetupCodecBufferNum(metaStr, src);
@@ -90,6 +91,7 @@ void PlayerCodecCtrl::SetupCodecBufferNum(const std::string &metaStr, GstElement
 
 void PlayerCodecCtrl::DetectCodecUnSetup(GstElement *src, GstElement *videoSink)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     (void)src;
     MEDIA_LOGD("Codec UnSetup");
     if (decoder_ != nullptr) {
@@ -125,6 +127,7 @@ void PlayerCodecCtrl::HlsSwichSoftAndHardCodec(GstElement *videoSink)
 
 void PlayerCodecCtrl::EnhanceSeekPerformance(bool enable)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (isHardwareDec_ && decoder_ != nullptr) {
         g_object_set(decoder_, "seeking", enable, nullptr);
     }
