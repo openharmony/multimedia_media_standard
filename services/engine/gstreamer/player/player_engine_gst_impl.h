@@ -25,26 +25,10 @@
 #include "i_playbin_ctrler.h"
 #include "gst_appsrc_wrap.h"
 #include "player_track_parse.h"
+#include "player_codec_ctrl.h"
 
 namespace OHOS {
 namespace Media {
-class CodecChangedDetector {
-public:
-    CodecChangedDetector() = default;
-    ~CodecChangedDetector();
-    void DetectCodecSetup(const std::string &metaStr, GstElement *src, GstElement *videoSink);
-    void DetectCodecUnSetup(GstElement *src, GstElement *videoSink);
-    GstElement *GetDecoder();
-    bool isHardwareDec();
-
-private:
-    void SetupCodecCb(const std::string &metaStr, GstElement *src, GstElement *videoSink);
-
-    bool isHardwareDec_ = false;
-    GstElement *decoder_ = nullptr;
-    std::list<bool> codecTypeList_;
-};
-
 class PlayerEngineGstImpl : public IPlayerEngine, public NoCopyable {
 public:
     explicit PlayerEngineGstImpl(int32_t uid = 0, int32_t pid = 0);
@@ -117,7 +101,7 @@ private:
     std::string url_ = "";
     std::shared_ptr<GstAppsrcWrap> appsrcWrap_ = nullptr;
     std::shared_ptr<PlayerTrackParse> trackParse_ = nullptr;
-    std::shared_ptr<CodecChangedDetector> codecChangedDetector_ = nullptr;
+    PlayerCodecCtrl codecCtrl_;
     int32_t videoWidth_ = 0;
     int32_t videoHeight_ = 0;
     int32_t percent_ = 0;
@@ -126,7 +110,6 @@ private:
     int32_t appuid_ = 0;
     int32_t apppid_ = 0;
     std::map<uint32_t, uint64_t> mqBufferingTime_;
-    std::unordered_map<GstElement *, gulong> signalIds_;
     VideoScaleType videoScaleType_ = VIDEO_SCALE_TYPE_FIT;
     int32_t contentType_ = 0;
     int32_t streamUsage_ = 0;

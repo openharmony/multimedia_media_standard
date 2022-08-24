@@ -38,8 +38,6 @@ public:
     void SetVideoScaleType(const uint32_t videoScaleType) override;
     void SetMsgNotifier(PlayBinMsgNotifier notifier) override;
 
-    PlayBinMsgNotifier notifier_;
-
 private:
     const sptr<Surface> GetProducerSurface() const;
     GstElement *DoCreateAudioSink(const GstCaps *caps, const gpointer userData);
@@ -48,7 +46,7 @@ private:
     bool EnableOptRenderDelay() const;
     void SetFirstRenderFrameFlag(bool firstRenderFrame);
     bool GetFirstRenderFrameFlag() const;
-
+    void OnFirstRenderFrame();
     static GstPadProbeReturn SinkPadProbeCb(GstPad *pad, GstPadProbeInfo *info, gpointer userData);
     static void EosCb(GstMemSink *memSink, gpointer userData);
     static GstFlowReturn NewPrerollCb(GstMemSink *memSink, GstBuffer *sample, gpointer userData);
@@ -65,6 +63,8 @@ private:
     int32_t pid_ = 0;
     uint32_t videoScaleType_ = 0;
     bool firstRenderFrame_ = true;
+    PlayBinMsgNotifier notifier_ = nullptr;
+    std::mutex mutex_;
 };
 }
 }
