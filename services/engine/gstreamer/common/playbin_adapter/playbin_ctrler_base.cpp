@@ -481,6 +481,7 @@ int32_t PlayBinCtrlerBase::Reset() noexcept
     isSeeking_ = false;
     isRating_ = false;
     isBuffering_ = false;
+    cachePercent_ = BUFFER_PERCENT_THRESHOLD;
     isDuration_ = false;
     isUserSetPause_ = false;
 
@@ -878,19 +879,24 @@ int32_t PlayBinCtrlerBase::DoInitializeForDataSource()
     return MSERR_OK;
 }
 
-void PlayBinCtrlerBase::HandleCacheCtrl(const InnerMessage &msg)
+void PlayBinCtrlerBase::HandleCacheCtrl(int32_t percent)
+{
+    MEDIA_LOGI("HandleCacheCtrl percent is %{public}d", percent);
+    if (!isBuffering_) {
+        HandleCacheCtrlWhenNoBuffering(percent);
+    } else {
+        HandleCacheCtrlWhenBuffering(percent);
+    }
+}
+
+void PlayBinCtrlerBase::HandleCacheCtrlCb(const InnerMessage &msg)
 {
     if (isNetWorkPlay_) {
         PlayBinMessage playBinMsg = { PLAYBIN_MSG_SUBTYPE, PLAYBIN_SUB_MSG_BUFFERING_PERCENT, msg.detail1, {} };
         ReportMessage(playBinMsg);
 
-        int32_t percent = msg.detail1;
-        MEDIA_LOGI("HandleCacheCtrl percent is %{public}d", percent);
-        if (!isBuffering_) {
-            HandleCacheCtrlWhenNoBuffering(percent);
-        } else if (isBuffering_) {
-            HandleCacheCtrlWhenBuffering(percent);
-        }
+        cachePercent_ = msg.detail1;
+        HandleCacheCtrl(cachePercent_);
     }
 }
 
