@@ -120,6 +120,9 @@ void PlayBinCtrlerBase::BaseState::HandleStateChange(const InnerMessage &msg)
     Dumper::DumpDotGraph(*ctrler_.playbin_, msg.detail1, msg.detail2);
     if (msg.extend.has_value() && std::any_cast<GstPipeline *>(msg.extend) == ctrler_.playbin_) {
         ProcessStateChange(msg);
+        if ((msg.detail1 == GST_STATE_PAUSED && msg.detail2 == GST_STATE_PLAYING) && ctrler_.isNetWorkPlay_) {
+            ctrler_.HandleCacheCtrl(ctrler_.cachePercent_);
+        }
     }
 }
 
@@ -192,7 +195,7 @@ void PlayBinCtrlerBase::BaseState::HandleEos()
 
 void PlayBinCtrlerBase::BaseState::HandleBuffering(const InnerMessage &msg)
 {
-    ctrler_.HandleCacheCtrl(msg);
+    ctrler_.HandleCacheCtrlCb(msg);
 }
 
 void PlayBinCtrlerBase::BaseState::HandleBufferingTime(const InnerMessage &msg)
