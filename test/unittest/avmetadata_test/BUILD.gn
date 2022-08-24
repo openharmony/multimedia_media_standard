@@ -54,7 +54,7 @@ ohos_unittest("avmetadata_unit_test") {
     "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
     "//foundation/multimedia/player_framework/services/utils:media_service_utils",
     "//foundation/window/window_manager/wm:libwm",
-    "//third_party/libjpeg:libjpeg_static",
+    "//third_party/libjpeg-turbo:turbojpeg_static",
   ]
 
   resource_config_file = "//foundation/multimedia/player_framework/test/unittest/resources/ohos_test.xml"
