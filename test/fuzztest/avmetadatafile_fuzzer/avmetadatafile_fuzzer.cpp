@@ -39,7 +39,6 @@ AVMetadataFileFuzzer::~AVMetadataFileFuzzer()
 bool AVMetadataFileFuzzer::FuzzAVMetadataFile(uint8_t *data, size_t size)
 {
     avmetadata = OHOS::Media::AVMetadataHelperFactory::CreateAVMetadataHelper();
-    cout << "start!" << endl;
     if (avmetadata == nullptr) {
         cout << "avmetadata is null" << endl;
         avmetadata->Release();
@@ -57,27 +56,23 @@ bool AVMetadataFileFuzzer::FuzzAVMetadataFile(uint8_t *data, size_t size)
 
     int32_t retMetadatasetsource = MetaDataSetSource(path);
     if (retMetadatasetsource != 0) {
-        cout << "expect avmetadata SetSource file" << endl;
         avmetadata->Release();
         return true;
     }
 
     std::unordered_map<int32_t, std::string> retresolve = avmetadata->ResolveMetadata();
     if (retresolve.empty()) {
-        cout << "expext avmetadata ResolveMetadata file" << endl;
         avmetadata->Release();
         return true;
     }
 
     std::shared_ptr<AVSharedMemory> retFetchartpicture = avmetadata->FetchArtPicture();
     if (retFetchartpicture == nullptr) {
-        cout << "expect avmetadata FetchArtPicture file" << endl;
         avmetadata->Release();
         return true;
     }
     
     avmetadata->Release();
-    cout << "success!" << endl;
     return true;
 }
 }
