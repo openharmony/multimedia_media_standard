@@ -466,16 +466,6 @@ int32_t AVCodecServiceProxy::GetOutputFormat(Format &format)
     return MSERR_OK;
 }
 
-std::shared_ptr<AudioCaps> AVCodecServiceProxy::GetAudioCaps()
-{
-    return nullptr;
-}
-
-std::shared_ptr<VideoCaps> AVCodecServiceProxy::GetVideoCaps()
-{
-    return nullptr;
-}
-
 int32_t AVCodecServiceProxy::ReleaseOutputBuffer(uint32_t index, bool render)
 {
     MessageParcel data;
