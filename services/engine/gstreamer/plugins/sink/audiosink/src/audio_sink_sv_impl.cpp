@@ -345,8 +345,8 @@ int32_t AudioSinkSvImpl::Write(uint8_t *buffer, size_t size)
     while (bytesWritten < size) {
         bytesSingle = audioRenderer_->Write(buffer + bytesWritten, size - bytesWritten);
         if (bytesSingle <= 0) {
-            OnError("[AudioSinkSvImpl] audioRenderer write failed");
-            return MSERR_AUD_RENDER_FAILED;
+            OnError("[AudioSinkSvImpl] audioRenderer write failed, drop an audio packet!");
+            return MSERR_OK;
         }
         bytesWritten += static_cast<size_t>(bytesSingle);
         CHECK_AND_RETURN_RET(bytesWritten >= static_cast<size_t>(bytesSingle), MSERR_AUD_RENDER_FAILED);
