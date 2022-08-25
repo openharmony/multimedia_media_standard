@@ -393,12 +393,6 @@ void PlayerEngineGstImpl::HandleAudioErrorMessage(const PlayBinMessage &msg)
 {
     std::pair<int32_t, std::string> errorPair = std::any_cast<std::pair<int32_t, std::string>>(msg.extra);
     MEDIA_LOGE("HandleAudioErrorMessage:%{public}d, %{public}s", errorPair.first, errorPair.second.c_str());
-    PlayerErrorType errorType = PLAYER_ERROR;
-    int32_t errorCode = errorPair.first;
-    std::shared_ptr<IPlayerEngineObs> notifyObs = obs_.lock();
-    if (notifyObs != nullptr) {
-        notifyObs->OnError(errorType, errorCode);
-    }
 }
 
 void PlayerEngineGstImpl::HandleVolumeChangedMessage(const PlayBinMessage &msg)
