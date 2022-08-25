@@ -134,12 +134,6 @@ int32_t AVCodecAudioEncoderImpl::GetOutputFormat(Format &format)
     return codecService_->GetOutputFormat(format);
 }
 
-std::shared_ptr<AudioCaps> AVCodecAudioEncoderImpl::GetAudioEncoderCaps()
-{
-    CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, nullptr, "service died");
-    return codecService_->GetAudioCaps();
-}
-
 int32_t AVCodecAudioEncoderImpl::ReleaseOutputBuffer(uint32_t index)
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");
