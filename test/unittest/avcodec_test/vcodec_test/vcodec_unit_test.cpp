@@ -205,7 +205,7 @@ HWTEST_F(VCodecUnitTest, video_decode_Flush_0100, TestSize.Level0)
  * @tc.name: video_encode_Flush_0100
  * @tc.desc: video encodec flush
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: I5NYCP
  */
 HWTEST_F(VCodecUnitTest, video_encode_Flush_0100, TestSize.Level0)
 {
@@ -274,7 +274,7 @@ HWTEST_F(VCodecUnitTest, video_codec_SetParameter_0100, TestSize.Level0)
  * @tc.name: video_codec_GetOutputMediaDescription_0100
  * @tc.desc: video codec GetOutputMediaDescription
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: I5NYCP
  */
 HWTEST_F(VCodecUnitTest, video_codec_GetOutputMediaDescription_0100, TestSize.Level0)
 {
@@ -308,7 +308,7 @@ HWTEST_F(VCodecUnitTest, video_codec_GetOutputMediaDescription_0100, TestSize.Le
  * @tc.name: video_NotifyEos_0100
  * @tc.desc: video encodec NotifyEos
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: I5NYCF
  */
 HWTEST_F(VCodecUnitTest, video_NotifyEos_0100, TestSize.Level0)
 {
