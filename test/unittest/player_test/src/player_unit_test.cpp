@@ -384,5 +384,34 @@ HWTEST_F(PlayerUnitTest, Player_SelectBitRate_001, TestSize.Level0)
     EXPECT_EQ(MSERR_OK, player_->Play());
     EXPECT_NE(MSERR_OK, player_->SelectBitRate(0));
 }
+
+/**
+ * @tc.name: Player_Performance_Prepared_001
+ * @tc.desc: test player start
+ * @tc.type: PERFORMANCE
+ * @tc.require: I5NYBJ
+ */
+HWTEST_F(PlayerUnitTest, Player_Performance_Prepared_001, TestSize.Level0)
+{
+    struct timeval startTime = {};
+    struct timeval finishTime = {};
+    int32_t runTimes = 10;
+    float timeConv = 1000;
+    float deltaTime = 0;
+    sptr<Surface> videoSurface = player_->GetVideoSurface();
+    ASSERT_NE(nullptr, videoSurface);
+    for (int32_t i = 0; i < runTimes; i++) {
+        EXPECT_EQ(MSERR_OK, gettimeofday(&startTime, nullptr));
+        ASSERT_EQ(MSERR_OK, player_->SetSource(VIDEO_FILE1));
+        EXPECT_EQ(MSERR_OK, player_->SetVideoSurface(videoSurface));
+        EXPECT_EQ(MSERR_OK, player_->PrepareAsync());
+        EXPECT_EQ(MSERR_OK, gettimeofday(&finishTime, nullptr));
+        EXPECT_EQ(MSERR_OK, player_->Play());
+        deltaTime += (finishTime.tv_sec - startTime.tv_sec) * timeConv +
+            (finishTime.tv_usec - startTime.tv_usec) / timeConv;
+        EXPECT_EQ(MSERR_OK, player_->Reset());
+    }
+    EXPECT_LE(deltaTime / runTimes, 300); // less than 300ms
+}
 } // namespace Media
 } // namespace OHOS
