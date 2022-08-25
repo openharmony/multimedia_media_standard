@@ -41,7 +41,6 @@ bool AVMetadataSetSourceFuzzer::FuzzAVMetadataSetSource(uint8_t *data, size_t si
 {
     constexpr int32_t USAGE_LIST = 2;
     avmetadata = AVMetadataHelperFactory::CreateAVMetadataHelper();
-    cout << "start!" << endl;
     if (avmetadata == nullptr) {
         cout << "avmetadata is null" << endl;
         avmetadata->Release();
@@ -71,7 +70,6 @@ bool AVMetadataSetSourceFuzzer::FuzzAVMetadataSetSource(uint8_t *data, size_t si
     int32_t retSetsource = avmetadata->SetSource(setsourcefd,
         *reinterpret_cast<int64_t *>(data), setsourcesize, setsourceusage);
     if (retSetsource != 0) {
-        cout << "expect SetSource fail!" << endl;
         (void)close(setsourcefd);
         avmetadata->Release();
         return true;
@@ -80,13 +78,11 @@ bool AVMetadataSetSourceFuzzer::FuzzAVMetadataSetSource(uint8_t *data, size_t si
     std::unordered_map<int32_t, std::string> retResolvenetadata = avmetadata->ResolveMetadata();
 
     if (retResolvenetadata.empty()) {
-        cout << "expect avmetadata FetchFrameAtTime fail" << endl;
         avmetadata->Release();
         return true;
     }
     
     avmetadata->Release();
-    cout << "success!" << endl;
     return true;
 }
 }

@@ -1,38 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2022 Huawei Device Co., Ltd.
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
 <configuration ver="2.0">
     <target name="PlayerFileFuzzTest">
         <preparer>
-            <option name="push" value="fuzztest.mp4 -> /data/test/media" src="res"/>
+            <option name="push" value="player/fuzztest.mp4 -> /data/test/media" src="res"/>
+            <option name="shell" value="restorecon /data/test/media"/>
         </preparer>
     </target>
     <target name="PlayerSeekFuzzTest">
         <preparer>
-            <option name="push" value="H264_AAC.mp4 -> /data/test/media" src="res"/>
+            <option name="push" value="player/H264_AAC.mp4 -> /data/test/media" src="res"/>
+            <option name="shell" value="restorecon /data/test/media"/>
         </preparer>
     </target>
     <target name="PlayerSetVolumeFuzzTest">
         <preparer>
-            <option name="push" value="H264_AAC.mp4 -> /data/test/media" src="res"/>
+            <option name="push" value="player/H264_AAC.mp4 -> /data/test/media" src="res"/>
+            <option name="shell" value="restorecon /data/test/media"/>
         </preparer>
     </target>
     <target name="AVmetadataFetchFrameAtTimeFuzzTest">
         <preparer>
-            <option name="push" value="H264_AAC.mp4 -> /data/test/media" src="res"/>
+            <option name="push" value="avmetadata/H264_AAC.mp4 -> /data/test/media" src="res"/>
+            <option name="shell" value="restorecon /data/test/media"/>
         </preparer>
     </target>
     <target name="AVmetadataResolveMetadataFuzzTest">
         <preparer>
-            <option name="push" value="H264_AAC.mp4 -> /data/test/media" src="res"/>
+            <option name="push" value="avmetadata/H264_AAC.mp4 -> /data/test/media" src="res"/>
+            <option name="shell" value="restorecon /data/test/media"/>
         </preparer>
     </target>
     <target name="AVmetadataFileFuzzTest">
         <preparer>
-            <option name="push" value="fuzztest.mp4 -> /data/test/media" src="res"/>
+            <option name="push" value="avmetadata/fuzztest.mp4 -> /data/test/media" src="res"/>
+            <option name="shell" value="restorecon /data/test/media"/>
         </preparer>
     </target>
     <target name="AVmetadataSetSource">
         <preparer>
-            <option name="push" value="H264_AAC.mp4 -> /data/test/media" src="res"/>
+            <option name="push" value="avmetadata/H264_AAC.mp4 -> /data/test/media" src="res"/>
+            <option name="shell" value="restorecon /data/test/media"/>
         </preparer>
     </target>
 </configuration>
