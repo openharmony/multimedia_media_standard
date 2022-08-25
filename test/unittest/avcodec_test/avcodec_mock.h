@@ -47,6 +47,7 @@ public:
     virtual bool GetIntValue(const std::string_view &key, int32_t &value) = 0;
     virtual bool PutStringValue(const std::string_view &key, const std::string_view &value) = 0;
     virtual bool GetStringValue(const std::string_view &key, std::string &value) = 0;
+    virtual void Destroy() = 0;
 };
 
 class AVMemoryMock : public NoCopyable {

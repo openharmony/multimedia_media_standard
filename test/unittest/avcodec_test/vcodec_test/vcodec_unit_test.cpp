@@ -101,6 +101,7 @@ HWTEST_F(VCodecUnitTest, video_codec_Configure_0100, TestSize.Level0)
     (void)format->PutIntValue(frame_rate.c_str(), DEFAULT_FRAME_RATE);
     ASSERT_EQ(MSERR_OK, videoEnc_->Configure(format));
     ASSERT_EQ(MSERR_OK, videoDec_->Configure(format));
+    format->Destroy();
 }
 
 /**
@@ -131,6 +132,7 @@ HWTEST_F(VCodecUnitTest, video_codec_start_0100, TestSize.Level0)
     EXPECT_EQ(MSERR_OK, videoEnc_->Prepare());
     EXPECT_EQ(MSERR_OK, videoDec_->Start());
     EXPECT_EQ(MSERR_OK, videoEnc_->Start());
+    format->Destroy();
 }
 
 /**
@@ -164,6 +166,7 @@ HWTEST_F(VCodecUnitTest, video_codec_0100, TestSize.Level0)
     sleep(10); // start run 10s
     EXPECT_EQ(MSERR_OK, videoDec_->Stop());
     EXPECT_EQ(MSERR_OK, videoEnc_->Stop());
+    format->Destroy();
 }
 
 /**
@@ -199,6 +202,7 @@ HWTEST_F(VCodecUnitTest, video_decode_Flush_0100, TestSize.Level0)
     sleep(7); // start run 7s
     EXPECT_EQ(MSERR_OK, videoDec_->Stop());
     EXPECT_EQ(MSERR_OK, videoEnc_->Stop());
+    format->Destroy();
 }
 
 /**
@@ -234,6 +238,7 @@ HWTEST_F(VCodecUnitTest, video_encode_Flush_0100, TestSize.Level0)
     sleep(7); // start run 7s
     EXPECT_EQ(MSERR_OK, videoDec_->Stop());
     EXPECT_EQ(MSERR_OK, videoEnc_->Stop());
+    format->Destroy();
 }
 
 /**
@@ -268,6 +273,7 @@ HWTEST_F(VCodecUnitTest, video_codec_SetParameter_0100, TestSize.Level0)
     sleep(5); // start run 5s
     EXPECT_EQ(MSERR_OK, videoDec_->Stop());
     EXPECT_EQ(MSERR_OK, videoEnc_->Stop());
+    format->Destroy();
 }
 
 /**
@@ -302,6 +308,7 @@ HWTEST_F(VCodecUnitTest, video_codec_GetOutputMediaDescription_0100, TestSize.Le
     EXPECT_NE(nullptr, videoEnc_->GetOutputMediaDescription());
     EXPECT_EQ(MSERR_OK, videoDec_->Stop());
     EXPECT_EQ(MSERR_OK, videoEnc_->Stop());
+    format->Destroy();
 }
 
 /**
@@ -336,4 +343,5 @@ HWTEST_F(VCodecUnitTest, video_NotifyEos_0100, TestSize.Level0)
     EXPECT_EQ(MSERR_OK, videoEnc_->NotifyEos());
     EXPECT_EQ(MSERR_OK, videoDec_->Stop());
     EXPECT_EQ(MSERR_OK, videoEnc_->Stop());
+    format->Destroy();
 }

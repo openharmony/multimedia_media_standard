@@ -257,9 +257,8 @@ void VEncMock::OutLoopFunc()
             }
             fclose(outFile);
         }
-
-        if (videoEnc_->FreeOutputData(index) != MSERR_OK) {
-            cout << "Fatal: ReleaseOutputBuffer fail, exit" << endl;
+        if (index != EOS_INDEX && videoEnc_->FreeOutputData(index) != MSERR_OK) {
+            cout << "Fatal: FreeOutputData fail, exit" << endl;
             break;
         }
         signal_->outIndexQueue_.pop();

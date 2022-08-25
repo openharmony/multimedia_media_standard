@@ -13,28 +13,25 @@
  * limitations under the License.
  */
 
-#ifndef AVFORMAT_NATIVE_MOCK_H
-#define AVFORMAT_NATIVE_MOCK_H
+#ifndef SURFACE_CAPI_MOCK_H
+#define SURFACE_CAPI_MOCK_H
 
 #include "avcodec_mock.h"
-#include "format.h"
+#include "window.h"
+#include "native_avcodec_base.h"
 
 namespace OHOS {
 namespace Media {
-class AVFormatNativeMock : public FormatMock {
+class SurfaceCapiMock : public SurfaceMock {
 public:
-    explicit AVFormatNativeMock(const Format &format) : format_(format) {}
-    AVFormatNativeMock() = default;
-    bool PutIntValue(const std::string_view &key, int32_t value) override;
-    bool GetIntValue(const std::string_view &key, int32_t &value) override;
-    bool PutStringValue(const std::string_view &key, const std::string_view &value) override;
-    bool GetStringValue(const std::string_view &key, std::string &value) override;
-    void Destroy() override;
-    Format &GetFormat();
+    explicit SurfaceCapiMock(OHNativeWindow* nativeWindow) : nativeWindow_(nativeWindow) {}
+    SurfaceCapiMock() = default;
+    ~SurfaceCapiMock() = default;
+    OHNativeWindow* GetSurface();
 
 private:
-    Format format_;
+    OHNativeWindow* nativeWindow_ = nullptr;
 };
 } // Media
 } // OHOS
-#endif // AVFORMAT_NATIVE_MOCK_H
+#endif // SURFACE_CAPI_MOCK_H

@@ -69,6 +69,9 @@ void ACodecUnitTest::TearDown(void)
         EXPECT_EQ(MSERR_OK, audioCodec_->ReleaseDec());
         EXPECT_EQ(MSERR_OK, audioCodec_->ReleaseEnc());
     }
+    if (defaultFormat_ != nullptr) {
+        defaultFormat_->Destroy();
+    }
 }
 
 /**

@@ -13,28 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef AVFORMAT_NATIVE_MOCK_H
-#define AVFORMAT_NATIVE_MOCK_H
+#ifndef AVMEMORY_CAPI_MOCK_H
+#define AVMEMORY_CAPI_MOCK_H
 
 #include "avcodec_mock.h"
-#include "format.h"
+#include "native_avmemory.h"
 
 namespace OHOS {
 namespace Media {
-class AVFormatNativeMock : public FormatMock {
+class AVMemoryCapiMock : public AVMemoryMock {
 public:
-    explicit AVFormatNativeMock(const Format &format) : format_(format) {}
-    AVFormatNativeMock() = default;
-    bool PutIntValue(const std::string_view &key, int32_t value) override;
-    bool GetIntValue(const std::string_view &key, int32_t &value) override;
-    bool PutStringValue(const std::string_view &key, const std::string_view &value) override;
-    bool GetStringValue(const std::string_view &key, std::string &value) override;
-    void Destroy() override;
-    Format &GetFormat();
+    explicit AVMemoryCapiMock(OH_AVMemory *mem) : memory_(mem) {}
+    uint8_t *GetAddr() const override;
+    int32_t GetSize() const override;
+    uint32_t GetFlags() const override;
 
 private:
-    Format format_;
+    OH_AVMemory *memory_ = nullptr;
 };
 } // Media
 } // OHOS
-#endif // AVFORMAT_NATIVE_MOCK_H
+#endif // AVMEMORY_CAPI_MOCK_H
