@@ -294,17 +294,18 @@ OH_AVErrCode OH_VideoEncoder_Reset(struct OH_AVCodec *codec)
 
 OH_AVErrCode OH_VideoEncoder_GetSurface(OH_AVCodec *codec, OHNativeWindow **window)
 {
-    CHECK_AND_RETURN_RET_LOG(codec != nullptr, AV_ERR_INVALID_VAL, "input codec is nullptr!");
+    CHECK_AND_RETURN_RET_LOG(codec != nullptr && window != nullptr, AV_ERR_INVALID_VAL, "input is nullptr!");
     CHECK_AND_RETURN_RET_LOG(codec->magic_ == AVMagic::MEDIA_MAGIC_VIDEO_ENCODER, AV_ERR_INVALID_VAL, "magic error!");
-    CHECK_AND_RETURN_RET_LOG(window != nullptr && *window != nullptr, AV_ERR_INVALID_VAL, "input window is nullptr!");
-    auto surface = (*window)->surface;
-    CHECK_AND_RETURN_RET_LOG(surface != nullptr, AV_ERR_INVALID_VAL, "input surface is nullptr!");
 
     struct VideoEncoderObject *videoEncObj = reinterpret_cast<VideoEncoderObject *>(codec);
     CHECK_AND_RETURN_RET_LOG(videoEncObj->videoEncoder_ != nullptr, AV_ERR_INVALID_VAL, "videoEncoder_ is nullptr!");
 
-    surface = videoEncObj->videoEncoder_->CreateInputSurface();
+    OHOS::sptr<OHOS::Surface> surface = videoEncObj->videoEncoder_->CreateInputSurface();
     CHECK_AND_RETURN_RET_LOG(surface != nullptr, AV_ERR_OPERATE_NOT_PERMIT, "venc createInputSurface failed!");
+
+    *window = CreateNativeWindowFromSurface(&surface);
+
+    CHECK_AND_RETURN_RET_LOG(*window != nullptr, AV_ERR_INVALID_VAL, "CreateNativeWindowFromSurface failed!");
 
     return AV_ERR_OK;
 }
