@@ -138,6 +138,7 @@ constexpr uint32_t DEFAULT_WIDTH = 320;
 constexpr uint32_t DEFAULT_HEIGHT = 240;
 constexpr uint32_t DEFAULT_FRAME_RATE = 60;
 constexpr uint32_t FRAME_DURATION_US = 16670;
+constexpr uint32_t EOS_INDEX = 1000;
 const std::string MIME_TYPE = "video/mp4v-es";
 constexpr bool NEED_DUMP = true;
 const uint32_t ES[] = { // H264_FRAME_SIZE_240
