@@ -33,14 +33,14 @@ void VCodecUnitTest::SetUp(void)
     vdecCallback_ = std::make_shared<VDecCallbackTest>(vdecSignal);
     ASSERT_NE(nullptr, vdecCallback_);
     videoDec_ = std::make_shared<VDecMock>(vdecSignal);
-    ASSERT_TRUE(videoDec_->CreateVideoDecMockByMine("video/avc"));
+    ASSERT_TRUE(videoDec_->CreateVideoDecMockByMime("video/avc"));
     EXPECT_EQ(MSERR_OK, videoDec_->SetCallback(vdecCallback_));
 
     std::shared_ptr<VEncSignal> vencSignal = std::make_shared<VEncSignal>();
     vencCallback_ = std::make_shared<VEncCallbackTest>(vencSignal);
     ASSERT_NE(nullptr, vencCallback_);
     videoEnc_ = std::make_shared<VEncMock>(vencSignal);
-    ASSERT_TRUE(videoEnc_->CreateVideoEncMockByMine("video/avc"));
+    ASSERT_TRUE(videoEnc_->CreateVideoEncMockByMime("video/avc"));
     EXPECT_EQ(MSERR_OK, videoEnc_->SetCallback(vencCallback_));
 
     testInfo_ = ::testing::UnitTest::GetInstance()->current_test_info();

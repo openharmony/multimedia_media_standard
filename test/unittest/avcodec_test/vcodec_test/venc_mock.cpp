@@ -69,9 +69,9 @@ VEncMock::~VEncMock()
 {
 }
 
-bool VEncMock::CreateVideoEncMockByMine(const std::string &mime)
+bool VEncMock::CreateVideoEncMockByMime(const std::string &mime)
 {
-    videoEnc_ = AVCodecMockFactory::CreateVideoEncMockByMine(mime);
+    videoEnc_ = AVCodecMockFactory::CreateVideoEncMockByMime(mime);
     return videoEnc_ != nullptr;
 }
 

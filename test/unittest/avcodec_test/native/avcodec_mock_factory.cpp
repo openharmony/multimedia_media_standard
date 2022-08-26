@@ -27,7 +27,7 @@
 
 namespace OHOS {
 namespace Media {
-std::shared_ptr<VideoDecMock> AVCodecMockFactory::CreateVideoDecMockByMine(const std::string &mime)
+std::shared_ptr<VideoDecMock> AVCodecMockFactory::CreateVideoDecMockByMime(const std::string &mime)
 {
     auto videoDec = VideoDecoderFactory::CreateByMime(mime);
     if (videoDec != nullptr) {
@@ -45,7 +45,7 @@ std::shared_ptr<VideoDecMock> AVCodecMockFactory::CreateVideoDecMockByName(const
     return nullptr;
 }
 
-std::shared_ptr<VideoEncMock> AVCodecMockFactory::CreateVideoEncMockByMine(const std::string &mime)
+std::shared_ptr<VideoEncMock> AVCodecMockFactory::CreateVideoEncMockByMime(const std::string &mime)
 {
     auto videoEnc = VideoEncoderFactory::CreateByMime(mime);
     if (videoEnc != nullptr) {
@@ -63,7 +63,7 @@ std::shared_ptr<VideoEncMock> AVCodecMockFactory::CreateVideoEncMockByName(const
     return nullptr;
 }
 
-std::shared_ptr<AudioDecMock> AVCodecMockFactory::CreateAudioDecMockByMine(const std::string &mime)
+std::shared_ptr<AudioDecMock> AVCodecMockFactory::CreateAudioDecMockByMime(const std::string &mime)
 {
     auto audioDec = AudioDecoderFactory::CreateByMime(mime);
     if (audioDec != nullptr) {
@@ -81,7 +81,7 @@ std::shared_ptr<AudioDecMock> AVCodecMockFactory::CreateAudioDecMockByName(const
     return nullptr;
 }
 
-std::shared_ptr<AudioEncMock> AVCodecMockFactory::CreateAudioEncMockByMine(const std::string &mime)
+std::shared_ptr<AudioEncMock> AVCodecMockFactory::CreateAudioEncMockByMime(const std::string &mime)
 {
     auto audioEnc = AudioEncoderFactory::CreateByMime(mime);
     if (audioEnc != nullptr) {

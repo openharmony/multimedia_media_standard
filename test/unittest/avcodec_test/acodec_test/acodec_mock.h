@@ -84,7 +84,7 @@ public:
     ACodecMock(std::shared_ptr<ACodecSignal> signal);
     ~ACodecMock();
 
-    bool CreateAudioDecMockByMine(const std::string &mime);
+    bool CreateAudioDecMockByMime(const std::string &mime);
     bool CreateAudioDecMockByName(const std::string &name);
     int32_t SetCallbackDec(std::shared_ptr<AVCodecCallbackMock> cb);
     int32_t ConfigureDec(std::shared_ptr<FormatMock> format);
@@ -98,7 +98,7 @@ public:
     int32_t SetParameterDec(std::shared_ptr<FormatMock> format);
     int32_t PushInputDataDec(uint32_t index, AVCodecBufferAttrMock &attr);
     int32_t FreeOutputDataDec(uint32_t index);
-    bool CreateAudioEncMockByMine(const std::string &mime);
+    bool CreateAudioEncMockByMime(const std::string &mime);
     bool CreateAudioEncMockByName(const std::string &name);
     int32_t SetCallbackEnc(std::shared_ptr<AVCodecCallbackMock> cb);
     int32_t ConfigureEnc(std::shared_ptr<FormatMock> format);
