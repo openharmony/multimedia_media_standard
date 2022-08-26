@@ -146,15 +146,6 @@ public:
     virtual int32_t GetOutputFormat(Format &format) = 0;
 
     /**
-     * @brief Gets the audio encoder capability.
-     *
-     * @return Returns {@link AudioCaps}.
-     * @since 3.1
-     * @version 3.1
-     */
-    virtual std::shared_ptr<AudioCaps> GetAudioEncoderCaps() = 0;
-
-    /**
      * @brief Returns the output buffer to the encoder.
      *
      * This function must be called during running
