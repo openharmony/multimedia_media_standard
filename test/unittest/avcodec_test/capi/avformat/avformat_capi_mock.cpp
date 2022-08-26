@@ -17,7 +17,6 @@
 
 namespace OHOS {
 namespace Media {
-
 AVFormatCapiMock::AVFormatCapiMock()
 {
     format_ = OH_AVFormat_Create();
@@ -25,7 +24,6 @@ AVFormatCapiMock::AVFormatCapiMock()
 
 AVFormatCapiMock::~AVFormatCapiMock()
 {
-
 }
 
 bool AVFormatCapiMock::PutIntValue(const std::string_view &key, int32_t value)

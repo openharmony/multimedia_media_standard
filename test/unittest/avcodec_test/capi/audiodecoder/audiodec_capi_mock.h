@@ -53,9 +53,7 @@ private:
     static std::mutex mutex_;
     static std::map<OH_AVCodec *, std::shared_ptr<AVCodecCallbackMock>> mockCbMap_;
     OH_AVCodec *codec_ = nullptr;
-
 };
-
 } // namespace Media
 } // namespace OHOS
 #endif // AUDIO_DEC_CAPI_MOCK_H
