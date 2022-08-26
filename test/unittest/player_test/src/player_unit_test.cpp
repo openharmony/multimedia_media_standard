@@ -38,7 +38,6 @@ void PlayerUnitTest::SetUp(void)
 
 void PlayerUnitTest::TearDown(void)
 {
-    EXPECT_EQ(MSERR_OK, player_->Reset());
     EXPECT_EQ(MSERR_OK, player_->Release());
 }
 
