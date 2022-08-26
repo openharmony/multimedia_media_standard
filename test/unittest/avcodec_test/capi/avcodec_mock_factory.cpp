@@ -103,7 +103,7 @@ std::shared_ptr<FormatMock> AVCodecMockFactory::CreateFormat()
 
 std::shared_ptr<SurfaceMock> AVCodecMockFactory::CreateSurface()
 {
-    return nullptr;
+    return std::make_shared<SurfaceCapiMock>();
 }
 }
 }
