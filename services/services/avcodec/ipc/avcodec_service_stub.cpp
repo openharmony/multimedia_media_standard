@@ -120,8 +120,6 @@ int32_t AVCodecServiceStub::Init()
     recFuncs_[GET_OUTPUT_BUFFER] = &AVCodecServiceStub::GetOutputBuffer;
     recFuncs_[RELEASE_OUTPUT_BUFFER] = &AVCodecServiceStub::ReleaseOutputBuffer;
     recFuncs_[GET_OUTPUT_FORMAT] = &AVCodecServiceStub::GetOutputFormat;
-    recFuncs_[GET_AUDIO_CAPS] = &AVCodecServiceStub::GetAudioCaps;
-    recFuncs_[GET_VIDEO_CAPS] = &AVCodecServiceStub::GetVideoCaps;
     recFuncs_[SET_PARAMETER] = &AVCodecServiceStub::SetParameter;
     recFuncs_[DESTROY] = &AVCodecServiceStub::DestroyStub;
     return MSERR_OK;
@@ -275,18 +273,6 @@ int32_t AVCodecServiceStub::GetOutputFormat(Format &format)
 {
     CHECK_AND_RETURN_RET_LOG(codecServer_ != nullptr, MSERR_NO_MEMORY, "avcodec server is nullptr");
     return codecServer_->GetOutputFormat(format);
-}
-
-std::shared_ptr<AudioCaps> AVCodecServiceStub::GetAudioCaps()
-{
-    CHECK_AND_RETURN_RET_LOG(codecServer_ != nullptr, nullptr, "avcodec server is nullptr");
-    return codecServer_->GetAudioCaps();
-}
-
-std::shared_ptr<VideoCaps> AVCodecServiceStub::GetVideoCaps()
-{
-    CHECK_AND_RETURN_RET_LOG(codecServer_ != nullptr, nullptr, "avcodec server is nullptr");
-    return codecServer_->GetVideoCaps();
 }
 
 int32_t AVCodecServiceStub::ReleaseOutputBuffer(uint32_t index, bool render)
@@ -446,20 +432,6 @@ int32_t AVCodecServiceStub::GetOutputFormat(MessageParcel &data, MessageParcel &
     Format format;
     (void)GetOutputFormat(format);
     (void)MediaParcel::Marshalling(reply, format);
-    return MSERR_OK;
-}
-
-int32_t AVCodecServiceStub::GetAudioCaps(MessageParcel &data, MessageParcel &reply)
-{
-    (void)data;
-    (void)reply;
-    return MSERR_OK;
-}
-
-int32_t AVCodecServiceStub::GetVideoCaps(MessageParcel &data, MessageParcel &reply)
-{
-    (void)data;
-    (void)reply;
     return MSERR_OK;
 }
 

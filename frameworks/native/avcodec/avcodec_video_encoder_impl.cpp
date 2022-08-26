@@ -146,12 +146,6 @@ int32_t AVCodecVideoEncoderImpl::GetOutputFormat(Format &format)
     return codecService_->GetOutputFormat(format);
 }
 
-std::shared_ptr<VideoCaps> AVCodecVideoEncoderImpl::GetVideoEncoderCaps()
-{
-    CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, nullptr, "service died");
-    return codecService_->GetVideoCaps();
-}
-
 int32_t AVCodecVideoEncoderImpl::ReleaseOutputBuffer(uint32_t index)
 {
     CHECK_AND_RETURN_RET_LOG(codecService_ != nullptr, MSERR_INVALID_OPERATION, "service died");

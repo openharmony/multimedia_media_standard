@@ -222,16 +222,6 @@ int32_t AVCodecEngineGstImpl::GetOutputFormat(Format &format)
     return MSERR_OK;
 }
 
-std::shared_ptr<AudioCaps> AVCodecEngineGstImpl::GetAudioCaps()
-{
-    return nullptr;
-}
-
-std::shared_ptr<VideoCaps> AVCodecEngineGstImpl::GetVideoCaps()
-{
-    return nullptr;
-}
-
 int32_t AVCodecEngineGstImpl::ReleaseOutputBuffer(uint32_t index, bool render)
 {
     std::unique_lock<std::mutex> lock(mutex_);

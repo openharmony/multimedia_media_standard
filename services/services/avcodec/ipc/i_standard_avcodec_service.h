@@ -47,8 +47,6 @@ public:
     virtual int32_t QueueInputBuffer(uint32_t index, AVCodecBufferInfo info, AVCodecBufferFlag flag) = 0;
     virtual std::shared_ptr<AVSharedMemory> GetOutputBuffer(uint32_t index) = 0;
     virtual int32_t GetOutputFormat(Format &format) = 0;
-    virtual std::shared_ptr<AudioCaps> GetAudioCaps() = 0;
-    virtual std::shared_ptr<VideoCaps> GetVideoCaps() = 0;
     virtual int32_t ReleaseOutputBuffer(uint32_t index, bool render = false) = 0;
     virtual int32_t SetParameter(const Format &format) = 0;
     virtual int32_t DestroyStub() = 0;
@@ -73,8 +71,6 @@ public:
         QUEUE_INPUT_BUFFER,
         GET_OUTPUT_BUFFER,
         GET_OUTPUT_FORMAT,
-        GET_AUDIO_CAPS,
-        GET_VIDEO_CAPS,
         RELEASE_OUTPUT_BUFFER,
         SET_PARAMETER,
         DESTROY
