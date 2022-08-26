@@ -78,9 +78,9 @@ VDecMock::~VDecMock()
 {
 }
 
-bool VDecMock::CreateVideoDecMockByMine(const std::string &mime)
+bool VDecMock::CreateVideoDecMockByMime(const std::string &mime)
 {
-    videoDec_ = AVCodecMockFactory::CreateVideoDecMockByMine(mime);
+    videoDec_ = AVCodecMockFactory::CreateVideoDecMockByMime(mime);
     return videoDec_ != nullptr;
 }
 

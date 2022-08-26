@@ -35,7 +35,7 @@ protected:
     std::shared_ptr<ACodecMock> audioCodec_ = nullptr;
     std::shared_ptr<ADecCallbackTest> adecCallback_ = nullptr;
     std::shared_ptr<AEncCallbackTest> aencCallback_ = nullptr;
-    bool createByMineFlag_ = true;
+    bool createByMimeFlag_ = true;
     const ::testing::TestInfo *testInfo_ = nullptr;
     std::shared_ptr<FormatMock> defaultFormat_ = nullptr;
 };

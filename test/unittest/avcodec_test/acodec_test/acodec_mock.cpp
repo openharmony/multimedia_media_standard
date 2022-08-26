@@ -147,9 +147,9 @@ ACodecMock::~ACodecMock()
 {
 }
 
-bool ACodecMock::CreateAudioDecMockByMine(const std::string &mime)
+bool ACodecMock::CreateAudioDecMockByMime(const std::string &mime)
 {
-    audioDec_ = AVCodecMockFactory::CreateAudioDecMockByMine(mime);
+    audioDec_ = AVCodecMockFactory::CreateAudioDecMockByMime(mime);
     return audioDec_ != nullptr;
 }
 
@@ -439,9 +439,9 @@ void ACodecMock::InputFuncDec()
     }
 }
 
-bool ACodecMock::CreateAudioEncMockByMine(const std::string &mime)
+bool ACodecMock::CreateAudioEncMockByMime(const std::string &mime)
 {
-    audioEnc_ = AVCodecMockFactory::CreateAudioEncMockByMine(mime);
+    audioEnc_ = AVCodecMockFactory::CreateAudioEncMockByMime(mime);
     return audioEnc_ != nullptr;
 }
 
