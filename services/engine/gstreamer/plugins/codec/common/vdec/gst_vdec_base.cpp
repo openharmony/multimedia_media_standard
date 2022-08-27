@@ -968,8 +968,8 @@ static GstFlowReturn gst_vdec_base_push_input_buffer(GstVideoDecoder *decoder, G
     } else {
         gst_vdec_base_dump_input_buffer(self, buf);
         codec_ret = self->decoder->PushInputBuffer(buf);
-        gst_buffer_unref(buf);
     }
+    gst_buffer_unref(buf);
     GST_VIDEO_DECODER_STREAM_LOCK(self);
     GstFlowReturn ret = GST_FLOW_OK;
     switch (codec_ret) {
@@ -1292,6 +1292,10 @@ static gboolean gst_vdec_base_push_out_buffers(GstVdecBase *self)
             g_return_val_if_fail(buffer != nullptr, FALSE);
             // the buffer ref give to decoder
             codec_ret = self->decoder->PushOutputBuffer(buffer);
+            if (codec_ret == GST_CODEC_FLUSH) {
+                GST_INFO_OBJECT(self, "Input Buffer is Flush");
+                return FALSE;
+            }
             g_return_val_if_fail(gst_codec_return_is_ok(self, codec_ret, "push buffer", TRUE), FALSE);
             self->coding_outbuf_cnt++;
             params.flags = GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT;

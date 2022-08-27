@@ -33,6 +33,7 @@ config("media_engine_gst_avmeta_config") {
     "-Wfloat-equal",
     "-Wdate-time",
     "-Werror",
+    "-Wno-deprecated-declarations",
     "-Wextra",
     "-Wimplicit-fallthrough",
     "-Wsign-compare",

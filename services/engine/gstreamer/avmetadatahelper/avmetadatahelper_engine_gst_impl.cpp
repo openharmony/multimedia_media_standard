@@ -175,6 +175,27 @@ std::shared_ptr<AVSharedMemory> AVMetadataHelperEngineGstImpl::FetchFrameAtTime(
     return outFrames[0];
 }
 
+GValueArray *AVMetadataHelperEngineGstImpl::OnNotifyAutoPlugSort(GValueArray &factories)
+{
+    GValueArray *result = g_value_array_new(factories.n_values);
+
+    for (uint32_t i = 0; i < factories.n_values; i++) {
+        GstElementFactory *factory =
+            static_cast<GstElementFactory *>(g_value_get_object(g_value_array_get_nth(&factories, i)));
+        if (strstr(gst_element_factory_get_metadata(factory, GST_ELEMENT_METADATA_KLASS),
+            "Codec/Decoder/Video/Hardware")) {
+            MEDIA_LOGD("set remove hardware codec plugins from pipeline");
+            continue;
+        }
+        GValue val = G_VALUE_INIT;
+        g_value_init(&val, G_TYPE_OBJECT);
+        g_value_set_object(&val, factory);
+        result = g_value_array_append(result, &val);
+        g_value_unset(&val);
+    }
+    return result;
+}
+
 int32_t AVMetadataHelperEngineGstImpl::SetSourceInternel(const std::string &uri, int32_t usage)
 {
     Reset();
@@ -198,6 +219,13 @@ int32_t AVMetadataHelperEngineGstImpl::SetSourceInternel(const std::string &uri,
     metaCollector_ = std::make_unique<AVMetaMetaCollector>();
     auto listener = std::bind(&AVMetadataHelperEngineGstImpl::OnNotifyElemSetup, this, std::placeholders::_1);
     playBinCtrler_->SetElemSetupListener(listener);
+
+    listener = std::bind(&AVMetadataHelperEngineGstImpl::OnNotifyElemSetup, this, std::placeholders::_1);
+    playBinCtrler_->SetElemSetupListener(listener);
+
+    auto autoPlugSortListener =
+        std::bind(&AVMetadataHelperEngineGstImpl::OnNotifyAutoPlugSort, this, std::placeholders::_1);
+    playBinCtrler_->SetAutoPlugSortListener(autoPlugSortListener);
 
     if (usage == AVMetadataUsage::AV_META_USAGE_PIXEL_MAP) {
         auto vidSink = sinkProvider_->CreateVideoSink();
@@ -326,6 +354,7 @@ void AVMetadataHelperEngineGstImpl::Reset()
 
     if (playBinCtrler_ != nullptr) {
         playBinCtrler_->SetElemSetupListener(nullptr);
+        playBinCtrler_->SetAutoPlugSortListener(nullptr);
 
         auto tmp = playBinCtrler_;
         playBinCtrler_ = nullptr;
