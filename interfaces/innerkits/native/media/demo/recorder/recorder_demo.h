@@ -38,7 +38,7 @@ struct VideoRecorderConfig {
     int32_t videoEncodingBitRate = 48000;
     int32_t sampleRate = 48000;
     double captureFps = 30;
-    std::string outPath = SAVE_PATH;
+    int32_t outputFd = 0;
     AudioCodecFormat audioFormat = AAC_LC;
     AudioSourceType aSource = AUDIO_MIC;
     OutputFormatType outPutFormat = FORMAT_MPEG_4;
@@ -51,7 +51,6 @@ struct AudioRecorderConfig {
     int32_t audioEncodingBitRate = 48000;
     int32_t channelCount = 2;
     int32_t duration = 60;
-    std::string outPath = SAVE_PATH;
     int32_t sampleRate = 48000;
     AudioCodecFormat audioFormat = AAC_LC;
     AudioSourceType inputSource = AUDIO_MIC;

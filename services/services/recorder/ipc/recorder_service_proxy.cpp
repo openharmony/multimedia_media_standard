@@ -382,26 +382,6 @@ int32_t RecorderServiceProxy::SetOutputFormat(OutputFormatType format)
     return reply.ReadInt32();
 }
 
-int32_t RecorderServiceProxy::SetOutputPath(const std::string &path)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    if (!data.WriteInterfaceToken(RecorderServiceProxy::GetDescriptor())) {
-        MEDIA_LOGE("Failed to write descriptor");
-        return MSERR_UNKNOWN;
-    }
-
-    data.WriteString(path);
-    int error = Remote()->SendRequest(SET_OUTPUT_PATH, data, reply, option);
-    if (error != MSERR_OK) {
-        MEDIA_LOGE("Set output path failed, error: %{public}d", error);
-        return error;
-    }
-    return reply.ReadInt32();
-}
-
 int32_t RecorderServiceProxy::SetOutputFile(int32_t fd)
 {
     MessageParcel data;

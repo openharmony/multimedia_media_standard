@@ -339,7 +339,7 @@ int32_t RecorderDemo::SetFormat(const std::string &recorderType) const
 
     ret = recorder_->SetMaxDuration(g_videoRecorderConfig.duration);
     DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetMaxDuration failed ");
-    ret = recorder_->SetOutputPath(g_videoRecorderConfig.outPath);
+    ret = recorder_->SetOutputFile(g_videoRecorderConfig.outputFd);
     DEMO_CHECK_AND_RETURN_RET_LOG(ret == MSERR_OK, MSERR_INVALID_OPERATION, "SetOutputPath failed ");
     std::shared_ptr<RecorderCallbackDemo> cb = std::make_shared<RecorderCallbackDemo>();
     ret = recorder_->SetRecorderCallback(cb);
@@ -347,6 +347,14 @@ int32_t RecorderDemo::SetFormat(const std::string &recorderType) const
 
     cout << "set format finished" << endl;
     return MSERR_OK;
+}
+
+void RecorderDemo::GetFileFd()
+{
+    g_videoRecorderConfig.outputFd = open("/data/media/1.mp4", O_RDWR);
+    if (g_videoRecorderConfig.outputFd <= 0) {
+        cout << "open fd failed" << endl;
+    }
 }
 
 void RecorderDemo::SetVideoSource()
@@ -412,6 +420,7 @@ void RecorderDemo::RunCase()
 
     SetVideoSource();
     SetVideoEncodeMode();
+    GetFileFd();
 
     int32_t ret = SetFormat(recorderType);
     DEMO_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "SetFormat failed ");
@@ -451,4 +460,8 @@ void RecorderDemo::RunCase()
     DEMO_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "Reset failed ");
     ret = recorder_->Release();
     DEMO_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "Release failed ");
+
+    if (g_videoRecorderConfig.outputFd > 0) {
+        close(g_videoRecorderConfig.outputFd);
+    }
 }
