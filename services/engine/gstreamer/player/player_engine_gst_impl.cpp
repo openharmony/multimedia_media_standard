@@ -486,6 +486,7 @@ void PlayerEngineGstImpl::PlayBinCtrlerDeInit()
     if (playBinCtrler_ != nullptr) {
         playBinCtrler_->SetElemSetupListener(nullptr);
         playBinCtrler_->SetElemUnSetupListener(nullptr);
+        playBinCtrler_->SetAutoPlugSortListener(nullptr);
         playBinCtrler_ = nullptr;
     }
 
@@ -532,6 +533,9 @@ int32_t PlayerEngineGstImpl::PlayBinCtrlerPrepare()
 
     auto unSetupListener = std::bind(&PlayerEngineGstImpl::OnNotifyElemUnSetup, this, std::placeholders::_1);
     playBinCtrler_->SetElemUnSetupListener(unSetupListener);
+
+    auto autoPlugSortListener = std::bind(&PlayerEngineGstImpl::OnNotifyAutoPlugSort, this, std::placeholders::_1);
+    playBinCtrler_->SetAutoPlugSortListener(autoPlugSortListener);
 
     {
         std::unique_lock<std::mutex> lk(trackParseMutex_);
@@ -797,6 +801,26 @@ int32_t PlayerEngineGstImpl::SetAudioInterruptMode(const int32_t interruptMode)
         playBinCtrler_->SetAudioInterruptMode(interruptMode);
     }
     return MSERR_OK;
+}
+
+GValueArray *PlayerEngineGstImpl::OnNotifyAutoPlugSort(GValueArray &factories)
+{
+    if (isPlaySinkFlagsSet_) {
+        return nullptr;
+    }
+
+    for (uint32_t i = 0; i < factories.n_values; i++) {
+        GstElementFactory *factory =
+            static_cast<GstElementFactory *>(g_value_get_object(g_value_array_get_nth(&factories, i)));
+        if (strstr(gst_element_factory_get_metadata(factory, GST_ELEMENT_METADATA_KLASS),
+            "Codec/Decoder/Video/Hardware")) {
+            MEDIA_LOGD("set remove GstPlaySinkVideoConvert plugins from pipeline");
+            playBinCtrler_->RemoveGstPlaySinkVideoConvertPlugin();
+            isPlaySinkFlagsSet_ = true;
+            break;
+        }
+    }
+    return nullptr;
 }
 
 void PlayerEngineGstImpl::OnNotifyElemSetup(GstElement &elem)

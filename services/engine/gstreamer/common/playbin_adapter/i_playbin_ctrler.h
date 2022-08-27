@@ -73,8 +73,11 @@ public:
     virtual void SetAudioInterruptMode(const int32_t interruptMode) = 0;
     virtual int32_t SetAudioRendererInfo(const uint32_t rendererInfo, const int32_t rendererFlag) = 0;
     using ElemSetupListener = std::function<void(GstElement &elem)>;
+    using AutoPlugSortListener = std::function<GValueArray *(GValueArray &factories)>;
     virtual void SetElemSetupListener(ElemSetupListener listener) = 0;
     virtual void SetElemUnSetupListener(ElemSetupListener listener) = 0;
+    virtual void SetAutoPlugSortListener(AutoPlugSortListener listener) = 0;
+    virtual void RemoveGstPlaySinkVideoConvertPlugin() = 0;
 };
 } // namespace Media
 } // namespace OHOS
