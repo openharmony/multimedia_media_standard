@@ -74,6 +74,7 @@ public:
 private:
     void SetVideoSource();
     void SetVideoEncodeMode();
+    void GetFileFd();
     int64_t pts_ = 0;
     int32_t isKeyFrame_ = 1;
     OHOS::sptr<OHOS::Surface> producerSurface_ = nullptr;
