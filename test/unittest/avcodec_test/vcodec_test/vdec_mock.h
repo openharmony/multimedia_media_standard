@@ -58,7 +58,7 @@ class VDecMock : public NoCopyable {
 public:
     explicit VDecMock(std::shared_ptr<VDecSignal> signal);
     virtual ~VDecMock();
-    bool CreateVideoDecMockByMine(const std::string &mime);
+    bool CreateVideoDecMockByMime(const std::string &mime);
     bool CreateVideoDecMockByName(const std::string &name);
     int32_t SetCallback(std::shared_ptr<AVCodecCallbackMock> cb);
     int32_t SetOutputSurface(std::shared_ptr<SurfaceMock> surface);

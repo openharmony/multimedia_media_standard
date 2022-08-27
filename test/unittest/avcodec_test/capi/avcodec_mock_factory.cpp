@@ -14,123 +14,96 @@
  */
 
 #include "avcodec_mock.h"
-#include "avcodec_list_native_mock.h"
-#include "enum_native_mock.h"
-#include "avcodec_info_native_mock.h"
-#include "avformat_native_mock.h"
-#include "avmemory_native_mock.h"
-#include "surface_native_mock.h"
-#include "audiodec_native_mock.h"
-#include "audioenc_native_mock.h"
-#include "videodec_native_mock.h"
-#include "videoenc_native_mock.h"
+#include "avformat_capi_mock.h"
+#include "avmemory_capi_mock.h"
+#include "surface_capi_mock.h"
+#include "audiodec_capi_mock.h"
+#include "audioenc_capi_mock.h"
+#include "videodec_capi_mock.h"
+#include "videoenc_capi_mock.h"
 
 namespace OHOS {
 namespace Media {
 std::shared_ptr<VideoDecMock> AVCodecMockFactory::CreateVideoDecMockByMime(const std::string &mime)
 {
-    auto videoDec = VideoDecoderFactory::CreateByMime(mime);
+    OH_AVCodec *videoDec = OH_VideoDecoder_CreateByMime(mime.c_str());
     if (videoDec != nullptr) {
-        return std::make_shared<VideoDecNativeMock>(videoDec);
+        return std::make_shared<VideoDecCapiMock>(videoDec);
     }
     return nullptr;
 }
 
 std::shared_ptr<VideoDecMock> AVCodecMockFactory::CreateVideoDecMockByName(const std::string &name)
 {
-    auto videoDec = VideoDecoderFactory::CreateByName(name);
+    OH_AVCodec *videoDec = OH_VideoDecoder_CreateByName(name.c_str());
     if (videoDec != nullptr) {
-        return std::make_shared<VideoDecNativeMock>(videoDec);
+        return std::make_shared<VideoDecCapiMock>(videoDec);
     }
     return nullptr;
 }
 
 std::shared_ptr<VideoEncMock> AVCodecMockFactory::CreateVideoEncMockByMime(const std::string &mime)
 {
-    auto videoEnc = VideoEncoderFactory::CreateByMime(mime);
+    OH_AVCodec *videoEnc = OH_VideoEncoder_CreateByMime(mime.c_str());
     if (videoEnc != nullptr) {
-        return std::make_shared<VideoEncNativeMock>(videoEnc);
+        return std::make_shared<VideoEncCapiMock>(videoEnc);
     }
     return nullptr;
 }
 
 std::shared_ptr<VideoEncMock> AVCodecMockFactory::CreateVideoEncMockByName(const std::string &name)
 {
-    auto videoEnc = VideoEncoderFactory::CreateByName(name);
+    OH_AVCodec *videoEnc = OH_VideoEncoder_CreateByName(name.c_str());
     if (videoEnc != nullptr) {
-        return std::make_shared<VideoEncNativeMock>(videoEnc);
+        return std::make_shared<VideoEncCapiMock>(videoEnc);
     }
     return nullptr;
 }
 
 std::shared_ptr<AudioDecMock> AVCodecMockFactory::CreateAudioDecMockByMime(const std::string &mime)
 {
-    auto audioDec = AudioDecoderFactory::CreateByMime(mime);
+    OH_AVCodec *audioDec = OH_AudioDecoder_CreateByMime(mime.c_str());
     if (audioDec != nullptr) {
-        return std::make_shared<AudioDecNativeMock>(audioDec);
+        return std::make_shared<AudioDecCapiMock>(audioDec);
     }
     return nullptr;
 }
 
 std::shared_ptr<AudioDecMock> AVCodecMockFactory::CreateAudioDecMockByName(const std::string &name)
 {
-    auto audioDec = AudioDecoderFactory::CreateByName(name);
+    OH_AVCodec *audioDec = OH_AudioDecoder_CreateByName(name.c_str());
     if (audioDec != nullptr) {
-        return std::make_shared<AudioDecNativeMock>(audioDec);
+        return std::make_shared<AudioDecCapiMock>(audioDec);
     }
     return nullptr;
 }
 
 std::shared_ptr<AudioEncMock> AVCodecMockFactory::CreateAudioEncMockByMime(const std::string &mime)
 {
-    auto audioEnc = AudioEncoderFactory::CreateByMime(mime);
+    OH_AVCodec *audioEnc = OH_AudioEncoder_CreateByMime(mime.c_str());
     if (audioEnc != nullptr) {
-        return std::make_shared<AudioEncNativeMock>(audioEnc);
+        return std::make_shared<AudioEncCapiMock>(audioEnc);
     }
     return nullptr;
 }
 
 std::shared_ptr<AudioEncMock> AVCodecMockFactory::CreateAudioEncMockByName(const std::string &name)
 {
-    auto audioEnc = AudioEncoderFactory::CreateByName(name);
+    OH_AVCodec *audioEnc = OH_AudioEncoder_CreateByName(name.c_str());
     if (audioEnc != nullptr) {
-        return std::make_shared<AudioEncNativeMock>(audioEnc);
+        return std::make_shared<AudioEncCapiMock>(audioEnc);
     }
     return nullptr;
 }
 
 std::shared_ptr<FormatMock> AVCodecMockFactory::CreateFormat()
 {
-    return std::make_shared<AVFormatNativeMock>();
+    return std::make_shared<AVFormatCapiMock>();
 }
 
 std::shared_ptr<SurfaceMock> AVCodecMockFactory::CreateSurface()
 {
-    return std::make_shared<SurfaceNativeMock>();
-}
-
-std::shared_ptr<AVCodecInfoMock> AVCodecMockFactory::CreateAVCodecInfo()
-{
-    return std::make_shared<AVCodecInfoNativeMock>();
-}
-
-std::shared_ptr<VideoCapsMock> AVCodecMockFactory::CreateVideoCaps()
-{
-    return std::make_shared<VideoCapsNativeMock>();
-}
-
-std::shared_ptr<AVCodecListMock> AVCodecMockFactory::CreateAVCodecList()
-{
-    auto avCodecList = AVCodecListFactory::CreateAVCodecList();
-    if (avCodecList != nullptr) {
-        return std::make_shared<AVCodecListNativeMock>(avCodecList);
-    }
-    return nullptr;
-}
-
-std::shared_ptr<EnumMock> AVCodecMockFactory::CreateEnum()
-{
-    return std::make_shared<EnumNativeMock>();
+    return std::make_shared<SurfaceCapiMock>();
 }
 }
 }
