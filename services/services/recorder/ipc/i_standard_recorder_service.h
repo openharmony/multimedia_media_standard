@@ -43,7 +43,6 @@ public:
     virtual int32_t SetDataSource(DataSourceType dataType, int32_t &sourceId) = 0;
     virtual int32_t SetMaxDuration(int32_t duration) = 0;
     virtual int32_t SetOutputFormat(OutputFormatType format) = 0;
-    virtual int32_t SetOutputPath(const std::string &path) = 0;
     virtual int32_t SetOutputFile(int32_t fd) = 0;
     virtual int32_t SetNextOutputFile(int32_t fd) = 0;
     virtual int32_t SetMaxFileSize(int64_t size) = 0;
@@ -78,7 +77,6 @@ public:
         SET_DATA_SOURCE,
         SET_MAX_DURATION,
         SET_OUTPUT_FORMAT,
-        SET_OUTPUT_PATH,
         SET_OUTPUT_FILE,
         SET_NEXT_OUTPUT_FILE,
         SET_MAX_FILE_SIZE,

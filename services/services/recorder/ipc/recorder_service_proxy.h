@@ -42,7 +42,6 @@ public:
     int32_t SetDataSource(DataSourceType dataType, int32_t &sourceId) override;
     int32_t SetMaxDuration(int32_t duration) override;
     int32_t SetOutputFormat(OutputFormatType format) override;
-    int32_t SetOutputPath(const std::string &path) override;
     int32_t SetOutputFile(int32_t fd) override;
     int32_t SetNextOutputFile(int32_t fd) override;
     int32_t SetMaxFileSize(int64_t size) override;
