@@ -1327,7 +1327,7 @@ static std::string GetJSState(PlayerStates currentState)
             break;
         default:
             // Considering default state as stopped
-            MEDIA_LOGE("Unknown state!, %{public}d", currentState);
+            MEDIA_LOGE("Error state! %{public}d", currentState);
             result = VideoPlayState::STATE_ERROR;
             break;
     }

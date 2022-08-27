@@ -22,6 +22,7 @@
 #include "media_errors.h"
 #include "media_parcel.h"
 #include "parameter.h"
+#include "media_dfx.h"
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayerServiceStub"};
@@ -145,6 +146,7 @@ int32_t PlayerServiceStub::SetListenerObject(const sptr<IRemoteObject> &object)
 
 int32_t PlayerServiceStub::SetSource(const std::string &url)
 {
+    MediaTrace Trace("binder::SetSource(url)");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->SetSource(url);
 }
@@ -165,120 +167,140 @@ int32_t PlayerServiceStub::SetSource(const sptr<IRemoteObject> &object)
 
 int32_t PlayerServiceStub::SetSource(int32_t fd, int64_t offset, int64_t size)
 {
+    MediaTrace Trace("binder::SetSource(fd)");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->SetSource(fd, offset, size);
 }
 
 int32_t PlayerServiceStub::Play()
 {
+    MediaTrace Trace("binder::Play");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->Play();
 }
 
 int32_t PlayerServiceStub::Prepare()
 {
+    MediaTrace Trace("binder::Prepare");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->Prepare();
 }
 
 int32_t PlayerServiceStub::PrepareAsync()
 {
+    MediaTrace Trace("binder::PrepareAsync");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->PrepareAsync();
 }
 
 int32_t PlayerServiceStub::Pause()
 {
+    MediaTrace Trace("binder::Pause");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->Pause();
 }
 
 int32_t PlayerServiceStub::Stop()
 {
+    MediaTrace Trace("binder::Stop");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->Stop();
 }
 
 int32_t PlayerServiceStub::Reset()
 {
+    MediaTrace Trace("binder::Reset");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->Reset();
 }
 
 int32_t PlayerServiceStub::Release()
 {
+    MediaTrace Trace("binder::Release");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->Release();
 }
 
 int32_t PlayerServiceStub::SetVolume(float leftVolume, float rightVolume)
 {
+    MediaTrace Trace("binder::SetVolume");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->SetVolume(leftVolume, rightVolume);
 }
 
 int32_t PlayerServiceStub::Seek(int32_t mSeconds, PlayerSeekMode mode)
 {
+    MediaTrace Trace("binder::Seek");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->Seek(mSeconds, mode);
 }
 
 int32_t PlayerServiceStub::GetCurrentTime(int32_t &currentTime)
 {
+    MediaTrace Trace("binder::GetCurrentTime");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->GetCurrentTime(currentTime);
 }
 
 int32_t PlayerServiceStub::GetVideoTrackInfo(std::vector<Format> &videoTrack)
 {
+    MediaTrace Trace("binder::GetVideoTrackInfo");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->GetVideoTrackInfo(videoTrack);
 }
 
 int32_t PlayerServiceStub::GetAudioTrackInfo(std::vector<Format> &audioTrack)
 {
+    MediaTrace Trace("binder::GetAudioTrackInfo");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->GetAudioTrackInfo(audioTrack);
 }
 
 int32_t PlayerServiceStub::GetVideoWidth()
 {
+    MediaTrace Trace("binder::GetVideoWidth");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->GetVideoWidth();
 }
 
 int32_t PlayerServiceStub::GetVideoHeight()
 {
+    MediaTrace Trace("binder::GetVideoHeight");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->GetVideoHeight();
 }
 
 int32_t PlayerServiceStub::GetDuration(int32_t &duration)
 {
+    MediaTrace Trace("binder::GetDuration");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->GetDuration(duration);
 }
 
 int32_t PlayerServiceStub::SetPlaybackSpeed(PlaybackRateMode mode)
 {
+    MediaTrace Trace("binder::SetPlaybackSpeed");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->SetPlaybackSpeed(mode);
 }
 
 int32_t PlayerServiceStub::GetPlaybackSpeed(PlaybackRateMode &mode)
 {
+    MediaTrace Trace("binder::GetPlaybackSpeed");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->GetPlaybackSpeed(mode);
 }
 
 int32_t PlayerServiceStub::SelectBitRate(uint32_t bitRate)
 {
+    MediaTrace Trace("binder::SelectBitRate");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->SelectBitRate(bitRate);
 }
 
 int32_t PlayerServiceStub::SetVideoSurface(sptr<Surface> surface)
 {
+    MediaTrace Trace("binder::SetVideoSurface");
     MEDIA_LOGD("SetVideoSurface");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->SetVideoSurface(surface);
@@ -286,30 +308,35 @@ int32_t PlayerServiceStub::SetVideoSurface(sptr<Surface> surface)
 
 bool PlayerServiceStub::IsPlaying()
 {
+    MediaTrace Trace("binder::IsPlaying");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, false, "player server is nullptr");
     return playerServer_->IsPlaying();
 }
 
 bool PlayerServiceStub::IsLooping()
 {
+    MediaTrace Trace("binder::IsLooping");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, false, "player server is nullptr");
     return playerServer_->IsLooping();
 }
 
 int32_t PlayerServiceStub::SetLooping(bool loop)
 {
+    MediaTrace Trace("binder::SetLooping");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->SetLooping(loop);
 }
 
 int32_t PlayerServiceStub::SetParameter(const Format &param)
 {
+    MediaTrace Trace("binder::SetParameter");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->SetParameter(param);
 }
 
 int32_t PlayerServiceStub::SetPlayerCallback()
 {
+    MediaTrace Trace("binder::SetPlayerCallback");
     MEDIA_LOGD("SetPlayerCallback");
     CHECK_AND_RETURN_RET_LOG(playerServer_ != nullptr, MSERR_NO_MEMORY, "player server is nullptr");
     return playerServer_->SetPlayerCallback(playerCallback_);

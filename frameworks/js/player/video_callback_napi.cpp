@@ -108,6 +108,10 @@ void VideoCallbackNapi::OnInfo(PlayerOnInfoType type, int32_t extra, const Forma
 
 void VideoCallbackNapi::OnError(PlayerErrorType errType, int32_t errCode)
 {
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        currentState_ = PLAYER_STATE_ERROR;
+    }
     ClearAsyncWork(true, "The request was aborted because en error occurred, please check event(error)");
     return PlayerCallbackNapi::OnError(errType, errCode);
 }
