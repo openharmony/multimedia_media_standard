@@ -69,9 +69,9 @@ VEncMock::~VEncMock()
 {
 }
 
-bool VEncMock::CreateVideoEncMockByMine(const std::string &mime)
+bool VEncMock::CreateVideoEncMockByMime(const std::string &mime)
 {
-    videoEnc_ = AVCodecMockFactory::CreateVideoEncMockByMine(mime);
+    videoEnc_ = AVCodecMockFactory::CreateVideoEncMockByMime(mime);
     return videoEnc_ != nullptr;
 }
 
@@ -257,9 +257,8 @@ void VEncMock::OutLoopFunc()
             }
             fclose(outFile);
         }
-
-        if (videoEnc_->FreeOutputData(index) != MSERR_OK) {
-            cout << "Fatal: ReleaseOutputBuffer fail, exit" << endl;
+        if (index != EOS_INDEX && videoEnc_->FreeOutputData(index) != MSERR_OK) {
+            cout << "Fatal: FreeOutputData fail, exit" << endl;
             break;
         }
         signal_->outIndexQueue_.pop();

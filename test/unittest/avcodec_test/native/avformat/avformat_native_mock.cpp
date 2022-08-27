@@ -37,6 +37,11 @@ bool AVFormatNativeMock::GetStringValue(const std::string_view &key, std::string
     return format_.GetStringValue(key, value);
 }
 
+void AVFormatNativeMock::Destroy()
+{
+    return;
+}
+
 Format &AVFormatNativeMock::GetFormat()
 {
     return format_;

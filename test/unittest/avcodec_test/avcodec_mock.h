@@ -47,6 +47,7 @@ public:
     virtual bool GetIntValue(const std::string_view &key, int32_t &value) = 0;
     virtual bool PutStringValue(const std::string_view &key, const std::string_view &value) = 0;
     virtual bool GetStringValue(const std::string_view &key, std::string &value) = 0;
+    virtual void Destroy() = 0;
 };
 
 class AVMemoryMock : public NoCopyable {
@@ -207,13 +208,13 @@ public:
 
 class __attribute__((visibility("default"))) AVCodecMockFactory {
 public:
-    static std::shared_ptr<VideoDecMock> CreateVideoDecMockByMine(const std::string &mime);
+    static std::shared_ptr<VideoDecMock> CreateVideoDecMockByMime(const std::string &mime);
     static std::shared_ptr<VideoDecMock> CreateVideoDecMockByName(const std::string &name);
-    static std::shared_ptr<VideoEncMock> CreateVideoEncMockByMine(const std::string &mime);
+    static std::shared_ptr<VideoEncMock> CreateVideoEncMockByMime(const std::string &mime);
     static std::shared_ptr<VideoEncMock> CreateVideoEncMockByName(const std::string &name);
-    static std::shared_ptr<AudioDecMock> CreateAudioDecMockByMine(const std::string &mime);
+    static std::shared_ptr<AudioDecMock> CreateAudioDecMockByMime(const std::string &mime);
     static std::shared_ptr<AudioDecMock> CreateAudioDecMockByName(const std::string &name);
-    static std::shared_ptr<AudioEncMock> CreateAudioEncMockByMine(const std::string &mime);
+    static std::shared_ptr<AudioEncMock> CreateAudioEncMockByMime(const std::string &mime);
     static std::shared_ptr<AudioEncMock> CreateAudioEncMockByName(const std::string &name);
     static std::shared_ptr<FormatMock> CreateFormat();
     static std::shared_ptr<SurfaceMock> CreateSurface();

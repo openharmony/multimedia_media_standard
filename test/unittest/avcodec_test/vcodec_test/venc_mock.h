@@ -54,7 +54,7 @@ class VEncMock : public NoCopyable {
 public:
     explicit VEncMock(std::shared_ptr<VEncSignal> signal);
     virtual ~VEncMock();
-    bool CreateVideoEncMockByMine(const std::string &mime);
+    bool CreateVideoEncMockByMime(const std::string &mime);
     bool CreateVideoEncMockByName(const std::string &name);
     int32_t SetCallback(std::shared_ptr<AVCodecCallbackMock> cb);
     std::shared_ptr<SurfaceMock> GetInputSurface();

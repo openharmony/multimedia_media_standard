@@ -34,8 +34,8 @@ void ACodecUnitTest::SetUp(void)
     ASSERT_NE(nullptr, adecCallback_);
     audioCodec_ = std::make_shared<ACodecMock>(acodecSignal);
     ASSERT_NE(nullptr, audioCodec_);
-    if (createByMineFlag_) {
-        ASSERT_TRUE(audioCodec_->CreateAudioDecMockByMine("audio/mp4a-latm"));
+    if (createByMimeFlag_) {
+        ASSERT_TRUE(audioCodec_->CreateAudioDecMockByMime("audio/mp4a-latm"));
     } else {
         ASSERT_TRUE(audioCodec_->CreateAudioDecMockByName("avdec_aac"));
     }
@@ -43,8 +43,8 @@ void ACodecUnitTest::SetUp(void)
 
     aencCallback_ = std::make_shared<AEncCallbackTest>(acodecSignal);
     ASSERT_NE(nullptr, aencCallback_);
-    if (createByMineFlag_) {
-        ASSERT_TRUE(audioCodec_->CreateAudioEncMockByMine("audio/mp4a-latm"));
+    if (createByMimeFlag_) {
+        ASSERT_TRUE(audioCodec_->CreateAudioEncMockByMime("audio/mp4a-latm"));
     } else {
         ASSERT_TRUE(audioCodec_->CreateAudioEncMockByName("avenc_aac"));
     }
@@ -68,6 +68,9 @@ void ACodecUnitTest::TearDown(void)
     if (audioCodec_ != nullptr) {
         EXPECT_EQ(MSERR_OK, audioCodec_->ReleaseDec());
         EXPECT_EQ(MSERR_OK, audioCodec_->ReleaseEnc());
+    }
+    if (defaultFormat_ != nullptr) {
+        defaultFormat_->Destroy();
     }
 }
 

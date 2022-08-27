@@ -78,9 +78,9 @@ VDecMock::~VDecMock()
 {
 }
 
-bool VDecMock::CreateVideoDecMockByMine(const std::string &mime)
+bool VDecMock::CreateVideoDecMockByMime(const std::string &mime)
 {
-    videoDec_ = AVCodecMockFactory::CreateVideoDecMockByMine(mime);
+    videoDec_ = AVCodecMockFactory::CreateVideoDecMockByMime(mime);
     return videoDec_ != nullptr;
 }
 
@@ -336,7 +336,7 @@ void VDecMock::OutLoopFunc()
             break;
         }
         uint32_t index = signal_->outIndexQueue_.front();
-        if (videoDec_->RenderOutputData(index) != MSERR_OK) {
+        if (index != EOS_INDEX && videoDec_->RenderOutputData(index) != MSERR_OK) {
             cout << "Fatal: ReleaseOutputBuffer fail index" << index << endl;
             break;
         }
