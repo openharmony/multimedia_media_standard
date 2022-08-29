@@ -134,9 +134,6 @@ namespace RecorderTestParam {
     };
 } // namespace RecorderTestParam
 namespace VCodecTestParam {
-
-
-
 constexpr uint32_t DEFAULT_WIDTH = 320;
 constexpr uint32_t DEFAULT_HEIGHT = 240;
 constexpr uint32_t DEFAULT_FRAME_RATE = 60;
