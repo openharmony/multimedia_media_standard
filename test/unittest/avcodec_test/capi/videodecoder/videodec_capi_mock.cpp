@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include <iostream>
 #include "videodec_capi_mock.h"
+#include <iostream>
 #include "avformat_capi_mock.h"
 #include "avmemory_capi_mock.h"
 #include "surface_capi_mock.h"
