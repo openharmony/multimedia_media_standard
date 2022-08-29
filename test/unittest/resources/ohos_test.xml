@@ -46,10 +46,24 @@
     <target name="vcodec_native_unit_test">
         <preparer>
             <option name="push" value="res_codec/out_320_240_10s.h264 -> /data/test/media" src="res"/>
+            <option name="push" value="res_codec/hevc_320x240_60.h265 -> /data/test/media" src="res"/>
             <option name="shell" value="restorecon /data/test/media"/>
         </preparer>
     </target>
     <target name="acodec_native_unit_test">
+        <preparer>
+            <option name="push" value="res_codec/AAC_48000_32_1.aac -> /data/test/media" src="res"/>
+            <option name="shell" value="restorecon /data/test/media"/>
+        </preparer>
+    </target>
+    <target name="vcodec_capi_unit_test">
+        <preparer>
+            <option name="push" value="res_codec/out_320_240_10s.h264 -> /data/test/media" src="res"/>
+            <option name="push" value="res_codec/hevc_320x240_60.h265 -> /data/test/media" src="res"/>
+            <option name="shell" value="restorecon /data/test/media"/>
+        </preparer>
+    </target>
+    <target name="acodec_capi_unit_test">
         <preparer>
             <option name="push" value="res_codec/AAC_48000_32_1.aac -> /data/test/media" src="res"/>
             <option name="shell" value="restorecon /data/test/media"/>

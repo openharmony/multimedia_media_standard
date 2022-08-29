@@ -31,13 +31,14 @@ public:
     void SetUp(void);
     // TearDown: Called after each test cases
     void TearDown(void);
-
+    bool CreateVideoCodecByName(const std::string &decName, const std::string &encName);
 protected:
     std::shared_ptr<VDecMock> videoDec_ = nullptr;
     std::shared_ptr<VDecCallbackTest> vdecCallback_ = nullptr;
     std::shared_ptr<VEncMock> videoEnc_ = nullptr;
     std::shared_ptr<VEncCallbackTest> vencCallback_ = nullptr;
     const ::testing::TestInfo *testInfo_ = nullptr;
+    bool createCodecSuccess_ = false;
 };
 } // namespace Media
 } // namespace OHOS

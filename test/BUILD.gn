@@ -17,11 +17,13 @@ group("media_unit_test") {
   testonly = true
 
   deps = [
+    "unittest/avcodec_test:acodec_capi_unit_test",
+    "unittest/avcodec_test:vcodec_capi_unit_test",
     "unittest/avcodec_test:acodec_native_unit_test",
-    "unittest/avcodec_test:avcodec_list_native_unit_test",
+    #"unittest/avcodec_test:avcodec_list_native_unit_test",
     "unittest/avcodec_test:vcodec_native_unit_test",
-    "unittest/avmetadata_test:avmetadata_unit_test",
-    "unittest/player_test:player_unit_test",
-    "unittest/recorder_test:recorder_unit_test",
+    #"unittest/avmetadata_test:avmetadata_unit_test",
+    #"unittest/player_test:player_unit_test",
+    #"unittest/recorder_test:recorder_unit_test",
   ]
 }
