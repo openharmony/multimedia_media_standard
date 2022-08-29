@@ -114,7 +114,6 @@ HWTEST_F(VCodecUnitTest, video_codec_creat_0100, TestSize.Level0)
  */
 HWTEST_F(VCodecUnitTest, video_codec_Configure_0100, TestSize.Level0)
 {
-    //ASSERT_TRUE(CreateVideoCodecByMime("video/avc", "video/avc"));
     std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
     ASSERT_NE(nullptr, format);
     string width = "width";
