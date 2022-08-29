@@ -77,7 +77,6 @@ public:
         SET_DATA_SOURCE,
         SET_MAX_DURATION,
         SET_OUTPUT_FORMAT,
-        SET_OUTPUT_PATH,
         SET_OUTPUT_FILE,
         SET_NEXT_OUTPUT_FILE,
         SET_MAX_FILE_SIZE,
