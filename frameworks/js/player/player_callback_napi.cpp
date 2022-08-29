@@ -79,10 +79,6 @@ PlayerStates PlayerCallbackNapi::GetCurrentState() const
 void PlayerCallbackNapi::OnError(PlayerErrorType errorType, int32_t errorCode)
 {
     MEDIA_LOGD("OnError is called, name: %{public}d, message: %{public}d", errorType, errorCode);
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        currentState_ = PLAYER_STATE_ERROR;
-    }
     MediaServiceExtErrCode err = MSErrorToExtError(static_cast<MediaServiceErrCode>(errorCode));
     std::string errMsg = MSErrorToString(static_cast<MediaServiceErrCode>(errorCode));
     return SendErrorCallback(err, errMsg);
