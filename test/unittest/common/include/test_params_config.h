@@ -134,6 +134,9 @@ namespace RecorderTestParam {
     };
 } // namespace RecorderTestParam
 namespace VCodecTestParam {
+
+
+
 constexpr uint32_t DEFAULT_WIDTH = 320;
 constexpr uint32_t DEFAULT_HEIGHT = 240;
 constexpr uint32_t DEFAULT_FRAME_RATE = 60;
@@ -141,7 +144,7 @@ constexpr uint32_t FRAME_DURATION_US = 16670;
 constexpr uint32_t EOS_INDEX = 1000;
 const std::string MIME_TYPE = "video/mp4v-es";
 constexpr bool NEED_DUMP = true;
-const uint32_t ES[] = { // H264_FRAME_SIZE_240
+const uint32_t ES_H264[] = { // H264_FRAME_SIZE_240
     2106, 11465, 321, 72, 472, 68, 76, 79, 509, 90, 677, 88, 956, 99, 347, 77, 452, 681, 81, 1263, 94, 106, 97,
     998, 97, 797, 93, 1343, 150, 116, 117, 926, 1198, 128, 110, 78, 1582, 158, 135, 112, 1588, 165, 132,
     128, 1697, 168, 149, 117, 1938, 170, 141, 142, 1830, 106, 161, 122, 1623, 160, 154, 156, 1998, 230,
@@ -173,7 +176,13 @@ const uint32_t ES[] = { // H264_FRAME_SIZE_240
     295, 213, 170, 3568, 305, 198, 166, 3641, 297, 172, 148, 3608, 301, 200, 159, 3693, 322, 209, 166, 3453,
     318, 206, 162, 3696, 341, 200, 176, 3386, 320, 192, 176, 3903, 373, 207, 187, 3305, 361, 200, 202, 3110,
     367, 220, 197, 2357, 332, 196, 201, 1827, 377, 187, 199, 860, 472, 173, 223, 238};
-constexpr uint32_t ES_LENGTH = sizeof(ES) / sizeof(uint32_t);
+constexpr uint32_t ES_LENGTH_H264 = sizeof(ES_H264) / sizeof(uint32_t);
+const std::string H264_SRC_PATH = "/data/test/media/out_320_240_10s.h264";
+
+const uint32_t ES_H265[] = {9900, 203, 57, 56, 51, 147, 57, 334, 42, 59, 66, 394, 66, 325, 58, 513,
+    64, 52, 647, 43, 39, 40, 55, 608, 63, 55, 788, 52, 56, 53, 621, 57, 75, 65, 56, 737, 82, 40, 42, 69, 675};
+constexpr uint32_t ES_LENGTH_H265 = sizeof(ES_H264) / sizeof(uint32_t);
+const std::string H265_SRC_PATH = "/data/test/media/hevc_320x240_60.h265";
 } // namespace VCodecTestParam
 namespace ACodecTestParam {
 constexpr uint32_t SAMPLE_DURATION_US = 23000;
