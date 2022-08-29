@@ -29,19 +29,16 @@ void VCodecUnitTest::TearDownTestCase(void) {}
 
 void VCodecUnitTest::SetUp(void)
 {
+    createCodecSuccess_ = false;
     std::shared_ptr<VDecSignal> vdecSignal = std::make_shared<VDecSignal>();
     vdecCallback_ = std::make_shared<VDecCallbackTest>(vdecSignal);
     ASSERT_NE(nullptr, vdecCallback_);
     videoDec_ = std::make_shared<VDecMock>(vdecSignal);
-    ASSERT_TRUE(videoDec_->CreateVideoDecMockByMime("video/avc"));
-    EXPECT_EQ(MSERR_OK, videoDec_->SetCallback(vdecCallback_));
 
     std::shared_ptr<VEncSignal> vencSignal = std::make_shared<VEncSignal>();
     vencCallback_ = std::make_shared<VEncCallbackTest>(vencSignal);
     ASSERT_NE(nullptr, vencCallback_);
     videoEnc_ = std::make_shared<VEncMock>(vencSignal);
-    ASSERT_TRUE(videoEnc_->CreateVideoEncMockByMime("video/avc"));
-    EXPECT_EQ(MSERR_OK, videoEnc_->SetCallback(vencCallback_));
 
     testInfo_ = ::testing::UnitTest::GetInstance()->current_test_info();
     string prefix = "/data/test/media/";
@@ -51,26 +48,26 @@ void VCodecUnitTest::SetUp(void)
     createCodecSuccess_ = true;
 }
 
+bool VCodecUnitTest::CreateVideoCodecByMime(const std::string &decMime, const std::string &encMime)
+{
+    if (videoDec_->CreateVideoDecMockByMime(decMime) == false ||
+        videoEnc_->CreateVideoEncMockByMime(encMime) == false ||
+        videoDec_->SetCallback(vdecCallback_) != MSERR_OK ||
+        videoEnc_->SetCallback(vencCallback_) != MSERR_OK) {
+        return false;
+    }
+    createCodecSuccess_ = true;
+    return true;
+}
+
 bool VCodecUnitTest::CreateVideoCodecByName(const std::string &decName, const std::string &encName)
 {
-    std::shared_ptr<VDecSignal> vdecSignal = std::make_shared<VDecSignal>();
-    vdecCallback_ = std::make_shared<VDecCallbackTest>(vdecSignal);
-    videoDec_ = std::make_shared<VDecMock>(vdecSignal);
-    if (!videoDec_->CreateVideoDecMockByName(decName) || videoDec_->SetCallback(vdecCallback_) != MSERR_OK) {
+    if (videoDec_->CreateVideoDecMockByName(decName) == false ||
+        videoEnc_->CreateVideoEncMockByName(encName) == false ||
+        videoDec_->SetCallback(vdecCallback_) != MSERR_OK ||
+        videoEnc_->SetCallback(vencCallback_) != MSERR_OK) {
         return false;
     }
-
-    std::shared_ptr<VEncSignal> vencSignal = std::make_shared<VEncSignal>();
-    vencCallback_ = std::make_shared<VEncCallbackTest>(vencSignal);
-    videoEnc_ = std::make_shared<VEncMock>(vencSignal);
-    if (!videoEnc_->CreateVideoEncMockByName(encName) || videoEnc_->SetCallback(vencCallback_) != MSERR_OK) {
-        return false;
-    }
-    testInfo_ = ::testing::UnitTest::GetInstance()->current_test_info();
-    string prefix = "/data/test/media/";
-    string fileName = testInfo_->name();
-    string suffix = ".es";
-    videoEnc_->SetOutPath(prefix + fileName + suffix);
     createCodecSuccess_ = true;
     return true;
 }
@@ -96,14 +93,7 @@ void VCodecUnitTest::TearDown(void)
  */
 HWTEST_F(VCodecUnitTest, video_codec_creat_0100, TestSize.Level0)
 {
-    if (videoDec_ != nullptr) {
-        EXPECT_EQ(MSERR_OK, videoDec_->Release());
-    }
-    if (videoEnc_ != nullptr) {
-        EXPECT_EQ(MSERR_OK, videoEnc_->Release());
-    }
-    ASSERT_TRUE(videoDec_->CreateVideoDecMockByName("avdec_h264"));
-    ASSERT_TRUE(videoEnc_->CreateVideoEncMockByName("avenc_mpeg4"));
+    ASSERT_TRUE(CreateVideoCodecByName("avdec_h264", "avenc_mpeg4"));
 }
 
 /**
@@ -114,6 +104,7 @@ HWTEST_F(VCodecUnitTest, video_codec_creat_0100, TestSize.Level0)
  */
 HWTEST_F(VCodecUnitTest, video_codec_Configure_0100, TestSize.Level0)
 {
+    ASSERT_TRUE(CreateVideoCodecByMime("video/avc", "video/avc"));
     std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
     ASSERT_NE(nullptr, format);
     string width = "width";
@@ -137,6 +128,7 @@ HWTEST_F(VCodecUnitTest, video_codec_Configure_0100, TestSize.Level0)
  */
 HWTEST_F(VCodecUnitTest, video_codec_start_0100, TestSize.Level0)
 {
+    ASSERT_TRUE(CreateVideoCodecByMime("video/avc", "video/avc"));
     std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
     ASSERT_NE(nullptr, format);
     string width = "width";
@@ -169,6 +161,7 @@ HWTEST_F(VCodecUnitTest, video_codec_start_0100, TestSize.Level0)
  */
 HWTEST_F(VCodecUnitTest, video_codec_0100, TestSize.Level0)
 {
+    ASSERT_TRUE(CreateVideoCodecByMime("video/avc", "video/avc"));
     std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
     ASSERT_NE(nullptr, format);
     string width = "width";
@@ -200,16 +193,10 @@ HWTEST_F(VCodecUnitTest, video_codec_0100, TestSize.Level0)
  * @tc.name: video_codec_0200
  * @tc.desc: video codec h265->h265
  * @tc.type: FUNC
- * @tc.require: I5OOKW I5OOKN
+ * @tc.require: I5OOKN
  */
 HWTEST_F(VCodecUnitTest, video_codec_0200, TestSize.Level0)
-{    
-    if (videoDec_ != nullptr) {
-        EXPECT_EQ(MSERR_OK, videoDec_->Release());
-    }
-    if (videoEnc_ != nullptr) {
-        EXPECT_EQ(MSERR_OK, videoEnc_->Release());
-    }
+{
     if (!CreateVideoCodecByName("OMX_hisi_video_decoder_hevc", "OMX_hisi_video_encoder_hevc")) {
         std::cout << "This device does not support hard hevc" << std::endl;
         createCodecSuccess_ = false;
@@ -250,6 +237,7 @@ HWTEST_F(VCodecUnitTest, video_codec_0200, TestSize.Level0)
  */
 HWTEST_F(VCodecUnitTest, video_decode_Flush_0100, TestSize.Level0)
 {
+    ASSERT_TRUE(CreateVideoCodecByMime("video/avc", "video/avc"));
     std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
     ASSERT_NE(nullptr, format);
     string width = "width";
@@ -287,6 +275,7 @@ HWTEST_F(VCodecUnitTest, video_decode_Flush_0100, TestSize.Level0)
  */
 HWTEST_F(VCodecUnitTest, video_encode_Flush_0100, TestSize.Level0)
 {
+    ASSERT_TRUE(CreateVideoCodecByMime("video/avc", "video/avc"));
     std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
     ASSERT_NE(nullptr, format);
     string width = "width";
@@ -324,6 +313,7 @@ HWTEST_F(VCodecUnitTest, video_encode_Flush_0100, TestSize.Level0)
  */
 HWTEST_F(VCodecUnitTest, video_codec_SetParameter_0100, TestSize.Level0)
 {
+    ASSERT_TRUE(CreateVideoCodecByMime("video/avc", "video/avc"));
     std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
     ASSERT_NE(nullptr, format);
     string width = "width";
@@ -360,6 +350,7 @@ HWTEST_F(VCodecUnitTest, video_codec_SetParameter_0100, TestSize.Level0)
  */
 HWTEST_F(VCodecUnitTest, video_codec_GetOutputMediaDescription_0100, TestSize.Level0)
 {
+    ASSERT_TRUE(CreateVideoCodecByMime("video/avc", "video/avc"));
     std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
     ASSERT_NE(nullptr, format);
     string width = "width";
@@ -396,6 +387,7 @@ HWTEST_F(VCodecUnitTest, video_codec_GetOutputMediaDescription_0100, TestSize.Le
  */
 HWTEST_F(VCodecUnitTest, video_NotifyEos_0100, TestSize.Level0)
 {
+    ASSERT_TRUE(CreateVideoCodecByMime("video/avc", "video/avc"));
     std::shared_ptr<FormatMock> format = AVCodecMockFactory::CreateFormat();
     ASSERT_NE(nullptr, format);
     string width = "width";

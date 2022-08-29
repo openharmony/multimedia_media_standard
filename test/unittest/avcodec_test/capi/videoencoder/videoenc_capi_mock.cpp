@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include <iostream>
 #include "videoenc_capi_mock.h"
+#include <iostream>
 #include "avformat_capi_mock.h"
 #include "avmemory_capi_mock.h"
 #include "surface_capi_mock.h"
@@ -135,12 +135,6 @@ std::shared_ptr<SurfaceMock> VideoEncCapiMock::GetInputSurface()
 
 int32_t VideoEncCapiMock::Configure(std::shared_ptr<FormatMock> format)
 {
-    if (codec_ == nullptr) {
-        cout << "codec_ is null" << endl; 
-    }
-    if (format == nullptr) {
-        cout << "format is null" << endl; 
-    }
     if (codec_ != nullptr && format != nullptr) {
         auto formatMock = std::static_pointer_cast<AVFormatCapiMock>(format);
         OH_AVFormat *avFormat = formatMock->GetFormat();

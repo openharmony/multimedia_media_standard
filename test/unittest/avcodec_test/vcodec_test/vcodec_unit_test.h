@@ -32,6 +32,7 @@ public:
     // TearDown: Called after each test cases
     void TearDown(void);
     bool CreateVideoCodecByName(const std::string &decName, const std::string &encName);
+    bool CreateVideoCodecByMime(const std::string &decMime, const std::string &encMime);
 protected:
     std::shared_ptr<VDecMock> videoDec_ = nullptr;
     std::shared_ptr<VDecCallbackTest> vdecCallback_ = nullptr;
