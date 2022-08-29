@@ -31,13 +31,15 @@ public:
 private:
     EngineFactoryRepo() = default;
     ~EngineFactoryRepo();
-    int32_t Init();
+    int32_t LoadGstreamerEngine();
+    int32_t LoadHistreamerEngine();
     void LoadLib(const std::string &libPath);
 
     std::mutex mutex_;
-    bool inited_ = false;
     std::vector<std::shared_ptr<IEngineFactory>> factorys_;
     std::vector<void*> factoryLibs_;
+    bool gstreamerLoad_ = false;
+    bool histreamerLoad_ = false;
 };
 } // namespace Media
 } // namespace OHOS
