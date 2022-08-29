@@ -19,12 +19,9 @@
 #include "avmemory_capi_mock.h"
 #include "surface_capi_mock.h"
 #include "media_errors.h"
-// #include "surface.h"
 #include "native_avmagic.h"
 #include "native_avcodec_base.h"
-// #include "native_window.h"
 #include "window.h"
-// #include "external_window.h"
 #include "avcodec_video_encoder.h"
 
 
@@ -127,31 +124,13 @@ struct VEncObject : public OH_AVCodec {
 std::shared_ptr<SurfaceMock> VideoEncCapiMock::GetInputSurface()
 {
     if (codec_ != nullptr) {
-        // sptr<Surface> surface;
         OHNativeWindow *window;
         (void)OH_VideoEncoder_GetSurface(codec_, &window);
         if (window != nullptr) {
-            // if (window->surface == nullptr) {
-            //     cout << "window->surface == nullptr" << endl;
-            // }
             return std::make_shared<SurfaceCapiMock>(window);
         }
     }
     return nullptr;
-
-    // if (codec_ != nullptr) {
-    //     struct VEncObject *videoEncObj = reinterpret_cast<VEncObject *>(codec_);
-    //     if (videoEncObj == nullptr || videoEncObj->videoEncoder_ == nullptr) {
-    //         return nullptr;
-    //     }
-
-    //     sptr<Surface> surface = videoEncObj->videoEncoder_->CreateInputSurface();
-
-    //     if (surface != nullptr) {
-    //         return std::make_shared<SurfaceCapiMock>(surface);
-    //     }
-    // }
-    // return nullptr;
 }
 
 int32_t VideoEncCapiMock::Configure(std::shared_ptr<FormatMock> format)
@@ -164,7 +143,7 @@ int32_t VideoEncCapiMock::Configure(std::shared_ptr<FormatMock> format)
     }
     if (codec_ != nullptr && format != nullptr) {
         auto formatMock = std::static_pointer_cast<AVFormatCapiMock>(format);
-        OH_AVFormat *avFormat = formatMock->GetFormat(); // 这个是null
+        OH_AVFormat *avFormat = formatMock->GetFormat();
         if (avFormat != nullptr) {
             return OH_VideoEncoder_Configure(codec_, avFormat);
         } else {

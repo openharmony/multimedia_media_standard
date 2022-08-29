@@ -301,7 +301,7 @@ void VDecMock::InpLoopFunc()
         uint32_t bufferSize = 0;
 
         if (frameCount_ < esLength_) {
-            bufferSize =  es_[frameCount_]; // replace with the actual size
+            bufferSize =  es_[frameCount_];
             char *fileBuffer = (char *)malloc(sizeof(char) * bufferSize + 1);
             UNITTEST_CHECK_AND_RETURN_LOG(fileBuffer != nullptr, "Fatal: malloc fail.");
             (void)testFile_->read(fileBuffer, bufferSize);

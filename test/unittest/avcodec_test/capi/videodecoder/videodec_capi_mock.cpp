@@ -128,8 +128,6 @@ int32_t VideoDecCapiMock::SetOutputSurface(std::shared_ptr<SurfaceMock> surface)
         }
     }
     return AV_ERR_OPERATE_NOT_PERMIT;
-
-
 }
 
 int32_t VideoDecCapiMock::Configure(std::shared_ptr<FormatMock> format)

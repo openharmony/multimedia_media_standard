@@ -41,11 +41,8 @@ avcodec_unittest_capi_include_dirs = [
   "$MEDIA_ROOT_DIR/interfaces/inner_api/native",
   "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/capi/audiodecoder/",
   "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/capi/audioencoder/",
-  #"$MEDIA_ROOT_DIR/test/unittest/avcodec_test/capi/avcodec_info/",
-  #"$MEDIA_ROOT_DIR/test/unittest/avcodec_test/capi/avcodec_list/",
   "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/capi/avformat/",
   "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/capi/avmemory/",
-  #"$MEDIA_ROOT_DIR/test/unittest/avcodec_test/capi/enum/",
   "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/capi/surface/",
   "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/capi/videodecoder/",
   "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/capi/videoencoder/",
@@ -190,12 +187,9 @@ ohos_unittest("vcodec_capi_unit_test") {
   cflags = avcodec_unittest_cflags
 
   sources = [
-    #"./capi/avcodec_info/avcodec_info_capi_mock.cpp",
-    #"./capi/avcodec_list/avcodec_list_capi_mock.cpp",
     "./capi/avcodec_mock_factory.cpp",
     "./capi/avformat/avformat_capi_mock.cpp",
     "./capi/avmemory/avmemory_capi_mock.cpp",
-    #"./capi/enum/enum_capi_mock.cpp",
     "./capi/surface/surface_capi_mock.cpp",
     "./capi/videodecoder/videodec_capi_mock.cpp",
     "./capi/videoencoder/videoenc_capi_mock.cpp",
@@ -236,8 +230,6 @@ ohos_unittest("acodec_capi_unit_test") {
     "./acodec_test/acodec_unit_test.cpp",
     "./capi/audiodecoder/audiodec_capi_mock.cpp",
     "./capi/audioencoder/audioenc_capi_mock.cpp",
-    #"./capi/avcodec_info/avcodec_info_capi_mock.cpp",
-    #"./capi/avcodec_list/avcodec_list_capi_mock.cpp",
     "./capi/avcodec_mock_factory.cpp",
     "./capi/avformat/avformat_capi_mock.cpp",
     "./capi/avmemory/avmemory_capi_mock.cpp",
@@ -246,10 +238,10 @@ ohos_unittest("acodec_capi_unit_test") {
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
-    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_codecbase",
-    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_core",
     "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_adec",
     "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_aenc",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_codecbase",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_core",
     "//foundation/window/window_manager/wm:libwm",
   ]
 
