@@ -74,6 +74,7 @@ public:
     int32_t PushInputData(uint32_t index, AVCodecBufferAttrMock &attr);
     int32_t RenderOutputData(uint32_t index);
     int32_t FreeOutputData(uint32_t index);
+    void SetSource(const std::string &path, const uint32_t es[], const uint32_t &size);
 private:
     void FlushInner();
     std::unique_ptr<std::ifstream> testFile_;
@@ -87,6 +88,9 @@ private:
     bool isFirstFrame_ = true;
     int64_t timestamp_ = 0;
     uint32_t frameCount_ = 0;
+    const uint32_t *es_;
+    uint32_t esLength_;
+    std::string inpPath_;
 };
 }  // namespace Media
 }  // namespace OHOS
