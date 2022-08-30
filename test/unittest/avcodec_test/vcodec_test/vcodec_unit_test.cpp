@@ -193,7 +193,7 @@ HWTEST_F(VCodecUnitTest, video_codec_0100, TestSize.Level0)
  * @tc.name: video_codec_0200
  * @tc.desc: video codec h265->h265
  * @tc.type: FUNC
- * @tc.require: I5OOKN
+ * @tc.require: I5OOKN I5OOKW
  */
 HWTEST_F(VCodecUnitTest, video_codec_0200, TestSize.Level0)
 {
