@@ -131,7 +131,7 @@ int32_t VDecMock::Start()
 
     testFile_ = std::make_unique<std::ifstream>();
     UNITTEST_CHECK_AND_RETURN_RET_LOG(testFile_ != nullptr, MSERR_OK, "Fatal: No memory");
-    testFile_->open("/data/test/media/out_320_240_10s.h264", std::ios::in | std::ios::binary);
+    testFile_->open(inpPath_, std::ios::in | std::ios::binary);
 
     inputLoop_ = make_unique<thread>(&VDecMock::InpLoopFunc, this);
     UNITTEST_CHECK_AND_RETURN_RET_LOG(inputLoop_ != nullptr, MSERR_OK, "Fatal: No memory");
@@ -244,6 +244,13 @@ int32_t VDecMock::FreeOutputData(uint32_t index)
     return videoDec_->FreeOutputData(index);
 }
 
+void VDecMock::SetSource(const std::string &path, const uint32_t es[], const uint32_t &size)
+{
+    inpPath_ = path;
+    es_ = es;
+    esLength_ = size;
+}
+
 int32_t VDecMock::PushInputDataMock(uint32_t index, uint32_t bufferSize)
 {
     if (videoDec_ == nullptr) {
@@ -251,7 +258,7 @@ int32_t VDecMock::PushInputDataMock(uint32_t index, uint32_t bufferSize)
     }
     struct AVCodecBufferAttrMock attr;
     attr.offset = 0;
-    if (frameCount_ == ES_LENGTH) {
+    if (frameCount_ == esLength_) {
         attr.flags = AVCODEC_BUFFER_FLAG_EOS;
         attr.size = 0;
         attr.pts = 0;
@@ -293,8 +300,8 @@ void VDecMock::InpLoopFunc()
 
         uint32_t bufferSize = 0;
 
-        if (frameCount_ < ES_LENGTH) {
-            bufferSize =  ES[frameCount_]; // replace with the actual size
+        if (frameCount_ < esLength_) {
+            bufferSize =  es_[frameCount_];
             char *fileBuffer = (char *)malloc(sizeof(char) * bufferSize + 1);
             UNITTEST_CHECK_AND_RETURN_LOG(fileBuffer != nullptr, "Fatal: malloc fail.");
             (void)testFile_->read(fileBuffer, bufferSize);

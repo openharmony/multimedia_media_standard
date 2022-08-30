@@ -77,9 +77,6 @@ bool VEncMock::CreateVideoEncMockByMime(const std::string &mime)
 
 bool VEncMock::CreateVideoEncMockByName(const std::string &name)
 {
-    if (videoEnc_ == nullptr) {
-        return false;
-    }
     videoEnc_ = AVCodecMockFactory::CreateVideoEncMockByName(name);
     return videoEnc_ != nullptr;
 }
