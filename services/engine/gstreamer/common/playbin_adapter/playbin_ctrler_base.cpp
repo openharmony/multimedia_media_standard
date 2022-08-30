@@ -1040,7 +1040,8 @@ void PlayBinCtrlerBase::OnElementSetup(GstElement &elem)
     // limit to the g-signal, send this notification at this thread, do not change the work thread.
     // otherwise ,the avmetaengine will work improperly.
 
-    if (OnVideoDecoderSetup(elem) || strncmp(ELEM_NAME(&elem), "multiqueue", strlen("multiqueue")) == 0) {
+    if (OnVideoDecoderSetup(elem) || strncmp(ELEM_NAME(&elem), "multiqueue", strlen("multiqueue")) == 0 ||
+        strncmp(ELEM_NAME(&elem), "qtdemux", strlen("qtdemux")) == 0) {
         MEDIA_LOGD("add msgfilter element: %{public}s", ELEM_NAME(&elem));
         msgProcessor_->AddMsgFilter(ELEM_NAME(&elem));
     }
