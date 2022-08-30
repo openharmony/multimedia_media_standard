@@ -135,8 +135,19 @@ void PlayBinCtrlerBase::BaseState::HandleDurationChange()
 void PlayBinCtrlerBase::BaseState::HandleResolutionChange(const InnerMessage &msg)
 {
     std::pair<int32_t, int32_t> resolution;
-    resolution.first = msg.detail1;
-    resolution.second = msg.detail2;
+    guint rotation = 0;
+    if (ctrler_.videoSink_) {
+        GValue val = G_VALUE_INIT;
+        g_object_get_property(G_OBJECT(ctrler_.videoSink_), "video-rotation", &val);
+        rotation = g_value_get_uint(&val);
+    }
+    if (rotation == 90 || ratotion == 270) {  // angle of rotation 90, 270
+        resolution.first = msg.detail2;
+        resolution.second = msg.detail1;
+    } else {
+        resolution.first = msg.detail1;
+        resolution.second = msg.detail2;
+    }
     PlayBinMessage playBinMsg { PLAYBIN_MSG_SUBTYPE, PLAYBIN_SUB_MSG_VIDEO_SIZE_CHANGED, 0, resolution };
     ctrler_.ReportMessage(playBinMsg);
 }
@@ -213,6 +224,15 @@ void PlayBinCtrlerBase::BaseState::HandleUsedMqNum(const InnerMessage &msg)
     ctrler_.ReportMessage(playBinMsg);
 }
 
+void PlayBinCtrlerBase::BaseState::HandleVideoRotation(const InnerMessage &msg)
+{
+    if (ctrler_.videoSink_) {
+        g_object_set(ctrler_.videoSink_, "video-rotation", msg.detail1, nullptr);
+    } else {
+        MEDIA_LOGE("Failed to set video-rotation, videoSink is nullptr");
+    }
+}
+
 void PlayBinCtrlerBase::BaseState::OnMessageReceived(const InnerMessage &msg)
 {
     switch (msg.type) {
@@ -245,6 +265,9 @@ void PlayBinCtrlerBase::BaseState::OnMessageReceived(const InnerMessage &msg)
             break;
         case INNER_MSG_POSITION_UPDATE:
             HandlePositionUpdate();
+            break;
+        case INNER_MSG_VIDEO_ROTATION:
+            HandleVideoRotation(msg);
             break;
         default:
             break;
