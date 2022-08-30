@@ -141,7 +141,7 @@ void PlayBinCtrlerBase::BaseState::HandleResolutionChange(const InnerMessage &ms
         g_object_get_property(G_OBJECT(ctrler_.videoSink_), "video-rotation", &val);
         rotation = g_value_get_uint(&val);
     }
-    if (rotation == 90 || ratotion == 270) {  // angle of rotation 90, 270
+    if (rotation == 90 || rotation == 270) {  // angle of rotation 90, 270
         resolution.first = msg.detail2;
         resolution.second = msg.detail1;
     } else {
