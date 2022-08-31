@@ -33,10 +33,13 @@ namespace {
     constexpr uint32_t CODEC_BUFFER_HEIGHT = 25;
     constexpr uint32_t YUV_BUFFER_WIDTH = 1280;
     constexpr uint32_t YUV_BUFFER_HEIGHT = 768;
+    constexpr uint32_t RGBA_BUFFER_WIDTH = 1280;
+    constexpr uint32_t RGBA_BUFFER_HEIGHT = 760;
     constexpr uint32_t STRIDE_ALIGN = 8;
     constexpr uint32_t FRAME_DURATION = 40000000;
-    constexpr uint32_t RECORDER_TIME = 5;
+    constexpr uint32_t RECORDER_TIME = 10;
     constexpr uint32_t YUV_BUFFER_SIZE = 1474560; // 1280 * 768 * 3 / 2
+    constexpr uint32_t RGBA_BUFFER_SIZE = 3891200; // 1280 * 760 * 4
     constexpr uint32_t SEC_TO_NS = 1000000000;
     const string PURE_VIDEO = "1";
     const string PURE_AUDIO = "2";
@@ -97,6 +100,27 @@ static OHOS::BufferRequestConfig g_yuvRequestConfig = {
     .height = YUV_BUFFER_HEIGHT,
     .strideAlignment = STRIDE_ALIGN,
     .format = PIXEL_FMT_YCRCB_420_SP,
+    .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
+    .timeout = 0
+};
+
+// config for surface buffer flush to the queue
+static OHOS::BufferFlushConfig g_rgbaFlushConfig = {
+    .damage = {
+        .x = 0,
+        .y = 0,
+        .w = RGBA_BUFFER_WIDTH,
+        .h = RGBA_BUFFER_HEIGHT
+    },
+    .timestamp = 0
+};
+
+// config for surface buffer request from the queue
+static OHOS::BufferRequestConfig g_rgbaRequestConfig = {
+    .width = RGBA_BUFFER_WIDTH,
+    .height = RGBA_BUFFER_HEIGHT,
+    .strideAlignment = STRIDE_ALIGN,
+    .format = PIXEL_FMT_RGBA_8888,
     .usage = HBM_USE_CPU_READ | HBM_USE_CPU_WRITE | HBM_USE_MEM_DMA,
     .timeout = 0
 };
@@ -251,6 +275,49 @@ void RecorderDemo::HDICreateYUVBuffer()
     cout << "exit camera hdi loop" << endl;
 }
 
+void RecorderDemo::HDICreateRGBABuffer()
+{
+    // camera hdi loop to requeset buffer
+    while (count_ < STUB_STREAM_SIZE) {
+        DEMO_CHECK_AND_BREAK_LOG(!isExit_.load(), "close camera hdi thread");
+        usleep(FRAME_RATE);
+        OHOS::sptr<OHOS::SurfaceBuffer> buffer;
+        int32_t releaseFence;
+        OHOS::SurfaceError ret = producerSurface_->RequestBuffer(buffer, releaseFence, g_rgbaRequestConfig);
+        DEMO_CHECK_AND_CONTINUE_LOG(ret != OHOS::SURFACE_ERROR_NO_BUFFER, "surface loop full, no buffer now");
+        DEMO_CHECK_AND_BREAK_LOG(ret == SURFACE_ERROR_OK && buffer != nullptr, "RequestBuffer failed");
+
+        sptr<SyncFence> tempFence = new SyncFence(releaseFence);
+        tempFence->Wait(100); // 100ms
+
+        char *tempBuffer = (char *)(buffer->GetVirAddr());
+        (void)memset_s(tempBuffer, RGBA_BUFFER_SIZE, color_, RGBA_BUFFER_SIZE);
+
+        srand((int)time(0));
+        for (uint32_t i = 0; i < RGBA_BUFFER_SIZE - 1; i += (RGBA_BUFFER_SIZE - 1)) {  // 100 is the steps between noise
+            if (i >= RGBA_BUFFER_SIZE - 1) {
+                break;
+            }
+            tempBuffer[i] = (unsigned char)(rand() % 255); // 255 is the size of rgb, add noise
+        }
+
+        color_ = color_ - 3; // 3 is the step of the pic change
+
+        if (color_ <= 0) {
+            color_ = 0xFF;
+        }
+
+        // get time
+        pts_= (int64_t)(GetPts());
+        (void)buffer->GetExtraData()->ExtraSet("dataSize", static_cast<int32_t>(RGBA_BUFFER_SIZE));
+        (void)buffer->GetExtraData()->ExtraSet("timeStamp", pts_);
+        (void)buffer->GetExtraData()->ExtraSet("isKeyFrame", isKeyFrame_);
+        count_++;
+        (count_ % 30) == 0 ? (isKeyFrame_ = 1) : (isKeyFrame_ = 0); // keyframe every 30fps
+        (void)producerSurface_->FlushBuffer(buffer, -1, g_rgbaFlushConfig);
+    }
+    cout << "exit camera hdi loop" << endl;
+}
 
 int32_t RecorderDemo::CameraServicesForVideo() const
 {
@@ -347,7 +414,8 @@ void RecorderDemo::SetVideoSource()
     cout << "set input video source" << endl;
     cout << "yuv source : 1" << endl;
     cout << "es source : 2" << endl;
-    cout << "pure audio dont need videosource : 3" << endl;
+    cout << "rgba source : 3" << endl;
+    cout << "pure audio dont need videosource : 4" << endl;
     (void)getline(cin, source);
 
     if (source == "1") {
@@ -357,8 +425,9 @@ void RecorderDemo::SetVideoSource()
         cout << "select es source" << endl;
         g_videoRecorderConfig.vSource = VIDEO_SOURCE_SURFACE_ES;
     } else if (source == "3") {
-        cout << "pure audio recorder type" << endl;
-    } else {
+        cout << "select rgba source" << endl;
+        g_videoRecorderConfig.vSource = VIDEO_SOURCE_SURFACE_RGBA;
+    }  else if (source == "4") {
         cout << "wrong source type, use yuv source as default" << endl;
         g_videoRecorderConfig.vSource = VIDEO_SOURCE_SURFACE_YUV;
     }
@@ -424,8 +493,10 @@ void RecorderDemo::RunCase()
             DEMO_CHECK_AND_RETURN_LOG(ret == MSERR_OK, "GetStubFile failed ");
 
             camereHDIThread_.reset(new(std::nothrow) std::thread(&RecorderDemo::HDICreateESBuffer, this));
-        } else {
+        } else if (g_videoRecorderConfig.vSource == VIDEO_SOURCE_SURFACE_YUV) {
             camereHDIThread_.reset(new(std::nothrow) std::thread(&RecorderDemo::HDICreateYUVBuffer, this));
+        } else {
+            camereHDIThread_.reset(new(std::nothrow) std::thread(&RecorderDemo::HDICreateRGBABuffer, this));
         }
     }
 

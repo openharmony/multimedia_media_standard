@@ -108,7 +108,8 @@ int32_t RecorderPipelineBuilder::SetVideoSource(const RecorderSourceDesc &desc)
 
     // ES Source and YUV Source is supported.
     if (desc.type_ == VideoSourceType::VIDEO_SOURCE_SURFACE_ES ||
-        desc.type_ == VideoSourceType::VIDEO_SOURCE_SURFACE_YUV) {
+        desc.type_ == VideoSourceType::VIDEO_SOURCE_SURFACE_YUV ||
+        desc.type_ == VideoSourceType::VIDEO_SOURCE_SURFACE_RGBA) {
         videoSrcElem_ = CreateElement("VideoSource", desc, true);
     } else {
         MEDIA_LOGE("Video source type %{public}d currently unsupported", desc.type_);
@@ -122,8 +123,9 @@ int32_t RecorderPipelineBuilder::SetVideoSource(const RecorderSourceDesc &desc)
     videoParseElem_ = CreateElement("VideoParse", desc, false);
     CHECK_AND_RETURN_RET(videoParseElem_ != nullptr, MSERR_INVALID_VAL);
 
-    // check yuv
-    if (desc.type_ == VideoSourceType::VIDEO_SOURCE_SURFACE_YUV) {
+    // check yuv/rgbs stream
+    if (desc.type_ == VideoSourceType::VIDEO_SOURCE_SURFACE_YUV ||
+        desc.type_ == VideoSourceType::VIDEO_SOURCE_SURFACE_RGBA) {
         videoEncElem_ = CreateElement("VideoEncoder", desc, false);
         CHECK_AND_RETURN_RET(videoEncElem_ != nullptr, MSERR_INVALID_VAL);
 
