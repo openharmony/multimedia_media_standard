@@ -65,6 +65,7 @@ public:
     void RunCase();
     void HDICreateESBuffer();
     void HDICreateYUVBuffer();
+    void HDICreateRGBABuffer();
     int32_t CameraServicesForVideo() const;
     int32_t CameraServicesForAudio() const;
     int32_t SetFormat(const std::string &type) const;

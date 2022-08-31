@@ -28,6 +28,7 @@ constexpr uint32_t DEFAULT_FRAME_RATE = 25;
 static const std::unordered_map<int32_t, int32_t> SOURCE_TYPE_STREAM_TYPE = {
     { VideoSourceType::VIDEO_SOURCE_SURFACE_ES, VideoStreamType::VIDEO_STREAM_TYPE_ES_AVC },
     { VideoSourceType::VIDEO_SOURCE_SURFACE_YUV, VideoStreamType::VIDEO_STREAM_TYPE_YUV_420 },
+    { VideoSourceType::VIDEO_SOURCE_SURFACE_RGBA, VideoStreamType::VIDEO_STREAM_TYPE_RGBA },
 };
 }
 

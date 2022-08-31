@@ -24,6 +24,7 @@ enum VideoStreamType {
     VIDEO_STREAM_TYPE_UNKNOWN = 0,
     VIDEO_STREAM_TYPE_ES_AVC,
     VIDEO_STREAM_TYPE_YUV_420,
+    VIDEO_STREAM_TYPE_RGBA,
 };
 
 enum CodecBinType {
