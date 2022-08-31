@@ -37,7 +37,7 @@ namespace {
     constexpr uint32_t RGBA_BUFFER_HEIGHT = 760;
     constexpr uint32_t STRIDE_ALIGN = 8;
     constexpr uint32_t FRAME_DURATION = 40000000;
-    constexpr uint32_t RECORDER_TIME = 10;
+    constexpr uint32_t RECORDER_TIME = 5;
     constexpr uint32_t YUV_BUFFER_SIZE = 1474560; // 1280 * 768 * 3 / 2
     constexpr uint32_t RGBA_BUFFER_SIZE = 3891200; // 1280 * 760 * 4
     constexpr uint32_t SEC_TO_NS = 1000000000;
