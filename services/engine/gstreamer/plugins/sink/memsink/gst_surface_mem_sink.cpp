@@ -235,6 +235,7 @@ static void gst_surface_mem_sink_set_property(GObject *object, guint propId, con
             priv->rotation = g_value_get_uint(value);
             GST_DEBUG_OBJECT(surface_sink, "set rotation: %u", priv->rotation);
             if (priv->surface) {
+                MediaTrace trace("Surface::SetTransform");
                 (void)priv->surface->SetTransform(gst_surface_mem_sink_get_rotation(priv->rotation));
             }
             break;

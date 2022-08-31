@@ -33,6 +33,22 @@ avcodec_unittest_native_include_dirs = [
   "$MEDIA_ROOT_DIR/test/unittest/common/include/",
 ]
 
+avcodec_unittest_capi_include_dirs = [
+  "//graphic/graphic_2d/interfaces/kits/surface",
+  "//graphic/graphic_2d/interfaces/inner_api/surface",
+  "//foundation//window/window_manager/interfaces/innerkits/wm",
+  "$MEDIA_ROOT_DIR/interfaces/kits/c",
+  "$MEDIA_ROOT_DIR/interfaces/inner_api/native",
+  "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/capi/audiodecoder/",
+  "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/capi/audioencoder/",
+  "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/capi/avformat/",
+  "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/capi/avmemory/",
+  "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/capi/surface/",
+  "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/capi/videodecoder/",
+  "$MEDIA_ROOT_DIR/test/unittest/avcodec_test/capi/videoencoder/",
+  "$MEDIA_ROOT_DIR/test/unittest/common/include/",
+]
+
 avcodec_unittest_cflags = [
   "-std=c++17",
   "-fno-rtti",
@@ -151,6 +167,82 @@ ohos_unittest("avcodec_list_native_unit_test") {
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
     "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
+  ]
+
+  resource_config_file = "//foundation/multimedia/player_framework/test/unittest/resources/ohos_test.xml"
+}
+
+##################################################################################################################
+ohos_unittest("vcodec_capi_unit_test") {
+  module_out_path = module_output_path
+  include_dirs = avcodec_unittest_capi_include_dirs
+  include_dirs += [
+    "./",
+    "./vcodec_test",
+    "//foundation/graphic/graphic_2d/frameworks/surface/include",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/surface",
+    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
+  ]
+
+  cflags = avcodec_unittest_cflags
+
+  sources = [
+    "./capi/avcodec_mock_factory.cpp",
+    "./capi/avformat/avformat_capi_mock.cpp",
+    "./capi/avmemory/avmemory_capi_mock.cpp",
+    "./capi/surface/surface_capi_mock.cpp",
+    "./capi/videodecoder/videodec_capi_mock.cpp",
+    "./capi/videoencoder/videoenc_capi_mock.cpp",
+    "./vcodec_test/vcodec_unit_test.cpp",
+    "./vcodec_test/vdec_mock.cpp",
+    "./vcodec_test/venc_mock.cpp",
+  ]
+
+  deps = [
+    "//foundation/graphic/graphic_2d:libsurface",
+    "//foundation/graphic/graphic_2d/frameworks/surface:surface",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_codecbase",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_core",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_vdec",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_venc",
+    "//foundation/window/window_manager/wm:libwm",
+    "//utils/native/base:utils",
+  ]
+
+  resource_config_file = "//foundation/multimedia/player_framework/test/unittest/resources/ohos_test.xml"
+}
+
+##################################################################################################################
+ohos_unittest("acodec_capi_unit_test") {
+  module_out_path = module_output_path
+  include_dirs = avcodec_unittest_capi_include_dirs
+  include_dirs += [
+    "./",
+    "./acodec_test",
+  ]
+
+  cflags = avcodec_unittest_cflags
+
+  sources = [
+    "./acodec_test/acodec_mock.cpp",
+    "./acodec_test/acodec_unit_test.cpp",
+    "./capi/audiodecoder/audiodec_capi_mock.cpp",
+    "./capi/audioencoder/audioenc_capi_mock.cpp",
+    "./capi/avcodec_mock_factory.cpp",
+    "./capi/avformat/avformat_capi_mock.cpp",
+    "./capi/avmemory/avmemory_capi_mock.cpp",
+  ]
+
+  deps = [
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/multimedia/player_framework/interfaces/inner_api/native:media_client",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_adec",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_aenc",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_codecbase",
+    "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_core",
+    "//foundation/window/window_manager/wm:libwm",
   ]
 
   resource_config_file = "//foundation/multimedia/player_framework/test/unittest/resources/ohos_test.xml"

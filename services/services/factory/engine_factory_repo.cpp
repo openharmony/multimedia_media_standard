@@ -20,6 +20,7 @@
 #include "directory_ex.h"
 #include "media_errors.h"
 #include "media_log.h"
+#include "parameter.h"
 
 namespace {
     static constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "EngineFactoryRepo"};
@@ -28,50 +29,14 @@ namespace {
 #else
     static const std::string MEDIA_ENGINE_LIB_PATH = "/system/lib/media";
 #endif
-    static const std::string MEDIA_ENGINE_LIB_NAME_PREFIX = "libmedia_engine_";
-    static const std::string MEDIA_ENGINE_LIB_NAME_SUFFIX = ".z.so";
+    static const std::string MEDIA_ENGINE_LIB_NAME_GSTREAMER = "libmedia_engine_gst.z.so";
+    static const std::string MEDIA_ENGINE_LIB_NAME_HISTREAMER = "libmedia_engine_histreamer.z.so";
     static const std::string MEDIA_ENGINE_ENTRY_SYMBOL = "CreateEngineFactory";
 }
 
 namespace OHOS {
 namespace Media {
 using CreateFactoryFunc = IEngineFactory *(*)();
-
-static bool IsAlphaNumUnderLine(const std::string str)
-{
-    for (auto &c : str) {
-        if (!(std::isalnum(c) || c == '_')) {
-            return false;
-        }
-    }
-    return true;
-}
-
-static std::vector<std::string> GetMediaEngineLibs()
-{
-    std::vector<std::string> allFiles;
-    std::vector<std::string> allLibs;
-    GetDirFiles(MEDIA_ENGINE_LIB_PATH, allFiles);
-    for (auto &file : allFiles) {
-        std::string::size_type namePos = file.find(MEDIA_ENGINE_LIB_NAME_PREFIX);
-        if (namePos == std::string::npos) {
-            continue;
-        }
-        namePos += MEDIA_ENGINE_LIB_NAME_PREFIX.size();
-        std::string::size_type nameEnd = file.rfind(MEDIA_ENGINE_LIB_NAME_SUFFIX);
-        if ((nameEnd == std::string::npos) || (nameEnd + MEDIA_ENGINE_LIB_NAME_SUFFIX.size() != file.size())) {
-            continue;
-        }
-        MEDIA_LOGI("lib: %{public}s", file.c_str());
-        if (!IsAlphaNumUnderLine(file.substr(namePos, nameEnd - namePos))) {
-            continue;
-        }
-        MEDIA_LOGI("find media engine library: %{public}s", file.c_str());
-        allLibs.emplace_back(file);
-    }
-
-    return allLibs;
-}
 
 EngineFactoryRepo &EngineFactoryRepo::Instance()
 {
@@ -87,23 +52,6 @@ EngineFactoryRepo::~EngineFactoryRepo()
             lib = nullptr;
         }
     }
-}
-
-int32_t EngineFactoryRepo::Init()
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (inited_) {
-        return MSERR_OK;
-    }
-
-    std::vector<std::string> allLibs = GetMediaEngineLibs();
-    for (auto &lib : allLibs) {
-        LoadLib(lib);
-    }
-    MEDIA_LOGI("load engine factory count: %{public}zu", factorys_.size());
-
-    inited_ = true;
-    return MSERR_OK;
 }
 
 void EngineFactoryRepo::LoadLib(const std::string &libPath)
@@ -134,10 +82,61 @@ void EngineFactoryRepo::LoadLib(const std::string &libPath)
     factorys_.push_back(factory);
 }
 
+int32_t EngineFactoryRepo::LoadGstreamerEngine()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (gstreamerLoad_) {
+        return MSERR_OK;
+    }
+
+    std::vector<std::string> allFiles;
+    GetDirFiles(MEDIA_ENGINE_LIB_PATH, allFiles);
+    for (auto &file : allFiles) {
+        std::string::size_type namePos = file.find(MEDIA_ENGINE_LIB_NAME_GSTREAMER);
+        if (namePos == std::string::npos) {
+            continue;
+        } else {
+            LoadLib(file);
+            gstreamerLoad_ = true;
+            break;
+        }
+    }
+    return MSERR_OK;
+}
+
+int32_t EngineFactoryRepo::LoadHistreamerEngine()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (histreamerLoad_) {
+        MEDIA_LOGI("histramer is enabled");
+        return MSERR_OK;
+    }
+
+    char useHistreamer[10] = {0}; // 10 for system parameter usage
+    auto res = GetParameter("debug.media_service.histreamer", "0", useHistreamer, sizeof(useHistreamer));
+    if (res == 1 && useHistreamer[0] == '1') {
+        std::vector<std::string> allFiles;
+        GetDirFiles(MEDIA_ENGINE_LIB_PATH, allFiles);
+        for (auto &file : allFiles) {
+            std::string::size_type namePos = file.find(MEDIA_ENGINE_LIB_NAME_HISTREAMER);
+            if (namePos == std::string::npos) {
+                continue;
+            } else {
+                LoadLib(file);
+                histreamerLoad_ = true;
+                break;
+            }
+        }
+    }
+
+    return MSERR_OK;
+}
+
 std::shared_ptr<IEngineFactory> EngineFactoryRepo::GetEngineFactory(
     IEngineFactory::Scene scene, const std::string &uri)
 {
-    (void)Init();
+    (void)LoadGstreamerEngine();
+    (void)LoadHistreamerEngine();
 
     int32_t maxScore = std::numeric_limits<int32_t>::min();
     std::shared_ptr<IEngineFactory> target = nullptr;
