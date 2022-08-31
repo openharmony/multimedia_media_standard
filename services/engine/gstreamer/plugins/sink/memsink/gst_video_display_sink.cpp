@@ -16,7 +16,7 @@
 #include "gst_video_display_sink.h"
 
 namespace {
-    constexpr guint64 DEFAULT_MAX_WAIT_CLOCK_TIME = 60000000; // ns, 60ms
+    constexpr guint64 DEFAULT_MAX_WAIT_CLOCK_TIME = 1000000000; // ns, 1s
     constexpr gint64 DEFAULT_AUDIO_RUNNING_TIME_DIFF_THD = 20000000; // ns, 20ms
     constexpr gint64 DEFAULT_EXTRA_RENDER_FRAME_DIFF = 20000000; // ns, 20ms
 }
@@ -186,8 +186,10 @@ static void gst_video_display_sink_get_render_time_diff_thd(GstVideoDisplaySink 
     }
 
     guint64 render_time_diff_thd = duration + DEFAULT_EXTRA_RENDER_FRAME_DIFF;
-    if (render_time_diff_thd != priv->render_time_diff_threshold &&
-        render_time_diff_thd <= DEFAULT_MAX_WAIT_CLOCK_TIME) {
+    if (render_time_diff_thd > DEFAULT_MAX_WAIT_CLOCK_TIME) {
+        priv->render_time_diff_threshold = G_MAXUINT64;
+        GST_DEBUG_OBJECT(video_display_sink, "render_time_diff_thd is greater than DEFAULT_MAX_WAIT_CLOCK_TIME");
+    } else if (render_time_diff_thd != priv->render_time_diff_threshold) {
         priv->render_time_diff_threshold = render_time_diff_thd;
         GST_INFO_OBJECT(video_display_sink,
             "get new render_time_diff_threshold=%" G_GUINT64_FORMAT, render_time_diff_thd);
@@ -235,7 +237,7 @@ static GstClockTime gst_video_display_sink_update_reach_time(GstBaseSink *base_s
     g_return_val_if_fail(GST_CLOCK_TIME_IS_VALID(reach_time), reach_time);
     GstVideoDisplaySink *video_display_sink = GST_VIDEO_DISPLAY_SINK_CAST(base_sink);
     GstVideoDisplaySinkPrivate *priv = video_display_sink->priv;
-    if (priv == nullptr) {
+    if (priv == nullptr || priv->render_time_diff_threshold == G_MAXUINT64) {
         return reach_time;
     }
 
