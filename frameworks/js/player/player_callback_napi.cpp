@@ -122,17 +122,6 @@ void PlayerCallbackNapi::OnInfo(PlayerOnInfoType type, int32_t extra, const Form
 void PlayerCallbackNapi::OnSeekDoneCb(int32_t currentPositon) const
 {
     MEDIA_LOGD("OnSeekDone is called, currentPositon: %{public}d", currentPositon);
-    if (refMap_.find(TIME_UPDATE_CALLBACK_NAME) == refMap_.end()) {
-        MEDIA_LOGW("can not find timeupdate callback!");
-        return;
-    }
-
-    PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
-    CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
-    cb->callback = refMap_.at(TIME_UPDATE_CALLBACK_NAME);
-    cb->callbackName = TIME_UPDATE_CALLBACK_NAME;
-    cb->valueVec.push_back(currentPositon);
-    return OnJsCallBackInt(cb);
 }
 
 void PlayerCallbackNapi::OnBufferingUpdateCb(const Format &infoBody) const
@@ -222,6 +211,17 @@ void PlayerCallbackNapi::OnStateChangeCb(PlayerStates state)
 void PlayerCallbackNapi::OnPositionUpdateCb(int32_t position) const
 {
     MEDIA_LOGD("OnPositionUpdateCb is called, position: %{public}d", position);
+    if (refMap_.find(TIME_UPDATE_CALLBACK_NAME) == refMap_.end()) {
+        MEDIA_LOGW("can not find timeupdate callback!");
+        return;
+    }
+
+    PlayerJsCallback *cb = new(std::nothrow) PlayerJsCallback();
+    CHECK_AND_RETURN_LOG(cb != nullptr, "No memory");
+    cb->callback = refMap_.at(TIME_UPDATE_CALLBACK_NAME);
+    cb->callbackName = TIME_UPDATE_CALLBACK_NAME;
+    cb->valueVec.push_back(position);
+    return OnJsCallBackInt(cb);
 }
 
 void PlayerCallbackNapi::OnMessageCb(int32_t type) const
