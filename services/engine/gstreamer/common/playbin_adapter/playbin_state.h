@@ -51,6 +51,7 @@ protected:
     void HandleBuffering(const InnerMessage &msg);
     void HandleBufferingTime(const InnerMessage &msg);
     void HandleUsedMqNum(const InnerMessage &msg);
+    void HandleVideoRotation(const InnerMessage &msg);
     virtual void HandlePositionUpdate() {}
 
     PlayBinCtrlerBase &ctrler_;
