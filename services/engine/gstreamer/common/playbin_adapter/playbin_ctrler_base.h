@@ -82,6 +82,7 @@ private:
     class PlayingState;
     class PausedState;
     class StoppedState;
+    class StoppingState;
     class PlaybackCompletedState;
 
     int32_t EnterInitializedState();
@@ -191,6 +192,7 @@ private:
     std::shared_ptr<PlayingState> playingState_;
     std::shared_ptr<PausedState> pausedState_;
     std::shared_ptr<StoppedState> stoppedState_;
+    std::shared_ptr<StoppingState> stoppingState_;
     std::shared_ptr<PlaybackCompletedState> playbackCompletedState_;
 };
 } // namespace Media

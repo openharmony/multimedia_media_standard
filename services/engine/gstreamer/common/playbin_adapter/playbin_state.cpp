@@ -298,7 +298,7 @@ void PlayBinCtrlerBase::PreparingState::StateEnter()
 int32_t PlayBinCtrlerBase::PreparingState::Stop()
 {
     // change to stop always success
-    ctrler_.ChangeState(ctrler_.stoppedState_);
+    ctrler_.ChangeState(ctrler_.stoppingState_);
     return MSERR_OK;
 }
 
@@ -339,7 +339,7 @@ int32_t PlayBinCtrlerBase::PreparedState::Seek(int64_t timeUs, int32_t option)
 int32_t PlayBinCtrlerBase::PreparedState::Stop()
 {
     // change to stop always success
-    ctrler_.ChangeState(ctrler_.stoppedState_);
+    ctrler_.ChangeState(ctrler_.stoppingState_);
     return MSERR_OK;
 }
 
@@ -388,7 +388,7 @@ int32_t PlayBinCtrlerBase::PlayingState::Seek(int64_t timeUs, int32_t option)
 int32_t PlayBinCtrlerBase::PlayingState::Stop()
 {
     // change to stop always success
-    ctrler_.ChangeState(ctrler_.stoppedState_);
+    ctrler_.ChangeState(ctrler_.stoppingState_);
     return MSERR_OK;
 }
 
@@ -468,7 +468,7 @@ int32_t PlayBinCtrlerBase::PausedState::Seek(int64_t timeUs, int32_t option)
 int32_t PlayBinCtrlerBase::PausedState::Stop()
 {
     // change to stop always success
-    ctrler_.ChangeState(ctrler_.stoppedState_);
+    ctrler_.ChangeState(ctrler_.stoppingState_);
     return MSERR_OK;
 }
 
@@ -484,12 +484,38 @@ void PlayBinCtrlerBase::PausedState::ProcessStateChange(const InnerMessage &msg)
     }
 }
 
-void PlayBinCtrlerBase::StoppedState::StateEnter()
+void PlayBinCtrlerBase::StoppingState::StateEnter()
 {
     // maybe need the deferred task to change state from ready to null, refer to gstplayer.
 
     (void)ChangePlayBinState(GST_STATE_READY);
     ctrler_.isDuration_ = false;
+
+    MEDIA_LOGD("StoppingState::StateEnter finished");
+}
+
+int32_t PlayBinCtrlerBase::StoppingState::Prepare()
+{
+    return MSERR_OK;
+}
+
+int32_t PlayBinCtrlerBase::StoppingState::Stop()
+{
+    return MSERR_OK;
+}
+
+void PlayBinCtrlerBase::StoppingState::ProcessStateChange(const InnerMessage &msg)
+{
+    if (msg.detail2 == GST_STATE_READY) {
+        ctrler_.ChangeState(ctrler_.stoppedState_);
+        ctrler_.stateCond_.notify_one(); // awake the stateCond_'s waiter in Stop()
+    }
+}
+
+void PlayBinCtrlerBase::StoppedState::StateEnter()
+{
+    PlayBinMessage playBinMsg = { PLAYBIN_MSG_STATE_CHANGE, 0, PLAYBIN_STATE_STOPPED, {} };
+    ctrler_.ReportMessage(playBinMsg);
 
     MEDIA_LOGD("StoppedState::StateEnter finished");
 }
@@ -507,10 +533,7 @@ int32_t PlayBinCtrlerBase::StoppedState::Stop()
 
 void PlayBinCtrlerBase::StoppedState::ProcessStateChange(const InnerMessage &msg)
 {
-    if (msg.detail2 == GST_STATE_READY) {
-        PlayBinMessage playBinMsg = { PLAYBIN_MSG_STATE_CHANGE, 0, PLAYBIN_STATE_STOPPED, {} };
-        ctrler_.ReportMessage(playBinMsg);
-    }
+    (void)msg;
 }
 
 void PlayBinCtrlerBase::PlaybackCompletedState::StateEnter()
@@ -527,7 +550,7 @@ int32_t PlayBinCtrlerBase::PlaybackCompletedState::Play()
 
 int32_t PlayBinCtrlerBase::PlaybackCompletedState::Stop()
 {
-    ctrler_.ChangeState(ctrler_.stoppedState_);
+    ctrler_.ChangeState(ctrler_.stoppingState_);
     return MSERR_OK;
 }
 

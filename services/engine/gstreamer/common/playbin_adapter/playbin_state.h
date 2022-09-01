@@ -137,6 +137,19 @@ protected:
     void StateEnter() override;
 };
 
+class PlayBinCtrlerBase::StoppingState : public PlayBinCtrlerBase::BaseState {
+public:
+    explicit StoppingState(PlayBinCtrlerBase &ctrler) : BaseState(ctrler, "stopping_state") {}
+    ~StoppingState() = default;
+
+    int32_t Prepare() override;
+    int32_t Stop() override;
+
+protected:
+    void ProcessStateChange(const InnerMessage &msg) override;
+    void StateEnter() override;
+};
+
 class PlayBinCtrlerBase::StoppedState : public PlayBinCtrlerBase::BaseState {
 public:
     explicit StoppedState(PlayBinCtrlerBase &ctrler) : BaseState(ctrler, "stopped_state") {}
