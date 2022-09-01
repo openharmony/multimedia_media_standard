@@ -44,6 +44,12 @@ void StateMachine::ChangeState(const std::shared_ptr<State> &state)
             return;
         }
 
+        if (currState_ != nullptr && currState_->GetStateName() == "stopping_state" &&
+            state->GetStateName() != "stopped_state") {
+            MEDIA_LOGW("now is stopping change state to %{public}s fail", state->name_.c_str());
+            return;
+        }
+
         if (currState_) {
             MEDIA_LOGD("exit state %{public}s", currState_->name_.c_str());
             currState_->StateExit();
