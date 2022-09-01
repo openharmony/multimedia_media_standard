@@ -39,12 +39,14 @@ void StateMachine::ChangeState(const std::shared_ptr<State> &state)
 {
     {
         std::unique_lock<std::recursive_mutex> lock(recMutex_);
-        if (currState_->GetStateName() == "stopping_state" && state->GetStateName() != "stopped_state") {
-            MEDIA_LOGW("now is stopping change state to %{public}s fail", state->name_.c_str());
+
+        if (state == nullptr || (state == currState_)) {
             return;
         }
 
-        if (state == nullptr || (state == currState_)) {
+        if (currState_ != nullptr && currState_->GetStateName() == "stopping_state" &&
+            state->GetStateName() != "stopped_state") {
+            MEDIA_LOGW("now is stopping change state to %{public}s fail", state->name_.c_str());
             return;
         }
 
