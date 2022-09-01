@@ -129,6 +129,7 @@ ohos_shared_library("media_service") {
     "//foundation/multimedia/player_framework/services/dfx:media_service_dfx",
     "//foundation/multimedia/player_framework/services/utils:media_format",
     "//foundation/multimedia/player_framework/services/utils:media_service_utils",
+    "//third_party/libxml2:libxml2",
   ]
 
   external_deps = [
