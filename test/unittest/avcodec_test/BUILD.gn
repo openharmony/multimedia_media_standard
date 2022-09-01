@@ -208,7 +208,6 @@ ohos_unittest("vcodec_capi_unit_test") {
     "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_vdec",
     "//foundation/multimedia/player_framework/interfaces/kits/c:native_media_venc",
     "//foundation/window/window_manager/wm:libwm",
-    "//utils/native/base:utils",
   ]
 
   resource_config_file = "//foundation/multimedia/player_framework/test/unittest/resources/ohos_test.xml"
