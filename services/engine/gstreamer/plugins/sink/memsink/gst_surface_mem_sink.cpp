@@ -183,6 +183,7 @@ static void gst_surface_mem_sink_finalize(GObject *obj)
 
 static TransformType gst_surface_mem_sink_get_rotation(guint rotation)
 {
+    // We gets the rotation direction clockwise, but Surface needs it counterclockwise
     switch (rotation) {
         case VIDEO_ROTATION_90: {
             return ROTATE_270;
