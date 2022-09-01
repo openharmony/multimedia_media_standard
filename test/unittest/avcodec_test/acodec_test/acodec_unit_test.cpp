@@ -78,7 +78,7 @@ void ACodecUnitTest::TearDown(void)
  * @tc.name: audio_codec_Configure_0100
  * @tc.desc: video create
  * @tc.type: FUNC
- * @tc.require: I5OWXY
+ * @tc.require: I5OWXY I5OXCD
  */
 HWTEST_F(ACodecUnitTest, audio_codec_Configure_0100, TestSize.Level0)
 {
@@ -90,7 +90,7 @@ HWTEST_F(ACodecUnitTest, audio_codec_Configure_0100, TestSize.Level0)
  * @tc.name: audio_codec_0100
  * @tc.desc: audio decodec h264->mpeg4
  * @tc.type: FUNC
- * @tc.require: I5OWXY
+ * @tc.require: I5OWXY I5OXCD
  */
 HWTEST_F(ACodecUnitTest, audio_codec_0100, TestSize.Level0)
 {
@@ -109,7 +109,7 @@ HWTEST_F(ACodecUnitTest, audio_codec_0100, TestSize.Level0)
  * @tc.name: audio_decodec_flush_0100
  * @tc.desc: audio decodec flush
  * @tc.type: FUNC
- * @tc.require: I5OWXY
+ * @tc.require: I5OWXY I5OXCD
  */
 HWTEST_F(ACodecUnitTest, audio_decodec_flush_0100, TestSize.Level0)
 {
@@ -130,7 +130,7 @@ HWTEST_F(ACodecUnitTest, audio_decodec_flush_0100, TestSize.Level0)
  * @tc.name: audio_encodec_flush_0100
  * @tc.desc: audio encodec flush
  * @tc.type: FUNC
- * @tc.require: I5OWXY
+ * @tc.require: I5OWXY I5OXCD
  */
 HWTEST_F(ACodecUnitTest, audio_encodec_flush_0100, TestSize.Level0)
 {
@@ -151,7 +151,7 @@ HWTEST_F(ACodecUnitTest, audio_encodec_flush_0100, TestSize.Level0)
  * @tc.name: audio_codec_reset_0100
  * @tc.desc: audio reset at end of stream
  * @tc.type: FUNC
- * @tc.require: I5OWXY
+ * @tc.require: I5OWXY I5OXCD
  */
 HWTEST_F(ACodecUnitTest, audio_codec_reset_0100, TestSize.Level0)
 {
@@ -170,7 +170,7 @@ HWTEST_F(ACodecUnitTest, audio_codec_reset_0100, TestSize.Level0)
  * @tc.name: audio_codec_reset_0200
  * @tc.desc: audio reset at running state
  * @tc.type: FUNC
- * @tc.require: I5OWXY
+ * @tc.require: I5OWXY I5OXCD
  */
 HWTEST_F(ACodecUnitTest, audio_codec_reset_0200, TestSize.Level0)
 {
@@ -189,7 +189,7 @@ HWTEST_F(ACodecUnitTest, audio_codec_reset_0200, TestSize.Level0)
  * @tc.name: audio_codec_SetParameter_0100
  * @tc.desc: audio codec SetParameter
  * @tc.type: FUNC
- * @tc.require: I5OWXY
+ * @tc.require: I5OWXY I5OXCD
  */
 HWTEST_F(ACodecUnitTest, audio_codec_SetParameter_0100, TestSize.Level0)
 {
@@ -210,7 +210,7 @@ HWTEST_F(ACodecUnitTest, audio_codec_SetParameter_0100, TestSize.Level0)
  * @tc.name: audio_codec_GetOutputMediaDescription_0100
  * @tc.desc: audio codec GetOutputMediaDescription
  * @tc.type: FUNC
- * @tc.require: I5OWXY
+ * @tc.require: I5OWXY I5OXCD
  */
 HWTEST_F(ACodecUnitTest, audio_codec_GetOutputMediaDescription_0100, TestSize.Level0)
 {
