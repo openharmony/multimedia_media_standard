@@ -30,6 +30,7 @@ static GType gst_video_capture_src_stream_type_get_type(void)
         {VIDEO_STREAM_TYPE_UNKNOWN, "UNKNOWN", "UNKNOWN"},
         {VIDEO_STREAM_TYPE_ES_AVC, "ES_AVC", "ES_AVC"},
         {VIDEO_STREAM_TYPE_YUV_420, "YUV_420", "YUV_420"},
+        {VIDEO_STREAM_TYPE_RGBA, "RGBA8888", "RGBA8888"},
         {0, nullptr, nullptr}
     };
     if (!surface_video_src_stream_type) {
@@ -163,6 +164,9 @@ static void gst_video_capture_src_set_stream_type(GstVideoCaptureSrc *src, gint 
         case VideoStreamType::VIDEO_STREAM_TYPE_YUV_420:
             src->stream_type = VIDEO_STREAM_TYPE_YUV_420;
             break;
+        case VideoStreamType::VIDEO_STREAM_TYPE_RGBA:
+            src->stream_type = VIDEO_STREAM_TYPE_RGBA;
+            break;
         default:
             return;
     }
@@ -190,6 +194,10 @@ static void gst_video_capture_src_set_caps(GstVideoCaptureSrc *src, int32_t pixe
         case PIXEL_FMT_YCBCR_420_SP:
             GST_INFO("input pixel foramt is nv12");
             format = "NV12";
+            break;
+        case PIXEL_FMT_RGBA_8888:
+            GST_INFO("input pixel foramt is rgba");
+            format = "RGBA";
             break;
         default:
             break;

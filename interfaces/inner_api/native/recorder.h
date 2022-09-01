@@ -36,6 +36,8 @@ enum VideoSourceType : int32_t {
     VIDEO_SOURCE_SURFACE_YUV = 0,
     /** Raw encoded data provided through {@link Surface} */
     VIDEO_SOURCE_SURFACE_ES,
+    /** RGBA video data provided through {@link Surface} */
+    VIDEO_SOURCE_SURFACE_RGBA,
     /** Invalid value */
     VIDEO_SOURCE_BUTT
 };
