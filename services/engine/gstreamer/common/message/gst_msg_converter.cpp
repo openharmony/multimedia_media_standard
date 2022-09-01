@@ -220,6 +220,26 @@ static int32_t ConvertUsedMqNumMessage(GstMessage &gstMsg, InnerMessage &innerMs
     return MSERR_OK;
 }
 
+static int32_t ConvertVideoRotationMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
+{
+    gchar *rotation = NULL;
+    gst_message_parse_video_rotation(&gstMsg, &rotation);
+    MEDIA_LOGI("Rotation is %{public}s", rotation);
+
+    std::string str(rotation);
+    std::string::size_type pos = std::string::npos;
+    if ((pos = str.find("-")) == std::string::npos) {
+        return MSERR_INVALID_VAL;
+    }
+    std::string subStr = str.substr(pos + 1);
+    int32_t rotate = std::stol(subStr, nullptr, 10);  // 10, decimalism
+    MEDIA_LOGI("Get rotate is %{public}d", rotate);
+
+    innerMsg.type = INNER_MSG_VIDEO_ROTATION;
+    innerMsg.detail1 = rotate;
+    return MSERR_OK;
+}
+
 static int32_t ConvertElementMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
 {
     const GstStructure *s = gst_message_get_structure(&gstMsg);
@@ -229,6 +249,8 @@ static int32_t ConvertElementMessage(GstMessage &gstMsg, InnerMessage &innerMsg)
         return ConvertBufferingTimeMessage(gstMsg, innerMsg);
     } else if (gst_structure_has_name(s, "message-mq-num-use-buffering")) {
         return ConvertUsedMqNumMessage(gstMsg, innerMsg);
+    } else if (gst_structure_has_name(s, "video-rotation")) {
+        return ConvertVideoRotationMessage(gstMsg, innerMsg);
     }
 
     return MSERR_OK;
