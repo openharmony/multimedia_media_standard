@@ -269,7 +269,13 @@ bool RecorderPipeline::SyncWaitEOS()
 {
     MEDIA_LOGI("Wait EOS finished........................");
     std::unique_lock<std::mutex> lock(gstPipeMutex_);
-    gstPipeCond_.wait(lock, [this] { return eosDone_ || errorState_.load(); });
+    if (errorState_.load()) {
+        static constexpr int32_t timeout = 1; // wait 1s for eos finished
+        gstPipeCond_.wait_for(lock, std::chrono::seconds(timeout), [this] { return eosDone_; });
+    } else {
+        gstPipeCond_.wait(lock, [this] { return eosDone_ || errorState_.load(); });
+    }
+    
     if (!eosDone_) {
         MEDIA_LOGE("error happened, wait eos done failed !");
         return false;
