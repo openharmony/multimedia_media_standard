@@ -23,7 +23,7 @@
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayBinState"};
     constexpr int32_t USEC_PER_MSEC = 1000;
-    constexpr uint32_t DEFAULT_POSITION_UPDATE_INTERVAL_MS = 100; // 100 ms
+    constexpr uint32_t DEFAULT_POSITION_UPDATE_INTERVAL_MS = 1000; // 1000 ms
 }
 
 namespace OHOS {
