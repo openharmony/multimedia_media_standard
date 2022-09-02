@@ -462,23 +462,10 @@ public:
     virtual int32_t SetMaxFileSize(int64_t size) = 0;
 
     /**
-     * @brief Sets the output file path.
-     *
-     * This function must be called after {@link SetOutputFormat} but before {@link Prepare} and One of them
-     * {@link SetOutputFile} must be set.
-     *
-     * @param path Indicates the output file path.
-     * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
-     * @since 1.0
-     * @version 1.0
-     */
-    virtual int32_t SetOutputPath(const std::string &path) = 0;
-
-    /**
      * @brief Sets the file descriptor (FD) of the output file.
      *
      * This function must be called after {@link SetOutputFormat} but before {@link Prepare} and One of them
-     * {@link SetOutputPath} must be set.
+     * {@link SetOutputFile} must be set.
      *
      * @param fd Indicates the FD of the file.
      * @return Returns {@link MSERR_OK} if the setting is successful; returns an error code otherwise.
@@ -491,7 +478,7 @@ public:
      * Unsupported App Usage.
      * @brief Sets the FD of the next output file.
      *
-     * If {@link SetOutputFile} is successful, call this function to set the FD of the next output file after
+     * If {@link SetNextOutputFile} is successful, call this function to set the FD of the next output file after
      * {@link RECORDER_INFO_MAX_DURATION_APPROACHING} or {@link RECORDER_INFO_MAX_FILESIZE_APPROACHING} is received.
      *
      * @param fd Indicates the FD of the next output file.

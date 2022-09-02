@@ -639,18 +639,10 @@ int32_t AudioRecorderNapi::CheckValidPath(const std::string &filePath, std::stri
 int32_t AudioRecorderNapi::SetUri(const std::string &uriPath)
 {
     CHECK_AND_RETURN_RET_LOG(recorderImpl_ != nullptr, MSERR_INVALID_OPERATION, "No memory");
-    const std::string fileHead = "file://";
     const std::string fdHead = "fd://";
     int32_t fd = -1;
 
-    if (uriPath.find(fileHead) != std::string::npos) {
-        std::string filePath = uriPath.substr(fileHead.size());
-        std::string realPath = "invalid";
-        CHECK_AND_RETURN_RET(CheckValidPath(filePath, realPath) == MSERR_OK, MSERR_INVALID_VAL);
-        CHECK_AND_RETURN_RET(!realPath.empty(), MSERR_INVALID_VAL);
-        int32_t ret = recorderImpl_->SetOutputPath(realPath);
-        CHECK_AND_RETURN_RET(ret == MSERR_OK, MSERR_INVALID_OPERATION);
-    } else if (uriPath.find(fdHead) != std::string::npos) {
+    if (uriPath.find(fdHead) != std::string::npos) {
         std::string inputFd = uriPath.substr(fdHead.size());
         CHECK_AND_RETURN_RET(StrToInt(inputFd, fd) == true, MSERR_INVALID_VAL);
         CHECK_AND_RETURN_RET(fd >= 0, MSERR_INVALID_OPERATION);
