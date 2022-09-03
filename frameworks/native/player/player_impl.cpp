@@ -230,6 +230,7 @@ int32_t PlayerImpl::SetVideoSurface(sptr<Surface> surface)
     CHECK_AND_RETURN_RET_LOG(playerService_ != nullptr, MSERR_INVALID_OPERATION, "player service does not exist..");
     CHECK_AND_RETURN_RET_LOG(surface != nullptr, MSERR_INVALID_VAL, "surface is nullptr");
 
+    surface_ = surface;
     return playerService_->SetVideoSurface(surface);
 }
 
