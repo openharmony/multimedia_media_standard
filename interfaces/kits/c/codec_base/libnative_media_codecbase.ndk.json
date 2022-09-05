@@ -16,5 +16,6 @@
     { "name": "OH_MD_KEY_VIDEO_ENCODE_BITRATE_MODE" },
     { "name": "OH_MD_KEY_PROFILE" },
     { "name": "OH_MD_KEY_AUD_CHANNEL_COUNT" },
-    { "name": "OH_MD_KEY_AUD_SAMPLE_RATE" }
+    { "name": "OH_MD_KEY_AUD_SAMPLE_RATE" },
+    { "name": "OH_MD_KEY_I_FRAME_INTERVAL" }
 ]
