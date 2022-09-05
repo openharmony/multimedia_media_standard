@@ -37,6 +37,7 @@ const char *OH_MD_KEY_VIDEO_ENCODE_BITRATE_MODE = "video_encode_bitrate_mode";
 const char *OH_MD_KEY_PROFILE = "codec_profile";
 const char *OH_MD_KEY_AUD_CHANNEL_COUNT = "channel_count";
 const char *OH_MD_KEY_AUD_SAMPLE_RATE = "sample_rate";
+const char *OH_MD_KEY_I_FRAME_INTERVAL = "i_frame_interval";
 
 #ifdef __cplusplus
 }
