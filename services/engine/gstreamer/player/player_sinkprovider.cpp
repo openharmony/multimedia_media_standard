@@ -16,7 +16,7 @@
 #include "player_sinkprovider.h"
 #include <sync_fence.h>
 #include "securec.h"
-#include "display_type.h"
+#include "surface_type.h"
 #include "param_wrapper.h"
 #include "surface_buffer_impl.h"
 #include "gst/video/gstvideometa.h"

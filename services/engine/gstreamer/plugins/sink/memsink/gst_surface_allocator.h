@@ -17,7 +17,7 @@
 #define GST_SURFACE_ALLOCATOR_H
 
 #include <gst/gst.h>
-#include "display_type.h"
+#include "surface_type.h"
 #include "gst_surface_memory.h"
 
 G_BEGIN_DECLS

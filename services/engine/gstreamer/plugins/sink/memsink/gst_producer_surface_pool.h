@@ -20,7 +20,7 @@
 #include <gst/video/video-info.h>
 #include "surface.h"
 #include "gst_surface_allocator.h"
-#include "display_type.h"
+#include "surface_type.h"
 
 G_BEGIN_DECLS
 
