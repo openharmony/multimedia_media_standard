@@ -25,9 +25,17 @@
 
 using namespace OHOS;
 using namespace OHOS::Media;
+
+namespace {
+    constexpr guint VIDEO_ROTATION_90 = 90;   // rotation, 90
+    constexpr guint VIDEO_ROTATION_180 = 180; // rotation, 180
+    constexpr guint VIDEO_ROTATION_270 = 270; // rotation, 270
+}
+
 struct _GstSurfaceMemSinkPrivate {
     OHOS::sptr<OHOS::Surface> surface;
     GstProducerSurfacePool *pool;
+    guint rotation;
 };
 
 enum {
@@ -37,6 +45,7 @@ enum {
     PROP_CACHE_BUFFERS_NUM,
     PROP_PERFORMANCE_MODE,
     PROP_VIDEO_SCALE_TYPE,
+    PROP_VIDEO_ROTATION,
 };
 
 static GstStaticPadTemplate g_sinktemplate = GST_STATIC_PAD_TEMPLATE("sink",
@@ -109,6 +118,11 @@ static void gst_surface_mem_sink_class_init(GstSurfaceMemSinkClass *klass)
         g_param_spec_uint("video-scale-type", "Video Scale Type",
             "Set video scale type for graphic",
             0, G_MAXUINT, 0, (GParamFlags)(G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS)));
+    
+    g_object_class_install_property(gobject_class, PROP_VIDEO_ROTATION,
+        g_param_spec_uint("video-rotation", "Video Rotation",
+            "Set video rotation for surface",
+            0, G_MAXUINT, 0, (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
     mem_sink_class->do_propose_allocation = gst_surface_mem_sink_do_propose_allocation;
     mem_sink_class->do_app_render = gst_surface_mem_sink_do_app_render;
@@ -126,6 +140,7 @@ static void gst_surface_mem_sink_init(GstSurfaceMemSink *sink)
     sink->priv = priv;
     sink->priv->surface = nullptr;
     sink->priv->pool = GST_PRODUCER_SURFACE_POOL_CAST(gst_producer_surface_pool_new());
+    sink->priv->rotation = 0;
     sink->prerollBuffer = nullptr;
     sink->firstRenderFrame = TRUE;
     sink->preInitPool = FALSE;
@@ -166,6 +181,24 @@ static void gst_surface_mem_sink_finalize(GObject *obj)
     G_OBJECT_CLASS(parent_class)->finalize(obj);
 }
 
+static TransformType gst_surface_mem_sink_get_rotation(guint rotation)
+{
+    // We gets the rotation direction clockwise, but Surface needs it counterclockwise
+    switch (rotation) {
+        case VIDEO_ROTATION_90: {
+            return ROTATE_270;
+        }
+        case VIDEO_ROTATION_180: {
+            return ROTATE_180;
+        }
+        case VIDEO_ROTATION_270: {
+            return ROTATE_90;
+        }
+        default:
+            return ROTATE_NONE;
+    }
+}
+
 static void gst_surface_mem_sink_set_property(GObject *object, guint propId, const GValue *value, GParamSpec *pspec)
 {
     g_return_if_fail(object != nullptr && value != nullptr);
@@ -197,6 +230,15 @@ static void gst_surface_mem_sink_set_property(GObject *object, guint propId, con
         case PROP_VIDEO_SCALE_TYPE: {
             guint video_scale_type = g_value_get_uint(value);
             g_object_set(G_OBJECT(priv->pool), "video-scale-type", video_scale_type, nullptr);
+            break;
+        }
+        case PROP_VIDEO_ROTATION: {
+            priv->rotation = g_value_get_uint(value);
+            GST_DEBUG_OBJECT(surface_sink, "set rotation: %u", priv->rotation);
+            if (priv->surface) {
+                MediaTrace trace("Surface::SetTransform");
+                (void)priv->surface->SetTransform(gst_surface_mem_sink_get_rotation(priv->rotation));
+            }
             break;
         }
         default:
@@ -233,6 +275,12 @@ static void gst_surface_mem_sink_get_property(GObject *object, guint propId, GVa
             gst_buffer_pool_config_set_allocator(config, GST_ALLOCATOR_CAST(allocator), nullptr);
             (void)gst_buffer_pool_set_config(GST_BUFFER_POOL(priv->pool), config);
             surface_sink->preInitPool = TRUE;
+            break;
+        }
+        case PROP_VIDEO_ROTATION: {
+            GST_OBJECT_LOCK(surface_sink);
+            g_value_set_uint(value, priv->rotation);
+            GST_OBJECT_UNLOCK(surface_sink);
             break;
         }
         default:
