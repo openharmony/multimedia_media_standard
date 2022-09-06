@@ -15,7 +15,7 @@
 
 #include "hdi_codec_util.h"
 #include <unordered_map>
-#include "display_type.h"
+#include "surface_type.h"
 #include "media_log.h"
 #include "media_errors.h"
 

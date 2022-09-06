@@ -22,7 +22,7 @@
 #include "surface_buffer.h"
 #include "buffer_type_meta.h"
 #include "scope_guard.h"
-#include "display_type.h"
+#include "surface_type.h"
 
 #define gst_surface_src_parent_class parent_class
 using namespace OHOS;

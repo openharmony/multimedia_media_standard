@@ -17,7 +17,7 @@
 #include <gst/gst.h>
 #include "gst_video_capture_pool.h"
 #include "media_errors.h"
-#include "display_type.h"
+#include "surface_type.h"
 #include "buffer_type_meta.h"
 
 using namespace OHOS::Media;
