@@ -181,6 +181,7 @@ void AVCodecListDemo::SetMediaDescriptionToFormat(Format &format, const std::str
         cout << "1:YUVI420" << endl;
         cout << "2:NV12" << endl;
         cout << "3:NV21" << endl;
+        cout << "4:RGBA" << endl;
     }
     (void)getline(cin, mediaDescription);
     if (mediaDescription == "") {
