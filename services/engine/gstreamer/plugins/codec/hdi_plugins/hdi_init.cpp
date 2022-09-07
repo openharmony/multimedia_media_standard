@@ -160,6 +160,9 @@ std::vector<int32_t> HdiInit::GetCodecFormats(CodecVideoPortCap &port)
             case PIXEL_FMT_YCBCR_420_P:
                 formats.push_back(YUVI420);
                 break;
+            case PIXEL_FMT_RGBA_8888:
+                formats.push_back(RGBA);
+                break;
             default:
                 MEDIA_LOGW("Unknow Format %{public}d", port.supportPixFmts[index]);
         }

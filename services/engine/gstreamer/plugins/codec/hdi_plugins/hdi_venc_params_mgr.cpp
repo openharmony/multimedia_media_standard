@@ -24,6 +24,7 @@
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "HdiVencParamsMgr"};
     constexpr uint32_t OMX_FRAME_RATE_MOVE = 16; // hdi frame rate need move 16
+    constexpr uint32_t MSEC_PER_S = 1000;
 }
 
 namespace OHOS {
@@ -83,7 +84,7 @@ void HdiVencParamsMgr::Init(CodecComponentType *handle,
     InitHdiParam(videoFormat_, verInfo_);
     inPortDef_.nPortIndex = portParam.nStartPortNumber;
     outPortDef_.nPortIndex = portParam.nStartPortNumber + 1;
-    videoFormat_.portIndex = portParam.nStartPortNumber;
+    videoFormat_.portIndex = portParam.nStartPortNumber + 1;
 }
 
 int32_t HdiVencParamsMgr::SetParameter(GstCodecParamKey key, GstElement *element)
@@ -160,7 +161,7 @@ int32_t HdiVencParamsMgr::SetInputVideoCommon(GstElement *element)
     CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "HdiSetParameter failed");
     OMX_CONFIG_FRAMERATETYPE frameRateConfig;
     InitParam(frameRateConfig, verInfo_);
-    frameRateConfig.nPortIndex = inPortDef_.nPortIndex;
+    frameRateConfig.nPortIndex = outPortDef_.nPortIndex;
     frameRateConfig.xEncodeFramerate = (uint32_t)(base->frame_rate) << OMX_FRAME_RATE_MOVE;
     HdiSetConfig(handle_, OMX_IndexConfigVideoFramerate, frameRateConfig);
     CHECK_AND_RETURN_RET_LOG(ret == HDF_SUCCESS, GST_CODEC_ERROR, "HdiSetConfig failed");
@@ -346,7 +347,7 @@ int32_t HdiVencParamsMgr::InitAvcParamters(GstElement *element)
     if (avcType.eProfile == OMX_VIDEO_AVCProfileBaseline) {
         avcType.nBFrames = 0;
         avcType.nRefFrames = 1;
-        avcType.nPFrames = (uint32_t)(base->frame_rate * base->i_frame_interval_new - 1);
+        avcType.nPFrames = (uint32_t)(base->frame_rate * base->i_frame_interval_new / MSEC_PER_S - 1);
         avcType.bEntropyCodingCABAC = OMX_FALSE;
         avcType.bWeightedPPrediction = OMX_FALSE;
         avcType.bconstIpred = OMX_FALSE;
@@ -358,7 +359,8 @@ int32_t HdiVencParamsMgr::InitAvcParamters(GstElement *element)
         avcType.nBFrames = 0;
         // when have b frame default ref frame is 2
         avcType.nRefFrames = avcType.nBFrames == 0 ? 1 : 2;
-        avcType.nPFrames = (uint32_t)(base->frame_rate * base->i_frame_interval_new) / (avcType.nBFrames + 1) - 1;
+        avcType.nPFrames =
+            (uint32_t)(base->frame_rate * base->i_frame_interval_new / MSEC_PER_S) / (avcType.nBFrames + 1) - 1;
         avcType.bEntropyCodingCABAC = OMX_TRUE;
         avcType.bWeightedPPrediction = OMX_TRUE;
         avcType.bconstIpred = OMX_TRUE;

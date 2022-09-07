@@ -31,12 +31,14 @@ static const std::unordered_map<GstCompressionFormat, OMX_VIDEO_CODINGTYPE> COMP
 
 static const std::unordered_map<GstVideoFormat, PixelFormat> FORMAT_GST_HDI = {
     {GST_VIDEO_FORMAT_NV12, PIXEL_FMT_YCBCR_420_SP},
-    {GST_VIDEO_FORMAT_NV21, PIXEL_FMT_YCRCB_420_SP}
+    {GST_VIDEO_FORMAT_NV21, PIXEL_FMT_YCRCB_420_SP},
+    {GST_VIDEO_FORMAT_RGBA, PIXEL_FMT_RGBA_8888}
 };
 
 static const std::unordered_map<PixelFormat, GstVideoFormat> FORMAT_HDI_GST = {
     {PIXEL_FMT_YCBCR_420_SP, GST_VIDEO_FORMAT_NV12},
-    {PIXEL_FMT_YCRCB_420_SP, GST_VIDEO_FORMAT_NV21}
+    {PIXEL_FMT_YCRCB_420_SP, GST_VIDEO_FORMAT_NV21},
+    {PIXEL_FMT_RGBA_8888, GST_VIDEO_FORMAT_RGBA}
 };
 
 static const std::unordered_map<GstVideoFormat, OMX_COLOR_FORMATTYPE> FORMAT_GST_OMX = {

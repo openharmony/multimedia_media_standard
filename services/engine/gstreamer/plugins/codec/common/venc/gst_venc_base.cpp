@@ -270,7 +270,7 @@ static void gst_venc_base_init(GstVencBase *self)
     self->encoder_start = FALSE;
     self->bitrate_mode = -1;
     self->codec_quality = -1;
-    self->i_frame_interval_new = -1;
+    self->i_frame_interval_new = 1000; // 1000ms I frame once
     self->codec_profile = -1;
     self->codec_level = -1;
 }

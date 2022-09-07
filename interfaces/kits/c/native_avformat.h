@@ -49,6 +49,10 @@ typedef enum OH_AVPixelFormat {
      * format from surface.
      */
     AV_PIXEL_FORMAT_SURFACE_FORMAT = 4,
+    /**
+     * RGBA8888
+     */
+    AV_PIXEL_FORMAT_RGBA = 5,
 } OH_AVPixelFormat;
 
 /**

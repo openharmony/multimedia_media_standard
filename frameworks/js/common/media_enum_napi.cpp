@@ -161,6 +161,7 @@ static const std::vector<struct JsEnumInt> g_videoPixelFormat = {
     { "NV12", VideoPixelFormat::NV12 },
     { "NV21", VideoPixelFormat::NV21 },
     { "SURFACE_FORMAT", VideoPixelFormat::SURFACE_FORMAT },
+    { "RGBA", VideoPixelFormat::RGBA },
 };
 
 static const std::vector<struct JsEnumInt> g_AVCProfile = {
