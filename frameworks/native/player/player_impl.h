@@ -57,6 +57,7 @@ public:
     int32_t Init();
 private:
     std::shared_ptr<IPlayerService> playerService_ = nullptr;
+    sptr<Surface> surface_ = nullptr;
 };
 } // namespace Media
 } // namespace OHOS
