@@ -92,6 +92,7 @@ const std::unordered_map<std::string, int> VIDEO_FORMAT_MAP = {
     {"YUVI420", YUVI420},
     {"NV12", NV12},
     {"NV21", NV21},
+    {"RGBA", RGBA},
 };
 
 const std::unordered_map<std::string, int> AUDIO_FORMAT_MAP = {

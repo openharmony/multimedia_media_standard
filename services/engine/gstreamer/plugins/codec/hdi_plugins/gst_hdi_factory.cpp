@@ -44,6 +44,7 @@ namespace {
         { NV21, "NV21" },
         { NV12, "NV12" },
         { YUVI420, "I420" },
+        { RGBA, "RGBA" },
     };
     const char *GST_CODEC_NAME = "codec_name";
 }
