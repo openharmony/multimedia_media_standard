@@ -26,6 +26,7 @@
 #include "playbin_state.h"
 #include "gst_utils.h"
 #include "media_dfx.h"
+#include "param_wrapper.h"
 
 namespace {
     constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayBinCtrlerBase"};
@@ -173,6 +174,21 @@ int32_t PlayBinCtrlerBase::SetSource(const std::shared_ptr<GstAppsrcWrap> &appsr
     return MSERR_OK;
 }
 
+bool PlayBinCtrlerBase::IsPrepareWaitEnable() const
+{
+    std::string enable;
+    int32_t res = OHOS::system::GetStringParameter("sys.media.player.prepare.wait", enable, "");
+    if (res != 0 || enable.empty()) {
+        return false;
+    }
+
+    MEDIA_LOGI("KPI-TRACE: sys.media.player.prepare.wait.enable=%{public}s", enable.c_str());
+    if (enable != "true") {
+        return false;
+    }
+    return true;
+}
+
 int32_t PlayBinCtrlerBase::Prepare()
 {
     MEDIA_LOGD("enter");
@@ -184,9 +200,16 @@ int32_t PlayBinCtrlerBase::Prepare()
 
     {
         std::unique_lock<std::mutex> condLock(condMutex_);
-        stateCond_.wait(condLock, [this]() {
-            return GetCurrState() == preparedState_ || isErrorHappened_;
-        });
+        if (IsPrepareWaitEnable()) {
+            stateCond_.wait(condLock, [this]() {
+                return GetCurrState() == preparedState_ || isErrorHappened_;
+            });
+        } else {
+            static constexpr int32_t timeout = 5;
+            stateCond_.wait_for(condLock, std::chrono::seconds(timeout), [this]() { // Prevent deadlock
+                return GetCurrState() == preparedState_ || isErrorHappened_;
+            });
+        }
     }
 
     if (GetCurrState() != preparedState_) {
