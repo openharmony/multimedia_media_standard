@@ -17,7 +17,7 @@
 #include <unordered_map>
 #include <sys/time.h>
 #include "media_log.h"
-#include "display_type.h"
+#include "surface_type.h"
 #include "surface_buffer.h"
 #include "buffer_type_meta.h"
 #include "gst_surface_allocator.h"

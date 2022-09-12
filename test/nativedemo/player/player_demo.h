@@ -20,7 +20,7 @@
 #include "player.h"
 #include "window.h"
 #include "surface.h"
-#include "display_type.h"
+#include "surface_type.h"
 #include "nocopyable.h"
 #include "media_data_source_demo.h"
 

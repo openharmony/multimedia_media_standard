@@ -18,7 +18,7 @@
 #include <fstream>
 #include <unistd.h>
 #include <sync_fence.h>
-#include "display_type.h"
+#include "surface_type.h"
 #include "securec.h"
 #include "demo_log.h"
 #include "media_errors.h"

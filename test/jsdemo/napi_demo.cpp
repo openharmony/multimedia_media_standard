@@ -18,7 +18,7 @@
 #include "scope_guard.h"
 #include "media_errors.h"
 #include "media_log.h"
-#include "display_type.h"
+#include "surface_type.h"
 #include "securec.h"
 #include "surface_utils.h"
 

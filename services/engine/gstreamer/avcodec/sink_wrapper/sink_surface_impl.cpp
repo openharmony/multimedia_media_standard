@@ -14,7 +14,7 @@
  */
 
 #include "sink_surface_impl.h"
-#include "display_type.h"
+#include "surface_type.h"
 #include "media_log.h"
 #include "scope_guard.h"
 #include "gst_surface_memory.h"

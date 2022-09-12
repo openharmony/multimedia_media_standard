@@ -17,7 +17,7 @@
 #include <hdf_base.h>
 #include "media_log.h"
 #include "media_errors.h"
-#include "display_type.h"
+#include "surface_type.h"
 #include "scope_guard.h"
 #include "hdi_codec_util.h"
 

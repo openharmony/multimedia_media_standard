@@ -16,7 +16,7 @@
 #include "gst_dec_surface.h"
 #include <sync_fence.h>
 #include "dec_surface_buffer_wrapper.h"
-#include "display_type.h"
+#include "surface_type.h"
 
 using namespace OHOS;
 namespace {

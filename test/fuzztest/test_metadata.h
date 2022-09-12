@@ -19,7 +19,7 @@
 #include "avmetadatahelper.h"
 #include "window.h"
 #include "surface.h"
-#include "display_type.h"
+#include "surface_type.h"
 
 namespace OHOS {
 namespace Media {
