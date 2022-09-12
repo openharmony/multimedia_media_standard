@@ -23,7 +23,7 @@
 #include "i_gst_codec.h"
 #include "OMX_Core.h"
 #include "OMX_Component.h"
-#include "display_type.h"
+#include "surface_type.h"
 #include "codec_component_if.h"
 #include "codec_omx_ext.h"
 

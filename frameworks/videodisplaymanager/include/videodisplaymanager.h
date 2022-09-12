@@ -19,7 +19,7 @@
 #include <refbase.h>
 #include <surface.h>
 
-#include "display_type.h"
+#include "surface_type.h"
 #include "ibuffer_producer.h"
 
 namespace OHOS {

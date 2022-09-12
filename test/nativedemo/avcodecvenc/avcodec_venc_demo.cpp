@@ -18,7 +18,7 @@
 #include <sync_fence.h>
 #include "securec.h"
 #include "demo_log.h"
-#include "display_type.h"
+#include "surface_type.h"
 #include "media_errors.h"
 
 using namespace OHOS;

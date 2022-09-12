@@ -24,7 +24,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include "display_type.h"
+#include "surface_type.h"
 
 using namespace std;
 using namespace OHOS::Media;
