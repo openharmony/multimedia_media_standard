@@ -60,7 +60,6 @@ PlayerServer::PlayerServer()
 
 PlayerServer::~PlayerServer()
 {
-    (void)Release();
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
 }
 
