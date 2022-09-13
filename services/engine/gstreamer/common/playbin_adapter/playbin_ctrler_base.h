@@ -130,6 +130,7 @@ private:
     void HandleCacheCtrlWhenNoBuffering(int32_t percent);
     void HandleCacheCtrlWhenBuffering(int32_t percent);
     void RemoveGstPlaySinkVideoConvertPlugin();
+    bool IsPrepareWaitEnable() const;
 
     std::mutex mutex_;
     std::mutex cacheCtrlMutex_;
