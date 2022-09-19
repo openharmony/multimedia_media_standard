@@ -84,10 +84,9 @@ static GstMemory *gst_consumer_surface_allocator_alloc(GstAllocator *allocator, 
 
     gst_memory_init(GST_MEMORY_CAST(mem), GST_MEMORY_FLAG_NO_SHARE,
         allocator, nullptr, surface_buffer->GetSize(), 0, 0, size);
-    constexpr int32_t usToNs = 1000;
     mem->surface_buffer = surface_buffer;
     mem->fencefd = fencefd;
-    mem->timestamp = timestamp * usToNs;
+    mem->timestamp = timestamp;
     mem->data_size = data_size;
     mem->pixel_format = pixel_format;
     mem->damage = damage;
