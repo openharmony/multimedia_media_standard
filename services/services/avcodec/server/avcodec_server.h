@@ -67,7 +67,7 @@ public:
 
 private:
     int32_t Init();
-
+    void ExitProcessor();
     AVCodecStatus status_ = AVCODEC_UNINITIALIZED;
     std::unique_ptr<IAVCodecEngine> codecEngine_;
     std::shared_ptr<AVCodecCallback> codecCb_;

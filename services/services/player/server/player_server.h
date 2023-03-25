@@ -67,6 +67,7 @@ private:
     int32_t OnReset();
     int32_t InitPlayEngine(const std::string &url);
     int32_t OnPrepare(bool async);
+    void ResetProcessor();
 
     std::unique_ptr<IPlayerEngine> playerEngine_ = nullptr;
     std::shared_ptr<PlayerCallback> playerCb_ = nullptr;
@@ -82,6 +83,7 @@ private:
     float rightVolume_ = 1.0f; // audiotrack volume range [0, 1]
     PlaybackRateMode speedMode_ = SPEED_FORWARD_1_00_X;
     std::unique_ptr<UriHelper> uriHelper_;
+    int32_t resetRet_ = 0;
 };
 } // namespace Media
 } // namespace OHOS

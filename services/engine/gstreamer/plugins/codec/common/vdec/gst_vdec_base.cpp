@@ -197,6 +197,12 @@ static void gst_vdec_base_finalize(GObject *object)
         gst_object_unref(self->outpool);
         self->outpool = nullptr;
     }
+
+    std::list<GstClockTime> tempList;
+    tempList.swap(self->pts_list);
+    std::vector<GstVideoFormat> tempVec;
+    tempVec.swap(self->formats);
+
     self->input.av_shmem_pool = nullptr;
     self->output.av_shmem_pool = nullptr;
     G_OBJECT_CLASS(parent_class)->finalize(object);
@@ -442,7 +448,6 @@ static gboolean gst_vdec_base_negotiate_format(GstVdecBase *self)
 
     GST_DEBUG_OBJECT(self, "Trying to negotiate a video format with downstream");
     GstCaps *templ_caps = gst_pad_get_pad_template_caps(GST_VIDEO_DECODER_SRC_PAD(self));
-    GST_DEBUG_OBJECT(self, "templ_caps %s", gst_caps_to_string(templ_caps));
     (void)update_caps_format(self, templ_caps);
     GstCaps *intersection = gst_pad_peer_query_caps(GST_VIDEO_DECODER_SRC_PAD(self), templ_caps);
     gst_caps_unref(templ_caps);
