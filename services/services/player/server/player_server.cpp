@@ -17,6 +17,7 @@
 #include "media_log.h"
 #include "media_errors.h"
 #include "engine_factory_repo.h"
+#include <thread>
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "PlayerServer"};
