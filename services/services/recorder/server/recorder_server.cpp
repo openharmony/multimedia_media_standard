@@ -20,6 +20,7 @@
 #include "param_wrapper.h"
 #include "accesstoken_kit.h"
 #include "ipc_skeleton.h"
+#include <thread>
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "RecorderServer"};
