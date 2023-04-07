@@ -20,6 +20,7 @@
 #include "param_wrapper.h"
 #include "accesstoken_kit.h"
 #include "ipc_skeleton.h"
+#include <thread>
 
 namespace {
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, LOG_DOMAIN, "RecorderServer"};
@@ -57,7 +58,16 @@ RecorderServer::RecorderServer()
 
 RecorderServer::~RecorderServer()
 {
+    std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&RecorderServer::ExitProcessor, this);
+    if (thread != nullptr && thread->joinable()) {
+        thread->join();
+    }
     MEDIA_LOGD("0x%{public}06" PRIXPTR " Instances destroy", FAKE_POINTER(this));
+}
+
+void RecorderServer::ExitProcessor()
+{
+    recorderEngine_ = nullptr;
 }
 
 int32_t RecorderServer::Init()
@@ -391,7 +401,10 @@ int32_t RecorderServer::Reset()
 int32_t RecorderServer::Release()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    recorderEngine_ = nullptr;
+    std::unique_ptr<std::thread> thread = std::make_unique<std::thread>(&RecorderServer::ExitProcessor, this);
+    if (thread != nullptr && thread->joinable()) {
+        thread->join();
+    }
     return MSERR_OK;
 }
 

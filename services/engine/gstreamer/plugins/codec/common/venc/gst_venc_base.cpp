@@ -105,7 +105,6 @@ static void gst_venc_base_class_init(GstVencBaseClass *klass)
 
     const gchar *sink_caps_string = GST_VIDEO_CAPS_MAKE(GST_VENC_BASE_SUPPORTED_FORMATS);
     GstCaps *sink_caps = gst_caps_from_string(sink_caps_string);
-    GST_DEBUG_OBJECT(klass, "Sink_caps %s", gst_caps_to_string(sink_caps));
     if (sink_caps != nullptr) {
         GstPadTemplate *sink_templ = gst_pad_template_new("sink", GST_PAD_SINK, GST_PAD_ALWAYS, sink_caps);
         gst_element_class_add_pad_template(element_class, sink_templ);
